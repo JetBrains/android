@@ -32,8 +32,6 @@ import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   /**
@@ -76,9 +74,8 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
       LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
-      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), myModule, this);
       LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, false);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
         ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
       ));
@@ -92,7 +89,6 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       }
       String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
       assertEquals("@layout/fragment_blank", startDestination);
-      ModuleClassLoaderManager.get().release(classLoader, this);
     });
   }
 }

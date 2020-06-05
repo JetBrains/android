@@ -180,7 +180,6 @@ public class RenderTask {
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
   @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
-  @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -225,35 +224,24 @@ public class RenderTask {
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
-    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
-    if (privateClassLoader) {
-      myModuleClassLoader = manager.getPrivate(myLayoutLib.getClassLoader(), module, this);
-    } else {
-      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(), module, this);
-    }
-    try {
-      myLayoutlibCallback =
+    myLayoutlibCallback =
         new LayoutlibCallbackImpl(
-          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, myModuleClassLoader);
-      if (ResourceIdManager.get(module).finalIdsUsed()) {
-        myLayoutlibCallback.loadAndParseRClass();
-      }
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
-      myLocale = configuration.getLocale();
-      myContext = new RenderTaskContext(module.getProject(),
-                                        module,
-                                        configuration,
-                                        moduleInfo,
-                                        renderService.getPlatform(facet));
-      myDefaultQuality = quality;
-      restoreDefaultQuality();
-      myManifestProvider = manifestProvider;
-
-      stackTraceCaptureElement.bind(this);
-    } catch (Exception ex) {
-      clearClassLoader();
-      throw ex;
+          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, privateClassLoader);
+    if (ResourceIdManager.get(module).finalIdsUsed()) {
+      myLayoutlibCallback.loadAndParseRClass();
     }
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
+    myLocale = configuration.getLocale();
+    myContext = new RenderTaskContext(module.getProject(),
+                                      module,
+                                      configuration,
+                                      moduleInfo,
+                                      renderService.getPlatform(facet));
+    myDefaultQuality = quality;
+    restoreDefaultQuality();
+    myManifestProvider = manifestProvider;
+
+    stackTraceCaptureElement.bind(this);
   }
 
   public void setQuality(float quality) {
@@ -362,9 +350,22 @@ public class RenderTask {
   }
 
   // Workaround for http://b/143378087
-  private void clearClassLoader() {
+  private void clearCompose() {
+    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      // If Compose has not been loaded, we do not need to care about disposing it
+      return;
+    }
+
     try {
-      ModuleClassLoaderManager.get().release(myModuleClassLoader, this);
+      Class<?> adapterClass = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
+      ClassLoader adapterClassClassLoader = adapterClass.getClassLoader();
+      if (!(adapterClassClassLoader instanceof ModuleClassLoader)) {
+        LOG.warn("Unexpected ClassLoader for " + CLASS_COMPOSE_VIEW_ADAPTER + ": " + adapterClassClassLoader);
+        return;
+      }
+
+      // Let ModuleClassLoaderManager know we are no longer using this ClassLoader
+      ModuleClassLoaderManager.get().release((ModuleClassLoader)adapterClassClassLoader);
     }
     catch (Throwable t) {
       LOG.warn(t); // Failure detected here will most probably cause a memory leak
@@ -411,7 +412,7 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      clearClassLoader();
+      clearCompose();
 
       return null;
     });
