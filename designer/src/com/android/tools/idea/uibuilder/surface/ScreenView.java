@@ -91,12 +91,18 @@ public class ScreenView extends ScreenViewBase {
       if (result != null) {
         ImagePool.Image image = result.getRenderedImage();
 
-        if (image.isValid()) {
+        try {
           outDimension.setSize(image.getWidth(), image.getHeight());
           // Save in case a future render fails. This way we can keep a constant size for failed
           // renders.
-          cachedDimension = new Dimension(outDimension);
+          if (cachedDimension == null) {
+            cachedDimension = new Dimension(outDimension);
+          }
+          else {
+            cachedDimension.setSize(outDimension);
+          }
           return;
+        } catch (AssertionError e) {
         }
       }
 
