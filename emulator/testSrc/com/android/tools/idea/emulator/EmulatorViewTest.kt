@@ -308,13 +308,6 @@ class EmulatorViewTest {
     }
     waitForCondition(2, TimeUnit.SECONDS) { filesOpened.isNotEmpty() }
     assertThat(Pattern.matches("Screenshot_.*\\.png", filesOpened[0].name)).isTrue()
-
-    // Check EmulatorShutdownAction.
-    executeAction("android.emulator.close", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
-    assertThat(shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
-    call.completion.get()
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(view: EmulatorView, frameNumber: Int): GrpcCallRecord {

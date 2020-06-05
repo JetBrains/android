@@ -22,7 +22,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
-import org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkAvailable
 import org.jetbrains.android.util.AndroidUtils.hasAndroidFacets
 
 /**
@@ -31,7 +30,7 @@ import org.jetbrains.android.util.AndroidUtils.hasAndroidFacets
 class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.COMBO)
+    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
     EmulatorToolWindowManager.initializeForProject(project)
   }
 
