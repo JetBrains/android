@@ -109,7 +109,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
         addStep(ChooseAndroidProjectStep(NewProjectModel()))
       }
       else {
-        addStep(createWithDefaultGallery(project!!, null, ProjectSyncInvoker.DefaultProjectSyncInvoker()))
+        addStep(createWithDefaultGallery(project!!, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker()))
       }
     }
 

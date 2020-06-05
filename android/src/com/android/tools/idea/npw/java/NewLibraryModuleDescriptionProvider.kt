@@ -32,7 +32,7 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
     override val name: String = message("android.wizard.module.new.java.or.kotlin.library")
     override val description: String = message("android.wizard.module.new.java.or.kotlin.library.description")
     override fun toString() = name
-    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
-      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, projectSyncInvoker), name)
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, moduleParent, projectSyncInvoker), name)
   }
 }

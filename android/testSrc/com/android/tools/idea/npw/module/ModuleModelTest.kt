@@ -42,7 +42,7 @@ class ModuleModelTest : AndroidGradleTestCase() {
   fun testInitFillsAllTheDataForLibraryModule() {
     loadSimpleApplication()
 
-    val libraryModuleModel = NewLibraryModuleModel(project, projectSyncInvoker).apply {
+    val libraryModuleModel = NewLibraryModuleModel(project, ":", projectSyncInvoker).apply {
       packageName.set("com.google.lib")
     }
 
