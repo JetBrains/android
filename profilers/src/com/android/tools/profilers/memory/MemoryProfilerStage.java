@@ -386,6 +386,10 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
 
       if (captureToSelect != null &&
           (captureToSelect.value.getDurationUs() != Long.MAX_VALUE || captureToSelect.value.getSelectableWhenMaxDuration())) {
+        long x = captureToSelect.x;
+        if (getHeapDumpSampleDurations().getSeries().getSeriesForRange(dataRange).stream().anyMatch(s -> s.x == x)) {
+          myAspect.changed(MemoryProfilerAspect.HEAP_DUMP_FINISHED);
+        }
         selectCaptureDuration(captureToSelect.value, loadJoiner);
       }
     }
@@ -525,6 +529,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
     switch (status.getStatus()) {
       case SUCCESS:
         setPendingCaptureStartTime(status.getStartTime());
+        myAspect.changed(MemoryProfilerAspect.HEAP_DUMP_STARTED);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", mySessionData.getPid()));
