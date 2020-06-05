@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -109,6 +110,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).hasLength(1)
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
+    emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
 
     emulator2.start()
 
@@ -135,11 +137,15 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[0].isSelected).isTrue()
 
-    // Stop the first emulator.
-    emulator1.stop()
+    // Close the panel corresponding to emulator1.
+    contentManager.removeContent(contentManager.contents[0], true)
+    val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
+    assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
     // The panel corresponding the the first emulator goes away and is replaced by the placeholder panel.
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName == "No Running Emulators" }
+    assertThat(contentManager.contents.size).isEqualTo(1)
+    assertThat(contentManager.contents[0].displayName).isEqualTo("No Running Emulators")
   }
 
   private val FakeEmulator.avdName

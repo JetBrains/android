@@ -25,6 +25,7 @@
     <facet.toolWindow id="Emulator"
                       facetIdList="android,apk"
                       anchor="right"
+                      canCloseContents="true"
                       icon="StudioIcons.Shell.ToolWindows.EMULATOR"
                       secondary="true"
                       factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
@@ -59,11 +60,6 @@
                 text="Boot Options" description="Select an Emulator boot mode"/>
         <separator/>
       </group>
-    </group>
-
-    <group id="EmulatorSecondaryToolbar" resource-bundle="">
-      <action id="android.emulator.close" class="com.android.tools.idea.emulator.actions.EmulatorShutdownAction"
-              icon="StudioIcons.Common.CLOSE" text="Close" description="Shut down the Emulator"/>
     </group>
   </actions>
 </idea-plugin>
