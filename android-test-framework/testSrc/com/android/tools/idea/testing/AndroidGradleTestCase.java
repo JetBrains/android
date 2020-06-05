@@ -50,7 +50,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
@@ -61,7 +60,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -187,21 +186,24 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
 
-      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        HeavyPlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        PlatformTestUtil.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
       myAndroidFacet = null;
       myModules = null;
     }
     finally {
       try {
-        assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
+        assertEquals(0, projectManager.getOpenProjects().length);
+      }
+      catch (Throwable e) {
+        addSuppressedException(e);
       }
       finally {
         //noinspection ThrowFromFinallyBlock
