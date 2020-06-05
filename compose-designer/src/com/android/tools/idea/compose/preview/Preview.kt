@@ -23,10 +23,9 @@ import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
 import com.android.tools.idea.common.model.updateFileContentBlocking
+import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
-import com.android.tools.idea.common.surface.SwitchingInteractionHandler
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.asLogString
@@ -103,7 +102,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Color
 import java.time.Duration
-import java.util.EnumMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.BiFunction
@@ -112,14 +110,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 import kotlin.properties.Delegates
-
-/**
- * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
- */
-private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = false,
-                                                             hasSyntaxErrors = false,
-                                                             isOutOfDate = false,
-                                                             isRefreshing = true)
 
 /**
  * Background color for the surface while "Interactive" is enabled.
@@ -230,44 +220,64 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   @Volatile
   override var availableGroups: Set<PreviewGroup> = emptySet()
 
-  private enum class InteractionMode {
-    DEFAULT,
-    INTERACTIVE,
+  /**
+   * Enum that determines the current status of the interactive preview.
+   *
+   * The transitions are are like:
+   * DISABLED -> STARTED -> READY -> STOPPING
+   *    ^                               +
+   *    |                               |
+   *    +-------------------------------+
+   */
+  private enum class InteractiveMode {
+    DISABLED,
+    /** Status when interactive has been started but the first render has not happened yet. */
+    STARTING,
+    /** Interactive is ready and running. */
+    READY,
+    /** The interactive preview is stopping but it has not been fully disposed yet. */
+    STOPPING;
+
+    fun isStartingOrReady() = this == STARTING || this == READY
   }
 
+  @Volatile
+  private var interactiveMode = InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
-  private var interactionHandler: SwitchingInteractionHandler<InteractionMode>? = null
-
-  private val isInteractive = AtomicBoolean(false)
 
   override var interactivePreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
+      val isInteractive = newValue != null
       // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
       // but we want to stop the loop first and then change the composable when disabled
-      isInteractive.set(newValue != null)
-      if (isInteractive.get()) { // Enable interactive
+      if (isInteractive) { // Enable interactive
+        interactiveMode = InteractiveMode.STARTING
         previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
         forceRefresh().invokeOnCompletion {
           ticker.start()
-          interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
+          delegateInteractionHandler.delegate = interactiveInteractionHandler
 
           if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
             // While in interactive mode, display a small ripple when clicking
             surface.enableMouseClickDisplay()
           }
           surface.background = INTERACTIVE_BACKGROUND_COLOR
+          interactiveMode = InteractiveMode.READY
         }
       }
       else { // Disable interactive
+        interactiveMode = InteractiveMode.STOPPING
         surface.background = defaultSurfaceBackground
         surface.disableMouseClickDisplay()
-        interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
+        delegateInteractionHandler.delegate = staticPreviewInteractionHandler
         ticker.stop()
         sceneComponentProvider.enabled = true
         previewElementProvider.clearInstanceIdFilter()
-        forceRefresh()
+        forceRefresh().invokeOnCompletion {
+          interactiveMode = InteractiveMode.DISABLED
+        }
       }
     }
   }
@@ -301,20 +311,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
-
+  private val delegateInteractionHandler = DelegateInteractionHandler()
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
     .showModelNames()
     .setNavigationHandler(navigationHandler)
     .setLayoutManager(GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA))
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
-    .setInteractionHandlerProvider { surface ->
-      val interactionHandlers = EnumMap<InteractionMode, InteractionHandler>(InteractionMode::class.java)
-      interactionHandlers[InteractionMode.DEFAULT] = NlInteractionHandler(surface)
-      interactionHandlers[InteractionMode.INTERACTIVE] = LayoutlibInteractionHandler(surface)
-      interactionHandler = SwitchingInteractionHandler(interactionHandlers, InteractionMode.DEFAULT)
-      interactionHandler
-    }
+    .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model -> LayoutlibSceneManager(model, surface, sceneComponentProvider)}
     .setEditable(true)
@@ -332,6 +336,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       setScreenMode(SceneMode.COMPOSE, false)
       setMaxFitIntoScale(2f) // Set fit into limit to 200%
     }
+  private val staticPreviewInteractionHandler = NlInteractionHandler(surface)
+  private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(surface) }
 
   /**
    * Default background used by the surface. This is used to restore the state after disabling the interactive preview.
@@ -409,6 +415,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   init {
     Disposer.register(this, ticker)
+
+    // Start handling events for the static preview.
+    delegateInteractionHandler.delegate = staticPreviewInteractionHandler
 
     launch {
       // Update the current build status in the background
@@ -494,12 +503,20 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     return lastBuildTimestamp in 1 until modificationStamp
   }
 
-  override fun status(): ComposePreviewManager.Status = if (isContentBeingRendered.get() ||
-                                                            DumbService.isDumb(project) ||
-                                                            GradleBuildState.getInstance(project).isBuildInProgress)
-    REFRESHING_STATUS
-  else
-    ComposePreviewManager.Status(hasErrorsAndNeedsBuild(), hasSyntaxErrors(), isOutOfDate(), false)
+  override fun status(): ComposePreviewManager.Status {
+    val isRefreshing = (isContentBeingRendered.get() ||
+                        DumbService.isDumb(project) ||
+                        GradleBuildState.getInstance(project).isBuildInProgress)
+
+    // If we are refreshing, we avoid spending time checking other conditions like errors or if the preview
+    // is out of date.
+    return ComposePreviewManager.Status(
+      !isRefreshing && hasErrorsAndNeedsBuild(),
+      !isRefreshing && hasSyntaxErrors(),
+      !isRefreshing && isOutOfDate(),
+      isRefreshing,
+      interactiveMode == InteractiveMode.READY)
+  }
 
   /**
    * Hides the preview content and shows an error message on the surface.
@@ -610,7 +627,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                  previewElement.displaySettings.name,
                                  ModelDataContext(this, previewElement),
                                  previewElement.displaySettings.showDecoration,
-                                 isInteractive.get(),
+                                 interactiveMode.isStartingOrReady(),
                                  usePrivateClassLoader(),
                                  fileContents,
                                  surface)
@@ -660,7 +677,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
                                        showDecorations = previewElement.displaySettings.showDecoration,
-                                       isInteractive = isInteractive.get(),
+                                       isInteractive = interactiveMode.isStartingOrReady(),
                                        usePrivateClassLoader = usePrivateClassLoader())
       }
 
@@ -752,7 +769,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                 // When showing decorations, show the full device size
                 configureLayoutlibSceneManager(sceneManager,
                                                showDecorations = previewElement.displaySettings.showDecoration,
-                                               isInteractive = isInteractive.get(),
+                                               isInteractive = interactiveMode.isStartingOrReady(),
                                                usePrivateClassLoader = usePrivateClassLoader())
                   .requestComposeRender()
                   .await()
@@ -774,7 +791,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
    * where it's crucial not to share the state (which includes the compose framework).
    */
-  private fun usePrivateClassLoader() = isInteractive.get() || animationInspection.get()
+  private fun usePrivateClassLoader() = interactiveMode.isStartingOrReady() || animationInspection.get()
 
   private fun forceRefresh(): Job {
     previewElements = emptyList() // This will just force a refresh
