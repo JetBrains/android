@@ -6,10 +6,6 @@ MODULE              : TestCompositeLib1.app
     MavenName           : com.test.composite1:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib1/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -21,6 +17,10 @@ MODULE              : TestCompositeLib1.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite1
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
@@ -680,10 +680,6 @@ MODULE              : TestCompositeLib1.lib
     MavenName           : com.test.composite1:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib1/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -695,6 +691,10 @@ MODULE              : TestCompositeLib1.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite1
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
@@ -1363,10 +1363,6 @@ MODULE              : TestCompositeLib3.app
     MavenName           : TestCompositeLib3:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib3/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1378,6 +1374,10 @@ MODULE              : TestCompositeLib3.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite3
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
@@ -2032,10 +2032,6 @@ MODULE              : TestCompositeLib3.lib
     MavenName           : com.test.composite3:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib3/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -2047,6 +2043,10 @@ MODULE              : TestCompositeLib3.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite3
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
@@ -2658,10 +2658,6 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -2673,6 +2669,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.compositeapp
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
@@ -3337,10 +3337,6 @@ MODULE              : project.lib
     MavenName           : com.test.composite:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -3352,6 +3348,10 @@ MODULE              : project.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite0
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]

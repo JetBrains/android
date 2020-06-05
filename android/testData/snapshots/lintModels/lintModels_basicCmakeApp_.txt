@@ -6,10 +6,6 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -21,6 +17,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]

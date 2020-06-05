@@ -6,10 +6,6 @@ MODULE              : My_First_App.app
     MavenName           : My First App:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/firstapp/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -21,6 +17,10 @@ MODULE              : My_First_App.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.firstapp
             - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
@@ -687,10 +687,6 @@ MODULE              : My_First_App.app.mysharedlibrary
     MavenName           : My First App.app:mysharedlibrary:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/shared/mysharedlibrary/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -702,6 +698,10 @@ MODULE              : My_First_App.app.mysharedlibrary
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.mysharedlibrary
             - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
