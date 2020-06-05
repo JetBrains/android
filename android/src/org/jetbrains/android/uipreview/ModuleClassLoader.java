@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -83,7 +84,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
    */
   private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = multiTransformOf(
     visitor -> new ViewMethodWrapperTransform(visitor),
-    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0)
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
+    visitor -> new ThreadLocalRenameTransform(visitor)
   );
 
   /**

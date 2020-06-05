@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
+import com.android.layoutlib.reflection.TrackingThreadLocal
 import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.rendering.RenderService
 import com.intellij.openapi.application.ApplicationManager
@@ -25,8 +25,6 @@ import com.intellij.openapi.module.Module
 import java.util.Collections
 import java.util.WeakHashMap
 
-private const val CLASS_COMPOSE_RECOMPOSER = "androidx.compose.Recomposer"
-private const val CLASS_COMPOSE_FRAMES = "androidx.compose.frames.FramesKt"
 private val DUMMY_HOLDER = Any()
 /**
  * A [ClassLoader] for the [Module] dependencies.
@@ -146,43 +144,24 @@ class ModuleClassLoaderManager {
 
     @JvmStatic
     fun get(): ModuleClassLoaderManager =
-      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java);
+      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
+  }
 
-    // TODO(b/152947285): Remove all ThreadLocals that retain ModuleClassLoader from the user code
-    //
-    // Current approach, where we are searching for particular ThreadLocals with reflection is not
-    // sustainable. We will not only fail in case compose changes its internals, but also if the user
-    // code (which we have no control on) defines static ThreadLocals as well.
-    private fun disposeClassLoaderThreadLocals(moduleClassLoader: ModuleClassLoader) {
-      // If Compose has not been loaded, we do not need to care about disposing it
-      if (!moduleClassLoader.isClassLoaded(CLASS_COMPOSE_VIEW_ADAPTER)) {
+  private fun disposeClassLoaderThreadLocals(moduleClassLoader: ModuleClassLoader) {
+    TrackingThreadLocal.clearThreadLocals(moduleClassLoader)?.let { threadLocals ->
+      if (threadLocals.isEmpty()) {
         return
       }
 
-      try {
-        val framesKtClass = moduleClassLoader.loadClass(CLASS_COMPOSE_FRAMES)
-        val recomposerClass = moduleClassLoader.loadClass(CLASS_COMPOSE_RECOMPOSER)
-
-        val threadLocalFields = listOf(
-          framesKtClass.getDeclaredField("threadFrame"),
-          framesKtClass.getDeclaredField("threadReadObservers"),
-          recomposerClass.getDeclaredField("threadRecomposer"))
-
-        threadLocalFields.forEach { it.isAccessible = true }
-
-        // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction {
-          threadLocalFields.forEach {
-            try {
-              (it[null] as ThreadLocal<*>).remove()
-            } catch (e: IllegalAccessException) {
-              LOG.warn(e) // Failure detected here will most probably cause a memory leak
-            }
+      // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction {
+        threadLocals.forEach { threadLocal ->
+          try {
+            threadLocal.remove()
+          } catch (e: Exception) {
+            LOG.warn(e) // Failure detected here will most probably cause a memory leak
           }
         }
-      }
-      catch (t: Throwable) {
-        LOG.warn(t) // Failure detected here will most probably cause a memory leak
       }
     }
   }
