@@ -51,14 +51,15 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -109,6 +110,10 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
   @Nullable private JTree myReferenceTree;
 
+  @NotNull private final JBCheckBox myGCRootCheckBox = new JBCheckBox("Show nearest GC root only", false);
+
+  @NotNull private final JPanel myRefPanel = new JPanel(new BorderLayout());
+
   @NotNull private final JBLabel myTitle = new JBLabel();
 
   @NotNull private final JBPanel myPanel = new JBPanel(new BorderLayout());
@@ -143,6 +148,14 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR));
 
     myInstanceViewers.add(new BitmapViewer());
+
+    myGCRootCheckBox.addItemListener(e -> {
+      instanceChanged();
+      myTabsPanel.setSelectedComponent(myRefPanel);
+      if (e.getStateChange() == ItemEvent.SELECTED) {
+        repeatedlyExpandFirstReference();
+      }
+    });
 
     LongFunction<String> timeFormatter = t ->
       TimeFormatter.getSemiSimplifiedClockString(timeline.convertToRelativeTimeUs(t));
@@ -239,6 +252,11 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     return myReferenceColumnTree;
   }
 
+  @VisibleForTesting
+  JBCheckBox getGCRootCheckBox() {
+    return myGCRootCheckBox;
+  }
+
   private void instanceChanged() {
     CaptureObject capture = mySelection.getSelectedCapture();
     InstanceObject instance = mySelection.getSelectedInstanceObject();
@@ -274,7 +292,10 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(capture, instance);
     if (myReferenceColumnTree != null) {
-      myTabsPanel.addTab(TITLE_TAB_REFERENCES, myReferenceColumnTree);
+      myRefPanel.removeAll();
+      myRefPanel.add(myReferenceColumnTree, BorderLayout.CENTER);
+      myRefPanel.add(myGCRootCheckBox, BorderLayout.NORTH);
+      myTabsPanel.addTab(TITLE_TAB_REFERENCES, myRefPanel);
       hasContent = true;
     }
 
@@ -437,7 +458,9 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       }
     }
 
-    final ReferenceTreeNode treeRoot = new ReferenceTreeNode(instance);
+    final ReferenceTreeNode treeRoot = myGCRootCheckBox.isSelected()
+                                       ? new NearestGCRootTreeNode(instance)
+                                       : new ReferenceTreeNode(instance);
     treeRoot.expandNode();
 
     if (comparator != null) {
@@ -530,57 +553,19 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    contextMenuInstaller.installGenericContextMenu(tree, new ContextMenuItem() {
-      @NotNull
-      @Override
-      public String getText() {
-        return "Show Nearest GC Root";
-      }
-
-      @Nullable
-      @Override
-      public Icon getIcon() {
-        return null;
-      }
-
-      @Override
-      public boolean isEnabled() {
-        return myReferenceTree != null &&
-               myReferenceTree.getSelectionPath() != null &&
-               myReferenceTree.getSelectionPath().getLastPathComponent() instanceof ReferenceTreeNode;
-      }
-
-      @Override
-      public void run() {
-        expandFirstReferenceUpToGcRoot((ReferenceTreeNode)myReferenceTree.getSelectionPath().getLastPathComponent());
-      }
-    });
-
-    tree.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (tree.getSelectionCount() == 0 && tree.getRowCount() != 0) {
-          tree.setSelectionRow(0);
-        }
-      }
-    });
-
     return tree;
   }
 
-  @VisibleForTesting
-  private void expandFirstReferenceUpToGcRoot(ReferenceTreeNode node) {
-    if (node.getAdapter().getDepth() > 0) {
+  private void repeatedlyExpandFirstReference() {
+    assert myReferenceTree != null;
+    ReferenceTreeNode node = (ReferenceTreeNode)myReferenceTree.getModel().getRoot();
+    node.expandNode();
+    while (!node.myChildren.isEmpty()) {
+      node = (ReferenceTreeNode)node.myChildren.get(0);
       node.expandNode();
-      List<MemoryObjectTreeNode<ValueObject>> children = node.myChildren;
-      if (!children.isEmpty() && children.get(0) instanceof ReferenceTreeNode) {
-        // This relies on that the reference list is always sorted by depth
-        expandFirstReferenceUpToGcRoot((ReferenceTreeNode)children.get(0));
-      }
-    } else if (myReferenceTree != null) {
-      TreePath path = new TreePath(node.getPathToRoot().toArray());
-      myReferenceTree.expandPath(path);
-      myReferenceTree.setSelectionPath(path);
     }
+    TreePath path = new TreePath(node.getPathToRoot().toArray());
+    myReferenceTree.expandPath(path);
+    myReferenceTree.setSelectionPath(path);
   }
 }
