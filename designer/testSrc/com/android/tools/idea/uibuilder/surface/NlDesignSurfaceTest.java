@@ -616,7 +616,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   /**
    * Regression test for b/144829328
    */
-  public void testComposeScreenModeBlacklist() {
+  public void testComposeScreenModeDenied() {
     mySurface.setScreenMode(SceneMode.COMPOSE, true);
 
     NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());

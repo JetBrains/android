@@ -42,8 +42,8 @@ public class AndroidGradleSpellcheckingStrategy extends GroovySpellcheckingStrat
     // strings in Gradle files that are not under the user's control: names of
     // dependencies, names of plugins, names of class path elements, etc. Turns
     // out there are a lot of different forms of these, so rather than trying to
-    // blacklist all the types of strings we don't want to spell check, instead we
-    // simply whitelist "print" and "println":
+    // list all the types of strings we don't want to spell check, instead we
+    // simply allow "print" and "println":
     if (TokenSets.STRING_LITERAL_SET.contains(element.getNode().getElementType()) &&
         !isPrint(element)) {
       // If this element references some external name, such as a dependency or an
