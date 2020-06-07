@@ -60,7 +60,7 @@ class DataBindingInspectionVerificationTest {
     "app/src/androidTest"
   )
 
-  // TODO(b/122983052): These are currently failing. Get these blacklisted files down to zero!
+  // TODO(b/122983052): These are currently failing. Get these files down to zero!
   private val excludedFiles = setOf(
     "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
     "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
@@ -139,10 +139,10 @@ class DataBindingInspectionVerificationTest {
       }
   }
 
-  @Ignore // Run this test manually if you want to generate a new blacklist
+  @Ignore // Run this test manually if you want to generate a new exclude list
   @Test
   @RunsInEdt
-  fun printBlacklistToConsole() {
+  fun printExcludedListToConsole() {
     val excludedPaths = mutableListOf<String>()
     for (entry in allFileEntriesUnderRoots) {
       try {

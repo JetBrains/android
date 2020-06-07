@@ -82,7 +82,7 @@ enum class SceneMode(val displayName: String,
         DEFAULT_SCREEN_MODE
       }
 
-      // Blacklist SCREEN_COMPOSE_ONLY as default mode.
+      // Don't allow SCREEN_COMPOSE_ONLY as default mode.
       // SCREEN_COMPOSE_ONLY should not be saved as default mode but it was for a while. This is just a
       // workaround to avoid setting that mode for users that had it saved at one point.
       // b/144829328
