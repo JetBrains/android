@@ -48,7 +48,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString(): String = name
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
       return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
@@ -95,7 +95,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true)
       return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
