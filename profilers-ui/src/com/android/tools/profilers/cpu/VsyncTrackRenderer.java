@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.DataVisualizationColors;
-import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerTrackRendererType;
@@ -40,7 +39,6 @@ public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel, Profil
                         new LineConfig(DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
                           .setStepped(true));
     JPanel panel = new JPanel(new BorderLayout());
-    panel.setBackground(StudioColorsKt.getPrimaryContentBackground());
     panel.add(lineChart);
     return panel;
   }
