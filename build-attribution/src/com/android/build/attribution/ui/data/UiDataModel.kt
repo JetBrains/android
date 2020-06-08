@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
  */
 
 interface BuildAttributionReportUiData {
+  val successfulBuild: Boolean
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData

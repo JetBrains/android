@@ -52,6 +52,7 @@ class MockUiData(
   val configurationDurationMs: Long = defaultConfigurationDurationMs,
   val tasksList: List<TestTaskUiData> = emptyList()
 ) : BuildAttributionReportUiData {
+  override val successfulBuild = true
   override var buildSummary = mockBuildOverviewData()
   override var criticalPathTasks = mockCriticalPathTasksUiData()
   override var criticalPathPlugins = mockCriticalPathPluginsUiData()
