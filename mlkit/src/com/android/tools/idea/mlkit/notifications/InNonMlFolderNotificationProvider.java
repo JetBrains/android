@@ -41,6 +41,7 @@ import com.intellij.refactoring.copy.CopyFilesOrDirectoriesHandler;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.io.IOException;
@@ -76,44 +77,48 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
     }
 
     Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module != null && !MlUtils.isModelFileInMlModelsFolder(module, file)) {
-      EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, model binding is disabled.");
-      List<NamedModuleTemplate> moduleTemplateList = ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(file);
-      if (!moduleTemplateList.isEmpty()) {
-        panel.createActionLabel("Move File", () -> {
-          MoveModelFileDialog moveModelFileDialog = new MoveModelFileDialog(moduleTemplateList);
-          if (moveModelFileDialog.showAndGet()) {
-            WriteAction.run(() -> {
-              VirtualFile mlVirtualDir = null;
-              try {
-                mlVirtualDir = VfsUtil.createDirectoryIfMissing(moveModelFileDialog.getSelectedMlDirectoryPath());
-                if (mlVirtualDir != null) {
-                  PsiDirectory mlPsiDir = PsiDirectoryFactory.getInstance(project).createDirectory(mlVirtualDir);
-                  if (!CopyFilesOrDirectoriesHandler.checkFileExist(
-                    mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
-                    file.move(this, mlVirtualDir);
-                    EditorNotifications.getInstance(project).updateNotifications(file);
-                    LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
-                  }
-                }
+    if (module == null || MlUtils.isModelFileInMlModelsFolder(module, file)) {
+      return null;
+    }
+
+    List<NamedModuleTemplate> moduleTemplateList = ContainerUtil.filter(
+      ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(file),
+      template -> !template.getPaths().getMlModelsDirectories().isEmpty());
+    if (moduleTemplateList.isEmpty()) {
+      return null;
+    }
+
+    EditorNotificationPanel panel = new EditorNotificationPanel();
+    panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, model binding is disabled.");
+    panel.createActionLabel("Move File", () -> {
+      MoveModelFileDialog moveModelFileDialog = new MoveModelFileDialog(moduleTemplateList);
+      if (moveModelFileDialog.showAndGet()) {
+        WriteAction.run(() -> {
+          VirtualFile mlVirtualDir = null;
+          try {
+            mlVirtualDir = VfsUtil.createDirectoryIfMissing(moveModelFileDialog.getSelectedMlDirectoryPath());
+            if (mlVirtualDir != null) {
+              PsiDirectory mlPsiDir = PsiDirectoryFactory.getInstance(project).createDirectory(mlVirtualDir);
+              if (!CopyFilesOrDirectoriesHandler.checkFileExist(
+                mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
+                file.move(this, mlVirtualDir);
+                EditorNotifications.getInstance(project).updateNotifications(file);
+                LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
               }
-              catch (IOException e) {
-                Logger.getInstance(InNonMlFolderNotificationProvider.class)
-                  .error(String.format("Error moving %s to %s.", file, mlVirtualDir), e);
-              }
-            });
+            }
+          }
+          catch (IOException e) {
+            Logger.getInstance(InNonMlFolderNotificationProvider.class)
+              .error(String.format("Error moving %s to %s.", file, mlVirtualDir), e);
           }
         });
       }
-      panel.createActionLabel("Hide notification", () -> {
-        fileEditor.putUserData(HIDDEN_KEY, "true");
-        EditorNotifications.getInstance(project).updateNotifications(file);
-      });
-      return panel;
-    }
-
-    return null;
+    });
+    panel.createActionLabel("Hide notification", () -> {
+      fileEditor.putUserData(HIDDEN_KEY, "true");
+      EditorNotifications.getInstance(project).updateNotifications(file);
+    });
+    return panel;
   }
 
   private static class MoveModelFileDialog extends DialogWrapper {
