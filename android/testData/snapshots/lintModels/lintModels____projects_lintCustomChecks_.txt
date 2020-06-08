@@ -31,17 +31,17 @@ MODULE              : project.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::library:unspecified
+                    artifacts::library  : null => artifacts::library:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::library:unspecified
+                    artifacts::library  : null => artifacts::library:unspecified
             - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debug/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::library:unspecified
+                    artifacts::library  : null => artifacts::library:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::library:unspecified
+                    artifacts::library  : null => artifacts::library:unspecified
             - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.app.test
@@ -52,7 +52,7 @@ MODULE              : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::library:unspecified
+                artifacts::library  : null => artifacts::library:unspecified
             PackageDependencies
         - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -127,9 +127,9 @@ MODULE              : project.library
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::library:unspecified
+                    artifacts::library  : null => artifacts::library:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::library:unspecified
+                    artifacts::library  : null => artifacts::library:unspecified
             - ClassOutputs      : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.library.test
@@ -140,9 +140,9 @@ MODULE              : project.library
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::library:unspecified
+                artifacts::library  : null => artifacts::library:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::library:unspecified
+                artifacts::library  : null => artifacts::library:unspecified
         - ClassOutputs      : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
@@ -216,9 +216,9 @@ MODULE              : project.library-remote
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::library-remote:unspecified
+                    artifacts::library-remote     : null => artifacts::library-remote:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::library-remote:unspecified
+                    artifacts::library-remote     : null => artifacts::library-remote:unspecified
             - ClassOutputs      : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.library.test
@@ -229,9 +229,9 @@ MODULE              : project.library-remote
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::library-remote:unspecified
+                artifacts::library-remote     : null => artifacts::library-remote:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::library-remote:unspecified
+                artifacts::library-remote     : null => artifacts::library-remote:unspecified
         - ClassOutputs      : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
