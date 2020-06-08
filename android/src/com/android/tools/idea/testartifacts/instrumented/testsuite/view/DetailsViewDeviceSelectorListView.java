@@ -136,6 +136,7 @@ public class DetailsViewDeviceSelectorListView {
 
     private final EmptyBorder myEmptyBorder = JBUI.Borders.empty(5, 10);
     private final JPanel myCellRendererComponent = new JPanel(new BorderLayout());
+    private final JPanel myDeviceLabelPanel = new JPanel();
     private final JLabel myDeviceLabel = new JLabel();
     private final JLabel myTestResultLabel = new JLabel();
 
@@ -143,13 +144,12 @@ public class DetailsViewDeviceSelectorListView {
     private AndroidTestResults myTestResults;
 
     private AndroidDeviceListCellRenderer() {
-      JPanel left = new JPanel();
-      left.setLayout(new BoxLayout(left, BoxLayout.X_AXIS));
+      myDeviceLabelPanel.setLayout(new BoxLayout(myDeviceLabelPanel, BoxLayout.X_AXIS));
       setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-      left.add(this);
-      left.add(myDeviceLabel);
+      myDeviceLabelPanel.add(this);
+      myDeviceLabelPanel.add(myDeviceLabel);
 
-      myCellRendererComponent.add(left, BorderLayout.WEST);
+      myCellRendererComponent.add(myDeviceLabelPanel, BorderLayout.WEST);
       myCellRendererComponent.add(myTestResultLabel, BorderLayout.EAST);
       GuiUtils.setStandardLineBorderToPanel(myCellRendererComponent, 0, 0, 1, 0);
     }
@@ -166,6 +166,12 @@ public class DetailsViewDeviceSelectorListView {
                                                   boolean cellHasFocus) {
       super.getListCellRendererComponent(list, " ", index, isSelected, cellHasFocus);
 
+      myCellRendererComponent.setBackground(list.getBackground());
+      myCellRendererComponent.setForeground(list.getForeground());
+
+      myDeviceLabelPanel.setBackground(list.getBackground());
+      myDeviceLabelPanel.setForeground(list.getForeground());
+
       if (!(value instanceof AndroidDevice)) {
         return myCellRendererComponent;
       }
@@ -177,6 +183,8 @@ public class DetailsViewDeviceSelectorListView {
       myDeviceLabel.setIcon(getIconForDeviceType(device.getDeviceType()));
       myDeviceLabel.setIconTextGap(10);
       myDeviceLabel.setBorder(myEmptyBorder);
+      myDeviceLabel.setBackground(list.getBackground());
+      myDeviceLabel.setForeground(list.getForeground());
 
       if (myTestResults != null) {
         myTestResultLabel.setIcon(
@@ -185,6 +193,8 @@ public class DetailsViewDeviceSelectorListView {
         myTestResultLabel.setIcon(null);
       }
       myTestResultLabel.setBorder(myEmptyBorder);
+      myTestResultLabel.setBackground(list.getBackground());
+      myTestResultLabel.setForeground(list.getForeground());
 
       return myCellRendererComponent;
     }
