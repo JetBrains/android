@@ -62,7 +62,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -101,7 +101,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -145,7 +145,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -186,7 +186,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -237,7 +237,7 @@ MODULE              : My_First_App.app
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -818,7 +818,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -857,7 +857,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -906,7 +906,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -943,7 +943,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
