@@ -17,32 +17,29 @@ package com.android.tools.idea.gradle.project.importing;
 
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
 import com.intellij.projectImport.ProjectImportProvider;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link ProjectImportProvider} with ability to import Android Gradle projects.
  * This is used by VCS when checking out a project and delegates to our {@link  GradleProjectImporter}.
  */
-public class AndroidGradleProjectImportProvider extends ProjectImportProvider {
-
+public final class AndroidGradleProjectImportProvider extends ProjectImportProvider {
   @Override
   protected ProjectImportBuilder doGetBuilder() {
     return ProjectImportBuilder.EXTENSIONS_POINT_NAME.findExtensionOrFail(AndroidGradleImportBuilder.class);
   }
 
-  public static class AndroidGradleImportBuilder extends ProjectImportBuilder<String> {
+  public static final class AndroidGradleImportBuilder extends ProjectImportBuilder<String> {
     @NotNull
     @Override
     public String getName() {
@@ -55,17 +52,8 @@ public class AndroidGradleProjectImportProvider extends ProjectImportProvider {
     }
 
     @Override
-    public List<String> getList() {
-      return null;
-    }
-
-    @Override
     public boolean isMarked(String element) {
       return false;
-    }
-
-    @Override
-    public void setList(List<String> list) throws ConfigurationException {
     }
 
     @Override
