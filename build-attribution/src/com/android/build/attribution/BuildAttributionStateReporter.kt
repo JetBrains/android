@@ -114,7 +114,7 @@ class BuildAttributionStateReporterImpl(
   }
 
   private fun newStateOnBuildFail(): State = when (state) {
-    NO_DATA_BUILD_RUNNING -> NO_DATA_BUILD_FAILED_TO_FINISH
+    NO_DATA_BUILD_RUNNING, REPORT_DATA_READY -> NO_DATA_BUILD_FAILED_TO_FINISH
     else -> state
   }
 
