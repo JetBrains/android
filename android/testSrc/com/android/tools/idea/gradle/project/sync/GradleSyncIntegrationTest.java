@@ -27,7 +27,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
@@ -62,7 +61,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -71,14 +69,11 @@ import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
@@ -213,28 +208,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
     assertNotNull(gradleModel);
     assertEquals(":", gradleModel.getGradlePath());
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=224985
-  public void testNdkProjectSync() throws Exception {
-    loadProject(HELLO_JNI);
-
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-    NdkFacet ndkFacet = NdkFacet.getInstance(appModule);
-    assertNotNull(ndkFacet);
-
-    ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
-    VirtualFile[] roots = rootManager.getSourceRoots(false /* do not include tests */);
-
-    boolean cppSourceFolderFound = false;
-    for (VirtualFile root : roots) {
-      if (root.getName().equals("cpp")) {
-        cppSourceFolderFound = true;
-        break;
-      }
-    }
-
-    assertTrue(cppSourceFolderFound);
   }
 
   public void testWithUserDefinedLibrarySources() throws Exception {
@@ -718,20 +691,6 @@ b/155929877 */
 b/154962759 */
   }
 
-  public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
-    loadProject(HELLO_JNI);
-    // Verify artifacts is not empty.
-    assertThat(getNativeArtifacts()).isNotEmpty();
-
-    // Write empty CMakeLists file so that no artifacts can be built.
-    File cmakeFile = new File(getProjectFolderPath(), join("app", "src", "main", "cpp", "CMakeLists.txt"));
-    writeToFile(cmakeFile, "");
-    requestSyncAndWait();
-
-    // Verify Ndk model doesn't contain any artifact.
-    assertThat(getNativeArtifacts()).isEmpty();
-  }
-
   public void testWithPreSyncCheckFailure() throws Exception {
     Project project = getProject();
 
@@ -852,26 +811,6 @@ b/154962759 */
     assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
   }
 
-  public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
-    loadProject(HELLO_JNI);
-
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
-    File appBuildFile = getBuildFilePath("app");
-
-    // Set the ndkVersion to something that doesn't exist.
-    appendToFile(appBuildFile, "android.ndkVersion 'i am a good version'");
-
-    List<SyncIssueData> expectedFailures = requestSyncAndGetExpectedSyncIssueErrors();
-    assertThat(expectedFailures).hasSize(1);
-    assertThat(expectedFailures.get(0).getMessage()).isEqualTo("Requested NDK version 'i am a good version' could not be parsed");
-
-
-    // Also check the notification is emitted correctly.
-    List<NotificationData> notifications = syncMessages.getNotifications();
-    assertThat(notifications).hasSize(1);
-    assertThat(notifications.get(0).getMessage()).startsWith("Requested NDK version 'i am a good version' could not be parsed\n");
-  }
-
   public void testKaptIsEnabled() throws Exception {
     loadProject(KOTLIN_KAPT);
 
@@ -939,14 +878,6 @@ b/154962759 */
     requestSyncAndWait();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
     assertThat(daemonStatus).isNotEmpty();
-  }
-
-  @NotNull
-  private List<NativeArtifact> getNativeArtifacts() {
-    return NdkModuleModel.get(getModule("app")).getVariants().stream()
-      .map(it -> it.getArtifacts())
-      .flatMap(Collection::stream)
-      .collect(toList());
   }
 
   private boolean isModulePerSourceSet() {
