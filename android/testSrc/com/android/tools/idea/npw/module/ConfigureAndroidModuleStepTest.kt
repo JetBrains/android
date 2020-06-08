@@ -73,7 +73,7 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val basePackage = "com.example"
-    val newModuleModel = NewAndroidModuleModel(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val newModuleModel = NewAndroidModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -158,7 +158,7 @@ class ConfigureAndroidModuleStepTest {
     val disposable = projectRule.fixture.projectDisposable
     val project = projectRule.project
 
-    val newModuleModel = NewAndroidModuleModel(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val newModuleModel = NewAndroidModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title").apply {
       registerValidators()
     }

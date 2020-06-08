@@ -34,7 +34,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val icon: Icon = AndroidIcons.Wizards.EclipseModule
     override val name: String = message("android.wizard.module.import.eclipse.title")
     override val description: String = message("android.wizard.module.import.eclipse.description")
-    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
       SourceToGradleModuleStep(SourceToGradleModuleModel(project, projectSyncInvoker))
   }
 
@@ -42,7 +42,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val icon: Icon = AndroidIcons.Wizards.GradleModule
     override val name: String = message("android.wizard.module.import.gradle.title")
     override val description: String = message("android.wizard.module.import.gradle.description")
-    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
       SourceToGradleModuleStep(SourceToGradleModuleModel(project, projectSyncInvoker))
   }
 
@@ -50,7 +50,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val icon: Icon = AndroidIcons.Wizards.AndroidModule
     override val name: String = message("android.wizard.module.import.archive.title")
     override val description: String = message("android.wizard.module.import.archive.description")
-    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
       ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(project, projectSyncInvoker))
   }
 }

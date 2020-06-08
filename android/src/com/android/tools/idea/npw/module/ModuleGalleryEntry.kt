@@ -43,5 +43,5 @@ interface ModuleGalleryEntry {
   /**
    * Returns a new instance of a wizard step that will allow the user to edit the details of this module entry
    */
-  fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*>
+  fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*>
 }

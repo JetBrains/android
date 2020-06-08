@@ -35,12 +35,9 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String = message("android.wizard.module.new.dynamic.module.description")
 
     override fun toString() = name
-    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(
-        DynamicFeatureModel(project, moduleParent, projectSyncInvoker, false, name, description),
-        basePackage
-      )
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, projectSyncInvoker, false, name, description), basePackage)
     }
   }
 
@@ -50,12 +47,9 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String = message("android.wizard.module.new.dynamic.module.instant.description")
 
     override fun toString() = name
-    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(
-        DynamicFeatureModel(project, moduleParent, projectSyncInvoker, true, name, description),
-        basePackage
-      )
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, projectSyncInvoker, true, name, description), basePackage)
     }
   }
 }

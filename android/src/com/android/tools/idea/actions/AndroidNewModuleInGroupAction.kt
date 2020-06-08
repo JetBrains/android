@@ -38,9 +38,9 @@ class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a n
     e.presentation.isVisible = e.place != MAIN_MENU && (!moduleGroups.isNullOrEmpty() || !modules.isNullOrEmpty())
   }
 
-  override fun getModulePath(e: AnActionEvent): String {
-    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return ":"
+  override fun getModulePath(e: AnActionEvent): String? {
+    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return null
 
-    return getGradleModulePath(module) ?: ":"
+    return getGradleModulePath(module)
   }
 }

@@ -33,10 +33,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
 
 class NewLibraryModuleModel(
-  project: Project,
-  moduleParent: String,
-  projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel("lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker), moduleParent = moduleParent) {
+  project: Project, projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel("lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   @JvmField
   val className = StringValueProperty("MyClass")
 

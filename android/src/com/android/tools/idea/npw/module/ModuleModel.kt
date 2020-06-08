@@ -50,7 +50,7 @@ abstract class ModuleModel(
   _template: NamedModuleTemplate = with(projectModelData) {
     createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name)
   },
-  val moduleParent: String
+  val moduleParent: String? = null
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)

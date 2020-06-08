@@ -89,7 +89,7 @@ interface ModuleModelData : ProjectModelData {
 class NewAndroidModuleModel(
   projectModelData: ProjectModelData,
   template: NamedModuleTemplate,
-  moduleParent: String,
+  moduleParent: String?,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
   override val isLibrary: Boolean = false
@@ -117,7 +117,7 @@ class NewAndroidModuleModel(
   // TODO(qumeric): replace constructors by factories
   constructor(
     project: Project,
-    moduleParent: String,
+    moduleParent: String?,
     projectSyncInvoker: ProjectSyncInvoker,
     template: NamedModuleTemplate,
     isLibrary: Boolean = false
@@ -130,14 +130,12 @@ class NewAndroidModuleModel(
   )
 
   constructor(
-    projectModel: NewProjectModel,
-    moduleParent: String,
-    template: NamedModuleTemplate,
+    projectModel: NewProjectModel, template: NamedModuleTemplate,
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   ) : this(
     projectModelData = projectModel,
     template = template,
-    moduleParent = moduleParent,
+    moduleParent = null,
     formFactor = formFactor
   ) {
     multiTemplateRenderer.incrementRenders()
