@@ -212,6 +212,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun setUpSchemaTree(tree: Tree) {
     tree.cellRenderer = SchemaTreeCellRenderer()
 
+    tree.isRootVisible = false
     tree.model = DefaultTreeModel(null)
     tree.toggleClickCount = 0
     tree.emptyText.text = DatabaseInspectorBundle.message("nothing.to.show")
