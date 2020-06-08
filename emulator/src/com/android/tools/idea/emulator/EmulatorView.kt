@@ -319,7 +319,7 @@ class EmulatorView(
       computeRotatedDisplaySize(emulatorConfig, rotation)
     }
     else {
-      skin.getRotatedFrameSize(rotation)
+      skin.getRotatedFrameSize(rotation, emulator.emulatorConfig.displaySize)
     }
   }
 
