@@ -427,7 +427,7 @@ public final class StudioFlags {
     "applychanges.variablereinitialization",
     "Use ART's new variable reinitializaiton extension for Apply Changes.",
     "Requires applychanges.structuralredefinition to be true.",
-    false);
+    true);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
