@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.chart.statechart.StateChartTextConverter;
+import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
@@ -49,9 +50,9 @@ public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameSt
         case BAD:
           return isMouseOver ? ProfilerColors.SLOW_FRAME_COLOR_HIGHLIGHTED : ProfilerColors.SLOW_FRAME_COLOR;
         case GOOD:
-          return isMouseOver ? ProfilerColors.NORMAL_FRAME_COLOR_HIGHLIGHTED : ProfilerColors.NORMAL_FRAME_COLOR;
+          return DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isMouseOver);
         default:
-          return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
+          return ProfilerColors.CPU_STATECHART_DEFAULT_STATE;
       }
     }
   }
