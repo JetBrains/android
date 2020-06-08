@@ -22,6 +22,7 @@ import com.android.tools.idea.emulator.FakeEmulatorRule
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.google.common.truth.Truth.assertThat
@@ -74,6 +75,9 @@ class FindEmulatorAndSetupRetentionTest {
           assertThat(snapshotFile.exists()).isTrue()
           assertThat(snapshotFile.canRead()).isTrue()
           return snapshotFile
+        }
+        if (dataId == PACKAGE_NAME_KEY.name) {
+          return projectRule.project.name
         }
         if (dataId == RETENTION_ON_FINISH_KEY.name) {
           return object: Runnable {
