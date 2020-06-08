@@ -38,7 +38,7 @@ import javax.swing.JComponent
  */
 class ChooseModuleTypeStep(
   private val project: Project,
-  private val moduleParent: String,
+  private val moduleParent: String?,
   moduleGalleryEntries: List<ModuleGalleryEntry>,
   private val projectSyncInvoker: ProjectSyncInvoker
 ) : ModelWizardStep.WithoutModel(message("android.wizard.module.new.module.header")) {
@@ -53,7 +53,7 @@ class ChooseModuleTypeStep(
   override fun getComponent(): JComponent = rootPanel
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> = moduleGalleryEntryList.map {
-    it.createStep(project, moduleParent, projectSyncInvoker).also { step ->
+    it.createStep(project, projectSyncInvoker, moduleParent).also { step ->
       moduleDescriptionToStepMap[it] = step
     }
   }
@@ -103,7 +103,7 @@ fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): List<Modu
   }
 }
 
-fun createWithDefaultGallery(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): ChooseModuleTypeStep {
+fun createWithDefaultGallery(project: Project, moduleGroup: String?, projectSyncInvoker: ProjectSyncInvoker): ChooseModuleTypeStep {
   val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project) }
-  return ChooseModuleTypeStep(project, moduleParent, moduleDescriptions, projectSyncInvoker)
+  return ChooseModuleTypeStep(project, moduleGroup, moduleDescriptions, projectSyncInvoker)
 }

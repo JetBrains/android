@@ -323,7 +323,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
           context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
           var synced = false
           val chooseModuleTypeStep = // TODO(b/134652202)
-              createWithDefaultGallery(context.project.ideProject, ":", object: ProjectSyncInvoker {
+              createWithDefaultGallery(context.project.ideProject, null, object: ProjectSyncInvoker {
                 override fun syncProject(project: Project) { synced = true } })
           context.applyRunAndReparse {
             StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
