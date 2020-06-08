@@ -934,14 +934,14 @@ public final class StudioFlags {
     COMPOSE, "preview.animated.enable",
     "Enable animated compose preview",
     "If enabled, a user can switch compose preview to be animated",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
     COMPOSE, "preview.animated.click.enable",
     "Enable displaying clicks on the animated preview",
     "If enabled, clicking on the animated preview will generate a ripple",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
