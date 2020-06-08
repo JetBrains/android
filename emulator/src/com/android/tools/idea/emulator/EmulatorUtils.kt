@@ -86,6 +86,13 @@ internal fun Dimension.scaled(scale: Double): Dimension {
 }
 
 /**
+ * Returns this [Dimension] scaled independently along X and Y axes.
+ */
+internal fun Dimension.scaled(scaleX: Double, scaleY: Double): Dimension {
+  return if (scaleX == 1.0 && scaleY == 1.0) this else Dimension(width.scaled(scaleX), height.scaled(scaleY))
+}
+
+/**
  * Returns this [Dimension] rotated according to [rotation].
  */
 internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
