@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.PlatformTestUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
@@ -49,6 +50,8 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
     val italic = property.flag(TextStyle.VALUE_ITALIC)
 
     italic.value = "true"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(property.value).isEqualTo(TextStyle.VALUE_BOLD + "|" + TextStyle.VALUE_ITALIC)
     assertThat(property.maskValue).isEqualTo(3)
     assertThat(property.formattedValue).isEqualTo("[bold, italic]")
@@ -61,7 +64,11 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
     val italic = property.flag(TextStyle.VALUE_ITALIC)
 
     bold.value = "false"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     italic.value = "true"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(property.value).isEqualTo(TextStyle.VALUE_ITALIC)
     assertThat(property.maskValue).isEqualTo(2)
     assertThat(property.formattedValue).isEqualTo("[italic]")
