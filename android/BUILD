@@ -227,12 +227,6 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
         },
-        "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            # Sync error with cmake (b/152814925)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.project.model.NdkModuleModelTest.testVariantAbiNames",
-        },
         "gradle.variant.view.BuildVariantUpdaterIntegTest": {
             "data": ["//prebuilts/studio/sdk:ndk"],
             # Sync error with cmake (b/152814925)
