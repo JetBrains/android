@@ -58,5 +58,5 @@ open class AndroidNewModuleAction : AnAction, DumbAware {
   }
 
   // Overwritten by subclasses to return the module path
-  protected open fun getModulePath(e: AnActionEvent): String? = null
+  protected open fun getModulePath(e: AnActionEvent): String = ":"
 }

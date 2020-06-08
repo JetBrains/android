@@ -35,11 +35,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 
 class DynamicFeatureModel(
   project: Project,
+  moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
   val isInstant: Boolean,
   val templateName: String,
-  val templateDescription: String,
-  moduleParent: String? = null
+  val templateDescription: String
 ) : ModuleModel(
   "dynamicfeature",
   "New Dynamic Feature Module",
