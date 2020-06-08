@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -35,7 +36,6 @@ import java.awt.Graphics2D
 import java.awt.Insets
 import java.awt.Rectangle
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 /**
@@ -104,8 +104,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   /**
    * This label displays the [SceneView] model if there is any
    */
-  private val modelNameLabel = JLabel().apply {
+  private val modelNameLabel = JBLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+    isEnabled = false
   }
 
   val positionableAdapter = object : PositionableContent() {
