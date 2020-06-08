@@ -38,9 +38,9 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   @JvmField
   val formFactor = ObjectValueProperty(FormFactor.Mobile)
   private val newModuleModel = NewAndroidModuleModel(
-    projectModel,
-    createDummyTemplate(),
-    formFactor
+    projectModel = projectModel,
+    template = createDummyTemplate(),
+    formFactor = formFactor
   )
 
   /**
@@ -118,7 +118,7 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
   // Note: The companion Module is always a Mobile app
   val moduleName = getModuleName(FormFactor.Mobile)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewAndroidModuleModel(projectModel, namedModuleTemplate)
+  val companionModuleModel = NewAndroidModuleModel(projectModel = projectModel, template = namedModuleTemplate)
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel
