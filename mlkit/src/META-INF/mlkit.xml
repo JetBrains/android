@@ -28,6 +28,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.InNonMlFolderNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.BuildFeatureOffNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.DependenciesTooLowNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.LowAgpVersionNotificationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
