@@ -1219,6 +1219,22 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     ))
   }
 
+  fun testClosedDatabasesAreRemovedOnceReopened() {
+    // Prepare
+    val db1 = SqliteDatabaseId.fromLiveDatabase("db", 1)
+
+    // Act
+    mockDatabaseInspectorModel.removeDatabaseSchema(db1)
+    mockDatabaseInspectorModel.addDatabaseSchema(db1, testSqliteSchema1)
+
+    // Assert
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase (db1, false), null, 0)))
+    verify(mockSqliteView).updateDatabases(listOf(
+      DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, true), testSqliteSchema1, 0),
+      DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, false))
+    ))
+  }
+
   fun testKeepConnectionOpenUpdatesSuccessfully() {
     // Prepare
     val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {

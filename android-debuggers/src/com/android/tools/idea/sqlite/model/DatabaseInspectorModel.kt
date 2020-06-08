@@ -73,6 +73,7 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   override fun addDatabaseSchema(databaseId: SqliteDatabaseId, sqliteSchema: SqliteSchema) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
+    closeDatabases.remove(databaseId)
     openDatabases[databaseId] = sqliteSchema
     listeners.forEach { it.onDatabasesChanged(openDatabases.keys.toList(), closeDatabases.toList()) }
   }
