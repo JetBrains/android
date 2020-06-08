@@ -142,11 +142,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return Collections.emptyList(); // Error is already logged by getEmbeddedLayoutLibPath
     }
 
-    String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-coroutines.jar");
+    String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-extensions.jar");
     try {
       return Lists.newArrayList(SdkUtils.fileToUrl(new File(layoutlibDistributionPath, relativeCoroutineLibPath)));
     } catch (MalformedURLException e) {
-      LOG.error("Failed to find layoutlib-coroutines library", e);
+      LOG.error("Failed to find layoutlib-extensions library", e);
       return Collections.emptyList();
     }
   }
