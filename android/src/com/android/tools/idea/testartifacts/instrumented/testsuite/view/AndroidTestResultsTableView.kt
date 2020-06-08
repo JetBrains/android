@@ -36,6 +36,8 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AnimatedIcon
+import com.intellij.ui.Gray
+import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
@@ -182,12 +184,18 @@ interface AndroidTestResultsTableListener {
 /**
  * Returns an icon which represents a given [androidTestResult].
  */
-fun getIconFor(androidTestResult: AndroidTestCaseResult?): Icon? {
+@JvmOverloads
+fun getIconFor(androidTestResult: AndroidTestCaseResult?,
+               animationEnabled: Boolean = true): Icon? {
   return when(androidTestResult) {
     AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
-    AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
+    AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestIgnored
     AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
-    AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
+    AndroidTestCaseResult.IN_PROGRESS -> if (animationEnabled) {
+      SMPoolOfTestIcons.RUNNING_ICON
+    } else {
+      AllIcons.Process.Step_1
+    }
     AndroidTestCaseResult.CANCELLED -> SMPoolOfTestIcons.TERMINATED_ICON
     else -> null
   }
@@ -200,11 +208,13 @@ fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
   return when(androidTestResult) {
     AndroidTestCaseResult.PASSED -> ColorProgressBar.GREEN
     AndroidTestCaseResult.FAILED -> ColorProgressBar.RED_TEXT
-    AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
+    AndroidTestCaseResult.SKIPPED -> SKIPPED_TEST_TEXT_COLOR
     AndroidTestCaseResult.CANCELLED -> ColorProgressBar.RED_TEXT
     else -> null
   }
 }
+
+private val SKIPPED_TEST_TEXT_COLOR = JBColor(Gray._130, Gray._200)
 
 /**
  * An internal swing view component implementing AndroidTestResults table view.
