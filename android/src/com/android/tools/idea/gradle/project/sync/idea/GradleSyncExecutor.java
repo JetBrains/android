@@ -56,6 +56,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -159,7 +160,7 @@ public class GradleSyncExecutor {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(GradleSettings.getInstance(project));
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, externalProjectPath);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
     GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, projectSettings.resolveGradleVersion());
     GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
