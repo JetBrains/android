@@ -24,7 +24,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.invokeAndWaitIfNeed
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -184,7 +184,7 @@ class SyncUtilTest {
     startThreadLatch.await(1, TimeUnit.SECONDS)
     assertEquals(0, callCount.get())
     latch.countDown()
-    invokeAndWaitIfNeed { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    invokeAndWaitIfNeeded { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertEquals(1, callCount.get())
 
     val latch2 = CountDownLatch(1)
