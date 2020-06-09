@@ -31,7 +31,7 @@ class SystemTraceSurfaceflingerManagerTest {
 
   private companion object {
     private val SF_PID = 1
-    private val SF_MAIN_THREAD_MODE = ThreadModel(SF_PID, SF_PID, "SurfaceFlingerMainThread",
+    private val SF_MAIN_THREAD_MODE = ThreadModel(SF_PID, SF_PID, "surfaceflinger",
                                                   listOf(
                                                   createEvent(3000, 5000),
                                                   createEvent(7000, 15000),
@@ -95,6 +95,19 @@ class SystemTraceSurfaceflingerManagerTest {
       SeriesData(20000, 1L),
       SeriesData(25000, 0L)
     ).inOrder()
+  }
+
+
+  @Test
+  fun sfProcessWithNoName() {
+    // Same model, but with the process with a blank name.
+    val model = TestModel(listOf(SF_PROCESS_MODEL.copy(name = "")))
+    val sfManager = SystemTraceSurfaceflingerManager(model)
+
+    val sfEvents = sfManager.surfaceflingerEvents
+    assertThat(sfEvents.size).isEqualTo(6)
+    val vsyncValues = sfManager.vsyncCounterValues
+    assertThat(vsyncValues.size).isEqualTo(5)
   }
 
   private class TestModel(private val processes: List<ProcessModel>) : SystemTraceModelAdapter {
