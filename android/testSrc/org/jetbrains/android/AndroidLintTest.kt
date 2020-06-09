@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection
 import com.android.tools.idea.lint.AndroidLintAllowBackupInspection
 import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection
+import com.android.tools.idea.lint.AndroidLintAndroidGradlePluginVersionInspection
 import com.android.tools.idea.lint.AndroidLintAnimatorKeepInspection
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection
 import com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection
@@ -139,7 +140,6 @@ import com.android.utils.CharSequences
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LintIssueId.LintSeverity
@@ -164,14 +164,14 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import java.nio.charset.StandardCharsets
-import java.util.stream.Collectors
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
+import java.nio.charset.StandardCharsets
+import java.util.stream.Collectors
 
 class AndroidLintTest : AndroidTestCase() {
   public override fun setUp() {
@@ -1308,6 +1308,17 @@ class AndroidLintTest : AndroidTestCase() {
     // Make sure that we don't include the non-Android lint checks here.
     val issues: IssueRegistry = LintIdeIssueRegistry()
     assertNull(issues.getIssue("LintImplDollarEscapes"))
+  }
+
+  fun testOldBetaPlugin() {
+    // note: the test file needs updating when major/minor versions of AGP are removed from the offline
+    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
+    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
+    doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
+  }
+
+  fun testOldBetaPluginNoGMaven() {
+    doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
   }
 
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
