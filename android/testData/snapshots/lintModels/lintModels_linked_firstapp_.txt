@@ -22,7 +22,7 @@ MODULE              : My_First_App.app
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.firstapp
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -199,7 +199,7 @@ MODULE              : My_First_App.app
             - ClassOutputs      : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/classes [-]
             - ClassOutputs      : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
-        ApplicationId       : com.example.firstapp.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -710,7 +710,7 @@ MODULE              : My_First_App.app.mysharedlibrary
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.mysharedlibrary
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debug/out [-]
@@ -875,7 +875,7 @@ MODULE              : My_First_App.app.mysharedlibrary
             - ClassOutputs      : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/classes [-]
             - ClassOutputs      : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
-        ApplicationId       : com.example.mysharedlibrary.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
