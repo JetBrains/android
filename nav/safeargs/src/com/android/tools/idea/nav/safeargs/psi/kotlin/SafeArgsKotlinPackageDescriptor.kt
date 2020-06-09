@@ -45,7 +45,7 @@ class SafeArgSyntheticPackageResourceData(val moduleNavResource: Collection<Safe
 /**
  * Kt module-wise descriptors
  */
-class SafeArgKotlinPackageDescriptor(
+class SafeArgsKotlinPackageDescriptor(
   module: ModuleDescriptor,
   fqName: FqName,
   val packageResourceData: SafeArgSyntheticPackageResourceData,
@@ -53,7 +53,7 @@ class SafeArgKotlinPackageDescriptor(
 ) : PackageFragmentDescriptorImpl(module, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgModuleScope() }
   override fun getMemberScope(): MemberScope = scope()
-  private val safeArgPackageDescriptor = this@SafeArgKotlinPackageDescriptor
+  private val safeArgPackageDescriptor = this@SafeArgsKotlinPackageDescriptor
 
   private inner class SafeArgModuleScope : MemberScopeImpl() {
     private val classes = storageManager.createLazyValue {
@@ -67,7 +67,7 @@ class SafeArgKotlinPackageDescriptor(
 
     private fun generateSafeArgsClasses(
       navEntry: SafeArgsResourceForKtDescriptors.NavEntryKt,
-      packageDescriptor: SafeArgKotlinPackageDescriptor,
+      packageDescriptor: SafeArgsKotlinPackageDescriptor,
       storageManager: StorageManager
     ): Collection<ClassDescriptor> {
       val backingXmlFile = PsiManager.getInstance(navEntry.project).findFile(navEntry.file)
@@ -81,7 +81,7 @@ class SafeArgKotlinPackageDescriptor(
     private fun createLightDirectionsClasses(
       entry: SafeArgsResourceForKtDescriptors.NavEntryKt,
       sourceElement: SourceElement,
-      packageDescriptor: SafeArgKotlinPackageDescriptor,
+      packageDescriptor: SafeArgsKotlinPackageDescriptor,
       storageManager: StorageManager
     ): Collection<ClassDescriptor> {
       return entry.data.root.allDestinations
@@ -103,7 +103,7 @@ class SafeArgKotlinPackageDescriptor(
     private fun createLightArgsClasses(
       entry: SafeArgsResourceForKtDescriptors.NavEntryKt,
       sourceElement: SourceElement,
-      packageDescriptor: SafeArgKotlinPackageDescriptor,
+      packageDescriptor: SafeArgsKotlinPackageDescriptor,
       storageManager: StorageManager
     ): Collection<ClassDescriptor> {
       return entry.data.root.allFragments
