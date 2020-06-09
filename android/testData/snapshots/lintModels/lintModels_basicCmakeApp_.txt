@@ -22,7 +22,7 @@ MODULE              : project.app
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -41,7 +41,7 @@ MODULE              : project.app
                     artifacts::app      : null => artifacts::app:unspecified
             - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-        ApplicationId       : com.example.basiccmakeapp.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
