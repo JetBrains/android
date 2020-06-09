@@ -81,8 +81,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolderBase
@@ -147,13 +147,19 @@ private class ModelDataContext(private val composePreviewManager: ComposePreview
  * previewed components (shrink mode).
  * @param showDecorations when true, the rendered content will be shown with the full device size specified in
  * the device configuration and with the frame decorations.
+ * @param isInteractive whether the scene displays an interactive preview.
+ * @param usePrivateClassLoader whether the scene manager should use a private ClassLoader.
  */
-private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, showDecorations: Boolean, isInteractive: Boolean): LayoutlibSceneManager =
+private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
+                                           showDecorations: Boolean,
+                                           isInteractive: Boolean,
+                                           usePrivateClassLoader: Boolean): LayoutlibSceneManager =
   sceneManager.apply {
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
     setInteractive(isInteractive)
+    setUsePrivateClassLoader(usePrivateClassLoader)
     setQuality(0.7f)
     setShowDecorations(showDecorations)
     forceReinflate()
@@ -167,13 +173,15 @@ private fun configureExistingModel(existingModel: NlModel,
                                    newDataContext: ModelDataContext,
                                    showDecorations: Boolean,
                                    isInteractive: Boolean,
+                                   usePrivateClassLoader: Boolean,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
   existingModel.updateFileContentBlocking(fileContents)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
   existingModel.dataContext = newDataContext
-  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager, showDecorations, isInteractive)
+  configureLayoutlibSceneManager(
+    surface.getSceneManager(existingModel) as LayoutlibSceneManager, showDecorations, isInteractive, usePrivateClassLoader)
 
   return existingModel
 }
@@ -603,6 +611,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                  ModelDataContext(this, previewElement),
                                  previewElement.displaySettings.showDecoration,
                                  isInteractive.get(),
+                                 usePrivateClassLoader(),
                                  fileContents,
                                  surface)
         }
@@ -651,7 +660,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
                                        showDecorations = previewElement.displaySettings.showDecoration,
-                                       isInteractive = isInteractive.get())
+                                       isInteractive = isInteractive.get(),
+                                       usePrivateClassLoader = usePrivateClassLoader())
       }
 
     surface.repaint()
@@ -742,7 +752,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                 // When showing decorations, show the full device size
                 configureLayoutlibSceneManager(sceneManager,
                                                showDecorations = previewElement.displaySettings.showDecoration,
-                                               isInteractive = isInteractive.get())
+                                               isInteractive = isInteractive.get(),
+                                               usePrivateClassLoader = usePrivateClassLoader())
                   .requestComposeRender()
                   .await()
               }
@@ -758,6 +769,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         updateSurfaceVisibilityAndNotifications()
       }
     }
+
+  /**
+   * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
+   * where it's crucial not to share the state (which includes the compose framework).
+   */
+  private fun usePrivateClassLoader() = isInteractive.get() || animationInspection.get()
 
   private fun forceRefresh(): Job {
     previewElements = emptyList() // This will just force a refresh
