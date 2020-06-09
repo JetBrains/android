@@ -93,7 +93,7 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/SafeArgKotlinPackageDescriptor.kt"
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/SafeArgsKotlinPackageDescriptor.kt"
             line="112"/>
     </issue>
 
