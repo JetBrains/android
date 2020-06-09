@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.common;
+package com.android.tools.idea.lint;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.LintIdeSupport;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.configuration.Gradle;
 
 public class AndroidLintAndroidGradlePluginVersionInspection extends AndroidLintInspectionBase {
   public AndroidLintAndroidGradlePluginVersionInspection() {
-    super("Obsolete Android Gradle Plugin Version", GradleDetector.AGP_DEPENDENCY);
+    super(AndroidBundle.message("android.lint.inspections.android.gradle.plugin.version"), GradleDetector.AGP_DEPENDENCY);
   }
 
   @NotNull
@@ -58,7 +62,7 @@ public class AndroidLintAndroidGradlePluginVersionInspection extends AndroidLint
   }
 
   public static class InvokeAGPUpgradeAssistantQuickFix implements LintIdeQuickFix {
-    private GradleVersion agpVersion;
+    private final GradleVersion agpVersion;
 
     public InvokeAGPUpgradeAssistantQuickFix(@Nullable GradleVersion agpVersion) {
       super();

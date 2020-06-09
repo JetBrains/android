@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.idea.lint.common.AndroidLintAndroidGradlePluginVersionInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
@@ -40,19 +39,6 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testIncompatiblePlugin() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
-    doTest(inspection, null);
-  }
-
-  public void testOldBetaPlugin() throws Exception {
-    // note: the test file needs updating when major/minor versions of AGP are removed from the offline
-    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
-    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
-    AndroidLintAndroidGradlePluginVersionInspection inspection = new AndroidLintAndroidGradlePluginVersionInspection();
-    doTest(inspection, null);
-  }
-
-  public void testOldBetaPluginNoGMaven() throws Exception {
-    AndroidLintAndroidGradlePluginVersionInspection inspection = new AndroidLintAndroidGradlePluginVersionInspection();
     doTest(inspection, null);
   }
 
