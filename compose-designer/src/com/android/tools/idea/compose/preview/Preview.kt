@@ -634,7 +634,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
-    existingModels.forEach { surface.removeModel(it) }
+    existingModels.forEach {
+      surface.removeModel(it)
+      Disposer.dispose(it)
+    }
     val newSceneManagers = models
       .map {
         val (model, previewElement) = it
