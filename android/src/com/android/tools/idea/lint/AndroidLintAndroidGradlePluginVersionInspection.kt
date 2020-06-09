@@ -13,85 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint;
+package com.android.tools.idea.lint
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.common.LintIdeSupport;
-import com.android.tools.lint.checks.GradleDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.psi.PsiElement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts.ContextType
+import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
+import com.android.tools.lint.checks.GradleDetector
+import com.android.tools.lint.detector.api.LintFix
+import com.android.tools.lint.detector.api.LintFix.LintFixGroup
+import com.intellij.psi.PsiElement
+import org.jetbrains.android.util.AndroidBundle
+import java.util.ArrayList
 
-public class AndroidLintAndroidGradlePluginVersionInspection extends AndroidLintInspectionBase {
-  public AndroidLintAndroidGradlePluginVersionInspection() {
-    super(AndroidBundle.message("android.lint.inspections.android.gradle.plugin.version"), GradleDetector.AGP_DEPENDENCY);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    ArrayList<LintIdeQuickFix> quickFixes = new ArrayList<>();
-    // find and add a quick fix corresponding to a "safe" (micro-level change only) AGP upgrade
-    if (fixData instanceof LintFix.LintFixGroup && ((LintFix.LintFixGroup)fixData).type == LintFix.GroupType.ALTERNATIVES) {
-      for (LintFix fix : ((LintFix.LintFixGroup)fixData).fixes) {
-        if (fix.robot) {
-          quickFixes.addAll(Arrays.asList(super.getQuickFixes(startElement, endElement, message, fix)));
-        }
+class AndroidLintAndroidGradlePluginVersionInspection : AndroidLintInspectionBase(
+  AndroidBundle.message("android.lint.inspections.android.gradle.plugin.version"), GradleDetector.AGP_DEPENDENCY) {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String, fixData: LintFix?): Array<LintIdeQuickFix> {
+    val quickFixes = ArrayList<LintIdeQuickFix>()
+    // Find and add a quick fix corresponding to a "safe" (micro-level change only) AGP upgrade
+    if (fixData is LintFixGroup && fixData.type == LintFix.GroupType.ALTERNATIVES) {
+      fixData.fixes.asSequence().filter { it.robot }.forEach { fix ->
+        quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fix))
       }
     }
     else if (fixData != null && fixData.robot) {
-      quickFixes.addAll(Arrays.asList(super.getQuickFixes(startElement, endElement, message, fixData)));
+      quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fixData))
     }
-
-    if (LintIdeSupport.get().shouldRecommendUpdateAgpToLatest(startElement.getProject())) {
-      GradleVersion recommendedVersion = LintIdeSupport.get().recommendedAgpVersion(startElement.getProject());
-      LintIdeQuickFix auaQuickFix = new InvokeAGPUpgradeAssistantQuickFix(recommendedVersion);
-      quickFixes.add(auaQuickFix);
+    if (get().shouldRecommendUpdateAgpToLatest(startElement.project)) {
+      val recommendedVersion = get().recommendedAgpVersion(startElement.project)
+      val auaQuickFix: LintIdeQuickFix = InvokeAGPUpgradeAssistantQuickFix(recommendedVersion)
+      quickFixes.add(auaQuickFix)
     }
-    return quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY);
+    return quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY)
   }
 
-  public static class InvokeAGPUpgradeAssistantQuickFix implements LintIdeQuickFix {
-    private final GradleVersion agpVersion;
-
-    public InvokeAGPUpgradeAssistantQuickFix(@Nullable GradleVersion agpVersion) {
-      super();
-      this.agpVersion = agpVersion;
+  class InvokeAGPUpgradeAssistantQuickFix(private val agpVersion: GradleVersion?) : LintIdeQuickFix {
+    override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+      get().updateAgpToLatest(startElement.project)
     }
 
-    @Override
-    public void apply(@NotNull PsiElement startElement,
-                      @NotNull PsiElement endElement,
-                      @NotNull AndroidQuickfixContexts.Context context) {
-      LintIdeSupport.get().updateAgpToLatest(startElement.getProject());
-    }
+    override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
 
-    @Override
-    public boolean isApplicable(@NotNull PsiElement startElement,
-                                @NotNull PsiElement endElement,
-                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      if (agpVersion == null) {
-        return "Invoke Upgrade Assistant";
-      }
-      else {
-        return "Invoke Upgrade Assistant for upgrade to " + agpVersion.toString();
-      }
-    }
+    override fun getName(): String = if (agpVersion == null)
+      "Invoke Upgrade Assistant"
+    else
+      "Invoke Upgrade Assistant for upgrade to $agpVersion"
   }
 }
