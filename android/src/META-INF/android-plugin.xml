@@ -666,6 +666,7 @@
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager" />
+    <projectService serviceImplementation="com.android.tools.idea.ndk.NativeWorkspaceService" />
 
     <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
@@ -882,6 +883,8 @@
                     interface="com.android.tools.idea.databinding.LayoutBindingSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.wizard.template.wizardTemplateProvider"
                     interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.ndk.nativeWorkspaceProvider"
+                    interface="com.android.tools.idea.ndk.NativeWorkspaceProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
