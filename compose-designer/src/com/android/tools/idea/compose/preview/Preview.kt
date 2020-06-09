@@ -218,7 +218,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
   }
-  override val availableGroups: Set<PreviewGroup> get() = previewElementProvider.allAvailableGroups
+
+  @Volatile
+  override var availableGroups: Set<PreviewGroup> = emptySet()
 
   private enum class InteractionMode {
     DEFAULT,
@@ -551,6 +553,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         element
       }
     } ?: return
+
+    // Cache available groups
+    availableGroups = previewElementProvider.allAvailableGroups
+
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
