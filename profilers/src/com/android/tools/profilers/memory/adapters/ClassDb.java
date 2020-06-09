@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.ArrayUtil;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -117,9 +117,6 @@ public final class ClassDb {
     @NotNull private final long myClassId;
     @NotNull private final long mySuperClassId;
     @NotNull private final String myClassName;
-    @NotNull private final String myPackageName;
-    @NotNull private final String mySimpleClassName;
-    @NotNull private final String[] mySplitPackageName;
 
     /**=
      * @param classId       unique identifier for the class.
@@ -130,11 +127,6 @@ public final class ClassDb {
       myClassId = classId;
       mySuperClassId = superClassId;
       myClassName = className;
-      int lastIndexOfDot = myClassName.lastIndexOf('.');
-      myPackageName = lastIndexOfDot > 0 ? myClassName.substring(0, lastIndexOfDot) : "";
-      mySimpleClassName = myClassName.substring(lastIndexOfDot + 1);
-      //noinspection SSBasedInspection
-      mySplitPackageName = myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
     }
 
     public long getClassId() {
@@ -162,17 +154,19 @@ public final class ClassDb {
 
     @NotNull
     public String getPackageName() {
-      return myPackageName;
+      int lastIndexOfDot = getLastIndexOfDot();
+      return lastIndexOfDot > 0 ? myClassName.substring(0, lastIndexOfDot) : "";
     }
 
     @NotNull
     public String[] getSplitPackageName() {
-      return mySplitPackageName;
+      String packageName = getPackageName();
+      return packageName.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : packageName.split("\\.");
     }
 
     @NotNull
     public String getSimpleClassName() {
-      return mySimpleClassName;
+      return myClassName.substring(getLastIndexOfDot() + 1);
     }
 
     @Override
@@ -183,6 +177,10 @@ public final class ClassDb {
     @Override
     public boolean equals(Object obj) {
       return obj instanceof ClassEntry && myClassName.equals(((ClassEntry)obj).myClassName);
+    }
+
+    private int getLastIndexOfDot() {
+      return myClassName.lastIndexOf('.');
     }
   }
 }
