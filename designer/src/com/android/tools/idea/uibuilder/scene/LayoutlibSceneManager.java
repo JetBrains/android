@@ -181,9 +181,9 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShrinkRendering = false;
 
   /**
-   * If true, the scene is interactive
+   * If true, the scene should use a private ClassLoader.
    */
-  private boolean isInteractive = false;
+  private boolean myUsePrivateClassLoader = false;
 
   /**
    * If true, the render will paint the system decorations (status and navigation bards)
@@ -1060,13 +1060,7 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.disableToolsVisibilityAndPosition();
     }
 
-    // If two compose previews share the same ClassLoader they share the same compose framework. This way they share the state. In the
-    // interactive preview we would like to control the state of the framework and preview. Shared state makes control impossible.
-    // Therefore, for interactive (currently only compose) preview we want to create a dedicated ClassLoader so that the preview has its own
-    // compose framework. Having a dedicated ClassLoader also allows for clearing resources right after the preview no longer used. We could
-    // apply this approach to static previews as well but it might have negative impact if there are many of them, so applying to the
-    // interactive previews only.
-    if (isInteractive) {
+    if (myUsePrivateClassLoader) {
       taskBuilder.usePrivateClassLoader();
     }
 
@@ -1524,8 +1518,20 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param interactive true if the scene is interactive, false otherwise.
    */
   public void setInteractive(boolean interactive) {
-    isInteractive = interactive;
-    getSceneViews().forEach(sv -> sv.setAnimated(isInteractive));
+    getSceneViews().forEach(sv -> sv.setAnimated(interactive));
+  }
+
+  /**
+   * Sets whether this scene manager should use a private/individual ClassLoader. If two compose previews share the same ClassLoader they
+   * share the same compose framework. This way they share the state. In the interactive preview and animation inspector, we would like to
+   * control the state of the framework and preview. Shared state makes control impossible. Therefore, in certain situations (currently only
+   * in compose) we want to create a dedicated ClassLoader so that the preview has its own compose framework. Having a dedicated ClassLoader
+   * also allows for clearing resources right after the preview no longer used. We could apply this approach by default (e.g. for static
+   * previews as well) but it might have a negative impact if there are many of them. Therefore, this should be configured by calling this
+   * method when we want to use the private ClassLoader, e.g. in interactive previews or animation inspector.
+   */
+  public void setUsePrivateClassLoader(boolean usePrivateClassLoader) {
+    myUsePrivateClassLoader = usePrivateClassLoader;
   }
 
   @Override
