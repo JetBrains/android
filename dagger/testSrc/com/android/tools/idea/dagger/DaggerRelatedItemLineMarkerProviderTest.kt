@@ -252,7 +252,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)
     assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
   fun testComponentMethodsForProvider_kotlin() {
@@ -314,7 +314,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)
     assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
   fun testComponentForModules() {
@@ -817,6 +817,6 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(method.customName).isEqualTo("MyEntryPoint")
 
     method.navigate()
-    assertThat(trackerService.calledMethods.single()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT")
+    assertThat(trackerService.calledMethods.single()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
 }
