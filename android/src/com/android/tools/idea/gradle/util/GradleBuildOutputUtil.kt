@@ -171,11 +171,7 @@ private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArti
  * Retrieve application from build output listing file.
  */
 fun getApplicationIdFromListingFile(androidModel: AndroidModuleModel, variantName: String): String? {
-  val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk)
-  if (listingFile == null) {
-    LOG.warn("Failed to find output listing file for variant ${variantName}. Build may have failed.")
-    return null
-  }
+  val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk) ?: return null
   return getApplicationIdFromListingFile(listingFile)
 }
 
@@ -185,6 +181,5 @@ fun getApplicationIdFromListingFile(listingFile: String): String? {
   if (builtArtifacts != null) {
     return builtArtifacts.applicationId
   }
-  LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
   return null
 }
