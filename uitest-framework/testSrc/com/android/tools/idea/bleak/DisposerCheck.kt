@@ -83,7 +83,7 @@ class DisposerLeakInfo(val k: DisposerInfo.Key, val count: Int) {
   }
 }
 
-class DisposerCheck(w: Whitelist<DisposerLeakInfo> = Whitelist(), ki: Whitelist<DisposerLeakInfo> = Whitelist()): BleakCheck<Nothing?, DisposerLeakInfo>(null, w, ki) {
+class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList(), ki: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<Nothing?, DisposerLeakInfo>(null, w, ki) {
   private var disposerInfo: DisposerInfo? = null
 
   override fun firstIterationFinished() {

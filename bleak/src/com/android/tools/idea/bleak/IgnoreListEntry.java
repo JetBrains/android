@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.bleak
+package com.android.tools.idea.bleak;
 
-class Whitelist<T>(val patterns: List<WhitelistEntry<T>> = listOf()) {
+import java.util.function.Predicate;
 
-  fun matches(info: T) = patterns.any { it.test(info) }
-
-  operator fun plus(w: Whitelist<T>): Whitelist<T> {
-    return Whitelist(this.patterns + w.patterns)
-  }
-
-  operator fun plus(e: WhitelistEntry<T>): Whitelist<T> {
-    return Whitelist(this.patterns + e)
-  }
+public interface IgnoreListEntry<T> extends Predicate<T> {
 }
