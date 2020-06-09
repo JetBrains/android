@@ -22,17 +22,18 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
-    <facet.toolWindow id="Emulator"
+    <facet.toolWindow id="Android Emulator"
                       facetIdList="android,apk"
                       anchor="right"
-                      canCloseContents="true"
-                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
                       secondary="true"
+                      canCloseContents="true"
+                      doNotActivateOnStart="true"
+                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
                       factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
   </extensions>
 
   <actions>
-    <group id="EmulatorToolbar" resource-bundle="">
+    <group id="EmulatorToolbar">
       <action id="android.emulator.power.button" class="com.android.tools.idea.emulator.actions.EmulatorPowerButtonAction"
               icon="StudioIcons.Emulator.POWER" text="Power" description="Press the Power button"/>
       <action id="android.emulator.volume.up.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeUpButtonAction"

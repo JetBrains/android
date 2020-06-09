@@ -65,9 +65,10 @@ internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(Gri
     Disposer.register(project.earlyDisposable, this)
 
     isOpaque = true
-    isFocusable = false
     background = StandardColors.BACKGROUND_COLOR
     border = JBUI.Borders.empty()
+    // Allow the panel to receive focus so that the framework considers the tool window active (b/157181475).
+    isFocusable = true
 
     emulatorLaunchesInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
     emulatorVersionIsSufficient = true
