@@ -15,13 +15,18 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.FN_PUBLIC_TXT;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_STYLE;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
@@ -29,13 +34,16 @@ import com.google.common.io.Closeables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.PathUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -45,9 +53,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
-
-import static com.android.SdkConstants.*;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Fetch and parse the 'public.txt' from appcompat-v7 for a given appCompat version
@@ -124,7 +132,7 @@ public class AppCompatPublicDotTxtLookup {
       return null;
     }
     else {
-      return new File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), "maven.google");
+      return new File(FileUtil.toCanonicalPath(PathManager.getSystemPath()), "maven.google");
     }
   }
 
