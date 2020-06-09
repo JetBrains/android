@@ -21,6 +21,7 @@ import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
+import com.android.utils.appendCapitalized
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
@@ -130,6 +132,7 @@ class AgpUpgradeRefactoringProcessor(
     usages.addAll(GMavenRepositoryRefactoringProcessor(this).findUsages())
     usages.addAll(AgpGradleVersionRefactoringProcessor(this).findUsages())
     usages.addAll(AgpJava8DefaultRefactoringProcessor(this).findUsages())
+    usages.addAll(CompileRuntimeConfigurationRefactoringProcessor(this).findUsages())
 
     foundUsages = usages.size > 0
     return usages.toTypedArray()
@@ -481,5 +484,97 @@ class KotlinLanguageLevelUsageInfo(
       // if we can find a path to a JDK_1_7 we could include that for jdkHome, but the Internet suggests it's not high-value
       false -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
     }
+  }
+}
+
+class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun findUsages(): Array<out UsageInfo> {
+    val usages = mutableListOf<UsageInfo>()
+
+    fun maybeAddUsageForDependency(dependency: DependencyModel, compileReplacement: String, psiElement: PsiElement) {
+      val configuration = dependency.configurationName()
+      when {
+        configuration == "compile" -> usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, compileReplacement))
+        configuration.endsWith("Compile") -> {
+          val replacement = configuration.removeSuffix("Compile").appendCapitalized(compileReplacement)
+          usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, replacement))
+        }
+        configuration == "runtime" -> usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, "runtimeOnly"))
+        configuration.endsWith("Runtime") -> {
+          val replacement = configuration.removeSuffix("Runtime") + ("RuntimeOnly")
+          usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, replacement))
+        }
+      }
+    }
+
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      // if we don't have a PsiElement for the model, we don't have a file at all, and attempting to perform a refactoring is not
+      // going to work
+      val modelPsiElement = model.psiElement ?: return@model
+      val pluginSet = model.plugins().map { it.name().forceString() }.toSet()
+      // TODO(xof): as with the Java8Default refactoring above, we should define and use some kind of API
+      //  to determine what kind of a module we have.
+      val applicationSet = setOf(
+        "application",
+        "com.android.application", "com.android.test", "com.android.instant-app")
+      val librarySet = setOf(
+        "java", "java-library",
+        "com.android.library", "com.android.dynamic-feature", "com.android.feature")
+      val compileReplacement = when {
+        pluginSet.intersect(applicationSet).isNotEmpty() -> "implementation"
+        pluginSet.intersect(librarySet).isNotEmpty() -> "api"
+        else -> return@model
+      }
+
+      model.dependencies().all()
+        .forEach { dependency ->
+          val psiElement = dependency.psiElement ?: model.dependencies().psiElement ?: modelPsiElement
+          maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
+        }
+      model.buildscript().dependencies().all()
+        .forEach { dependency ->
+          val psiElement = dependency.psiElement ?: model.buildscript().dependencies().psiElement ?: model.buildscript().psiElement
+                           ?: modelPsiElement
+          maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
+        }
+    }
+
+    foundUsages = usages.size > 0
+    return usages.toTypedArray()
+  }
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+
+      override fun getProcessedElementsHeader(): String = "Replace deprecated configurations"
+    }
+  }
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.CompileRuntimeConfiguration"
+
+  override fun getCommandName(): String = "Replace deprecated configurations"
+}
+
+class ObsoleteConfigurationUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependency: DependencyModel,
+  private val newConfigurationName: String
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependency.setConfigurationName(newConfigurationName)
+  }
+
+  override fun getTooltipText() = "Update configuration to $newConfigurationName"
+
+  // Don't need hashCode() because this is stricter than the superclass method.
+  override fun equals(other: Any?): Boolean {
+    return super.equals(other) && other is ObsoleteConfigurationUsageInfo &&
+           dependency == other.dependency && newConfigurationName == other.newConfigurationName
   }
 }
