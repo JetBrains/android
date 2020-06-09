@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.bleak;
+package com.android.tools.idea.bleak
 
-import java.util.function.Predicate;
+class IgnoreList<T>(val patterns: List<IgnoreListEntry<T>> = listOf()) {
 
-public interface WhitelistEntry<T> extends Predicate<T> {
+  fun matches(info: T) = patterns.any { it.test(info) }
+
+  operator fun plus(w: IgnoreList<T>): IgnoreList<T> {
+    return IgnoreList(this.patterns + w.patterns)
+  }
+
+  operator fun plus(e: IgnoreListEntry<T>): IgnoreList<T> {
+    return IgnoreList(this.patterns + e)
+  }
 }

@@ -316,7 +316,7 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   init {
     if (end.incomingEdge == null) end.incomingEdge = this
   }
-  // the signature is only used for whitelisting
+  // the signature is only used for ignore-listing
   fun signature(): LeaktraceElement =
     if (start.isRootNode) {
       LeaktraceElement("ROOT", if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName, end.obj)

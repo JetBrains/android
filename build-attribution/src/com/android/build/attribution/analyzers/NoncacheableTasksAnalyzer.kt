@@ -37,7 +37,7 @@ class NoncacheableTasksAnalyzer(override val warningsFilter: BuildAttributionWar
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     noncacheableTasks = androidGradlePluginAttributionData.noncacheableTasks.mapNotNull(this::getTask).filter { task ->
-      warningsFilter.applyNoncacheableTaskFilter(task) && applyWhitelistedTasksFilter(task)
+      warningsFilter.applyNoncacheableTaskFilter(task) && applyIgnoredTasksFilter(task)
     }
   }
 }

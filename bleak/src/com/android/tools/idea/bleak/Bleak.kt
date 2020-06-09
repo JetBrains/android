@@ -54,11 +54,11 @@ fun runWithBleak(options: BleakOptions, scenario: () -> Unit) {
   }
 }
 
-class MainBleakCheck(whitelist: Whitelist<LeakInfo>,
-                     knownIssues: Whitelist<LeakInfo> = Whitelist(),
+class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
+                     knownIssues: IgnoreList<LeakInfo> = IgnoreList(),
                      customExpanderSupplier: Supplier<List<Expander>>,
                      private val forbiddenObjects: List<Any> = listOf()):
-  BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, whitelist, knownIssues) {
+  BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList, knownIssues) {
   lateinit var g1: HeapGraph
   lateinit var g2: HeapGraph
   var leaks: List<LeakInfo> = listOf()
