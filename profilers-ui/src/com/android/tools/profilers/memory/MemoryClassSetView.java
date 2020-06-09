@@ -662,8 +662,7 @@ public final class MemoryClassSetView extends AspectObserver {
           CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
           myIsLeaked = leakFilter != null &&
                        leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
-          String msg = "To investigate leak, " +
-                       "select instance and check \"References\" tab and \"Show Nearest GC Root\" action.";
+          String msg = "To investigate leak, select instance and see \"References\"";
           setToolTipText(myIsLeaked ? msg : null);
         }
       }
