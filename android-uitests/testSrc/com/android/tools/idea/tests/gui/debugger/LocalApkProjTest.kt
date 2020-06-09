@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.debugger
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -29,8 +28,11 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.AsyncProcessIcon
+import org.fest.swing.core.matcher.DialogMatcher
+import org.fest.swing.core.matcher.JButtonMatcher
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.WaitTimedOutError
+import org.fest.swing.finder.WindowFinder
 import org.fest.swing.timing.Wait
 import org.junit.After
 import org.junit.Assert
@@ -108,6 +110,13 @@ class LocalApkProjTest {
 
     profileOrDebugApk(guiTest.welcomeFrame(), File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"))
 
+    // Handle the APK Import dialog pop up.
+    val downloadDialog = WindowFinder.findDialog(DialogMatcher.withTitle("APK Import"))
+      .withTimeout(TimeUnit.SECONDS.toMillis(30)).using(guiTest.robot())
+    val UseExistFolder = downloadDialog.button(JButtonMatcher.withText("Use existing folder"))
+    Wait.seconds(120).expecting("Android source to be installed").until { UseExistFolder.isEnabled }
+    UseExistFolder.click()
+
     val ideFrame = guiTest.ideFrame()
     val editor = ideFrame.editor
     attachJavaSources(ideFrame, File(projectRoot, "app/src/main/java"))
@@ -128,6 +137,8 @@ class LocalApkProjTest {
 
   private fun buildApkLocally(apkProjectToImport: String): File {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(120))
+
+    guiTest.waitForBackgroundTasks();
 
     ideFrame.actAndWaitForBuildToFinish { it.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)") }
 
