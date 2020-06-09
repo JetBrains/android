@@ -235,7 +235,7 @@ public class GradleProjectImporter {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(gradleSettings);
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, externalProjectPath);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
     GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion());
     gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
