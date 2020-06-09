@@ -29,7 +29,7 @@ import java.awt.event.*;
  * 1) Supports hover states when mouse over unselected tabs
  * 2) Simpler content panel border rendering - only the border along the tab placement is drawn.
  */
-class CommonTabbedPaneUI extends BasicTabbedPaneUI {
+public class CommonTabbedPaneUI extends BasicTabbedPaneUI {
 
   private final MouseListener mouseHoverListener;
   private final MouseMotionListener mouseMotionListener;
