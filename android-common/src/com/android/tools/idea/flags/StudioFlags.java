@@ -453,7 +453,7 @@ public final class StudioFlags {
     "run.on.multiple.devices.action.enabled",
     "Enable the Run on Multiple Devices action",
     "To revert to the 4.0 behavior until multiple devices are properly supported for the other executors",
-    true);
+    false);
 
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
