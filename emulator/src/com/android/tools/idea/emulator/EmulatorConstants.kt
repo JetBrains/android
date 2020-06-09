@@ -16,11 +16,14 @@
 @file:JvmName("EmulatorConstants")
 package com.android.tools.idea.emulator
 
+import com.android.tools.idea.IdeInfo
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Embedded Emulator constants. */
 
-const val EMULATOR_TOOL_WINDOW_ID = "Emulator"
+const val EMULATOR_TOOL_WINDOW_ID = "Android Emulator"
+
+val EMULATOR_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Emulator" else "Android Emulator"
 
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 
