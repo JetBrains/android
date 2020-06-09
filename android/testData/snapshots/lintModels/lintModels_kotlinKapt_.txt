@@ -1064,5 +1064,5 @@ MODULE              : MainActivity.lib
                 ResolvedCoordinates : androidx.annotation:annotation:1.0.0
             LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                LintJar             : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath         : :lib
