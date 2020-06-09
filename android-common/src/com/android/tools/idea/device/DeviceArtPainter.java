@@ -15,22 +15,26 @@
  */
 package com.android.tools.idea.device;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.DOT_PNG;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_RENDERING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
+
 import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.ImageUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.Gray;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
@@ -38,9 +42,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.DOT_PNG;
-import static java.awt.RenderingHints.*;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A device frame painter is capable of directly painting a device frame surrounding
@@ -703,7 +707,7 @@ public class DeviceArtPainter {
     }
 
     private static File getThumbnailCacheDir() {
-      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
+      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = FileUtil.toCanonicalPath(PathManager.getSystemPath()));
       //noinspection HardCodedStringLiteral
       return new File(path, "android-devices" + File.separator + "v4");
     }
