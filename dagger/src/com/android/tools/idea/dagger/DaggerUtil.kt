@@ -61,6 +61,7 @@ const val DAGGER_BINDS_INSTANCE_ANNOTATION = "dagger.BindsInstance"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
+const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
 const val DAGGER_ENTRY_POINT_ANNOTATION = "dagger.hilt.EntryPoint"
 
 private const val INCLUDES_ATTR_NAME = "includes"
@@ -267,19 +268,36 @@ internal fun PsiElement?.isClassOrObjectAnnotatedWith(annotationFQName: String):
  */
 internal val PsiElement?.isDaggerModule get() = isClassOrObjectAnnotatedWith(DAGGER_MODULE_ANNOTATION)
 
-internal val PsiElement?.isDaggerComponentMethod: Boolean
-  get() = this is PsiMethod && this.containingClass.isDaggerComponent ||
-          this is KtNamedFunction && this.containingClass().isDaggerComponent
+private val PsiMethod.isInstantiationMethod: Boolean get() = parameterList.isEmpty && returnType?.isSubcomponentCreatorType == false
 
-internal val PsiElement?.isDaggerEntryPointMethod: Boolean
-  get() = this is PsiMethod && this.containingClass.isDaggerEntryPoint ||
-          this is KtNamedFunction && this.containingClass().isDaggerEntryPoint
+private val KtNamedFunction.isInstantiationMethod get() = valueParameters.isEmpty() && psiType?.isSubcomponentCreatorType == false
+
+private val PsiType.isSubcomponentCreatorType: Boolean
+  get() {
+    if (this is PsiClassType) {
+      val c = resolve() ?: return false
+      return c.isDaggerSubcomponent || c.isDaggerSubcomponentFactory
+    }
+    return false
+  }
+
+internal val PsiElement?.isDaggerComponentInstantiationMethod: Boolean
+  get() = this is PsiMethod && containingClass.isDaggerComponent && isInstantiationMethod ||
+          this is KtNamedFunction && containingClass().isDaggerComponent && isInstantiationMethod ||
+          this is KtProperty && containingClass().isDaggerComponent && psiType?.isSubcomponentCreatorType == false
+
+internal val PsiElement?.isDaggerEntryPointInstantiationMethod: Boolean
+  get() = this is PsiMethod && containingClass.isDaggerEntryPoint && isInstantiationMethod ||
+          this is KtNamedFunction && containingClass().isDaggerEntryPoint && isInstantiationMethod ||
+          this is KtProperty && containingClass().isDaggerEntryPoint && psiType?.isSubcomponentCreatorType == false
 
 internal val PsiElement?.isDaggerComponent get() = isClassOrObjectAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
 
 internal val PsiElement?.isDaggerEntryPoint get() = isClassOrObjectAnnotatedWith(DAGGER_ENTRY_POINT_ANNOTATION)
 
 internal val PsiElement?.isDaggerSubcomponent get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
+
+internal val PsiElement?.isDaggerSubcomponentFactory get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
 
 /**
  * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].

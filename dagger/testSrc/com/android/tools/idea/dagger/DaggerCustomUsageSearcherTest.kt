@@ -498,7 +498,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
   }
 
   fun testDaggerComponentMethods() {
-    val classFile = myFixture.addClass(
+    val classFile = myFixture.addFileToProject(
+      "test/MyClass.java",
       //language=JAVA
       """
       package test;
@@ -509,9 +510,10 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         @Inject public MyClass() {}
       }
     """.trimIndent()
-    ).containingFile.virtualFile
+    ).virtualFile
 
-    myFixture.addClass(
+    val componentFile = myFixture.addFileToProject(
+      "test/MyComponent.java",
       //language=JAVA
       """
       package test;
@@ -522,12 +524,29 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         MyClass getMyClass();
       }
     """.trimIndent()
+    ).virtualFile
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    val componentMethod = myFixture.moveCaret("getMyCl|ass").parentOfType<PsiMethod>()!!
+
+    var presentation = myFixture.getUsageViewTreeTextRepresentation(componentMethod)
+
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Providers (1 usage)
+      |   ${module.name} (1 usage)
+      |    test (1 usage)
+      |     MyClass (1 usage)
+      |      MyClass() (1 usage)
+      |       6@Inject public MyClass() {}
+      """.trimMargin()
     )
 
     myFixture.configureFromExistingVirtualFile(classFile)
     val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
 
-    val presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
+    presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
     assertThat(presentation).contains(
       """
@@ -556,20 +575,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     """.trimIndent()
     ).containingFile.virtualFile
 
-    myFixture.addClass(
-      //language=JAVA
-      """
-      package test;
-      import dagger.Component;
-
-      @Component()
-      public interface MyComponent {
-        MyClass getMyClass();
-      }
-    """.trimIndent()
-    )
-
-    myFixture.addClass(
+    val entryPointFile = myFixture.addClass(
       //language=JAVA
       """
       package test;
@@ -580,12 +586,29 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         MyClass getMyClassInEntryPoint();
       }
     """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.configureFromExistingVirtualFile(entryPointFile)
+    val entryPointMethod = myFixture.moveCaret("getMyClassInEntry|Point").parentOfType<PsiMethod>()!!
+
+    var presentation = myFixture.getUsageViewTreeTextRepresentation(entryPointMethod)
+
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Providers (1 usage)
+      |   ${module.name} (1 usage)
+      |    test (1 usage)
+      |     MyClass (1 usage)
+      |      MyClass() (1 usage)
+      |       6@Inject public MyClass() {}
+      """.trimMargin()
     )
 
     myFixture.configureFromExistingVirtualFile(classFile)
     val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
 
-    val presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
+    presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
     assertThat(presentation).contains(
       """

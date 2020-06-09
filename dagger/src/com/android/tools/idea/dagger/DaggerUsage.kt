@@ -55,8 +55,8 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       element?.project?.service<DaggerDependencyChecker>()?.isDaggerPresent() != true -> null
       target.isDaggerConsumer && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
       target.isDaggerProvider && element.isDaggerConsumer -> CONSUMERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerComponentMethod -> EXPOSED_BY_COMPONENTS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerEntryPointMethod -> EXPOSED_BY_ENTRY_POINT_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerComponentInstantiationMethod -> EXPOSED_BY_COMPONENTS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerEntryPointInstantiationMethod -> EXPOSED_BY_ENTRY_POINT_USAGE_TYPE
       target.isDaggerModule && element.isDaggerComponent -> INCLUDED_IN_COMPONENTS_USAGE_TYPE
       target.isDaggerModule && element.isDaggerModule -> INCLUDED_IN_MODULES_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
@@ -67,6 +67,8 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerSubcomponent && element.isDaggerSubcomponent -> {
         if (target.toPsiClass()!!.isParentOf(element.toPsiClass()!!)) SUBCOMPONENTS_USAGE_TYPE else PARENT_COMPONENTS_USAGE_TYPE
       }
+      (target.isDaggerComponentInstantiationMethod ||
+       target.isDaggerEntryPointInstantiationMethod) && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
       else -> null
     }
   }
@@ -107,6 +109,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         element.isDaggerModule -> getCustomUsagesForModule(element)
         element.isDaggerComponent -> getCustomUsagesForComponent(element)
         element.isDaggerSubcomponent -> getCustomUsagesForSubcomponent(element)
+        element.isDaggerComponentInstantiationMethod ||
+        element.isDaggerEntryPointInstantiationMethod -> getCustomUsagesForComponentMethod(element)
         else -> return@runReadAction
       }
       if (usages.isNotEmpty()) {
@@ -138,6 +142,9 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
 
   @WorkerThread
   private fun getCustomUsagesForConsumers(consumer: PsiElement) = getDaggerProvidersFor(consumer)
+
+  @WorkerThread
+  private fun getCustomUsagesForComponentMethod(method: PsiElement) = getDaggerProvidersFor(method)
 
   @WorkerThread
   private fun getCustomUsagesForProvider(provider: PsiElement): Collection<PsiElement> {

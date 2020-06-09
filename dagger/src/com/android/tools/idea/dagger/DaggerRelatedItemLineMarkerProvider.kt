@@ -80,6 +80,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
       parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
       parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
+      parent.isDaggerComponentInstantiationMethod || parent.isDaggerEntryPointInstantiationMethod -> getIconAndGoToItemsForComponentMethod(
+        parent)
       else -> return
     }
 
@@ -120,7 +122,12 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
           when (group) {
             message("modules.included") -> message("navigate.to.included.module", fromElementString, toElementString)
-            message("providers") -> message("navigate.to.provider", fromElementString, toElementString)
+            message("providers") -> if (targetElement.isDaggerConsumer) {
+              message("navigate.to.provider", fromElementString, toElementString)
+            }
+            else {
+              message("navigate.to.provider.from.component", fromElementString, toElementString)
+            }
             message("consumers") -> message("navigate.to.consumer", fromElementString, toElementString)
             message("exposed.by.components") -> message("navigate.to.component.exposes", fromElementString, toElementString)
             message("exposed.by.entry.points") -> message("navigate.to.component.exposes", fromElementString, toElementString)
@@ -210,7 +217,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
   }
 
-  private fun getIconAndGoToItemsForConsumer(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
+  private fun getProvidersFor(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       override fun compute() = getDaggerProvidersFor(consumer).map {
         GotoItemWithAnalyticsTracking(consumer, it, message("providers"))
@@ -218,6 +225,10 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }
+
+  private fun getIconAndGoToItemsForConsumer(consumer: PsiElement) = getProvidersFor(consumer)
+
+  private fun getIconAndGoToItemsForComponentMethod(method: PsiElement) = getProvidersFor(method)
 }
 
 /**
