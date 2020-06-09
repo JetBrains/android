@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessNoLongerExistsException
@@ -51,6 +52,7 @@ import java.util.concurrent.CancellationException
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.plaf.basic.BasicTabbedPaneUI
 
 class AppInspectionView(
   private val project: Project,
@@ -63,7 +65,20 @@ class AppInspectionView(
   private val inspectorPanel = JPanel(BorderLayout())
 
   @VisibleForTesting
-  val inspectorTabs = CommonTabbedPane()
+  val inspectorTabs = CommonTabbedPane().apply {
+    ui = object : CommonTabbedPaneUI() {
+      // TODO(b/152556591): Remove this when we launch our second inspector and the tool window becomes
+      //  an app inspection tool window.
+      override fun calculateTabAreaHeight(tabPlacement: Int, horizRunCount: Int, maxTabHeight: Int): Int {
+        if (tabCount > 1) {
+          return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight)
+        }
+        else {
+          return 0
+        }
+      }
+    }
+  }
 
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
