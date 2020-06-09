@@ -33,7 +33,7 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
    * Extracts the top level trace events from the main thread and builds a data series for surfaceflinger.
    */
   private fun buildSfEvents(surfaceflingerProcess: ProcessModel): List<SeriesData<SurfaceflingerEvent>> {
-    Preconditions.checkArgument(surfaceflingerProcess.name.endsWith(SURFACEFLINGER_PROCESS_NAME))
+    Preconditions.checkArgument(surfaceflingerProcess.getSafeProcessName().endsWith(SURFACEFLINGER_PROCESS_NAME))
     val mainThread = surfaceflingerProcess.getMainThread() ?: return emptyList()
     return buildSfEventsFromThread(mainThread)
   }
@@ -64,7 +64,7 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
    * Extracts the VSYNC-sf counter and builds a data series for [vsyncCounterValues].
    */
   private fun buildVsyncCounter(surfaceflingerProcess: ProcessModel): List<SeriesData<Long>> {
-    Preconditions.checkArgument(surfaceflingerProcess.name.endsWith(SURFACEFLINGER_PROCESS_NAME))
+    Preconditions.checkArgument(surfaceflingerProcess.getSafeProcessName().endsWith(SURFACEFLINGER_PROCESS_NAME))
     val counter = surfaceflingerProcess.counterByName[VSYNC_COUNTER_NAME] ?: return emptyList()
     return counter.valuesByTimestampUs
       .map { SeriesData(it.key, it.value.toLong()) }
@@ -77,7 +77,7 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
   }
 
   init {
-    val sfProcess = systemTraceModel.getProcesses().find { it.name.endsWith(SURFACEFLINGER_PROCESS_NAME) }
+    val sfProcess = systemTraceModel.getProcesses().find { it.getSafeProcessName().endsWith(SURFACEFLINGER_PROCESS_NAME) }
     surfaceflingerEvents = sfProcess?.let { buildSfEvents(it) } ?: listOf()
     vsyncCounterValues = sfProcess?.let { buildVsyncCounter(it) } ?: listOf()
   }
