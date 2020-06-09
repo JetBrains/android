@@ -383,8 +383,10 @@ class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProces
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     buildModel.allIncludedBuildModels.forEach model@{ model ->
+      // TODO(xof): we should consolidate the various ways of guessing what a module is from its plugins (see also
+      //  PsModuleType.kt)
       val pluginNames = model.plugins().map { it.name().forceString() }
-      pluginNames.firstOrNull { it.startsWith("java") }?.let { _ ->
+      pluginNames.firstOrNull { it.startsWith("java") || it == "application" }?.let { _ ->
         model.java().sourceCompatibility().let {
           val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
           usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
