@@ -150,23 +150,30 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       // This step is necessary only for the standard launch (non-swap, android process handler). Ignore this step for
       // hot-swapping or debug runs.
       if (!isSwap() && myProcessHandler instanceof AndroidProcessHandler) {
-        for (IDevice device : devices) {
-          ApplicationTerminationWaiter listener = new ApplicationTerminationWaiter(device, myApplicationId);
-          try {
-            // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
-            if (!listener.await(10, TimeUnit.SECONDS)) {
-              launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
-              return;
+        ListenableFuture<?> waitApplicationTerminationTask = Futures.whenAllSucceed(
+          ContainerUtil.map(devices, device -> MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
+            ApplicationTerminationWaiter listener = new ApplicationTerminationWaiter(device, myApplicationId);
+            try {
+              // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
+              if (!listener.await(10, TimeUnit.SECONDS)) {
+                launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
+                throw new CancellationException();
+              }
             }
-          }
-          catch (InterruptedException ignored) {
-            launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
-            return;
-          }
-          if (listener.getIsDeviceAlive()) {
-            AndroidProcessHandler procHandler = (AndroidProcessHandler)myProcessHandler;
-            procHandler.addTargetDevice(device);
-          }
+            catch (InterruptedException ignored) {
+              launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
+              throw new CancellationException();
+            }
+            if (listener.getIsDeviceAlive()) {
+              AndroidProcessHandler procHandler = (AndroidProcessHandler)myProcessHandler;
+              procHandler.addTargetDevice(device);
+            }
+          }))).run(() -> {}, AppExecutorUtil.getAppExecutorService());
+
+        ProgressIndicatorUtils.awaitWithCheckCanceled(waitApplicationTerminationTask, indicator);
+
+        if (waitApplicationTerminationTask.isCancelled()) {
+          return;
         }
       }
 
