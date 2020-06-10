@@ -170,15 +170,15 @@ class AndroidTestSuiteViewTest {
 
     val tableView = view.tableForTesting.getTableViewForTesting()
 
-    // Initially, only "Failed" and "In progress" tests are displayed.
-    assertThat(tableView.rowCount).isEqualTo(2)
+    // Initially, all tests are displayed.
+    assertThat(tableView.rowCount).isEqualTo(4)
     assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(-1)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(1)
+    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(1)
+    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(2)
+    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(3)
 
-    // Add "Passed".
-    view.myPassedToggleButton.isSelected = true
+    // Remove "Skipped".
+    view.mySkippedToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(3)
     assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)
