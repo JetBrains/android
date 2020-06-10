@@ -114,7 +114,7 @@ internal fun handleError(
     SqliteInspectorProtocol.Command.OneOfCase.QUERY,
     SqliteInspectorProtocol.Command.OneOfCase.TRACK_DATABASES,
     SqliteInspectorProtocol.Command.OneOfCase.ONEOF_NOT_SET -> handleErrorContent(project, errorContent, logger)
-    else -> { }
+    null -> { }
   }
 }
 
