@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
 /**
  * Responsible for opening the [AnimationInspectorPanel] and managing its state. When the bytecode manipulation mechanism intercepts calls
@@ -24,7 +26,9 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
  */
 internal object ComposePreviewAnimationManager {
 
-  fun createAnimationInspectorPanel(surface: NlDesignSurface): AnimationInspectorPanel {
-    return AnimationInspectorPanel(surface)
+  fun createAnimationInspectorPanel(surface: NlDesignSurface, parent: Disposable): AnimationInspectorPanel {
+    val animationInspectorPanel = AnimationInspectorPanel(surface)
+    Disposer.register(parent, animationInspectorPanel)
+    return animationInspectorPanel
   }
 }
