@@ -94,8 +94,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
   }
 }
 
-fun createErrorSideChannel(project: Project) : ErrorsSideChannel = {
-  handleError(project, it.content, logger<DatabaseInspectorMessenger>())
+fun createErrorSideChannel(project: Project) : ErrorsSideChannel = { command, errorResponse ->
+  handleError(project, command, errorResponse.content, logger<DatabaseInspectorMessenger>())
 }
 
 /**
