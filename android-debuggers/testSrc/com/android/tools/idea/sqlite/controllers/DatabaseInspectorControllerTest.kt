@@ -181,7 +181,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
   }
 

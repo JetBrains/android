@@ -565,10 +565,6 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
   private fun createLiveDatabaseConnection(messenger: AppInspectorClient.CommandMessenger): LiveDatabaseConnection {
     return LiveDatabaseConnection(
-      testRootDisposable,
-      DatabaseInspectorMessenger(messenger, taskExecutor, createErrorSideChannel(project)),
-      1,
-      taskExecutor
-    )
+      DatabaseInspectorMessenger(messenger, taskExecutor, createErrorSideChannel(project)), 1, taskExecutor)
   }
 }
