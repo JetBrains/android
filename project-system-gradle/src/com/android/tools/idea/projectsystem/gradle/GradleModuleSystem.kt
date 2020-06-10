@@ -717,7 +717,7 @@ class GradleModuleSystem(
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
-  fun IdeLibrary.manifestFile(): File = this.folder.resolve(this.manifest)
+  fun IdeLibrary.manifestFile(): File? = this.folder?.resolve(this.manifest)
 
   val aarManifests =
     AndroidModuleModel.get(this)
