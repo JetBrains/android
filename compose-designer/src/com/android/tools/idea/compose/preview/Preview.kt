@@ -66,6 +66,7 @@ import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -288,10 +289,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
         // Open the animation inspection panel
-        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface)
+        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this)
       }
       else {
         // Close the animation inspection panel
+        (mainPanelSplitter.secondComponent as? Disposable)?.let { Disposer.dispose(it) }
         mainPanelSplitter.secondComponent = null
         sceneComponentProvider.enabled = true
         previewElementProvider.instanceIdFilter = null
