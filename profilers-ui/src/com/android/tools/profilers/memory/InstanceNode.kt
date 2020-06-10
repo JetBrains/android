@@ -96,13 +96,7 @@ open class ReferenceTreeNode(valueObject: ValueObject) : LazyMemoryObjectTreeNod
  */
 class NearestGCRootTreeNode(valueObject: ValueObject): ReferenceTreeNode(valueObject) {
   override fun makeChildNode(value: ReferenceObject) = NearestGCRootTreeNode(value)
-  override fun nextReferences(inst: InstanceObject): List<ReferenceObject> {
-    val refs = inst.references
-    return when {
-      refs.isEmpty() || inst.depth == 0 -> emptyList()
-      else -> refs.subList(0, 1)
-    }
-  }
+  override fun nextReferences(inst: InstanceObject) = inst.references.filter { it.depth < inst.depth }
 }
 
 internal fun <T : MemoryObject?, S : T?>
