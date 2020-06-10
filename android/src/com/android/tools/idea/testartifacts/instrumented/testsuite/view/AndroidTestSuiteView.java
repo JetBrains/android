@@ -201,9 +201,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myFailedToggleButton = new TestFilterToggleAction(
       "Show failed tests", AndroidTestCaseResult.FAILED, true);
     myPassedToggleButton = new TestFilterToggleAction(
-      "Show passed tests", AndroidTestCaseResult.PASSED, false);
+      "Show passed tests", AndroidTestCaseResult.PASSED, true);
     mySkippedToggleButton = new TestFilterToggleAction(
-      "Show skipped tests", AndroidTestCaseResult.SKIPPED, false);
+      "Show skipped tests", AndroidTestCaseResult.SKIPPED, true);
     myInProgressToggleButton = new TestFilterToggleAction(
       "Show running tests", AndroidTestCaseResult.IN_PROGRESS, true);
 
