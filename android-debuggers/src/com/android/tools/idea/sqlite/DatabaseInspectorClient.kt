@@ -22,7 +22,6 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnect
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import java.util.concurrent.Executor
 
@@ -36,7 +35,6 @@ import java.util.concurrent.Executor
  */
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
-  private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
   private val onDatabaseAddedListener: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit,
   private val onDatabasePossiblyChanged: () -> Unit,
@@ -55,7 +53,7 @@ class DatabaseInspectorClient constructor(
           val openedDatabase = event.databaseOpened
           invokeLater {
             val databaseId = SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
-            val databaseConnection = LiveDatabaseConnection(parentDisposable, dbMessenger, openedDatabase.databaseId, taskExecutor)
+            val databaseConnection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
             onDatabaseAddedListener(databaseId, databaseConnection)
           }
         }

@@ -196,6 +196,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
     val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), EdtExecutorService.getInstance())
-    return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
+    return LiveDatabaseConnection(databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
   }
 }
