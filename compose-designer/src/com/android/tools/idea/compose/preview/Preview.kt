@@ -419,13 +419,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
 
-    launch {
-      // Update the current build status in the background
-      ReadAction.run<Throwable> {
-        hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
-      }
-    }
-
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         val file = psiFilePointer.element
@@ -465,6 +458,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
+      launch {
+        // Update the current build status in the background
+        ReadAction.run<Throwable> {
+          hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
+        }
+      }
       refresh()
     })
 
