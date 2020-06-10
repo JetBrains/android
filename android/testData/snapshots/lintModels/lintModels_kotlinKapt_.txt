@@ -78,6 +78,7 @@ MODULE              : MainActivity.app
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
+                    artifacts::app      : null => artifacts::app:unspecified
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit         : null => junit:junit:4.12
@@ -96,6 +97,7 @@ MODULE              : MainActivity.app
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
+                    artifacts::app      : null => artifacts::app:unspecified
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit         : null => junit:junit:4.12
@@ -133,6 +135,7 @@ MODULE              : MainActivity.app
                 androidx.test:monitor         : null => androidx.test:monitor:1.2.0
                 androidx.test:runner          : null => androidx.test:runner:1.2.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
+                artifacts::app      : null => artifacts::app:unspecified
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
@@ -156,6 +159,7 @@ MODULE              : MainActivity.app
                 androidx.test:core  : null => androidx.test:core:1.2.0
                 androidx.test:monitor         : null => androidx.test:monitor:1.2.0
                 androidx.test:runner          : null => androidx.test:runner:1.2.0
+                artifacts::app      : null => artifacts::app:unspecified
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
                 javax.inject:javax.inject     : null => javax.inject:javax.inject:1
@@ -302,6 +306,9 @@ MODULE              : MainActivity.app
                 - JarFiles          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 ArtifactAddress     : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates : org.hamcrest:hamcrest-core:1.3
+            LintModelLibrary    : LocalLibrary(:app)
+                ArtifactAddress     : artifacts::app:unspecified
+                ProjectPath         : :app
             LintModelLibrary    : AndroidLibrary(androidx.test.ext:junit:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar
                 ArtifactAddress     : androidx.test.ext:junit:1.1.1

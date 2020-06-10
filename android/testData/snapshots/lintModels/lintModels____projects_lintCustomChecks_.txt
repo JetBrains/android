@@ -39,8 +39,10 @@ MODULE              : project.app
         TestArtifact
             Dependencies
                 CompileDependencies
+                    artifacts::app      : null => artifacts::app:unspecified
                     artifacts::library  : null => artifacts::library:unspecified
                 PackageDependencies
+                    artifacts::app      : null => artifacts::app:unspecified
                     artifacts::library  : null => artifacts::library:unspecified
             - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
@@ -52,8 +54,10 @@ MODULE              : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
+                artifacts::app      : null => artifacts::app:unspecified
                 artifacts::library  : null => artifacts::library:unspecified
             PackageDependencies
+                artifacts::app      : null => artifacts::app:unspecified
         - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
@@ -90,6 +94,9 @@ MODULE              : project.app
                 ArtifactAddress     : artifacts::library:unspecified
                 LintJar             : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath         : :library
+            LintModelLibrary    : LocalLibrary(:app)
+                ArtifactAddress     : artifacts::app:unspecified
+                ProjectPath         : :app
 MODULE              : project.library
     Dir                 : <ROOT>/library
     ModulePath          : library
