@@ -123,6 +123,11 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
         return data.node.startGlobal - captureRange.min.toLong()
       }
     },
+    NAME("Name", String::class.java) {
+      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
+        return data.node.data.name
+      }
+    },
     WALL_DURATION("Wall Duration", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         return data.node.endGlobal - data.node.startGlobal
