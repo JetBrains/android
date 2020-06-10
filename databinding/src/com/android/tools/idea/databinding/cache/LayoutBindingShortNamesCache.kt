@@ -52,15 +52,25 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
     lightBindingCache = cachedValuesManager.createCachedValue {
-      val bindingClasses = enabledFacetsProvider.getAllBindingEnabledFacets()
+      val allBindingClasses = enabledFacetsProvider.getAllBindingEnabledFacets()
         .flatMap { facet ->
           val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
           val groups = bindingModuleCache.bindingLayoutGroups
           groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
         }
-        .groupBy { lightClass -> lightClass.name }
 
-      CachedValueProvider.Result.create(bindingClasses, enabledFacetsProvider, resourcesModifiedTracker)
+      val groupedClasses = allBindingClasses.groupBy { it.name }.toMutableMap()
+      for (suffix in listOf("Binding", "BindingImpl")) {
+        allBindingClasses
+          .filter { bindingClass -> bindingClass.name.endsWith(suffix) }
+          .takeIf { matches -> matches.isNotEmpty() }
+          ?.let { matches -> groupedClasses[suffix] = matches }
+      }
+
+      CachedValueProvider.Result.create(
+        groupedClasses as Map<String, List<LightBindingClass>>,
+        enabledFacetsProvider,
+        resourcesModifiedTracker)
     }
 
     allClassNamesCache = cachedValuesManager.createCachedValue {
