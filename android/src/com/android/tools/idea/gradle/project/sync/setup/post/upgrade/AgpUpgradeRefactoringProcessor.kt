@@ -160,6 +160,13 @@ class AgpUpgradeRefactoringProcessor(
 abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
   val current: GradleVersion
   val new: GradleVersion
+  private var _isEnabled: Boolean? = null
+  var isEnabled: Boolean
+    set(value) { _isEnabled = value }
+    get() {
+      if (_isEnabled == null) _isEnabled = isApplicable()
+      return _isEnabled!!
+    }
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current
@@ -171,6 +178,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.new = processor.new
   }
 
+  protected abstract fun isApplicable(): Boolean
+
   public abstract override fun findUsages(): Array<out UsageInfo>
 }
 
@@ -178,6 +187,8 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun isApplicable() = true
 
   override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -256,6 +267,8 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   val gradleVersion: GradleVersion
 
+  override fun isApplicable() = current < GradleVersion(3, 0, 0)
+
   override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one,
@@ -326,6 +339,8 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   val gradleVersion: GradleVersion
 
+  override fun isApplicable() = true
+
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     // check the project's wrapper(s) for references to no-longer-supported Gradle versions
@@ -382,6 +397,9 @@ class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProces
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun isApplicable() =
+    current < GradleVersion(4, 2, 0) && new >= GradleVersion(4, 2, 0)
 
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -490,6 +508,9 @@ class KotlinLanguageLevelUsageInfo(
 class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun isApplicable() =
+    current < GradleVersion(5, 0, 0) && new > GradleVersion(3, 5, 0)
 
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
