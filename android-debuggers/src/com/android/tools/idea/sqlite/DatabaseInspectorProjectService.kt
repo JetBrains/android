@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState

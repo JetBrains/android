@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.intellij.openapi.extensions.ExtensionPointName
