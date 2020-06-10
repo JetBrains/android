@@ -54,7 +54,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase()
     databaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
   }
 
@@ -209,7 +210,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -223,7 +225,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -237,7 +240,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_", "rowid"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -251,7 +255,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "rowid", "oid", "_rowid_"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -265,7 +270,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk"), true)
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -281,7 +287,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk1", "pk2"), false)
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -303,7 +310,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     )
 
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -322,7 +330,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk"), true)
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -339,7 +348,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table''Name", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -356,7 +366,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table'Name", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -373,7 +384,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table`Name", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -390,7 +402,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table\'Name", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -407,7 +420,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table\"Name", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -424,7 +438,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table Name", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -441,7 +456,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col''Name"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -458,7 +474,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col'Name"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -474,7 +491,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
   fun testReadSchemaColNameRequiresEscaping2() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col`Name"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -491,7 +509,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\'Name"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -507,7 +526,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
   fun testReadSchemaColNameRequiresEscaping4() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\"Name"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -523,7 +543,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
   fun testReadSchemaColNameRequiresEscaping5() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col Name"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -540,7 +561,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -576,7 +598,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -598,7 +621,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -620,7 +644,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
@@ -642,7 +667,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
 
     // Act
