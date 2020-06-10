@@ -16,7 +16,6 @@
 package com.android.tools.idea.deploy;
 
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxDeployableProvider;
@@ -132,8 +131,7 @@ public class DeployActionsInitializer implements StartupActivity {
     }
 
     if (androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider() instanceof DeviceAndSnapshotComboBoxTargetProvider) {
-      ApplicationIdProvider applicationIdProvider = androidRunConfig.getApplicationIdProvider(facet);
-      return new DeviceAndSnapshotComboBoxDeployableProvider(module.getProject(), applicationIdProvider);
+      return new DeviceAndSnapshotComboBoxDeployableProvider(facet, androidRunConfig.getApplicationIdProvider(facet));
     }
     else {
       return null;
