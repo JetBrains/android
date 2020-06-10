@@ -45,7 +45,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiEllipsisType;
 import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiManager;
@@ -250,10 +249,8 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       }
 
       if (constraint == null) {
-        PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
-        PsiElement resolved = ref == null ? null : ref.resolve();
-        if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) continue;
-        PsiClass aClass = (PsiClass)resolved;
+        PsiClass aClass = annotation.resolveAnnotationType();
+        if (aClass == null) continue;
         if (visited == null) visited = new THashSet<>();
         if (!visited.add(aClass)) continue;
         constraint = getAllowedValues(aClass, type, visited);
