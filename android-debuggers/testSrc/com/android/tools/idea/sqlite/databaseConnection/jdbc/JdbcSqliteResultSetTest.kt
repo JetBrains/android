@@ -19,9 +19,9 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
@@ -56,7 +56,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -85,7 +86,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
@@ -111,7 +113,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
+        EdtExecutorService.getInstance()))
     )
 
     // Act
