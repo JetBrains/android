@@ -27,14 +27,14 @@ import java.util.concurrent.Executor
 class DatabaseInspectorMessenger(
   private val messenger: AppInspectorClient.CommandMessenger,
   private val taskExecutor: Executor,
-  private val errorsSideChannel: ErrorsSideChannel = {}
+  private val errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) {
   fun sendCommand(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> {
     return messenger.sendRawCommand(command.toByteArray()).transform(taskExecutor) {
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
       if (response.hasErrorOccurred()) {
         val errorResponse = response.errorOccurred
-        errorsSideChannel(errorResponse)
+        errorsSideChannel(command, errorResponse)
         val message = getErrorMessage(errorResponse.content)
         throw LiveInspectorException(message, errorResponse.content.stackTrace)
       }
@@ -43,4 +43,4 @@ class DatabaseInspectorMessenger(
   }
 }
 
-typealias ErrorsSideChannel = (SqliteInspectorProtocol.ErrorOccurredResponse) -> Unit
+typealias ErrorsSideChannel = (Command, SqliteInspectorProtocol.ErrorOccurredResponse) -> Unit

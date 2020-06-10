@@ -40,7 +40,7 @@ class DatabaseInspectorClient constructor(
   private val onDatabasePossiblyChanged: () -> Unit,
   private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
-  errorsSideChannel: ErrorsSideChannel = {}
+  errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) : AppInspectorClient(messenger) {
 
   private val dbMessenger = DatabaseInspectorMessenger(messenger, taskExecutor, errorsSideChannel)
