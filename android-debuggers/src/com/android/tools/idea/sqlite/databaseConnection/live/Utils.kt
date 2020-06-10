@@ -101,7 +101,10 @@ internal fun handleError(
 ) {
   // Ignore race conditions for short-lived dbs.
   // Short lived dbs can be closed after the "db open" event is received and before the next command is executed.
-  if (errorContent.errorCode == SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_NO_OPEN_DATABASE_WITH_REQUESTED_ID) {
+  if (
+    errorContent.errorCode == SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_NO_OPEN_DATABASE_WITH_REQUESTED_ID ||
+    errorContent.errorCode == SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_DB_CLOSED_DURING_OPERATION
+  ) {
     return
   }
 
