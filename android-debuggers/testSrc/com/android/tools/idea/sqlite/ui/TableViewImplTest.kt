@@ -58,9 +58,9 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Point
-import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import javax.swing.JProgressBar
 import javax.swing.JTable
 
 private const val COLUMN_DEFAULT_WIDTH = 75
@@ -757,53 +757,33 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertTrue(tableModel1 != table.model)
   }
 
-  fun testClickOnUrlCallsListener() {
-    // Prepare
-    val mockListener = mock(TableView.Listener::class.java)
-    view.addListener(mockListener)
-    view.startTableLoading()
-
-    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" } as JEditorPane
-    loadingPanel.text = "<a href=\"\">Test url</a>"
-
-    loadingPanel.size = Dimension(10, 10)
-    loadingPanel.preferredSize = loadingPanel.size
-    val fakeUi = FakeUi(loadingPanel)
-
-    // Act
-    fakeUi.mouse.click(5, 5)
-
-    // Assert
-    verify(mockListener).cancelRunningStatementInvoked()
-
-    view.stopTableLoading()
-  }
-
-  fun testLoadingPanelIsVisibleWhenLoading() {
+  fun testProgressBarIsVisibleWhenLoading() {
     // Act
     view.startTableLoading()
 
     // Assert
-    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().firstOrNull()
-    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" }
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
-    assertTrue(loadingPanel.isVisible)
-    assertNull(table)
+    assertTrue(table.isVisible)
+    assertFalse(table.isEnabled)
+    assertTrue(progressBar.isVisible)
 
     view.stopTableLoading()
   }
 
-  fun testLoadingPanelIsRemovedWhenLoadingIsFinished() {
+  fun testProgressBarIsHiddenWhenLoadingIsFinished() {
     // Act
     view.startTableLoading()
     view.stopTableLoading()
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val loadingPanel = TreeWalker(view.component).descendants().firstOrNull { it.name == "loading-panel" }
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertTrue(table.isVisible)
-    assertNull(loadingPanel)
+    assertTrue(table.isEnabled)
+    assertFalse(progressBar.isVisible)
   }
 
   fun testDisposeWhileLoadingDoesntThrow() {
