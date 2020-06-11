@@ -54,7 +54,6 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final HeapDumpCaptureObject myCaptureObject;
   @NotNull private final Instance myInstance;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
-  @NotNull private final String myMemoizedLabel;
 
   HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
                          @NotNull Instance instance,
@@ -64,8 +63,6 @@ class HeapDumpInstanceObject implements InstanceObject {
     myInstance = instance;
     myClassEntry = classEntry;
 
-    myMemoizedLabel =
-      String.format(NAME_FORMATTER, myClassEntry.getSimpleClassName(), myInstance.getUniqueId(), myInstance.getUniqueId());
     if (precomputedValueType != null) {
       myValueType = precomputedValueType;
       return;
@@ -111,7 +108,10 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Override
   public String getValueText() {
     // TODO show length of array instance
-    return myMemoizedLabel;
+    return String.format(NAME_FORMATTER,
+                         myClassEntry.getSimpleClassName(),
+                         myInstance.getUniqueId(),
+                         myInstance.getUniqueId());
   }
 
   @NotNull
