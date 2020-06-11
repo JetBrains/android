@@ -115,7 +115,7 @@ class ActionTargetTest : NavTestCase() {
     }
     verifier(ACTION_COLOR)
 
-    model.surface.selectionModel.setSelection(listOf(model.find("action1")))
+    model.surface.selectionModel.setSelection(listOf(model.find("action1")!!))
     verifier(SELECTED_COLOR)
   }
 

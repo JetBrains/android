@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
@@ -109,7 +110,7 @@ open class NavSceneManager(
     createSceneView()
     updateHierarchy(getModel(), null)
     getModel().addListener(ModelChangeListener())
-    designSurface.selectionModel.addListener { _, _ -> scene.needsRebuildList() }
+    designSurface.selectionModel.addListener(SelectionListener { _, _ -> scene.needsRebuildList() })
   }
 
   override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface

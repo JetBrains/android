@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a selection of components
+ * Default implementation of {@link SelectionModel} for the {@link com.android.tools.idea.common.surface.DesignSurface}.
  */
-public class SelectionModel {
+public class DefaultSelectionModel extends BaseSelectionModel {
   @NotNull
   private ImmutableList<NlComponent> mySelection = ImmutableList.of();
   private NlComponent myPrimary;
@@ -34,20 +34,19 @@ public class SelectionModel {
   Object mySecondarySelection;
 
   @NotNull
+  @Override
   public ImmutableList<NlComponent> getSelection() {
     return mySelection;
   }
 
   @Nullable
+  @Override
   public NlComponent getPrimary() {
     return myPrimary;
   }
 
-  public void setSelection(@NotNull List<NlComponent> components) {
-    setSelection(ImmutableList.copyOf(components), components.isEmpty() ? null : components.iterator().next());
-  }
-
-  public void setSelection(@NotNull List<NlComponent> components, @Nullable NlComponent primary) {
+  @Override
+  public void setSelection(@NotNull List<? extends NlComponent> components, @Nullable NlComponent primary) {
     //noinspection EqualsBetweenInconvertibleTypes   This currentlly erroneously shows on this line during psq
     if (components.equals(mySelection)) {
       return;
@@ -58,6 +57,7 @@ public class SelectionModel {
     notifySelectionChanged();
   }
 
+  @Override
   public void clear() {
     if (mySelection.isEmpty()) {
       return;
@@ -69,6 +69,7 @@ public class SelectionModel {
     notifySelectionChanged();
   }
 
+  @Override
   public void clearSecondary() {
     if (mySecondarySelection == null) {
       return;
@@ -77,6 +78,7 @@ public class SelectionModel {
     notifySelectionChanged();
   }
 
+  @Override
   public void toggle(@NotNull NlComponent component) {
     ImmutableList<NlComponent> newSelection;
     NlComponent newPrimary;
@@ -116,23 +118,14 @@ public class SelectionModel {
     myListeners.forEach(l -> l.selectionChanged(this, mySelection));
   }
 
+  @Override
   public void addListener(@NotNull SelectionListener listener) {
     myListeners.add(listener);
   }
 
+  @Override
   public void removeListener(@Nullable SelectionListener listener) {
     myListeners.remove(listener);
-  }
-
-  public boolean isEmpty() {
-    return mySelection.isEmpty();
-  }
-
-  /**
-   * Returns true if the given component is part of the selection
-   */
-  public boolean isSelected(@NotNull NlComponent component) {
-    return mySelection.contains(component);
   }
 
   /**
@@ -142,6 +135,7 @@ public class SelectionModel {
    * @param component the parent component of the secondary selection
    * @param secondary the secondary selection the object can be of any type but should implement equals
    */
+  @Override
   public void setSecondarySelection(NlComponent component, Object secondary) {
     if (component == null) {
       mySelection = ImmutableList.of();
@@ -156,24 +150,10 @@ public class SelectionModel {
     notifySelectionChanged();
   }
 
-  /**
-   * This returns the secondary selection. Users of this api should check the type and treat it as null if the type is not known.
-   *
-   * @return the secondary selection
-   */
+
+  @Override
+  @Nullable
   public Object getSecondarySelection() {
     return mySecondarySelection;
-  }
-
-  /**
-   * Test if the object is the secondary selection.
-   * Object is the selection if object == secondary || object.equals(secondary)
-   *
-   * @param object
-   * @return
-   */
-  public boolean isSecondarySelected(Object object) {
-    if (mySecondarySelection == object) return true;
-    return mySecondarySelection != null && mySecondarySelection.equals(object);
   }
 }
