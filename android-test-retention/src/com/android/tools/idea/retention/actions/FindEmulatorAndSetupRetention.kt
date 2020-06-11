@@ -100,27 +100,22 @@ class FindEmulatorAndSetupRetention : AnAction() {
               }
             }
             var adbDevice: IDevice? = null
-            val deviceClientsReadySignal = CountDownLatch(1)
+            val deviceReadySignal = CountDownLatch(1)
             // After loading a snapshot, the following events will happen:
             // Device disconnects -> device reconnects-> device client list changes
-            // We need to wait until we get the device client list.
+            // But the device client list changes callback does not really catch all client changes.
             val deviceChangeListener: AndroidDebugBridge.IDeviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
               override fun deviceDisconnected(device: IDevice) {}
 
               override fun deviceConnected(device: IDevice) {
                 if (emulatorSerialString == device.serialNumber) {
                   adbDevice = device
-                }
-              }
-
-              override fun deviceChanged(device: IDevice, changeMask: Int) {
-                // Make sure it is the reconnected device.
-                // We only care about the client change event after device reconnects.
-                if (device == adbDevice && changeMask == IDevice.CHANGE_CLIENT_LIST && device.getClient(packageName) != null) {
-                  deviceClientsReadySignal.countDown()
+                  deviceReadySignal.countDown()
                   AndroidDebugBridge.removeDeviceChangeListener(this)
                 }
               }
+
+              override fun deviceChanged(device: IDevice, changeMask: Int) { }
             }
             AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
             try {
@@ -129,9 +124,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
                 return
               }
               indicator.fraction = LOAD_SNAPSHOT_FRACTION
-              // TODO(b/158602668): occasionally it doesn't get the clients ready signal.
-              ProgressIndicatorUtils.awaitWithCheckCanceled(deviceClientsReadySignal)
-              indicator.fraction = CLIENTS_READY_FRACTION
+              ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
             }
             catch (exception: Throwable) {
               AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
@@ -142,6 +135,20 @@ class FindEmulatorAndSetupRetention : AnAction() {
               LOG.warn("Failed to connect to device.")
               return
             }
+
+            // Check if the ddm client is ready.
+            // Alternatively we can register a callback to check clients. But the IDeviceChangeListener does not really deliver all new
+            // client events. Also, because of the implementation of ProgressIndicatorUtils.awaitWithCheckCanceled, it is going to poll
+            // and wait even if we use callbacks.
+            ProgressIndicatorUtils.awaitWithCheckCanceled {
+              if (adbDevice!!.getClient(packageName) == null) {
+                Thread.sleep(10)
+                false
+              } else {
+                true
+              }
+            }
+            indicator.fraction = CLIENTS_READY_FRACTION
 
             val debugSessionReadySignal = CountDownLatch(1)
             val messageBusConnection = project.messageBus.connect()
