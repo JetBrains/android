@@ -19,7 +19,6 @@ import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlModuleService;
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
-import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
@@ -165,7 +164,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
       }
 
-      if (modelInfo.isMetadataVersionTooHigh()) {
+      if (!modelInfo.isMinParserVersionSatisfied()) {
         contentPanel.add(createMetadataVersionTooHighSection());
       }
       else if (modelInfo.isMetadataExisted()) {
@@ -187,7 +186,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
-      return createWarningMessagePanel("Something goes wrong while reading model file.");
+      return createWarningMessagePanel("Error reading model file.");
     }
   }
 
@@ -243,7 +242,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     JBLabel infoLabel = new JBLabel(
       "Model is not fully supported in current Android Studio or Android Gradle Plugin. " +
-      "Please update to latest version if possible to get best experience.");
+      "Please update to the latest version to get the best experience.");
     infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
     infoLabel.setBorder(Borders.empty(10, 20, 10, 0));
     sectionPanel.add(infoLabel);
@@ -256,9 +255,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
     sectionPanel.add(createSectionHeader("Model"));
 
-    JBTable modelTable = createTable(getModelTableData(modelInfo), Collections.emptyList());
     JPanel modelTablePanel = createPanelWithFlowLayout(Borders.emptyLeft(20));
-    modelTablePanel.add(modelTable);
+    addTable(modelTablePanel, getModelTableData(modelInfo), Collections.emptyList());
     sectionPanel.add(modelTablePanel);
     sectionPanel.setMaximumSize(sectionPanel.getPreferredSize());
 
@@ -273,19 +271,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     inputsLabel.setBorder(Borders.empty(6, 0));
     sectionContentPanel.add(inputsLabel);
 
-    JBTable inputTensorTable = createTable(getTensorTableData(modelInfo.getInputs()), TENSOR_TABLE_HEADER);
-    addTableHeader(sectionContentPanel, inputTensorTable);
+    JBTable inputTensorTable = addTable(sectionContentPanel, getTensorTableData(modelInfo.getInputs()), TENSOR_TABLE_HEADER);
     inputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
-    sectionContentPanel.add(inputTensorTable);
 
     JBLabel outputsLabel = new JBLabel("Outputs");
     outputsLabel.setBorder(Borders.empty(10, 0, 6, 0));
     sectionContentPanel.add(outputsLabel);
 
-    JBTable outputTensorTable = createTable(getTensorTableData(modelInfo.getOutputs()), TENSOR_TABLE_HEADER);
-    addTableHeader(sectionContentPanel, outputTensorTable);
+    JBTable outputTensorTable = addTable(sectionContentPanel, getTensorTableData(modelInfo.getOutputs()), TENSOR_TABLE_HEADER);
     outputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
-    sectionContentPanel.add(outputTensorTable);
 
     // Align column width between tensor tables.
     for (int c = 0; c < TENSOR_TABLE_HEADER.size(); c++) {
@@ -305,14 +299,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     sectionPanel.add(sectionContentPanelContainer);
 
     return sectionPanel;
-  }
-
-  private static void addTableHeader(@NotNull JComponent container, @NotNull JBTable table) {
-    JTableHeader tableHeader = table.getTableHeader();
-    tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-    tableHeader.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, JBColor.LIGHT_GRAY));
-    tableHeader.setDefaultRenderer(new TableHeaderCellRenderer());
-    container.add(tableHeader);
   }
 
   @NotNull
@@ -360,8 +346,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return messageLabel;
   }
 
+  /**
+   * Returns the table just added.
+   */
   @NotNull
-  private static JBTable createTable(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
+  private static JBTable addTable(@NotNull JPanel tableContainer,
+                                  @NotNull List<List<String>> rowDataList,
+                                  @NotNull List<String> headerData) {
     MetadataTableModel tableModel = new MetadataTableModel(rowDataList, headerData);
     JBTable table = new JBTable(tableModel);
     table.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -388,6 +379,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         }
       }
     });
+    if (!headerData.isEmpty()) {
+      JTableHeader tableHeader = table.getTableHeader();
+      tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+      tableHeader.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, JBColor.LIGHT_GRAY));
+      tableHeader.setDefaultRenderer(new TableHeaderCellRenderer());
+      tableContainer.add(tableHeader);
+    }
 
     // Sets up column width and row height to fit into content.
     TableCellRenderer headerCellRenderer = table.getTableHeader().getDefaultRenderer();
@@ -402,12 +400,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         cellWidth = Math.max(cellWidth, preferredSize.width);
         rowHeights[r] = Math.max(rowHeights[r], preferredSize.height);
       }
-      column.setPreferredWidth(cellWidth + JBUIScale.scale(10));
+      column.setPreferredWidth(cellWidth + JBUIScale.scale(4));
     }
     for (int r = 0; r < table.getRowCount(); r++) {
       table.setRowHeight(r, rowHeights[r]);
     }
 
+    tableContainer.add(table);
     return table;
   }
 
@@ -426,7 +425,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static List<List<String>> getTensorTableData(List<TensorInfo> tensorInfoList) {
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
-      MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
+      TensorInfo.NormalizationParams params = tensorInfo.getNormalizationParams();
       String minMaxColumn = isValidMinMaxColumn(params) ? convertFloatArrayPairToString(params.getMin(), params.getMax()) : "[] / []";
       tableData.add(
         Lists.newArrayList(
@@ -465,7 +464,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return CaseFormat.UPPER_UNDERSCORE.to(caseFormat, content);
   }
 
-  private static boolean isValidMinMaxColumn(@NotNull MetadataExtractor.NormalizationParams params) {
+  private static boolean isValidMinMaxColumn(@NotNull TensorInfo.NormalizationParams params) {
     for (float min : params.getMin()) {
       if (Floats.compare(min, Float.MIN_VALUE) != 0) {
         return true;

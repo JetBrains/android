@@ -64,8 +64,8 @@ public class DependenciesTooLowNotificationProvider extends EditorNotifications.
     List<Pair<GradleCoordinate, GradleCoordinate>> depPairList = MlUtils.getDependenciesLowerThanRequiredVersion(module);
     if (!depPairList.isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("Some dependency versions are lower than required, please upgrade to ensure ML Model Binding feature works correctly");
-      panel.createActionLabel("More detail", () -> {
+      panel.setText("ML Model Binding requires updated dependencies");
+      panel.createActionLabel("View dependencies", () -> {
         String existingDepString = depPairList.stream()
           .map(it -> it.getFirst())
           .map(it -> String.format(Locale.US, "    %s:%s:%s\n", it.getGroupId(), it.getArtifactId(), it.getRevision()))
@@ -76,7 +76,7 @@ public class DependenciesTooLowNotificationProvider extends EditorNotifications.
           .collect(Collectors.joining(""));
         Messages.showWarningDialog(
           String.format(Locale.US, "Existing:\n%s\nRequired:\n%s", existingDepString, requiredDepString),
-          "Dependency Versions Too Low");
+          "Dependencies Needing Updates");
       });
       panel.createActionLabel("Hide notification", () -> {
         fileEditor.putUserData(HIDDEN_KEY, "true");

@@ -20,7 +20,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -69,6 +69,7 @@ class AppInspectionViewTest {
 
   private class TestIdeServices : AppInspectionIdeServices {
     class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity, val hyperlinkClicked: () -> Unit)
+
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
 
     override fun showToolWindow(callback: () -> Unit) {}
@@ -80,6 +81,7 @@ class AppInspectionViewTest {
       notificationListeners.forEach { listener -> listener(data) }
     }
   }
+
   private val ideServices = TestIdeServices()
 
   @get:Rule
@@ -100,6 +102,30 @@ class AppInspectionViewTest {
     val tabsAddedLatch = CountDownLatch(2)
     uiExecutor.submit {
       val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+
+      inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+        override fun componentAdded(e: ContainerEvent) = tabsAddedLatch.countDown()
+      })
+    }
+
+    // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    tabsAddedLatch.await()
+  }
+
+  @Test
+  fun selectProcessInAppInspectionView_tabNotAddedForDisabledTabProvider() {
+    // Disable Inspector2 and only one tab should be added.
+    val backgroundExecutor = Executors.newSingleThreadExecutor()
+    val uiExecutor = EdtExecutorService.getInstance()
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(backgroundExecutor, TransportClient(grpcServerRule.name))
+
+    val tabsAddedLatch = CountDownLatch(1)
+    uiExecutor.submit {
+      val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices, { listOf(TestAppInspectorTabProvider1()) }) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
 

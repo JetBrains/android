@@ -1,8 +1,7 @@
 package com.android.tools.idea.compose
 
-import com.android.ide.common.blame.Message
 import com.android.testutils.TestUtils
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -24,7 +23,7 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
+    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile(TEST_DATA_PATH).path
     projectRule.load(projectPath)
     projectRule.requestSyncAndWait()
 

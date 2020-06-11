@@ -101,13 +101,13 @@ class RunSqliteStatementGutterIconAction(
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
       databaseInspectorProjectService.runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
-      databaseInspectorProjectService.ideServices?.showToolWindow()
+      databaseInspectorProjectService.getIdeServices()?.showToolWindow()
     }
     else {
       val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
       ParametersBindingController(view, sqliteStatementPsi) {
         databaseInspectorProjectService.runSqliteStatement(databaseId, it)
-        databaseInspectorProjectService.ideServices?.showToolWindow()
+        databaseInspectorProjectService.getIdeServices()?.showToolWindow()
       }.also {
         it.setUp()
         it.show()

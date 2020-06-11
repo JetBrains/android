@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
+import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
+import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
+import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -36,6 +40,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.Printer
 
@@ -126,12 +131,17 @@ class LightDirectionsKtClass(
                   }
                   .toList()
               }
+              val xmlTag = directionsClassDescriptor.source.getPsi() as? XmlTag
+              val resolvedSourceElement = xmlTag?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)?.let {
+                XmlSourceElement(it)
+              } ?: directionsClassDescriptor.source
 
               directionsClassDescriptor.createMethod(
                 name = action.id.toCamelCase(),
                 returnType = navDirectionType,
                 dispatchReceiver = companionObject,
-                valueParametersProvider = valueParametersProvider
+                valueParametersProvider = valueParametersProvider,
+                sourceElement = resolvedSourceElement
               )
             }
             .toList()

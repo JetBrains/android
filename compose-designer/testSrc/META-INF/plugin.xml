@@ -23,5 +23,4 @@
   <name>Compose Designer Tests</name>
   <id>com.android.tools.idea.compose.tests</id>
 
-  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

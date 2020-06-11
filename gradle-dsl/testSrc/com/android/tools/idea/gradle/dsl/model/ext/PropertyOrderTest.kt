@@ -214,7 +214,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     assertSize(2, extProperties)
     verifyPropertyModel(extProperties[0], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop1")
     verifyPropertyModel(extProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop2")
-    val debug = buildModel.android().buildTypes()[0]!!
+    val debug = buildModel.android().buildTypes().first { it.name() == "debug" }
     val debugProperties = debug.declaredProperties
     assertSize(1, debugProperties)
     verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var1")
@@ -495,7 +495,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     writeToBuildFile(TestFile.RESOLVE_TO_LAST_PROPERTY)
 
     val buildModel = gradleBuildModel
-    val configModel = buildModel.android().signingConfigs()[0]!!
+    val configModel = buildModel.android().signingConfigs()[1]!!
     val fileModel = configModel.storeFile()
     val passwordModel = configModel.storePassword()
 

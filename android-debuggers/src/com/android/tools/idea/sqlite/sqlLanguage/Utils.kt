@@ -25,6 +25,7 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlEquivalenceExpressio
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlExplainPrefix
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlInExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlInsertStatement
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPragmaStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlUpdateStatement
@@ -180,6 +181,17 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlDeleteStatement::class.java) != null -> SqliteStatementType.DELETE
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlInsertStatement::class.java) != null -> SqliteStatementType.INSERT
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlUpdateStatement::class.java) != null -> SqliteStatementType.UPDATE
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java) != null -> {
+      val pragmaStatement = PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java)!!
+      // we can just check for EQ (=) because the syntax of pragma statements is fairly limited
+      // see https://www.sqlite.org/pragma.html#syntax
+      if (pragmaStatement.node.findChildByType(AndroidSqlPsiTypes.EQ) == null) {
+        SqliteStatementType.PRAGMA_QUERY
+      }
+      else {
+        SqliteStatementType.PRAGMA_UPDATE
+      }
+    }
     else -> SqliteStatementType.UNKNOWN
   }
 }

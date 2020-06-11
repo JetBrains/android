@@ -8,14 +8,6 @@
     <properties/>
     <border type="none"/>
     <children>
-      <nested-form id="4008b" form-file="com/android/tools/idea/avdmanager/SystemImagePreview.form" binding="mySystemImagePreview" custom-create="true">
-        <constraints>
-          <grid row="0" column="1" row-span="2" col-span="1" vsize-policy="3" hsize-policy="0" anchor="4" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="360" height="-1"/>
-            <maximum-size width="360" height="-1"/>
-          </grid>
-        </constraints>
-      </nested-form>
       <tabbedpane id="3899e" class="com.intellij.ui.components.JBTabbedPane" binding="myTabPane">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -120,6 +112,20 @@
           </grid>
         </children>
       </grid>
+      <scrollpane id="b3c45" class="com.intellij.ui.components.JBScrollPane">
+        <constraints>
+          <grid row="0" column="1" row-span="2" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <horizontalScrollBarPolicy value="31"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <nested-form id="4008b" form-file="com/android/tools/idea/avdmanager/SystemImagePreview.form" binding="mySystemImagePreview" custom-create="true">
+            <constraints/>
+          </nested-form>
+        </children>
+      </scrollpane>
     </children>
   </grid>
 </form>

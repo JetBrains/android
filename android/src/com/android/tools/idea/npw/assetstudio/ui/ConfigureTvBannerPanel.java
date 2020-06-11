@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getNewAndroidModuleTemplateImage;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundledImage;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -100,7 +100,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
   private static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
-  private static final File DEFAULT_FOREGROUND_IMAGE = getNewAndroidModuleTemplateImage("drawable-v24", "ic_banner_image.xml");
+  private static final File DEFAULT_FOREGROUND_IMAGE = getBundledImage("asset_studio", "ic_banner_image.xml");
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.COLOR;
   private static final String DEFAULT_OUTPUT_NAME = AndroidIconType.TV_BANNER.toOutputName("");
 

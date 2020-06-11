@@ -6,10 +6,6 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar
     JavaSourceLevel     : 1.7
@@ -21,6 +17,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : google.simpleapplication
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]

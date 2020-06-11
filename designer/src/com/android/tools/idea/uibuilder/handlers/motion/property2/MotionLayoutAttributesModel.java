@@ -37,7 +37,6 @@ import com.android.tools.property.panel.api.PropertiesTable;
 import com.google.common.base.Predicates;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -326,13 +325,12 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     };
 
     ApplicationManager.getApplication().assertIsDispatchThread();
-    TransactionGuard.submitTransaction(this, () ->
-      WriteCommandAction.runWriteCommandAction(
-        getFacet().getModule().getProject(),
-        commandName,
-        null,
-        transaction,
-        selection.getSceneFile()));
+    WriteCommandAction.runWriteCommandAction(
+      getFacet().getModule().getProject(),
+      commandName,
+      null,
+      transaction,
+      selection.getSceneFile());
   }
 
   /**

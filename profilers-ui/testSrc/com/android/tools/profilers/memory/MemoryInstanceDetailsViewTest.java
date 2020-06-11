@@ -41,6 +41,7 @@ import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collections;
@@ -239,7 +240,7 @@ public class MemoryInstanceDetailsViewTest {
     // Check that the Go To Instance menu item exists but is disabled since no instance is selected
     List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
     assertNotNull(menus);
-    assertEquals(2, menus.size());
+    assertEquals(1, menus.size());
     assertEquals("Go to Instance", menus.get(0).getText());
     assertFalse(menus.get(0).isEnabled());
 
@@ -310,29 +311,37 @@ public class MemoryInstanceDetailsViewTest {
   }
 
   @Test
-  public void testExpandUpToNearestGcRoot() {
-    FakeInstanceObject fake1 =
+  public void selectingNearestGCRootUpdatesReferenceTree() {
+    FakeInstanceObject referer0 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER")
+        .setName("Ref0").setFields(Arrays.asList("r1", "r2"))
+        .setDepth(0).setNativeSize(1).setShallowSize(2).setRetainedSize(3).build();
+
+    FakeInstanceObject referer1 =
       new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER")
         .setName("Ref1").setFields(Collections.singletonList("mField1"))
-        .setDepth(0).setNativeSize(1).setShallowSize(2).setRetainedSize(3).build();
-    FakeInstanceObject fake2 =
+        .setDepth(1).setNativeSize(1).setShallowSize(2).setRetainedSize(3).build();
+    FakeInstanceObject referer2 =
       new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFERER")
         .setName("Ref2").setFields(Collections.singletonList("mField2"))
-        .setDepth(4).setNativeSize(2).setShallowSize(5).setRetainedSize(6).build();
-    FakeInstanceObject fake3 =
+        .setDepth(1).setNativeSize(2).setShallowSize(5).setRetainedSize(6).build();
+    FakeInstanceObject referer3 =
       new FakeInstanceObject.Builder(myFakeCaptureObject, 3, "REFERER")
         .setName("Ref3").setFields(Collections.singletonList("mField3"))
         .setDepth(7).setNativeSize(3).setShallowSize(8).setRetainedSize(9).build();
 
     FakeInstanceObject fakeRootObject = new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFEREE")
+      .setDepth(2)
       .setName("MockRoot").build();
 
-    fake1.setFieldValue("mField1", OBJECT, fakeRootObject);
-    fake2.setFieldValue("mField2", OBJECT, fakeRootObject);
-    fake3.setFieldValue("mField3", OBJECT, fakeRootObject);
+    referer0.setFieldValue("r1", OBJECT, referer1);
+    referer0.setFieldValue("r2", OBJECT, referer2);
+    referer1.setFieldValue("mField1", OBJECT, fakeRootObject);
+    referer2.setFieldValue("mField2", OBJECT, fakeRootObject);
+    referer3.setFieldValue("mField3", OBJECT, fakeRootObject);
 
     myFakeCaptureObject
-      .addInstanceObjects(ImmutableSet.of(fake1, fake2, fake3, fakeRootObject));
+      .addInstanceObjects(ImmutableSet.of(referer1, referer2, referer3, fakeRootObject));
 
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false,
@@ -340,24 +349,38 @@ public class MemoryInstanceDetailsViewTest {
       null);
     myStage.getCaptureSelection().selectInstanceObject(fakeRootObject);
 
-    JTree tree = myDetailsView.getReferenceTree();
+    // Before selection
+    {
+      Truth.assertThat(myDetailsView.getGCRootCheckBox().isSelected()).isFalse();
+      ReferenceTreeNode root = (ReferenceTreeNode)myDetailsView.getReferenceTree().getModel().getRoot();
+      Truth.assertThat(root.getAdapter()).isEqualTo(fakeRootObject);
+      Truth.assertThat(root.myChildren.size()).isEqualTo(3);
+    }
 
-    // Check that the Go To Instance menu item exists but is disabled since no instance is selected
-    List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
-    assertNotNull(menus);
-    assertEquals(2, menus.size());
-    ContextMenuItem expandItem = menus.get(1);
-    assertEquals("Show Nearest GC Root", menus.get(1).getText());
-    assertFalse(expandItem.isEnabled());
 
-    // Selects the referer node and triggers the context menu action to select the ref instance.
-    tree.setSelectionPath(new TreePath(tree.getModel().getRoot()));
-    assertTrue(expandItem.isEnabled());
+    // After selection
+    {
+      myDetailsView.getGCRootCheckBox().setSelected(true);
 
-    assertEquals(((ReferenceTreeNode)tree.getSelectionPath().getLastPathComponent()).getAdapter(), fakeRootObject);
-    expandItem.run();
-    assertEquals(((ReferenceObject)((ReferenceTreeNode)tree.getSelectionPath().getLastPathComponent()).getAdapter())
-                   .getReferenceInstance(),
-                 fake1);
+      NearestGCRootTreeNode root = (NearestGCRootTreeNode)myDetailsView.getReferenceTree().getModel().getRoot();
+      Truth.assertThat(root.getAdapter()).isEqualTo(fakeRootObject);
+      Truth.assertThat(root.myChildren.size()).isEqualTo(2);
+
+      NearestGCRootTreeNode node1 = (NearestGCRootTreeNode)root.myChildren.get(0);
+      Truth.assertThat(((ReferenceObject)node1.getAdapter()).getReferenceInstance()).isEqualTo(referer1);
+      Truth.assertThat(node1.myChildren.size()).isEqualTo(1);
+
+      NearestGCRootTreeNode node2 = (NearestGCRootTreeNode)root.myChildren.get(1);
+      Truth.assertThat(((ReferenceObject)node2.getAdapter()).getReferenceInstance()).isEqualTo(referer2);
+      Truth.assertThat(node2.myChildren).isEmpty(); // all but first child not automatically expanded
+      node2.expandNode();
+      Truth.assertThat(node2.myChildren.size()).isEqualTo(1);
+
+      Arrays.asList(node1.myChildren.get(0), node2.myChildren.get(0)).forEach(node -> {
+        NearestGCRootTreeNode gcRoot = (NearestGCRootTreeNode)node;
+        Truth.assertThat(((ReferenceObject)gcRoot.getAdapter()).getReferenceInstance()).isEqualTo(referer0);
+        Truth.assertThat(gcRoot.myChildren).isEmpty();
+      });
+    }
   }
 }

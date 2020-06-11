@@ -224,13 +224,8 @@ iml_module(
             "data": ["//prebuilts/studio/sdk:ndk"],
             # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
+            "shard_count": 2,
             "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
-        },
-        "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            # Sync error with cmake (b/152814925)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.project.model.NdkModuleModelTest.testVariantAbiNames",
         },
         "gradle.variant.view.BuildVariantUpdaterIntegTest": {
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -257,13 +252,11 @@ iml_module(
             "test_filter": "com.android.tools.idea.navigator",
         },
         "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
             # testDependentNativeModules (ag/9872410)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest",
         },
         "navigator.SourceProvidersSnapshotComparisonTest": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
             # testDependentNativeModules (ag/9872410)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest",

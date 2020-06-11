@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk
 
 import com.android.builder.model.NativeArtifact
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon
@@ -28,6 +29,7 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Queryable
 import com.intellij.openapi.util.text.StringUtil.trimEnd
@@ -79,6 +81,21 @@ class NdkModuleNode(
 fun getNativeSourceNodes(project: Project,
                          ndkModel: NdkModuleModel,
                          settings: ViewSettings): Collection<AbstractTreeNode<*>> {
+  if (StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get()) {
+    return getContentRootBasedNativeNodes(project, ModuleManager.getInstance(project).findModuleByName(ndkModel.moduleName)!!, settings)
+  }
+  else {
+    return getLibraryBasedNativeNodes(ndkModel, project, settings)
+  }
+}
+
+/**
+ * Gets nodes for project view and Android view populated by native targets (aka, native libraries, for example, declared by add_library in
+ * CMakeLists.txt).
+ */
+private fun getLibraryBasedNativeNodes(ndkModel: NdkModuleModel,
+                                       project: Project,
+                                       settings: ViewSettings): Collection<AbstractTreeNode<*>> {
   val nativeAndroidProject = ndkModel.androidProject
   val sourceFileExtensions = nativeAndroidProject.fileExtensions.keys
 

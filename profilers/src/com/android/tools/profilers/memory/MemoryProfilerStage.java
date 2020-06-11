@@ -188,7 +188,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
     myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
     myGcStatsModel.setAttachPredicate(
       // Only attach to the object series if live allocation is disabled or the gc event happens within full-tracking mode.
-      data -> !useLiveAllocationTracking() ||
+      data -> !isLiveAllocationTrackingReady() ||
               MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(getStudioProfilers(), mySessionData, data.x, data.x));
     myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
     myAllocationSamplingRateDurations.setAttachPredicate(
@@ -202,7 +202,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
       (data, series) ->
         // Only show the object series if live allocation is not enabled or if the current sampling rate is FULL.
         !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName()) ||
-        (!useLiveAllocationTracking() ||
+        (!isLiveAllocationTrackingReady() ||
          data.value.getCurrentRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue())
     );
     myAllocationSamplingRateUpdatable = new AllocationSamplingRateUpdatable();
@@ -216,6 +216,25 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
     myEventMonitor = new EventMonitor(profilers);
+
+    // Get ready to fire LIVE_ALLOCATION_STATUS if applicable.
+    if (getStudioProfilers().getSessionsManager().isSessionAlive() && isLiveAllocationTrackingSupported()) {
+      // Note the max of current data range as isLiveAllocationTrackingReady() returns info before it.
+      long currentRangeMax = TimeUnit.MICROSECONDS.toNanos((long)profilers.getTimeline().getDataRange().getMax());
+      if (!isLiveAllocationTrackingReady()) {
+        TransportEventListener listener = new TransportEventListener(
+          Common.Event.Kind.MEMORY_ALLOC_SAMPLING, getStudioProfilers().getIdeServices().getMainExecutor(),
+          event -> true, () -> mySessionData.getStreamId(), () -> mySessionData.getPid(), null,
+          // wait for only new events, not old ones such as those from previous sessions
+          () -> currentRangeMax,
+          event -> {
+            myAspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS);
+            // unregisters the listener.
+            return true;
+          });
+        getStudioProfilers().getTransportPoller().registerListener(listener);
+      }
+    }
 
     myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
     myRangeSelectionModel.addConstraint(myAllocationDurations);
@@ -625,25 +644,27 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
     return durationData;
   }
 
+  @Nullable
+  private Common.Device getDeviceForSelectedSession() {
+    StudioProfilers profilers = getStudioProfilers();
+    Common.Stream stream = profilers.getStream(profilers.getSession().getStreamId());
+    if (stream.getType() == Common.Stream.Type.DEVICE) {
+      return stream.getDevice();
+    }
+    return null;
+  }
+
   public boolean isNativeAllocationSamplingEnabled() {
+    Common.Device device = getDeviceForSelectedSession();
     return getStudioProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled() &&
-           getStudioProfilers().getDevice() != null &&
-           getStudioProfilers().getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.Q;
+           device != null &&
+           device.getFeatureLevel() >= AndroidVersion.VersionCodes.Q;
   }
 
-  public boolean useLiveAllocationTracking() {
-    return isLiveAllocationTrackingReady() || isLiveAllocationTrackingSupported();
-  }
-
-  /**
-   * @return `true` if live allocation is definitely available based on device info
-   *         `false` if live allocation is potentially unavailable
-   *         (potential false negative from lack of device info)
-   */
-  private boolean isLiveAllocationTrackingSupported() {
-    Common.Device device = getStudioProfilers().getDevice();
-    return device != null &&
-           getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
+  public boolean isLiveAllocationTrackingSupported() {
+    Common.Device device = getDeviceForSelectedSession();
+    return getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
+           device != null &&
            device.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
 
@@ -836,7 +857,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, usage.getObjectsSeries().getName(),
                                          Interpolatable.RoundedSegmentInterpolator, r -> {
-        if (!memoryStage.useLiveAllocationTracking()) {
+        if (!memoryStage.isLiveAllocationTrackingReady()) {
           // if live allocation is not enabled, show the object series as long as there is data.
           return true;
         }
@@ -930,7 +951,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
   private class AllocationSamplingRateUpdatable implements Updatable {
     @Override
     public void update(long elapsedNs) {
-      if (!useLiveAllocationTracking()) {
+      if (!isLiveAllocationTrackingReady()) {
         return;
       }
 

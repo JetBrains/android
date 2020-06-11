@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.property.panel.api.EnumValue
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
 class NavEnumSupportProviderTest : NavTestCase() {
@@ -130,11 +131,17 @@ class NavEnumSupportProviderTest : NavTestCase() {
         fragment("fragment1")
       }
     }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val fragment1 = model.find("fragment1")!!
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
     enumValue.select(property)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     testSelectName(fragment1, "mytest.navtest.BlankFragment",  null)
     testSelectName(fragment1, "mytest.navtest.DynamicFragment",  "dynamicfeaturemodule")
@@ -142,8 +149,11 @@ class NavEnumSupportProviderTest : NavTestCase() {
 
   private fun testSelectName(component: NlComponent, value: String, moduleName: String?) {
     val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, component)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val enumValue = ClassEnumValue(value, "display", moduleName, true)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     enumValue.select(property)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertEquals(value, component.getAttribute(ANDROID_URI, ATTR_NAME))
     assertEquals(moduleName, component.getAttribute(AUTO_URI, ATTR_MODULE_NAME))

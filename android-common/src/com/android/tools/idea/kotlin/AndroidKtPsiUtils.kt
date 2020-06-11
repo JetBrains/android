@@ -19,9 +19,11 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
+import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
+import org.jetbrains.kotlin.asJava.getAccessorLightMethods
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -148,7 +150,11 @@ fun KotlinType.isSubclassOf(className: String, strict: Boolean = false): Boolean
   }
 }
 
-val KtProperty.psiType get() = LightClassUtil.getLightClassBackingField(this)?.getType()
+val KtProperty.psiType: PsiType?
+  get() {
+    val accessors = getAccessorLightMethods()
+    return accessors.backingField?.type ?: accessors.getter?.returnType
+  }
 val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
 val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
 fun KtClass.toPsiType() = toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }

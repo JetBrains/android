@@ -188,7 +188,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     val buildType = appModule.findBuildType("debug")
     assertThat(buildType, notNullValue()); buildType!!
-    assertFalse(buildType.isDeclared)
+    assertTrue(buildType.isDeclared)
 
     val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.bind(buildType).getValue()
     val debuggable = PsBuildType.BuildTypeDescriptors.debuggable.bind(buildType).getValue()
@@ -234,7 +234,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(zipAlignEnabled.parsedValue.asTestValue(), nullValue())
 
     assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
-    assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+    assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
   }
 
   fun testDefaultResolvedPropertiesGroovy() {
@@ -386,7 +386,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     val buildType = appModule.findBuildType("debug")
     assertThat(buildType, notNullValue()); buildType!!
-    assertThat(buildType.isDeclared, equalTo(false))
+    assertThat(buildType.isDeclared, equalTo(true))
 
 
     buildType.jniDebuggable = true.asParsed()

@@ -1,0 +1,8 @@
+android {
+  buildTypes {
+    newRelease {
+    }
+    newDebug {
+    }
+  }
+}

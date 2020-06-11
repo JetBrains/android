@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -35,7 +36,6 @@ import java.awt.Graphics2D
 import java.awt.Insets
 import java.awt.Rectangle
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 /**
@@ -97,11 +97,16 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    */
   private var layoutData = LayoutData.fromSceneView(sceneView)
 
+  private val cachedContentSize = Dimension()
+  private val cachedScaledContentSize = Dimension()
+  private val cachedPreferredSize = Dimension()
+
   /**
    * This label displays the [SceneView] model if there is any
    */
-  private val modelNameLabel = JLabel().apply {
+  private val modelNameLabel = JBLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+    isEnabled = false
   }
 
   val positionableAdapter = object : PositionableContent() {
@@ -109,10 +114,10 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     override val y: Int get() = sceneView.y
     override val margin: Insets
       get() {
-        // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space
-        val contentSize = if (sceneView.hasContent()) getScaledContentSize(null) else JBUI.emptySize()
+        val contentSize = getScaledContentSize(null)
         return if (contentSize.width < minimumSize.width &&
                    contentSize.height < minimumSize.height) {
+          // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space
           val hSpace = (minimumSize.width - contentSize.width) / 2
           val vSpace = (minimumSize.height - contentSize.height) / 2
           val originalMargin = sceneView.margin
@@ -126,7 +131,12 @@ class SceneViewPeerPanel(val sceneView: SceneView,
         }
       }
 
-    override fun getContentSize(dimension: Dimension?): Dimension = sceneView.getContentSize(dimension)
+    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContent())
+      sceneView.getContentSize(dimension)
+    else
+      dimension?.apply {
+        size = cachedContentSize
+      } ?: Dimension(cachedContentSize)
 
     /**
      * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
@@ -141,7 +151,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       return getContentSize(outputDimension).scaleBy(sceneView.scale)
     }
 
-    private val cachedScaledContentSize = Dimension()
+
     /**
      * Applies the calculated coordinates from this adapter to the backing SceneView.
      */
@@ -210,8 +220,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   }
 
   /** [Dimension] used to avoid extra allocations calculating [getPreferredSize] */
-  private val cachedContentSize = Dimension()
-  override fun getPreferredSize(): Dimension = positionableAdapter.getScaledContentSize(cachedContentSize).also {
+  override fun getPreferredSize(): Dimension = positionableAdapter.getScaledContentSize(cachedPreferredSize).also {
     it.width = it.width + positionableAdapter.margin.left + positionableAdapter.margin.right
     it.height = it.height + positionableAdapter.margin.top + positionableAdapter.margin.bottom
   }

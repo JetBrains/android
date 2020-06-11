@@ -113,11 +113,8 @@ class BuildCppKotlinTest {
     }
     // TODO end hack for b/110174414
 
-    try {
-      ideFrame.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60))
-    }
-    catch (timedout: WaitTimedOutError) {
-      Assert.fail("Could not build a project!")
-    }
+    ideFrame
+      .waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(BuildMode.REBUILD)
   }
 }

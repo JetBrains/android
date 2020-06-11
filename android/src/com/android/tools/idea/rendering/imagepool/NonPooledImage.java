@@ -25,21 +25,23 @@ import java.util.function.Consumer;
 
 class NonPooledImage implements ImagePool.Image {
   private BufferedImage myImage;
+  private final int myWidth;
+  private final int myHeight;
 
   private NonPooledImage(@NotNull BufferedImage image) {
     myImage = image;
+    myHeight = myImage.getHeight();
+    myWidth = myImage.getWidth();
   }
 
   @Override
   public int getWidth() {
-    assert myImage != null : "Image already disposed";
-    return myImage.getWidth();
+    return myWidth;
   }
 
   @Override
   public int getHeight() {
-    assert myImage != null : "Image already disposed";
-    return myImage.getHeight();
+    return myHeight;
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.android.tools.idea.emulator
 import com.android.SdkConstants.ANDROID_SDK_ROOT_ENV
 import com.android.emulator.control.Rotation.SkinRotation
 import com.intellij.openapi.util.text.StringUtil.parseInt
+import java.awt.Dimension
 import java.nio.file.Path
 
 /**
@@ -26,14 +27,19 @@ import java.nio.file.Path
 class EmulatorConfiguration private constructor(
   val avdName: String,
   val avdFolder: Path,
-  val displayWidth: Int,
-  val displayHeight: Int,
+  val displaySize: Dimension,
   val density: Int,
   val skinFolder: Path?,
   val hasOrientationSensors: Boolean,
   val hasAudioOutput: Boolean,
   val initialOrientation: SkinRotation
 ) {
+
+  val displayWidth
+    get() = displaySize.width
+
+  val displayHeight
+    get() = displaySize.height
 
   companion object {
     /**
@@ -74,8 +80,7 @@ class EmulatorConfiguration private constructor(
 
       return EmulatorConfiguration(avdName = avdName,
                                    avdFolder = avdFolder,
-                                   displayWidth = displayWidth,
-                                   displayHeight = displayHeight,
+                                   displaySize = Dimension(displayWidth, displayHeight),
                                    density = density,
                                    skinFolder = skinPath,
                                    hasOrientationSensors = hasOrientationSensors,

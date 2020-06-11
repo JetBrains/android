@@ -489,6 +489,7 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Java Folder", templateStateCustomizer = withNewLocation("src/main/java"))
     checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation("src/main/jni"))
     checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/raw"))
+    checkCreateTemplate("Res Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
     checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
     checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation("src/main/rs"))
     checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/xml"))
@@ -501,10 +502,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFiles() {
-    // Bug 37139315
-    if (!SystemInfo.isWindows) {
-      checkCreateTemplate("AIDL File")
-    }
+    checkCreateTemplate("AIDL File")
     checkCreateTemplate("App Actions XML File")
     checkCreateTemplate("Layout XML File")
     checkCreateTemplate("Values XML File")
@@ -577,7 +575,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
       val templatesWhichShouldBeCovered = TemplateResolver.getAllTemplates().map { it.name }.toSet()
 
-      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesWhichShouldBeCovered)
+      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesChecked)
 
       val failurePrefix = """
         The following templates were not covered by TemplateTest. Please ensure that tests are added to cover

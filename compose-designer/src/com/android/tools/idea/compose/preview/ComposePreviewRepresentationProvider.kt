@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.actions.IssueNotificationAction
-import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -44,7 +43,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -162,23 +160,11 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
   return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
 }
 
-internal class ComposeTextEditorWithPreview constructor(
-  composeTextEditor: TextEditor,
-  preview: PreviewEditor) :
-  SeamlessTextEditorWithPreview<PreviewEditor>(composeTextEditor, preview, "Compose Editor") {
-
-  init {
-    preview.registerShortcuts(component)
-  }
-}
-
 /**
- * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
+ * Returns the [ComposePreviewManager] or null if this [FileEditor] is not a Compose preview.
  */
 fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = when (this) {
-  is PreviewEditor -> this
   is MultiRepresentationPreview -> this.currentRepresentation as? ComposePreviewManager
-  is ComposeTextEditorWithPreview -> this.preview
   is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
     this.preview.currentRepresentation as? ComposePreviewManager
   else -> null

@@ -6,10 +6,6 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - DynamicFeatures   : :dyn_feature
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
@@ -22,6 +18,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : basicBarDebug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.psd.sample.app.defaultSuffix.barSuffix
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
@@ -39,7 +39,7 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.1.0
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.1.0
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -77,7 +77,7 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.1.0
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.1.0
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -116,7 +116,7 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.1.0
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.1.0
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -151,7 +151,7 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.1.0
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.1.0
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -195,7 +195,7 @@ MODULE              : project.app
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.1.0
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.1.0
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
@@ -342,20 +342,10 @@ MODULE              : project.app
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/proguard.txt [-]
                 ResolvedCoordinates : com.example.libs:lib2:1.0
                 Provided            : true
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
                 ArtifactAddress     : com.android.support:appcompat-v7:28.0.0
@@ -828,10 +818,6 @@ MODULE              : project.dyn_feature
     MavenName           : project:dyn_feature:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/dyn_feature/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -843,6 +829,10 @@ MODULE              : project.dyn_feature
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.dyn_feature
             - GeneratedResourceFolders    : <ROOT>/dyn_feature/build/generated/res/rs/debug [-]
@@ -908,10 +898,6 @@ MODULE              : project.lib
     MavenName           : project:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -923,6 +909,10 @@ MODULE              : project.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.projectwithappandlib.lib
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]
@@ -1005,7 +995,7 @@ MODULE              : project.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -1037,7 +1027,7 @@ MODULE              : project.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -1078,7 +1068,7 @@ MODULE              : project.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -1110,7 +1100,7 @@ MODULE              : project.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -1520,20 +1510,10 @@ MODULE              : project.lib
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
 MODULE              : project.nested1
     Dir                 : <ROOT>/nested1
     ModulePath          : nested1
@@ -1541,10 +1521,6 @@ MODULE              : project.nested1
     MavenName           : project:nested1:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested1/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1556,6 +1532,10 @@ MODULE              : project.nested1
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested1
             - GeneratedResourceFolders    : <ROOT>/nested1/build/generated/res/rs/debug [-]
@@ -1571,9 +1551,9 @@ MODULE              : project.nested1
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::nested1:unspecified
+                    artifacts::nested1  : null => artifacts::nested1:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::nested1:unspecified
+                    artifacts::nested1  : null => artifacts::nested1:unspecified
             - ClassOutputs      : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.nested1.test
@@ -1584,9 +1564,9 @@ MODULE              : project.nested1
         - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::nested1:unspecified
+                artifacts::nested1  : null => artifacts::nested1:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::nested1:unspecified
+                artifacts::nested1  : null => artifacts::nested1:unspecified
         - ClassOutputs      : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
         SourceProviders
@@ -1617,20 +1597,10 @@ MODULE              : project.nested1
             - AssetsDirectories : <ROOT>/nested1/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:nested1)
-                - JarFiles          : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:nested1)
                 ArtifactAddress     : artifacts::nested1:unspecified
-                Manifest            : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :nested1
-                ResolvedCoordinates : artifacts::nested1:unspecified
 MODULE              : project.nested1.deep
     Dir                 : <ROOT>/nested1/deep
     ModulePath          : deep
@@ -1638,10 +1608,6 @@ MODULE              : project.nested1.deep
     MavenName           : project.nested1:deep:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested1/deep/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1653,6 +1619,10 @@ MODULE              : project.nested1.deep
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested1.deep
             - GeneratedResourceFolders    : <ROOT>/nested1/deep/build/generated/res/rs/debug [-]
@@ -1668,9 +1638,9 @@ MODULE              : project.nested1.deep
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::nested1:deep:unspecified
+                    artifacts::nested1:deep       : null => artifacts::nested1:deep:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::nested1:deep:unspecified
+                    artifacts::nested1:deep       : null => artifacts::nested1:deep:unspecified
             - ClassOutputs      : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.nested1.deep.test
@@ -1681,9 +1651,9 @@ MODULE              : project.nested1.deep
         - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::nested1:deep:unspecified
+                artifacts::nested1:deep       : null => artifacts::nested1:deep:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::nested1:deep:unspecified
+                artifacts::nested1:deep       : null => artifacts::nested1:deep:unspecified
         - ClassOutputs      : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
         - ResourceConfigurations      : en
@@ -1716,20 +1686,10 @@ MODULE              : project.nested1.deep
             - AssetsDirectories : <ROOT>/nested1/deep/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:nested1:deep)
-                - JarFiles          : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:nested1:deep)
                 ArtifactAddress     : artifacts::nested1:deep:unspecified
-                Manifest            : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :nested1:deep
-                ResolvedCoordinates : artifacts::nested1:deep:unspecified
 MODULE              : project.nested2
     Dir                 : <ROOT>/nested2
     ModulePath          : nested2
@@ -1737,10 +1697,6 @@ MODULE              : project.nested2
     MavenName           : project:nested2:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1752,6 +1708,10 @@ MODULE              : project.nested2
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : basicDebug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested2
             - GeneratedResourceFolders    : <ROOT>/nested2/build/generated/res/rs/basic/debug [-]
@@ -1767,9 +1727,9 @@ MODULE              : project.nested2
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::nested2:unspecified
+                    artifacts::nested2  : null => artifacts::nested2:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::nested2:unspecified
+                    artifacts::nested2  : null => artifacts::nested2:unspecified
             - ClassOutputs      : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
         ApplicationId       : com.example.nested2.test
@@ -1780,9 +1740,9 @@ MODULE              : project.nested2
         - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::nested2:unspecified
+                artifacts::nested2  : null => artifacts::nested2:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::nested2:unspecified
+                artifacts::nested2  : null => artifacts::nested2:unspecified
         - ClassOutputs      : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
         SourceProviders
@@ -1829,20 +1789,10 @@ MODULE              : project.nested2
             - AssetsDirectories : <ROOT>/nested2/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:nested2)
-                - JarFiles          : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:nested2)
                 ArtifactAddress     : artifacts::nested2:unspecified
-                Manifest            : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :nested2
-                ResolvedCoordinates : artifacts::nested2:unspecified
 MODULE              : project.nested2.deep
     Dir                 : <ROOT>/nested2/deep
     ModulePath          : deep
@@ -1850,10 +1800,6 @@ MODULE              : project.nested2.deep
     MavenName           : project.nested2:deep:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/deep/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1865,6 +1811,10 @@ MODULE              : project.nested2.deep
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested2.deep
             - GeneratedResourceFolders    : <ROOT>/nested2/deep/build/generated/res/rs/debug [-]
@@ -1880,9 +1830,9 @@ MODULE              : project.nested2.deep
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::nested2:deep:unspecified
+                    artifacts::nested2:deep       : null => artifacts::nested2:deep:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::nested2:deep:unspecified
+                    artifacts::nested2:deep       : null => artifacts::nested2:deep:unspecified
             - ClassOutputs      : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.nested2.deep.test
@@ -1893,9 +1843,9 @@ MODULE              : project.nested2.deep
         - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::nested2:deep:unspecified
+                artifacts::nested2:deep       : null => artifacts::nested2:deep:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::nested2:deep:unspecified
+                artifacts::nested2:deep       : null => artifacts::nested2:deep:unspecified
         - ClassOutputs      : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
         SourceProviders
@@ -1926,20 +1876,10 @@ MODULE              : project.nested2.deep
             - AssetsDirectories : <ROOT>/nested2/deep/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:nested2:deep)
-                - JarFiles          : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:nested2:deep)
                 ArtifactAddress     : artifacts::nested2:deep:unspecified
-                Manifest            : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :nested2:deep
-                ResolvedCoordinates : artifacts::nested2:deep:unspecified
 MODULE              : project.nested2.trans
 MODULE              : project.nested2.trans.deep2
     Dir                 : <ROOT>/nested2/trans/deep2
@@ -1948,10 +1888,6 @@ MODULE              : project.nested2.trans.deep2
     MavenName           : project.nested2.trans:deep2:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/trans/deep2/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1963,6 +1899,10 @@ MODULE              : project.nested2.trans.deep2
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested2.trans.deep2
             - GeneratedResourceFolders    : <ROOT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
@@ -1978,9 +1918,9 @@ MODULE              : project.nested2.trans.deep2
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts:          : null => artifacts::nested2:trans:deep2:unspecified
+                    artifacts::nested2:trans:deep2          : null => artifacts::nested2:trans:deep2:unspecified
                 PackageDependencies
-                    artifacts:          : null => artifacts::nested2:trans:deep2:unspecified
+                    artifacts::nested2:trans:deep2          : null => artifacts::nested2:trans:deep2:unspecified
             - ClassOutputs      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       : com.example.nested2.trans.deep2.test
@@ -1991,9 +1931,9 @@ MODULE              : project.nested2.trans.deep2
         - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts:          : null => artifacts::nested2:trans:deep2:unspecified
+                artifacts::nested2:trans:deep2          : null => artifacts::nested2:trans:deep2:unspecified
             PackageDependencies
-                artifacts:          : null => artifacts::nested2:trans:deep2:unspecified
+                artifacts::nested2:trans:deep2          : null => artifacts::nested2:trans:deep2:unspecified
         - ClassOutputs      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
         SourceProviders
@@ -2024,17 +1964,7 @@ MODULE              : project.nested2.trans.deep2
             - AssetsDirectories : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:nested2:trans:deep2)
-                - JarFiles          : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:nested2:trans:deep2)
                 ArtifactAddress     : artifacts::nested2:trans:deep2:unspecified
-                Manifest            : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :nested2:trans:deep2
-                ResolvedCoordinates : artifacts::nested2:trans:deep2:unspecified

@@ -22,9 +22,11 @@ import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.text.DateFormatUtil
+import com.intellij.util.ui.UIUtil
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 
 class BuildOverviewPageViewTest {
@@ -42,12 +44,14 @@ class BuildOverviewPageViewTest {
 
     val expectedBuildFinishedString = DateFormatUtil.formatDateTime(model.reportUiData.buildSummary.buildFinishedTimestamp)
     Truth.assertThat(text).isEqualTo("""
-      Build finished on $expectedBuildFinishedString
+      <b>Build finished on $expectedBuildFinishedString</b>
       Total build duration was 20.0s.
+      
       Includes:
       Build configuration: 4.0s
       Critical path tasks execution: 15.0s
-      Common views into this build
+      
+      <b>Common views into this build</b>
       [Tasks impacting build duration]
       [Plugins with tasks impacting build duration]
       [All warnings]
@@ -81,7 +85,13 @@ class BuildOverviewPageViewTest {
 
   private fun visibleText(component: Component): String? = when (component) {
     is JLabel -> component.text
+    is JEditorPane -> clearHtml(component.text)
     is HyperlinkLabel -> "[${component.text}]"
     else -> null
   }
+
+  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
+    .trimIndent()
+    .replace("\n","")
+    .replace("<br>","\n")
 }

@@ -165,44 +165,32 @@ class AndroidTestSuiteViewTest {
     testcase3OnDevice1.result = AndroidTestCaseResult.SKIPPED
     view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase3OnDevice1)
 
-    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase4OnDevice1)
     testcase4OnDevice1.result = AndroidTestCaseResult.IN_PROGRESS
+    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase4OnDevice1)
 
     val tableView = view.tableForTesting.getTableViewForTesting()
 
-    // Make sure "All" is selected by default.
-    assertThat(view.myAllToggleButton.isSelected).isTrue()
+    // Initially, all tests are displayed.
     assertThat(tableView.rowCount).isEqualTo(4)
     assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)
     assertThat(tableView.convertRowIndexToView(1)).isEqualTo(1)
     assertThat(tableView.convertRowIndexToView(2)).isEqualTo(2)
     assertThat(tableView.convertRowIndexToView(3)).isEqualTo(3)
 
-    // Select "Passed" filter.
-    view.myPassedToggleButton.isSelected = true
+    // Remove "Skipped".
+    view.mySkippedToggleButton.isSelected = false
 
-    assertThat(tableView.rowCount).isEqualTo(1)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(-1)
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(0)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)
-
-    // "All" button should be unselected automatically when a filter is selected.
-    assertThat(view.myAllToggleButton.isSelected).isFalse()
-
-    // Add "Failed" filter.
-    view.myFailedToggleButton.isSelected = true
-
-    assertThat(tableView.rowCount).isEqualTo(2)
+    assertThat(tableView.rowCount).isEqualTo(3)
     assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)
     assertThat(tableView.convertRowIndexToView(1)).isEqualTo(1)
     assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)
+    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(2)
 
-    // Remove "Passed" and "Failed" filter and select "Skipped".
+    // Remove "Passed", "Failed" and "In progress". Then select "Skipped".
     view.myPassedToggleButton.isSelected = false
     view.myFailedToggleButton.isSelected = false
     view.mySkippedToggleButton.isSelected = true
+    view.myInProgressToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(1)
     assertThat(tableView.convertRowIndexToView(0)).isEqualTo(-1)
@@ -220,16 +208,14 @@ class AndroidTestSuiteViewTest {
     assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)
     assertThat(tableView.convertRowIndexToView(3)).isEqualTo(0)
 
-    // Remove "In Progress".
+    // Remove "In Progress". (Nothing is selected).
     view.myInProgressToggleButton.isSelected = false
 
-    // Make sure after removing all filters, "All" is re-selected automatically.
-    assertThat(view.myAllToggleButton.isSelected).isTrue()
-    assertThat(tableView.rowCount).isEqualTo(4)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(1)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(2)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(3)
+    assertThat(tableView.rowCount).isEqualTo(0)
+    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(-1)
+    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(-1)
+    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)
+    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)
   }
 
   @Test

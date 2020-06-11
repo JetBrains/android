@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     bundle_data = ["//prebuilts/studio/layoutlib:licenses"],
     iml_files = ["intellij.android.layoutlib-native.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

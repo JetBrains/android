@@ -64,6 +64,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     databaseInspectorClient = DatabaseInspectorClient(
       mockMessenger,
+      testRootDisposable,
       handleErrorFunction,
       openDatabaseFunction,
       hasDatabasePossiblyChangedFunction,

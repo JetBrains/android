@@ -38,8 +38,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
@@ -62,28 +60,21 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.projectImport.ProjectOpenProcessor;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -255,13 +246,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   }
 
   private static void setupSdks() {
-    try {
-      repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.2.
-    }
-    catch (Throwable e) {
-      LOG.error("Failed to remove duplicate Android SDKs", e);
-    }
-
     IdeSdks ideSdks = IdeSdks.getInstance();
     File androidHome = ideSdks.getAndroidSdkPath();
 
@@ -321,46 +305,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
         }
       }
     });
-  }
-
-  /**
-   * Removes duplicate Android SDKs that could be created due to b/142005646.
-   */
-  private static void repairDuplicateAndroidSdks() {
-    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    Sdk[] sdks = jdkTable.getAllJdks();
-    if (sdks.length <= 1) {
-      return;
-    }
-
-    Multimap<List<String>, Sdk> androidSdksByClasses = ArrayListMultimap.create();
-    for (Sdk sdk : sdks) {
-      if (sdk.getSdkType().getName().equals(AndroidSdkType.SDK_NAME)) {
-        RootProvider rootProvider = sdk.getRootProvider();
-        String[] urls = rootProvider.getUrls(OrderRootType.CLASSES);
-        androidSdksByClasses.put(Arrays.asList(urls), sdk);
-      }
-    }
-    if (androidSdksByClasses.size() == androidSdksByClasses.keySet().size()) {
-      return; // No duplicates to remove.
-    }
-
-    for (List<String> classes : androidSdksByClasses.keySet()) {
-      Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
-      if (duplicateSdks.size() > 1) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          ApplicationManager.getApplication().runWriteAction(() -> {
-            boolean firstSkipped = false;
-            for (Sdk sdk : duplicateSdks) {
-              if (firstSkipped) {
-                jdkTable.removeJdk(sdk);
-              }
-              firstSkipped = true;
-            }
-          });
-        });
-      }
-    }
   }
 
   private static void checkAndroidSdkHome() {

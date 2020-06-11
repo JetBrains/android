@@ -6,10 +6,6 @@ MODULE              : TestCompositeLib1.app
     MavenName           : com.test.composite1:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib1/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -21,6 +17,10 @@ MODULE              : TestCompositeLib1.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite1
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
@@ -37,8 +37,8 @@ MODULE              : TestCompositeLib1.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -77,8 +77,8 @@ MODULE              : TestCompositeLib1.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -122,8 +122,8 @@ MODULE              : TestCompositeLib1.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -162,8 +162,8 @@ MODULE              : TestCompositeLib1.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -212,8 +212,8 @@ MODULE              : TestCompositeLib1.app
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -629,20 +629,10 @@ MODULE              : TestCompositeLib1.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.0.2
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -690,10 +680,6 @@ MODULE              : TestCompositeLib1.lib
     MavenName           : com.test.composite1:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib1/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -705,6 +691,10 @@ MODULE              : TestCompositeLib1.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite1
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
@@ -721,7 +711,7 @@ MODULE              : TestCompositeLib1.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -758,7 +748,7 @@ MODULE              : TestCompositeLib1.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -800,8 +790,8 @@ MODULE              : TestCompositeLib1.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -838,8 +828,8 @@ MODULE              : TestCompositeLib1.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -886,8 +876,8 @@ MODULE              : TestCompositeLib1.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -924,8 +914,8 @@ MODULE              : TestCompositeLib1.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -987,20 +977,10 @@ MODULE              : TestCompositeLib1.lib
             - AssetsDirectories : <ROOT>/TestCompositeLib1/lib/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
                 ArtifactAddress     : com.android.support:appcompat-v7:28.0.0
@@ -1383,10 +1363,6 @@ MODULE              : TestCompositeLib3.app
     MavenName           : TestCompositeLib3:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib3/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1398,6 +1374,10 @@ MODULE              : TestCompositeLib3.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite3
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
@@ -1414,7 +1394,7 @@ MODULE              : TestCompositeLib3.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -1453,7 +1433,7 @@ MODULE              : TestCompositeLib3.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -1497,7 +1477,7 @@ MODULE              : TestCompositeLib3.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -1536,7 +1516,7 @@ MODULE              : TestCompositeLib3.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -1585,7 +1565,7 @@ MODULE              : TestCompositeLib3.app
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -2001,20 +1981,10 @@ MODULE              : TestCompositeLib3.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.0.2
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -2062,10 +2032,6 @@ MODULE              : TestCompositeLib3.lib
     MavenName           : com.test.composite3:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib3/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -2077,6 +2043,10 @@ MODULE              : TestCompositeLib3.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite3
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
@@ -2159,7 +2129,7 @@ MODULE              : TestCompositeLib3.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -2191,7 +2161,7 @@ MODULE              : TestCompositeLib3.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -2232,7 +2202,7 @@ MODULE              : TestCompositeLib3.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -2264,7 +2234,7 @@ MODULE              : TestCompositeLib3.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -2674,20 +2644,10 @@ MODULE              : TestCompositeLib3.lib
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
 MODULE              : composite2
 MODULE              : composite4
 MODULE              : project
@@ -2698,10 +2658,6 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -2713,6 +2669,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.compositeapp
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
@@ -2729,9 +2689,9 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -2770,9 +2730,9 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -2816,9 +2776,9 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -2857,9 +2817,9 @@ MODULE              : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -2908,9 +2868,9 @@ MODULE              : project.app
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
-                artifacts:          : null => artifacts::lib:unspecified
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -3326,20 +3286,10 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.0.2
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -3387,10 +3337,6 @@ MODULE              : project.lib
     MavenName           : com.test.composite:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -3402,6 +3348,10 @@ MODULE              : project.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.test.composite0
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]
@@ -3495,7 +3445,7 @@ MODULE              : project.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -3532,7 +3482,7 @@ MODULE              : project.lib
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                     com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                     com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -3579,7 +3529,7 @@ MODULE              : project.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -3616,7 +3566,7 @@ MODULE              : project.lib
                 android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
                 com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
                 com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
@@ -4052,17 +4002,7 @@ MODULE              : project.lib
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified

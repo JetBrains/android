@@ -57,6 +57,9 @@ fun GradleDslFile.getPropertiesElement(
     }
 
     if (element is GradlePropertiesDslElement) {
+      if (element.nameElement.isFake && nameElement != null) {
+        element.nameElement.commitNameChange(nameElement.namedPsiElement, converter, resultElement)
+      }
       return@fold element
     }
 

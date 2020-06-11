@@ -6,10 +6,6 @@ MODULE              : MainActivity.app
     MavenName           : MainActivity:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -21,6 +17,10 @@ MODULE              : MainActivity.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.mainactivity
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
@@ -407,10 +407,6 @@ MODULE              : MainActivity.lib
     MavenName           : MainActivity:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -422,6 +418,10 @@ MODULE              : MainActivity.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.lib
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]
@@ -536,7 +536,7 @@ MODULE              : MainActivity.lib
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -572,7 +572,7 @@ MODULE              : MainActivity.lib
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::lib:unspecified
+                    artifacts::lib      : null => artifacts::lib:unspecified
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -618,7 +618,7 @@ MODULE              : MainActivity.lib
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -654,7 +654,7 @@ MODULE              : MainActivity.lib
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::lib:unspecified
+                artifacts::lib      : null => artifacts::lib:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -1062,17 +1062,7 @@ MODULE              : MainActivity.lib
                 - JarFiles          : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 ArtifactAddress     : androidx.annotation:annotation:1.0.0
                 ResolvedCoordinates : androidx.annotation:annotation:1.0.0
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
-                LintJar             : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
+                LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified

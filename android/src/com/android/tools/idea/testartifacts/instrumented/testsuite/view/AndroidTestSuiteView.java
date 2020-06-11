@@ -20,8 +20,8 @@ import static com.android.tools.idea.testartifacts.instrumented.testsuite.api.An
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
@@ -36,10 +36,13 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.icons.AllIcons;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
@@ -166,17 +169,17 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JPanel myStatusPanel;
   private MyItemSeparator myStatusSeparator;
   private JPanel myFilterPanel;
-  private MyItemSeparator myFilterSeparator;
+  private MyItemSeparator myStatusFilterSeparator;
   private ComboBox<DeviceFilterComboBoxItem> myDeviceFilterComboBox;
   @VisibleForTesting SortedComboBoxModel<DeviceFilterComboBoxItem> myDeviceFilterComboBoxModel;
   private MyItemSeparator myDeviceFilterSeparator;
   private ComboBox<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBox;
+  private JPanel myTestStatusFilterPanel;
   @VisibleForTesting SortedComboBoxModel<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBoxModel;
-  @VisibleForTesting CommonToggleButton myAllToggleButton;
-  @VisibleForTesting CommonToggleButton myPassedToggleButton;
-  @VisibleForTesting CommonToggleButton myFailedToggleButton;
-  @VisibleForTesting CommonToggleButton myInProgressToggleButton;
-  @VisibleForTesting CommonToggleButton mySkippedToggleButton;
+  @VisibleForTesting TestFilterToggleAction myFailedToggleButton;
+  @VisibleForTesting TestFilterToggleAction myPassedToggleButton;
+  @VisibleForTesting TestFilterToggleAction mySkippedToggleButton;
+  @VisibleForTesting TestFilterToggleAction myInProgressToggleButton;
 
   private final ThreeComponentsSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
@@ -192,19 +195,17 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   private void createUIComponents() {
     myStatusSeparator = new MyItemSeparator();
-    myFilterSeparator = new MyItemSeparator();
+    myStatusFilterSeparator = new MyItemSeparator();
     myDeviceFilterSeparator = new MyItemSeparator();
-    myAllToggleButton = new CommonToggleButton("All", null);
-    myAllToggleButton.setBorder(JBUI.Borders.empty(10));
-    myAllToggleButton.setSelected(true);
-    myFailedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestFailed);
-    myFailedToggleButton.setBorder(JBUI.Borders.empty(10));
-    myPassedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestPassed);
-    myPassedToggleButton.setBorder(JBUI.Borders.empty(10));
-    mySkippedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestSkipped);
-    mySkippedToggleButton.setBorder(JBUI.Borders.empty(10));
-    myInProgressToggleButton = new CommonToggleButton(null, AllIcons.Process.Step_1);
-    myInProgressToggleButton.setBorder(JBUI.Borders.empty(10));
+
+    myFailedToggleButton = new TestFilterToggleAction(
+      "Show failed tests", AndroidTestCaseResult.FAILED, true);
+    myPassedToggleButton = new TestFilterToggleAction(
+      "Show passed tests", AndroidTestCaseResult.PASSED, true);
+    mySkippedToggleButton = new TestFilterToggleAction(
+      "Show skipped tests", AndroidTestCaseResult.SKIPPED, true);
+    myInProgressToggleButton = new TestFilterToggleAction(
+      "Show running tests", AndroidTestCaseResult.IN_PROGRESS, true);
 
     myDeviceFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
     DeviceFilterComboBoxItem allDevicesItem = new DeviceFilterComboBoxItem(null);
@@ -232,37 +233,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
-    myAllToggleButton.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-          myFailedToggleButton.setSelected(false);
-          myPassedToggleButton.setSelected(false);
-          mySkippedToggleButton.setSelected(false);
-          myInProgressToggleButton.setSelected(false);
-        }
-      }
-    });
-    ItemListener resultFilterButtonItemListener = new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-          myAllToggleButton.setSelected(false);
-        } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-          // If all test result filters are deselected, select "All" toggle button automatically.
-          if (!myFailedToggleButton.isSelected()
-              && !myPassedToggleButton.isSelected()
-              && !mySkippedToggleButton.isSelected()
-              && !myInProgressToggleButton.isSelected()) {
-            myAllToggleButton.setSelected(true);
-          }
-        }
-      }
-    };
-    myFailedToggleButton.addItemListener(resultFilterButtonItemListener);
-    myPassedToggleButton.addItemListener(resultFilterButtonItemListener);
-    mySkippedToggleButton.addItemListener(resultFilterButtonItemListener);
-    myInProgressToggleButton.addItemListener(resultFilterButtonItemListener);
+    DefaultActionGroup testStatusFilterActionGroup = new DefaultActionGroup();
+    testStatusFilterActionGroup.addAll(
+      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton);
+    myTestStatusFilterPanel.add(
+      ActionManager.getInstance().createActionToolbar(
+        ActionPlaces.ANDROID_TEST_SUITE_TABLE,
+        testStatusFilterActionGroup, true).getComponent());
 
     TestArtifactSearchScopes testArtifactSearchScopes = null;
     if (module != null) {
@@ -270,9 +247,6 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     }
     myTable = new AndroidTestResultsTableView(this, JavaPsiFacade.getInstance(project), testArtifactSearchScopes);
     myTable.setRowFilter(testResults -> {
-      if (myAllToggleButton.isSelected()) {
-        return true;
-      }
       if (myFailedToggleButton.isSelected()
           && testResults.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
         return true;
@@ -313,11 +287,6 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
         myTable.refreshTable();
       }
     };
-    myAllToggleButton.addItemListener(tableUpdater);
-    myFailedToggleButton.addItemListener(tableUpdater);
-    myPassedToggleButton.addItemListener(tableUpdater);
-    mySkippedToggleButton.addItemListener(tableUpdater);
-    myInProgressToggleButton.addItemListener(tableUpdater);
     myDeviceFilterComboBox.addItemListener(tableUpdater);
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
@@ -341,6 +310,38 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     updateProgress();
 
     Disposer.register(parentDisposable, this);
+  }
+
+  @VisibleForTesting class TestFilterToggleAction extends ToggleAction {
+    private boolean isSelected;
+
+    TestFilterToggleAction(@NotNull String actionText,
+                           @NotNull AndroidTestCaseResult testCaseResultToDisplay,
+                           boolean initialState) {
+      super(() -> actionText,
+            AndroidTestResultsTableViewKt.getIconFor(testCaseResultToDisplay, false));
+      isSelected = initialState;
+    }
+
+    @Override
+    public boolean isSelected(@NotNull AnActionEvent e) {
+      return isSelected;
+    }
+
+    public boolean isSelected() {
+      return isSelected;
+    }
+
+    @Override
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
+      isSelected = state;
+      myTable.refreshTable();
+    }
+
+    public void setSelected(boolean state) {
+      isSelected = state;
+      myTable.refreshTable();
+    }
   }
 
   @UiThread

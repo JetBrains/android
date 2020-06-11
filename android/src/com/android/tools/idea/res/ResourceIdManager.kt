@@ -219,7 +219,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    *
    * @param klass the R class to read ids from
    * @param into the result [SingleNamespaceIdMapping]
-   * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a feature where a whitelist of all
+   * @param lookForAttrsInStyleables whether to get attr ids by looking at `R.styleable`. Aapt has a feature where an ignore list of all
    *                                 resources to be put in the R class can be supplied at build time (to reduce the size of the R class).
    *                                 In this case the numeric ids of attr resources can still "leak" into bytecode in the `styleable` class.
    *                                 If this argument is set to `true`, names of the attrs are inferred from corresponding fields in the

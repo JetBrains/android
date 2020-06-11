@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.projectSystem.gradle.psd",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.psd.iml"],
+    lint_baseline = "lint_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",

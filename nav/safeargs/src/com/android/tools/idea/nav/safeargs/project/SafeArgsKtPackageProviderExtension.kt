@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgKotlinPackageDescriptor
+import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKotlinPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgSyntheticPackageResourceData
 import com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors
 import com.android.tools.idea.nav.safeargs.safeArgsMode
@@ -65,7 +65,7 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
 
     val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
     // TODO(b/157918926) Cache package descriptors
-    val packageDescriptor = SafeArgKotlinPackageDescriptor(module, packageFqName, packageResourceData, storageManager)
+    val packageDescriptor = SafeArgsKotlinPackageDescriptor(module, packageFqName, packageResourceData, storageManager)
 
     return SafeArgSyntheticPackageProvider(packageDescriptor, packageFqName, facet.module)
   }

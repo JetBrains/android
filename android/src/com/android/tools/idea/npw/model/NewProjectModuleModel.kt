@@ -35,13 +35,18 @@ import java.util.Locale
  * Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and renders them in a proper order.
  */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
-  @JvmField
-  val formFactor = ObjectValueProperty(FormFactor.Mobile)
+
   private val newModuleModel = NewAndroidModuleModel(
     projectModel,
     createDummyTemplate(),
-    formFactor
-  )
+    ":",
+    formFactor = ObjectValueProperty(FormFactor.Mobile)
+  ).apply {
+    multiTemplateRenderer.incrementRenders()
+  }
+
+  @JvmField
+  val formFactor = newModuleModel.formFactor
 
   /**
    * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
@@ -118,7 +123,13 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
   // Note: The companion Module is always a Mobile app
   val moduleName = getModuleName(FormFactor.Mobile)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewAndroidModuleModel(projectModel, namedModuleTemplate)
+  val companionModuleModel = NewAndroidModuleModel(
+    projectModel,
+    namedModuleTemplate,
+    ":",
+    formFactor = ObjectValueProperty(FormFactor.Mobile)
+  )
+  companionModuleModel.multiTemplateRenderer.incrementRenders()
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel

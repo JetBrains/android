@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
-import com.android.tools.idea.nav.safeargs.psi.xml.getChildTagElementByNameAttr
+import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.psi.annotateType
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
 import com.intellij.lang.java.JavaLanguage
@@ -30,7 +31,6 @@ import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.android.dom.navigation.NavigationSchema
 
 internal val MODIFIERS_PUBLIC_CONSTRUCTOR = arrayOf(PsiModifier.PUBLIC)
 internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
@@ -161,7 +161,7 @@ internal fun PsiClass.createConstructor(
 internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag? = null): LightFieldBuilder {
   val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
   val nonNull = psiType is PsiPrimitiveType || arg.nullable != "true"
-  val navigationElement = xmlTag?.getChildTagElementByNameAttr(NavigationSchema.TAG_ARGUMENT, arg.name)
+  val navigationElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
   val fallback = this.navigationElement
   return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
     this.navigationElement = navigationElement ?: fallback

@@ -21,6 +21,7 @@ import com.android.tools.profilers.cpu.ThreadState;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 
 public class ProfilerColors {
@@ -179,6 +180,8 @@ public class ProfilerColors {
   public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFF855E, 0xFF855E);
 
   public static final Color CPU_FLAMECHART_PLATFORM_HOVER = new JBColor(0xFF9674, 0xFF9674);
+
+  public static final Color CPU_STATECHART_DEFAULT_STATE = UIUtil.getPanelBackground();
 
   public static final Color CPU_PROFILING_CONFIGURATIONS_SELECTED = new JBColor(0x1155CC, 0x1155CC);
 

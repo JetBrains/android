@@ -163,11 +163,6 @@ class ModelSerializationTest {
   }
 
   @Test
-  fun ndkModuleModel() = assertSerializable {
-    NdkModuleModel("moduleName", File("some/path"), IdeNativeAndroidProjectImpl(NativeAndroidProjectStub()), listOf())
-  }
-
-  @Test
   fun gradleModuleVersionImpl() = assertSerializable {
     GradleModuleVersionImpl("group", "name", "version")
   }

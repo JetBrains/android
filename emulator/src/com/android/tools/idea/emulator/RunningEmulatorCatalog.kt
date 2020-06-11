@@ -17,7 +17,6 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
-import com.android.emulator.control.VmRunState
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
@@ -347,8 +346,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     // Shut down all embedded Emulators.
     synchronized(updateLock) {
       for (emulator in emulators) {
-        val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
-        emulator.setVmState(vmRunState)
+        emulator.shutdown()
       }
     }
   }

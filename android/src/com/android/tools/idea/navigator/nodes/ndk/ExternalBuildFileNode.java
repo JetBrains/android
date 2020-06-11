@@ -45,7 +45,7 @@ public class ExternalBuildFileNode extends PsiFileNode {
     String fileName = getFileName();
     data.addText(fileName, REGULAR_ATTRIBUTES);
     data.setPresentableText(fileName);
-    data.addText(" (" + myModuleName + ", " + getFilePath() + ")", GRAY_ATTRIBUTES);
+    data.addText(" (" + myModuleName + ")", GRAY_ATTRIBUTES);
   }
 
   @Override

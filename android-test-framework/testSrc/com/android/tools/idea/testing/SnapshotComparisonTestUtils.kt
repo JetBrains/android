@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestBase
@@ -109,3 +110,9 @@ private fun SnapshotComparisonTest.getExpectedTextFor(project: String): String =
         }
     }
 
+data class ProjectViewSettings(
+  val hideEmptyPackages: Boolean = true,
+  val flattenPackages: Boolean = false
+)
+
+fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }

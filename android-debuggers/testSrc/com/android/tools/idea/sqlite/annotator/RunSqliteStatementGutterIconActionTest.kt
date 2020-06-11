@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
@@ -69,7 +69,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
 
     mockAppInspectionIdeServices = mock(AppInspectionIdeServices::class.java)
-    `when`(mockDatabaseInspectorProjectService.ideServices).thenReturn(mockAppInspectionIdeServices)
+    `when`(mockDatabaseInspectorProjectService.getIdeServices()).thenReturn(mockAppInspectionIdeServices)
 
     mouseEvent = mock(MouseEvent::class.java)
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))

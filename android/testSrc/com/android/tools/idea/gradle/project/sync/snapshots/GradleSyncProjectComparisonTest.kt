@@ -37,7 +37,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.CENTRAL_BUILD_D
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.HELLO_JNI
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
@@ -134,12 +133,6 @@ abstract class GradleSyncProjectComparisonTest(
     // See https://code.google.com/p/android/issues/detail?id=226802
     fun testNestedModule() {
       val text = importSyncAndDumpProject(NESTED_MODULE)
-      assertIsEqualToSnapshot(text)
-    }
-
-    // See https://code.google.com/p/android/issues/detail?id=224985
-    open fun testNdkProjectSync() {
-      val text = importSyncAndDumpProject(HELLO_JNI)
       assertIsEqualToSnapshot(text)
     }
 

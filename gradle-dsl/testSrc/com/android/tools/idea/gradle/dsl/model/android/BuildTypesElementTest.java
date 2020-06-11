@@ -49,12 +49,12 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
-    assertThat(buildTypes).hasSize(2);
+    assertThat(buildTypes).hasSize(4);
 
-    BuildTypeModel buildType1 = buildTypes.get(0);
+    BuildTypeModel buildType1 = buildTypes.get(2);
     assertEquals("applicationIdSuffix", "suffix1", buildType1.applicationIdSuffix());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), buildType1.proguardFiles());
-    BuildTypeModel buildType2 = buildTypes.get(1);
+    BuildTypeModel buildType2 = buildTypes.get(3);
     assertEquals("applicationIdSuffix", "suffix2", buildType2.applicationIdSuffix());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), buildType2.proguardFiles());
   }
@@ -67,13 +67,13 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(2, buildTypes);
+    assertSize(4, buildTypes);
 
-    BuildTypeModel buildType1 = buildTypes.get(0);
+    BuildTypeModel buildType1 = buildTypes.get(2);
     assertEquals("applicationIdSuffix", "suffix1", buildType1.applicationIdSuffix());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), buildType1.proguardFiles());
 
-    BuildTypeModel buildType2 = buildTypes.get(1);
+    BuildTypeModel buildType2 = buildTypes.get(3);
     assertEquals("applicationIdSuffix", "suffix2", buildType2.applicationIdSuffix());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), buildType2.proguardFiles());
   }
@@ -86,9 +86,9 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
-    assertThat(buildTypes).hasSize(2);
+    assertThat(buildTypes).hasSize(4);
 
-    BuildTypeModel type1 = buildTypes.get(0);
+    BuildTypeModel type1 = buildTypes.get(2);
     assertEquals("applicationIdSuffix", "suffix1-1", type1.applicationIdSuffix());
     // TODO(xof): this (and the test below) come from overriding the proguardFiles for a build type, which is straightforward to parse
     //  in Groovy (simple assignment) but not straightforward in Kotlin (requires parsing and data flow analysis of .clear() or
@@ -97,7 +97,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
       assertEquals("proguardFiles", ImmutableList.of("proguard-android-3.txt", "proguard-rules-3.txt"), type1.proguardFiles());
     }
 
-    BuildTypeModel type2 = buildTypes.get(1);
+    BuildTypeModel type2 = buildTypes.get(3);
     assertEquals("applicationIdSuffix", "suffix2-1", type2.applicationIdSuffix());
     if(isGroovy()) {
       assertEquals("proguardFiles", ImmutableList.of("proguard-android-4.txt", "proguard-rules-4.txt"), type2.proguardFiles());
@@ -112,14 +112,14 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
-    assertThat(buildTypes).hasSize(2);
+    assertThat(buildTypes).hasSize(4);
 
-    BuildTypeModel type1 = buildTypes.get(0);
+    BuildTypeModel type1 = buildTypes.get(2);
     assertEquals("proguardFiles",
                  ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt", "proguard-android-3.txt", "proguard-rules-3.txt"),
                  type1.proguardFiles());
 
-    BuildTypeModel type2 = buildTypes.get(1);
+    BuildTypeModel type2 = buildTypes.get(3);
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt", "proguard-android-4.txt"),
                  type2.proguardFiles());
   }
@@ -140,9 +140,9 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     android = buildModel.android();
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
-    assertThat(buildTypes).hasSize(1);
+    assertThat(buildTypes).hasSize(3);
 
-    BuildTypeModel buildType = buildTypes.get(0);
+    BuildTypeModel buildType = buildTypes.get(2);
     assertEquals("name", "typeA", buildType.name());
     assertEquals("name", "typeA", buildType.name());
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
@@ -173,7 +173,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     android.addBuildType("typeA");
-    android.buildTypes().get(0).applicationIdSuffix().setValue("suffixA");
+    android.buildTypes().get(2).applicationIdSuffix().setValue("suffixA");
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
@@ -182,9 +182,9 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     android = buildModel.android();
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
-    assertThat(buildTypes).hasSize(1);
+    assertThat(buildTypes).hasSize(3);
 
-    BuildTypeModel buildType = buildTypes.get(0);
+    BuildTypeModel buildType = buildTypes.get(2);
     assertEquals("name", "typeA", buildType.name());
     assertEquals("applicationIdSuffix", "suffixA", buildType.applicationIdSuffix());
   }
@@ -207,9 +207,9 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     android = buildModel.android();
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(2);
-    assertEquals("debug.name", "debug", buildTypes.get(0).name());
-    assertEquals("debug.applicationIdSuffix", "-debug", buildTypes.get(0).applicationIdSuffix());
-    assertEquals("release.name", "release", buildTypes.get(1).name());
-    assertEquals("release.applicationIdSuffix","-release", buildTypes.get(1).applicationIdSuffix());
+    assertEquals("release.name", "release", buildTypes.get(0).name());
+    assertEquals("release.applicationIdSuffix","-release", buildTypes.get(0).applicationIdSuffix());
+    assertEquals("debug.name", "debug", buildTypes.get(1).name());
+    assertEquals("debug.applicationIdSuffix", "-debug", buildTypes.get(1).applicationIdSuffix());
   }
 }

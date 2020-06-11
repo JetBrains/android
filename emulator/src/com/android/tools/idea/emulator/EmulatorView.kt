@@ -28,7 +28,6 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
-import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -107,8 +106,6 @@ class EmulatorView(
   @VisibleForTesting
   var frameNumber = 0
     private set
-  // TODO Remove once b/155818956 is fixed.
-  val screenshotFeedRequestStacks = mutableListOf<String>()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -322,7 +319,7 @@ class EmulatorView(
       computeRotatedDisplaySize(emulatorConfig, rotation)
     }
     else {
-      skin.getRotatedFrameSize(rotation)
+      skin.getRotatedFrameSize(rotation, emulator.emulatorConfig.displaySize)
     }
   }
 
@@ -461,9 +458,6 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
-    if (traceScreenshotFeedRequests) {
-      screenshotFeedRequestStacks.add(TraceUtils.getCurrentStack())
-    }
     screenshotFeed?.cancel()
     screenshotReceiver = null
     if (width != 0 && height != 0 && connected) {
@@ -664,6 +658,3 @@ private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
-
-// TODO Remove this flag and the associated code once b/155818956 is fixed.
-var traceScreenshotFeedRequests = false

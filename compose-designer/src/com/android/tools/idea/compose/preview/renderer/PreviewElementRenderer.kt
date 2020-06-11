@@ -43,7 +43,7 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
                                   executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
   val project = facet.module.project
 
-  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString())
+  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString()) { previewElement.previewElementDefinitionPsi?.virtualFile }
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) ?: return CompletableFuture.completedFuture(null)
   val configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(facet), null, FolderConfiguration.createDefault())
 

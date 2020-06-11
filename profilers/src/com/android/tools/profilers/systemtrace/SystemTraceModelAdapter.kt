@@ -54,16 +54,22 @@ data class ProcessModel(
   fun getThreads() = threadById.values
 
   /**
-   * Returns the best assumed name for a process. It does this by first getting the process name.
-   * If the process does not have a name it looks at each thread and if it finds one with the id
-   * matching that of the process uses the name of the thread. If no main thread is found the
-   * original process name is returned.
+   * Returns the best assumed name for a process.
+   * If the process does not have a name it looks at the name of the main thread, but if we also
+   * have no information on the main thread it returns "<PID>" instead.
    */
   fun getSafeProcessName(): String {
-    if (name.startsWith("<")) {
-      return getMainThread()?.name ?: name
+    if (name.isNotBlank() && !name.startsWith("<")) {
+      return name
     }
-    return name
+
+    // Fallback to the main thread name
+    val mainThreadName = getMainThread()?.name ?: ""
+    return if (mainThreadName.isNotBlank()) {
+      mainThreadName
+    } else {
+      "<$id>"
+    }
   }
 }
 

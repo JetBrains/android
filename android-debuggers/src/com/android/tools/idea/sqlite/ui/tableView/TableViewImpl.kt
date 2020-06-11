@@ -97,9 +97,9 @@ class TableViewImpl : TableView {
 
   private val pageSizeComboBox = ComboBox<Int>()
 
-  private val refreshButton = CommonButton("Refresh Table", AllIcons.Actions.Refresh)
+  private val refreshButton = CommonButton(DatabaseInspectorBundle.message("action.refresh.table"), AllIcons.Actions.Refresh)
 
-  private val liveUpdatesCheckBox = JBCheckBox("Live Updates")
+  private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
@@ -180,7 +180,7 @@ class TableViewImpl : TableView {
     HelpTooltip()
       .setDescription(DatabaseInspectorBundle.message("action.live.updates.desc"))
       .setLink(DatabaseInspectorBundle.message("learn.more")) {
-        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/live-updates")
+        BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/live-updates")
       }
       .installOn(liveUpdatesCheckBox)
 
@@ -236,7 +236,7 @@ class TableViewImpl : TableView {
     table.model = MyTableModel(emptyList())
     table.emptyText.text = "Table is empty"
 
-    setEditable(false)
+    setEditable(true)
 
     setControlButtonsEnabled(false)
     setFetchNextRowsButtonState(false)
@@ -286,6 +286,10 @@ class TableViewImpl : TableView {
     table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
     table.columnModel.getColumn(0).resizable = false
 
+    for (i in 1 until table.columnModel.columnCount) {
+      table.columnModel.getColumn(i).minWidth = JBUI.scale(65)
+    }
+
     setAutoResizeMode()
   }
 
@@ -295,6 +299,10 @@ class TableViewImpl : TableView {
 
   override fun setEmptyText(text: String) {
     table.emptyText.text = text
+  }
+
+  override fun setRowOffset(rowOffset: Int) {
+    (table.model as MyTableModel).rowOffset = rowOffset
   }
 
   override fun reportError(message: String, t: Throwable?) {
@@ -367,22 +375,36 @@ class TableViewImpl : TableView {
     }
     else {
       table.autoResizeMode = JTable.AUTO_RESIZE_OFF
+
+      for (i in 1 until table.columnModel.columnCount) {
+        table.columnModel.getColumn(i).preferredWidth = JBUI.scale(85)
+      }
     }
   }
 
   private fun setUpPopUp() {
     val setNullAction = object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
       override fun actionPerformed(e: AnActionEvent) {
-        val row = table.selectedRow
-        val column = table.selectedColumn
+        val rowIndex = table.selectedRow
+        val columnIndex = table.selectedColumn
 
-        if (column > 0) {
-          (table.model as MyTableModel).setValueAt(null, row, column)
+        if (columnIndex > 0) {
+          (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
         }
       }
 
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = (table.model as? MyTableModel)?.isEditable ?: false
+        val columnIndex = table.selectedColumn
+
+        val isNullable = if (columnIndex > 0) {
+          val column = (table.model as MyTableModel).columns[columnIndex-1]
+          column.isNullable
+        }
+        else {
+          false
+        }
+
+        e.presentation.isEnabled = (table.model as MyTableModel).isEditable && isNullable
         super.update(e)
       }
     }
@@ -469,6 +491,7 @@ class TableViewImpl : TableView {
 
     private val rows = mutableListOf<MyRow>()
     var isEditable = false
+    var rowOffset: Int = 0
 
     override fun getColumnName(modelColumnIndex: Int): String {
       return if (modelColumnIndex == 0) {
@@ -487,7 +510,7 @@ class TableViewImpl : TableView {
 
     override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String? {
       return if (modelColumnIndex == 0) {
-        (modelRowIndex + 1).toString()
+        (rowOffset + modelRowIndex + 1).toString()
       }
       else {
         when (val value = rows[modelRowIndex].values[modelColumnIndex - 1]) {

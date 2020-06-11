@@ -75,6 +75,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   private lateinit var databaseInspectorModel: MockDatabaseInspectorModel
   private lateinit var databaseRepository: MockDatabaseRepository
 
+  private lateinit var successfulInvocationNotificationInvocations: MutableList<String>
+
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
 
@@ -86,12 +88,16 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     viewFactory = MockDatabaseInspectorViewsFactory()
     sqliteEvaluatorView = viewFactory.sqliteEvaluatorView
+
+    successfulInvocationNotificationInvocations = mutableListOf()
+
     sqliteEvaluatorController = SqliteEvaluatorController(
       myProject,
       databaseInspectorModel,
       databaseRepository,
       sqliteEvaluatorView,
-      {},
+      { successfulInvocationNotificationInvocations.add(it) },
+      { },
       edtExecutor,
       edtExecutor
     )
@@ -140,6 +146,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(sqlStatement)
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
   fun testEvaluateSqlActionQueryFailure() {
@@ -156,7 +163,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(sqlStatement)
-    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
   }
 
   fun testEvaluateStatementWithoutParametersDoesntShowParamsBindingDialog() {
@@ -432,7 +439,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully")
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
   fun testOldTableControllerListenerIsRemoveFromViewWhenNewQueryIsExecuted() {
@@ -465,8 +473,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -488,6 +495,58 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
+  fun testRunPragmaStatement() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
+    val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
+    databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "pragma table_info('sqlite_master')")))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("pragma table_info('sqlite_master')")
+    verify(sqliteEvaluatorView.tableView).showTableColumns(any())
+    verify(sqliteEvaluatorView.tableView).updateRows(any())
+  }
+
+  fun testRunPragmaStatementSetVariable() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
+    databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "PRAGMA cache_size = 2")))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("PRAGMA cache_size = 2")
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
+  }
+
   fun testRunInsertStatementWithSemicolon() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
       "db",
@@ -495,8 +554,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -511,7 +569,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("INSERT INTO t1 VALUES (0);")
-    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully")
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
   fun testRunSelectStatementWithoutSemicolon() {
@@ -521,8 +580,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -551,8 +609,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
@@ -628,8 +685,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
+    verify(sqliteEvaluatorView.tableView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
   }
 
   private fun evaluateSqlQueryFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
@@ -651,6 +708,6 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
   }
 }

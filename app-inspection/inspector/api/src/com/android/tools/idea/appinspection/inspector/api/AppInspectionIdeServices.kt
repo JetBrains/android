@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspector.ide
+package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.UiThread
 
 /**
  * A set of utility methods used for communicating requests to the IDE.
+ *
+ * Note that this class, despite containing the word "IDE" in its name, does not belong in the
+ * `ide` module -- rather, we expect the `ide` module to implement it. This interface is just an
+ * API for making requests that will make sense if we are running in the context of an IDE, but can
+ * be ignored otherwise (for example, in tests).
  */
 interface AppInspectionIdeServices {
   enum class Severity {

@@ -57,7 +57,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -89,27 +88,14 @@ public class ViewLoader {
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
-  @VisibleForTesting
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
-                    @Nullable Object credential) {
-    this(layoutLib, facet, logger, credential, ModuleClassLoaderManager.get()::getShared);
-  }
-
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
-                    @NotNull BiFunction<? super ClassLoader, ? super Module, ModuleClassLoader> classLoaderFactory) {
+                    @NotNull ModuleClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
-    // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-    try {
-      myModuleClassLoader = classLoaderFactory.apply(myLayoutLibrary.getClassLoader(), myModule);
-    }
-    finally {
-      RenderSecurityManager.exitSafeRegion(token);
-    }
+    myModuleClassLoader = classLoader;
   }
 
   /**

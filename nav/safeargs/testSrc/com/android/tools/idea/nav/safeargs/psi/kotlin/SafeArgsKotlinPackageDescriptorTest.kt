@@ -36,7 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class SafeArgKotlinPackageDescriptorTest {
+class SafeArgsKotlinPackageDescriptorTest {
   @get:Rule
   val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 

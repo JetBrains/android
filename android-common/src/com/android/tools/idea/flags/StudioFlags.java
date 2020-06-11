@@ -166,7 +166,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
     "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
-    false);
+    true);
   //endregion
 
   //region ML
@@ -436,6 +436,13 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
+  public static final Flag<Boolean> RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED = Flag.create(
+    RUNDEBUG,
+    "run.on.multiple.devices.action.enabled",
+    "Enable the Run on Multiple Devices action",
+    "To revert to the 4.0 behavior until multiple devices are properly supported for the other executors",
+    true);
+
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
     "adb.connection.status.widget.enabled",
@@ -620,7 +627,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
-    "If enabled, show the action in the refactoring menu", false);
+    "If enabled, show the action in the refactoring menu", true);
   //endregion
 
   //region IoT
@@ -652,6 +659,12 @@ public final class StudioFlags {
     NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
     "If enabled, C/C++ projects will have NDK side by side support",
     true);
+
+  public static final Flag<Boolean> USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW = Flag.create(
+    NDK, "use.content.roots.for.native.project.view", "Use content roots for native project view",
+    "If enabled, the C/C++ content roots are displayed in Android View and Project View. Otherwise, each individual native target " +
+    "is displayed.",
+    false);
   //endregion
 
   //region Editor

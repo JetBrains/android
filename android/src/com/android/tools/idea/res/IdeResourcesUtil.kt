@@ -370,7 +370,7 @@ val NO_PREFIX_PACKAGES_FOR_VIEW = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PK
  */
 fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
   for (noPrefixPackage in NO_PREFIX_PACKAGES_FOR_VIEW) {
-    // We need to check not only if prefix is a "whitelisted" package, but if the class
+    // We need to check not only if prefix is in an allowed package, but if the class
     // is stored in that package directly, as opposed to be stored in a subpackage.
     // For example, view with FQCN android.view.MyView can be abbreviated to "MyView",
     // but android.view.custom.MyView can not.

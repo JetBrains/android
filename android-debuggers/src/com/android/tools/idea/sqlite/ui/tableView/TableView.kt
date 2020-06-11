@@ -72,6 +72,8 @@ interface TableView {
    */
   fun setEmptyText(text: String)
 
+  fun setRowOffset(rowOffset: Int)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
@@ -98,7 +100,7 @@ interface TableView {
   }
 }
 
-data class ViewColumn(val name: String, val inPrimaryKey: Boolean)
+data class ViewColumn(val name: String, val inPrimaryKey: Boolean, val isNullable: Boolean)
 
 /** Class that represents a generic rows diff operation */
 sealed class RowDiffOperation {

@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.app-inspection.inspectors.workmanager.view",
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",

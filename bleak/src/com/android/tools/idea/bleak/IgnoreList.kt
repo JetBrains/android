@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint
+package com.android.tools.idea.bleak
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase
-import com.android.tools.lint.checks.AutoRevokeDetector
-import org.jetbrains.android.util.AndroidBundle.message
+class IgnoreList<T>(val patterns: List<IgnoreListEntry<T>> = listOf()) {
 
-class AndroidLintMissingAutoRevokeToleranceInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.missing.auto.revoke.tolerance"), AutoRevokeDetector.MISSING_AUTO_REVOKE_TOLERANCE
-)
+  fun matches(info: T) = patterns.any { it.test(info) }
+
+  operator fun plus(w: IgnoreList<T>): IgnoreList<T> {
+    return IgnoreList(this.patterns + w.patterns)
+  }
+
+  operator fun plus(e: IgnoreListEntry<T>): IgnoreList<T> {
+    return IgnoreList(this.patterns + e)
+  }
+}

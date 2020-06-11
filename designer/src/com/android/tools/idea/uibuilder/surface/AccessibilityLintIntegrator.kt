@@ -21,9 +21,14 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Strings
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
+import java.awt.Desktop
+import java.net.URL
 import java.util.stream.Stream
+import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 
 class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
@@ -77,7 +82,10 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
       }
 
       override fun getDescription(): String {
-        return result.mMsg
+        if (result.mHelpfulUrl.isNullOrEmpty()) {
+          return result.mMsg
+        }
+        return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
       }
 
       override fun getSeverity(): HighlightSeverity {
@@ -98,6 +106,17 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
       override fun getFixes(): Stream<Fix> {
         return convertToFix(this, source, result)
+      }
+
+      override fun getHyperlinkListener(): HyperlinkListener? {
+        if (result.mHelpfulUrl.isNullOrEmpty()) {
+          return null
+        }
+        return HyperlinkListener {
+          if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+            Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
+          }
+        }
       }
     })
   }

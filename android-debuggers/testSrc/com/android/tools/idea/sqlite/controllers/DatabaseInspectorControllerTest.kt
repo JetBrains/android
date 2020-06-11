@@ -181,7 +181,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
   }
 
@@ -1206,6 +1206,22 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockSqliteView).updateDatabases(listOf(
       DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, false), null, 0),
       DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, true))
+    ))
+  }
+
+  fun testClosedDatabasesAreRemovedOnceReopened() {
+    // Prepare
+    val db1 = SqliteDatabaseId.fromLiveDatabase("db", 1)
+
+    // Act
+    mockDatabaseInspectorModel.removeDatabaseSchema(db1)
+    mockDatabaseInspectorModel.addDatabaseSchema(db1, testSqliteSchema1)
+
+    // Assert
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase (db1, false), null, 0)))
+    verify(mockSqliteView).updateDatabases(listOf(
+      DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, true), testSqliteSchema1, 0),
+      DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, false))
     ))
   }
 

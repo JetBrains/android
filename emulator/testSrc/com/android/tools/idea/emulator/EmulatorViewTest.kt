@@ -28,7 +28,6 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.base.Joiner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -97,7 +96,6 @@ class EmulatorViewTest {
 
   @Test
   fun testEmulatorView() {
-    traceScreenshotFeedRequests = true
     val view = createEmulatorView()
     @Suppress("UndesirableClassUsage")
     val container = JScrollPane(view).apply { border = null }
@@ -110,11 +108,16 @@ class EmulatorViewTest {
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    if (call.completion.isCancelled) {
+      // Due to timing of connection and resizing events there could be two streamScreenshot calls
+      // instead of one. The second call cancels the first one.
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
+      dispatchAllInvocationEvents()
+      frameNumber = view.frameNumber
+    }
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 266 height: 547")
     assertAppearance(ui, "image1")
-    if (call.completion.isCancelled) {
-      throw AssertionError("Premature cancellation:\n\n${Joiner.on("\n\n").join(view.screenshotFeedRequestStacks)}")
-    }
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
@@ -300,13 +303,6 @@ class EmulatorViewTest {
     }
     waitForCondition(2, TimeUnit.SECONDS) { filesOpened.isNotEmpty() }
     assertThat(Pattern.matches("Screenshot_.*\\.png", filesOpened[0].name)).isTrue()
-
-    // Check EmulatorShutdownAction.
-    executeAction("android.emulator.close", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
-    assertThat(shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
-    call.completion.get()
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(view: EmulatorView, frameNumber: Int): GrpcCallRecord {

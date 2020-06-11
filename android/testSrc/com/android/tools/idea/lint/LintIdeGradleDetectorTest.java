@@ -42,19 +42,6 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
-  public void testOldBetaPlugin() throws Exception {
-    // note: the test file needs updating when major/minor versions of AGP are removed from the offline
-    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
-    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
-    AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
-    doTest(inspection, null);
-  }
-
-  public void testOldBetaPluginNoGMaven() throws Exception {
-    AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
-    doTest(inspection, null);
-  }
-
   public void testPaths() throws Exception {
     if (SystemInfo.isWindows) {
       // This test doesn't work on Windows; the data file supplies what looks like an absolute elsewhere,

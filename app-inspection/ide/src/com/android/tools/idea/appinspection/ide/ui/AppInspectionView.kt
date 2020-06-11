@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessNoLongerExistsException
@@ -27,7 +28,7 @@ import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalytics
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -48,25 +49,51 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.concurrent.CancellationException
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.plaf.basic.BasicTabbedPaneUI
 
 class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
   private val ideServices: AppInspectionIdeServices,
+  private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
 
   @VisibleForTesting
-  val inspectorTabs = CommonTabbedPane()
+  val inspectorTabs = CommonTabbedPane().apply {
+    ui = object : CommonTabbedPaneUI() {
+      // TODO(b/152556591): Remove this when we launch our second inspector and the tool window becomes
+      //  an app inspection tool window.
+      override fun calculateTabAreaHeight(tabPlacement: Int, horizRunCount: Int, maxTabHeight: Int): Int {
+        if (tabCount > 1) {
+          return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight)
+        }
+        else {
+          return 0
+        }
+      }
+    }
+  }
 
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
 
   private val noInspectorsMessage = EmptyStatePanel(AppInspectionBundle.message("select.process"))
+
+  constructor(project: Project,
+              appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+              ideServices: AppInspectionIdeServices,
+              getPreferredProcesses: () -> List<String>) :
+    this(project,
+         appInspectionDiscoveryHost,
+         ideServices,
+         { AppInspectorTabProvider.EP_NAME.extensionList },
+         getPreferredProcesses)
 
   private fun showCrashNotification(inspectorName: String) {
     ideServices.showNotification(
@@ -122,7 +149,7 @@ class AppInspectionView(
   }
 
   private fun launchInspectorTabsForCurrentProcess() {
-    AppInspectorTabProvider.EP_NAME.extensionList
+    getTabProviders()
       .filter { provider -> provider.isApplicable() }
       .forEach { provider ->
         appInspectionDiscoveryHost.launchInspector(
@@ -173,17 +200,7 @@ class AppInspectionView(
   private fun updateUi() {
     inspectorPanel.removeAll()
 
-    // TODO(b/157973967): Fix multiple inspectors properly
-    // Adding inspectorComponent to inspectorPanel triggers re-parenting and removes
-    // the inspectorTabs.getComponentAt(0) from inspectorTabs. In order to avoid the
-    // re-parenting, we uses the number of applicable providers instead of
-    // inspectorTabs.size as the indicator.
-    val inspectorComponent = when (inspectorTabs.tabCount) {
-      0 -> noInspectorsMessage
-      // TODO(b/152556591): Remove this case once we launch more than one inspector
-      1 -> inspectorTabs.getComponentAt(0)
-      else -> inspectorTabs
-    }
+    val inspectorComponent: JComponent = if (inspectorTabs.tabCount == 0) noInspectorsMessage else inspectorTabs
     inspectorPanel.add(inspectorComponent)
     inspectorPanel.repaint()
   }

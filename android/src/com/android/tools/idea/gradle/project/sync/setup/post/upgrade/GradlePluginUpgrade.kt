@@ -141,7 +141,6 @@ fun recommendPluginUpgrade(project: Project) {
  */
 @Slow
 @JvmOverloads
-@VisibleForTesting
 fun performRecommendedPluginUpgrade(
   project: Project,
   currentVersion: GradleVersion? = project.findPluginInfo()?.pluginVersion,

@@ -86,6 +86,15 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
+  public void formatPrefix() {
+    // Act
+    Object prefix = myFormatter.formatPrefix("\n");
+
+    // Assert
+    assertEquals("\n", prefix);
+  }
+
+  @Test
   public void unknownFormatMessageRemainsSame() {
     String message = "some message that doesn't match any known AndroidLogcatFormatter format";
     String formattedMessage = myFormatter.formatMessage(message);

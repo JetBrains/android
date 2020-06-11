@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -87,11 +88,13 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
+      testRootDisposable,
       DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
+      testRootDisposable,
       DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
       2,
       EdtExecutorService.getInstance()
@@ -109,13 +112,15 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     assertEmpty(model.getAllDatabaseIds())
   }
 
-  fun testStopSessionsRemovesDatabaseInspectorClientChannelFromController() {
+  fun testStopSessionsRemovesDatabaseInspectorClientChannelAndAppInspectionServicesFromController() {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
     }
 
-    databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel)
+    val appInspectionServices = mock(AppInspectionIdeServices::class.java)
+
+    databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
 
     // Act
     runDispatching {
@@ -125,6 +130,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     // Assert
     verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
     verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(null)
+    verify(mockSqliteController).setAppInspectionServices(appInspectionServices)
+    verify(mockSqliteController).setAppInspectionServices(null)
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {
@@ -145,6 +152,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
     val connection = LiveDatabaseConnection(
+      testRootDisposable,
       DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
       0,
       EdtExecutorService.getInstance()

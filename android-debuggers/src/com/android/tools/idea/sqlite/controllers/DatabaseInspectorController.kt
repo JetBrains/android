@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -96,6 +97,8 @@ class DatabaseInspectorControllerImpl(
   private val sqliteViewListener = SqliteViewListenerImpl()
 
   private var databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel? = null
+
+  private var appInspectionIdeServices: AppInspectionIdeServices? = null
 
   private var evaluatorTabCount = 0
   private var keepConnectionsOpen = false
@@ -247,6 +250,10 @@ class DatabaseInspectorControllerImpl(
     databaseInspectorClientCommandsChannel?.keepConnectionsOpen(keepConnectionsOpen)
   }
 
+  override fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?) {
+    this.appInspectionIdeServices = appInspectionIdeServices
+  }
+
   override suspend fun databasePossiblyChanged() = withContext(uiThread) {
     // update schemas
     model.getOpenDatabaseIds().forEach { updateDatabaseSchema(it) }
@@ -389,6 +396,7 @@ class DatabaseInspectorControllerImpl(
       model,
       databaseRepository,
       sqliteEvaluatorView,
+      { appInspectionIdeServices?.showNotification(it) },
       { closeTab(tabId) },
       edtExecutor,
       taskExecutor
@@ -533,6 +541,9 @@ interface DatabaseInspectorController : Disposable {
 
   @UiThread
   fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?)
+
+  @UiThread
+  fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?)
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit

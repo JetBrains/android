@@ -28,6 +28,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -99,8 +100,10 @@ internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
  * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
-internal class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
+internal class ComposeAdapterLightVirtualFile(name: String, content: String, private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name, content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
+
+  override fun getOriginFile(): VirtualFile? = originFileProvider()
 }
 
 /**
@@ -431,27 +434,32 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
         "Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    return parameterProviders.map {
-      try {
-        val parameterProviderClass = ModuleClassLoaderManager.get().getShared(null, module).loadClass(it.providerClassFqn).kotlin
-        val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
-        val parameterProvider = parameterProviderClass.createInstance()
-        val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
+    val classLoader = ModuleClassLoaderManager.get().getShared(null, module, this)
+    try {
+      return parameterProviders.map {
+        try {
+          val parameterProviderClass = classLoader.loadClass(it.providerClassFqn).kotlin
+          val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
+          val parameterProvider = parameterProviderClass.createInstance()
+          val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
 
-        return (0 until providerCount).map { index ->
-          ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
-                                             parameterName = it.name,
-                                             index = index,
-                                             providerClassFqn = it.providerClassFqn)
-        }.asSequence()
-      }
-      catch (e: Throwable) {
-        Logger.getInstance(
-          ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
-      }
+          return (0 until providerCount).map { index ->
+            ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
+                                               parameterName = it.name,
+                                               index = index,
+                                               providerClassFqn = it.providerClassFqn)
+          }.asSequence()
+        }
+        catch (e: Throwable) {
+          Logger.getInstance(
+            ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
+        }
 
-      return sequenceOf()
-    }.first()
+        return sequenceOf()
+      }.first()
+    } finally {
+      ModuleClassLoaderManager.get().release(classLoader, this)
+    }
   }
 
   override fun equals(other: Any?): Boolean {

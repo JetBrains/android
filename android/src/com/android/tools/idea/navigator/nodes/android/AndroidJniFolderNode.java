@@ -18,11 +18,11 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
-import com.android.tools.idea.navigator.nodes.ndk.NdkSourceFolderNode;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -66,9 +66,9 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
     assert myProject != null;
     Collection<AbstractTreeNode<?>> nativeSourceNodes = getNativeSourceNodes(myProject, getNdkModel(), getSettings());
     if (nativeSourceNodes.size() == 1) {
-      AbstractTreeNode sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
-      if (sourceNode instanceof NdkSourceFolderNode) {
-        return ((NdkSourceFolderNode)sourceNode).getChildren();
+      AbstractTreeNode<?> sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
+      if (sourceNode instanceof PsiDirectoryNode) {
+        return sourceNode.getChildren();
       }
     }
     return nativeSourceNodes;

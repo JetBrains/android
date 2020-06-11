@@ -89,7 +89,7 @@ interface ModuleModelData : ProjectModelData {
 class NewAndroidModuleModel(
   projectModelData: ProjectModelData,
   template: NamedModuleTemplate,
-  moduleParent: String?,
+  moduleParent: String,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
   override val isLibrary: Boolean = false
@@ -112,33 +112,6 @@ class NewAndroidModuleModel(
       else -> "android.wizard.module.config.new.application"
     }
     applicationName.set(message(msgId))
-  }
-
-  // TODO(qumeric): replace constructors by factories
-  constructor(
-    project: Project,
-    moduleParent: String?,
-    projectSyncInvoker: ProjectSyncInvoker,
-    template: NamedModuleTemplate,
-    isLibrary: Boolean = false
-  ) : this(
-    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-    template = template,
-    moduleParent = moduleParent,
-    formFactor = ObjectValueProperty(FormFactor.Mobile),
-    isLibrary = isLibrary
-  )
-
-  constructor(
-    projectModel: NewProjectModel, template: NamedModuleTemplate,
-    formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
-  ) : this(
-    projectModelData = projectModel,
-    template = template,
-    moduleParent = null,
-    formFactor = formFactor
-  ) {
-    multiTemplateRenderer.incrementRenders()
   }
 
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
@@ -195,6 +168,22 @@ class NewAndroidModuleModel(
     if (isLibrary) {
       setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
     }
+  }
+
+  companion object {
+    fun fromExistingProject(
+      project: Project,
+      moduleParent: String,
+      projectSyncInvoker: ProjectSyncInvoker,
+      template: NamedModuleTemplate,
+      isLibrary: Boolean = false
+    ) : NewAndroidModuleModel = NewAndroidModuleModel(
+      projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+      template = template,
+      moduleParent = moduleParent,
+      formFactor = ObjectValueProperty(FormFactor.Mobile),
+      isLibrary = isLibrary
+    )
   }
 }
 

@@ -39,10 +39,7 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
     val targetModule = dependency.parent.parent.findModuleByGradlePath(dependency.gradlePath) as? PsAndroidModule ?: return emptySequence()
 
     fun analyzeBuildTypes(): Sequence<PsGeneralIssue> {
-      fun targetBuildTypeExists(buildTypeName: String) =
-        buildTypeName == "debug" ||
-        buildTypeName == "release" ||
-        targetModule.findBuildType(buildTypeName) != null
+      fun targetBuildTypeExists(buildTypeName: String) = targetModule.findBuildType(buildTypeName) != null
 
       return sourceModule.buildTypes.items.asSequence().mapNotNull { sourceBuildType ->
         if (targetBuildTypeExists(sourceBuildType.name)) return@mapNotNull null

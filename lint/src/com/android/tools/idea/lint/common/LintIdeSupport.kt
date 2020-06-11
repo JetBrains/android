@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
@@ -142,6 +143,10 @@ abstract class LintIdeSupport {
 
   // Gradle
   open fun updateToLatest(module: Module, gc: GradleCoordinate) {
+  }
+  open fun recommendedAgpVersion(project: Project): GradleVersion? = null
+  open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
+  open fun updateAgpToLatest(project: Project) {
   }
 
   open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null

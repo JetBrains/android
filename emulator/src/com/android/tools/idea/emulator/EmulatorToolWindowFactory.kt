@@ -22,21 +22,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
-import org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkAvailable
 import org.jetbrains.android.util.AndroidUtils.hasAndroidFacets
 
 /**
- * [ToolWindowFactory] implementation for Emulator tool window.
+ * [ToolWindowFactory] implementation for the Emulator tool window.
  */
 class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.COMBO)
+    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
     EmulatorToolWindowManager.initializeForProject(project)
   }
 
-  // After restarting the IDE don't automatically unless visible.
-  override fun isDoNotActivateOnStart(): Boolean = true
+  override fun init(toolWindow: ToolWindow) {
+    toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE
+  }
 
   // Only show in Android projects.
   override fun shouldBeAvailable(project: Project): Boolean {

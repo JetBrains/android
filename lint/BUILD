@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.lint",
     srcs = ["src"],
     iml_files = ["intellij.lint.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [

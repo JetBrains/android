@@ -380,8 +380,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
 
     if (issue == null && project != null) {
-      InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-      for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+      //noinspection rawtypes
+      for (InspectionToolWrapper e : getInspectionTools(project)) {
         if (inspectionName.equals(e.getShortName())) {
           InspectionProfileEntry entry = e.getTool();
           if (entry instanceof AndroidLintInspectionBase) {
@@ -394,6 +394,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return issue;
   }
 
+  @SuppressWarnings("rawtypes")
+  private static InspectionToolWrapper[] getInspectionTools(@NotNull Project project) {
+    InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
+    try {
+      return profile.getInspectionTools(null);
+    } catch (Throwable t) {
+      LOG.warn("Couldn't look up inspection tools", t);
+      return InspectionToolWrapper.EMPTY_ARRAY;
+    }
+  }
+
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
     synchronized (ISSUE_MAP_LOCK) {
       Map<Issue, String> issue2InspectionShortName = project.getUserData(ISSUE_MAP_KEY);
@@ -401,9 +412,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         issue2InspectionShortName = new HashMap<>();
         project.putUserData(ISSUE_MAP_KEY, issue2InspectionShortName);
 
-        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-
-        for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+        //noinspection rawtypes
+        for (InspectionToolWrapper e : getInspectionTools(project)) {
           final String shortName = e.getShortName();
 
           if (shortName.startsWith(LINT_INSPECTION_PREFIX)) {

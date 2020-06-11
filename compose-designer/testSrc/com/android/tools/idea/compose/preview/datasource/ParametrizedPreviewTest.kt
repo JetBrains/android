@@ -96,9 +96,34 @@ class ParametrizedPreviewTest {
                                                         ProjectRootManager.getInstance(project).contentRoots[0])!!
 
     val elements = PreviewElementTemplateInstanceProvider(
-      StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews).toList()))
+      StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                              .filter { it.displaySettings.name == "TestWithProvider" }
+                              .toList()))
       .previewElements
     assertEquals(3, elements.count())
+
+    elements.forEach {
+      renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+    }
+  }
+
+  /**
+   * Checks the rendering of the default `@Preview` in the Compose template.
+   */
+  @Test
+  fun testLoremIpsumInstance() {
+    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
+    val project = projectRule.project
+
+    val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
+                                                        ProjectRootManager.getInstance(project).contentRoots[0])!!
+
+    val elements = PreviewElementTemplateInstanceProvider(
+      StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                              .filter { it.displaySettings.name == "TestLorem" }
+                              .toList()))
+      .previewElements
+    assertEquals(1, elements.count())
 
     elements.forEach {
       renderPreviewElementForResult(projectRule.androidFacet(":app"), it)

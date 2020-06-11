@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.Lists;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +33,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
   public static final PropertiesElementDescription<SigningConfigsDslElement> SIGNING_CONFIGS =
     new PropertiesElementDescription<>("signingConfigs", SigningConfigsDslElement.class, SigningConfigsDslElement::new);
 
-  public static final List<String> implicitSigningConfigs = Arrays.asList("debug");
+  public static final List<String> implicitSigningConfigs = ContainerUtil.immutableList("debug");
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
@@ -46,6 +47,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
 
   public SigningConfigsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+    addDefaultProperty(new SigningConfigDslElement(this, GradleNameElement.fake("debug")));
   }
 
   @Override

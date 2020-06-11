@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.sync.quickFixes.AbstractSetLanguageLevel8QuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB

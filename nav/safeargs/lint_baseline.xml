@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 4.2.0-dev">
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsBuilderClass.kt"
+            line="104"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsBuilderClass.kt"
+            line="109"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsClass.kt"
+            line="96"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/java/SafeArgsLightClassUtils.kt"
+            line="195"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `decapitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/java/SafeArgsLightClassUtils.kt"
+            line="195"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/LightArgsKtClass.kt"
+            line="94"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/LightArgsKtClass.kt"
+            line="119"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/LightArgsKtClass.kt"
+            line="156"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/LightArgsKtClass.kt"
+            line="194"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/LightDirectionsKtClass.kt"
+            line="103"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/LightDirectionsKtClass.kt"
+            line="121"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/nav/safeargs/psi/kotlin/SafeArgsKotlinPackageDescriptor.kt"
+            line="112"/>
+    </issue>
+
+</issues>

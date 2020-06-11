@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.bleak
+package com.android.tools.idea.gradle.project.facet.ndk
 
-class Whitelist<T>(val patterns: List<WhitelistEntry<T>> = listOf()) {
+import org.jetbrains.jps.model.JpsDummyElement
+import org.jetbrains.jps.model.ex.JpsElementTypeWithDummyProperties
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 
-  fun matches(info: T) = patterns.any { it.test(info) }
-
-  operator fun plus(w: Whitelist<T>): Whitelist<T> {
-    return Whitelist(this.patterns + w.patterns)
-  }
-
-  operator fun plus(e: WhitelistEntry<T>): Whitelist<T> {
-    return Whitelist(this.patterns + e)
-  }
-}
+/** Type to differentiate a native content root from Java/Kotlin content root. */
+object NativeSourceRootType : JpsElementTypeWithDummyProperties(), JpsModuleSourceRootType<JpsDummyElement>

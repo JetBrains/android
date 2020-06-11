@@ -129,7 +129,7 @@ public class RenderSecurityManager extends SecurityManager {
    * {@link System#setSecurityManager(SecurityManager)}.
    *
    * @param sdkPath     an optional path to the SDK install being used by layoutlib;
-   *                    this is used to white-list path prefixes for layoutlib resource
+   *                    this is used to allow specific path prefixes for layoutlib resource
    *                    lookup
    * @param projectPath a path to the project directory, used for similar purposes
    */

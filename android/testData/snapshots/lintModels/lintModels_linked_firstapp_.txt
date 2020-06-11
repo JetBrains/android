@@ -6,10 +6,6 @@ MODULE              : My_First_App.app
     MavenName           : My First App:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/firstapp/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -21,6 +17,10 @@ MODULE              : My_First_App.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.firstapp
             - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
@@ -62,7 +62,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -101,7 +101,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -145,7 +145,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -186,7 +186,7 @@ MODULE              : My_First_App.app
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -237,7 +237,7 @@ MODULE              : My_First_App.app
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -628,20 +628,10 @@ MODULE              : My_First_App.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/proguard.txt [-]
                 ResolvedCoordinates : androidx.constraintlayout:constraintlayout:1.1.3
-            LintModelLibrary    : AndroidLibrary(:app:mysharedlibrary)
-                - JarFiles          : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:app:mysharedlibrary)
                 ArtifactAddress     : artifacts::app:mysharedlibrary:unspecified
-                Manifest            : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :app:mysharedlibrary
-                ResolvedCoordinates : artifacts::app:mysharedlibrary:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -697,10 +687,6 @@ MODULE              : My_First_App.app.mysharedlibrary
     MavenName           : My First App.app:mysharedlibrary:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/shared/mysharedlibrary/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -712,6 +698,10 @@ MODULE              : My_First_App.app.mysharedlibrary
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.mysharedlibrary
             - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
@@ -828,7 +818,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -867,7 +857,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                     androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                     junit:junit         : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -916,7 +906,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -953,7 +943,7 @@ MODULE              : My_First_App.app.mysharedlibrary
                 androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
                 androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts:          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -1366,20 +1356,10 @@ MODULE              : My_First_App.app.mysharedlibrary
                 - JarFiles          : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 ArtifactAddress     : androidx.annotation:annotation:1.0.0
                 ResolvedCoordinates : androidx.annotation:annotation:1.0.0
-            LintModelLibrary    : AndroidLibrary(:app:mysharedlibrary)
-                - JarFiles          : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:app:mysharedlibrary)
                 ArtifactAddress     : artifacts::app:mysharedlibrary:unspecified
-                Manifest            : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :app:mysharedlibrary
-                ResolvedCoordinates : artifacts::app:mysharedlibrary:unspecified
             LintModelLibrary    : JavaLibrary(junit:junit:4.12)
                 - JarFiles          : <M2>/junit/junit/4.12/junit-4.12.jar
                 ArtifactAddress     : junit:junit:4.12

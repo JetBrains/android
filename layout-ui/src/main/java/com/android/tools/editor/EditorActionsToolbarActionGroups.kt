@@ -15,22 +15,20 @@
  */
 package com.android.tools.editor
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /** Action groups for the DesignSurface. */
-interface EditorActionsToolbarActionGroups : Disposable {
+interface EditorActionsToolbarActionGroups {
 
   val zoomControlsGroup: ActionGroup?
+    get() = null
 
   val zoomLabelGroup: ActionGroup?
+    get() = null
 
   val otherGroups: List<ActionGroup>
-
-  override fun dispose() {
-    // Do nothing
-  }
+    get() = listOf()
 }
 
 /** The default implementation for [EditorActionsToolbarActionGroups], only returns [DefaultActionGroup.EMPTY_GROUP]. */
@@ -40,7 +38,4 @@ object DesignSurfaceEmptyActionGroups: EditorActionsToolbarActionGroups {
 
   override val zoomLabelGroup: ActionGroup
     get() = DefaultActionGroup.EMPTY_GROUP
-
-  override val otherGroups: List<ActionGroup>
-    get() = listOf()
 }

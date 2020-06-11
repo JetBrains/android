@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.gradle-tooling.impl",
     srcs = ["src"],
     iml_files = ["intellij.android.gradle-tooling.impl.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     tags = ["no_test_windows"],
     test_srcs = ["testSrc"],

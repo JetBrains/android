@@ -66,6 +66,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDr
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
+import com.android.tools.idea.uibuilder.surface.LayoutValidationConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -100,6 +101,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -113,7 +115,6 @@ import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -180,9 +181,9 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShrinkRendering = false;
 
   /**
-   * If true, the scene is interactive
+   * If true, the scene should use a private ClassLoader.
    */
-  private boolean isInteractive = false;
+  private boolean myUsePrivateClassLoader = false;
 
   /**
    * If true, the render will paint the system decorations (status and navigation bards)
@@ -198,12 +199,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality.
    */
   private float quality = 1f;
-
-  /**
-   * When true, it render from layoutlib will contain validation results. When false it'll bypass
-   * the validation. In order to allow validation, the layoutlib needs to re-inflate.
-   */
-  public boolean isLayoutValidationEnabled = false;
 
   /**
    * {@link Consumer} called when setting up the Rendering {@link MergingUpdateQueue} to do additional setup. This can be used for
@@ -248,6 +243,13 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
+   * Configuration for layout validation from Accessibility Testing Framework through Layoutlib.
+   * Based on the configuration layout validation will be turned on or off while rendering.
+   */
+  @NotNull
+  public final LayoutValidationConfiguration layoutValidationConfig;
+
+  /**
    * Creates a new LayoutlibSceneManager.
    *
    * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
@@ -262,7 +264,8 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
-                                  @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+                                  @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
+                                  @NotNull LayoutValidationConfiguration layoutValidationConfig) {
     super(model, designSurface, false, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
@@ -292,6 +295,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     model.addListener(myModelChangeListener);
     myAreListenersRegistered = true;
+    this.layoutValidationConfig = layoutValidationConfig;
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
@@ -309,7 +313,13 @@ public class LayoutlibSceneManager extends SceneManager {
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, sceneComponentProvider);
+    this(
+      model,
+      designSurface,
+      PooledThreadExecutor.INSTANCE,
+      queue -> {},
+      sceneComponentProvider,
+      LayoutValidationConfiguration.getDISABLED());
   }
 
   /**
@@ -320,7 +330,29 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, new LayoutlibSceneManagerHierarchyProvider());
+    this(
+      model,
+      designSurface,
+      PooledThreadExecutor.INSTANCE,
+      queue -> {},
+      new LayoutlibSceneManagerHierarchyProvider(),
+      LayoutValidationConfiguration.getDISABLED());
+  }
+
+  /**
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface)}
+   *
+   * @param config configuration for layout validation when rendering.
+   */
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutValidationConfiguration config) {
+    this(
+      model,
+      designSurface,
+      PooledThreadExecutor.INSTANCE,
+      queue -> {},
+      new LayoutlibSceneManagerHierarchyProvider(),
+      config);
   }
 
   @NotNull
@@ -909,7 +941,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
-      .withLayoutValidation(isLayoutValidationEnabled)
+      .withLayoutValidation(layoutValidationConfig.isLayoutValidationEnabled())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
@@ -918,6 +950,9 @@ public class LayoutlibSceneManager extends SceneManager {
             .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
           return newTask.inflate().whenComplete((result, exception) -> {
             if (exception != null) {
+              if (result == null || !result.getRenderResult().isSuccess()) {
+                logger.error("INFLATE", "Error inflating the preview", exception, null, null);
+              }
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 
@@ -940,16 +975,16 @@ public class LayoutlibSceneManager extends SceneManager {
               }
             }
           })
-            .thenApply(result -> {
+            .handle((result, exception) -> {
               if (result != null) {
                 CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, System.currentTimeMillis() - startInflateTimeMs, true);
                 return result;
               } else {
-                return RenderResult.createBlank(getModel().getFile());
+                return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
               }
             })
             .thenApply(result -> {
-              if (project.isDisposed()) {
+              if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
                 return false;
               }
 
@@ -1025,13 +1060,7 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.disableToolsVisibilityAndPosition();
     }
 
-    // If two compose previews share the same ClassLoader they share the same compose framework. This way they share the state. In the
-    // interactive preview we would like to control the state of the framework and preview. Shared state makes control impossible.
-    // Therefore, for interactive (currently only compose) preview we want to create a dedicated ClassLoader so that the preview has its own
-    // compose framework. Having a dedicated ClassLoader also allows for clearing resources right after the preview no longer used. We could
-    // apply this approach to static previews as well but it might have negative impact if there are many of them, so applying to the
-    // interactive previews only.
-    if (isInteractive) {
+    if (myUsePrivateClassLoader) {
       taskBuilder.usePrivateClassLoader();
     }
 
@@ -1104,12 +1133,14 @@ public class LayoutlibSceneManager extends SceneManager {
 
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl(trigger)
-        .thenApply(result -> {
-          if (result == null) {
-            completeRender();
-            return null;
+        .handle((result, exception) -> {
+          if (result != null) {
+            return result;
+          } else {
+            return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
           }
-
+        })
+        .thenApply(result -> {
           myRenderResultLock.writeLock().lock();
           try {
             updateCachedRenderResult(result);
@@ -1170,7 +1201,6 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Returns if there are any pending render requests.
    */
-  @TestOnly
   public boolean isRendering() {
     synchronized (myRenderFutures) {
       return myIsCurrentlyRendering.get() || !myRenderFutures.isEmpty();
@@ -1473,7 +1503,8 @@ public class LayoutlibSceneManager extends SceneManager {
   public void executeCallbacksAndRequestRender(@Nullable Runnable callback) {
     try {
       if (callback != null) {
-        RenderService.runRenderAction(callback);
+        RenderService.getRenderAsyncActionExecutor()
+          .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get();
       }
       executeCallbacks().thenRun(() -> requestRender());
     }
@@ -1487,8 +1518,20 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param interactive true if the scene is interactive, false otherwise.
    */
   public void setInteractive(boolean interactive) {
-    isInteractive = interactive;
-    getSceneViews().forEach(sv -> sv.setAnimated(isInteractive));
+    getSceneViews().forEach(sv -> sv.setAnimated(interactive));
+  }
+
+  /**
+   * Sets whether this scene manager should use a private/individual ClassLoader. If two compose previews share the same ClassLoader they
+   * share the same compose framework. This way they share the state. In the interactive preview and animation inspector, we would like to
+   * control the state of the framework and preview. Shared state makes control impossible. Therefore, in certain situations (currently only
+   * in compose) we want to create a dedicated ClassLoader so that the preview has its own compose framework. Having a dedicated ClassLoader
+   * also allows for clearing resources right after the preview no longer used. We could apply this approach by default (e.g. for static
+   * previews as well) but it might have a negative impact if there are many of them. Therefore, this should be configured by calling this
+   * method when we want to use the private ClassLoader, e.g. in interactive previews or animation inspector.
+   */
+  public void setUsePrivateClassLoader(boolean usePrivateClassLoader) {
+    myUsePrivateClassLoader = usePrivateClassLoader;
   }
 
   @Override

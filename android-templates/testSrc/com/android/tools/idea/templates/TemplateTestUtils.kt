@@ -32,7 +32,6 @@ import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -73,9 +72,8 @@ import kotlin.streams.toList
  * The following templates are known to be broken! We need to work through these and fix them such that tests on them can be re-enabled.
  */
 internal fun isBroken(templateName: String): Boolean {
-  // See http://b.android.com/253296
   if (SystemInfo.isWindows) {
-    if ("AidlFile" == templateName) return true
+    if ("AIDL File" == templateName) return true // b/37139315
     if ("Native C++" == templateName) return true // b/158067606
   }
 

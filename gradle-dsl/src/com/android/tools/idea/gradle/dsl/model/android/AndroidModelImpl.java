@@ -147,8 +147,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     @NotNull
   @Override
   public List<BuildTypeModel> buildTypes() {
-    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES);
-    return buildTypes == null ? ImmutableList.of() : buildTypes.get();
+    BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES);
+    return buildTypes.get();
   }
 
   @NotNull
@@ -286,8 +286,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public List<SigningConfigModel> signingConfigs() {
-    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS);
-    return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
+    SigningConfigsDslElement signingConfigs = myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS, 0);
+    return signingConfigs.get();
   }
 
   @Override

@@ -22,20 +22,21 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployableProvider {
-  @NotNull private final Project myProject;
-  @NotNull private final ApplicationIdProvider myApplicationIdProvider;
+  private final @NotNull AndroidFacet myFacet;
+  private final @NotNull ApplicationIdProvider myApplicationIdProvider;
 
-  public DeviceAndSnapshotComboBoxDeployableProvider(@NotNull Project project, @NotNull ApplicationIdProvider applicationIdProvider) {
+  public DeviceAndSnapshotComboBoxDeployableProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
+    myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
-    myProject = project;
   }
 
   @Override
@@ -46,7 +47,11 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
   @Nullable
   @Override
   public Deployable getDeployable() throws ApkProvisionException {
-    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(myProject);
+    if (Disposer.isDisposed(myFacet)) {
+      return null;
+    }
+
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(myFacet.getModule().getProject());
 
     if (devices.size() != 1) {
       return null;

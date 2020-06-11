@@ -21,6 +21,9 @@
     <!--suppress PluginXmlCapitalization -->
     <action id="AvailableDevices" class="com.android.tools.idea.run.deployment.Heading" text="Available devices"/>
 
+    <action id="RunOnMultipleDevices" class="com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction"
+            text="Run on Multiple Devices" icon="AllIcons.Actions.Execute"/>
+
     <action id="MultipleDevices" class="com.android.tools.idea.run.deployment.MultipleDevicesAction" text="Multiple Devices"
             icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
 

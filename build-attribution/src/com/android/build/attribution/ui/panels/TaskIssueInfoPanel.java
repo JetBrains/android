@@ -18,7 +18,7 @@ package com.android.build.attribution.ui.panels;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.durationString;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
-import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabelWithLinesWrap;
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
@@ -171,6 +171,6 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    return htmlTextLabel(text);
+    return htmlTextLabelWithLinesWrap(text);
   }
 }

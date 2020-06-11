@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavFragmentData
-import com.android.tools.idea.nav.safeargs.psi.xml.getXmlTagById
+import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -61,7 +61,7 @@ class LightArgsClass(facet: AndroidFacet,
   val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
-  private val backingXmlTag by lazy { backingResourceFile?.getXmlTagById(fragment.id) }
+  private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(fragment.id) }
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {

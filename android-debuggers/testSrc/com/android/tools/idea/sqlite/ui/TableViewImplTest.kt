@@ -64,6 +64,7 @@ import javax.swing.JPopupMenu
 import javax.swing.JTable
 
 private const val COLUMN_DEFAULT_WIDTH = 75
+private const val AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH = 85
 
 class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: TableViewImpl
@@ -147,7 +148,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(JTable.AUTO_RESIZE_OFF, table.autoResizeMode)
 
     assertTrue(table.size.width > 598)
-    assertEquals(COLUMN_DEFAULT_WIDTH, table.columnModel.getColumn(1).width)
+    assertEquals(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH, table.columnModel.getColumn(1).width)
 
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
     assertTrue(jbScrollPane.horizontalScrollBar.model.maximum > 598)
@@ -449,8 +450,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -499,8 +499,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -549,8 +548,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -599,8 +597,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -816,8 +813,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)

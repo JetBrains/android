@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
@@ -62,9 +63,9 @@ open class MockDatabaseInspectorController(private val repository: DatabaseRepos
     return object: SavedUiState {}
   }
 
-  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {
+  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {}
 
-  }
+  override fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?) { }
 
   override fun dispose() { }
 }

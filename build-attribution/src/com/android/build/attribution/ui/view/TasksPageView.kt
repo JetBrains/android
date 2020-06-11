@@ -39,6 +39,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Font
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -87,7 +88,7 @@ class TasksPageView(
     }
   }
 
-  val treeHeaderLabel: JLabel = JBLabel().withFont(JBUI.Fonts.label().asBold())
+  val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
 
   val detailsPanel = object : CardLayoutPanel<TasksTreePresentableNodeDescriptor, TasksTreePresentableNodeDescriptor, JComponent>() {
     override fun prepare(key: TasksTreePresentableNodeDescriptor): TasksTreePresentableNodeDescriptor = key

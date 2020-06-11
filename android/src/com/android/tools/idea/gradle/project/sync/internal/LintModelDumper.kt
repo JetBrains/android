@@ -25,7 +25,9 @@ import com.android.tools.lint.model.LintModelFactory
 import com.android.tools.lint.model.LintModelJavaArtifact
 import com.android.tools.lint.model.LintModelLibrary
 import com.android.tools.lint.model.LintModelLintOptions
+import com.android.tools.lint.model.LintModelModuleLibrary
 import com.android.tools.lint.model.LintModelModule
+import com.android.tools.lint.model.LintModelExternalLibrary
 import com.android.tools.lint.model.LintModelSourceProvider
 import com.android.tools.lint.model.LintModelVariant
 import com.intellij.openapi.module.ModuleManager
@@ -56,12 +58,6 @@ private fun ProjectDumper.dump(lintModelModule: LintModelModule) {
   prop("GradleVersion") { lintModelModule.gradleVersion?.toString()?.replaceKnownPaths() }
   prop("BuildFolder") { lintModelModule.buildFolder.path.toPrintablePath() }
   lintModelModule.lintRuleJars.forEach { prop("- LintRuleJars") { it.path.toPrintablePath() } }
-  head("BuildFeatures")
-  nest {
-    prop("ViewBinding") { lintModelModule.buildFeatures.viewBinding.toString() }
-    prop("CoreLibraryDesugaringEnabled") { lintModelModule.buildFeatures.coreLibraryDesugaringEnabled.toString() }
-    prop("NamespacingMode") { lintModelModule.buildFeatures.namespacingMode.toString() }
-  }
   prop("ResourcePrefix") { lintModelModule.resourcePrefix }
   lintModelModule.dynamicFeatures.forEach { prop("- DynamicFeatures") { it } }
   lintModelModule.bootClassPath.forEach { prop("- BootClassPath") { it.path.toPrintablePath() } }
@@ -113,6 +109,14 @@ private fun ProjectDumper.dump(lintOptions: LintModelLintOptions) {
 private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
   with(lintModelVariant) {
     head("LintModelVariant") { name }
+    nest {
+      head("BuildFeatures")
+      nest {
+        prop("ViewBinding") { lintModelVariant.buildFeatures.viewBinding.toString() }
+        prop("CoreLibraryDesugaringEnabled") { lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString() }
+        prop("NamespacingMode") { lintModelVariant.buildFeatures.namespacingMode.toString() }
+      }
+    }
     nest {
       prop("UseSupportLibraryVectorDrawables") { useSupportLibraryVectorDrawables.takeIf { it }?.toString() }
       head("MainArtifact")
@@ -231,24 +235,25 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
   with(lintModelLibrary) {
     head("LintModelLibrary") { toString().replaceKnownPaths() }
     nest {
-      jarFiles.forEach { prop("- JarFiles") { it.path.toPrintablePath() } }
+      (this@with as? LintModelExternalLibrary)?.jarFiles?.forEach { prop("- JarFiles") { it.path.toPrintablePath() } }
       prop("ArtifactAddress") { artifactAddress.replaceKnownPaths() }
       if (this@with is LintModelAndroidLibrary) {
         prop("Manifest") { manifest.path.toPrintablePath() }
-        prop("Folder") { folder.path.toPrintablePath() }
+        prop("Folder") { folder?.path?.toPrintablePath() }
         prop("ResFolder") { resFolder.path.toPrintablePath() }
         prop("AssetsFolder") { assetsFolder.path.toPrintablePath() }
-        prop("LintJar") { lintJar.path.toPrintablePath() }
+      }
+      prop("LintJar") { lintJar?.path?.toPrintablePath() }
+      if (this@with is LintModelAndroidLibrary) {
         prop("PublicResources") { publicResources.path.toPrintablePath() }
         prop("SymbolFile") { symbolFile.path.toPrintablePath() }
         prop("ExternalAnnotations") { externalAnnotations.path.toPrintablePath() }
         prop("ProguardRules") { proguardRules.path.toPrintablePath() }
       }
-      prop("ProjectPath") { projectPath }
-      prop("ResolvedCoordinates") { resolvedCoordinates.toString().replaceKnownPaths() }
+      prop("ProjectPath") { (this@with as? LintModelModuleLibrary)?.projectPath }
+      prop("ResolvedCoordinates") { (this@with as? LintModelExternalLibrary)?.resolvedCoordinates?.toString()?.replaceKnownPaths() }
       prop("Provided") { provided.takeIf { it }?.toString() }
       prop("Skipped") { skipped.takeIf { it }?.toString() }
     }
   }
 }
-

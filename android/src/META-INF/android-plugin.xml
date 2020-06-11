@@ -250,8 +250,8 @@
     </action>
     <action id="AndroidMigrateToNonTransitiveRClassesAction"
             class="org.jetbrains.android.refactoring.namespaces.MigrateToNonTransitiveRClassesAction"
-            text="Migrate to Non-Transitive R Classes..."
-            description="Migrates one more modules to use non-transitive R classes">
+            text="Migrate to Non-Transitive R Classes"
+            description="Migrates the project to use Non-Transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidEnableInstantAppsSupport" class="com.android.tools.idea.gradle.actions.EnableInstantAppsSupportAction" text="Enable Instant Apps Support..."
@@ -307,6 +307,10 @@
       description="Adds a new data sample file">
     </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
+
+    <action id="RenderLaggingMode" internal="true" class="com.android.tools.idea.rendering.actions.RenderLaggingMode">
+      <add-to-group group-id="Internal.Performance" anchor="last" />
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

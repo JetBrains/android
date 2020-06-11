@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
@@ -54,8 +55,9 @@ class PreviewFilters(previewProvider: PreviewElementProvider) : PreviewElementPr
   /**
    * [Set] of all the available [PreviewGroup]s in this preview.
    */
-  val availableGroups: Set<PreviewGroup>
-    get() = singleElementFilteredProvider.availableGroups.map {
+  @get:Slow
+  val allAvailableGroups: Set<PreviewGroup>
+    get() = groupNameFilteredProvider.allAvailableGroups.map {
       PreviewGroup.namedGroup(it)
     }.toSet()
 
@@ -76,6 +78,7 @@ class PreviewFilters(previewProvider: PreviewElementProvider) : PreviewElementPr
     singleElementFilteredProvider.instanceId = null
   }
 
+  @get:Slow
   override val previewElements: Sequence<PreviewElementInstance>
     get() = singleElementFilteredProvider.previewElements.filterIsInstance<PreviewElementInstance>()
 
