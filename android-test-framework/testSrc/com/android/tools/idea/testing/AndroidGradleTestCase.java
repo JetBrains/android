@@ -15,24 +15,6 @@
  */
 package com.android.tools.idea.testing;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static java.util.concurrent.TimeUnit.MINUTES;
-
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -60,24 +42,32 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.ThreadTracker;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.*;
 import com.intellij.util.Consumer;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
+
+import static com.android.SdkConstants.*;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -193,7 +183,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestUtil.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        ProjectManagerEx.getInstanceEx().forceCloseProject(openProjects[0]);
+        ProjectRule.checkThatNoOpenProjects();
       }
       myAndroidFacet = null;
       myModules = null;
@@ -270,7 +261,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  public File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
+  protected File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
