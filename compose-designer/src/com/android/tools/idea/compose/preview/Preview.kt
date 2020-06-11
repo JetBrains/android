@@ -173,10 +173,10 @@ private fun configureExistingModel(existingModel: NlModel,
 }
 
 /**
- * A [PreviewRepresentation] that provides a compose elements preview representation of the given [psiFile].
+ * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
- * [PREVIEW_ANNOTATION_FQN]) annotation.
+ * [com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN]) annotation.
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
@@ -190,7 +190,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val psiFilePointer = SmartPointerManager.createPointer<PsiFile>(psiFile)
 
   /**
-   * [PreviewElementProvider] used to save the result of a call to [previewProvider]. Calls to [previewProvider] can potentially
+   * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
   private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider,
@@ -522,7 +522,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   /**
-   * Method called when the notifications of the [PreviewEditor] need to be updated. This is called by the
+   * Method called when the notifications of the [PreviewRepresentation] need to be updated. This is called by the
    * [ComposePreviewNotificationProvider] when the editor needs to refresh the notifications.
    */
   override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
@@ -719,14 +719,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
 
     onRefresh?.invoke()
-  }
-
-  private fun startRenderingUI() {
-    updateNotifications()
-  }
-
-  private fun stopRenderingUI() {
-    updateSurfaceVisibilityAndNotifications()
   }
 
   /**

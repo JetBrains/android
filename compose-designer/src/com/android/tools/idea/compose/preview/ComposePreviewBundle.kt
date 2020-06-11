@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.compose.preview
 
-import com.intellij.CommonBundle
+import com.intellij.AbstractBundle
 import com.intellij.reference.SoftReference
 import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
@@ -26,7 +26,7 @@ import java.util.ResourceBundle
 const val BUNDLE: String = "com.android.tools.idea.compose.preview.ComposePreviewBundle"
 
 fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
-  CommonBundle.message(getBundle(), key, *params)
+  AbstractBundle.message(getBundle(), key, *params)
 
 private var ourBundle: Reference<ResourceBundle>? = null
 

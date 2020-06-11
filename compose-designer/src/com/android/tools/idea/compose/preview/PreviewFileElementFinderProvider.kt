@@ -15,5 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
+
 /** Default [FilePreviewElementFinder]. This will be used by default by production code */
 val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder
