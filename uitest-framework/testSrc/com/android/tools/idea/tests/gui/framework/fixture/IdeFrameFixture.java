@@ -279,8 +279,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture stopApp() {
-    String appModuleName = TestModuleUtil.findAppModule(getProject()).getName();
-    return invokeMenuPath("Run", "Stop '" + appModuleName + "'");
+    return invokeMenuPath("Run", "Stop \'app\'");
   }
 
   @NotNull
