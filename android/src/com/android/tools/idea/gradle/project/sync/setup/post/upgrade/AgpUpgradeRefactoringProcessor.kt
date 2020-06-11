@@ -109,6 +109,15 @@ class AgpUpgradeRefactoringProcessor(
   val current: GradleVersion,
   val new: GradleVersion
 ) : GradleBuildModelRefactoringProcessor(project) {
+
+  val classpathRefactoringProcessor = AgpClasspathDependencyRefactoringProcessor(this)
+  val componentRefactoringProcessors = listOf(
+    GMavenRepositoryRefactoringProcessor(this),
+    AgpGradleVersionRefactoringProcessor(this),
+    AgpJava8DefaultRefactoringProcessor(this),
+    CompileRuntimeConfigurationRefactoringProcessor(this)
+  )
+
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> {
@@ -127,12 +136,11 @@ class AgpUpgradeRefactoringProcessor(
     buildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
-    usages.addAll(AgpClasspathDependencyRefactoringProcessor(this).findUsages())
-    // FIXME(xof): add the PsiElements of these to the UsageViewDescriptor
-    usages.addAll(GMavenRepositoryRefactoringProcessor(this).findUsages())
-    usages.addAll(AgpGradleVersionRefactoringProcessor(this).findUsages())
-    usages.addAll(AgpJava8DefaultRefactoringProcessor(this).findUsages())
-    usages.addAll(CompileRuntimeConfigurationRefactoringProcessor(this).findUsages())
+    usages.addAll(classpathRefactoringProcessor.findUsages())
+
+    componentRefactoringProcessors.forEach { processor ->
+      usages.addAll(processor.findUsages())
+    }
 
     foundUsages = usages.size > 0
     return usages.toTypedArray()
@@ -180,7 +188,12 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
 
   protected abstract fun isApplicable(): Boolean
 
-  public abstract override fun findUsages(): Array<out UsageInfo>
+  public final override fun findUsages(): Array<out UsageInfo> {
+    if (!isEnabled) return UsageInfo.EMPTY_ARRAY
+    return findComponentUsages()
+  }
+
+  protected abstract fun findComponentUsages(): Array<out UsageInfo>
 }
 
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -190,7 +203,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun isApplicable() = true
 
-  override fun findUsages(): Array<UsageInfo> {
+  override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage, and additionally
     buildModel.allIncludedBuildModels.forEach model@{ model ->
@@ -269,7 +282,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   override fun isApplicable() = current < GradleVersion(3, 0, 0)
 
-  override fun findUsages(): Array<UsageInfo> {
+  override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one,
     // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
@@ -341,7 +354,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   override fun isApplicable() = true
 
-  override fun findUsages(): Array<out UsageInfo> {
+  override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     // check the project's wrapper(s) for references to no-longer-supported Gradle versions
     project.basePath?.let {
@@ -401,7 +414,7 @@ class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProces
   override fun isApplicable() =
     current < GradleVersion(4, 2, 0) && new >= GradleVersion(4, 2, 0)
 
-  override fun findUsages(): Array<out UsageInfo> {
+  override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       // TODO(xof): we should consolidate the various ways of guessing what a module is from its plugins (see also
@@ -512,7 +525,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun isApplicable() =
     current < GradleVersion(5, 0, 0) && new > GradleVersion(3, 5, 0)
 
-  override fun findUsages(): Array<out UsageInfo> {
+  override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
 
     fun maybeAddUsageForDependency(dependency: DependencyModel, compileReplacement: String, psiElement: PsiElement) {
