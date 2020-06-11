@@ -72,6 +72,7 @@ import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelected
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -983,6 +984,8 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
   val project = runInEdtAndGet {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+    // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
+    emulateStartupActivityForTest(project)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     project
   }
