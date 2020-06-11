@@ -19,7 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getApplicationIdFromListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getGenericBuiltArtifact;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -38,6 +38,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
 import com.android.builder.model.Variant;
+import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -49,11 +50,15 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
+import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
+import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -63,10 +68,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +87,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
   private final static String ourAndroidSyncVersion = "2020-05-27/1";
+
+  @Nullable private transient Module myModule;
 
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myAndroidSyncVersion;
@@ -97,6 +106,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private final transient Map<String, BuildTypeContainer> myBuildTypesByName;
   @NotNull private final transient Map<String, ProductFlavorContainer> myProductFlavorsByName;
   @NotNull final transient Map<String, IdeVariant> myVariantsByName;
+
+  @GuardedBy("myGenericBuiltArtifactsMap")
+  @NotNull private final transient Map<String, GenericBuiltArtifactsWithTimestamp> myGenericBuiltArtifactsMap;
 
   @Nullable
   public static AndroidModuleModel get(@NotNull Module module) {
@@ -171,7 +183,16 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myVariantsByName = myAndroidProject.getVariants().stream().map(it -> (IdeVariant)it).collect(toMap(it -> it.getName(), it -> it));
 
     mySelectedVariantName = findVariantToSelect(variantName);
+    myGenericBuiltArtifactsMap = new HashMap<>();
   }
+
+  /**
+   * Sets the IDE module this model is for, this should always be set on creation or re-attachement of the module to the project.
+   * @param module
+   */
+   public void setModule(@NotNull Module module) {
+    myModule = module;
+   }
 
   /**
    * @return Instance of {@link IdeDependencies} from main artifact.
@@ -267,8 +288,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public String getApplicationId() {
     if (myFeatures.isBuildOutputFileSupported()) {
-      String applicationId = getApplicationIdFromListingFile(this, mySelectedVariantName);
-      return applicationId == null ? UNINITIALIZED_APPLICATION_ID : applicationId;
+      return getApplicationIdUsingCache(mySelectedVariantName);
     }
     return getSelectedVariant().getMainArtifact().getApplicationId();
   }
@@ -278,8 +298,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public Set<String> getAllApplicationIds() {
     Set<String> ids = new HashSet<>();
     for (Variant variant : myAndroidProject.getVariants()) {
-      String applicationId = getApplicationIdFromListingFile(this, variant.getName());
-      if (applicationId != null) {
+      String applicationId = getApplicationIdUsingCache(variant.getName());
+      if (applicationId != UNINITIALIZED_APPLICATION_ID) {
         ids.add(applicationId);
       }
     }
@@ -637,5 +657,31 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public Map<String, DynamicResourceValue> getResValues() {
     return GradleModelConverterUtil.classFieldsToDynamicResourceValues(getSelectedVariant().getMainArtifact().getResValues());
+  }
+
+  @NotNull
+  private String getApplicationIdUsingCache(@NotNull String variantName) {
+    synchronized (myGenericBuiltArtifactsMap) {
+      GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(variantName);
+      long lastSyncOrBuild = Long.MAX_VALUE; // If we don't have a module default to MAX which will always trigger a re-compute.
+      if (myModule != null) {
+        lastSyncOrBuild = ServiceManager.getService(myModule.getProject(), LastBuildOrSyncService.class).getLastBuildOrSyncTimeStamp();
+      } else {
+        Logger.getInstance(AndroidModuleModel.class).warn("No module set on model named: " + myModuleName);
+      }
+      if (artifactsWithTimestamp == null || lastSyncOrBuild >= artifactsWithTimestamp.getTimeStamp()) {
+        // Cache is invalid
+        artifactsWithTimestamp =
+          new GenericBuiltArtifactsWithTimestamp(getGenericBuiltArtifact(this, variantName), System.currentTimeMillis());
+        myGenericBuiltArtifactsMap.put(variantName, artifactsWithTimestamp);
+      }
+
+      GenericBuiltArtifacts artifacts = artifactsWithTimestamp.getGenericBuiltArtifacts();
+      if (artifacts == null) {
+        return UNINITIALIZED_APPLICATION_ID;
+      }
+
+      return artifacts.getApplicationId();
+    }
   }
 }
