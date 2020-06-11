@@ -21,7 +21,6 @@ import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
-import com.google.common.base.Stopwatch
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
@@ -34,7 +33,6 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTableCellRenderer
-import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SideBorder
@@ -43,15 +41,15 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.TimerUtil
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.apache.commons.lang.StringUtils
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Container
+import java.awt.Dimension
 import java.awt.FlowLayout
-import java.awt.GridBagLayout
+import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -61,19 +59,17 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.time.Duration
 import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JLabel
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.JProgressBar
 import javax.swing.JTable
 import javax.swing.KeyStroke
-import javax.swing.event.HyperlinkEvent
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
-import javax.swing.text.html.HTMLDocument
 
 /**
  * Abstraction on the UI component used to display tables.
@@ -103,15 +99,14 @@ class TableViewImpl : TableView {
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
-  private val loadingMessageEditorPane = JEditorPane()
+
+  private val progressBar = JProgressBar()
 
   private val centerPanel = JPanel(BorderLayout())
 
+  private val layeredPane = JLayeredPane()
+
   private var isLoading = false
-  private val stopwatch = Stopwatch.createUnstarted()
-  private val loadingTimer = TimerUtil.createNamedTimer("DatabaseInspector loading timer", 1000) {
-    setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
-  }.apply { isRepeats = true }
 
   init {
     val southPanel = JPanel(BorderLayout())
@@ -217,9 +212,23 @@ class TableViewImpl : TableView {
       }
     })
 
-    centerPanel.add(tableScrollPane, BorderLayout.CENTER)
+    centerPanel.add(layeredPane, BorderLayout.CENTER)
 
-    setUpLoadingPanel()
+    val tablePanel = JPanel(BorderLayout())
+    tablePanel.add(tableScrollPane, BorderLayout.CENTER)
+
+    val progressBarPanel = JPanel(BorderLayout())
+    progressBarPanel.add(progressBar, BorderLayout.NORTH)
+    progressBarPanel.isOpaque = false
+
+    layeredPane.add(progressBarPanel)
+    layeredPane.add(tablePanel)
+    layeredPane.layout = MatchParentLayoutManager()
+
+    progressBar.isIndeterminate = true
+    progressBar.putClientProperty("ProgressBar.flatEnds", java.lang.Boolean.TRUE)
+    progressBar.putClientProperty("ProgressBar.stripeWidth", JBUI.scale(2))
+
     setUpPopUp()
   }
 
@@ -246,33 +255,25 @@ class TableViewImpl : TableView {
   override fun startTableLoading() {
     setControlButtonsEnabled(false)
 
-    setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
+    progressBar.isVisible = true
+    table.isEnabled = false
 
-    centerPanel.removeAll()
-    centerPanel.layout = GridBagLayout()
-    centerPanel.add(loadingMessageEditorPane)
-    centerPanel.revalidate()
-    centerPanel.repaint()
+    layeredPane.revalidate()
+    layeredPane.repaint()
 
-    stopwatch.start()
-    loadingTimer.start()
     isLoading = true
   }
 
   override fun stopTableLoading() {
     setControlButtonsEnabled(true)
 
-    loadingTimer.stop()
-    if (stopwatch.isRunning) {
-      stopwatch.reset()
-    }
     isLoading = false
 
-    centerPanel.removeAll()
-    centerPanel.layout = BorderLayout()
-    centerPanel.add(tableScrollPane, BorderLayout.CENTER)
-    centerPanel.revalidate()
-    centerPanel.repaint()
+    progressBar.isVisible = false
+    table.isEnabled = true
+
+    layeredPane.revalidate()
+    layeredPane.repaint()
   }
 
   override fun showTableColumns(columns: List<ViewColumn>) {
@@ -336,31 +337,6 @@ class TableViewImpl : TableView {
     liveUpdatesCheckBox.isEnabled = enabled
     refreshButton.isEnabled = enabled
     pageSizeComboBox.isEnabled = enabled
-  }
-
-  private fun setUpLoadingPanel() {
-    setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
-    loadingMessageEditorPane.editorKit = UIUtil.getHTMLEditorKit()
-    val document = loadingMessageEditorPane.document as HTMLDocument
-    document.styleSheet.addRule(
-      "body { text-align: center; }"
-    )
-    document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
-    loadingMessageEditorPane.name = "loading-panel"
-    loadingMessageEditorPane.isOpaque = false
-    loadingMessageEditorPane.isEditable = false
-    loadingMessageEditorPane.addHyperlinkListener(object : HyperlinkAdapter() {
-      override fun hyperlinkActivated(e: HyperlinkEvent) {
-        // Copy to a list to avoid ConcurrentModificationException, since listeners can remove themselves when handling the event
-        listeners.toList().forEach { it.cancelRunningStatementInvoked() }
-      }
-    })
-  }
-
-  private fun setLoadingText(editorPane: JEditorPane, duration: Duration) {
-    editorPane.text =
-      // language=html
-      "<h2>Running query...</h2>${duration.seconds} sec<h3><a href=''>Cancel query</a></h3>"
   }
 
   /**
@@ -557,6 +533,29 @@ class TableViewImpl : TableView {
         }
       }
     }
+  }
+
+  /**
+   * Layout manager that uses the size of the parent component to display the components.
+   */
+  private class MatchParentLayoutManager : LayoutManager {
+    override fun layoutContainer(parent: Container) {
+      val parentBounds = parent.bounds
+      if (parent.isPreferredSizeSet) {
+        parentBounds.size = parent.preferredSize
+      }
+
+      parent.components.forEach {
+        it.bounds = parentBounds
+      }
+    }
+
+    // Request max available space
+    override fun preferredLayoutSize(parent: Container): Dimension =
+      if (parent.isPreferredSizeSet) parent.preferredSize else Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+    override fun minimumLayoutSize(parent: Container): Dimension = Dimension(0, 0)
+    override fun addLayoutComponent(name: String?, comp: Component?) {}
+    override fun removeLayoutComponent(comp: Component?) {}
   }
 
   private data class MyRow(val values: MutableList<SqliteValue>) {
