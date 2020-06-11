@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.impl.ConsoleViewImpl;
@@ -180,7 +181,7 @@ public class DetailsViewContentView {
             Locale.US,
             "<html><font color='%s'>Passed</font> on %s</html>",
             ColorUtil.toHtmlColor(statusColor),
-            myAndroidDevice.getName()));
+            AndroidDeviceKt.getName(myAndroidDevice)));
           break;
 
         case FAILED:
@@ -189,7 +190,7 @@ public class DetailsViewContentView {
             "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
             Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse(""),
             ColorUtil.toHtmlColor(statusColor),
-            myAndroidDevice.getName()));
+            AndroidDeviceKt.getName(myAndroidDevice)));
           break;
 
         case SKIPPED:
@@ -197,7 +198,7 @@ public class DetailsViewContentView {
             Locale.US,
             "<html><font color='%s'>Skipped</font> on %s</html>",
             ColorUtil.toHtmlColor(statusColor),
-            myAndroidDevice.getName()));
+            AndroidDeviceKt.getName(myAndroidDevice)));
           break;
 
         default:
@@ -205,7 +206,7 @@ public class DetailsViewContentView {
             String.format(Locale.US, "Unexpected result type: %s", myAndroidTestCaseResult));
       }
     } else {
-      myTestResultLabel.setText(String.format(Locale.US, "Running on %s", myAndroidDevice.getName()));
+      myTestResultLabel.setText(String.format(Locale.US, "Running on %s", AndroidDeviceKt.getName(myAndroidDevice)));
     }
   }
 

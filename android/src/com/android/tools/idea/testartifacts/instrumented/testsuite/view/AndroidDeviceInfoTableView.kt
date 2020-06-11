@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
@@ -64,7 +65,7 @@ private class AndroidDeviceInfoTableViewModel :
   @UiThread
   fun setAndroidDevice(device: AndroidDevice) {
     val itemsBuilder = mutableListOf(
-      AndroidDeviceInfoItem("Device Name", device.name),
+      AndroidDeviceInfoItem("Device Name", device.getName()),
       AndroidDeviceInfoItem("OS Version", device.version.apiString))
     itemsBuilder.addAll(device.additionalInfo.asSequence()
       .map { (key, value) -> AndroidDeviceInfoItem(key, value) })
