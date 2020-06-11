@@ -28,12 +28,14 @@ import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.ScaleKt;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -133,6 +135,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      */
     private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
     private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
+    @Nullable private SelectionModel mySelectionModel = null;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -287,6 +290,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Sets a new {@link SelectionModel} for this surface.
+     */
+    @NotNull
+    public Builder setSelectionModel(@NotNull SelectionModel selectionModel) {
+      mySelectionModel = selectionModel;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -307,7 +319,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myMaxScale,
                                  myOnChangeZoom,
                                  myActionHandlerProvider,
-                                 myDelegateDataProvider);
+                                 myDelegateDataProvider,
+                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel());
     }
   }
 
@@ -377,10 +390,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           double maxScale,
                           @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
-                          @Nullable DataProvider delegateDataProvider) {
+                          @Nullable DataProvider delegateDataProvider,
+                          @NotNull SelectionModel selectionModel) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
-          actionHandlerProvider);
+          actionHandlerProvider,
+          selectionModel);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;

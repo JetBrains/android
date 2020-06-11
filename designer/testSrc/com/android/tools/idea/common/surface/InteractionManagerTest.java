@@ -72,6 +72,7 @@ import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -152,7 +153,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     clickMouse(manager, MouseEvent.BUTTON1, 1,
                                    Coordinates.getSwingXDip(screenView, textView.getCenterX()),
                                    Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
-    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    List<NlComponent> selections = surface.getSelectionModel().getSelection();
     assertEquals(1, selections.size());
     assertEquals(textView.getNlComponent(), selections.get(0));
   }
@@ -163,7 +164,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = surface.getSelectionModel();
-    ImmutableList<NlComponent> selections = selectionModel.getSelection();
+    List<NlComponent> selections = selectionModel.getSelection();
     assertEquals(0, selections.size());
     int startX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
     int startY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
@@ -201,7 +202,7 @@ public class InteractionManagerTest extends LayoutTestCase {
                                    Coordinates.getSwingXDip(screenView, button.getCenterX()),
                                    Coordinates.getSwingYDip(screenView, button.getCenterY()), InputEvent.SHIFT_DOWN_MASK);
 
-    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    List<NlComponent> selections = surface.getSelectionModel().getSelection();
     assertEquals(2, selections.size());
     assertEquals(textView.getNlComponent(), selections.get(0));
     assertEquals(button.getNlComponent(), selections.get(1));
@@ -243,7 +244,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
 
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    List<NlComponent> selections = surface.getSelectionModel().getSelection();
     assertEquals(ImmutableList.of(textView.getNlComponent(), button.getNlComponent()), selections);
 
     surface.getSelectionModel().clear();
@@ -274,7 +275,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     clickMouse(manager, MouseEvent.BUTTON1, 2,
                Coordinates.getSwingXDip(screenView, textView.getCenterX()),
                Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
-    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    List<NlComponent> selections = surface.getSelectionModel().getSelection();
     assertEquals(1, selections.size());
     assertEquals(textView.getNlComponent(), selections.get(0));
   }

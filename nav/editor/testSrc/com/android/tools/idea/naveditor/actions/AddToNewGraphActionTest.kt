@@ -111,7 +111,7 @@ class AddToNewGraphActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     surface.scene?.getSceneComponent("f1")?.setPosition(100, 200)
     surface.scene?.getSceneComponent("f2")?.setPosition(400, 500)
-    surface.selectionModel.setSelection(listOf(model.find("f1"), model.find("f2")))
+    surface.selectionModel.setSelection(listOf(model.find("f1")!!, model.find("f2")!!))
     surface.sceneManager?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
 
     val action = AddToNewGraphAction(surface)

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.ScaleKt;
+import com.android.tools.idea.common.model.SecondarySelectionModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -207,6 +208,11 @@ public abstract class SceneView {
   @NotNull
   public SelectionModel getSelectionModel() {
     return getSurface().getSelectionModel();
+  }
+
+  @NotNull
+  public SecondarySelectionModel getSecondarySelectionModel() {
+    return getSurface().getSecondarySelectionModel();
   }
 
   /**

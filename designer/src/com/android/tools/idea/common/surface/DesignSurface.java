@@ -35,10 +35,12 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SecondarySelectionModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
@@ -153,7 +155,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
   protected final JPanel myZoomControlsLayerPane;
 
-  private final SelectionModel mySelectionModel = new SelectionModel();
+  private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
@@ -215,7 +217,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable, ZoomType.FIT_INTO,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider);
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel());
   }
 
   public DesignSurface(
@@ -226,7 +228,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     boolean isEditable,
     @NotNull ZoomType onChangedZoom,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
+    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
+    @NotNull SelectionModel selectionModel) {
     super(new BorderLayout());
 
     myConfigurationListener = flags -> {
@@ -239,6 +242,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     Disposer.register(parentDisposable, this);
     myProject = project;
     myIsEditable = isEditable;
+    mySelectionModel = selectionModel;
 
     setOpaque(true);
     setFocusable(false);
@@ -371,7 +375,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myActionManager;
   }
 
+  @NotNull
   public SelectionModel getSelectionModel() {
+    return mySelectionModel;
+  }
+
+  @NotNull
+  public SecondarySelectionModel getSecondarySelectionModel() {
     return mySelectionModel;
   }
 

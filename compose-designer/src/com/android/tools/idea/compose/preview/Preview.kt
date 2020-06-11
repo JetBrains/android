@@ -22,6 +22,7 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
+import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
@@ -328,6 +329,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         else -> null
       }
     }
+    .setSelectionModel(NopSelectionModel)
     .build()
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
