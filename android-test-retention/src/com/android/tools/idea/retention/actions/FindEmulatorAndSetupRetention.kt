@@ -90,6 +90,15 @@ class FindEmulatorAndSetupRetention : AnAction() {
               emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)
               return
             }
+
+            val devices = AndroidDebugBridge.getBridge()?.devices
+            if (devices != null) {
+              for (device in devices) {
+                if (device.serialNumber == emulatorSerialString) {
+                  device.getClient(packageName)?.kill()
+                }
+              }
+            }
             var adbDevice: IDevice? = null
             val deviceClientsReadySignal = CountDownLatch(1)
             // After loading a snapshot, the following events will happen:
@@ -149,7 +158,8 @@ class FindEmulatorAndSetupRetention : AnAction() {
               // Wait for debug session ready.
               ProgressIndicatorUtils.awaitWithCheckCanceled(debugSessionReadySignal)
               indicator.fraction = DEBUGGER_CONNECTED_FRACTION
-            } catch (exception: Exception) {
+            }
+            catch (exception: Exception) {
               messageBusConnection.disconnect()
               throw exception
             }
@@ -157,11 +167,12 @@ class FindEmulatorAndSetupRetention : AnAction() {
             val pauseSignal = CountDownLatch(1)
             // Pause the current session. It turns out that the session can only be paused after some setting updates. So we need to send
             // pause commands in settingsChanged() as well as in the current thread, in case it is updated before we set up the callbacks.
-            currentSession.addSessionListener(object: XDebugSessionListener {
+            currentSession.addSessionListener(object : XDebugSessionListener {
               override fun sessionPaused() {
                 currentSession.removeSessionListener(this)
                 pauseSignal.countDown()
               }
+
               override fun settingsChanged() {
                 currentSession.pause()
               }
