@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
+import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.collect.ImmutableList;
@@ -144,6 +145,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     if (createDefaultProject()) {
       setUpFixture();
+
+      // To ensure that application IDs are loaded from the listing file as needed, we must register the required listeners.
+      // This is normally done within an AndroidStartupActivity but these are not run in tests.
+      // TODO(b/159600848)
+      GradleBuildOutputUtil.emulateStartupActivityForTest(getProject());
     }
   }
 
