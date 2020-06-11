@@ -38,6 +38,13 @@ import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
 
+
+/**
+ * Distance between the bottom bound of model name and top bound of SceneView.
+ */
+@SwingCoordinate
+private const val TOP_BAR_BOTTOM_MARGIN = 3
+
 /**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
  */
@@ -112,22 +119,26 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   val positionableAdapter = object : PositionableContent() {
     override val x: Int get() = sceneView.x
     override val y: Int get() = sceneView.y
+
     override val margin: Insets
       get() {
         val contentSize = getScaledContentSize(null)
+        val sceneViewMargin = sceneView.margin.also {
+          // Extend top to account for the top toolbar
+          it.top += sceneViewTopPanel.preferredSize.height
+        }
         return if (contentSize.width < minimumSize.width &&
                    contentSize.height < minimumSize.height) {
           // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space
           val hSpace = (minimumSize.width - contentSize.width) / 2
           val vSpace = (minimumSize.height - contentSize.height) / 2
-          val originalMargin = sceneView.margin
-          Insets(originalMargin.top + vSpace,
-                 originalMargin.left + hSpace,
-                 originalMargin.bottom + vSpace,
-                 originalMargin.right + hSpace)
+          Insets(sceneViewMargin.top + vSpace,
+                 sceneViewMargin.left + hSpace,
+                 sceneViewMargin.bottom + vSpace,
+                 sceneViewMargin.right + hSpace)
         }
         else {
-          sceneView.margin
+          sceneViewMargin
         }
       }
 
@@ -165,6 +176,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
 
     override fun setLocation(x: Int, y: Int) {
+      // The SceneView is painted right below the top toolbar panel
       sceneView.setLocation(x, y)
 
       // After positioning the view, we re-apply the bounds to the SceneViewPanel.
@@ -179,6 +191,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    */
   @VisibleForTesting
   val sceneViewTopPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
     isOpaque = false
     add(modelNameLabel, BorderLayout.CENTER)
     if (sceneViewToolbar != null) {
@@ -210,9 +223,11 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     else {
       modelNameLabel.text = layoutData.modelName
       modelNameLabel.toolTipText = layoutData.modelName
+      // We layout the top panel. We make the width to match the SceneViewPanel width and we let it choose its own
+      // height.
       sceneViewTopPanel.setBounds(0, 0,
                                   width + insets.horizontal,
-                                  positionableAdapter.margin.top - 2 + positionableAdapter.margin.bottom)
+                                  sceneViewTopPanel.preferredSize.height)
       sceneViewTopPanel.isVisible = true
     }
 

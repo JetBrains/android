@@ -104,8 +104,6 @@ public abstract class SceneView {
     }
   };
 
-  protected static final Insets NO_MARGIN = JBUI.emptyInsets();
-
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
   private final Object myLayersCacheLock = new Object();
@@ -185,7 +183,7 @@ public abstract class SceneView {
    */
   @NotNull
   public Insets getMargin() {
-    return NO_MARGIN;
+    return JBUI.emptyInsets();
   }
 
   @NotNull
