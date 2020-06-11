@@ -37,6 +37,7 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
@@ -873,6 +874,28 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     verify(mockListener, times(0)).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
+  }
+
+  fun testRevertLastTableCellEdit() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    view.showTableColumns(listOf(ViewColumn("c1", false, false)))
+    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
+    view.setEditable(true)
+
+    // Act
+    table.model.setValueAt("new value", 0, 1)
+
+    // Assert
+    assertEquals("new value", table.model.getValueAt(0, 1))
+
+    // Act
+    view.revertLastTableCellEdit()
+
+    // Assert
+    assertEquals("value", table.model.getValueAt(0, 1))
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
