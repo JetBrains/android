@@ -59,5 +59,7 @@ open class MockTableView : TableView {
 
   override fun setRowOffset(rowOffset: Int) { }
 
+  override fun revertLastTableCellEdit() { }
+
   override fun showPageSizeValue(maxRowCount: Int) { }
 }

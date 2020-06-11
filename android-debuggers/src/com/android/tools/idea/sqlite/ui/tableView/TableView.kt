@@ -74,6 +74,14 @@ interface TableView {
 
   fun setRowOffset(rowOffset: Int)
 
+  /**
+   * Reverts the last edit operation in the table's UI.
+   *
+   * When we edit a cell we want to immediately show the new value in the UI (to avoid jumps)
+   * if the corresponding update operation fails in the database, we need to revert this UI change.
+   */
+  fun revertLastTableCellEdit()
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
