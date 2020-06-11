@@ -21,6 +21,7 @@ import javax.swing.Icon
 /**
  * Class representing groups available for selection in the [ComposePreviewManager].
  */
+@Suppress("DataClassPrivateConstructor")
 data class PreviewGroup private constructor(
   val displayName: String,
   val icon: Icon?,
@@ -84,7 +85,7 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * Name of a [PreviewElement] to run in interactive mode or null if not in interactive mode.
+   * Name of a [com.android.tools.idea.compose.preview.util.PreviewElement] to run in interactive mode or null if not in interactive mode.
    */
   var interactivePreviewElementInstanceId: String?
 
