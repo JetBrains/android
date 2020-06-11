@@ -1510,6 +1510,8 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(mockDatabaseConnection).execute(
       SqliteStatement(
         SqliteStatementType.UPDATE,
@@ -1518,7 +1520,6 @@ class TableControllerTest : LightPlatformTestCase() {
         "UPDATE tableName SET c1 = 'new value' WHERE rowid = '1'"
       )
     )
-    orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
@@ -1599,6 +1600,11 @@ class TableControllerTest : LightPlatformTestCase() {
     // Assert
     assertEquals("Can't execute update: ", tableView.errorReported.first().first)
     assertEquals("No primary keys or rowid column", tableView.errorReported.first().second?.message)
+
+    orderVerifier.verify(tableView).stopTableLoading()
+    orderVerifier.verify(tableView).revertLastTableCellEdit()
+    orderVerifier.verify(tableView).stopTableLoading()
+
     val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName")
     ))

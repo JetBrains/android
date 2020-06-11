@@ -106,6 +106,9 @@ class TableViewImpl : TableView {
 
   private val layeredPane = JLayeredPane()
 
+  // function used to revert an edit operation in the UI, if the update operation fails in the db
+  private var myRevertLastTableCellEdit: (() -> Unit)? = null
+
   private var isLoading = false
 
   // variable used to restore focus to the table after the loading screen is shown
@@ -270,6 +273,7 @@ class TableViewImpl : TableView {
   }
 
   override fun stopTableLoading() {
+    myRevertLastTableCellEdit = null
     setControlButtonsEnabled(true)
 
     isLoading = false
@@ -312,6 +316,11 @@ class TableViewImpl : TableView {
 
   override fun setRowOffset(rowOffset: Int) {
     (table.model as MyTableModel).rowOffset = rowOffset
+  }
+
+  override fun revertLastTableCellEdit() {
+    myRevertLastTableCellEdit?.invoke()
+    myRevertLastTableCellEdit = null
   }
 
   override fun reportError(message: String, t: Throwable?) {
@@ -512,9 +521,20 @@ class TableViewImpl : TableView {
         return
       }
 
-      val newSqliteValue = if (newValue == null) SqliteValue.NullValue else SqliteValue.StringValue(newValue.toString())
+      val newSqliteValue = SqliteValue.fromAny(newValue)
 
-      val column = columns[modelColumnIndex - 1]
+      // the first column doesn't exist, it's used to show the row index
+      val actualColumnIndex = modelColumnIndex - 1
+      val column = columns[actualColumnIndex]
+
+      rows[modelRowIndex].values[actualColumnIndex] = newSqliteValue
+      fireTableCellUpdated(modelRowIndex, actualColumnIndex)
+
+      myRevertLastTableCellEdit = {
+        rows[modelRowIndex].values[actualColumnIndex] = SqliteValue.fromAny(oldValue)
+        fireTableCellUpdated(modelRowIndex, actualColumnIndex)
+      }
+
       listeners.forEach { it.updateCellInvoked(modelRowIndex, column, newSqliteValue) }
     }
 
