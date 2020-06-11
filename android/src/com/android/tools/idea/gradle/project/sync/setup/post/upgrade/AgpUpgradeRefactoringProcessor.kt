@@ -196,6 +196,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   }
 
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
+
+  public abstract override fun getCommandName(): String
 }
 
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
