@@ -77,7 +77,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   }
 
   private val myDevice = AndroidDevice(device.serialNumber,
-                                       device.avdName ?: device.serialNumber,
+                                       device.avdName ?: "",
                                        if (device.isEmulator) { AndroidDeviceType.LOCAL_EMULATOR }
                                        else { AndroidDeviceType.LOCAL_PHYSICAL_DEVICE },
                                        device.version,
@@ -116,6 +116,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
       }?.let { additionalInfo["Processor"] = it }
 
       executeShellCommandSync(device, "getprop ro.product.manufacturer")?.let { additionalInfo["Manufacturer"] = it }
+      executeShellCommandSync(device, "getprop ro.product.model")?.let { additionalInfo["Model"] = it }
     }
   }
 

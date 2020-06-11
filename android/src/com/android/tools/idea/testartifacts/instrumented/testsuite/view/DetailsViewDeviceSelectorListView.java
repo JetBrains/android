@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.largeFilesEditor.GuiUtils;
@@ -179,7 +180,7 @@ public class DetailsViewDeviceSelectorListView {
 
       myDeviceLabel.setText(
         String.format(Locale.US, "<html>%s<br>API %d</html>",
-                      device.getName(), device.getVersion().getApiLevel()));
+                      AndroidDeviceKt.getName(device), device.getVersion().getApiLevel()));
       myDeviceLabel.setIcon(getIconForDeviceType(device.getDeviceType()));
       myDeviceLabel.setIconTextGap(10);
       myDeviceLabel.setBorder(myEmptyBorder);

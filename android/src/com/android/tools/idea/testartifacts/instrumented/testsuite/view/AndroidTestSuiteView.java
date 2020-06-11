@@ -25,6 +25,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite;
@@ -136,11 +137,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     public int compareTo(@NotNull DeviceFilterComboBoxItem o) {
       String lhs = null;
       if (myDevice != null) {
-        lhs = myDevice.getName();
+        lhs = AndroidDeviceKt.getName(myDevice);
       }
       String rhs = null;
       if (o.myDevice != null) {
-        rhs = o.myDevice.getName();
+        rhs = AndroidDeviceKt.getName(o.myDevice);
       }
       return Objects.compare(lhs, rhs, myComparator);
     }
@@ -150,7 +151,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       if (myDevice == null) {
         return "All devices";
       } else {
-        return myDevice.getName();
+        return AndroidDeviceKt.getName(myDevice);
       }
     }
 
