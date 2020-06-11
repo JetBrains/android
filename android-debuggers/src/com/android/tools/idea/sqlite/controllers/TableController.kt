@@ -341,6 +341,7 @@ class TableController(
         return
       }
 
+      view.startTableLoading()
       val targetRow = currentRows[targetRowIndex]
       databaseRepository.updateTable(databaseId, targetTable, targetRow, targetColumn.name, newValue)
         .addCallback(edtExecutor, object : FutureCallback<Unit> {
@@ -350,6 +351,8 @@ class TableController(
           }
 
           override fun onFailure(t: Throwable) {
+            view.revertLastTableCellEdit()
+            view.stopTableLoading()
             view.reportError("Can't execute update: ", t)
           }
         })
