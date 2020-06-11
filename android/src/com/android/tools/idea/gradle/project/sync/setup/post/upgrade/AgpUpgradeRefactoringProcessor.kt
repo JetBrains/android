@@ -524,6 +524,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
         "java", "java-library",
         "com.android.library", "com.android.dynamic-feature", "com.android.feature")
       val compileReplacement = when {
+        !model.android().dynamicFeatures().toList().isNullOrEmpty() -> "api"
         pluginSet.intersect(applicationSet).isNotEmpty() -> "implementation"
         pluginSet.intersect(librarySet).isNotEmpty() -> "api"
         else -> return@model
