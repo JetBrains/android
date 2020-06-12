@@ -123,6 +123,7 @@ dependencies {
           .toKtsProperty("testInstrumentationRunner")
           .toKtsProperty("minifyEnabled")
           .toKtsFunction("proguardFiles")
+          .toKtsFunction("consumerProguardFiles")
           .toKtsFunction("wearApp")
           .replace("minifyEnabled", "isMinifyEnabled")
           .replace("release {", "getByName(\"release\") {")
