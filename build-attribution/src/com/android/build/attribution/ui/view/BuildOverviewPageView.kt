@@ -52,7 +52,10 @@ class BuildOverviewPageView(
   private val linksPanel = JPanel().apply {
     name = "links"
     layout = VerticalLayout(10, SwingConstants.LEFT)
-    add(htmlTextLabelWithFixedLines("<b>Common views into this build</b>"))
+    add(htmlTextLabelWithFixedLines("<b>Common views into this build</b>").apply {
+      // Add 2px left margin to align with links.
+      border = JBUI.Borders.emptyLeft(2)
+    })
     add(HyperlinkLabel("Tasks impacting build duration").apply {
       addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
     })
