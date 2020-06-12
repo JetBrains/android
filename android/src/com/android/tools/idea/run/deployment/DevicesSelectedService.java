@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,19 +63,23 @@ final class DevicesSelectedService {
   @NotNull
   private final Clock myClock;
 
+  private final @NotNull BooleanSupplier myRunOnMultipleDevicesActionEnabledGet;
+
   @SuppressWarnings("unused")
   private DevicesSelectedService(@NotNull Project project) {
-    this(project, PropertiesComponent::getInstance, Clock.systemDefaultZone());
+    this(project, PropertiesComponent::getInstance, Clock.systemDefaultZone(), StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get);
   }
 
   @VisibleForTesting
   @NonInjectable
   DevicesSelectedService(@NotNull Project project,
                          @NotNull Function<Project, PropertiesComponent> propertiesComponentGetInstance,
-                         @NotNull Clock clock) {
+                         @NotNull Clock clock,
+                         @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet) {
     myProject = project;
     myPropertiesComponentGetInstance = propertiesComponentGetInstance;
     myClock = clock;
+    myRunOnMultipleDevicesActionEnabledGet = runOnMultipleDevicesActionEnabledGet;
   }
 
   @NotNull
@@ -154,7 +160,8 @@ final class DevicesSelectedService {
   }
 
   boolean isMultipleDevicesSelectedInComboBox() {
-    return myPropertiesComponentGetInstance.apply(myProject).getBoolean(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
+    return !myRunOnMultipleDevicesActionEnabledGet.getAsBoolean() &&
+           myPropertiesComponentGetInstance.apply(myProject).getBoolean(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
   }
 
   void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
