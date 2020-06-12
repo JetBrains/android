@@ -31,6 +31,7 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
 import java.io.File;
@@ -208,8 +209,12 @@ public class GradleUtilTest {
   public void isSafeArgGeneratedSourceFolder() {
     myTempDir = createTempDir();
 
+    assertFalse(isRecognizedAsSafeArgClass("generated/source/navigation-args"));
+
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true);
     // Ignore generated safe arg base-class directory...
     assertTrue(isRecognizedAsSafeArgClass("generated/source/navigation-args"));
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.clearOverride();
   }
 
   private boolean isRecognizedAsSafeArgClass(@NotNull String path) {
