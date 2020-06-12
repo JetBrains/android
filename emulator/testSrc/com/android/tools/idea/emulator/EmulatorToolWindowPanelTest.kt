@@ -174,7 +174,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.03)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
 
   private fun getGoldenFile(name: String): File {
