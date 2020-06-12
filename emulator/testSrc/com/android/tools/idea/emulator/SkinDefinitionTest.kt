@@ -181,7 +181,7 @@ class SkinDefinitionTest {
     val frameRectangle = layout.frameRectangle
     val image = ImageUtils.createDipImage(frameRectangle.width, frameRectangle.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
-    layout.drawFrameAndMask(-frameRectangle.x, -frameRectangle.y, g)
+    layout.drawFrameAndMask(g, Rectangle(-frameRectangle.x, -frameRectangle.y, layout.displaySize.width, layout.displaySize.height))
     g.dispose()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
