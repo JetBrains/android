@@ -127,7 +127,6 @@ class AnimationInspectorPanel(surface: DesignSurface) : JPanel(TabularLayout("Fi
     }
 
     private fun setClockTime(timeMs: Int) {
-      // TODO(b/157897299): investigate why the call below only works the first time the animation inspector is open.
       surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
           setAnimationClockFunction!!.call(composeViewAdapter, timeMs.toLong())
       }
