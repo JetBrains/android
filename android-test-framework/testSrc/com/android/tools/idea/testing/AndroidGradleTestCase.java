@@ -276,7 +276,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected void prepareProjectForTest(Project project, @Nullable String chosenModuleName) {
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
-    assertTrue(androidProjectInfo.requiresAndroidModel());
+    //assertTrue(androidProjectInfo.requiresAndroidModel());
     assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
 
     Module[] modules = ModuleManager.getInstance(project).getModules();

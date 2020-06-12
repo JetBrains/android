@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -70,6 +71,7 @@ open class GradleFileModelTestCase {
       Assert.assertNotNull(buildModel)
       return buildModel!!
     }
+  protected val project: Project get() = projectRule.project
 
   data class TestFileName(val path: String) {
     fun toFile(testDataPath: String, testDataExtension: String): File {
