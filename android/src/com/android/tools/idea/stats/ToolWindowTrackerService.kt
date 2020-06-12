@@ -18,7 +18,8 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioToolWindowActionStats
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -31,9 +32,9 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
  * If a tool window is active and the user opens another tool window in the same group, then the active tool window is closed and
  * the new tool window is opened. This triggers 2 events (1 close and 1 open).
  */
-class ToolWindowTrackerService(private val toolWindowManager: ToolWindowManager?) : ToolWindowManagerListener {
+@Service
+class ToolWindowTrackerService(private val project: Project) {
   private val stateMap = HashMap<String, ToolWindowState>()
-  private lateinit var myProject: Project
 
   sealed class ToolWindowState {
     object UNKNOWN : ToolWindowState()
@@ -43,46 +44,52 @@ class ToolWindowTrackerService(private val toolWindowManager: ToolWindowManager?
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): ToolWindowTrackerService {
-      val service = ServiceManager.getService(project, ToolWindowTrackerService::class.java)
-      service.myProject = project
-      return service
+    fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
+  }
+
+  fun toolWindowRegistered(id: String) {
+    stateMap[id] = queryToolWindowState(id, ToolWindowManager.getInstance(project))
+  }
+
+  fun stateChanged() {
+    val toolWindowManager = ToolWindowManager.getInstance(project)
+    for ((id, previousState) in stateMap) {
+      val currentState = queryToolWindowState(id, toolWindowManager)
+      if (currentState == previousState) {
+        continue
+      }
+
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS)
+                         .setStudioToolWindowActionStats(StudioToolWindowActionStats.newBuilder()
+                                                           .setToolWindowId(id)
+                                                           .setEventType(when (currentState) {
+                                                                           ToolWindowState.UNKNOWN -> StudioToolWindowActionStats.EventType.UNKNOWN_EVENT_TYPE
+                                                                           ToolWindowState.OPENED -> StudioToolWindowActionStats.EventType.OPEN_EVENT_TYPE
+                                                                           ToolWindowState.CLOSED -> StudioToolWindowActionStats.EventType.CLOSED_EVENT_TYPE
+                                                                         })))
+      stateMap[id] = currentState
     }
   }
 
-  override fun toolWindowRegistered(id: String) {
-    stateMap[id] = queryToolWindowState(id)
+  private fun queryToolWindowState(id: String, toolWindowManager: ToolWindowManager): ToolWindowState {
+    val window = toolWindowManager.getToolWindow(id) ?: return ToolWindowState.UNKNOWN
+    return when {
+      window.isActive -> ToolWindowState.OPENED
+      else -> ToolWindowState.CLOSED
+    }
   }
+}
 
-  override fun stateChanged() {
-    stateMap.forEach { id, previousState ->
-      val currentState = queryToolWindowState(id)
-      if (currentState != previousState) {
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setKind(AndroidStudioEvent.EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS)
-                           .setStudioToolWindowActionStats(StudioToolWindowActionStats.newBuilder()
-                                                             .setToolWindowId(id)
-                                                             .setEventType(when (currentState) {
-                                                                             ToolWindowState.UNKNOWN -> StudioToolWindowActionStats.EventType.UNKNOWN_EVENT_TYPE
-                                                                             ToolWindowState.OPENED -> StudioToolWindowActionStats.EventType.OPEN_EVENT_TYPE
-                                                                             ToolWindowState.CLOSED -> StudioToolWindowActionStats.EventType.CLOSED_EVENT_TYPE
-                                                                           })))
-        stateMap[id] = currentState
-      }
+internal class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
+  override fun toolWindowsRegistered(ids: MutableList<String>) {
+    val trackerService = ToolWindowTrackerService.getInstance(project)
+    for (id in ids) {
+      trackerService.toolWindowRegistered(id)
     }
   }
 
-  private fun queryToolWindowState(id: String): ToolWindowState {
-    val manager = toolWindowManager ?: ToolWindowManager.getInstance(myProject)
-    val window = manager.getToolWindow(id)
-    if (window != null) {
-      return if (window.isActive) {
-        ToolWindowState.OPENED
-      }
-      else {
-        ToolWindowState.CLOSED
-      }
-    }
-    return ToolWindowState.UNKNOWN
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    ToolWindowTrackerService.getInstance(project).stateChanged()
   }
 }

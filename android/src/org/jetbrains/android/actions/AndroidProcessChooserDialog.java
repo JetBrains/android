@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2011 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -41,13 +27,32 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -56,20 +61,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class AndroidProcessChooserDialog extends DialogWrapper {
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
@@ -185,7 +176,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         if (isOKActionEnabled()) {
           doOKAction();
           return true;
@@ -216,7 +207,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     AndroidDebugger selectedDebugger = null;
     AndroidDebugger defaultDebugger = null;
-    List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
+    List<AndroidDebugger> androidDebuggers = new LinkedList<>();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (!androidDebugger.supportsProject(myProject)) {
         continue;
@@ -335,7 +326,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
 
       List<Client> clients = Lists.newArrayList(device.getClients());
-      Collections.sort(clients, (c1, c2) -> {
+      clients.sort((c1, c2) -> {
         String n1 = StringUtil.notNullize(c1.getClientData().getClientDescription());
         String n2 = StringUtil.notNullize(c2.getClientData().getClientDescription());
         return n1.compareTo(n2);

@@ -21,7 +21,6 @@ import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,21 +35,26 @@ import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
-public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
+public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
+
+  @Override
+  public boolean isApplicable(@NotNull Project project) {
+    return DeviceExplorer.isFeatureEnabled();
+  }
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER);
-    toolWindow.setAvailable(true, null);
+    toolWindow.setAvailable(true);
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 
     Executor edtExecutor = EdtExecutorService.getInstance();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService adbService = ServiceManager.getService(project, AdbDeviceFileSystemService.class);
-    DeviceExplorerFileManager fileManager = ServiceManager.getService(project, DeviceExplorerFileManager.class);
+    AdbDeviceFileSystemService adbService = AdbDeviceFileSystemService.getInstance(project);
+    DeviceExplorerFileManager fileManager = DeviceExplorerFileManager.getInstance(project);
 
     DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(adbService);
 

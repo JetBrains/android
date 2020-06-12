@@ -15,22 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.google.common.collect.Lists;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.extensions.ExtensionsArea;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurableEP;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
-class ProjectPreferencesCleanUpTask extends AndroidStudioCleanUpTask {
-  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
+import com.android.tools.idea.IdeInfo;
+import com.intellij.openapi.project.Project;
+import java.util.Arrays;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+
+final class ProjectPreferencesCleanUpTask extends AndroidStudioCleanUpTask {
+  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Arrays.asList(
     "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
     "org.jetbrains.plugins.groovy.gant.GantConfigurable", "org.jetbrains.plugins.groovy.compiler.GroovyCompilerConfigurable",
     "org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable", "org.jetbrains.idea.maven.utils.MavenSettings",
@@ -39,8 +34,8 @@ class ProjectPreferencesCleanUpTask extends AndroidStudioCleanUpTask {
 
   @Override
   void doCleanUp(@NotNull Project project) {
-    ExtensionsArea area = Extensions.getArea(project);
-    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
-    cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      cleanUpPreferences(PROJECT_CONFIGURABLE.getPoint(project), PROJECT_PREFERENCES_TO_REMOVE);
+    }
   }
 }

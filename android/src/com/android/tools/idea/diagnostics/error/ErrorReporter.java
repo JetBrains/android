@@ -17,7 +17,6 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
@@ -28,7 +27,7 @@ import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
 import com.intellij.idea.IdeaLogger;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
+//import com.intellij.internal.statistic.analytics.StudioCrashDetails; // FIXME-ank: move from AOSP's platform sources to android-plugin sources (see code below)
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -55,7 +54,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
@@ -109,7 +107,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       callback.consume(reportInfo);
 
       ReportMessages.GROUP
-        .createNotification(ReportMessages.ERROR_REPORT, "Submitted", NotificationType.INFORMATION, null)
+        .createNotification(ReportMessages.getErrorReport(), "Submitted", NotificationType.INFORMATION, null)
         .setImportant(false)
         .notify(project);
     };
@@ -118,7 +116,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
 
       ReportMessages.GROUP
-        .createNotification(ReportMessages.ERROR_REPORT, message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
+        .createNotification(ReportMessages.getErrorReport(), message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
         .setImportant(false)
         .notify(project);
     };
@@ -167,32 +165,9 @@ public class ErrorReporter extends ErrorReportSubmitter {
       StudioCrashReporter.getInstance().submit(exceptionReport);
     }
     else if ("Crashes".equals(type)) {
-      //noinspection unchecked
-      List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
-      List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
-      // If at least one report was JVM crash, submit the batch as a JVM crash
-      boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
-      // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
-      // a single crash anyway).
-      long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
-
-      StudioCrashReport.Builder reportBuilder =
-        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs);
-
-      if (isJvmCrash) {
-        Optional<StudioCrashDetails> jvmCrashOptional = crashDetails.stream().filter(details -> details.isJvmCrash()).findAny();
-        if (jvmCrashOptional.isPresent()) {
-          StudioCrashDetails jvmCrash = jvmCrashOptional.get();
-          reportBuilder.setErrorSignal(jvmCrash.getErrorSignal());
-          reportBuilder.setErrorFrame(jvmCrash.getErrorFrame());
-          reportBuilder.setErrorThread(jvmCrash.getErrorThread());
-          reportBuilder.setNativeStack(jvmCrash.getNativeStack());
-        }
-      }
-
-      StudioCrashReport report = reportBuilder.build();
-      // Crash reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(report, true);
+      // FIXME-ank: in AOSP com.intellij.internal.statistic.analytics.StudioCrashDetails is declared here:
+      //  /tools/idea/platform/bootstrap/src/com/intellij/internal/statistic/analytics/StudioCrashDetails.java
+      //  In IC/IU this type does not exist
     }
     return true;
   }

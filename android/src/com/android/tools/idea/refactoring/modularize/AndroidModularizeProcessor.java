@@ -31,7 +31,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -176,12 +175,6 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
       public String getCodeReferencesText(int usagesCount, int filesCount) {
         return String.format(Locale.US, "%1$d resources in %2$d files", usagesCount, filesCount);
       }
-
-      @Nullable
-      @Override
-      public String getCommentReferencesText(int usagesCount, int filesCount) {
-        return null;
-      }
     };
   }
 
@@ -241,7 +234,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   protected void previewRefactoring(@NotNull UsageInfo[] usages) {
     PreviewDialog previewDialog = new PreviewDialog(myProject, myReferenceGraph, usages, myShouldSelectAllReferences);
     if (previewDialog.showAndGet()) {
-      TransactionGuard.getInstance().submitTransactionAndWait(() -> execute(previewDialog.getSelectedUsages()));
+      execute(previewDialog.getSelectedUsages());
     }
   }
 

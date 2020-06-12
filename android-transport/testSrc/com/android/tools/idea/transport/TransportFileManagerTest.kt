@@ -18,7 +18,9 @@ package com.android.tools.idea.transport
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.messages.ListenerDescriptor
 import com.intellij.util.messages.MessageBus
+import com.intellij.util.messages.MessageBusOwner
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -26,10 +28,7 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import java.io.File
 
 class TransportFileManagerTest {
@@ -77,6 +76,16 @@ class TransportFileManagerTest {
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.second })
+  }
+
+  private fun createMessageBusOwner(): MessageBusOwner {
+    return object : MessageBusOwner {
+      override fun createListener(descriptor: ListenerDescriptor) = throw UnsupportedOperationException()
+
+      override fun isDisposed() = false
+
+      override fun toString() = TransportFileManagerTest::class.java.toString()
+    }
   }
 
   @Test

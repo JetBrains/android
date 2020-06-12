@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -489,7 +488,7 @@ public abstract class ClassifierSet implements MemoryObject {
       @NotNull
       @Override
       public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-        throw new NotImplementedException(); // not used
+        throw new UnsupportedOperationException(); // not used
       }
 
       // Return child classifier sets which is non-empty and not filtered out

@@ -1,6 +1,6 @@
 package org.jetbrains.android.refactoring;
 
-import com.intellij.analysis.AnalysisScopeBundle;
+import com.intellij.codeInsight.CodeInsightBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -37,7 +37,7 @@ public class AndroidFindStyleApplicationsDialog extends DialogWrapper {
     myProcessor = processor;
 
     final Module module = processor.getModule();
-    myModuleScopeRadio.setText(AnalysisScopeBundle.message("scope.option.module.with.mnemonic", module.getName()));
+    myModuleScopeRadio.setText(CodeInsightBundle.message("scope.option.module.with.mnemonic", module.getName()));
     myModuleScopeRadio.setVisible(showModuleRadio);
 
     if (file != null) {

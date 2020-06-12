@@ -27,26 +27,120 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl.B
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl.MethodGraphImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl.SwitchCaseGraphImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl.SynchronizedBlockGraphImpl;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.*;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.*;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.BreakBranchingNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.ConditionCheckNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.ContinueBranchingNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNodeUtil;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.LoopBranchingNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.SwitchBranchingNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphEntryNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphExitNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BreakBranchingNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.CaseNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.ConditionCheckNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.ContinueBranchingNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.GraphNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.IfBranchingNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.LoopBranchingNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.SwitchBranchingNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.AssignStmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.impl.AssignStmtImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.impl.DeclarationStmtImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.impl.ReturnStmtImpl;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.*;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.*;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.InstanceFieldRef;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.InstanceOfExpr;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Local;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.NewExpr;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.SynthesizedLocal;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ArrayAccessRefImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.BinopExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.CastExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ConstantImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.DummyRef;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.InstanceFieldRefImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.InstanceInvokeExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.InstanceOfExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.LocalImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.NewExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ParamImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.PolyadicExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.PostfixExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.PrefixExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.StaticFieldRefImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.StaticInvokeExprImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.SynthesizedLocalImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ThisRefImpl;
 import com.google.common.collect.Maps;
-import com.intellij.psi.*;
-import com.intellij.psi.impl.ResolveScopeManager;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiAnonymousClass;
+import com.intellij.psi.PsiArrayAccessExpression;
+import com.intellij.psi.PsiArrayInitializerExpression;
+import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiAssertStatement;
+import com.intellij.psi.PsiAssignmentExpression;
+import com.intellij.psi.PsiBinaryExpression;
+import com.intellij.psi.PsiBlockStatement;
+import com.intellij.psi.PsiBreakStatement;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassObjectAccessExpression;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiConditionalExpression;
+import com.intellij.psi.PsiContinueStatement;
+import com.intellij.psi.PsiDeclarationStatement;
+import com.intellij.psi.PsiDoWhileStatement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiEmptyStatement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiExpressionListStatement;
+import com.intellij.psi.PsiExpressionStatement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiForStatement;
+import com.intellij.psi.PsiForeachStatement;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiIfStatement;
+import com.intellij.psi.PsiInstanceOfExpression;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiLabeledStatement;
+import com.intellij.psi.PsiLambdaExpression;
+import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiLoopStatement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiMethodReferenceExpression;
+import com.intellij.psi.PsiNewExpression;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParenthesizedExpression;
+import com.intellij.psi.PsiPolyadicExpression;
+import com.intellij.psi.PsiPostfixExpression;
+import com.intellij.psi.PsiPrefixExpression;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiReturnStatement;
+import com.intellij.psi.PsiStatement;
+import com.intellij.psi.PsiSuperExpression;
+import com.intellij.psi.PsiSwitchLabelStatement;
+import com.intellij.psi.PsiSwitchStatement;
+import com.intellij.psi.PsiSynchronizedStatement;
+import com.intellij.psi.PsiThisExpression;
+import com.intellij.psi.PsiThrowStatement;
+import com.intellij.psi.PsiTryStatement;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeCastExpression;
+import com.intellij.psi.PsiWhileStatement;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Stack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The CFG Builder for a single code block.
@@ -91,7 +185,7 @@ public class CFGBuilder {
     this.mGraph = bg;
     this.psiCodeBlock = cb;
     this.mStatementList = null;
-    this.curWorkingNodeList = Lists.newArrayList();
+    this.curWorkingNodeList = new ArrayList<>();
     this.mLambdaBody = null;
     if (bg instanceof MethodGraph) {
       mNestedStack = new Stack<>();
@@ -121,7 +215,7 @@ public class CFGBuilder {
     this.mGraph = bg;
     this.psiCodeBlock = null;
     this.mStatementList = statementList;
-    this.curWorkingNodeList = Lists.newArrayList();
+    this.curWorkingNodeList = new ArrayList<>();
     this.mLambdaBody = null;
     if (bg instanceof MethodGraph) {
       mNestedStack = new Stack<>();
@@ -156,7 +250,7 @@ public class CFGBuilder {
     this.psiCodeBlock = null;
     this.mStatementList = null;
     this.mLambdaBody = lambdaBody;
-    this.curWorkingNodeList = Lists.newArrayList();
+    this.curWorkingNodeList = new ArrayList<>();
     if (bg instanceof MethodGraph) {
       mNestedStack = new Stack<>();
       mLabelMap = Maps.newHashMap();
@@ -1161,7 +1255,7 @@ public class CFGBuilder {
    * @param statement
    */
   public void buildBranchingStatements(PsiStatement statement) {
-    ArrayList<GraphNodeImpl> retList = Lists.newArrayList();
+    ArrayList<GraphNodeImpl> retList = new ArrayList<>();
     if (statement instanceof PsiIfStatement) {
       dfsPsiIfStatementBuilder((PsiIfStatement)statement);
       return;
@@ -1897,7 +1991,7 @@ public class CFGBuilder {
        iOperator == JavaTokenType.OROR)
       ) {
       //Short circuit logical operators.
-      ArrayList<GraphNode> returnedWorkingNode = Lists.newArrayList();
+      ArrayList<GraphNode> returnedWorkingNode = new ArrayList<>();
       PsiExpression[] expressionArray = expression.getOperands();
       if (iOperator == JavaTokenType.OROR) {
         //Short circuit logical OR

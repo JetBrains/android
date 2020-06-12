@@ -57,7 +57,7 @@ public class ImportApkAction extends DumbAwareAction {
                   @NotNull FileChooserDialogFactory fileChooserDialogFactory,
                   @NotNull RecentProjectsManager recentProjectsManager,
                   @Nullable ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
-    super("Profile or debug APK", null, AllIcons.Css.Import);
+    super("Profile or debug APK", null, AllIcons.ToolbarDecorator.Import);
     myPropertiesComponent = propertiesComponent;
     myProjectTypeImporter = projectTypeImporter;
     myRecentProjectsManager = recentProjectsManager;

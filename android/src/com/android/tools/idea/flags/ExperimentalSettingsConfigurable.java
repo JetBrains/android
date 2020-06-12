@@ -28,23 +28,19 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.plugins.PluginManagerConfigurable;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
 import java.util.Hashtable;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
+import javax.swing.*;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
+public class ExperimentalSettingsConfigurable implements SearchableConfigurable {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
 
@@ -102,7 +98,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   @Nls
   public String getDisplayName() {
-    return "Experimental";
+    return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name");
   }
 
   @Override

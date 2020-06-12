@@ -33,17 +33,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ContentEntry
-import com.intellij.openapi.roots.ExcludeFolder
-import com.intellij.openapi.roots.InheritedJdkOrderEntry
-import com.intellij.openapi.roots.JavadocOrderRootType
-import com.intellij.openapi.roots.JdkOrderEntry
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ModuleRootModel
-import com.intellij.openapi.roots.OrderEntry
-import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.SourceFolder
+import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
@@ -66,10 +56,12 @@ class ProjectDumper(
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val devBuildHome: File = getStudioSourcesLocation()
+  private val adtHome: File = getAdtLocation()
   private val gradleCache: File = getGradleCacheLocation()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
+    println("<DEV_ADT>     <== ${adtHome.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
@@ -129,6 +121,7 @@ class ProjectDumper(
       .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(adtHome.absolutePath), "<DEV_ADT>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
@@ -460,7 +453,26 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
   }
 }
 
-private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
+private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?:
+                                            System.getenv("GRADLE_USER_HOME") ?:
+                                            (System.getProperty("user.home") + "/.gradle"))
+
+private fun getAdtLocation() : File {
+  val alternatives = listOf(
+    "../../tools/adt/idea", // AOSP
+    "community/android", // IU
+    "android" // IC
+  )
+  val home = File(PathManager.getHomePath())
+  for (alternative in alternatives) {
+    val altPath = File(home, alternative)
+    if (altPath.isDirectory){
+      return altPath
+    }
+  }
+  assert(false) {"Could not find path for ADT sources"}
+  return home
+}
 
 private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
 
@@ -495,7 +507,7 @@ private fun String.removeAndroidVersionsFromPath(): String =
       this.replace(it.value, "<VERSION>")
     } ?: this
 
-private fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+"), "<JDK_VERSION>")
+private fun String.replaceJdkVersion(): String? = replace(Regex("(1\\.8\\.0_[0-9]+)|(11\\.0\\.[0-9]+)"), "<JDK_VERSION>")
 private fun String.replaceMatchingVersion(version: String?): String =
   if (version != null) this.replace("-$version", "-<VERSION>") else this
 

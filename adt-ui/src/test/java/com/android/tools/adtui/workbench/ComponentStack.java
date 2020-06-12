@@ -17,12 +17,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 // TODO: Move this to a place to be shared with AndroidTestCase
 public class ComponentStack {
@@ -54,14 +53,15 @@ public class ComponentStack {
   public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance);
+    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance, myComponentManager);
   }
 
   public void restore() {
     Disposer.dispose(myDisposable);
     while (!myComponents.isEmpty()) {
       ComponentItem component = myComponents.pop();
-      ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance);
+      //noinspection unchecked
+      ServiceContainerUtil.registerComponentInstance(myComponentManager, (Class)component.key, component.instance, myComponentManager);
     }
     while (!myServices.isEmpty()) {
       myContainer.unregisterComponent(myServices.pop().key);

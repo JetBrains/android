@@ -30,6 +30,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.adtui.util.CausedFocusEventWrapper;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -54,7 +55,6 @@ import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
@@ -85,9 +85,7 @@ import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -95,20 +93,14 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
@@ -119,7 +111,6 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.awt.CausedFocusEvent;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
@@ -243,8 +234,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.SDK_MANAGER)
-                                     .setKind(EventKind.SDK_MANAGER_LOADED));
+                       .setCategory(EventCategory.SDK_MANAGER)
+                       .setKind(EventKind.SDK_MANAGER_LOADED));
 
     myConfigurable = configurable;
     myUpdateSitesPanel.setConfigurable(configurable);
@@ -446,7 +437,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
               return htmlBuilder;
             }
             return null;
-          },"Analyzing SDK Disk Space Utilization", true, null);
+          }, "Analyzing SDK Disk Space Utilization", true, null);
       }
       catch (ProcessCanceledException ex) {
         return;
@@ -464,7 +455,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
               File cleanupDirFile = new File(sdkLocation, cleanupDir);
               FileUtil.delete(cleanupDirFile);
             }
-          },"Deleting SDK Temporary Files", false, null);
+          }, "Deleting SDK Temporary Files", false, null);
       }
     });
   }
@@ -581,7 +572,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
         if (table.getSelectionModel().getMinSelectionIndex() != -1) {
           return;
         }
-        if (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD) {
+
+        CausedFocusEventWrapper causedFocusEvent = CausedFocusEventWrapper.newInstanceOrNull(e);
+        if (causedFocusEvent != null && causedFocusEvent.isTraversalBackward()) {
           backwardAction.doAction(table);
         }
         else {
@@ -621,13 +614,13 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-                          progressRunner, myDownloader, mySettings, false);
+        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+              progressRunner, myDownloader, mySettings, false);
     }
     else {
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
-                          progressRunner, null, mySettings, false);
+        .load(0, ImmutableList.of(myLocalUpdater), null, null,
+              progressRunner, null, mySettings, false);
     }
   }
 
@@ -644,7 +637,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
     if (severity == OK) {
       mySdkLocationLabel.setForeground(JBColor.foreground());
       mySdkErrorLabel.setVisible(false);
-    } else {
+    }
+    else {
       mySdkErrorLabel.setIcon(severity.getIcon());
       mySdkErrorLabel.setText(result.getMessage());
       mySdkErrorLabel.setVisible(true);
@@ -681,7 +675,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * @return
    */
   public Collection<PackageNodeModel> getStates() {
-    List<PackageNodeModel> result = Lists.newArrayList();
+    List<PackageNodeModel> result = new ArrayList<>();
     result.addAll(myPlatformComponentsPanel.myStates);
     result.addAll(myToolComponentsPanel.myStates);
     return result;

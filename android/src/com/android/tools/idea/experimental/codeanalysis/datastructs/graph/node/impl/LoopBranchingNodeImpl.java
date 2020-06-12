@@ -22,11 +22,9 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.LoopBranchingNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchingNode {
   protected int mLoopType;
@@ -83,8 +81,8 @@ public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchin
   public LoopBranchingNodeImpl(BlockGraph parentGraph, int loopType) {
     super(parentGraph);
     this.mLoopType = loopType;
-    breakNodeList = Lists.newArrayList();
-    continueNodeList = Lists.newArrayList();
+    breakNodeList = new ArrayList<>();
+    continueNodeList = new ArrayList<>();
   }
 
   public void setConditionCheckEntry(GraphNode checkEntry) {

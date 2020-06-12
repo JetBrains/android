@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.projectsystem;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.PlatformTestCase;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 
 public class GradleProjectSystemTest extends PlatformTestCase {
 

@@ -21,6 +21,7 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.impl.support.ImageFocusListener
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -42,7 +43,6 @@ import kotlin.properties.Delegates
  * Specify [actionToPerform] when clicked or activated via the keyboard.
  */
 open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) : JBLabel(), DataProvider {
-
   init {
     background = secondaryPanelBackground
     isFocusable = false

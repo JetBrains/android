@@ -46,7 +46,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.util.ui.JBUI;
-import java.awt.Component;
+import java.awt.*;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -60,10 +60,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import javax.swing.GroupLayout;
+import javax.swing.*;
 import javax.swing.GroupLayout.Group;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -377,17 +375,19 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Override
   public final void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
     Project project = event.getProject();
 
     if (project == null) {
+      presentation.setVisible(false);
       return;
     }
 
-    Presentation presentation = event.getPresentation();
     if (!AndroidUtils.hasAndroidFacets(project)) {
       presentation.setVisible(false);
       return;
     }
+
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
     List<Device> devices = getDevices(project);
@@ -426,7 +426,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     if (configuration instanceof UserDataHolder) {
       Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
       if (deploysToLocalDevice != null && deploysToLocalDevice.booleanValue()) {
-        presentation.setDescription(null);
+        presentation.setDescription(Presentation.NULL_STRING);
         presentation.setEnabled(true);
 
         return;
@@ -440,7 +440,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    presentation.setDescription(null);
+    presentation.setDescription(Presentation.NULL_STRING);
     presentation.setEnabled(true);
   }
 

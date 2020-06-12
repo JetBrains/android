@@ -1383,10 +1383,8 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean delete_statement_5_0_3_0_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "delete_statement_5_0_3_0_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, OFFSET);
     if (!result) result = consumeToken(builder, COMMA);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -2383,10 +2381,8 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean limit_clause_2_0_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "limit_clause_2_0_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, OFFSET);
     if (!result) result = consumeToken(builder, COMMA);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -3240,10 +3236,8 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean signed_number_0_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "signed_number_0_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, PLUS);
     if (!result) result = consumeToken(builder, MINUS);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -3935,7 +3929,6 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean with_clause_recover_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "with_clause_recover_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, DELETE);
     if (!result) result = consumeToken(builder, INSERT);
     if (!result) result = consumeToken(builder, REPLACE);
@@ -3943,7 +3936,6 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeToken(builder, UPDATE);
     if (!result) result = consumeToken(builder, VALUES);
     if (!result) result = consumeToken(builder, RPAREN);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -4697,12 +4689,10 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean comparison_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "comparison_expression_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, LT);
     if (!result) result = consumeTokenSmart(builder, LTE);
     if (!result) result = consumeTokenSmart(builder, GT);
     if (!result) result = consumeTokenSmart(builder, GTE);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -4710,12 +4700,10 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean bit_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "bit_expression_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, SHL);
     if (!result) result = consumeTokenSmart(builder, SHR);
     if (!result) result = consumeTokenSmart(builder, AMP);
     if (!result) result = consumeTokenSmart(builder, BAR);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -4723,10 +4711,8 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean add_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "add_expression_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, PLUS);
     if (!result) result = consumeTokenSmart(builder, MINUS);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -4734,11 +4720,9 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean mul_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "mul_expression_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, STAR);
     if (!result) result = consumeTokenSmart(builder, DIV);
     if (!result) result = consumeTokenSmart(builder, MOD);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -4757,12 +4741,10 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   private static boolean unary_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "unary_expression_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, MINUS);
     if (!result) result = consumeTokenSmart(builder, PLUS);
     if (!result) result = consumeTokenSmart(builder, TILDE);
     if (!result) result = consumeTokenSmart(builder, NOT);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 

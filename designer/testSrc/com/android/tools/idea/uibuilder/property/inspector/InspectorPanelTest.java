@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import static com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_INDETERMINATE_DRAWABLE;
+import static com.android.SdkConstants.ATTR_INDETERMINATE_TINT;
+import static com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA;
+import static com.android.SdkConstants.ATTR_PROGRESS_DRAWABLE;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_TEXT_ALIGNMENT;
+import static com.android.SdkConstants.ATTR_TEXT_APPEARANCE;
+import static com.android.SdkConstants.ATTR_TEXT_COLOR;
+import static com.android.SdkConstants.ATTR_TEXT_SIZE;
+import static com.android.SdkConstants.ATTR_TEXT_STYLE;
+import static com.android.SdkConstants.ATTR_TYPEFACE;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
@@ -28,21 +46,22 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InspectorPanelTest extends PropertyTestCase {
   private PropertiesComponent myPropertiesComponent;

@@ -60,7 +60,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
     ViewSettings settings = getSettings();
     AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();

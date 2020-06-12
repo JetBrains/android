@@ -62,14 +62,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidModuleModel> {
   private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
@@ -177,7 +172,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
     ChooseActivityTypeStep chooseActivityStep =
-      new ChooseActivityTypeStep(myRenderModel, myFormFactor, Lists.newArrayList(), getModel().getAndroidSdkInfo());
+      new ChooseActivityTypeStep(myRenderModel, myFormFactor, new ArrayList<>(), getModel().getAndroidSdkInfo());
     chooseActivityStep.setShouldShow(!getModel().isLibrary());
 
     LicenseAgreementStep licenseAgreementStep =

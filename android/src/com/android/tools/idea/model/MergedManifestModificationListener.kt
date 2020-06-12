@@ -23,7 +23,7 @@ import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.AppTopics
-import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -31,6 +31,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -108,35 +109,44 @@ class MergedManifestModificationListener(
   }
 
   /**
-   * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
+   * Service responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
    * subscribed to listen for both VFS and Document changes once the initial project sync has completed.
    */
-  private class SubscriptionComponent(
+  private class SubscriptionService(
     val project: Project
-  ) : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project), project),
-      ProjectComponent {
-    override fun projectOpened() {
-      project.listenUntilNextSync(listener = object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = ensureSubscribed()
-      })
-    }
+  ) : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project)),
+      Disposable {
 
     override fun subscribe() {
+      // Never use Application or Project as parents for disposables, as they will be leaked on plugin unload.
+
       // To receive all changes happening in the VFS. File modifications may
       // not be picked up immediately if such changes are not saved on the disk yet
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+      VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
 
       // To receive all changes to documents that are open in an editor
-      EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
+      EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, this)
 
       // To receive notifications when any Documents are saved or reloaded from disk
       project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+    }
+
+    override fun dispose() {
+
+    }
+  }
+
+  private class SubscriptionStartupActivity : StartupActivity.DumbAware {
+    override fun runActivity(project: Project) {
+      project.listenUntilNextSync(listener = object : ProjectSystemSyncManager.SyncResultListener {
+        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = ensureSubscribed(project)
+      })
     }
   }
 
   companion object {
     @JvmStatic
-    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionComponent::class.java).ensureSubscribed()
+    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionService::class.java).ensureSubscribed()
   }
 }
 

@@ -35,6 +35,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

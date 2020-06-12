@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName(name = "ComposePreviewBundle")
-
 package com.android.tools.idea.compose.preview
 
-import com.intellij.CommonBundle
-import com.intellij.reference.SoftReference
+import com.intellij.DynamicBundle
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
-import java.lang.ref.Reference
-import java.util.ResourceBundle
 
-const val BUNDLE: String = "com.android.tools.idea.compose.preview.ComposePreviewBundle"
+@NonNls
+private const val BUNDLE: String = "messages.ComposePreviewBundle"
 
-fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
-  CommonBundle.message(getBundle(), key, *params)
+object ComposePreviewBundle : DynamicBundle(BUNDLE) {
+  @JvmStatic
+  fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String = getMessage(key, *params)
 
-private var ourBundle: Reference<ResourceBundle>? = null
-
-private fun getBundle(): ResourceBundle {
-  var bundle = SoftReference.dereference(ourBundle)
-
-  if (bundle == null) {
-    bundle = ResourceBundle.getBundle(BUNDLE)!!
-    ourBundle = SoftReference(bundle)
-  }
-
-  return bundle
+  @JvmStatic
+  fun messagePointer(@PropertyKey(resourceBundle = BUNDLE) key: String,
+                  vararg params: Any): java.util.function.Supplier<String> = getLazyMessage(key, *params)
 }

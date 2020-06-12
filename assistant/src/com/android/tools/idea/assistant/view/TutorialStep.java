@@ -22,7 +22,6 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -38,17 +37,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -58,21 +47,13 @@ import java.awt.event.MouseWheelListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -379,7 +360,7 @@ public class TutorialStep extends JPanel {
 
     private void selectNothing() {
       LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
-      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docStart)));
+      myEditor.getCaretModel().setCaretsAndSelections(Collections.singletonList(new CaretState(docStart, docStart, docStart)));
     }
 
     private void selectAllText() {
@@ -391,7 +372,7 @@ public class TutorialStep extends JPanel {
       int lastLineEndOffset = myEditor.getDocument().getLineEndOffset(lineCount);
       LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
       LogicalPosition docEnd = myEditor.visualToLogicalPosition(new VisualPosition(lineCount, lastLineEndOffset));
-      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docEnd)));
+      myEditor.getCaretModel().setCaretsAndSelections(Collections.singletonList(new CaretState(docStart, docStart, docEnd)));
     }
   }
 

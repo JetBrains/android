@@ -52,7 +52,6 @@ import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 /**
  * Factory class to create JavaModuleModel instance from IdeaModule.
  */
-@SuppressWarnings("deprecation")
 public class IdeaJavaModuleModelFactory {
   @NotNull private final IdeaJarLibraryDependencyFactory myIdeaJarLibraryDependencyFactory;
 

@@ -24,8 +24,8 @@ import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.io.isWritable
 import java.io.IOException
+import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -259,7 +259,7 @@ class ClangOutputParser : BuildOutputParser {
  * Augments the linker error with hints about file being locked on Windows.
  */
 private fun augmentLinkerError(message: String, soFilePath: Path?): String {
-  if (SystemInfo.isWindows && soFilePath?.isWritable == false) {
+  if (SystemInfo.isWindows && soFilePath != null && !Files.isWritable(soFilePath)) {
     // If the system is windows, the linker error could be caused by file locks on the so file. In that case, the error message is terribly
     // misleading. Hence we want to provider a better message here. See b/124104842
     return message + "\n\n" +

@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -37,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * @param file The context file with a Configuration, used for theme attributes
  */
 fun createResourcePickerDialog(
-  dialogTitle: String,
+  dialogTitle: @NlsContexts.DialogTitle String,
   currentValue: String?,
   facet: AndroidFacet,
   resourceTypes: Set<ResourceType>,

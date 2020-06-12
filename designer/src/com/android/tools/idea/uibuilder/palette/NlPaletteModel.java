@@ -149,13 +149,12 @@ public class NlPaletteModel implements Disposable {
   }
 
   public static NlPaletteModel get(@NotNull AndroidFacet facet) {
-    return facet.getModule().getComponent(NlPaletteModel.class);
+    return facet.getModule().getService(NlPaletteModel.class);
   }
 
   private NlPaletteModel(@NotNull Module module) {
     myTypeToPalette = Collections.synchronizedMap(new HashMap<>());
     myModule = module;
-    Disposer.register(module, this);
   }
 
   @NotNull

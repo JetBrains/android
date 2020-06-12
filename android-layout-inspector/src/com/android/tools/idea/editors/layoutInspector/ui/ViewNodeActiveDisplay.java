@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.layoutinspector.model.DisplayInfo;
 import com.android.layoutinspector.model.ViewNode;
-import com.android.tools.idea.ui.MaterialColors;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.ui.MaterialColors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.intellij.util.ui.UIUtil;
-import org.intellij.images.options.GridOptions;
 import com.intellij.ui.DoubleClickListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.intellij.ui.paint.LinePainter2D;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import org.intellij.images.options.GridOptions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A component to display a {@link ViewNode} with display boxes.
@@ -57,7 +56,7 @@ public class ViewNodeActiveDisplay extends JComponent {
   @Nullable
   private Image mPreview;
 
-  private final List<ViewNodeActiveDisplayListener> mListeners = Lists.newArrayList();
+  private final List<ViewNodeActiveDisplayListener> mListeners = new ArrayList<>();
 
   private float mZoomFactor = 1;
 
@@ -97,7 +96,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     new DoubleClickListener(){
 
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         ViewNode clicked = getNode(event);
         if (clicked == null) return false;
         for (ViewNodeActiveDisplayListener listener : mListeners) {
@@ -374,10 +373,10 @@ public class ViewNodeActiveDisplay extends JComponent {
     g.setColor(GridOptions.DEFAULT_LINE_COLOR);
     int lineSpan = GridOptions.DEFAULT_LINE_SPAN;
     for (int dx = lineSpan; dx < imageWidth; dx += lineSpan) {
-      UIUtil.drawLine(g, (int)((double)dx * zoomX), 0, (int)((double)dx * zoomX), size.height);
+      LinePainter2D.paint((Graphics2D)g, (int)((double)dx * zoomX), 0, (int)((double)dx * zoomX), size.height);
     }
     for (int dy = lineSpan; dy < imageHeight; dy += lineSpan) {
-      UIUtil.drawLine(g, 0, (int)((double)dy * zoomY), size.width, (int)((double)dy * zoomY));
+      LinePainter2D.paint((Graphics2D)g, 0, (int)((double)dy * zoomY), size.width, (int)((double)dy * zoomY));
     }
   }
 

@@ -17,10 +17,10 @@ package com.android.tools.idea.npw.template
 
 import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 
-class KotlinVersionsTest : PlatformTestCase() {
+class KotlinVersionsTest : HeavyPlatformTestCase() {
   fun testKotlinVersionConsistentWithOtherTests() {
     // Conversion code should get its Kotlin version from the Kotlin IDE plugin, while most tests (including gradle integration tests) read
     // the version from the compiler prebuilt. These two should be in sync, so we know we tested everything against the right version.

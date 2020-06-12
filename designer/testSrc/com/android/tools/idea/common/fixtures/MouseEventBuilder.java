@@ -77,8 +77,16 @@ public class MouseEventBuilder {
     when(event.getSource()).thenReturn(mySource);
     when(event.getX()).thenReturn(myX);
     when(event.getY()).thenReturn(myY);
-    when(event.getModifiers()).thenReturn(myMask);
-    when(event.getModifiersEx()).thenReturn(myMask);
+
+    int mask = myMask;
+    if (myId == MouseEvent.MOUSE_DRAGGED){
+      if (myButton == MouseEvent.BUTTON1){
+        mask |= InputEvent.BUTTON1_DOWN_MASK;
+      }
+    }
+    when(event.getModifiers()).thenReturn(mask);
+    when(event.getModifiersEx()).thenReturn(mask);
+
     when(event.getButton()).thenReturn(myButton);
     when(event.getClickCount()).thenReturn(myClickCount);
     when(event.getPoint()).thenReturn(new Point(myX, myY));

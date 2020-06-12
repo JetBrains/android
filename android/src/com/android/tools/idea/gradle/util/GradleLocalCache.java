@@ -15,26 +15,25 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.project.Project;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.util.Collections.sort;
+
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleLocalCache {
   @NotNull
@@ -77,7 +76,7 @@ public class GradleLocalCache {
     if (!gradleCacheFolder.isDirectory()) {
       return null;
     }
-    List<GradleVersion> versions = Lists.newArrayList();
+    List<GradleVersion> versions = new ArrayList<>();
     for (File moduleFolder : notNullize(gradleCacheFolder.listFiles())) {
       if (!isDirectoryWithNamePrefix(moduleFolder, "modules-")) {
         continue;

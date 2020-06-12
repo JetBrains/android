@@ -26,7 +26,7 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,11 +62,12 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
       descriptor.setActivateToolWindowWhenAdded(false);
     }
 
-    ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
     if (!window.isVisible()) {
       // First unset the last run app info, showing the tool window can trigger the profiler to start profiling using the stale info.
       // The most current run app info will be set in AndroidProfilerToolWindowLaunchTask instead.
       project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null);
+      window.setAvailable(true);
       window.show(null);
     }
 

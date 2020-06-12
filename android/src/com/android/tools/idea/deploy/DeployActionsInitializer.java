@@ -26,13 +26,11 @@ import com.intellij.execution.RunManagerListener;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -41,51 +39,6 @@ import org.jetbrains.annotations.Nullable;
 public class DeployActionsInitializer implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
-    MessageBusConnection projectConnection = project.getMessageBus().connect(project);
-    projectConnection.subscribe(RunManagerListener.TOPIC, new RunManagerListener() {
-      @Override
-      public void runConfigurationSelected() {
-        updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
-      }
-
-      @Override
-      public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings, @Nullable String existingId) {
-        runConfigurationChanged(settings);
-      }
-
-      @Override
-      public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings) {
-        if (settings.getConfiguration() == RunManager.getInstance(project).getSelectedConfiguration()) {
-          updateDeployableProvider(project, settings);
-        }
-      }
-
-      @Override
-      public void runConfigurationRemoved(@NotNull RunnerAndConfigurationSettings settings) {
-        if (settings.getConfiguration() == RunManager.getInstance(project).getSelectedConfiguration()) {
-          updateDeployableProvider(project, null);
-        }
-      }
-    });
-
-    projectConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
-      @Override
-      public void beforeFacetRemoved(@NotNull Facet facet) {
-        RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(project).getSelectedConfiguration();
-        if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
-          updateDeployableProvider(project, null);
-        }
-      }
-
-      @Override
-      public void facetAdded(@NotNull Facet facet) {
-        RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(project).getSelectedConfiguration();
-        if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
-          updateDeployableProvider(project, selectedConfiguration);
-        }
-      }
-    });
-
     updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
   }
 
@@ -142,6 +95,64 @@ public class DeployActionsInitializer implements StartupActivity {
     DeploymentService deploymentService = DeploymentService.getInstance(project);
     if (canOverrideDeployableProvider(deploymentService.getDeployableProvider())) {
       deploymentService.setDeployableProvider(getDeployTargetProvider(configSettings));
+    }
+  }
+
+  public static class MyRunManagerListener implements RunManagerListener {
+
+    @NotNull private final Project myProject;
+
+    public MyRunManagerListener(@NotNull Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public void runConfigurationSelected(@Nullable RunnerAndConfigurationSettings settings) {
+      updateDeployableProvider(myProject, settings);
+    }
+
+    @Override
+    public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings, @Nullable String existingId) {
+      runConfigurationChanged(settings);
+    }
+
+    @Override
+    public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings) {
+      if (settings.getConfiguration() == RunManager.getInstance(myProject).getSelectedConfiguration()) {
+        updateDeployableProvider(myProject, settings);
+      }
+    }
+
+    @Override
+    public void runConfigurationRemoved(@NotNull RunnerAndConfigurationSettings settings) {
+      if (settings.getConfiguration() == RunManager.getInstance(myProject).getSelectedConfiguration()) {
+        updateDeployableProvider(myProject, null);
+      }
+    }
+  }
+
+  public static class MyFacetManagerAdapter extends FacetManagerAdapter {
+
+    @NotNull private final Project myProject;
+
+    public MyFacetManagerAdapter(@NotNull Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public void beforeFacetRemoved(@NotNull Facet facet) {
+      RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(myProject).getSelectedConfiguration();
+      if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
+        updateDeployableProvider(myProject, null);
+      }
+    }
+
+    @Override
+    public void facetAdded(@NotNull Facet facet) {
+      RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(myProject).getSelectedConfiguration();
+      if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
+        updateDeployableProvider(myProject, selectedConfiguration);
+      }
     }
   }
 }

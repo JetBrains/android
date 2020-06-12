@@ -23,7 +23,7 @@ import com.google.wireless.android.sdk.stats.TypingLatencyStats
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.util.analytics.toProto
+//import com.intellij.util.analytics.toProto // FIXME-ank-3: move from AOSP's platform sources to android-plugin sources (see code below)
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 
@@ -53,31 +53,5 @@ object TypingLatencyTracker : LatencyListener {
    * Resets statistics so that latencies are not double-counted in the next report.
    */
   fun reportTypingLatency() {
-    val allStats = TypingLatencyStats.newBuilder()
-    for ((fileType, recorder) in latencyRecorders) {
-      val histogram = recorder.intervalHistogram // Automatically resets statistics for this recorder.
-      if (histogram.totalCount == 0L) {
-        continue
-      }
-      val record = TypingLatencyStats.LatencyRecord.newBuilder().also {
-        it.fileType = fileType
-        it.totalKeysTyped = histogram.totalCount
-        it.totalLatencyMs = (histogram.totalCount * histogram.mean).toLong()
-        it.maxLatencyMs = histogram.maxValue
-        it.histogram = histogram.toProto()
-      }
-      allStats.addLatencyRecords(record.build())
-    }
-
-    if (allStats.latencyRecordsCount == 0) {
-      return
-    }
-
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.TYPING_LATENCY_STATS
-        typingLatencyStats = allStats.build()
-      }
-    )
   }
 }

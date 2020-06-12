@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.testing.IdeComponents
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.replaceService
 import junit.framework.Assert.assertSame
 
 class TestSyncIssueUsageReporter(
@@ -42,9 +44,9 @@ class TestSyncIssueUsageReporter(
 
   companion object {
     @JvmStatic
-    fun replaceSyncMessagesService(project: Project): TestSyncIssueUsageReporter {
+    fun replaceSyncMessagesService(project: Project, parentDisposable: Disposable): TestSyncIssueUsageReporter {
       val syncMessages = TestSyncIssueUsageReporter()
-      IdeComponents(project).replaceProjectService<SyncIssueUsageReporter>(SyncIssueUsageReporter::class.java, syncMessages)
+      project.replaceService(SyncIssueUsageReporter::class.java, syncMessages, parentDisposable)
       assertSame(syncMessages, SyncIssueUsageReporter.getInstance(project))
       return syncMessages
     }

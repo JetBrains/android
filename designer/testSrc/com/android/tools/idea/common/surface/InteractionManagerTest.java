@@ -526,8 +526,13 @@ public class InteractionManagerTest extends LayoutTestCase {
   private MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask) {
     Component sourceMock = Mockito.mock(Component.class);
     when(sourceMock.getLocationOnScreen()).thenReturn(new Point(0, 0));
-    return new MouseEvent(
-      sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false);
+
+    int button = MouseEvent.NOBUTTON;
+    if (id == MouseEvent.MOUSE_PRESSED){
+      assert (modifierKeyMask & InputEvent.BUTTON2_DOWN_MASK) != 0;
+      button = MouseEvent.BUTTON2;
+    }
+    return new MouseEvent(sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false, button);
   }
 
   protected InteractionManager setupConstraintLayoutCursorTest() {

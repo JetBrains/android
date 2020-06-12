@@ -198,6 +198,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     });
 
     myListeners.listenAndFire(androidSdkInfo, () -> updateAppCompatCheckBox());
+    myListeners.listenAndFire(androidSdkInfo, sender -> updateAppCompatCheckBox());
   }
 
   @Override

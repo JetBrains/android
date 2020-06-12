@@ -30,18 +30,19 @@ import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,11 +54,10 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * Tracks and provides {@link ViewHandler} instances in this project
  */
-public class ViewHandlerManager implements ProjectComponent {
+public class ViewHandlerManager implements Disposable {
   @VisibleForTesting
   static final ExtensionPointName<ViewHandlerProvider> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
-
   /**
    * View handlers are named the same as the class for the view they represent, plus this suffix
    */
@@ -71,9 +71,8 @@ public class ViewHandlerManager implements ProjectComponent {
 
   @NotNull
   public static ViewHandlerManager get(@NotNull Project project) {
-    ViewHandlerManager manager = project.getComponent(ViewHandlerManager.class);
+    ViewHandlerManager manager = project.getService(ViewHandlerManager.class);
     assert manager != null;
-
     return manager;
   }
 
@@ -152,6 +151,10 @@ public class ViewHandlerManager implements ProjectComponent {
    */
   @Nullable
   public ViewHandler getHandler(@NotNull String viewTag) {
+    if (Disposer.isDisposed(this)) {
+      Logger.getInstance(ViewHandlerManager.class).warn("ViewHandlerManager::getHandler after dispose()");
+      return null;
+    }
     ViewHandler handler = myHandlers.get(viewTag);
     if (handler == null) {
       if (viewTag.indexOf('.') != -1) {
@@ -180,6 +183,10 @@ public class ViewHandlerManager implements ProjectComponent {
    * @param handler corresponding view handler
    */
   public void registerHandler(@NotNull String viewTag, @NotNull ViewHandler handler) {
+    if (Disposer.isDisposed(this)) {
+      Logger.getInstance(ViewHandlerManager.class).warn("ViewHandlerManager::registerHandler(" + viewTag + ", ...) after dispose()");
+      return;
+    }
     myHandlers.put(viewTag, handler);
   }
 
@@ -302,7 +309,7 @@ public class ViewHandlerManager implements ProjectComponent {
   public List<ViewAction> getToolbarActions(@NotNull ViewHandler handler) {
     List<ViewAction> actions = myToolbarActions.get(handler);
     if (actions == null) {
-      actions = Lists.newArrayList();
+      actions = new ArrayList<>();
       handler.addToolbarActions(actions);
       myToolbarActions.put(handler, actions);
     }
@@ -324,7 +331,7 @@ public class ViewHandlerManager implements ProjectComponent {
   public List<ViewAction> getPopupMenuActions(@NotNull SceneComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
-      actions = Lists.newArrayList();
+      actions = new ArrayList<>();
       if (handler.addPopupMenuActions(component, actions)) {
         myMenuActions.put(handler, actions);
       }
@@ -333,19 +340,8 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   @Override
-  public void projectClosed() {
+  public void dispose() {
     myHandlers.clear();
-  }
-
-  @Override
-  public void disposeComponent() {
-    myHandlers.clear();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "ViewHandlerManager";
   }
 
   /**

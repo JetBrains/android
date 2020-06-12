@@ -34,6 +34,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import com.google.android.instantapps.sdk.api.ExtendedSdk;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

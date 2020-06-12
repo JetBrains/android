@@ -69,7 +69,7 @@ public class AndroidRunState implements RunProfileState {
 
   @Nullable
   @Override
-  public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+  public ExecutionResult execute(Executor executor, @NotNull ProgramRunner<?> runner) throws ExecutionException {
     ExistingSession prevHandler = ApplyChangesUtilsKt.findExistingSessionAndMaybeDetachForColdSwap(myEnv, myDeviceFutures);
     ProcessHandler processHandler = prevHandler.getProcessHandler();
     ExecutionConsole console = prevHandler.getExecutionConsole();

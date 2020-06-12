@@ -73,13 +73,7 @@ class LayoutInspectorSettingsTest {
   }
 
   private class MyToolWindowManager(val project: Project) : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow: ToolWindow? = null
-
-    override fun initToolWindow(bean: ToolWindowEP) {
-      assertThat(bean.condition!!.value(project)).isTrue()
-      assertThat(bean.id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
-      toolWindow = MyMockToolWindow(project)
-    }
+    var toolWindow: ToolWindow = MyMockToolWindow(project)
 
     override fun getToolWindow(id: String?): ToolWindow? {
       assertThat(id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
@@ -88,15 +82,15 @@ class LayoutInspectorSettingsTest {
   }
 
   private class MyMockToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-    var available = true
+    var windowAvailable = true
     var visible = true
 
     override fun setAvailable(available: Boolean, runnable: Runnable?) {
-      this.available = available
+      this.windowAvailable = available
     }
 
     override fun isAvailable(): Boolean {
-      return available
+      return windowAvailable
     }
 
     override fun show(runnable: Runnable?) {

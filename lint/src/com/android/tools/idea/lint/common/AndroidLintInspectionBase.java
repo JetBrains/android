@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2016 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -33,7 +19,6 @@ import com.android.tools.lint.detector.api.LintFix.SetAttribute;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -80,7 +65,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.siyeh.ig.InspectionGadgetsFix;
-import gnu.trove.THashMap;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -433,8 +417,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         // shows the setting as modified, even though the name seems totally unrelated)
         InspectionProfileImpl base = InspectionProfileKt.getBASE_PROFILE();
         InspectionProfileImpl current = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-        base.addTool(project, factory, new THashMap<>());
-        current.addTool(project, factory, new THashMap<>());
+        base.addTool(project, factory, null);
+        current.addTool(project, factory, null);
 
         name = tool.getShortName();
         issue2InspectionShortName.put(issue, name);
@@ -690,7 +674,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     else if (lintFix instanceof LintFixGroup) {
       LintFixGroup group = (LintFixGroup)lintFix;
-      List<LintIdeQuickFix> fixList = Lists.newArrayList();
+      List<LintIdeQuickFix> fixList = new ArrayList<>();
       for (LintFix fix : group.fixes) {
         Collections.addAll(fixList, createFixes(file, fix));
       }

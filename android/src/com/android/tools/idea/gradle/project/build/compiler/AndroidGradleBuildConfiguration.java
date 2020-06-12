@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
-import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.CommandLineTokenizer;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 @State(name = "AndroidGradleBuildConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
@@ -49,7 +52,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
 
   @NotNull
   public String[] getCommandLineOptions() {
-    List<String> options = Lists.newArrayList();
+    List<String> options = new ArrayList<>();
     CommandLineTokenizer tokenizer = new CommandLineTokenizer(COMMAND_LINE_OPTIONS);
     while(tokenizer.hasMoreTokens()) {
       options.add(tokenizer.nextToken());

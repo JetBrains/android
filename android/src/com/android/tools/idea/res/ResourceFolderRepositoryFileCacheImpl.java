@@ -232,6 +232,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     private static final int MAX_PROJECT_CACHES = 12;
 
     ManageLruProjectFilesTask(@NotNull Project project) {
+      super(project);
       myProject = project;
     }
 
@@ -332,6 +333,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @NotNull private final Project myProject;
 
     PruneTask(@NotNull Project project) {
+      super(project);
       myProject = project;
     }
 

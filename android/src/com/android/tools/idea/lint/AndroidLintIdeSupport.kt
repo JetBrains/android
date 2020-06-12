@@ -21,11 +21,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.lint.common.LintBatchResult
-import com.android.tools.idea.lint.common.LintEditorResult
-import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.idea.lint.common.LintIdeSupport
-import com.android.tools.idea.lint.common.LintResult
+import com.android.tools.idea.lint.common.*
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks

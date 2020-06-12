@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.computeUserDataIfAbsent
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -43,15 +42,14 @@ import org.jetbrains.android.util.AndroidUtils
  * This class is a project service, but it's not declared as [PsiElementFinder.EP_NAME] extension. The reason for that is that it's up to
  * the project system to decide whether to use this logic (see [ProjectSystemPsiElementFinder]).
  */
-class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFinder() {
+class AndroidManifestClassPsiElementFinder(private val project: Project) : PsiElementFinder() {
 
   companion object {
     private const val SUFFIX = "." + SdkConstants.FN_MANIFEST_BASE
     private val MODULE_MANIFEST_CLASS = Key<PsiClass>(AndroidManifestClassPsiElementFinder::class.qualifiedName!! + ".MODULE_MANIFEST_CLASS")
 
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, AndroidManifestClassPsiElementFinder::class.java)!!
-
+    fun getInstance(project: Project) = project.getService(AndroidManifestClassPsiElementFinder::class.java)!!
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope) = findClasses(qualifiedName, scope).firstOrNull()

@@ -578,7 +578,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     else if (TAG_MISSING_FRAGMENT.equals(tag)) {
       if (!ourIgnoreFragments) {
         if (myMissingFragments == null) {
-          myMissingFragments = Lists.newArrayList();
+          myMissingFragments = new ArrayList<>();
         }
         String name = data instanceof String ? (String)data : null;
         myMissingFragments.add(name);

@@ -26,13 +26,13 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -49,14 +49,14 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    ServiceContainerUtil.replaceService(project, GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
     myModuleChecker = new SupportedModuleChecker();
   }
 
   public void testCheckForSupportedModulesWithNonGradleProject() {
     Project project = getProject();
     AndroidNotification androidNotification = mock(AndroidNotification.class);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
+    ServiceContainerUtil.replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
 
     myModuleChecker.checkForSupportedModules(project);
@@ -69,7 +69,8 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
 
     Project project = getProject();
     AndroidNotificationStub androidNotification = new AndroidNotificationStub(project);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
+    ServiceContainerUtil
+      .replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
 
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
     doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);

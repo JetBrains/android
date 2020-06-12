@@ -34,6 +34,11 @@ import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.Futures;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

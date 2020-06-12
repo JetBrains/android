@@ -23,19 +23,10 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.Strings
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.*
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
-import com.google.wireless.android.sdk.stats.ComposeSampleEvent
 import com.google.wireless.android.sdk.stats.ComposeSampleEvent.ComposeSampleEventType
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.google.wireless.android.sdk.stats.DisplayDetails
-import com.google.wireless.android.sdk.stats.IdePlugin
-import com.google.wireless.android.sdk.stats.IdePluginInfo
-import com.google.wireless.android.sdk.stats.MachineDetails
-import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
-import com.google.wireless.android.sdk.stats.StudioProjectChange
-import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -48,18 +39,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.impl.ProjectLifecycleListener
-import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import java.util.ArrayList
-import java.util.Locale
-import java.util.Objects
+import java.util.*
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -136,7 +124,7 @@ object AndroidStudioUsageTracker {
   private fun subscribeToEvents() {
     val app = ApplicationManager.getApplication()
     val connection = app.messageBus.connect()
-    connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
+    connection.subscribe(ProjectManager.TOPIC, ProjectLifecycleTracker())
     connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
     connection.subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
       override fun appWillBeClosed(isRestart: Boolean) {
@@ -159,7 +147,9 @@ object AndroidStudioUsageTracker {
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
-      if (!plugin.isEnabled) continue
+      if (!plugin.isEnabled) {
+        continue
+      }
       val id = plugin.pluginId?.idString ?: continue
 
       val pluginProto = IdePlugin.newBuilder()
@@ -307,8 +297,8 @@ object AndroidStudioUsageTracker {
   /**
    * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
    */
-  private class ProjectLifecycleTracker : ProjectLifecycleListener {
-    override fun beforeProjectLoaded(project: Project) {
+  private class ProjectLifecycleTracker : ProjectManagerListener {
+    override fun projectOpened(project: Project) {
       val projectsOpen = ProjectManager.getInstance().openProjects.size
       UsageTracker.log(AndroidStudioEvent.newBuilder()
                          .setKind(EventKind.STUDIO_PROJECT_OPENED)
@@ -318,7 +308,7 @@ object AndroidStudioUsageTracker {
 
     }
 
-    override fun afterProjectClosed(project: Project) {
+    override fun projectClosed(project: Project) {
       val projectsOpen = ProjectManager.getInstance().openProjects.size
       UsageTracker.log(AndroidStudioEvent.newBuilder()
                          .setKind(EventKind.STUDIO_PROJECT_CLOSED)
@@ -326,31 +316,27 @@ object AndroidStudioUsageTracker {
                                                    .setProjectsOpen(projectsOpen)))
 
     }
+  }
 
-    // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
-    override fun projectComponentsInitialized(project: Project) {
-      val service = ToolWindowTrackerService.getInstance(project)
-      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
+  // Track usage of Compose Jetnews sample
+  class JetnewsUsageTracker : StartupActivity {
+    override fun runActivity(project: Project) {
+      val moduleManager = ModuleManager.getInstance(project) ?: return
 
-      // Track usage of Compose Jetnews sample
-      StartupManager.getInstance(project)?.registerPostStartupActivity {
-        val moduleManager = ModuleManager.getInstance(project) ?: return@registerPostStartupActivity
+      val match = moduleManager.modules.asSequence()
+        .filter { module -> AndroidFacet.getInstance(module) != null }
+        .map { Module::getModuleSystem }
+        .map { AndroidModuleSystem::getPackageName }
+        .any { packageName -> Objects.equals(packageName, "com.example.jetnews") }
 
-        val match = moduleManager.modules.asSequence()
-          .filter { module -> AndroidFacet.getInstance(module) != null }
-          .map { Module::getModuleSystem }
-          .map { AndroidModuleSystem::getPackageName }
-          .any { packageName -> Objects.equals(packageName, "com.example.jetnews") }
-
-        if (!match) {
-          return@registerPostStartupActivity
-        }
-
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setKind(EventKind.COMPOSE_SAMPLE_EVENT)
-                           .setComposeSampleEvent(ComposeSampleEvent.newBuilder()
-                                                    .setType(ComposeSampleEventType.OPEN)))
+      if (!match) {
+        return
       }
+
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(EventKind.COMPOSE_SAMPLE_EVENT)
+                         .setComposeSampleEvent(ComposeSampleEvent.newBuilder()
+                                                  .setType(ComposeSampleEventType.OPEN)))
     }
   }
 }

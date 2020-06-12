@@ -21,11 +21,7 @@ import com.android.testutils.TestUtils;
 import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.LightPlatformTestCase;
-import com.intellij.testFramework.PlatformTestCase;
-
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 

@@ -16,28 +16,25 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
-import static java.lang.Boolean.TRUE;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.platform.PlatformProjectOpenProcessor;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,17 +70,8 @@ public final class GradleProjects {
    * @param project the project to open.
    */
   public static void open(@NotNull Project project) {
-    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
-      IdeFocusManager instance = IdeFocusManager.findInstance();
-      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame != null && lastFocusedFrame.isInFullScreen()) {
-        project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
-      }
-    }
-    ProjectManagerEx projectManagerEx = ProjectManagerEx.getInstanceEx();
-    if (!projectManagerEx.isProjectOpened(project)) {
-      projectManagerEx.openProject(project);
-    }
+    Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
+    PlatformProjectOpenProcessor.openExistingProject(projectDir, OpenProjectTask.withCreatedProject(project));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {

@@ -26,7 +26,7 @@
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />

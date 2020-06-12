@@ -15,13 +15,22 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
+import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
+import static java.awt.event.KeyEvent.KEY_PRESSED;
+import static java.awt.event.KeyEvent.KEY_RELEASED;
+import static javax.swing.SwingUtilities.convertPointFromScreen;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsModel;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.Disposable;
@@ -29,27 +38,18 @@ import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.Tree;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
-import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
-import static java.awt.Cursor.*;
-import static java.awt.event.KeyEvent.KEY_PRESSED;
-import static java.awt.event.KeyEvent.KEY_RELEASED;
-import static javax.swing.SwingUtilities.convertPointFromScreen;
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
   @NotNull private final Tree myTree;
@@ -177,7 +177,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
 
   @NotNull
   private List<PsIssue> findIssues(@NotNull AbstractPsModelNode<? extends PsModel> modelNode, @Nullable Comparator<PsIssue> comparator) {
-    List<PsIssue> issues = Lists.newArrayList();
+    List<PsIssue> issues = new ArrayList<>();
 
     PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
     for (PsModel model : modelNode.getModels()) {
@@ -186,7 +186,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
       }
     }
     if (comparator != null && issues.size() > 1) {
-      Collections.sort(issues, comparator);
+      issues.sort(comparator);
     }
     return issues;
   }

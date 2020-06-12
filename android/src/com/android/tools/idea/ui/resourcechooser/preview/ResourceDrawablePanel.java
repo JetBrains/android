@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcechooser.preview;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.tools.idea.ui.resourcechooser.ResourceChooserItem.DEFAULT_FOLDER_NAME;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceRepository;
@@ -27,7 +31,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -37,21 +40,17 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PREFIX_THEME_REF;
-import static com.android.tools.idea.ui.resourcechooser.ResourceChooserItem.DEFAULT_FOLDER_NAME;
+import javax.swing.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Panel used to edit bitmaps, XML drawables and solid colors
@@ -203,7 +202,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
 
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     ResourceItemResolver resolver = new ResourceItemResolver(configuration.getFullConfig(), frameworkResources, appResources, null);
-    List<ResourceValue> lookupChain = Lists.newArrayList();
+    List<ResourceValue> lookupChain = new ArrayList<>();
     resolver.setLookupChainList(lookupChain);
     resolver.resolveResValue(value);
 

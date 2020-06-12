@@ -7,6 +7,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManagerImpl;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
@@ -30,7 +31,6 @@ import static org.mockito.Mockito.*;
  * @author Vladislav.Soroka
  */
 public class AndroidGradleTaskManagerTest {
-
   @Test
   public void executeTasks() {
     String projectPath = "projectPath";
@@ -59,15 +59,17 @@ b/144931276 */
     GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
     when(taskId.findProject()).thenReturn(project);
     when(project.getPicoContainer()).thenReturn(picoContainer);
-    when(picoContainer.getComponentInstance(GradleProjectInfo.class.getName())).thenReturn(gradleProjectInfo);
     when(gradleProjectInfo.isDirectGradleBuildEnabled()).thenReturn(true);
     AndroidGradleBuildConfiguration androidGradleBuildConfiguration = new AndroidGradleBuildConfiguration();
     androidGradleBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
     when(picoContainer.getComponentInstance(AndroidGradleBuildConfiguration.class.getName())).thenReturn(androidGradleBuildConfiguration);
-    when(picoContainer.getComponentInstance(GradleBuildInvoker.class.getName())).thenReturn(gradleBuildInvoker);
     when(gradleBuildInvoker.getProject()).thenReturn(project);
     ModuleManager moduleManager = mock(ModuleManager.class);
+
     when(project.getComponent(ModuleManager.class)).thenReturn(moduleManager);
+    when(project.getService(GradleProjectInfo.class)).thenReturn(gradleProjectInfo);
+    when(project.getService(GradleBuildInvoker.class)).thenReturn(gradleBuildInvoker);
+
     Module module = mock(Module.class);
     when(moduleManager.getModules()).thenReturn(new Module[]{module});
     when(module.getPicoContainer()).thenReturn(picoContainer);
@@ -75,7 +77,7 @@ b/144931276 */
     FacetManager facetManager = mock(FacetManager.class);
     when(facetManager.getFacetByType(GradleFacet.getFacetTypeId())).thenReturn(mock(GradleFacet.class));
     when(module.getComponent(FacetManager.class)).thenReturn(facetManager);
-    ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManager(module);
+    ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManagerImpl(module);
     when(picoContainer.getComponentInstance(ExternalSystemModulePropertyManager.class.getName())).thenReturn(modulePropertyManager);
     modulePropertyManager.setExternalOptions(GradleUtil.GRADLE_SYSTEM_ID, new ModuleData("", GradleUtil.GRADLE_SYSTEM_ID,
                                                                                          "", "", "", projectPath), null);

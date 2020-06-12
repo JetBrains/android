@@ -901,7 +901,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
       val disposable = Disposer.newDisposable()
       try {
         val resolved = resolver.requestProjectResolved(project.ideProject, disposable)
-        project.refreshFrom(resolved.get(30, TimeUnit.SECONDS))
+        waitForFuture(resolved, 30, TimeUnit.SECONDS)
+        project.refreshFrom(resolved.get())
 
         assertThat(appModule).isSameAs(project.findModuleByGradlePath(":app") as PsAndroidModule?)
         assertThat(debugBuildType).isSameAs(appModule.buildTypes.find { it.name == "debug" })
@@ -934,7 +935,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
       val disposable = Disposer.newDisposable()
       try {
         val resolved = resolver.requestProjectResolved(project.ideProject, disposable)
-        project.refreshFrom(resolved.get(30, TimeUnit.SECONDS))
+        waitForFuture(resolved, 30, TimeUnit.SECONDS)
+        project.refreshFrom(resolved.get())
 
         assertThat(nestedModules).isSameAs(project.findModuleByGradlePath(":nested2:trans:deep2") as PsAndroidModule?)
         assertThat(debugBuildType).isSameAs(nestedModules.buildTypes.find { it.name == "debug" })

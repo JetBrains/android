@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -44,11 +45,11 @@ import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,7 +88,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
-    final List<LaunchTask> launchTasks = Lists.newArrayList();
+    final List<LaunchTask> launchTasks = new ArrayList<>();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
       launchTasks.add(new ClearLogcatTask(myProject));
@@ -180,15 +181,16 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       }
 
       // Set the appropriate action based on which deployment we're doing.
+      Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
       if (shouldApplyChanges()) {
 
-        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun()));
+        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun(), installPathProvider));
       }
       else if (shouldApplyCodeChanges()) {
-        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun()));
+        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun(), installPathProvider));
       }
       else {
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));
+        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(), installPathProvider));
       }
     }
     return ImmutableList.copyOf(tasks);

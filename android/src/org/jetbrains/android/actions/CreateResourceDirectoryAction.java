@@ -30,7 +30,7 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
   }
 
   public CreateResourceDirectoryAction(@Nullable ResourceFolderType resourceFolderType) {
-    super(AndroidBundle.message("new.resource.dir.action.title"), AndroidBundle.message("new.resource.action.description"),
+    super(AndroidBundle.messagePointer("new.resource.dir.action.title"), AndroidBundle.messagePointer("new.resource.action.description"),
           PlatformIcons.FOLDER_ICON);
     myResourceFolderType = resourceFolderType;
   }

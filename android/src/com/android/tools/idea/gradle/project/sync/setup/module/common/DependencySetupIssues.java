@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
  */
-public class DependencySetupIssues {
+public final class DependencySetupIssues {
   @NotNull private final GradleSyncMessages mySyncMessages;
 
   @NotNull private final Map<String, MissingModule> myMissingModules = new ConcurrentHashMap<>();
@@ -59,6 +60,11 @@ public class DependencySetupIssues {
     return ServiceManager.getService(project, DependencySetupIssues.class);
   }
 
+  public DependencySetupIssues(@NotNull Project project) {
+    mySyncMessages = GradleSyncMessages.getInstance(project);
+  }
+
+  @NonInjectable
   public DependencySetupIssues(@NotNull GradleSyncMessages syncMessages) {
     mySyncMessages = syncMessages;
   }

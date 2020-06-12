@@ -24,11 +24,13 @@ import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public class ApplyCodeChangesTask extends AbstractDeployTask {
 
@@ -37,12 +39,15 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
 
   /**
    * Creates a task to deploy a list of apks.
-   *  @param project  the project that this task is running within.
+   * @param project  the project that this task is running within.
    * @param packages a map of application ids to apks representing the packages this task will deploy.
    * @param fallback
    */
-  public ApplyCodeChangesTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback) {
-    super(project, packages, fallback);
+  public ApplyCodeChangesTask(@NotNull Project project,
+                              @NotNull Map<String, List<File>> packages,
+                              boolean fallback,
+                              Computable<String> installPathProvider) {
+    super(project, packages, fallback, installPathProvider);
   }
 
   @NotNull

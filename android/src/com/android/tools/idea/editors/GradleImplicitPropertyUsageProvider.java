@@ -20,6 +20,7 @@ import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
 
@@ -29,7 +30,7 @@ import static com.android.SdkConstants.*;
  */
 public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsageProvider {
   @Override
-  protected boolean isUsed(Property property) {
+  protected boolean isUsed(@NotNull Property property) {
     PsiFile file = property.getContainingFile();
     if (Comparing.equal(file.getName(), FN_GRADLE_WRAPPER_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
       // Ignore all properties in the gradle wrapper: read by the gradle wrapper .jar code

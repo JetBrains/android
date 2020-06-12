@@ -49,8 +49,8 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
-    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testHandleErrorWithMethodNotFoundInSettingsFile() throws Exception {

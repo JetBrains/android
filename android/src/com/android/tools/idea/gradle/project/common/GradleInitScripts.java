@@ -51,8 +51,6 @@ public class GradleInitScripts {
     return ServiceManager.getService(GradleInitScripts.class);
   }
 
-  // Used by intellij
-  @SuppressWarnings("unused")
   public GradleInitScripts() {
     this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }

@@ -20,6 +20,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 
 import java.awt.*;
@@ -258,8 +259,8 @@ public class MarginPopup extends JPanel {
       myHistoryButtons[i].addActionListener(myDefaultListener);
 
       gc.gridx = i;
-      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
-      gc.insets.right = JBUI.scale((i == myHistoryButtons.length - 1) ? 5 : 0);
+      gc.insets.left = JBUIScale.scale((i == 0) ? 5 : 0);
+      gc.insets.right = JBUIScale.scale((i == myHistoryButtons.length - 1) ? 5 : 0);
       add(myHistoryButtons[i], gc);
     }
     myResourcePickerButton.setMargin(margin);

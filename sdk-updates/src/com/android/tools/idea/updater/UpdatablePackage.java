@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 

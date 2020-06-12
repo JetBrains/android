@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * handle.
  */
 public class AndroidPositionManager extends PositionManagerImpl {
-  private static Logger LOG = Logger.getInstance(AndroidPositionManager.class);
+  private static final Logger LOG = Logger.getInstance(AndroidPositionManager.class);
 
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
   private final DebugProcessImpl myDebugProcess;

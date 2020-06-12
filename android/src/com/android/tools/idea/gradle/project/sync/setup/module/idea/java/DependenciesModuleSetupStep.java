@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -30,18 +35,12 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;

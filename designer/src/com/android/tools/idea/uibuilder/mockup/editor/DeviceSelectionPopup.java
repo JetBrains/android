@@ -15,40 +15,55 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import static com.android.ide.common.rendering.HardwareConfigHelper.getGenericLabel;
+import static com.android.ide.common.rendering.HardwareConfigHelper.getNexusLabel;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isGeneric;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isNexus;
+
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.avdmanager.AvdManagerUtils;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.ide.common.rendering.HardwareConfigHelper.*;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Popup that let the user choose a device for the screen view that matches the
@@ -358,7 +373,7 @@ public class DeviceSelectionPopup extends DialogWrapper {
           drawCenteredString(g, "No device selected", getBounds(), g.getFont());
         }
         else {
-          drawCenteredString(g, "Loading...", getBounds(), g.getFont());
+          drawCenteredString(g, CommonBundle.getLoadingTreeNodeText(), getBounds(), g.getFont());
         }
         return;
       }

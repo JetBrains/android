@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -27,8 +26,8 @@ import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.*
 import java.awt.KeyboardFocusManager
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -44,8 +43,10 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     StudioFlags.NELE_SPLIT_EDITOR.override(true)
+
+    val surface = NlDesignSurface.build(project, testRootDisposable)
     val panel = mock(DesignerEditorPanel::class.java)
-    `when`(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
+    `when`(panel.surface).thenReturn(surface)
     designerEditor = mock(DesignerEditor::class.java)
     `when`(designerEditor.component).thenReturn(panel)
     val textEditorComponent = mock(JComponent::class.java)
@@ -56,7 +57,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
     `when`(textEditor.editor).thenReturn(editor)
     val component = mock(JComponent::class.java)
-    `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
+    `when`(component.getActionForKeyStroke(ArgumentMatchers.any(KeyStroke::class.java))).thenCallRealMethod()
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
       // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
       // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of

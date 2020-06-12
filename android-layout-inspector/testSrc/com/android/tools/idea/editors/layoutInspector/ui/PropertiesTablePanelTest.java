@@ -34,6 +34,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.swing.RowSorter;
 import org.junit.After;
 import org.junit.Before;

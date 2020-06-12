@@ -36,8 +36,8 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.InteractionHandler;
+import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -60,16 +60,14 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -191,9 +189,9 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(project, mySurfaceClass, myInteractionProviderCreator);
+      DesignSurface surface = createSurface(myFixture.getTestRootDisposable(), mySurfaceClass, myInteractionProviderCreator);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getTestRootDisposable(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getModels()).thenReturn(ImmutableList.of(model));
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
@@ -209,6 +207,7 @@ public class ModelBuilder {
       when(surface.getSceneManager()).thenReturn(sceneManager);
       when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
+      when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }

@@ -24,6 +24,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static java.util.stream.Collectors.toList;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -45,7 +46,7 @@ public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTest 
   @Override
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
     loadProject(DEPENDENT_MODULES);

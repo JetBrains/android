@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.net.URL;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +94,7 @@ public class UIUtils {
    * "Normal" background color as is found on a new JPanel background.
    */
   private static final Color AS_STANDARD_BACKGROUND_COLOR =
-    new JBColor(UIUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
+    new JBColor(StartupUiUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
 
   public static Color getBackgroundColor() {
     return BACKGROUND_COLOR;

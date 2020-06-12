@@ -15,8 +15,32 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_ACTIVITY;
+import static com.android.SdkConstants.CLASS_APP_COMPAT_ACTIVITY;
+import static com.android.SdkConstants.CLASS_TOOLBAR_V7;
+import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrationEntry;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_ATTR;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_ATTR_VALUE;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_CLASS;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_CUSTOM_VIEW_SUPERCLASS;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_METHOD;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_TAG;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_THEME_AND_STYLE;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.REPLACE_METHOD;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.XmlElementMigration;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.XmlTagMigrationEntry;
+
 import com.android.annotations.NonNull;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -28,8 +52,10 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.java.refactoring.JavaRefactoringBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
@@ -42,12 +68,20 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMigration;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiVariable;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.migration.PsiMigrationManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.listeners.RefactoringEventData;
 import com.intellij.refactoring.util.RefactoringUIUtil;
 import com.intellij.usageView.UsageInfo;
@@ -55,19 +89,20 @@ import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.SmartHashSet;
 import com.siyeh.ig.psiutils.MethodUtils;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
-
-import static com.android.SdkConstants.*;
-import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
-import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 
 /**
  * A RefactoringProcessor that can operate on a list of {@link AppCompatMigrationEntry}
@@ -344,8 +379,9 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
         switch (entry.getType()) {
           case CHANGE_CLASS: {
             ClassMigrationEntry classMigrationEntry = (ClassMigrationEntry)entry;
-            List<UsageInfo> usages =
-              MigrateToAppCompatUtil.findClassUsages(myProject, classMigrationEntry.myOldName);
+            List<UsageInfo> usages = MigrateToAppCompatUtil.findClassUsages(myProject, classMigrationEntry.myOldName);
+            // ReferencesSearch.search (internally used by findClassUsages) does not return results is any particular order. Sort them.
+            usages.sort(Comparator.comparingInt(u -> u.getSmartPointer().getRange() == null ? 0 : u.getSmartPointer().getRange().getStartOffset()));
             boolean isActivity = classMigrationEntry.myOldName.equals(CLASS_ACTIVITY);
             boolean isFragmentActivity = classMigrationEntry.myOldName.equals(CLASS_SUPPORT_FRAGMENT_ACTIVITY);
 
@@ -446,8 +482,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     finishMigration();
     PsiMigration psiMigration = PsiMigrationManager.getInstance(myProject).startMigration();
-    myClassMigrations = Lists.newArrayList();
-    myRefsToShorten = Lists.newArrayList();
+    myClassMigrations = new ArrayList<>();
+    myRefsToShorten = new ArrayList<>();
 
     try {
       // Mark the command as global, so that `Undo` is available even if the current file in the
@@ -535,7 +571,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     if (refUsages.get().length == 0) {
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        Messages.showInfoMessage(myProject, RefactoringBundle.message("migration.no.usages.found.in.the.project"),
+        Messages.showInfoMessage(myProject, JavaRefactoringBundle.message("migration.no.usages.found.in.the.project"),
                                  AndroidBundle.message("android.refactoring.migratetoappcompat"));
       }
       return false;

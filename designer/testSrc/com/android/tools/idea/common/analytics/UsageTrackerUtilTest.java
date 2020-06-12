@@ -57,6 +57,7 @@ package com.android.tools.idea.common.analytics;
  import com.intellij.openapi.Disposable;
  import com.intellij.openapi.util.Disposer;
  import com.intellij.openapi.util.text.StringUtil;
+ import com.intellij.testFramework.ServiceContainerUtil;
  import com.intellij.util.xml.XmlName;
  import java.util.Collections;
  import java.util.HashMap;
@@ -69,6 +70,7 @@ package com.android.tools.idea.common.analytics;
  import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+ import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  import org.picocontainer.MutablePicoContainer;
@@ -241,7 +243,7 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     when(resourceManagers.getFrameworkResourceManager()).thenReturn(frameworkResourceManager);
     when(resourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
 
-    registerComponentInstance((MutablePicoContainer)myFacet.getModule().getPicoContainer(),
+    ServiceContainerUtil.replaceService(myFacet.getModule(),
                               ModuleResourceManagers.class,
                               resourceManagers,
                               getTestRootDisposable());

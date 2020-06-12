@@ -16,10 +16,31 @@
 
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.GRID_LAYOUT;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.REQUEST_FOCUS;
+import static com.android.SdkConstants.TABLE_LAYOUT;
+import static com.android.SdkConstants.TABLE_ROW;
+import static com.android.SdkConstants.TAG_DATA;
+import static com.android.SdkConstants.TAG_IMPORT;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_VARIABLE;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.SdkConstants.VIEW_MERGE;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -31,14 +52,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AddMissingAttributesFix extends WriteCommandAction<Void> {
   @NotNull private final XmlFile myFile;
@@ -52,7 +71,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
 
   @NotNull
   public static List<SmartPsiElementPointer<XmlTag>> findViewsMissingSizes(@NotNull XmlFile file, @Nullable ResourceResolver resolver) {
-    final List<SmartPsiElementPointer<XmlTag>> missing = Lists.newArrayList();
+    final List<SmartPsiElementPointer<XmlTag>> missing = new ArrayList<>();
     ApplicationManager.getApplication().runReadAction(() -> {
       Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
       for (XmlTag tag : xmlTags) {

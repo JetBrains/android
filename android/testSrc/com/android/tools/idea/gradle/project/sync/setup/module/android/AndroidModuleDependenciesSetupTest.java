@@ -44,6 +44,7 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assume;
 import org.mockito.Mock;
 
 /**
@@ -186,6 +188,8 @@ public class AndroidModuleDependenciesSetupTest extends HeavyPlatformTestCase {
   }
 
   public void testSetupWithChangedPaths() throws IOException {
+    ignoreTestUnderWorkspaceModel();
+
     File cachedPath = createTempFile("fakeLibrary.jar", "");
     File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
     File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
@@ -349,5 +353,9 @@ public class AndroidModuleDependenciesSetupTest extends HeavyPlatformTestCase {
     VirtualFile[] javaDoc = libraryOrderEntry.getLibrary().getFiles(JavadocOrderRootType.getInstance());
     assertEquals(1, javaDoc.length);
     assertThat(javaDoc[0].getName()).isEqualTo("updatedFakeLibrary-javadoc.jar");
+  }
+
+  private static void ignoreTestUnderWorkspaceModel() {
+    Assume.assumeFalse("Not applicable to workspace model", Registry.is("ide.new.project.model"));
   }
 }

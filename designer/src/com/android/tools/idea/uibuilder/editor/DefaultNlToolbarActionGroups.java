@@ -94,7 +94,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
-    DropDownAction designSurfaceMenu = new DropDownAction(null, "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
+    DropDownAction designSurfaceMenu = new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
     designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));

@@ -54,7 +54,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
    *
-   * <p>The returned repository needs to be registered with a {@link com.intellij.openapi.Disposable} parent.
+   * <p>The returned repository is registered as root disposable, and needs to be re-registered with a
+   * {@link com.intellij.openapi.Disposable} parent. Caller is responsible for proper disposing of the returned object.
    *
    * @param facet the facet for the module
    * @param namespace the namespace for the repository
@@ -100,7 +101,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
    *
-   * <p>The returned repository needs to be registered with a {@link com.intellij.openapi.Disposable} parent.
+   * <p>The returned repository is registered as root disposable, and needs to be re-registered with a
+   * {@link com.intellij.openapi.Disposable} parent. Caller is responsible for proper disposing of the returned object.
    *
    * @param facet the facet for the module
    * @param namespace the namespace for the repository
@@ -180,6 +182,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
         }
       }
     };
+    // Note that ".connect(this)" will register "this" as root disposable if it has not been registered yet
     myFacet.getModule().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
   }
 

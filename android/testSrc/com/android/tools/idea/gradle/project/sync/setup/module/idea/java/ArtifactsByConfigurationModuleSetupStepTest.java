@@ -21,8 +21,8 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -136,7 +136,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
+    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath.getName());
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {
@@ -145,7 +145,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
     File buildFolderPath = createTempDir("build");
     File jarFilePath = new File(buildFolderPath, moduleName + ".jar");
-    createIfDoesntExist(jarFilePath);
+    createIfNotExists(jarFilePath);
 
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);

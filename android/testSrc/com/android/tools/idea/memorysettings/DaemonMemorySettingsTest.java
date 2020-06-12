@@ -18,12 +18,10 @@ package com.android.tools.idea.memorysettings;
 import static com.android.utils.FileUtils.join;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.utils.FileUtils;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
-import org.junit.After;
 
 public class DaemonMemorySettingsTest extends PlatformTestCase {
 
@@ -55,28 +53,27 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
     super.tearDown();
   }
 
-  private DaemonMemorySettings getDaemonMemorySettings(String... propertiesContent) throws Exception {
-    assertTrue(propertiesContent.length >= 3);
+  private DaemonMemorySettings getDaemonMemorySettings(String gradleUserHomeOpts, String userHomeOpts, String projectOpts) throws Exception {
     System.clearProperty("gradle.user.home");
     System.clearProperty("user.home");
 
-    if (propertiesContent[0] != null) {
+    if (gradleUserHomeOpts != null) {
       File tempGradleUserHomeDir = createTempDir("gradle-user-home");
-      File gradleUserHomePropertiesFile = createFile(tempGradleUserHomeDir, "gradle.properties", propertiesContent[0]);
+      File gradleUserHomePropertiesFile = createFile(tempGradleUserHomeDir, "gradle.properties", gradleUserHomeOpts);
       System.setProperty("gradle.user.home", gradleUserHomePropertiesFile.getParent());
     }
 
-    if (propertiesContent[1] != null) {
+    if (userHomeOpts != null) {
       File tempHomeDir = createTempDir("home");
       System.setProperty("user.home", tempHomeDir.getPath());
 
       File gradleDir = new File(tempHomeDir.getPath() + File.separator + ".gradle");
       gradleDir.mkdir();
-      createFile(gradleDir, "gradle.properties", propertiesContent[1]);
+      createFile(gradleDir, "gradle.properties", userHomeOpts);
     }
 
     File tempProjectDir = createTempDir("project");
-    File projectPropertiesFile = createFile(tempProjectDir, "gradle.properties", propertiesContent[2]);
+    File projectPropertiesFile = createFile(tempProjectDir, "gradle.properties", projectOpts);
 
     return new DaemonMemorySettings(new GradleProperties(projectPropertiesFile));
   }
@@ -93,19 +90,21 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
   }
 
   private void checkXmxWithUserProperties(int expectedGradleXmx, int expectedKotlinXmx,
-                                          String... propertiesContent) throws Exception {
-    DaemonMemorySettings daemonMemorySettings = getDaemonMemorySettings(propertiesContent);
+                                          String gradleUserHomeOpts, String userHomeOpts, String projectOpts) throws Exception {
+    DaemonMemorySettings daemonMemorySettings = getDaemonMemorySettings(gradleUserHomeOpts, userHomeOpts, projectOpts);
     assertEquals(expectedGradleXmx, daemonMemorySettings.getProjectGradleDaemonXmx());
     assertEquals(expectedKotlinXmx, daemonMemorySettings.getProjectKotlinDaemonXmx());
   }
 
-  public void testUserProperties() throws Exception {
+  public void testUserPropertiesFromNoGradleUserHomeNoUserHome() throws Exception {
     // No user properties
     checkXmxWithUserProperties(3072, 3072, null, null,
                                "org.gradle.jvmargs=-Xmx3G");
     checkXmxWithUserProperties(3072, 4096, null, null,
                                "org.gradle.jvmargs=-Xmx3G -Dkotlin.daemon.jvm.options=\"-Xmx4G\"");
+  }
 
+  public void testUserPropertiesNoUserHome() throws Exception {
     // User properties defined by gradle.user.home
     checkXmxWithUserProperties(1024, 1024,
                                "org.gradle.jvmargs=-Xmx1G",
@@ -124,6 +123,14 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
                                null,
                                "org.gradle.jvmargs=-Xmx3G -Dkotlin.daemon.jvm.options=\"-Xmx4G\"");
 
+  }
+
+  public void testUserPropertiesNoGradleUserHome() throws Exception {
+    // Properties are expected to be read from "${sys.user.home}/.gradle", but presense of env.GRADLE_USER_HOME fails this assumption.
+    if (System.getenv("GRADLE_USER_HOME") != null) {
+      return;
+    }
+
     // User properties defined by GRADLE_USER_HOME
     checkXmxWithUserProperties(1024, 1024,
                                null,
@@ -141,7 +148,9 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
                                null,
                                "org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx2G\"",
                                "org.gradle.jvmargs=-Xmx3G -Dkotlin.daemon.jvm.options=\"-Xmx4G\"");
+  }
 
+  public void testUserPropertiesAllSet() throws Exception {
     // User properties defined by both gradle.user.home and GRADLE_USER_HOME
     checkXmxWithUserProperties(1024, 1024,
                                "org.gradle.jvmargs=-Xmx1G",
@@ -161,12 +170,15 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
                                "org.gradle.jvmargs=-Xmx3G -Dkotlin.daemon.jvm.options=\"-Xmx4G\"");
   }
 
-  private void checkUserPropertiesPath(boolean expectedHashUserPropertiesPath, String... gradlePropertiesContent) throws Exception {
-    DaemonMemorySettings daemonMemorySettings = getDaemonMemorySettings(gradlePropertiesContent);
+  private void checkUserPropertiesPath(boolean expectedHashUserPropertiesPath,
+                                       String gradleUserHomeOpts,
+                                       String userHomeOpts,
+                                       String projectOpts) throws Exception {
+    DaemonMemorySettings daemonMemorySettings = getDaemonMemorySettings(gradleUserHomeOpts, userHomeOpts, projectOpts);
     assertEquals(expectedHashUserPropertiesPath, daemonMemorySettings.hasUserPropertiesPath());
     if (expectedHashUserPropertiesPath) {
       String expectedUserPropertiesPath =
-        gradlePropertiesContent[0] != null ? getGradleUserHomePropertiesFilePath() : getUserHomePropertiesFilePath();
+        gradleUserHomeOpts != null ? getGradleUserHomePropertiesFilePath() : getUserHomePropertiesFilePath();
       assertEquals(expectedUserPropertiesPath, daemonMemorySettings.getUserPropertiesPath());
     }
   }
@@ -179,7 +191,7 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
     return join(System.getProperty("user.home"), ".gradle", "gradle.properties");
   }
 
-  public void testUserPropertiesPath() throws Exception {
+  public void testUserPropertiesPathWithGradleUserHome() throws Exception {
     checkUserPropertiesPath(false, "", "", "");
 
     checkUserPropertiesPath(false, "kotlin.code.style=official", "", "");
@@ -190,15 +202,22 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
                             "org.gradle.jvmargs=-Xmx1G", null, "");
 
     checkUserPropertiesPath(true,
-                            null, "org.gradle.jvmargs=-Xmx1G", "");
-
-    checkUserPropertiesPath(true,
                             "org.gradle.jvmargs=-Xms1G", null, "");
 
     checkUserPropertiesPath(true,
-                            null, "org.gradle.jvmargs=-Xms1G", "");
+                            "org.gradle.jvmargs=-Xms1G", "org.gradle.jvmargs=-Xmx2G", "");
+  }
+
+  public void testUserPropertiesPathNoGradleUserHome() throws Exception {
+    // This test does not work if env.GRADLE_USER_HOME set
+    if (System.getenv("GRADLE_USER_HOME") != null) {
+      return;
+    }
 
     checkUserPropertiesPath(true,
-                            "org.gradle.jvmargs=-Xms1G", "org.gradle.jvmargs=-Xmx2G", "");
+                            null, "org.gradle.jvmargs=-Xmx1G", "");
+
+    checkUserPropertiesPath(true,
+                            null, "org.gradle.jvmargs=-Xms1G", "");
   }
 }

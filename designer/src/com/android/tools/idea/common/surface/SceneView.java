@@ -35,13 +35,15 @@ import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
-public abstract class SceneView {
+public abstract class SceneView implements Disposable {
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
   private ImmutableList<Layer> myLayersCache;
@@ -227,6 +229,14 @@ public abstract class SceneView {
   @NotNull
   final public SceneContext getContext() {
     return myContext;
+  }
+
+  @Override
+  public void dispose() {
+    if (myLayersCache != null) {
+      myLayersCache.forEach(Disposer::dispose);
+      myLayersCache = null;
+    }
   }
 
   /**

@@ -14,15 +14,12 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional="true" config-file="designer-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+    <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
-    </component>
-  </project-components>
 
   <!-- Extension points -->
   <extensionPoints>
@@ -57,67 +54,20 @@
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
   </extensions>
 
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
-      <headless-implementation-class/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.visual.VisualizationManager</implementation-class>
-      <headless-implementation-class/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
-    </component>
-  </project-components>
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.CustomViewEditorProvider" />
+    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.OutdatedCustomViewNotificationProvider" />
 
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
-    </component>
-  </module-components>
-
-  <actions>
-    <action
-        id="LayoutEditor.HelpAssistant"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        icon="StudioIcons.Common.HELP"
-        text="Show Help Panel"
-        description="Show/Hide Help Panel for Layout Editor">
-    </action>
-    <action
-        id="LayoutEditor.HelpAssistant.Full"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        icon="StudioIcons.Common.HELP"
-        text="Show Help Panel"
-        description="Show/Hide Help Panel for Layout Editor">
-    </action>
-    <action
-        id="LayoutEditor.HelpAssistant.ConstraintLayout"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        text="Constraint Layout Help Panel"
-        description="Create Help Panel for Constraint Layout Editor">
-    </action>
-    <action
-        id="LayoutEditor.HelpAssistant.MotionLayout"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        text="Motion Layout Help Panel"
-        description="Create Help Panel for Motion Layout Editor">
-    </action>
-  </actions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.MotionLayoutPanelAssistantBundleCreator"/>
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.ConstraintLayoutPanelAssistantBundleCreator"/>
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorPanelAssistantBundleCreator"/>
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.property.editors.NlXmlEditors" />
+    <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
+    <postStartupActivity implementation="com.android.tools.idea.uibuilder.editor.NlPreviewManager$NlPreviewManagerPostStartupActivity" />
   </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
+  </extensions>
+
 </idea-plugin>

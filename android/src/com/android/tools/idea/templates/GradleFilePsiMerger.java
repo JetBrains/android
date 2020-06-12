@@ -35,6 +35,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -62,7 +63,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrC
 /**
  * Utility class to help with merging Gradle files into one another
  */
-public class GradleFilePsiMerger {
+public final class GradleFilePsiMerger {
   /**
    * Merges the given source build.gradle content into the given destination build.gradle content,
    * and resolves and dynamic Gradle dependencies into specific versions. If a support library
@@ -166,12 +167,12 @@ public class GradleFilePsiMerger {
                                         @NotNull Project project,
                                         @Nullable String supportLibVersionFilter) {
     Map<String, Multimap<String, GradleCoordinate>> dependencies = new TreeMap<>(CONFIGURATION_ORDERING);
-    final List<String> unparsedDependencies = Lists.newArrayList();
+    final List<String> unparsedDependencies = new ArrayList<>();
 
     // Load existing dependencies into a map for the existing build.gradle
     Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
     Map<GradleCoordinate, PsiElement> psiGradleCoordinate = Maps.newHashMap();
-    final List<String> originalUnparsedDependencies = Lists.newArrayList();
+    final List<String> originalUnparsedDependencies = new ArrayList<>();
     pullDependenciesIntoMap(toRoot, originalDependencies, originalUnparsedDependencies, psiGradleCoordinate);
 
     // Load dependencies into a map for the new build.gradle

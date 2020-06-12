@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -41,6 +42,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -178,6 +180,8 @@ public class ThumbnailManagerTest extends NavTestCase {
 
   private static final float MAX_PERCENT_DIFFERENT = 1f;
 
+  @Bombed(year = 2020, month = Calendar.OCTOBER, day = 1, user = "Andrei.Kuznetsov",
+    description = "missing path: ../unitTest/res/layout/activity_main.xml")
   public void testGeneratedImage() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
 

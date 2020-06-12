@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.openapi.util.text.StringUtil.notNullize;
+import static com.intellij.util.ui.UIUtil.getFontSize;
+import static javax.swing.SwingConstants.RIGHT;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -45,17 +57,12 @@ import com.mxgraph.swing.util.mxGraphTransferable;
 import com.mxgraph.swing.view.mxInteractiveCanvas;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.notNullize;
-import static com.intellij.util.ui.UIUtil.getFontSize;
-import static javax.swing.SwingConstants.RIGHT;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 class ModuleVariantsInfoGraph extends DialogWrapper {
   @NotNull private final Module myModule;
@@ -274,7 +281,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     @Override
     @NotNull
     protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-      List<VariantSelectionAction> actions = Lists.newArrayList();
+      List<VariantSelectionAction> actions = new ArrayList<>();
       if (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC) {
         // Using single variant sync. Do not confuse the user by showing a subset of the variants.
         actions.add(new VariantSelectionAction(myAndroidModel.getSelectedVariant()));

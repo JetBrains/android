@@ -737,10 +737,8 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   private static boolean file_list_1_0_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "file_list_1_0_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, COLON);
     if (!result) result = consumeToken(builder, SEMICOLON);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 

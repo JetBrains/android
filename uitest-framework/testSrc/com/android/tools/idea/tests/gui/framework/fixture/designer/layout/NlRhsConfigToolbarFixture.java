@@ -19,7 +19,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 import com.android.tools.idea.common.actions.IssueNotificationAction;
-import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;

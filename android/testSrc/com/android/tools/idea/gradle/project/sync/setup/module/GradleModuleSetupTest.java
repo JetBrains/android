@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,13 +35,13 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
@@ -66,7 +66,8 @@ public class GradleModuleSetupTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil
+      .replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
 
     String moduleName = "app";
     myModule = createModule(moduleName);

@@ -37,7 +37,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
@@ -185,7 +185,7 @@ public class DataModel implements Disposable {
       return;
     }
     myFavoriteItems.add(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtilRt.toStringArray(myFavoriteItems));
     update();
   }
 
@@ -194,7 +194,7 @@ public class DataModel implements Disposable {
       return;
     }
     myFavoriteItems.remove(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtilRt.toStringArray(myFavoriteItems));
     update();
     if (myCurrentSelectedGroup == COMMON) {
       createFilteredItems(COMMON);

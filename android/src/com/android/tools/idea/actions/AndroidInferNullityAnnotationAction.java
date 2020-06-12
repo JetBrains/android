@@ -81,7 +81,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -346,7 +346,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
 
       @Override
-      public void generate(@NotNull Processor<Usage> processor) {
+      public void generate(@NotNull Processor<? super Usage> processor) {
         processUsages(processor, project);
       }
     };

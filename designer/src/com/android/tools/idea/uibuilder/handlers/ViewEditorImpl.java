@@ -64,6 +64,16 @@ import java.util.function.Predicate;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.util.ArrayUtilRt;
+import java.util.concurrent.CompletableFuture;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.function.Predicate;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**

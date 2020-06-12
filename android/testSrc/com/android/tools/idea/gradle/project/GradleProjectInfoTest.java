@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.android.tools.idea.testing.ProjectFiles.createFile;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static org.easymock.EasyMock.createMock;

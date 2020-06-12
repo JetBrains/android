@@ -50,6 +50,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -135,10 +136,10 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
     mScene = PsiCFGScene.getInstance(mProject);
     mCG = mScene.getCallGraph();
 
-    targetMethodList = Lists.newArrayList();
+    targetMethodList = new ArrayList<>();
     LocationManagerCFGClass = null;
     GoogleMapsAPIClass = null;
-    invocationSiteCollection = Lists.newArrayList();
+    invocationSiteCollection = new ArrayList<>();
     taggedMethodsWithElement = Maps.newHashMap();
 
     runAnalysis();
@@ -170,7 +171,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
       return null;
     }
 
-    List<CommonProblemDescriptor> retList = Lists.newArrayList();
+    List<CommonProblemDescriptor> retList = new ArrayList<>();
     PsiElement invocationStmt = taggedMethodsWithElement.get(method);
     ProblemDescriptor desc = manager.createProblemDescriptor(invocationStmt,
                                     PROBLEM_DESC,
@@ -214,8 +215,8 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
     //Stack<PsiCFGMethod> callStack = new Stack<>();
     Stack<GraphNode> nodeStack = new Stack<>();
     Stack<PsiCFGMethod> methodStack = new Stack<>();
-    longestMethodStack = Lists.newArrayList();
-    longestNodeStack = Lists.newArrayList();
+    longestMethodStack = new ArrayList<>();
+    longestNodeStack = new ArrayList<>();
 
     if ((!mCG.calleeMethodToCallerMethodReturnMap.containsKey(method)) &&
         (!mCG.callerMethodToCalleeMethodMap.containsKey(method))) {

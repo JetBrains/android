@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 

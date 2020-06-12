@@ -13,4 +13,11 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
   public Sdk getGradleJdk(@Nullable Project project, @NotNull String linkedProjectPath) {
     return IdeSdks.getInstance().getJdk();
   }
+
+  @Nullable
+  @Override
+  public String getGradleJvmPath(@NotNull Project project, @NotNull String linkedProjectPath) {
+    Sdk gradleJdk = IdeSdks.getInstance().getJdk();
+    return gradleJdk != null ? gradleJdk.getHomePath() : null;
+  }
 }

@@ -28,6 +28,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowAnchor
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -45,7 +46,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class ResourceExplorerToolWindowTest {
-
   lateinit var fixture: CodeInsightTestFixture
   lateinit var module: Module
   var facet: AndroidFacet? = null
@@ -103,7 +103,7 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithoutAndroidFacet() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManager.getInstance(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
     runInEdtAndWait {
@@ -115,7 +115,7 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithAndroidFacet() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManager.getInstance(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
@@ -130,7 +130,7 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithLoadingMessage() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManagerEx.getInstanceEx(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
@@ -148,7 +148,7 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithWaitingForSyncMessage() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManagerEx.getInstanceEx(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
@@ -168,7 +168,7 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithWaitingForBuildMessage() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManagerEx.getInstanceEx(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()

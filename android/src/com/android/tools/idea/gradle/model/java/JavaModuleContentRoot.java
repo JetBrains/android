@@ -116,6 +116,19 @@ public class JavaModuleContentRoot implements Serializable {
     myExcludeDirPaths = excludeDirPaths;
   }
 
+  // for serialization
+  @SuppressWarnings({"unused", "ConstantConditions"})
+  private JavaModuleContentRoot() {
+    myRootDirPath = null;
+    mySourceDirPaths = null;
+    myGenSourceDirPaths = null;
+    myResourceDirPaths = null;
+    myTestDirPaths = null;
+    myGenTestDirPaths = null;
+    myTestResourceDirPaths = null;
+    myExcludeDirPaths = null;
+  }
+
   @NotNull
   public File getRootDirPath() {
     return myRootDirPath;

@@ -28,7 +28,15 @@ import java.util.concurrent.atomic.AtomicLong
 /**
  * Project component responsible for tracking when the last project sync completed.
  */
-class SyncTimestamp(private val project: Project) : ProjectComponent {
+class SyncTimestampListener(private val project: Project): SyncResultListener {
+  override fun syncEnded(result: SyncResult) {
+    if (result != SyncResult.CANCELLED) {
+      project.getService(SyncTimestamp::class.java).setLastSyncTimestamp(Clock.getTime())
+    }
+  }
+}
+
+class SyncTimestamp {
   private val lastSyncTimestamp = AtomicLong(-1L)
 
   /**
@@ -36,14 +44,8 @@ class SyncTimestamp(private val project: Project) : ProjectComponent {
    */
   fun getLastSyncTimestamp() = lastSyncTimestamp.get()
 
-  override fun projectOpened() {
-    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
-      override fun syncEnded(result: SyncResult) {
-        if (result != SyncResult.CANCELLED) {
-          lastSyncTimestamp.set(Clock.getTime())
-        }
-      }
-    })
+  fun setLastSyncTimestamp(syncTimestamp: Long) {
+    lastSyncTimestamp.set(syncTimestamp)
   }
 }
 
@@ -52,4 +54,4 @@ class SyncTimestamp(private val project: Project) : ProjectComponent {
  * cancelled first (i.e. the result wasn't [SyncResult.CANCELLED]). A negative value indicates that
  * the project hasn't been synced yet this session.
  */
-fun Project.getLastSyncTimestamp() = getComponent(SyncTimestamp::class.java)?.getLastSyncTimestamp() ?: -1L
+fun Project.getLastSyncTimestamp() = getService(SyncTimestamp::class.java)?.getLastSyncTimestamp() ?: -1L

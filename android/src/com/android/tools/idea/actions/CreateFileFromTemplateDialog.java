@@ -19,14 +19,13 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.JavaCreateFromTemplateHandler;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.java.JavaBundle;
 import com.intellij.lang.LangBundle;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -95,7 +94,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     super(project);
     FormScalingUtil.scaleComponentTree(this.getClass(), myPanel);
 
-    setTitle(IdeBundle.message("action.create.new.class"));
+    setTitle(JavaBundle.message("action.create.new.class"));
     myKindLabel.setLabelFor(myKindCombo);
     myVisibilityLabel.setLabelFor(myPublicRadioButton);
     myModifiersLabel.setLabelFor(myNoModifierRadioButton);
@@ -328,7 +327,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
   PsiClass show(@NotNull final FileCreator creator) throws FailedToCreateFileException {
     final Ref<PsiClass> ref = Ref.create(null);
-    myCreator = new ElementCreator(myProject, IdeBundle.message("title.cannot.create.class")) {
+    myCreator = new ElementCreator(myProject, JavaBundle.message("title.cannot.create.class")) {
       @Override
       protected PsiElement[] create(String newName) throws Exception {
         PsiClass element = creator.createFile(getName(), myCreationOptions, myKindCombo.getSelectedName());

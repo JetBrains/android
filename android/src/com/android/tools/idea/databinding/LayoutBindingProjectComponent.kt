@@ -19,6 +19,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.getViewBindingEnabledTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.google.common.collect.Maps
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
@@ -50,11 +51,11 @@ class LayoutBindingProjectComponent(val project: Project) : ModificationTracker 
     val moduleManager = ModuleManager.getInstance(project)
     val dataBindingTracker = DataBindingUtil.getDataBindingEnabledTracker()
     val viewBindingTracker = project.getViewBindingEnabledTracker()
+    val facetManager = ProjectFacetManager.getInstance(project)
 
     allBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
-        val facets = moduleManager.modules
-            .mapNotNull { module -> AndroidFacet.getInstance(module) }
+        val facets = facetManager.getFacets(AndroidFacet.ID)
             .filter { facet -> DataBindingUtil.isDataBindingEnabled(facet) || facet.isViewBindingEnabled() }
 
         CachedValueProvider.Result.create(facets, dataBindingTracker, viewBindingTracker, moduleManager)
@@ -97,4 +98,9 @@ class LayoutBindingProjectComponent(val project: Project) : ModificationTracker 
   }
 
   override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project) : LayoutBindingProjectComponent = project.getService(LayoutBindingProjectComponent::class.java)
+  }
 }

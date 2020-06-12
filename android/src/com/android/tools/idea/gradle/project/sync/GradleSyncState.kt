@@ -34,9 +34,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSys
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL
-import com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion
-import com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion
-import com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes
+import com.android.tools.idea.gradle.util.GradleUtil.*
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -108,7 +106,7 @@ open class StateChangeNotification(private val project: Project) {
  * to any registered [GradleSyncListener]s via the projects [messageBus] or any one-time sync listeners passed into a specific invocation
  * of sync.
  */
-open class GradleSyncState @NonInjectable constructor(
+open class GradleSyncState @NonInjectable internal constructor (
   private val project: Project,
   private val androidProjectInfo: AndroidProjectInfo,
   private val gradleProjectInfo: GradleProjectInfo,
@@ -117,13 +115,8 @@ open class GradleSyncState @NonInjectable constructor(
   private val changeNotification: StateChangeNotification
 ) {
 
-  constructor(
-    project: Project,
-    androidProjectInfo: AndroidProjectInfo,
-    gradleProjectInfo: GradleProjectInfo,
-    messageBus: MessageBus,
-    projectStructure: ProjectStructure
-  ) : this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, StateChangeNotification(project))
+  constructor(project: Project) : this(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
+                                       project.messageBus, ProjectStructure.getInstance(project), StateChangeNotification(project))
 
   companion object {
     @JvmField

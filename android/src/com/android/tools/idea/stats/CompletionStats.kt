@@ -30,7 +30,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
-import com.intellij.util.analytics.toProto
+//import com.intellij.util.analytics.toProto // /platform/util/src/com/intellij/util/analytics/HistogramUtil.kt does not exist in IC
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentMap
  * Collects performance metrics on code completion, such as popup latency and completion insertion latency.
  * To log an [AndroidStudioEvent] with the collected data, call [reportCompletionStats].
  */
+// FIXME-ank3: move out of shared android-plugin.xml
 object CompletionStats {
   private const val MAX_LATENCY_MS = 60 * 1000
 
@@ -64,43 +65,7 @@ object CompletionStats {
    * May be called from any thread.
    */
   fun reportCompletionStats() {
-    val allStats = EditorCompletionStats.newBuilder()
-
-    val allFileTypes = mutableSetOf<EditorFileType>()
-    allFileTypes.addAll(popupLatencyHistograms.keys)
-    allFileTypes.addAll(completionLatencyHistograms.keys)
-    allFileTypes.addAll(insertionLatencyHistograms.keys)
-
-    // Note: calling getIntervalHistogram() on a recorder also resets its statistics.
-    for (fileType in allFileTypes) {
-      val popupLatencies = popupLatencyHistograms[fileType]?.intervalHistogram?.takeIf { it.totalCount > 0L }
-      val completionLatencies = completionLatencyHistograms[fileType]?.intervalHistogram?.takeIf { it.totalCount > 0L }
-      val insertionLatencies = insertionLatencyHistograms[fileType]?.intervalHistogram?.takeIf { it.totalCount > 0L }
-
-      if (popupLatencies == null && completionLatencies == null && insertionLatencies == null) {
-        continue
-      }
-
-      val stats = EditorCompletionStats.Stats.newBuilder()
-      stats.fileType = fileType
-
-      if (popupLatencies != null) stats.popupLatency = popupLatencies.toProto()
-      if (completionLatencies != null) stats.fullCompletionLatency = completionLatencies.toProto()
-      if (insertionLatencies != null) stats.insertionLatency = insertionLatencies.toProto()
-
-      allStats.addByFileType(stats.build())
-    }
-
-    if (allStats.byFileTypeCount == 0) {
-      return
-    }
-
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.EDITOR_COMPLETION_STATS
-        editorCompletionStats = allStats.build()
-      }
-    )
+    // method body removed: /platform/util/src/com/intellij/util/analytics/HistogramUtil.kt does not exist in IC
   }
 
   /** Registers lookup listeners. */

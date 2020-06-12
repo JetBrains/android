@@ -1,24 +1,10 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
@@ -30,6 +16,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.progress.CompilerTask;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -47,7 +34,16 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
@@ -56,7 +52,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
@@ -65,29 +65,44 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.compiler.artifact.*;
+import com.intellij.util.ArrayUtilRt;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.*;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidCompilerMessageKind;
+import org.jetbrains.android.util.AndroidExecutionUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
-
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
 
 /**
  * @author yole
@@ -328,7 +343,7 @@ public class AndroidCompileUtil {
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
     for (ExcludeEntryDescription description : configuration.getExcludeEntryDescriptions()) {
-      if (Comparing.equal(description.getUrl(), url)) {
+      if (Objects.equals(description.getUrl(), url)) {
         return;
       }
     }
@@ -397,7 +412,7 @@ public class AndroidCompileUtil {
                              "' as source root, because it is not located under content root of module '" +
                              model.getModule().getName() + "'\n<a href='fix'>Open Project Structure</a>";
       final Notification notification = new Notification(
-        AndroidBundle.message("android.autogeneration.notification.group"),
+        NotificationGroup.createIdWithTitle("Android Autogeneration", AndroidBundle.message("android.autogeneration.notification.group")),
         "Autogeneration Error", message, NotificationType.ERROR,
         new NotificationListener.Adapter() {
           @Override
@@ -467,7 +482,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean isModuleAffected(CompileContext context, Module module) {
-    return ArrayUtil.find(context.getCompileScope().getAffectedModules(), module) >= 0;
+    return ArrayUtilRt.find(context.getCompileScope().getAffectedModules(), module) >= 0;
   }
 
   public static void generate(AndroidFacet facet,
@@ -862,7 +877,7 @@ public class AndroidCompileUtil {
       }
     }
 
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   // support for lib<->lib and app<->lib circular dependencies

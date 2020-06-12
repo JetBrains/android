@@ -29,7 +29,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.facet.FacetManager;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -39,6 +38,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -51,7 +51,7 @@ public class GradleRenderErrorContributorTest extends PlatformTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDependenciesFactory = new IdeDependenciesFactory();
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, mock(GradleProjectInfo.class));
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, mock(GradleProjectInfo.class), getTestRootDisposable());
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
 
     setUpAndroidFacetWithGradleModelWithIssue();

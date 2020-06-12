@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.intellij.ide.impl.ProjectUtil
+import com.android.tools.idea.testing.*
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
@@ -33,8 +30,10 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
+import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
 import sun.swing.ImageIconUIResource
 import java.io.File
@@ -115,9 +114,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpAndroidProjectView()
-    ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
   }
@@ -176,6 +175,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       var icon: Icon? = this
       do {
         val previous = icon
+        icon = if (icon is RetrievableIcon) icon.retrieveIcon() else icon
         icon = if (icon is DeferredIcon) icon.evaluate() else icon
         icon = if (icon is RowIcon && icon.allIcons.size == 1) icon.getIcon(0) else icon
         icon = if (icon is LayeredIcon && icon.allLayers.size == 1) icon.getIcon(0) else icon

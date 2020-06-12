@@ -30,7 +30,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -39,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * See also: [LightBindingClass]
  */
 class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val component = LayoutBindingProjectComponent.getInstance(project)
   private val lightBindingCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>
@@ -115,7 +114,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     for (method in getMethodsByName(name, scope)) {
       if (!processor.process(method)) {
         return false

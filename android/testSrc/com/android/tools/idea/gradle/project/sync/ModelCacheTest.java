@@ -37,7 +37,7 @@ public class ModelCacheTest extends AndroidGradleTestCase {
     super.setUp();
     Project project = getProject();
 
-    myIdeComponents = new IdeComponents(project);
+    myIdeComponents = new IdeComponents(myFixture);
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);

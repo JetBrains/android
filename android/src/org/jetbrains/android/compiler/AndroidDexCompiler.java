@@ -118,7 +118,6 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     }
   }
 
-  @SuppressWarnings("deprecation")
   private static final class PrepareAction implements Computable<ProcessingItem[]> {
     private final CompileContext myContext;
 

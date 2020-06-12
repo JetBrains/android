@@ -31,7 +31,6 @@ import com.google.common.collect.Table
 import com.google.common.collect.Tables
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.lang.Language
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.editor.Editor
@@ -44,33 +43,19 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiReference
-import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.XmlElementFactory
-import com.intellij.psi.XmlRecursiveElementVisitor
+import com.intellij.psi.*
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.impl.source.xml.SchemaPrefixReference
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.xml.XmlAttribute
-import com.intellij.psi.xml.XmlDocument
-import com.intellij.psi.xml.XmlElement
-import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
+import com.intellij.psi.xml.*
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.usages.Usage
-import com.intellij.usages.UsageGroup
-import com.intellij.usages.UsageInfo2UsageAdapter
-import com.intellij.usages.UsageTarget
-import com.intellij.usages.UsageView
+import com.intellij.usages.*
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.text.nullize
@@ -79,8 +64,8 @@ import com.intellij.util.xml.DomUtil
 import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.converters.AttrNameConverter
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
@@ -550,7 +535,6 @@ private fun choosePrefix(packageName: String): String = packageName.substringAft
 
 
 class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
-  override fun createGroupingActions(view: UsageView): Array<AnAction> = AnAction.EMPTY_ARRAY
   override fun getActiveRules(project: Project) = arrayOf(ResourcePackageGroupingRule())
 }
 

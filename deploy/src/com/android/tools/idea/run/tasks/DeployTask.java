@@ -22,6 +22,7 @@ import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +42,11 @@ public class DeployTask extends AbstractDeployTask {
    * @param project  the project that this task is running within.
    * @param packages a map of application ids to apks representing the packages this task will deploy.
    */
-  public DeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, String userInstallOptions) {
-    super(project, packages, false);
+  public DeployTask(@NotNull Project project,
+                    @NotNull Map<String, List<File>> packages,
+                    String userInstallOptions,
+                    Computable<String> installPathProvider) {
+    super(project, packages, false, installPathProvider);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");

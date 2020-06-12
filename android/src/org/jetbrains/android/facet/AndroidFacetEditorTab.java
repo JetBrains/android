@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -33,7 +19,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
@@ -43,13 +29,12 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ArrayUtil;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -58,15 +43,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
+import javax.swing.*;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
@@ -244,8 +221,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final JComboBox apkPathComboBoxComponent = myApkPathCombo.getComboBox();
     apkPathComboBoxComponent.setEditable(true);
     apkPathComboBoxComponent.setModel(new DefaultComboBoxModel(getDefaultApks(module)));
-    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
-    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUI.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
+    apkPathComboBoxComponent.setMinimumSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getMinimumSize().height));
+    apkPathComboBoxComponent.setPreferredSize(new Dimension(JBUIScale.scale(10), apkPathComboBoxComponent.getPreferredSize().height));
 
     myApkPathCombo.addBrowseFolderListener(project, new FileChooserDescriptor(true, false, false, false, false, false) {
       @Override
@@ -264,7 +241,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       }
     });
 
-    myUpdateProjectPropertiesCombo.setModel(new DefaultComboBoxModel(new Object[]{"", Boolean.TRUE.toString(), Boolean.FALSE.toString()}));
+    myUpdateProjectPropertiesCombo.setModel(new DefaultComboBoxModel<>(
+      new String[]{"", Boolean.TRUE.toString(), Boolean.FALSE.toString()}));
     myUpdateProjectPropertiesCombo.setRenderer(SimpleListCellRenderer.create(
       "No", value -> value.isEmpty() ? "Ask" : Boolean.parseBoolean(value) ? "Yes" : "No"));
     buildImportedOptionsList();
@@ -326,7 +304,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private static String[] getDefaultApks(@NotNull Module module) {
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     String path = AndroidCompileUtil.getOutputPackage(module);
     if (path != null) {
       result.add(path);
@@ -338,13 +316,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         result.add(FileUtil.toSystemDependentName(buildDirectory + '/' + AndroidCompileUtil.getApkName(module)));
       }
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   @Override
   @Nls
   public String getDisplayName() {
-    return "Android SDK Settings";
+    return AndroidBundle.message("configurable.AndroidFacetEditorTab.display.name");
   }
 
   @NotNull
@@ -466,7 +444,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   @NotNull
   private String getSelectedCustomKeystorePath() {
     final String path = myCustomDebugKeystoreField.getText().trim();
-    return !path.isEmpty() ? VfsUtil.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
+    return !path.isEmpty() ? VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
   }
 
   private boolean checkRelativePath(String relativePathFromConfig, String absPathFromTextField) {
@@ -673,7 +651,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myNativeLibsFolder.setText(libsAbsPath != null ? libsAbsPath : "");
 
     myCustomDebugKeystoreField.setText(FileUtil.toSystemDependentName(
-      VfsUtil.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
+      VfsUtilCore.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
 
     final boolean runProguard = configuration.getState().RUN_PROGUARD;
     myRunProguardCheckBox.setSelected(runProguard);

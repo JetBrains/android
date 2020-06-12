@@ -43,10 +43,8 @@ import com.intellij.openapi.vfs.LargeFileWriteRequestor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath
-import org.jetbrains.android.facet.AndroidRootUtil.getModuleDirPath
 import java.io.File
 import java.io.IOException
-import java.nio.file.Paths
 
 @VisibleForTesting
 fun getBuildGradleText(jarName: File) = "configurations.maybeCreate(\"default\")\nartifacts.add(\"default\", file('${jarName.name}'))"
@@ -103,7 +101,7 @@ class ArchiveToGradleModuleModel(
   private fun doCreateModuleFromArchive(project: Project, gradlePath: String, archivePath: File, move: Boolean, containingModule: Module?) {
     @Suppress("DEPRECATION") // TODO: maybe we need to look into asking the user for where they want the module to be placed.
     val projectBaseDir = project.guessProjectDir() ?: project.baseDir
-    val moduleLocation = GradleUtil.getModuleDefaultPath(projectBaseDir, gradlePath)
+    val moduleLocation = GradleUtil.getModuleDefaultPath(projectBaseDir.toNioPath(), gradlePath)
     try {
       val sourceFile = archivePath.toVirtualFile(true) ?: return
 
@@ -131,7 +129,7 @@ class ArchiveToGradleModuleModel(
         .withName("Create module $gradlePath from Archive")
         .withGlobalUndo()
         .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION).run<Throwable> {
-          val moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.absolutePath)
+          val moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.toAbsolutePath().toString())
           if (moduleRoot != null) {
             // Move or copy the archive to the new module root.
             if (move) {

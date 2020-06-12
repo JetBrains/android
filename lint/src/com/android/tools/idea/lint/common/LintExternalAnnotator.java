@@ -40,18 +40,21 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.SuppressQuickFix;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
-import com.intellij.lang.annotation.Annotation;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -68,13 +71,13 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
@@ -129,7 +132,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
       VirtualFile mainFile = lintResult.getMainFile();
       final FileType fileType = mainFile.getFileType();
       String name = mainFile.getName();
-      if (fileType == StdFileTypes.XML) {
+      if (fileType == XmlFileType.INSTANCE) {
         if (name.equals(ANDROID_MANIFEST_XML)) {
           scope = Scope.MANIFEST_SCOPE;
         }
@@ -141,7 +144,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
           return lintResult;
         }
       }
-      else if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
+      else if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
         scope = Scope.JAVA_FILE_SCOPE;
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE);
@@ -153,7 +156,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
       else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
         scope = Scope.GRADLE_SCOPE;
       }
-      else if (fileType == StdFileTypes.PROPERTIES) {
+      else if (fileType == PropertiesFileType.INSTANCE) {
         scope = Scope.PROPERTY_SCOPE;
       }
       else {
@@ -263,86 +266,88 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
                 displayLevel = configuredLevel;
               }
             }
-            final Annotation annotation = createAnnotation(holder, message, range, displayLevel, issue);
+            // Convert from inspection severity to annotation severity
+            HighlightSeverity severity;
+            ProblemHighlightType type;
+            if (displayLevel == HighlightDisplayLevel.ERROR) {
+              severity = HighlightSeverity.ERROR;
+              type = ProblemHighlightType.ERROR;
+            } else if (displayLevel == HighlightDisplayLevel.WARNING) {
+              severity = HighlightSeverity.WARNING;
+              type = ProblemHighlightType.WARNING;
+            } else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
+              severity = HighlightSeverity.WEAK_WARNING;
+              type = ProblemHighlightType.WEAK_WARNING;
+            } else if (displayLevel == HighlightDisplayLevel.INFO) {
+              severity = HighlightSeverity.INFO;
+              type = ProblemHighlightType.INFORMATION;
+            } else {
+              severity = HighlightSeverity.WARNING;
+              type = ProblemHighlightType.WARNING;
+            }
 
+            AnnotationBuilder builder = createAnnotation(holder, severity, message, range, issue);
 
             LintIdeQuickFix[] fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue);
             for (LintIdeQuickFix fix : fixes) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
-                annotation.registerFix(new MyFixingIntention(fix, startElement, endElement));
+                builder = builder.withFix(new MyFixingIntention(fix, startElement, endElement));
               }
             }
 
             for (IntentionAction intention : inspection.getIntentions(startElement, endElement)) {
-              annotation.registerFix(intention);
+              builder = builder.withFix(intention);
             }
 
             if (ideSupport.canRequestFeedback()) {
-              annotation.registerFix(ideSupport.requestFeedbackIntentionAction(issue));
+              builder = builder.withFix(ideSupport.requestFeedbackIntentionAction(issue));
             }
 
             String id = key.getID();
-            annotation.registerFix(new SuppressLintIntentionAction(id, startElement));
+            builder = builder.withFix(new SuppressLintIntentionAction(id, startElement));
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
-              annotation.registerFix(new MyDisableInspectionFix(key));
-              annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+              builder = builder.withFix(new MyDisableInspectionFix(key));
+              builder = builder.withFix(new MyEditInspectionToolsSettingsAction(key, inspection));
             }
 
             if (issue == DeprecationDetector.ISSUE ||
                 issue == GradleDetector.DEPRECATED ||
                 issue == GradleDetector.DEPRECATED_CONFIGURATION) {
-              annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);
+              type = ProblemHighlightType.LIKE_DEPRECATED;
+              builder = builder.highlightType(type);
             }
 
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
               final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
               for (SuppressQuickFix action : suppressActions) {
                 if (action.isAvailable(project, startElement)) {
-                  ProblemHighlightType type = annotation.getHighlightType();
-                  annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(
-                    startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
+
+                  ProblemDescriptor descriptor = InspectionManager.getInstance(project).createProblemDescriptor(
+                    startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY);
+                  builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix();
                 }
               }
             }
+            builder.create();
           }
         }
       }
     }
   }
 
-  @SuppressWarnings("deprecation")
   @NotNull
-  private Annotation createAnnotation(@NotNull AnnotationHolder holder,
-                                      @NotNull String message,
-                                      @NotNull TextRange range,
-                                      @NotNull HighlightDisplayLevel displayLevel,
-                                      @NotNull Issue issue) {
-    // Convert from inspection severity to annotation severity
-    HighlightSeverity severity;
-    if (displayLevel == HighlightDisplayLevel.ERROR) {
-      severity = HighlightSeverity.ERROR;
-    }
-    else if (displayLevel == HighlightDisplayLevel.WARNING) {
-      severity = HighlightSeverity.WARNING;
-    }
-    else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
-      severity = HighlightSeverity.WEAK_WARNING;
-    }
-    else if (displayLevel == HighlightDisplayLevel.INFO) {
-      severity = HighlightSeverity.INFO;
-    }
-    else {
-      severity = HighlightSeverity.WARNING;
-    }
-
+  private AnnotationBuilder createAnnotation(@NotNull AnnotationHolder holder,
+                                             @NotNull HighlightSeverity severity, @NotNull String message,
+                                             @NotNull TextRange range,
+                                             @NotNull Issue issue) {
     String link = " <a "
                   + "href=\"" + LINK_PREFIX + issue.getId() + "\""
-                  + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
+                  + (StartupUiUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
                   + ">" + DaemonBundle.message("inspection.extended.description")
                   + "</a> " + getShowMoreShortCut();
     String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
 
-    return holder.createAnnotation(severity, range, message, tooltip);
+    return holder.newAnnotation(severity, message).range(range).tooltip(tooltip);
   }
 
   // Based on similar code in the LocalInspectionsPass constructor

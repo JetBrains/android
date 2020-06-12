@@ -113,7 +113,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GradleBuildInvoker {
   @NotNull private final Project myProject;
-  @NotNull private final FileDocumentManager myDocumentManager;
+
+  private final FileDocumentManager myDocumentManager;
+
   @NotNull private final GradleTasksExecutorFactory myTaskExecutorFactory;
 
   @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
@@ -124,11 +126,11 @@ public class GradleBuildInvoker {
 
   @NotNull
   public static GradleBuildInvoker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleBuildInvoker.class);
+    return project.getService(GradleBuildInvoker.class);
   }
 
   public GradleBuildInvoker(@NotNull Project project) {
-    this(project, FileDocumentManager.getInstance());
+    this(project, null, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
   @NonInjectable
@@ -140,13 +142,20 @@ public class GradleBuildInvoker {
   @NonInjectable
   @VisibleForTesting
   protected GradleBuildInvoker(@NotNull Project project,
-                               @NotNull FileDocumentManager documentManager,
+                               @Nullable FileDocumentManager documentManager,
                                @NotNull GradleTasksExecutorFactory tasksExecutorFactory,
                                @NotNull NativeDebugSessionFinder nativeDebugSessionFinder) {
     myProject = project;
     myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
     myNativeDebugSessionFinder = nativeDebugSessionFinder;
+  }
+
+  protected FileDocumentManager getFileDocumentManager() {
+    if (myDocumentManager != null) {
+      return myDocumentManager;
+    }
+    return FileDocumentManager.getInstance();
   }
 
   public void cleanProject() {
@@ -510,7 +519,6 @@ public class GradleBuildInvoker {
 
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
-          myBuildFailed = true;
           String title = executionName + " failed";
           DataProvider dataProvider = BuildConsoleUtils.getDataProvider(id, buildViewManager);
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataProvider);

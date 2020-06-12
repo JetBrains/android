@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.structure.layout;
 
 import com.android.SdkConstants;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
@@ -30,6 +29,11 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomElementVisitor;
 import com.intellij.util.xml.DomFileElement;
 import icons.StudioIcons;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.*;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.Include;
@@ -37,11 +41,6 @@ import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.structure.StructureUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Builder of structure view for layout XML files
@@ -147,7 +146,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
     @NotNull
     @Override
     public Collection<StructureViewTreeElement> getChildrenBase() {
-      final List<StructureViewTreeElement> result = Lists.newArrayList();
+      final List<StructureViewTreeElement> result = new ArrayList<>();
       final DomElementVisitor visitor = new DomElementVisitor() {
         public void visitLayoutViewElement(LayoutViewElement element) {
           result.add(new LayoutNode(element));

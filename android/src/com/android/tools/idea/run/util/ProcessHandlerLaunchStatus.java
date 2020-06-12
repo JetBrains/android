@@ -16,9 +16,9 @@
 package com.android.tools.idea.run.util;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ final public class ProcessHandlerLaunchStatus implements LaunchStatus {
    */
   private boolean myTerminated;
 
-  private List<BooleanSupplier> launchTerminationConditions = Lists.newCopyOnWriteArrayList();
+  private final List<BooleanSupplier> launchTerminationConditions = ContainerUtil.createLockFreeCopyOnWriteList();
 
   /**
    * Constructs with a given process handler.

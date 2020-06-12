@@ -17,12 +17,10 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.PolyadicExpr;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
-import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPolyadicExpression;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.tree.IElementType;
-
 import java.util.ArrayList;
 
 public class PolyadicExprImpl implements PolyadicExpr {
@@ -83,7 +81,7 @@ public class PolyadicExprImpl implements PolyadicExpr {
   public PolyadicExprImpl(IElementType operator, PsiPolyadicExpression psiRef) {
     this.mOperator = operator;
     this.mPsiRef = psiRef;
-    this.mExprList = Lists.newArrayList();
+    this.mExprList = new ArrayList<>();
     this.mPsiType = this.mPsiRef.getType();
   }
 }

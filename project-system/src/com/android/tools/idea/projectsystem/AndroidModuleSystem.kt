@@ -124,8 +124,17 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * Returns the resolved libraries that this module depends on.
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
+   *
+   * @param includeExportedTransitiveDeps indicates if the module dependencies should be searched recursively.
+   * `false` = search only own module dependencies
+   * `true` = search module direct dependencies + exported transitive dependencies
    */
-  fun getResolvedDependentLibraries(): Collection<Library>
+  fun getResolvedDependentLibraries(includeExportedTransitiveDeps : Boolean): Collection<Library>
+
+  /**
+   * Same as `getResolvedDependentLibraries(includeExportedTransitiveDeps = true)`.
+   */
+  fun getResolvedDependentLibraries(): Collection<Library> = getResolvedDependentLibraries(includeExportedTransitiveDeps = true)
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.

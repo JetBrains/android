@@ -16,12 +16,12 @@
 package com.android.tools.idea.databinding.cache;
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 abstract public class ProjectResourceCachedValueProvider<T, V> implements CachedValueProvider<T>, ModificationTracker {
   private Map<AndroidFacet, CachedValue<V>> myCachedValues = Maps.newHashMap();
   private final ModificationTracker[] myAdditionalTrackers;
-  private List<ModificationTracker> myDependencies = Lists.newArrayList();
+  private List<ModificationTracker> myDependencies = new ArrayList<>();
   private LayoutBindingProjectComponent myComponent;
   private long myDependencyModificationCountOnCompute;
   private long myModificationCount = 0;
@@ -60,9 +60,9 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
   @Override
   public final Result<T> compute() {
     List<AndroidFacet> facets = getFacets();
-    List<V> values = Lists.newArrayList();
+    List<V> values = new ArrayList<>();
 
-    List<ModificationTracker> newDependencies = Lists.newArrayList();
+    List<ModificationTracker> newDependencies = new ArrayList<>();
     newDependencies.add(myComponent);
     Collections.addAll(newDependencies, myAdditionalTrackers);
     for (AndroidFacet facet : facets) {
@@ -127,7 +127,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
         for (Map.Entry<A, List<B>> entry : result.entrySet()) {
           List<B> bList = merged.get(entry.getKey());
           if (bList == null) {
-            bList = Lists.newArrayList();
+            bList = new ArrayList<>();
             merged.put(entry.getKey(), bList);
           }
           bList.addAll(entry.getValue());

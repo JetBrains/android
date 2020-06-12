@@ -31,7 +31,6 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.Iterables;
@@ -68,14 +67,14 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import javax.swing.Icon;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -93,7 +92,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   public static final DataKey<TreeNode[]> SELECTED_TREE_NODES = DataKey.create("selectedTreeNodes");
 
-  private AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
+  private final AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
 
   public AndroidProjectViewPane(Project project) {
     super(project);
@@ -202,7 +201,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         if (providers == null) {
           return null;
         }
-        return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
+        return ContainerUtil.map(providers, provider -> new BuildScriptTreeStructureProvider(provider));
       }
 
       @Override

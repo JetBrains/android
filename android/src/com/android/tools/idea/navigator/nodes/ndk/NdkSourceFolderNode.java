@@ -81,18 +81,18 @@ public class NdkSourceFolderNode extends PsiDirectoryNode {
   }
 
   @Override
-  public Collection<AbstractTreeNode> getChildrenImpl() {
+  public Collection<AbstractTreeNode<?>> getChildrenImpl() {
     PsiDirectory folder = getValue();
     if (folder == null) {
       return Collections.emptyList();
     }
 
-    Collection<AbstractTreeNode> folderChildren =
+    Collection<AbstractTreeNode<?>> folderChildren =
       ProjectViewDirectoryHelper.getInstance(myProject).getDirectoryChildren(folder, getSettings(), true /* with subdirectories */);
     if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
       return folderChildren;
     }
-    List<AbstractTreeNode> result = new ArrayList<>();
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
     for (AbstractTreeNode child : folderChildren) {
       Object value = child.getValue();
       if (value instanceof PsiFile) {

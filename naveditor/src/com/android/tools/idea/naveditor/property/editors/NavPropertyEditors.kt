@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.ATTR_GRAPH
-import com.android.SdkConstants.ATTR_LAYOUT
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -34,15 +31,9 @@ import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
+import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
-class NavPropertyEditors : PropertyEditors() {
-
+class NavPropertyEditors(project: Project) : PropertyEditors(project.messageBus) {
   override fun resetCachedEditors() {}
 
   override fun create(property: NlProperty): NlComponentEditor {
@@ -83,7 +74,7 @@ class NavPropertyEditors : PropertyEditors() {
 
   companion object Factory {
     fun getInstance(project: Project): NavPropertyEditors {
-      return project.getComponent(NavPropertyEditors::class.java)
+      return project.getService(NavPropertyEditors::class.java)
     }
   }
 }

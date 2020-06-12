@@ -15,36 +15,38 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModulesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.*;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
-import static java.awt.event.MouseEvent.MOUSE_PRESSED;
+import org.jetbrains.annotations.NotNull;
 
 class TargetModulesPanel extends ToolWindowPanel {
   @NotNull private final PsContext myContext;
@@ -94,7 +96,7 @@ class TargetModulesPanel extends ToolWindowPanel {
   }
 
   private void setHeaderActions() {
-    List<AnAction> additionalActions = Lists.newArrayList();
+    List<AnAction> additionalActions = new ArrayList<>();
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {

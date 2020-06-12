@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import static com.android.SdkConstants.ATTR_NAME;
@@ -38,15 +39,14 @@ import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -104,7 +104,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     }
 
     ArrayList<PsiElement> elementList = new ArrayList<>(elements);
-    Collections.sort(elementList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    elementList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
     return elementList.get(0);
   }
 

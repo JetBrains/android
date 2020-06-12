@@ -36,7 +36,7 @@ import java.util.List;
 
 public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   protected final DesignSurface mySurface;
-  private CopyPasteManager myCopyPasteManager;
+  private final CopyPasteManager myCopyPasteManager;
 
   public DesignSurfaceActionHandler(@NotNull DesignSurface surface) {
     this(surface, CopyPasteManager.getInstance());

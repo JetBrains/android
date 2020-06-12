@@ -19,10 +19,8 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.NewExpr;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
-import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
-
 import java.util.ArrayList;
 
 public class NewExprImpl implements NewExpr {
@@ -125,7 +123,7 @@ public class NewExprImpl implements NewExpr {
   public NewExprImpl(PsiType baseType, PsiElement psiRef) {
     this.mType = baseType;
     this.mPsiRef = psiRef;
-    this.mArgsList = Lists.newArrayList();
+    this.mArgsList = new ArrayList<>();
     this.mIsArray = false;
     this.mContainsConstructorInvocation = false;
     this.mConstructorMethod = null;

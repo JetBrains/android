@@ -31,10 +31,10 @@ import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
@@ -50,18 +50,14 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   protected void initToolWindow(final @NotNull String id, @NotNull Icon icon) {
     myToolWindow = ToolWindowManager.getInstance(myProject).registerToolWindow(id, false, getAnchor(), myProject, true);
     myToolWindow.setIcon(icon);
-    myToolWindow.setAvailable(false, null);
+    myToolWindow.setAvailable(false);
     myToolWindow.setAutoHide(false);
     myPreviousWindowType = myToolWindow.getType();
     myPreviousWindowAnchor = getEditorMode();
     myProject.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(id);
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+        final ToolWindow window = toolWindowManager.getToolWindow(id);
         ToolWindowType newWindowType = window.getType();
         ToolWindowAnchor newWindowAnchor = getEditorMode();
 

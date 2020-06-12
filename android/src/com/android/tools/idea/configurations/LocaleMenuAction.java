@@ -52,7 +52,7 @@ public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super(null, "Locale for Preview", null);
+    super("Locale for Preview", "Locale for Preview", null);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
@@ -83,7 +83,7 @@ public class LocaleMenuAction extends DropDownAction {
       add(new SetLocaleAction(myRenderContext, title, Locale.ANY, currentLocalLabel.equals(title)));
       addSeparator();
 
-      Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
+      locales.sort(Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
         title = getLocaleLabel(locale, false);
 

@@ -15,6 +15,38 @@
  */
 package com.android.tools.idea.welcome.install;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CAMERA_BACK;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CAMERA_FRONT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DATA_PARTITION_SIZE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_MANUFACTURER;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_GPU_EMULATION;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_GPU_MODE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RAM_SIZE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SNAPSHOT_PRESENT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_VM_HEAP_SIZE;
+import static com.android.sdklib.internal.avd.HardwareProperties.BOOLEAN_NO;
+import static com.android.sdklib.internal.avd.HardwareProperties.BOOLEAN_YES;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_ACCELEROMETER;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_AUDIO_INPUT;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_BATTERY;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_DPAD;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_GPS;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_KEYBOARD;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_MAINKEYS;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_ORIENTATION_SENSOR;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_PROXIMITY_SENSOR;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_SDCARD;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_TRACKBALL;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.AVD_INI_NETWORK_LATENCY;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.AVD_INI_NETWORK_SPEED;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.CPU_CORES_KEY;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.cleanAvdName;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.getMaxCpuCores;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.pathToUpdatedSkins;
+
 import com.android.SdkConstants;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
@@ -42,22 +74,17 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.sdklib.internal.avd.AvdManager.*;
-import static com.android.sdklib.internal.avd.HardwareProperties.*;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Logic for setting up Android virtual device
@@ -176,7 +203,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @NotNull
   @Override
   protected Collection<String> getRequiredSdkPackages() {
-    List<String> result = Lists.newArrayList();
+    List<String> result = new ArrayList<>();
     if (myLatestVersion != null) {
       result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG));
       result.add(DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM));

@@ -17,16 +17,13 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
 import com.intellij.openapi.wm.ToolWindowId;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
+import org.fest.swing.edt.GuiQuery;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Fixture for the Inspections window in the IDE
@@ -69,7 +66,7 @@ public class InspectionsFixture extends ToolWindowFixture {
 
     // The exact order of the results sometimes varies so sort the children alphabetically
     // instead to ensure stable test output
-    List<InspectionTreeNode> children = Lists.newArrayListWithExpectedSize(node.getChildCount());
+    List<InspectionTreeNode> children = new ArrayList<>(node.getChildCount());
     for (int i = 0, n = node.getChildCount(); i < n; i++) {
       children.add((InspectionTreeNode)node.getChildAt(i));
     }

@@ -15,15 +15,50 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.ATTR_LAYOUT_CONSTRAINTSET;
+import static com.android.SdkConstants.ATTR_TEXT_COLOR;
+import static com.android.SdkConstants.AUTO_COMPLETE_TEXT_VIEW;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CHECK_BOX;
+import static com.android.SdkConstants.CHIP;
+import static com.android.SdkConstants.CHIP_GROUP;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.SdkConstants.COLLAPSING_TOOLBAR_LAYOUT;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.PROGRESS_BAR;
+import static com.android.SdkConstants.RADIO_BUTTON;
+import static com.android.SdkConstants.RADIO_GROUP;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.SWITCH;
+import static com.android.SdkConstants.TAB_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.SdkConstants.VIEW_TAG;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +71,11 @@ import com.intellij.util.xml.XmlName;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -45,14 +85,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
   private static final String UNKNOWN_TAG = "UnknownTagName";

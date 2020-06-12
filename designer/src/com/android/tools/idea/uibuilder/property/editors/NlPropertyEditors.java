@@ -34,7 +34,7 @@ import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class NlPropertyEditors extends PropertyEditors implements PTableCellEditorProvider{
-  private Project myProject;
+  private final Project myProject;
   private NlTableCellEditor myBooleanEditor;
   private NlTableCellEditor myFlagEditor;
   private NlTableCellEditor myComboEditor;
@@ -44,10 +44,12 @@ public class NlPropertyEditors extends PropertyEditors implements PTableCellEdit
 
   @NotNull
   public static NlPropertyEditors getInstance(@NotNull Project project) {
-    return project.getComponent(NlPropertyEditors.class);
+    return project.getService(NlPropertyEditors.class);
   }
 
   private NlPropertyEditors(@NotNull Project project) {
+    super(project.getMessageBus());
+
     myProject = project;
   }
 

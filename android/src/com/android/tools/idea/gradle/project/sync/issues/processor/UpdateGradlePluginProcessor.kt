@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 
@@ -30,7 +29,7 @@ class UpdateGradlePluginProcessor(
   private val pluginToVersionMap: Map<GradlePluginInfo, String>
 ) : BaseRefactoringProcessor(project) {
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor =
-    object : UsageViewDescriptorAdapter() {
+    object : UsageViewDescriptor {
       override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
       override fun getProcessedElementsHeader(): String = "Update Plugin Versions"

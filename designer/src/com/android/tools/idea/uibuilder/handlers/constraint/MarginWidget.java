@@ -24,6 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
@@ -56,7 +57,7 @@ public class MarginWidget extends JComboBox<String> {
     setBackground(StudioColorsKt.getSecondaryPanelBackground());
     setEditable(true);
     myTextField = (JTextField)getEditor().getEditorComponent();
-    myTextField.setFont(myTextField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
+    myTextField.setFont(myTextField.getFont().deriveFont((float) JBUIScale.scaleFontSize(12f)));
     myTextField.addFocusListener(new ScrollToViewFocusListener(this));
     initComboBox(name);
     setName(name);

@@ -27,18 +27,16 @@ import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourcePro
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -182,7 +180,7 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
     if (facet == null) {
       return Collections.emptyList();
     }
-    List<NamedModuleTemplate> templates = Lists.newArrayList();
+    List<NamedModuleTemplate> templates = new ArrayList<>();
     for (NamedIdeaSourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
       GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();

@@ -26,6 +26,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.function.Supplier;
 
 /**
  * Based on {@link com.intellij.ide.actions.CreateElementActionBase} but
@@ -42,7 +43,7 @@ public abstract class CreateResourceActionBase extends AnAction {
   protected CreateResourceActionBase() {
   }
 
-  protected CreateResourceActionBase(String text, String description, Icon icon) {
+  protected CreateResourceActionBase(@NotNull Supplier<String> text, @NotNull Supplier<String> description, Icon icon) {
     super(text, description, icon);
   }
 

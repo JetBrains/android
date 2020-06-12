@@ -18,15 +18,12 @@ package com.android.tools.idea.sdk.wizard;
 import com.android.repository.api.License;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -37,19 +34,19 @@ import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link ModelWizardStep} that displays all the licenses related to the packages the user is about to install
@@ -272,7 +269,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private List<Change> createChangesList() {
-    List<Change> toReturn = Lists.newArrayList();
+    List<Change> toReturn = new ArrayList<>();
     if (myInstallRequests != null) {
       for (RemotePackage p : myInstallRequests) {
         License license = p.getLicense();

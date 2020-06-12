@@ -48,13 +48,13 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
@@ -64,18 +64,16 @@ import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +86,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
-  @NotNull private final List<DependencyDetails> myDependencyDetails = Lists.newArrayList();
+  @NotNull private final List<DependencyDetails> myDependencyDetails = new ArrayList<>();
 
   @Nullable private final PsModule myModule;
 
@@ -184,7 +182,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     DefaultActionGroup actions = new DefaultActionGroup();
 
-    AnAction addDependencyAction = new DumbAwareAction("Add Dependency", "", IconUtil.getAddIcon()) {
+    AnAction addDependencyAction =
+      new DumbAwareAction(AndroidBundle.messagePointer("action.DumbAware.AbstractDependenciesPanel.text.add.dependency"), () -> "",
+                          IconUtil.getAddIcon()) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, getPopupActions()) {
@@ -199,7 +199,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
           }
 
           @Override
-          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep<?> onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 
@@ -359,7 +359,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private abstract class AbstractAddDependencyAction extends AbstractPopupAction {
     @NotNull private final String myTitle;
 
-    AbstractAddDependencyAction(@NotNull String title, @NotNull String text, @NotNull Icon icon, int index) {
+    AbstractAddDependencyAction(@NotNull @NlsContexts.DialogTitle String title, @NotNull String text, @NotNull Icon icon, int index) {
       super(text, icon, index);
       myTitle = title;
     }

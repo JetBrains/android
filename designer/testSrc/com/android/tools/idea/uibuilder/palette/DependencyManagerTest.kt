@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette
 
-import com.android.SdkConstants.CARD_VIEW
-import com.android.SdkConstants.FLOATING_ACTION_BUTTON
-import com.android.SdkConstants.FN_GRADLE_PROPERTIES
-import com.android.SdkConstants.RECYCLER_VIEW
-import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.*
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
-import com.android.tools.idea.projectsystem.EP_NAME
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -30,9 +24,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes
@@ -40,16 +32,10 @@ import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiManager
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
-import java.io.File
-import java.util.ArrayDeque
+import java.util.*
 import java.util.concurrent.Future
 
 class DependencyManagerTest : AndroidTestCase() {

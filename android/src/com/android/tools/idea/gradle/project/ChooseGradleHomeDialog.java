@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
+import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.getGradleHomeFileChooserDescriptor;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.storeLastUsedGradleHome;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
@@ -22,26 +32,21 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.ui.*;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TextComponentAccessor;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
+import java.io.File;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.util.GradleBundle;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.io.File;
-
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
-import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.plugins.gradle.util.GradleUtil.*;
 
 /**
  * Dialog where users select the path of the local Gradle installation to use when importing a project.
@@ -66,7 +71,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     this("Import Gradle Project", minimumGradleVersion);
   }
 
-  public ChooseGradleHomeDialog(@NotNull String title, @Nullable String minimumGradleVersion) {
+  public ChooseGradleHomeDialog(@NotNull @NlsContexts.DialogTitle String title, @Nullable String minimumGradleVersion) {
     super(null);
     myMinimumGradleVersion = minimumGradleVersion;
     myInstallationManager = ServiceManager.getService(GradleInstallationManager.class);

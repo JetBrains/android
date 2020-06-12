@@ -25,13 +25,12 @@ import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRenderer
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.registerExtension
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -43,11 +42,7 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.swing.DefaultListModel
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.*
 
 class DrawableGridTest {
 
@@ -86,7 +81,7 @@ class DrawableGridTest {
   @Test
   fun renderCell() {
 
-    val image = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).apply {
+    val image = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).apply {
       with(createGraphics()) {
         color = testColor
         drawRect(0, 0, 1, 1)
@@ -164,8 +159,6 @@ class StubRenderer : DesignAssetRenderer {
   fun hasRendered() = latch.count == 0L
 
   fun registerAsExtension(disposable: Disposable) {
-    ApplicationManager.getApplication().registerExtension(ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer"),
-                                       this,
-                                       disposable)
+    ApplicationManager.getApplication().extensionArea.getExtensionPoint<DesignAssetRenderer>("com.android.resourceViewer").registerExtension(this, disposable)
   }
 }

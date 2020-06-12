@@ -20,12 +20,12 @@ import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 
 /**
- * Tests for {@link SystemHealthMonitor}.
+ * Tests for {@link AndroidStudioSystemHealthMonitor}.
  */
-public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
+public class AndroidStudioSystemHealthMonitorTest extends LightPlatformTestCase {
 
   public void testGetActionName() {
     // normal class in our packages should yield simple name
@@ -47,7 +47,8 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
     // Regression test for b/130834409.
     assertTrue(
       "Unexpected type returned from IdeErrorsDialog.getAndroidErrorReporter()",
-      IdeErrorsDialog.getAndroidErrorReporter() instanceof ErrorReporter);
+      false);
+      //IdeErrorsDialog.getAndroidErrorReporter() instanceof ErrorReporter); // FIXME-ank
   }
 
 }

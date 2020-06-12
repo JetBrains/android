@@ -29,10 +29,10 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -51,6 +51,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.psi.SearchUtils;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,7 +78,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
       return;
     }
 
-    final List<PsiFile> bitmaps = Lists.newArrayList();
+    final List<PsiFile> bitmaps = new ArrayList<>();
     final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
@@ -135,7 +136,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
             continue;
           }
 
-          if (file.getFileType() == StdFileTypes.XML && parent.getName().startsWith(FD_RES_VALUES)) {
+          if (FileTypeRegistry.getInstance().isFileOfType(file, StdFileTypes.XML) && parent.getName().startsWith(FD_RES_VALUES)) {
             // Resource alias rather than an actual drawable XML file: update the type reference instead
             XmlFile xmlFile = (XmlFile)bitmap;
             XmlTag root = xmlFile.getRootTag();

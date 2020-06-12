@@ -15,28 +15,32 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Responsible for painting a screen view
@@ -333,7 +337,7 @@ public class ScreenViewLayer extends Layer {
                                           double yScaleFactor,
                                           @NotNull ScaleContext ctx) {
     BufferedImage scaledImage = null;
-    if (UIUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
+    if (StartupUiUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
       scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, ctx, false);
     }
     if (scaledImage == null) {

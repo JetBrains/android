@@ -32,6 +32,7 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -442,7 +443,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
         group.addSeparator();
       }
     }
-    DefaultActionGroup attachedSide = new DefaultActionGroup("Attached Side", true);
+    DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
     attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
     attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
@@ -505,12 +506,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myDragListener.buttonDropped(this, event);
   }
 
-  private static class MinimizedButton extends AnchoredButton {
-    private final AttachedToolWindow myToolWindow;
+  private static final class MinimizedButton extends AnchoredButton {
+    private final AttachedToolWindow<?> myToolWindow;
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
+    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow<?> toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -608,7 +609,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     private void startDragging(@NotNull MouseEvent event) {
-      BufferedImage image = UIUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage image = ImageUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics graphics = image.getGraphics();
       paint(graphics);
       graphics.dispose();
@@ -681,8 +682,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private class HideAction extends AnAction {
-    private HideAction() {
-      super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
+   private HideAction() {
+      super(UIBundle.messagePointer("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
     }
 
     @Override

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createTreePanel;
+
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.ui.VariantCheckboxTreeCellRenderer;
 import com.google.common.collect.Lists;
@@ -26,19 +28,17 @@ import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jdesktop.swingx.JXLabel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createTreePanel;
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import org.jdesktop.swingx.JXLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Displays the variants of a module and their dependents. The purpose of this dialog is to help users decide the build variant to choose
@@ -95,13 +95,13 @@ class ConflictResolutionDialog extends DialogWrapper {
       variantNode.setChecked(false);
       root.add(variantNode);
 
-      List<Module> dependents = Lists.newArrayList();
+      List<Module> dependents = new ArrayList<>();
       for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(variant)) {
         Module module = affected.getTarget();
         dependents.add(module);
       }
       if (dependents.size() > 1) {
-        Collections.sort(dependents, ModuleTypeComparator.INSTANCE);
+        dependents.sort(ModuleTypeComparator.INSTANCE);
       }
       for (Module dependent : dependents) {
         DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(dependent);

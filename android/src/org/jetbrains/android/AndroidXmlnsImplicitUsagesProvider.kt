@@ -42,7 +42,7 @@ class AndroidXmlnsImplicitUsagesProvider : ImplicitUsageProvider {
 
   override fun isImplicitUsage(element: PsiElement): Boolean {
     if (element !is XmlAttribute || !element.isNamespaceDeclaration || AndroidFacet.getInstance(element) == null) return false
-    val xmlTag = element.parentOfType(XmlTag::class) ?: return false
+    val xmlTag = element.parentOfType<XmlTag>() ?: return false
 
     // References from namespace prefixes resolve to the SchemaPrefix fake elements, not the attribute itself.
     val schemaPrefix: SchemaPrefix =

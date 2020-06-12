@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
@@ -35,6 +34,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -43,13 +43,11 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
+import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.UIUtil;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -57,8 +55,17 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EventObject;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.*;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A table model for a {@link SystemImageList}
@@ -108,7 +115,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       myCompletedCalls = 0;
     }
     myIndicator.onRefreshStart("Refreshing...");
-    final List<SystemImageDescription> items = Lists.newArrayList();
+    final List<SystemImageDescription> items = new ArrayList<>();
     RepoManager.RepoLoadedCallback localComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
@@ -151,7 +158,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
   private List<SystemImageDescription> getLocalImages() {
     SystemImageManager systemImageManager = mySdkHandler.getSystemImageManager(LOGGER);
-    List<SystemImageDescription> items = Lists.newArrayList();
+    List<SystemImageDescription> items = new ArrayList<>();
 
     for (ISystemImage image : systemImageManager.getImages()) {
       SystemImageDescription desc = new SystemImageDescription(image);
@@ -162,7 +169,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
   @Nullable
   private static List<SystemImageDescription> getRemoteImages(@NotNull RepositoryPackages packages) {
-    List<SystemImageDescription> items = Lists.newArrayList();
+    List<SystemImageDescription> items = new ArrayList<>();
     Set<RemotePackage> infos = packages.getNewPkgs();
 
     if (infos.isEmpty()) {

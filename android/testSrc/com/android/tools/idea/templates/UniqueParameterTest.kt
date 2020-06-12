@@ -18,13 +18,7 @@ package com.android.tools.idea.templates
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
-import com.android.tools.idea.templates.Template.ATTR_DEFAULT
-import com.android.tools.idea.templates.Template.ATTR_HELP
-import com.android.tools.idea.templates.Template.ATTR_ID
-import com.android.tools.idea.templates.Template.ATTR_NAME
-import com.android.tools.idea.templates.Template.ATTR_SUGGEST
-import com.android.tools.idea.templates.Template.ATTR_TYPE
+import com.android.tools.idea.templates.Template.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB

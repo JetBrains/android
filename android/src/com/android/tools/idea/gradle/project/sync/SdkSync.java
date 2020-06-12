@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -24,8 +29,8 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -35,19 +40,14 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.GuiUtils;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-
-public class SdkSync {
+public final class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
 
   @NotNull private final IdeSdks myIdeSdks;
@@ -57,8 +57,13 @@ public class SdkSync {
     return ServiceManager.getService(SdkSync.class);
   }
 
+  @NonInjectable
   public SdkSync(@NotNull IdeSdks ideSdks) {
     myIdeSdks = ideSdks;
+  }
+
+  public SdkSync() {
+    myIdeSdks = IdeSdks.getInstance();
   }
 
   public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {

@@ -85,7 +85,7 @@ public class WindowsPerformanceHintsChecker {
   public void run() {
     if (SystemInfo.isWindows && (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get() || StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get())) {
       Application application = ApplicationManager.getApplication();
-      application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      application.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
         public void projectOpened(@NotNull Project project) {
           // perform check, but do not show dialog, when project is opened.

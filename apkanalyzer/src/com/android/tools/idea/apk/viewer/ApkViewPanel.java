@@ -33,6 +33,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
@@ -52,7 +53,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
@@ -60,12 +60,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
@@ -194,13 +189,13 @@ public class ApkViewPanel implements TreeSelectionListener {
                                 .get(2)).packageId : "unknown";
 
                             UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                                                             .setRawProjectId(applicationId)
-                                                             .setApkAnalyzerStats(
-                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
-                                                                 .setUncompressedSize(uncompressed)
-                                                                 .build()));
+                                               .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                               .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                               .setRawProjectId(applicationId)
+                                               .setApkAnalyzerStats(
+                                                 ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                                   .setUncompressedSize(uncompressed)
+                                                   .build()));
                           }
                         }, MoreExecutors.directExecutor());
   }
@@ -459,7 +454,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
-        return AllIcons.Modules.SourceFolder;
+        return AllIcons.Nodes.Package;
       }
     }
   }

@@ -63,7 +63,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
@@ -75,6 +74,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -584,7 +584,7 @@ public class NlModelTest extends LayoutTestCase {
 
     // Manually construct the view hierarchy
     // Assert that component identity is preserved
-    List<ViewInfo> views = Lists.newArrayList();
+    List<ViewInfo> views = new ArrayList<>();
     XmlTag newRoot = model.getFile().getRootTag();
     assertThat(newRoot).isNotNull();
     XmlTag[] newRootSubTags = newRoot.getSubTags();

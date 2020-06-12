@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.intellij.psi.PsiDirectory;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public interface FolderGroupNode {

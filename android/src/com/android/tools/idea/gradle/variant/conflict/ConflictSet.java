@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -23,27 +31,18 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
-import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
-import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Set of all variant-selection-related conflicts. We classify these conflicts in 2 groups:
@@ -98,7 +97,7 @@ public class ConflictSet {
     }
 
     // Structural conflicts are the ones that have more than one group of modules depending on different variants of another module.
-    List<Conflict> filteredStructureConflicts = Lists.newArrayList();
+    List<Conflict> filteredStructureConflicts = new ArrayList<>();
     for (Conflict conflict : structureConflicts.values()) {
       if (conflict.getVariants().size() > 1) {
         filteredStructureConflicts.add(conflict);

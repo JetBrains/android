@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -71,6 +72,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
@@ -80,7 +82,6 @@ import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class GradleSyncExecutor {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
@@ -162,8 +163,10 @@ public class GradleSyncExecutor {
     for (String rootPath : androidProjectCandidatesPaths) {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-      refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
-                     executionMode, true /* always report import errors */);
+      refreshProject(rootPath,
+                     new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID)
+                       .callback(setUpTask)
+                       .use(executionMode));
     }
   }
 
@@ -193,7 +196,8 @@ public class GradleSyncExecutor {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, project, null);
+    @NotNull GradleVersion gradleVersion = projectSettings.resolveGradleVersion();
+    GradleProjectImportUtil.setupGradleSettings(project, projectSettings, externalProjectPath, gradleVersion);
     GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);

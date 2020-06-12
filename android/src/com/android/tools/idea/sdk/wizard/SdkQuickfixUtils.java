@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.repository.api.*;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.ProgressIndicatorAdapter;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -29,6 +36,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -37,17 +45,20 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class SdkQuickfixUtils {
   private static final ProgressIndicator REPO_LOGGER = new StudioLoggerProgressIndicator(SdkQuickfixUtils.class);
@@ -200,7 +211,7 @@ public final class SdkQuickfixUtils {
       resolvedPackages.forEach(updatable -> resolvedUninstalls.remove(updatable.getLocal()));
     }
 
-    List<UpdatablePackage> unavailableDownloads = Lists.newArrayList();
+    List<UpdatablePackage> unavailableDownloads = new ArrayList<>();
     verifyAvailability(resolvedPackages, unavailableDownloads);
 
     // If there were requests we didn't understand or can't download, show an error.
@@ -292,11 +303,11 @@ public final class SdkQuickfixUtils {
                                                @NotNull RepositoryPackages packages) throws PackageResolutionException {
     List<UpdatablePackage> result = new ArrayList<>();
     if (requestedPackages == null) {
-      requestedPackages = Lists.newArrayList();
+      requestedPackages = new ArrayList<>();
     }
     List<UpdatablePackage> resolved = Lists.newArrayList(requestedPackages);
 
-    List<RemotePackage> remotes = Lists.newArrayList();
+    List<RemotePackage> remotes = new ArrayList<>();
     for (UpdatablePackage p : resolved) {
       if (p.hasRemote()) {
         remotes.add(p.getRemote());

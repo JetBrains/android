@@ -23,11 +23,12 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -36,7 +37,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -56,16 +57,13 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.StudioIcons;
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Arrays;
-import javax.swing.JComponent;
-import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.*;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,11 +75,11 @@ import org.jetbrains.annotations.Nullable;
  * (a) the {@link ResourceNotificationManager} for update tracking, and (b) the
  * {@link NlDesignSurface} for layout rendering and direct manipulation editing.
  */
-public class NlPreviewManager implements ProjectComponent {
+@Service
+public final class NlPreviewManager implements Disposable {
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
-  private final FileEditorManager myFileEditorManager;
 
   private NlPreviewForm myToolWindowForm;
   private ToolWindow myToolWindow;
@@ -91,30 +89,30 @@ public class NlPreviewManager implements ProjectComponent {
   @VisibleForTesting
   private int myUpdateCount;
 
-  public NlPreviewManager(final Project project, final FileEditorManager fileEditorManager) {
-    myProject = project;
-    myFileEditorManager = fileEditorManager;
+  public static class NlPreviewManagerPostStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
+        // If the split editor is enabled, we shouldn't set up callbacks for project open events.
+        getInstance(project).onToolWindowReady();
+      }
+    }
+  }
 
+  public NlPreviewManager(@NotNull Project project) {
+    myProject = project;
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
 
     if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
       // If the split editor is enabled, we shouldn't be listening to file open/close events.
-      final MessageBusConnection connection = project.getMessageBus().connect(project);
+      final MessageBusConnection connection = project.getMessageBus().connect();
       connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
     }
   }
 
-  @Override
-  public void projectOpened() {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      // If the split editor is enabled, we shouldn't set up callbacks for project open events.
-      return;
-    }
-
-    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
-      myToolWindowReady = true;
-      processFileEditorChange(getActiveLayoutXmlEditor(null));
-    });
+  private void onToolWindowReady(){
+    myToolWindowReady = true;
+    processFileEditorChange(getActiveLayoutXmlEditor(null));
   }
 
   public boolean isWindowVisible() {
@@ -141,6 +139,8 @@ public class NlPreviewManager implements ProjectComponent {
     }
 
     myToolWindowForm = createPreviewForm();
+    Disposer.register(this, myToolWindowForm);
+
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
@@ -151,12 +151,8 @@ public class NlPreviewManager implements ProjectComponent {
 
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+        final ToolWindow window = toolWindowManager.getToolWindow(toolWindowId);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
@@ -200,20 +196,12 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   @Override
-  public void projectClosed() {
+  public void dispose() {
     if (myToolWindowForm != null) {
-      Disposer.dispose(myToolWindowForm);
       myToolWindowForm = null;
       myToolWindow = null;
       myToolWindowDisposed = true;
     }
-  }
-
-  @Override
-  @NotNull
-  @NonNls
-  public String getComponentName() {
-    return "NlPreviewManager";
   }
 
   @VisibleForTesting
@@ -311,16 +299,16 @@ public class NlPreviewManager implements ProjectComponent {
         final boolean hideForNonLayoutFiles = settings.getGlobalState().isHideForNonLayoutFiles();
 
         if (activeEditor == null) {
-          myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
+          myToolWindow.setAvailable(!hideForNonLayoutFiles);
           return;
         }
 
         if (!myToolWindowForm.setNextEditor(newEditor)) {
-          myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
+          myToolWindow.setAvailable(!hideForNonLayoutFiles);
           return;
         }
 
-        myToolWindow.setAvailable(true, null);
+        myToolWindow.setAvailable(true);
         // If user is using Visualization Tool, don't force switch to Preview.
         final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible()
                                 && !VisualizationManager.getInstance(myProject).isWindowVisible();
@@ -357,7 +345,7 @@ public class NlPreviewManager implements ProjectComponent {
       return ApplicationManager.getApplication().runReadAction((Computable<TextEditor>)() -> getActiveLayoutXmlEditor(file));
     }
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    return (TextEditor)Arrays.stream(myFileEditorManager.getSelectedEditors())
+    return (TextEditor)Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedEditors())
       .filter(editor -> editor instanceof TextEditor && isApplicableEditor((TextEditor)editor, file))
       .findFirst()
       .orElse(null);
@@ -410,8 +398,9 @@ public class NlPreviewManager implements ProjectComponent {
     return false;
   }
 
-  public static NlPreviewManager getInstance(Project project) {
-    return project.getComponent(NlPreviewManager.class);
+  @NotNull
+  public static NlPreviewManager getInstance(@NotNull Project project) {
+    return project.getService(NlPreviewManager.class);
   }
 
   @NotNull
@@ -440,9 +429,10 @@ public class NlPreviewManager implements ProjectComponent {
       // Thus we have to handle this case here.
       // In other cases, do not respond to fileClosed events since this has led to problems
       // with the preview window in the past. See b/64199946 and b/64288544
-      if (source.getOpenFiles().length == 0) {
-        ApplicationManager.getApplication()
-          .invokeLater(() -> processFileEditorChange(null), myProject.getDisposed());
+      if (!source.hasOpenFiles()) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          processFileEditorChange(null);
+        }, myProject.getDisposed());
       }
     }
 
@@ -465,7 +455,7 @@ public class NlPreviewManager implements ProjectComponent {
    *
    * When a tool window is created a list of commands are supplied and executed.
    * One of these commands are
-   *   {@link com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCmd}
+   *   {@link RequestFocusInToolWindowCommand}
    * which starts a timer and for the next 10 secs will attempt to set focus to
    * the component returned by {@link #getDefaultComponent}.
    *

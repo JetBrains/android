@@ -232,7 +232,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
     myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), this, 1000);
     myLoadingPanel.add(myMainPanel);
-    Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
     add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
     myMainPanel.setVisible(false);
@@ -680,7 +679,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     private static <T> InitParams<T> createParams(@NotNull Project project) {
       SideModel<T> model = new SideModel<>(project);
       return new InitParams<>(model,
-                              new ThreeComponentsSplitter(),
+                              new ThreeComponentsSplitter(project),
                               new MinimizedPanel<>(Side.LEFT, model),
                               new MinimizedPanel<>(Side.RIGHT, model));
     }

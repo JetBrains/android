@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -46,6 +48,12 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
       return null;
     }
 
-    return ModuleSystemUtil.getResolveScope(ProjectSystemUtil.getModuleSystem(module), file);
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    if (moduleSystem.getTestArtifactSearchScopes() == null) {
+      return null;
+    }
+
+    ScopeType scopeType = ModuleSystemUtil.getScopeType(moduleSystem, file, project);
+    return moduleSystem.getResolveScope(scopeType);
   }
 }

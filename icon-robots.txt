@@ -1,5 +1,3 @@
-skip: tools-base/**/*
-
 # Uncomment these lines once build/scripts/icons.gant is part of CE.
 # (https://youtrack.jetbrains.com/issue/IDEA-103558)
 skip: android/**/*

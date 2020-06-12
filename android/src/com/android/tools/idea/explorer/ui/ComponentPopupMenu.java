@@ -16,14 +16,20 @@
 package com.android.tools.idea.explorer.ui;
 
 import com.intellij.ide.actions.NonEmptyActionGroup;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.PopupHandler;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility class for building and installing a popup menu for a given {@link JComponent}.

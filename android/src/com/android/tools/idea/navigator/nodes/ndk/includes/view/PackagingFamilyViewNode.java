@@ -62,8 +62,8 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
-    List<AbstractTreeNode> children = new ArrayList<>();
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     PackageFamilyValue value = getPackageFamilyValue();
     for (ClassifiedIncludeValue child : value.myIncludes) {
       children.add(createIncludeView(myBuildFileFolder, child, myIncludeFolders, false, getProject(), getSettings()));

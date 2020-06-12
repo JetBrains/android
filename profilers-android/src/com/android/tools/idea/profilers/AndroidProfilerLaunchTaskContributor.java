@@ -66,7 +66,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ToolWindowManager;
 import io.grpc.StatusRuntimeException;
 import java.io.File;
 import java.io.IOException;
@@ -404,7 +404,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       // manually at a later time.
       ApplicationManager.getApplication().invokeLater(
         () -> {
-          ToolWindow window = ToolWindowManagerEx.getInstanceEx(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+          ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
           if (window != null) {
             window.setShowStripeButton(true);
 

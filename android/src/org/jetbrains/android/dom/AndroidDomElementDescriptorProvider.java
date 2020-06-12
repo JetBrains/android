@@ -37,7 +37,7 @@ import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.StudioIcons;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;

@@ -18,10 +18,8 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**

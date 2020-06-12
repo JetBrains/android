@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.testFramework.PlatformTestUtil
+import org.jetbrains.concurrency.AsyncPromise
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
@@ -38,7 +42,21 @@ internal val <T : Any> Annotated<PropertyValue<T>>.parsedValue get() = value.par
 
 fun PsProjectImpl.testResolve() {
   // NOTE: The timeout is intentionally too high as the tests execute in `bazel test` environment running a test per CPU core.
-  refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(90, TimeUnit.SECONDS))
+  val gradleModels = GradleResolver().requestProjectResolved(ideProject, ideProject)
+  waitForFuture(gradleModels, 90, TimeUnit.SECONDS)
+  refreshFrom(gradleModels.get())
+}
+
+fun <R> waitForFuture(future: ListenableFuture<R>, timeout: Long, timeUnit: TimeUnit): R? {
+  val asyncPromise = AsyncPromise<R?>()
+  future.addCallback(
+    success = { asyncPromise.setResult(it) },
+    failure = { when (it) {
+      null -> asyncPromise.setError("Undefined error. See logs for details")
+      else -> asyncPromise.setError(it)
+    } }
+  )
+  return PlatformTestUtil.waitForPromise(asyncPromise, timeUnit.toMillis(timeout))
 }
 
 fun PsModelDescriptor.testEnumerateProperties(): Set<ModelProperty<*, *, *, *>> {

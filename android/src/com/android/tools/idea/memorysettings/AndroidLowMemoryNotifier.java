@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.memorysettings;
 
-import static com.intellij.openapi.util.LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC;
-
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
+import com.intellij.notification.*;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.LowMemoryWatcher;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidLowMemoryNotifier implements ApplicationComponent {
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.intellij.openapi.util.LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC;
+
+final class AndroidLowMemoryNotifier implements Disposable {
   private LowMemoryWatcher myWatcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived, ONLY_AFTER_GC);
   private final AtomicBoolean myNotificationShown = new AtomicBoolean();
 
@@ -40,7 +37,7 @@ public class AndroidLowMemoryNotifier implements ApplicationComponent {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int xmxCap = MemorySettingsUtil.getIdeXmxCapInGB() * 1024;
     if (myNotificationShown.compareAndSet(false, true) && currentXmx < xmxCap) {
-      Notification notification = new Notification(IdeBundle.message("low.memory.notification.title"),
+      Notification notification = new Notification(NotificationGroup.createIdWithTitle("Low Memory", IdeBundle.message("low.memory.notification.title")),
                                                    IdeBundle.message("low.memory.notification.title"),
                                                    IdeBundle.message("low.memory.notification.content"),
                                                    NotificationType.WARNING);
@@ -61,7 +58,7 @@ public class AndroidLowMemoryNotifier implements ApplicationComponent {
   }
 
   @Override
-  public void disposeComponent() {
+  public void dispose() {
     myWatcher.stop();
     myWatcher = null;
   }

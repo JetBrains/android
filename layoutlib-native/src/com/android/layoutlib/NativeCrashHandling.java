@@ -16,8 +16,8 @@
 package com.android.layoutlib;
 
 import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
-import com.intellij.internal.statistic.analytics.StudioCrashDetection;
+//import com.intellij.internal.statistic.analytics.StudioCrashDetails; FIXME-ank2: missing intellij.platform.bootstrap
+//import com.intellij.internal.statistic.analytics.StudioCrashDetection;  FIXME-ank2: missing intellij.platform.bootstrap
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.BaseComponent;
 import java.util.List;
@@ -27,13 +27,14 @@ public class NativeCrashHandling implements BaseComponent {
   @Override
   public void initComponent() {
     // If the previous run of Studio ended on a JVM crash, disable layoutlib native.
-    List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
-    for (StudioCrashDetails crash : crashes) {
-      if (crash.isJvmCrash()) {
-        PluginManagerCore.disablePlugin("com.android.layoutlib.native");
-        PluginManagerCore.enablePlugin("com.android.layoutlib.standard");
-        ApplicationManager.getApplication().restart();
-      }
-    }
+    // FIXME-ank2: use layoutlib-standard by default.
+    //List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
+    //for (StudioCrashDetails crash : crashes) {
+    //  if (crash.isJvmCrash()) {
+    //    PluginManagerCore.disablePlugin("com.android.layoutlib.native");
+    //    PluginManagerCore.enablePlugin("com.android.layoutlib.standard");
+    //    ApplicationManager.getApplication().restart();
+    //  }
+    //}
   }
 }

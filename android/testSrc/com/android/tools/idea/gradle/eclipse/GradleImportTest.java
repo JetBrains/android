@@ -1,5 +1,46 @@
 package com.android.tools.idea.gradle.eclipse;
 
+import static com.android.SdkConstants.ANDROID_LIBRARY_REFERENCE_FORMAT;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_GRADLE;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_WIN;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_PROJECT_PROPERTIES;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.ANDROID_GRADLE_PLUGIN;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.MAVEN_REPOSITORY;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.NL;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isAdtProjectDir;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseWorkspaceDir;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isIgnoredFile;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isTextFile;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_FOLDER_STRUCTURE;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_FOOTER;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_GUESSED_VERSIONS;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_HEADER;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_MANIFEST;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_REPLACED_JARS;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_REPLACED_LIBS;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_RISKY_PROJECT_LOCATION;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_UNHANDLED;
+import static com.android.tools.idea.gradle.eclipse.ImportSummary.MSG_USER_HOME_PROGUARD;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.truth.Truth.assertAbout;
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.prefs.AndroidLocation;
@@ -21,29 +62,24 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.android.AndroidTestCase;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.SdkConstants.*;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
-import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.truth.Truth.assertAbout;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
-import static org.junit.Assert.assertNotEquals;
+import javax.imageio.ImageIO;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Unit tests for the Gradle importer.
@@ -3357,7 +3393,7 @@ public class GradleImportTest extends AndroidTestCase {
       return;
     }
     File pwd = base.getAbsoluteFile();
-    List<String> args = Lists.newArrayList();
+    List<String> args = new ArrayList<>();
     args.add(gradlew.getAbsolutePath());
     String customizedGradleHome = System.getProperty("gradle.user.home");
     if (customizedGradleHome != null) {

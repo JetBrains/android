@@ -110,4 +110,5 @@ public final class TestProjectPaths {
   public static final String UNUSED_RESOURCES_GROOVY = "projects/unusedResources";
   public static final String UNUSED_RESOURCES_KTS = "projects/unusedResourcesKotlin";
   public static final String VARIANT_SPECIFIC_DEPENDENCIES = "projects/variantSpecificDependencies";
+  public static final String CUSTOM_BUILD_SCRIPT_DEPS = "projects/customBuildScriptDeps";
 }

@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import junit.framework.TestCase
 
 open class NlDependencyManagerTest : LayoutTestCase() {
-
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var model: NlModel
 

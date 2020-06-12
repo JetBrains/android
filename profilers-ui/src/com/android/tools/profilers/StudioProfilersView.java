@@ -15,14 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
-import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
-import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
-import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
-
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
@@ -53,7 +45,6 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
@@ -71,6 +62,10 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -87,6 +82,14 @@ import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
+import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
+import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
   private final static String LOADING_VIEW_CARD = "LoadingViewCard";
@@ -142,7 +145,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageLoadingPanel.setLoadingText("");
     myStageLoadingPanel.getComponent().setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
-    mySplitter = new ThreeComponentsSplitter();
+    mySplitter = new ThreeComponentsSplitter(this);
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents the profilers from tabbing
     // across the components (e.g. sessions panel and the main stage UI).
     mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -150,7 +153,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setDividerMouseZoneSize(-1);
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
-    Disposer.register(this, mySplitter);
 
     myLayeredPane = new ProfilerLayeredPane(mySplitter);
     initializeSessionUi();
@@ -261,7 +263,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     // splitter itself. Instead, we mirror the logic that the divider uses to capture mouse event and check whether the width of the
     // sessions UI has changed between mouse press and release. Using Once here to mimic ThreeComponentsSplitter's implementation, as
     // we only need to add the MousePreprocessor to the glassPane once when the UI shows up.
-    new UiNotifyConnector.Once(mySplitter, new Activatable.Adapter() {
+    new UiNotifyConnector.Once(mySplitter, new Activatable() {
       @Override
       public void showNotify() {
         IdeGlassPane glassPane = IdeGlassPaneUtil.find(mySplitter);
@@ -281,7 +283,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
               myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
             }
           }
-        }, mySplitter);
+        }, StudioProfilersView.this);
       }
     });
   }
@@ -594,8 +596,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   @VisibleForTesting
   public static class StageComboBoxRenderer extends ColoredListCellRenderer<Class> {
-
-    private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
+    private static final ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
       MemoryProfilerStage.class, "MEMORY",
       NetworkProfilerStage.class, "NETWORK",

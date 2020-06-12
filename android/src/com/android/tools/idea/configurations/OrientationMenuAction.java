@@ -59,7 +59,7 @@ public class OrientationMenuAction extends DropDownAction {
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
   public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
-    super(null, "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
+    super("Orientation for Preview", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
     mySurface = surface;
   }
@@ -88,7 +88,7 @@ public class OrientationMenuAction extends DropDownAction {
       }
 
       addSeparator();
-      DefaultActionGroup uiModeGroup = new DefaultActionGroup("_UI Mode", true);
+      DefaultActionGroup uiModeGroup = DefaultActionGroup.createPopupGroup(() -> "_UI Mode");
       UiMode currentUiMode = configuration.getUiMode();
       for (UiMode uiMode : UiMode.values()) {
         String title = uiMode.getShortDisplayValue();
@@ -98,7 +98,7 @@ public class OrientationMenuAction extends DropDownAction {
       add(uiModeGroup);
 
       addSeparator();
-      DefaultActionGroup nightModeGroup = new DefaultActionGroup("_Night Mode", true);
+      DefaultActionGroup nightModeGroup = DefaultActionGroup.createPopupGroup(() -> "_Night Mode");
       NightMode currentNightMode = configuration.getNightMode();
       for (NightMode nightMode : NightMode.values()) {
         String title = nightMode.getShortDisplayValue();

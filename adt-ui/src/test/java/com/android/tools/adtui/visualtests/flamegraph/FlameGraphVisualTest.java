@@ -19,6 +19,8 @@ package com.android.tools.adtui.visualtests.flamegraph;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeSelectionComponent;
+import com.android.tools.adtui.*;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;

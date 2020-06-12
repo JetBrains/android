@@ -33,7 +33,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
@@ -48,6 +47,7 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.swing.Icon;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -72,7 +72,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable private XmlModelComponentMixin myMixin;
 
-  private final List<NlComponent> children = Lists.newArrayList();
+  private final List<NlComponent> children = new ArrayList<>();
   @Nullable private List<NlComponent> cachedChildrenCopy = null;
   private NlComponent myParent;
   @NotNull private final NlModel myModel;

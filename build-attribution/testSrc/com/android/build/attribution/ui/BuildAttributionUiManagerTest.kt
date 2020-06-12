@@ -315,5 +315,5 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   private fun verifyBuildAnalyzerTabNotSelected() =
     Truth.assertThat(contentManager().findContent("Build Analyzer").isSelected).isFalse()
 
-  private fun contentManager() = windowManager.getToolWindow(BuildContentManagerImpl.Build).contentManager
+  private fun contentManager() = windowManager.getToolWindow(BuildContentManagerImpl.Build)!!.contentManager
 }

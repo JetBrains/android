@@ -31,10 +31,10 @@
                       facetIdList="android"
                       anchor="bottom"
                       secondary="true"
-                      conditionClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowFactory"/>
 
+    <notificationWhitelist groupIds="Sqlite Viewer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">

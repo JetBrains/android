@@ -49,9 +49,7 @@ import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.ui.SearchTextField;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
@@ -60,11 +58,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import javax.swing.AbstractButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -109,15 +103,14 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getContext()).thenReturn("");
 
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
+    Disposer.register(getTestRootDisposable(), myToolWindow);
+
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      if (myToolWindow != null) {
-        Disposer.dispose(myToolWindow);
-      }
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
     }
     catch (Throwable e) {
@@ -247,6 +240,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     // Change the workbench context to ensure we're getting a different property, and reset the tool window
     when(myWorkBench.getContext()).thenReturn("testMinimizeDefaultSetInConstructor");
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, true);
+    Disposer.register(getTestRootDisposable(), myToolWindow);
     assertThat(myToolWindow.isMinimized()).isTrue();
   }
 

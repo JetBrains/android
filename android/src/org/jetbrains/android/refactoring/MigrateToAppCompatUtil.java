@@ -38,7 +38,6 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -64,7 +63,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.util.ObjectUtils;
 import com.intellij.util.SmartList;
 import java.io.File;
 import java.util.ArrayList;
@@ -74,6 +72,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
@@ -144,7 +143,7 @@ class MigrateToAppCompatUtil {
       return Collections.emptyList();
     }
 
-    List<ChangeCustomViewUsageInfo> result = Lists.newArrayList();
+    List<ChangeCustomViewUsageInfo> result = new ArrayList<>();
 
     //noinspection ConstantConditions
     Map<PsiFile, List<LintProblemData>> psiFileListMap = fileListMap.entrySet().stream()
@@ -162,7 +161,7 @@ class MigrateToAppCompatUtil {
       List<LintProblemData> problemDataList = entry.getValue();
 
       for (LintProblemData problemData : problemDataList) {
-        Integer start = problemData.getTextRange().getStartOffset();
+        int start = problemData.getTextRange().getStartOffset();
         LintFix fix = problemData.getQuickfixData();
         if (!(fix instanceof LintFix.ReplaceString)) continue;
         LintFix.ReplaceString replaceFix = (LintFix.ReplaceString)fix;
@@ -351,7 +350,7 @@ class MigrateToAppCompatUtil {
 
   static boolean isKotlinSimpleNameReference(PsiReference reference) {
     PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
-    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManagerCore.getPlugin(kotlinPluginId));
+    IdeaPluginDescriptor kotlinPlugin = Objects.requireNonNull(PluginManagerCore.getPlugin(kotlinPluginId));
     ClassLoader pluginClassLoader = kotlinPlugin.getPluginClassLoader();
     try {
       Class<?> simpleNameReferenceClass =

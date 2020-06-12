@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsActi
 import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
-import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
@@ -33,7 +32,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.build.BuildContentManager;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,8 +52,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
@@ -66,6 +65,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
@@ -85,6 +85,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
   }
 
+  @NonInjectable
+  @TestOnly
   public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo, @NotNull GradleSyncState syncState) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
@@ -286,15 +288,15 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
-        ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
-        if (tw != null && !tw.isActive()) {
-          tw.activate(null, false);
+        ToolWindow toolWindow = BuildContentManager.getInstance(project).getOrCreateToolWindow();
+        if (!toolWindow.isActive()) {
+          toolWindow.activate(null, false);
         }
       });
 
-      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
+      createActionLabel("Show Log in " + RevealFileAction.getFileManagerName(), () -> {
         File logFile = new File(PathManager.getLogPath(), "idea.log");
-        openFile(logFile);
+        RevealFileAction.openFile(logFile);
       });
     }
   }

@@ -43,9 +43,9 @@ public class InternetConnectionErrorHandlerTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myOriginalOfflineSetting = GradleSettings.getInstance(getProject()).isOfflineWork();
-    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   @Override

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.startup;
 
-import com.intellij.util.BuiltinWebServerAccess;
 import java.io.IOException;
 import org.junit.Test;
 
 public class UserAuthenticationTokenTest {
   @Test
   public void tokenCreated() throws IOException {
-    BuiltinWebServerAccess.getUserAuthenticationToken();
+    // BuiltinWebServerAccess.getUserAuthenticationToken(); // BuiltinWebServerAccess does not exist in IJ code base
   }
 }

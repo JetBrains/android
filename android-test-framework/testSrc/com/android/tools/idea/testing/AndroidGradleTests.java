@@ -22,7 +22,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -62,6 +61,7 @@ import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -139,7 +139,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests(); //.split("-")[0]; // for compose
+      String kotlinVersion = getKotlinVersionForTests();
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -190,6 +190,16 @@ public class AndroidGradleTests {
     }
   }
 
+  public static String getKotlinVersionForTests() {
+    String kotlinVersion = TestUtils.getKotlinVersionForTests();
+    if (kotlinVersion.contains("-release-")){
+      // RELEASE versions should be stripped. E.g. "1.3.50-release-128" should become "1.3.50"
+      // don't strip EAP versions, e.g. "1.3.60-eap-143" should remain "1.3.60-eap-143"
+      kotlinVersion = kotlinVersion.split("-")[0];
+    }
+    return kotlinVersion;
+  }
+
   @NotNull
   public static String updateBuildToolsVersion(@NotNull String contents) {
     return replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", BuildEnvironment.getInstance().getBuildToolsVersion());
@@ -228,6 +238,23 @@ public class AndroidGradleTests {
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
     localProperties.setAndroidSdkPath(sdkPath.getPath());
     localProperties.save();
+  }
+
+  /**
+   * Prevents leaking classloaders in gradle daemon
+   */
+  public static void applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(File projectRoot) throws IOException {
+    File projectBuildGradle = new File(projectRoot, "build.gradle");
+    assertAbout(file()).that(projectBuildGradle).isFile();
+    try (FileOutputStream out = new FileOutputStream(projectBuildGradle, true)) {
+      out.write("\n\n// Ugly workaround for OOME:Metaspace in Gradle daemon\n".getBytes(Charsets.UTF_8));
+      out.write(("gradle.services.get(org.gradle.tooling.internal.provider.serialization.PayloadSerializer.class)\n" +
+                 "  .classLoaderRegistry.delegate.cache.classLoaderIds.localCache.values()\n" +
+                 "  .each {\n" +
+                 "    if (it.hasProperty('name') && it.name == 'client-owned-daemon-payload-loader')\n" +
+                 "      it.loadClass('org.gradle.tooling.internal.adapter.ProtocolToModelAdapter').newInstance().REFLECTION_METHOD_INVOKER.lookupCache.store.clear()\n" +
+                 "  }").getBytes(Charsets.UTF_8));
+    }
   }
 
   @NotNull
@@ -276,7 +303,7 @@ public class AndroidGradleTests {
     List<File> repositories = new ArrayList<>();
     String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
     String publishLocalRepo = "out/repo";
-    if (TestUtils.runningFromBazel()) {
+    if (TestUtils.runningFromBazel() && false) { // FIXME-ank: env variables imply Bazel. This is not correct when running from IU.
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
       File file = new File(tmp, prebuiltsRepo);
@@ -337,6 +364,7 @@ public class AndroidGradleTests {
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    TestCase.assertNotNull("Gradle version not found in EmbeddedDistributionPaths. Version = " + gradleVersion, path);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }

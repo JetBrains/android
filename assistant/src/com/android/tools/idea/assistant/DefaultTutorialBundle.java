@@ -26,7 +26,6 @@ import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -35,9 +34,9 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -108,7 +107,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @XmlElements({
     @XmlElement(name = "feature", type = Feature.class)
   })
-  private List<Feature> myFeatures = Lists.newArrayList();
+  private List<Feature> myFeatures = new ArrayList<>();
 
 
   public DefaultTutorialBundle() {
@@ -284,7 +283,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlElements({
       @XmlElement(name = "resource", type = String.class)
     })
-    private List<String> myResources = Lists.newArrayList();
+    private List<String> myResources = new ArrayList<>();
 
     @XmlElement(name = "description")
     private String myDescription;
@@ -292,7 +291,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlElements({
       @XmlElement(name = "tutorial", type = Tutorial.class)
     })
-    private List<Tutorial> myTutorials = Lists.newArrayList();
+    private List<Tutorial> myTutorials = new ArrayList<>();
 
     private Class myResourceClass;
 
@@ -386,7 +385,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       @XmlElement(name = "headerStep", type = HeaderStep.class),
       @XmlElement(name = "footerStep", type = FooterStep.class)
     })
-    private List<Step> mySteps = Lists.newArrayList();
+    private List<Step> mySteps = new ArrayList<>();
 
     private Icon myIcon;
 
@@ -473,7 +472,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlElements({
       @XmlElement(name = "stepElement", type = StepElement.class)
     })
-    private List<StepElement> myStepElements = Lists.newArrayList();
+    private List<StepElement> myStepElements = new ArrayList<>();
 
     @XmlAttribute(name = "label")
     String myLabel;

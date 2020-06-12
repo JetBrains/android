@@ -95,7 +95,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
@@ -192,7 +192,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       int myFileCount = 0;
 
       @Override
-      public void visitFile(PsiFile file) {
+      public void visitFile(@NotNull PsiFile file) {
         myFileCount++;
         VirtualFile virtualFile = file.getVirtualFile();
         FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
@@ -440,7 +440,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       }
 
       @Override
-      public void generate(@NotNull Processor<Usage> processor) {
+      public void generate(@NotNull Processor<? super Usage> processor) {
         processUsages(processor, project);
       }
     };

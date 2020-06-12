@@ -17,11 +17,11 @@ package org.jetbrains.android.refactoring;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
+import com.intellij.usageView.UsageViewDescriptor;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
-class UnusedResourcesUsageViewDescriptor extends UsageViewDescriptorAdapter {
+class UnusedResourcesUsageViewDescriptor implements UsageViewDescriptor {
   private final PsiElement[] myElements;
 
   UnusedResourcesUsageViewDescriptor(PsiElement[] elements) {

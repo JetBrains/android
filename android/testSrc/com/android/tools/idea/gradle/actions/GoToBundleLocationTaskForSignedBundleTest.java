@@ -48,7 +48,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
   private static final String buildVariant1 = "FreeDebug";
   private static final String buildVariant2 = "PaidDebug";
-  private boolean isShowFilePathActionSupported;
+  private boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
   private GoToBundleLocationTask myTask;
   private SortedMap<String, File> buildsToPaths;
@@ -57,7 +57,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    isShowFilePathActionSupported = true;
+    isRevealFileActionSupported = true;
     List<Module> modules = Collections.singletonList(getModule());
     List<String> buildVariants = new ArrayList<>();
     buildVariants.add(buildVariant1);
@@ -73,8 +73,8 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), anyString())).thenReturn(buildsToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null, "") {
       @Override
-      boolean isShowFilePathActionSupported() {
-        return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
+      boolean isRevealFileActionSupported() {
+        return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
     ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
@@ -101,10 +101,10 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
                                            new OpenFolderNotificationListener(myProject, buildsToPaths, null));
   }
 
-  public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
-    isShowFilePathActionSupported = false;
+  public void testExecuteWithSuccessfulBuildNoRevealFileAction() {
+    isRevealFileActionSupported = false;
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String message = getExpectedModuleNotificationMessageNoShowFilePathAction(getModule().getName());
+    String message = getExpectedModuleNotificationMessageNoRevealFileAction(getModule().getName());
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
                                            new GoToBundleLocationTask.OpenEventLogHyperlink());
   }
@@ -136,7 +136,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
   }
 
   @NotNull
-  private static String getExpectedModuleNotificationMessageNoShowFilePathAction(@NotNull String moduleName) {
+  private static String getExpectedModuleNotificationMessageNoRevealFileAction(@NotNull String moduleName) {
     return "App bundle(s) generated successfully for module '" + moduleName + "' with 2 build variants";
   }
 

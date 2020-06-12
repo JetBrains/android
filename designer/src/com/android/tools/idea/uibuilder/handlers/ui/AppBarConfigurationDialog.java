@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.handlers.ui;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_BAR_LAYOUT;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
+
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -24,7 +37,10 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -54,19 +70,23 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Future;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.concurrent.Future;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
 
 public class AppBarConfigurationDialog extends JDialog {
   private static final String DIALOG_TITLE = "Configure App Bar";

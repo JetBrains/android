@@ -16,6 +16,14 @@
 
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
+
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
@@ -24,7 +32,6 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -34,20 +41,14 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.reference.SoftReference;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-
-import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -188,7 +189,7 @@ public class AndroidSdkData {
   @NotNull
   public IAndroidTarget[] getTargets(boolean includeAddOns) {
     Collection<IAndroidTarget> targets = getTargetCollection();
-    Collection<IAndroidTarget> result = Lists.newArrayList();
+    Collection<IAndroidTarget> result = new ArrayList<>();
     if (!includeAddOns) {
       for (IAndroidTarget target : targets) {
         if (target.isPlatform()) {

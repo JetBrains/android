@@ -31,7 +31,7 @@ import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
 import java.awt.FontMetrics;
@@ -85,7 +85,7 @@ class RecordingInitiatorPane extends CapturePane {
     }
 
     // TODO(b/109661512): Remove |JBUI.scale(10)| once the issue is fixed.
-    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,Fit,*").setVGap(JBUI.scale(10)));
+    JPanel content = new JPanel(new TabularLayout("*,Fit,Fit,*", "*,Fit,Fit,Fit,Fit,*").setVGap(JBUIScale.scale(10)));
 
     JLabel label = new JLabel("Select CPU Profiling mode");
     label.setFont(ProfilerFonts.H2_FONT);

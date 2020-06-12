@@ -24,10 +24,8 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.StageView;
-import java.awt.Color;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.awt.*;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 class EnergyStageTooltipView extends TooltipView {

@@ -29,8 +29,8 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStub;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -41,9 +41,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidArtifact {
-  @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
+  @NotNull private final List<File> myGeneratedResourceFolders = new ArrayList<>();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
-  @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
+  @NotNull private final Collection<NativeLibrary> myNativeLibraries = new ArrayList<>();
   @NotNull private IdeDependenciesStub myIdeLevel2DependenciesStub;
   @NotNull private String myApplicationId;
 

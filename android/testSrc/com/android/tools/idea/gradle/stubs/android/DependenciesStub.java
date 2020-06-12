@@ -17,25 +17,23 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeJavaLibrary;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 public class DependenciesStub implements IdeDependencies {
-  @NotNull private final List<AndroidLibrary> myLibraries = Lists.newArrayList();
-  @NotNull private final List<JavaLibrary> myJavaLibraries = Lists.newArrayList();
-  @NotNull private final List<String> myProjects = Lists.newArrayList();
-  @NotNull private final List<File> myRuntimeOnlyClasses = Lists.newArrayList();
+  @NotNull private final List<AndroidLibrary> myLibraries = new ArrayList<>();
+  @NotNull private final List<JavaLibrary> myJavaLibraries = new ArrayList<>();
+  @NotNull private final List<String> myProjects = new ArrayList<>();
+  @NotNull private final List<File> myRuntimeOnlyClasses = new ArrayList<>();
 
   public void addLibrary(@NotNull AndroidLibraryStub library) {
     myLibraries.add(library);

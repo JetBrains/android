@@ -54,8 +54,8 @@ import org.jetbrains.annotations.Nullable;
  * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
  * needed.
  */
-public class ResourceFolderRegistry implements Disposable {
-  @NotNull private Project myProject;
+public final class ResourceFolderRegistry implements Disposable {
+  @NotNull private final Project myProject;
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
   @NotNull private final ImmutableList<Cache<VirtualFile, ResourceFolderRepository>> myCaches =
@@ -165,6 +165,7 @@ public class ResourceFolderRegistry implements Disposable {
     @NotNull private final Project myProject;
 
     public PopulateCachesTask(@NotNull Project project) {
+      super(project);
       myProject = project;
     }
 
@@ -227,7 +228,7 @@ public class ResourceFolderRegistry implements Disposable {
     }
   }
 
-  public static class CachedRepositories {
+  public static final class CachedRepositories {
     @Nullable
     public final ResourceFolderRepository namespaced;
 

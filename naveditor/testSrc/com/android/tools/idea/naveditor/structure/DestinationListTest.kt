@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.ColoredListCellRenderer
 import icons.StudioIcons
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import java.awt.event.MouseEvent
 import java.util.*
@@ -178,7 +179,7 @@ class DestinationListTest : NavTestCase() {
     val point = list.myList.indexToLocation((0 until listModel.size).indexOfFirst { listModel.getElementAt(it) == nlComponent })
     val event = MouseEvent(list.myList, MouseEvent.MOUSE_CLICKED, 1, 0, point.x, point.y, 1, true)
     list.myList.dispatchEvent(event)
-    verify(actionManager).getPopupMenuActions(any())
+    verify(actionManager).showPopup(ArgumentMatchers.eq(event), any())
   }
 
   fun testRendering() {
@@ -224,7 +225,7 @@ class DestinationListTest : NavTestCase() {
     })
 
     val ui = FakeUi(list)
-    list.myList.ui = HeadlessListUI()
+    list.myList.setUI(HeadlessListUI())
     ui.keyboard.setFocus(list.myList)
     ui.keyboard.type(FakeKeyboard.Key.A)
     assertTrue(called)

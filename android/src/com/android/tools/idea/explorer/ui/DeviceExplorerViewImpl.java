@@ -744,7 +744,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Nullable
     @Override
     public Icon getIcon() {
-      return AllIcons.Actions.Delete;
+      return AllIcons.Actions.Cancel;
     }
 
     @Override

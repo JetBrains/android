@@ -22,7 +22,6 @@ import static com.android.SdkConstants.ATTR_ID;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -154,7 +153,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     }
 
     // Look for any NlComponents no longer present in the new set
-    List<XmlTag> missing = Lists.newArrayList();
+    List<XmlTag> missing = new ArrayList<>();
     Set<XmlTag> remaining = Sets.newIdentityHashSet();
     remaining.addAll(data.myTagToComponentMap.keySet());
     checkMissing(newRootTag, remaining, missing);

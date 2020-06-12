@@ -23,16 +23,21 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
 import com.android.tools.idea.experimental.codeanalysis.utils.CFGUtil;
 import com.android.tools.idea.experimental.codeanalysis.utils.PsiCFGAnalysisUtil;
 import com.android.tools.idea.experimental.codeanalysis.utils.PsiCFGDebugUtil;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
+import com.intellij.psi.PsiAnonymousClass;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLambdaExpression;
+import com.intellij.psi.PsiMethod;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class that saves all information of the interprocedural control
@@ -79,7 +84,7 @@ public class PsiCFGScene {
     mAppPsiClassPsiCFGClassMap = Maps.newHashMap();
     mLibraryPsiClassPsiCFGClassMap = Maps.newHashMap();
     mLambdaPsiCFGClassMap = Maps.newHashMap();
-    mInvocationNodes = Lists.newArrayList();
+    mInvocationNodes = new ArrayList<>();
     workingList = Queues.newArrayDeque();
   }
 
@@ -330,7 +335,7 @@ public class PsiCFGScene {
    * @return
    */
   public PsiCFGClass createLibraryCFGClassesWInnerClasses(PsiClass clazz) {
-    ArrayList<PsiClass> classList = Lists.newArrayList();
+    ArrayList<PsiClass> classList = new ArrayList<>();
     retriveClassAndInnerClass(classList, clazz);
     classList.remove(clazz);
     PsiCFGClass retVal = createPsiCFGClass(clazz, null, false);

@@ -17,10 +17,10 @@ package com.android.tools.property.testing
 
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.IdeFrame
 import org.junit.rules.ExternalResource
@@ -31,12 +31,7 @@ import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
 import sun.awt.CausedFocusEvent
-import java.awt.Component
-import java.awt.Container
-import java.awt.DefaultKeyboardFocusManager
-import java.awt.Frame
-import java.awt.GraphicsEnvironment
-import java.awt.KeyboardFocusManager
+import java.awt.*
 import java.awt.peer.ComponentPeer
 import javax.swing.JComponent
 
@@ -54,6 +49,7 @@ import javax.swing.JComponent
 class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalResource() {
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
+  private var oldFocusManager : KeyboardFocusManager? = null
   private val answer = Answer { invocation ->
     val componentToGainFocus = invocation.getArgument<Component>(0)
     val temporary = invocation.getArgument<Boolean>(1)
@@ -115,8 +111,19 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     val accessor = AWTAccessor.getComponentAccessor()
     if (accessor.getPeer(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
-      Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
-                                       ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+
+      if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
+        val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
+        val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
+                                            Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
+                                            Long::class.javaPrimitiveType, causeClass)
+
+        Mockito.`when`(methodCall.invoke(peer, ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+      } else {
+        Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+      }
       accessor.setPeer(component, peer)
     }
   }
@@ -135,6 +142,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
     appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
+    oldFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
   }
 
@@ -149,8 +157,9 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusManager = null
     ideFocusManager = null
     appRule = null
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(oldFocusManager)
     overrideGraphicsEnvironment(null)
+    oldFocusManager = null
   }
 
   private fun skipIfLinux(description: Description): Statement = object : Statement() {
@@ -210,7 +219,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
     override fun doWhenFocusSettlesDown(runnable: ExpirableRunnable) = runnable.run()
 
-    override fun getFocusedDescendantFor(comp: Component?): Component? = null
+    override fun getFocusedDescendantFor(comp: Component): Component? = null
 
     override fun requestDefaultFocus(forced: Boolean): ActionCallback = ActionCallback.DONE
 
@@ -220,9 +229,11 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
     override fun runOnOwnContext(context: DataContext, runnable: Runnable) = runnable.run()
 
-    override fun getLastFocusedFor(frame: IdeFrame?): Component? = null
+    override fun getLastFocusedFor(frame: Window?): Component? = null
 
     override fun getLastFocusedFrame(): IdeFrame? = null
+
+    override fun getLastFocusedIdeWindow(): Window? = null
 
     override fun toFront(c: JComponent?) {}
 

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -32,16 +33,14 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.util.List;
-
-import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 public class DeepLinkChooserDialog extends DialogWrapper {
 
@@ -61,7 +60,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   public DeepLinkChooserDialog(@NotNull Project project, @Nullable Module module) {
     super(project);
     myProject = project;
-    List<String> deepLinks = Lists.newArrayList();
+    List<String> deepLinks = new ArrayList<>();
     if (module != null && module.getModuleFile() != null && module.getModuleFile().getParent() != null) {
       XmlFile manifest = getAndroidManifestPsi(module);
       if (manifest != null) {
@@ -94,7 +93,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     myList.setSelectedIndex(0);
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent e) {
+      protected boolean onDoubleClick(@NotNull MouseEvent e) {
         int index = myList.locationToIndex(e.getPoint());
         if (index != -1 && myList.getModel().getElementAt(index) != null) {
           myList.setSelectedIndex(index);
@@ -138,10 +137,10 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   @VisibleForTesting
   static List<String> getAllDeepLinks(XmlTag root) {
     if (root == null) {
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
     List<XmlTag> intentFilters = searchXmlTagsByName(root, TAG_INTENT_FILTER);
-    List<String> deepLinks = Lists.newArrayList();
+    List<String> deepLinks = new ArrayList<>();
     for (XmlTag intentFilter : intentFilters) {
       String deepLink = getDeepLinkFromIntentFilter(intentFilter);
       if (deepLink != null) {
@@ -153,7 +152,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
 
   @NotNull
   private static List<XmlTag> searchXmlTagsByName(@NotNull XmlTag root, @NotNull final String tagName) {
-    final List<XmlTag> tags = Lists.newArrayList();
+    final List<XmlTag> tags = new ArrayList<>();
     root.accept(new XmlRecursiveElementVisitor() {
       @Override
       public void visitXmlTag(XmlTag tag) {

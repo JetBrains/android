@@ -19,8 +19,8 @@
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
-                      conditionClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
-                      factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"/>
+                      factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
+                      doNotActivateOnStart="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>
   </extensions>

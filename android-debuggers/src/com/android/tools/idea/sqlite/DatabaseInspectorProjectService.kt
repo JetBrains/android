@@ -253,7 +253,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private fun openSqliteDatabaseInInspector(databaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<SqliteDatabase> {
     invokeLaterIfNeeded {
-      toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
+      toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID)?.show {
         controller.addSqliteDatabase(databaseFuture)
       }
     }

@@ -46,6 +46,7 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import javax.imageio.ImageIO
 
+// FIXME-ank2: don't use:
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.05
 
@@ -215,6 +216,9 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testClip.png"), generatedImage, DIFF_THRESHOLD)
   }
+
+  // FIXME-ank2
+  private fun getTestFile(testFileName: String) = LayoutInspector::class.java.getResourceAsStream("/$testFileName")
 
   @Test
   fun testDrag() {

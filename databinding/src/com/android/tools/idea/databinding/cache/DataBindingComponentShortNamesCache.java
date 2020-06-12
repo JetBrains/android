@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding.cache;
 
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder;
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
 import com.intellij.openapi.project.Project;
@@ -29,21 +28,19 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
 /**
  * Cache that stores the DataBindingComponent instances associated with each module.
  *
  * See {@link LightDataBindingComponentClass}
  */
 final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
-  private final DataBindingProjectComponent myComponent;
+  private final Project myProject;
   private static final String[] ourClassNames = new String[]{SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT};
 
   DataBindingComponentShortNamesCache(@NotNull Project project) {
-    myComponent = project.getComponent(DataBindingProjectComponent.class);
+    myProject = project;
   }
 
   @NotNull
@@ -64,19 +61,14 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   private boolean check(String name, GlobalSearchScope scope) {
     return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
-           && scope.getProject() != null
-           && myComponent.getProject().equals(scope.getProject());
+            && scope.getProject() != null
+            && myProject.equals(scope.getProject());
   }
 
   @NotNull
   @Override
   public String[] getAllClassNames() {
     return ourClassNames;
-  }
-
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
   }
 
   @NotNull
@@ -99,8 +91,8 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public boolean processMethodsWithName(@NonNls @NotNull String name,
-                                        @NotNull GlobalSearchScope scope,
-                                        @NotNull Processor<PsiMethod> processor) {
+          @NotNull GlobalSearchScope scope,
+          @NotNull Processor<? super PsiMethod> processor) {
     return true;
   }
 

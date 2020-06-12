@@ -39,27 +39,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.reference.SoftReference;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +79,7 @@ public class CanvasResizeInteraction extends Interaction {
   @NotNull private final Configuration myConfiguration;
   private final OrientationLayer myOrientationLayer;
   private final SizeBucketLayer mySizeBucketLayer;
-  private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
+  private final List<DeviceLayer> myDeviceLayers = new ArrayList<>();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
   private final DeviceSizeList myDeviceSizeList = new DeviceSizeList();
@@ -418,7 +413,7 @@ public class CanvasResizeInteraction extends Interaction {
         int x0 = myScreenView.getX();
         int y0 = myScreenView.getY();
         int maxDim = Math.max(width, height);
-        image = UIUtil.createImage(maxDim, maxDim, BufferedImage.TYPE_INT_ARGB);
+        image = ImageUtil.createImage(maxDim, maxDim, BufferedImage.TYPE_INT_ARGB);
 
         constructPolygon(myOrientationPolygon, null, maxDim, !isDevicePortrait);
         myOrientationPolygon.translate(x0, y0);
@@ -508,7 +503,7 @@ public class CanvasResizeInteraction extends Interaction {
       SoftReference<BufferedImage> bucketRef = buckets.get(screenSizeBucket);
       BufferedImage bucket = bucketRef != null ? bucketRef.get() : null;
       if (bucket == null) {
-        bucket = UIUtil.createImage(myTotalWidth, myTotalHeight, BufferedImage.TYPE_INT_ARGB);
+        bucket = ImageUtil.createImage(myTotalWidth, myTotalHeight, BufferedImage.TYPE_INT_ARGB);
         constructPolygon(myClip, null, Math.max(myTotalHeight, myTotalWidth), isDevicePortrait);
         myClip.translate(myScreenView.getX(), myScreenView.getY());
 

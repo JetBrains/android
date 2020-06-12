@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.EXT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -35,13 +34,10 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
@@ -244,9 +240,11 @@ public class GradleFiles {
    */
   @Nullable
   private static Integer computeHash(@NotNull VirtualFile file) {
-    if (!file.isValid()) return null;
-    Document document = FileDocumentManager.getInstance().getDocument(file);
-    return document == null ? null : document.getText().hashCode();
+    return ReadAction.compute(() -> {
+      if (!file.isValid()) return null;
+      Document document = FileDocumentManager.getInstance().getDocument(file);
+      return document == null ? null : document.getText().hashCode();
+    });
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
@@ -288,7 +286,7 @@ public class GradleFiles {
    * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
   private void scheduleUpdateFileHashes() {
-    TransactionGuard.getInstance().submitTransactionLater(myProject, () -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       // Local map to minimize time holding myLock
       Map<VirtualFile, Integer> fileHashes = new HashMap<>();
       GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
@@ -374,7 +372,7 @@ public class GradleFiles {
       }
 
       storeHashesForFiles(fileHashes);
-    });
+    }, myProject.getDisposed());
   }
 
   /**
@@ -465,31 +463,6 @@ public class GradleFiles {
 
     private GradleFileChangeListener(@NotNull GradleFiles gradleFiles) {
       myGradleFiles = gradleFiles;
-    }
-
-    @Override
-    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getNewChild(), event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild(), event.getNewChild());
     }
 
     @Override

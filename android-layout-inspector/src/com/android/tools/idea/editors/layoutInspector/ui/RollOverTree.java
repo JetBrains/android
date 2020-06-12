@@ -16,28 +16,27 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tree with roll over effect
  */
 public class RollOverTree extends Tree {
 
-  private final List<TreeHoverListener> mHoverListeners = Lists.newArrayList();
+  private final List<TreeHoverListener> mHoverListeners = new ArrayList<>();
 
   @Nullable
   private TreePath mHoverPath = null;

@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureActi
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -60,10 +59,9 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -135,22 +133,22 @@ public class GradleSpecificInitializer implements Runnable {
    * Gradle has an issue when the studio path contains ! (http://b.android.com/184588)
    */
   private static void checkInstallPath() {
-    if (PathManager.getHomePath().contains("!")) {
-      final Application app = ApplicationManager.getApplication();
-
-      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-        @Override
-        public void appStarting(Project project) {
-          app.invokeLater(() -> {
-            String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
-                                           ApplicationNamesInfo.getInstance().getProductName());
-            Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
-            notification.setImportant(true);
-            Notifications.Bus.notify(notification);
-          });
-        }
-      });
+    if (!PathManager.getHomePath().contains("!")) {
+      return;
     }
+
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+      @Override
+      public void appStarting(Project project) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
+                                         ApplicationNamesInfo.getInstance().getProductName());
+          Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
+          notification.setImportant(true);
+          Notifications.Bus.notify(notification);
+        }, ModalityState.NON_MODAL);
+      }
+    });
   }
 
   private static void setUpGradleViewToolbarActions() {
@@ -168,7 +166,6 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     replaceAction("ImportModule", new AndroidImportModuleAction());
 
-    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD);
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
@@ -185,10 +182,11 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
-    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"));
-
     ActionManager actionManager = ActionManager.getInstance();
+
+    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"), actionManager);
+
     AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
@@ -237,22 +235,21 @@ public class GradleSpecificInitializer implements Runnable {
     addStartupWarning(message, listener);
   }
 
-  private static void addStartupWarning(@NotNull final String message, @Nullable final NotificationListener listener) {
-    final Application app = ApplicationManager.getApplication();
-
-    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+  private static void addStartupWarning(@NotNull String message, @Nullable NotificationListener listener) {
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
       public void appStarting(Project project) {
-        app.invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
           Notification notification =
             getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
           notification.setImportant(true);
           Notifications.Bus.notify(notification);
-        });
+        }, ModalityState.NON_MODAL);
       }
     });
   }
 
+  @NotNull
   private static NotificationGroup getNotificationGroup() {
     // Use the system health settings by default
     NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");

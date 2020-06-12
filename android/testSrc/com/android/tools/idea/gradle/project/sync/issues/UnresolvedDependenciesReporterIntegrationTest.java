@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenReposi
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.mockito.MockitoEx;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -44,6 +46,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.IdentityHashMap;
@@ -66,17 +69,20 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncIssue = mock(SyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
-    myIdeComponents = new IdeComponents(getProject());
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
     when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
+
+    // FIXME-ank: check if we still need this
+    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
+    when(ideInfo.isAndroidStudio()).thenReturn(true);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents = null;
       mySyncMessagesStub = null;
     }
     finally {
@@ -123,9 +129,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
-
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
@@ -253,9 +256,10 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     Module appModule = myModules.getAppModule();
     Module spyAppModule = spy(appModule);
-    Project spyProject = spy(spyAppModule.getProject());
+    Project spyProject = MockitoEx.forceInlineMockMaker(() -> spy(spyAppModule.getProject()));
     when(spyAppModule.getProject()).thenReturn(spyProject);
     when(spyProject.isInitialized()).thenReturn(false);
+    doReturn(appModule.getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 

@@ -20,14 +20,13 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.idea.IdeaTestApplication
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
-import org.junit.Ignore
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.event.ActionEvent
@@ -109,7 +108,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
 
   override fun setUp() {
     super.setUp()
-    IdeaTestApplication.getInstance()
+    TestApplicationManager.getInstance()
   }
 
   fun testLabel() {

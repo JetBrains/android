@@ -21,7 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
 import com.intellij.ui.SimpleColoredComponent
 import java.awt.Component
-import java.util.Locale
+import java.util.*
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeCellRenderer
@@ -55,7 +55,7 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
         }
 
         is SqliteColumn -> {
-          if (userObject.inPrimaryKey) component.icon = AllIcons.Nodes.EjbPrimaryKeyClass
+          if (userObject.inPrimaryKey) component.icon = AllIcons.Nodes.C_protected
           else component.icon = AllIcons.Nodes.DataColumn
           component.append(userObject.name)
           component.append(" : ")

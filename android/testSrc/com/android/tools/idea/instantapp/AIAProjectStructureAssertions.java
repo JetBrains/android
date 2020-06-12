@@ -29,9 +29,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Helper methods for checking modules in an AIA-enabled project are created correctly by a project sync.

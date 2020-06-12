@@ -22,8 +22,8 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -488,9 +488,35 @@ public class ColumnTreeBuilder {
     @NotNull private final Color myHoverColor;
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
     @Nullable private final JTable myTable;
+    private ChangeListener stateChangeListener;
 
     ColumnTreeUI() {
       this(null, null, null, null);
+    }
+
+    @Override
+    protected void uninstallListeners() {
+      super.uninstallListeners();
+      if (stateChangeListener != null) {
+        myHScrollBarPanel.getModel().removeChangeListener(stateChangeListener);
+        stateChangeListener = null;
+      }
+    }
+
+    @Override
+    protected void installListeners() {
+      super.installListeners();
+      if (stateChangeListener == null) {
+        stateChangeListener = new ChangeListener() {
+          @Override
+          public void stateChanged(ChangeEvent e) {
+            setTreeOffset(tree, myHScrollBarPanel.getModel().getValue());
+            treeState.invalidateSizes();
+            tree.repaint();
+          }
+        };
+        myHScrollBarPanel.getModel().addChangeListener(stateChangeListener);
+      }
     }
 
     /**
@@ -503,14 +529,6 @@ public class ColumnTreeBuilder {
       myHoverConfig = hoverConfig != null ? hoverConfig : ColumnTreeHoverListener.EMPTY_LISTENER;
       myTable = table;
       myHScrollBarPanel = hsb;
-      hsb.getModel().addChangeListener(new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent e) {
-          setTreeOffset(tree, hsb.getModel().getValue());
-          treeState.invalidateSizes();
-          tree.repaint();
-        }
-      });
     }
 
     @Override
@@ -597,7 +615,7 @@ public class ColumnTreeBuilder {
       // Grid line color need to look like covered by hover or select highlight. Instead of painting transparent grid lines on top of
       // table hover or select background, paint a blending color of background and grid color.
       if (myTable != null && myTable.getShowVerticalLines() && tree.isPathSelected(path)) {
-        Color gridBackground = getSelectionBackground(tree, false);
+        Color gridBackground = RenderingUtil.getSelectionBackground(tree);
         Color gridColor = gridBackground == null ? myTable.getGridColor() :
                     AdtUiUtils.overlayColor(gridBackground.getRGB(), myTable.getGridColor().getRGB(), 0.25f);
         g.setColor(gridColor);
@@ -627,22 +645,6 @@ public class ColumnTreeBuilder {
         columnX.add(x - 1);
       }
       return columnX;
-    }
-
-    /**
-     * Copied from {@link WideSelectionTreeUI} to get the tree selection background color, this would not change intellij code.
-     */
-    @Nullable
-    private static Color getSelectionBackground(@NotNull JTree tree, boolean checkProperty) {
-      Object property = tree.getClientProperty(TREE_TABLE_TREE_KEY);
-      if (property instanceof JTable) {
-        return ((JTable)property).getSelectionBackground();
-      }
-      boolean selection = tree.hasFocus();
-      if (!selection && checkProperty) {
-        selection = Boolean.TRUE.equals(property);
-      }
-      return UIUtil.getTreeSelectionBackground(selection);
     }
   }
 

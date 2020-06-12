@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
-
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.collections.ObservableList;
@@ -27,9 +25,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
-import javax.swing.BoxLayout;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
 
 public class ModuleDownloadConditions {
   private static final String myLinkUrl = STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/conditional-delivery";
@@ -56,7 +56,7 @@ public class ModuleDownloadConditions {
     // Handle the "+ device-feature" button
     myAddDeviceFeatureLinkLabel.setListener(new LinkListener<Void>() {
       @Override
-      public void linkSelected(LinkLabel aSource, Void aLinkData) {
+      public void linkSelected(LinkLabel<Void> aSource, Void aLinkData) {
         addDeviceFeatureRow();
       }
     }, null);

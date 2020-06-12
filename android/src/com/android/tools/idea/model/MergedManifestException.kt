@@ -17,7 +17,6 @@ package com.android.tools.idea.model
 
 import com.android.ide.common.xml.XmlPrettyPrinter
 import com.intellij.openapi.module.Module
-import org.jetbrains.plugins.groovy.transformations.message
 import org.w3c.dom.Document
 
 internal sealed class MergedManifestException(

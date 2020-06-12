@@ -39,7 +39,7 @@ class AndroidCodeStyleSettingsTest {
   fun initializedDefaultsInRealProjectInStudio() {
     // Note: this test is intentionally not an AndroidTestCase, because that applies the Android code style to all tests anyway.
     if (IdeInfo.getInstance().isAndroidStudio) {
-      val newSettings = CodeStyleSettings()
+      val newSettings = CodeStyle.createTestSettings()
       assertThat(AndroidXmlCodeStyleSettings.getInstance(newSettings).USE_CUSTOM_SETTINGS).isTrue()
       assertThat(newSettings.getCustomSettings(JavaCodeStyleSettings::class.java).CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND)
         .isEqualTo(99)

@@ -1,5 +1,12 @@
 package org.jetbrains.jps.android.builder;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -12,9 +19,6 @@ import org.jetbrains.jps.indices.IgnoredFileIndex;
 import org.jetbrains.jps.indices.ModuleExcludeIndex;
 import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky

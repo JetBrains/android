@@ -5,9 +5,6 @@ import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.util.BuildNumber;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author nik
- */
 public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCustomization {
   @Override
   public boolean forceEapUpdateChannelForEapBuilds() {

@@ -32,27 +32,25 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Display existing AVDs and offer actions for editing/creating.
  */
-public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoProvider {
+public final class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoProvider {
   private static final String DIMENSION_KEY = "AVDManager";
   private Project myProject;
   private AvdDisplayList myAvdDisplayList;
 
   public AvdListDialog(@Nullable Project project) {
-    super(project, DIMENSION_KEY);
+    super(project, DIMENSION_KEY, false, "Android Virtual Device Manager");
     myProject = project;
     myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     closeOnEsc();
-    setTitle("Android Virtual Device Manager");
-    setDimensionKey(getClass().getName());
     getFrame().setSize(1000, 600);
   }
 
   @Override
   public void dispose() {
+    super.dispose();
     myProject = null;
     myAvdDisplayList = null;
-    super.dispose();
   }
 
   public void init() {

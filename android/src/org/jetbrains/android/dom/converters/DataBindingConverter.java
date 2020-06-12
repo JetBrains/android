@@ -17,16 +17,15 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
-import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.ElementManipulator;
 import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -339,10 +338,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       if (element instanceof PsiClass) {
         PsiClass psiClass = (PsiClass)element;
         String newName = psiClass.getQualifiedName();
-        ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
-        if (manipulator != null) {
-          return manipulator.handleContentChange(myElement, newName);
-        }
+        return ElementManipulators.handleContentChange(myElement, newName);
       }
       return super.bindToElement(element);
     }

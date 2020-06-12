@@ -15,22 +15,35 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Syncs Android Gradle project with the persisted project data on startup.
- */
 public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
+    // Syncs Android Gradle project with the persisted project data on startup.
+    syncAndroidGradleProjectWithPersistedProjectData(project);
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      notifyOnInvalidGradleJDKEnv(project);
+      notifyOnLegacyAndroidProject(project);
+    }
+  }
+
+  private void syncAndroidGradleProjectWithPersistedProjectData(@NotNull Project project) {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
     if ((
       // We only request sync if we know this is an Android project.
@@ -42,10 +55,11 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       // Opening a project without .idea directory (including a newly created).
       || gradleProjectInfo.isImportedProject()
         ) &&
-        !gradleProjectInfo.isSkipStartupActivity()) {
+        !gradleProjectInfo.isSkipStartupActivity()
+    ) {
 
       GradleSyncStats.Trigger trigger =
-        gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
+              gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
       request.useCachedGradleModels = true;
 
@@ -53,4 +67,28 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
     }
     gradleProjectInfo.setSkipStartupActivity(false);
   }
+
+  private void notifyOnInvalidGradleJDKEnv(@NotNull Project project) {
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    if (ideSdks.isJdkEnvVariableDefined() && !ideSdks.isJdkEnvVariableValid()) {
+      String msg = JDK_LOCATION_ENV_VARIABLE_NAME + " is being ignored since it is set to an invalid JDK Location:\n"
+                   + ideSdks.getEnvVariableJdkValue();
+      AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
+                                                           SelectJdkFromFileSystemHyperlink.create(project));
+    }
+  }
+
+  private void notifyOnLegacyAndroidProject(@NotNull Project project) {
+    LegacyAndroidProjects legacyAndroidProjects = new LegacyAndroidProjects(project);
+
+    if (AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject()
+        && !AndroidProjectInfo.getInstance(project).isApkProject()) {
+      legacyAndroidProjects.trackProject();
+      if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+        legacyAndroidProjects.showMigrateToGradleWarning();
+      }
+    }
+  }
+
 }

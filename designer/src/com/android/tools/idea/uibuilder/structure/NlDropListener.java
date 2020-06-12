@@ -42,7 +42,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlTag;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetAdapter;

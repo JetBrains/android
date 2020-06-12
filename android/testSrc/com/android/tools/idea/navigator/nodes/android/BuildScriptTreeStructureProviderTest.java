@@ -42,9 +42,9 @@ public class BuildScriptTreeStructureProviderTest {
     TreeStructureProvider mockProvider = mock(TreeStructureProvider.class);
     AbstractTreeNode mockParent = mock(AndroidBuildScriptsGroupNode.class);
     BuildScriptTreeStructureProvider provider = new BuildScriptTreeStructureProvider(mockProvider);
-    List<AbstractTreeNode> children = createChildren();
+    List<AbstractTreeNode<?>> children = createChildren();
 
-    Collection<AbstractTreeNode> result = provider.modify(mockParent, children, null);
+    Collection<AbstractTreeNode<?>> result = provider.modify(mockParent, children, null);
     verifyZeroInteractions(mockProvider);
     assertSameElements(result, children);
   }
@@ -57,11 +57,11 @@ public class BuildScriptTreeStructureProviderTest {
     TreeStructureProvider mockProvider = mock(TreeStructureProvider.class);
     AbstractTreeNode mockParent = mock(AbstractTreeNode.class);
     BuildScriptTreeStructureProvider provider = new BuildScriptTreeStructureProvider(mockProvider);
-    List<AbstractTreeNode> children = createChildren();
-    List<AbstractTreeNode> modified = createChildren();
+    List<AbstractTreeNode<?>> children = createChildren();
+    List<AbstractTreeNode<?>> modified = createChildren();
     doReturn(modified).when(mockProvider).modify(mockParent, children, null);
 
-    Collection<AbstractTreeNode> result = provider.modify(mockParent, children, null);
+    Collection<AbstractTreeNode<?>> result = provider.modify(mockParent, children, null);
     verify(mockProvider).modify(mockParent, children, null);
     assertSameElements(result, modified);
   }
@@ -80,8 +80,8 @@ public class BuildScriptTreeStructureProviderTest {
     assertEquals(data, result);
   }
 
-  private static List<AbstractTreeNode> createChildren() {
-    ArrayList<AbstractTreeNode> result = new ArrayList<>();
+  private static List<AbstractTreeNode<?>> createChildren() {
+    ArrayList<AbstractTreeNode<?>> result = new ArrayList<>();
     result.add(mock(AbstractTreeNode.class));
     result.add(mock(AbstractTreeNode.class));
     return result;

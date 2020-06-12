@@ -97,7 +97,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -363,8 +362,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         }
       }
     }
-    Collections.sort(myFiles, MANIFEST_SORTER);
-    Collections.sort(myOtherFiles, MANIFEST_SORTER);
+    myFiles.sort(MANIFEST_SORTER);
+    myOtherFiles.sort(MANIFEST_SORTER);
 
     // Build.gradle - injected
     if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {

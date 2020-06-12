@@ -24,19 +24,23 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
-import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Confirmation dialog for installing updates. Allows ignore/remind later/install/show release notes,
@@ -69,7 +73,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     actions.add(new AbstractAction("Update Now") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        List<String> paths = Lists.newArrayList();
+        List<String> paths = new ArrayList<>();
         for (RemotePackage p : myPackages) {
           paths.add(p.getPath());
         }

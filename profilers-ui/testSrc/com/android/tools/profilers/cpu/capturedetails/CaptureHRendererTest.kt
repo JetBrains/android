@@ -30,6 +30,7 @@ import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
+import com.intellij.util.ui.ImageUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
@@ -419,7 +420,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
   }
 
-  private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
+  private class TestGraphics2D : Graphics2DDelegate(ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
     class TextInfo(val text: String, val isBold: Boolean, val paint: Paint)
 
     var lastTextInfo: TextInfo? = null

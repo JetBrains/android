@@ -14,11 +14,8 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
-import com.android.SdkConstants.ATTR_LABEL
+import com.android.SdkConstants.*
 import com.android.SdkConstants.ATTR_MODULE_NAME
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.AUTO_URI
-import com.android.SdkConstants.TAG_INCLUDE
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -38,15 +35,10 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.awt.BasicStroke
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.Graphics2D
-import java.awt.Image
-import java.awt.Rectangle
+import java.awt.*
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import javax.swing.ImageIcon
@@ -161,8 +153,8 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
                                        iconCallback: (VirtualFile, Dimension) -> ImageIcon) {
       if (layoutFile != null) {
         val icon = iconCallback(layoutFile.virtualFile, thumbnailDimension)
-        UIUtil.drawImage(graphics, iconToImage(icon),
-                         Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), thumbnailDimension.width,
+        StartupUiUtil.drawImage(graphics, iconToImage(icon),
+                                Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), thumbnailDimension.width,
                                    thumbnailDimension.height), null)
       }
       else {

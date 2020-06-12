@@ -37,11 +37,9 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
+import org.mockito.Mockito.*
 import java.io.File
-import java.util.Collections
+import java.util.*
 
 /**
  * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see

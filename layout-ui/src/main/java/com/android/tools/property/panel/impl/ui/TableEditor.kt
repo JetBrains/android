@@ -25,6 +25,7 @@ import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.TableRowEditListener
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
+import com.android.tools.property.ptable2.*
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditorProvider
 import com.android.tools.property.ptable2.PTableCellRendererProvider

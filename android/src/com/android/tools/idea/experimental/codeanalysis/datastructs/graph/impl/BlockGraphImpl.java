@@ -26,16 +26,13 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.i
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.DummyNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Local;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.LocalImpl;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiStatement;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class BlockGraphImpl implements BlockGraph {
   protected EntryNode mEntryNode;
@@ -101,7 +98,7 @@ public class BlockGraphImpl implements BlockGraph {
 
   @Override
   public Local[] getAllLocals() {
-    ArrayList<Local> retArray = Lists.newArrayList();
+    ArrayList<Local> retArray = new ArrayList<>();
     for (PsiLocalVariable psiLocal : mLocalMap.keySet()) {
       retArray.add(mLocalMap.get(psiLocal));
     }
@@ -121,7 +118,7 @@ public class BlockGraphImpl implements BlockGraph {
 
   @Override
   public Param[] getAllParams() {
-    ArrayList<Param> retArray = Lists.newArrayList();
+    ArrayList<Param> retArray = new ArrayList<>();
     for (PsiParameter psiParam : mParamMap.keySet()) {
       retArray.add(mParamMap.get(psiParam));
     }

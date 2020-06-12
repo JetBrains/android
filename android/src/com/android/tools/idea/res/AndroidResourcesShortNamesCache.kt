@@ -16,7 +16,6 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
@@ -42,7 +41,7 @@ sealed class OnlyClassesShortNamesCache(private vararg val classNames: String) :
   override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) = PsiField.EMPTY_ARRAY
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = PsiMethod.EMPTY_ARRAY
   override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) = PsiMethod.EMPTY_ARRAY
-  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<PsiMethod>) = true
+  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<in PsiMethod>) = true
 }
 
 /**
