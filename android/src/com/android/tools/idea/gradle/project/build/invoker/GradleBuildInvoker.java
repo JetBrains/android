@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
 import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
@@ -375,6 +376,11 @@ public class GradleBuildInvoker {
                            @Nullable BuildAction buildAction) {
     List<String> jvmArguments = new ArrayList<>();
 
+    // Always build with stable IDs to avoid push-to-device overhead.
+    List<String> amendedCommandLineArguments = new ArrayList<>(commandLineArguments.size() + 1);
+    amendedCommandLineArguments.addAll(commandLineArguments);
+    amendedCommandLineArguments.add(createProjectProperty(PROPERTY_BUILD_WITH_STABLE_IDS, true));
+
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       // Projects in tests may not have a local.properties, set ANDROID_HOME JVM argument if that's the case.
       LocalProperties localProperties;
@@ -400,7 +406,7 @@ public class GradleBuildInvoker {
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, "Build");
     // @formatter:off
     request.setJvmArguments(jvmArguments)
-           .setCommandLineArguments(commandLineArguments)
+           .setCommandLineArguments(amendedCommandLineArguments)
            .setBuildAction(buildAction)
            .setTaskListener(buildTaskListener);
     // @formatter:on
