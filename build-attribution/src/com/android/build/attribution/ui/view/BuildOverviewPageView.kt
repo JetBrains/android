@@ -21,12 +21,11 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
 import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.SwingHelper
-import java.awt.Font
+import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
@@ -67,11 +66,19 @@ class BuildOverviewPageView(
 
   override val component: JPanel = JPanel().apply {
     name = "build-overview"
-    border = JBUI.Borders.empty(20)
-    layout = TabularLayout("Fit,50px,Fit")
+    layout = BorderLayout()
+    val content = JPanel().apply {
+      border = JBUI.Borders.empty(20)
+      layout = TabularLayout("Fit,50px,Fit")
 
-    add(buildInformationPanel, TabularLayout.Constraint(0, 0))
-    add(linksPanel, TabularLayout.Constraint(0, 2))
+      add(buildInformationPanel, TabularLayout.Constraint(0, 0))
+      add(linksPanel, TabularLayout.Constraint(0, 2))
+    }
+    val scrollPane = JBScrollPane().apply {
+      border = JBUI.Borders.empty()
+      setViewportView(content)
+    }
+    add(scrollPane, BorderLayout.CENTER)
   }
 
   override val additionalControls: JPanel = JPanel().apply { name = "build-overview-additional-controls" }
