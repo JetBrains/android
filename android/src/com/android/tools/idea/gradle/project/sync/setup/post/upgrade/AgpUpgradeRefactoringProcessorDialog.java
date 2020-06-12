@@ -16,13 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static javax.swing.Action.NAME;
 
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ArrayUtil;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.stream.IntStream;
 import java.util.List;
+import java.util.stream.IntStream;
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -66,6 +70,11 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   }
 
   @Override
+  protected Action @NotNull [] createActions() {
+    return ArrayUtil.mergeArrays(super.createActions(), new Action [] { new PreviewRefactoringAction() });
+  }
+
+  @Override
   protected void doOKAction() {
     List<AgpUpgradeComponentRefactoringProcessor> selectedValues = myList.getSelectedValuesList();
     myProcessor.getClasspathRefactoringProcessor().setEnabled(selectedValues.contains(myProcessor.getClasspathRefactoringProcessor()));
@@ -73,5 +82,24 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
       p.setEnabled(selectedValues.contains(p));
     }
     super.doOKAction();
+  }
+
+  @Override
+  protected @NotNull Action getOKAction() {
+    Action okAction = super.getOKAction();
+    okAction.putValue(NAME, "Upgrade");
+    return okAction;
+  }
+
+  private class PreviewRefactoringAction extends DialogWrapperAction {
+    protected PreviewRefactoringAction() {
+      super("Preview");
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      myProcessor.setPreviewUsages(true);
+      doOKAction();
+    }
   }
 }
