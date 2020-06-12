@@ -57,7 +57,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateCppKotlinProjectTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(4, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(6, TimeUnit.MINUTES);
 
   @Before
   public void enableXwinClipboardWorkaround() {
