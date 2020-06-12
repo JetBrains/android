@@ -38,6 +38,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
+import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
@@ -48,6 +49,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.refactoring.isAndroidx
 import java.util.function.Consumer
@@ -73,6 +75,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   protected val packageName: LabelWithEditButton = LabelWithEditButton()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
+  protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
 
   abstract val validatorPanel: ValidatorPanel
 
@@ -80,6 +83,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
+    bindings.bindTwoWay(SelectedProperty(gradleKtsCheck), model.useGradleKts)
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)
     val packageNameText = TextProperty(packageName)

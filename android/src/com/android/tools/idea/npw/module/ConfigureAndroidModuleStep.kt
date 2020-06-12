@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -31,6 +32,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.Label
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -80,6 +82,14 @@ class ConfigureAndroidModuleStep(
     row {
       labelFor("Minimum SDK", apiLevelCombo)
       apiLevelCombo()
+    }
+
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      row {Label("")()} // Vertical spacer
+
+      row {
+        gradleKtsCheck()
+      }
     }
   }
   override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
