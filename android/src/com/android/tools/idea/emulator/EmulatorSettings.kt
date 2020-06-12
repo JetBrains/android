@@ -43,6 +43,16 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
       }
     }
 
+  /**
+   * Show the "AVD launched standalone" notification for a TV or automotive AVD.
+   */
+  var showLaunchedStandaloneNotification = true
+
+  /**
+   * Show the "AVD launched standalone" notification for a foldable AVD.
+   */
+  var showLaunchedStandaloneNotificationForFoldable = true
+
   override fun getState(): EmulatorSettings {
     return this
   }
