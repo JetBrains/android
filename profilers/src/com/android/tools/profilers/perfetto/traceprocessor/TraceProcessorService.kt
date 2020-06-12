@@ -22,17 +22,22 @@ import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import java.io.File
 
 /**
- * This service manages the lifetime and connections to a TraceProcessor Daemon,
+ * This service manages the lifetime and connections to a TraceProcessorDaemon (TPD),
  * which is used to parse and analyse Perfetto traces.
+ *
+ * You need to call {@link loadTrace(Long, File)} first, before calling any method that query data from TPD.
  */
 interface TraceProcessorService {
 
   /**
    * Load a Perfetto Trace from {@code traceFile} and assign it the {@code traceId} id internally for future queries.
-   *
-   * Returns a list of available processes from the trace.
    */
-  fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel>
+  fun loadTrace(traceId: Long, traceFile: File)
+
+  /**
+   * Query the Perfetto trace processor processes and threads information available in a trace.
+   */
+  fun getProcessMetadata(traceId: Long): List<ProcessModel>
 
   /**
    * Query the Perfetto trace processor for cpu data regarding a set of processes.
