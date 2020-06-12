@@ -74,6 +74,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -879,6 +880,8 @@ public final class GradleUtil {
    * these folders are not marked as sources of the module.
    */
   public static boolean isSafeArgGeneratedSourcesFolder(@NotNull File folder, @NotNull File buildFolder) {
+    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return false;
+
     File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
     File safeArgClassSources = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FilenameConstants.SAFE_ARG_CLASS_SOURCES);
 
