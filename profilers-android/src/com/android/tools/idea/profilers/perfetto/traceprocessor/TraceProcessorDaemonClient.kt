@@ -17,23 +17,30 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
-import io.grpc.StatusRuntimeException
 import java.lang.RuntimeException
 
 /**
  * gRPC client used to communicate with the daemon (which runs a gRPC server).
  * For the API details, see {@code tools/base/profiler/native/trace_processor_daemon/trace_processor_service.proto}.
  */
-class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): Disposable {
+class TraceProcessorDaemonClient(): Disposable {
+
+  @VisibleForTesting
+  constructor(stubForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null): this() {
+    this.stubForTesting = stubForTesting
+  }
+
   private val daemonManager = TraceProcessorDaemonManager()
   private var cachedChannelPort = 0
   private var cachedChannel: ManagedChannel? = null
   private var cachedStub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null
+  private var stubForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null
   // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
   private var disposed = false
 
@@ -47,6 +54,10 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
 
   @Synchronized
   private fun getStub(): TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub {
+    // If we have a stub for testing, just return it.
+    stubForTesting?.let { return it }
+
+    daemonManager.makeSureDaemonIsRunning()
     val previousChannel = cachedChannel
     // If we either don't have a channel created already of if it has been broken, we must create a new one.
     if (previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated
@@ -57,7 +68,7 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
       // Lets set up the new channel now
       cachedChannelPort = daemonManager.daemonPort
       LOGGER.debug("TPD Client: building new channel to localhost:$cachedChannelPort")
-      cachedChannel = optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", cachedChannelPort)
+      cachedChannel = ManagedChannelBuilder.forAddress("localhost", cachedChannelPort)
         .usePlaintext()
         .maxInboundMessageSize(128 * 1024 * 1024) // 128 Mb
         .build()
@@ -87,7 +98,6 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
     for(i in 1..3){
       try {
         if (!disposed) {
-          daemonManager.makeSureDaemonIsRunning()
           return rpc(request)
         }
       } catch (e: Exception) {

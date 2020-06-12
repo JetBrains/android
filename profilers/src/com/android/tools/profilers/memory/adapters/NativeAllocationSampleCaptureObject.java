@@ -166,8 +166,9 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
     String abi = myStage.getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
     TraceProcessorService service = myStage.getStudioProfilers().getIdeServices().getTraceProcessorService();
-    service.loadTrace(myStartTimeNs, trace.getAbsoluteFile());
-    service.loadMemoryData(abi, myStage.getStudioProfilers().getIdeServices().getNativeFrameSymbolizer(), myDefaultHeapSet);
+    long traceId = myStartTimeNs;
+    service.loadTrace(traceId, trace.getAbsoluteFile());
+    service.loadMemoryData(traceId, abi, myStage.getStudioProfilers().getIdeServices().getNativeFrameSymbolizer(), myDefaultHeapSet);
     myIsDoneLoading = true;
     return true;
   }

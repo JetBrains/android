@@ -51,7 +51,7 @@ class FakeTraceProcessorService: TraceProcessorService {
     return FakeModelAdapter()
   }
 
-  override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
+  override fun loadMemoryData(traceId: Long, abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
     // Will populate as needed. Currently no test rely on this.
   }
 
