@@ -19,6 +19,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
@@ -41,27 +42,37 @@ class SkinLayout(val displaySize: Dimension, val frameRectangle: Rectangle,
   constructor(displaySize: Dimension) : this(displaySize, Rectangle(0, 0, displaySize.width, displaySize.height), emptyList(), emptyList())
 
   /**
-   * Draws frame and mask to the given graphics context. The [displayX] and [displayY] parameters
-   * define the coordinates of the top left corner of the display rectangle.
+   * Draws frame and mask to the given graphics context. The [displayRectangle]  parameter defines
+   * the coordinates and the scaled size of the display.
    */
-  fun drawFrameAndMask(displayX: Int, displayY: Int, g: Graphics2D) {
+  fun drawFrameAndMask(g: Graphics2D, displayRectangle: Rectangle) {
     if (frameImages.isNotEmpty() || maskImages.isNotEmpty()) {
+      val scaleX = displayRectangle.width.toDouble() / displaySize.width
+      val scaleY = displayRectangle.height.toDouble() / displaySize.height
       val transform = AffineTransform()
       // Draw frame.
       for (image in frameImages) {
-        drawImage(image, displayX, displayY, transform, g)
+        drawImage(g, image, displayRectangle, scaleX, scaleY, transform)
       }
       for (image in maskImages) {
-        drawImage(image, displayX, displayY, transform, g)
+        drawImage(g, image, displayRectangle, scaleX, scaleY, transform)
       }
     }
   }
 
-  private fun drawImage(anchoredImage: AnchoredImage, displayX: Int, displayY: Int, transform: AffineTransform, g: Graphics2D) {
-    val x = displayX + anchoredImage.anchorPoint.x * displaySize.width + anchoredImage.offset.x
-    val y = displayY + anchoredImage.anchorPoint.y * displaySize.height + anchoredImage.offset.y
+  private fun drawImage(g: Graphics2D, anchoredImage: AnchoredImage, displayRectangle: Rectangle, scaleX: Double, scaleY: Double,
+                        transform: AffineTransform) {
+    val x = displayRectangle.x + anchoredImage.anchorPoint.x * displayRectangle.width + anchoredImage.offset.x.scaled(scaleX)
+    val y = displayRectangle.y + anchoredImage.anchorPoint.y * displayRectangle.height + anchoredImage.offset.y.scaled(scaleY)
     transform.setToTranslation(x.toDouble(), y.toDouble())
-    g.drawImage(anchoredImage.image, transform, null)
+    val image = if (displayRectangle.width == displaySize.width && displayRectangle.height == displaySize.height) {
+      anchoredImage.image
+    }
+    else {
+      anchoredImage.image.getScaledInstance(anchoredImage.image.width.scaled(scaleX), anchoredImage.image.height.scaled(scaleY),
+                                            Image.SCALE_SMOOTH)
+    }
+    g.drawImage(image, transform, null)
   }
 }
 
