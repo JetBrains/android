@@ -123,7 +123,11 @@ class TasksPageView(
       layout = BorderLayout(dimension.width(), dimension.height())
       border = JBUI.Borders.empty(5, 20)
       add(detailsPanel, BorderLayout.CENTER)
-      add(chartsPanel, BorderLayout.WEST)
+      val chartsScrollArea = JBScrollPane(chartsPanel).apply {
+        border = JBUI.Borders.empty()
+        setViewportView(chartsPanel)
+      }
+      add(chartsScrollArea, BorderLayout.WEST)
     }
 
     firstComponent = masterHalf
