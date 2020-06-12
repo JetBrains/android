@@ -157,7 +157,6 @@ fun performRecommendedPluginUpgrade(
       dialog.showAndGet()
     }
     if (userAccepted) {
-      processor.setPreviewUsages(true)
       processor.run()
     }
     return false
