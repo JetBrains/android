@@ -47,8 +47,16 @@ public final class ClassDb {
 
   @NotNull
   public ClassEntry registerClass(long classId, long superClassId, @NotNull String className) {
-    ClassEntry entry = new ClassEntry(classId, superClassId, className);
-    myClassEntries.put(classId, entry);
+    ClassEntry entry = myClassEntries.get(classId);
+    if (entry == null
+        // FIXME(b/159029403) Below checks aren't necessary in production:
+        //   `superClassId` and `className` are supposed to be the same if the `classId` exists.
+        //   But right now, asserting that would break an existing unrealistic test where
+        //   `java.lang.Class` is absent (`HeapDumpCaptureObjectTest.testHeapDumpObjectsGeneration`)
+        || superClassId != entry.mySuperClassId || !className.equals(entry.myClassName)) {
+      entry = new ClassEntry(classId, superClassId, className);
+      myClassEntries.put(classId, entry);
+    }
     return entry;
   }
 
