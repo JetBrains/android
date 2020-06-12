@@ -247,7 +247,8 @@ public final class UpdaterTest {
   private DevicesSelectedService buildDevicesSelectedService() {
     return new DevicesSelectedService(myRule.getProject(),
                                       project -> myProperties,
-                                      Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles")));
+                                      Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles")),
+                                      () -> false);
   }
 
   @Test
