@@ -21,26 +21,36 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.MethodGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl.MethodGraphImpl;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.*;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.BlockGraphEntryNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.BlockGraphExitNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.ConditionCheckNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.IfBranchingNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.LoopBranchingNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.ConditionFalseNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.ConditionTrueNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.DummyNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ParamImpl;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.psi.*;
-import java.util.Locale;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiLambdaExpression;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParameterList;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class CFGUtil {
 
@@ -299,7 +309,7 @@ public class CFGUtil {
 
   private static void bfsOutputEdges(BufferedWriter bw, GraphNode entry, Map<GraphNode, Integer> NodeMap) throws IOException {
 
-    Set<GraphNode> vistedNode = Sets.newHashSet();
+    Set<GraphNode> vistedNode = new HashSet<GraphNode>();
     Deque<GraphNode> workList = Queues.newArrayDeque();
     workList.add(entry);
 

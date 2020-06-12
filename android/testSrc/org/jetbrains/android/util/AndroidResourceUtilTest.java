@@ -29,7 +29,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
@@ -43,6 +42,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.intellij.lang.annotations.Language;
@@ -150,7 +150,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     PsiField[] fields = AndroidResourceUtil.findResourceFields(
       myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
 
-    Set<String> fieldNames = Sets.newHashSet();
+    Set<String> fieldNames = new HashSet<String>();
     for (PsiField field : fields) {
       fieldNames.add(field.getName());
       assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
@@ -174,7 +174,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     assertThat(facet).isNotNull();
     PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
 
-    Set<String> packages = Sets.newHashSet();
+    Set<String> packages = new HashSet<String>();
     for (PsiField field : fields) {
       assertEquals("lib_hello", field.getName());
       packages.add(StringUtil.getPackageName(field.getContainingClass().getContainingClass().getQualifiedName()));

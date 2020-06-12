@@ -23,13 +23,17 @@ import com.android.tools.idea.actions.DevicePickerHelpAction;
 import com.android.tools.idea.actions.DevicePickerHelpActionKt;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.tracer.Trace;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -53,19 +57,22 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.concurrency.SameThreadExecutor;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandler {
   private static final int DEVICE_TAB_INDEX = 0;
@@ -310,7 +317,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
    * @return true if the devices are able to launch, false if the user cancelled.
    */
   private boolean canLaunchDevices(@NotNull List<AndroidDevice> devices) {
-    Set<String> requiredPackages = Sets.newHashSet();
+    Set<String> requiredPackages = new HashSet<String>();
     for (AndroidDevice device : devices) {
       if (device instanceof LaunchableAndroidDevice) {
         LaunchableAndroidDevice avd = (LaunchableAndroidDevice)device;

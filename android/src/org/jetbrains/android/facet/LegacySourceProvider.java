@@ -15,21 +15,24 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.getAidlGenDir;
+import static org.jetbrains.android.facet.AndroidRootUtil.getAssetsDir;
+import static org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath;
+import static org.jetbrains.android.facet.AndroidRootUtil.getMainContentRoot;
+import static org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir;
+
 import com.android.builder.model.SourceProvider;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.facet.AndroidRootUtil.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Compatibility bridge for old (non-AndroidProject-backed) projects. Also used in AndroidProject-backed projects before the module has
@@ -70,7 +73,7 @@ public class LegacySourceProvider implements SourceProvider {
   @Override
   @NotNull
   public Set<File> getJavaDirectories() {
-    Set<File> dirs = Sets.newHashSet();
+    Set<File> dirs = new HashSet<File>();
 
     Module module = myAndroidFacet.getModule();
     VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();

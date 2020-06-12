@@ -29,7 +29,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.android.tools.lint.detector.api.Category;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionContext;
@@ -51,6 +50,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -210,7 +210,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
   }
 
   private void resolveInitialCaller(PsiCFGMethod method) {
-    Set<PsiCFGMethod> calledMethods = Sets.newHashSet();
+    Set<PsiCFGMethod> calledMethods = new HashSet<PsiCFGMethod>();
     //Stack<PsiCFGMethod> callStack = new Stack<>();
     Stack<GraphNode> nodeStack = new Stack<>();
     Stack<PsiCFGMethod> methodStack = new Stack<>();

@@ -31,7 +31,6 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
@@ -40,22 +39,16 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextPane;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -78,9 +71,9 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   private DefaultTreeModel myTreeModel = new DefaultTreeModel(null);
   private Map<String, Boolean> myAcceptances = Maps.newHashMap();
-  private Set<String> myVisibleLicenses = Sets.newHashSet();
+  private Set<String> myVisibleLicenses = new HashSet<String>();
   private String myCurrentLicense;
-  private Set<License> myLicenses = Sets.newHashSet();
+  private Set<License> myLicenses = new HashSet<License>();
 
   private final File mySdkRoot;
 

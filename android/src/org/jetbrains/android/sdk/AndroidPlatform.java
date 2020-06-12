@@ -11,7 +11,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -20,6 +19,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,7 +88,7 @@ public class AndroidPlatform {
                                       @Nullable Library.ModifiableModel model,
                                       @Nullable Map<String, AndroidSdkData> parsedSdks) {
     VirtualFile[] files = model != null ? model.getFiles(CLASSES) : library.getFiles(CLASSES);
-    Set<String> jarPaths = Sets.newHashSet();
+    Set<String> jarPaths = new HashSet<String>();
     VirtualFile frameworkLibrary = null;
     for (VirtualFile file : files) {
       VirtualFile vFile = JarFileSystem.getInstance().getVirtualFileForJar(file);

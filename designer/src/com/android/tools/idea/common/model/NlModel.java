@@ -96,7 +96,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public static final int DELAY_AFTER_TYPING_MS = 250;
 
   private static final boolean CHECK_MODEL_INTEGRITY = false;
-  private final Set<String> myPendingIds = Sets.newHashSet();
+  private final Set<String> myPendingIds = new HashSet<String>();
 
   @NotNull private final AndroidFacet myFacet;
   private final VirtualFile myFile;
@@ -763,8 +763,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       XmlTag[] subTags = tag.getSubTags();
       if (subTags.length > 0) {
         if (CHECK_MODEL_INTEGRITY) {
-          Set<NlComponent> seen = Sets.newHashSet();
-          Set<XmlTag> seenTags = Sets.newHashSet();
+          Set<NlComponent> seen = new HashSet<NlComponent>();
+          Set<XmlTag> seenTags = new HashSet<XmlTag>();
           for (XmlTag t : subTags) {
             if (seenTags.contains(t)) {
               assert false : t;

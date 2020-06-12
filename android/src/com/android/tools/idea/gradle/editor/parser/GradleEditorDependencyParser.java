@@ -27,10 +27,10 @@ import com.android.tools.idea.gradle.editor.metadata.GradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.value.GradleEditorEntityValueManager;
 import com.android.tools.idea.gradle.editor.value.LibraryVersionsManager;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.util.TextRange;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,7 +91,7 @@ public class GradleEditorDependencyParser {
       return null;
     }
 
-    Set<GradleEditorEntityMetaData> metaData = Sets.newHashSet();
+    Set<GradleEditorEntityMetaData> metaData = new HashSet<GradleEditorEntityMetaData>();
     metaData.add(StdGradleEditorEntityMetaData.REMOVABLE);
     if (context.getTargetFile().equals(assignment.lValueLocation.file)) {
       if (!assignment.codeStructure.isEmpty()) {

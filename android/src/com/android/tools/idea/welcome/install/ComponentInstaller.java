@@ -30,9 +30,9 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +51,7 @@ public final class ComponentInstaller {
   public List<RemotePackage> getPackagesToInstall(@NotNull Iterable<? extends InstallableComponent> components)
     throws SdkQuickfixUtils.PackageResolutionException {
     // TODO: Prompt about connection in handoff case?
-    Set<UpdatablePackage> requests = Sets.newHashSet();
+    Set<UpdatablePackage> requests = new HashSet<UpdatablePackage>();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (InstallableComponent component : components) {

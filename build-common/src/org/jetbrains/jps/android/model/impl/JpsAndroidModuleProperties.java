@@ -11,13 +11,13 @@ import static org.jetbrains.android.util.AndroidBuildCommonUtils.TARGET_FILE_NAM
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.URL_ATTRIBUTE;
 
 import com.android.SdkConstants;
-import com.google.common.collect.Sets;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,7 +31,7 @@ public class JpsAndroidModuleProperties {
   public String COMPILE_JAVA_TEST_TASK_NAME = "";
 
   @XCollection(propertyElementName = "afterSyncTasks", elementName = "task", valueAttributeName = "")
-  public Set<String> AFTER_SYNC_TASK_NAMES = Sets.newHashSet();
+  public Set<String> AFTER_SYNC_TASK_NAMES = new HashSet<String>();
 
   /** False when the Android project is Gradle-based, true otherwise. */
   public boolean ALLOW_USER_CONFIGURATION = true;

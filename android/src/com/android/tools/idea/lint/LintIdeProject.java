@@ -47,7 +47,6 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -196,8 +195,8 @@ public class LintIdeProject extends Project {
       return null;
     }
 
-    Set<AndroidFacet> facets = Sets.newHashSet();
-    HashSet<Module> seen = Sets.newHashSet();
+    Set<AndroidFacet> facets = new HashSet<AndroidFacet>();
+    HashSet<Module> seen = new HashSet<Module>();
     seen.add(module);
     addAndroidModules(facets, seen, graph, module);
 

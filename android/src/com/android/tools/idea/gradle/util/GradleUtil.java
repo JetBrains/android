@@ -96,7 +96,6 @@ import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
@@ -124,7 +123,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -606,8 +605,8 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
-    Set<String> foundInLibraries = Sets.newHashSet();
-    Set<String> foundInApps = Sets.newHashSet();
+    Set<String> foundInLibraries = new HashSet<String>();
+    Set<String> foundInApps = new HashSet<String>();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
 
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);

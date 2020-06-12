@@ -20,13 +20,12 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tree node representing all packages corresponding to a specified AndroidVersion. The checked state and the effect of
@@ -36,7 +35,7 @@ import java.util.function.Function;
 class SummaryTreeNode extends UpdaterTreeNode {
   private AndroidVersion myVersion;
   private Set<UpdaterTreeNode> myAllChildren;
-  private Set<UpdaterTreeNode> myIncludedChildren = Sets.newHashSet();
+  private Set<UpdaterTreeNode> myIncludedChildren = new HashSet<UpdaterTreeNode>();
   private UpdaterTreeNode myPrimaryChild;
 
   /**
@@ -47,7 +46,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
    * @return A new SummaryTreeNode, or null if none of the children are actually included.
    */
   public static SummaryTreeNode createNode(@NotNull AndroidVersion version, @NotNull Set<UpdaterTreeNode> children) {
-    Set<UpdaterTreeNode> includedChildren = Sets.newHashSet();
+    Set<UpdaterTreeNode> includedChildren = new HashSet<UpdaterTreeNode>();
     UpdaterTreeNode primaryChild = null;
     for (UpdaterTreeNode child : children) {
       if (child.includeInSummary()) {

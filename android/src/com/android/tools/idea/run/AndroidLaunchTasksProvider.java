@@ -45,7 +45,6 @@ import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -53,6 +52,7 @@ import com.intellij.openapi.util.Computable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -225,7 +225,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
 
-    Set<String> packageIds = Sets.newHashSet();
+    Set<String> packageIds = new HashSet<String>();
     try {
       String packageName = myApplicationIdProvider.getPackageName();
       packageIds.add(packageName);

@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.util.AndroidBundle;
@@ -256,7 +257,7 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
   @NotNull
   protected static Set<GradleEditorEntityMetaData> buildMetaData(@NotNull Assignment assignment,
                                                                  @NotNull GradleEditorModelParseContext context) {
-    Set<GradleEditorEntityMetaData> result = Sets.newHashSet();
+    Set<GradleEditorEntityMetaData> result = new HashSet<GradleEditorEntityMetaData>();
     if (context.getTargetFile().equals(assignment.lValueLocation.file)) {
       if (!assignment.codeStructure.isEmpty()) {
         String topSection = assignment.codeStructure.get(0);

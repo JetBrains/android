@@ -34,7 +34,6 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -362,7 +361,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
             }
             path = FileUtil.toSystemDependentName(path);
             builder.add("The relevant image is ").add(path);
-            Set<String> widgets = Sets.newHashSet();
+            Set<String> widgets = new HashSet<String>();
             for (StackTraceElement f : frames) {
               if (f.getMethodName().equals(CONSTRUCTOR_NAME)) {
                 String className = f.getClassName();
@@ -546,7 +545,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     error.setClientData(description);
     if (myFidelityWarnings == null) {
       myFidelityWarnings = new ArrayList<>();
-      myFidelityWarningStrings = Sets.newHashSet();
+      myFidelityWarningStrings = new HashSet<String>();
     }
 
     myFidelityWarnings.add(error);

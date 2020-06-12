@@ -17,24 +17,23 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SourceProviderStub implements SourceProvider {
-  @NotNull private final Set<File> myAidlDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myAssetsDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myJavaDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myCppDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myCDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
-  @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myAidlDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myAssetsDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myJavaDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myCppDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myCDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myRenderscriptDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myResDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myResourcesDirectories = new HashSet<File>();
 
   @NotNull String myName = "test";
   @Nullable File myManifestFile;
