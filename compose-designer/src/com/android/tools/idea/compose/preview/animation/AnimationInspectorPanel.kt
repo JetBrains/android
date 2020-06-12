@@ -21,11 +21,10 @@ import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.animation.AnimationInspectorPanel.TransitionDurationTimeline
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
-import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
@@ -61,6 +60,25 @@ class AnimationInspectorPanel(surface: DesignSurface) : JPanel(TabularLayout("Fi
   private val timeline = TransitionDurationTimeline(surface)
 
   private val playPauseAction = PlayPauseAction()
+
+  /**
+   * Function `setClockTime` of [clock].
+   */
+  var setAnimationClockFunction: KFunction<*>? = null
+
+  /**
+   * Instance of `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
+   */
+  internal var clock: Any? = null
+    set(value) {
+      field = value
+      // TODO(b/157895086): Create a "No animations tracked" panel when the clock is null.
+      value?.let {
+        setAnimationClockFunction = it::class.memberFunctions.single {
+          it.name == "setClockTime"
+        }
+      }
+    }
 
   init {
     name = "Animation Inspector"
@@ -100,7 +118,7 @@ class AnimationInspectorPanel(surface: DesignSurface) : JPanel(TabularLayout("Fi
    * TODO(b/157895086): Update action icons when we have the final Compose Animation tooling icons
    * TODO(b/157895086): Disable toolbar actions while build is in progress
    */
-  private fun createPlaybackControllers() = ActionManagerEx.getInstanceEx().createActionToolbar(
+  private fun createPlaybackControllers() = ActionManager.getInstance().createActionToolbar(
     "Animation inspector",
     DefaultActionGroup(listOf(
       GoToStartAction(),
@@ -222,12 +240,9 @@ class AnimationInspectorPanel(surface: DesignSurface) : JPanel(TabularLayout("Fi
    *  TODO(b/157896171): duration should be obtained from the animation, not hard coded.
    *  TODO(b/157895086): The slider is a placeholder. The actual UI component is more complex and will be done in a future pass.
    */
-  private class TransitionDurationTimeline(private val surface: DesignSurface) : JSlider(0, 10000, 0) {
+  private inner class TransitionDurationTimeline(private val surface: DesignSurface) : JSlider(0, 10000, 0) {
 
     var cachedVal = -1
-
-    var composeViewAdapter: Any? = null
-    var setAnimationClockFunction: KFunction<*>? = null
 
     init {
       addChangeListener {
@@ -235,24 +250,12 @@ class AnimationInspectorPanel(surface: DesignSurface) : JPanel(TabularLayout("Fi
         val newValue = this.value
         cachedVal = newValue
 
-        if (composeViewAdapter != null && setAnimationClockFunction != null) {
-          setClockTime(newValue)
+        if (clock != null && setAnimationClockFunction != null) {
+          surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
+            setAnimationClockFunction!!.call(clock, newValue.toLong())
+          }
           return@addChangeListener
         }
-
-        surface.models.single().components[0]?.let { nlComponent ->
-          composeViewAdapter = nlComponent.viewInfo?.viewObject ?: return@let
-          setAnimationClockFunction = composeViewAdapter!!::class.memberFunctions.single {
-            it.name == "setClockTime"
-          }
-          setClockTime(newValue)
-        }
-      }
-    }
-
-    private fun setClockTime(timeMs: Int) {
-      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
-          setAnimationClockFunction!!.call(composeViewAdapter, timeMs.toLong())
       }
     }
   }
