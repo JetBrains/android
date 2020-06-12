@@ -21,6 +21,7 @@ import com.android.builder.model.AaptOptions;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -729,7 +730,7 @@ public final class ResourceRepositoryManager implements Disposable {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
         IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        Variant variant = androidModel.getSelectedVariant();
+        IdeVariant variant = androidModel.getSelectedVariant();
         return provider.get(androidProject, variant);
       }
     }
