@@ -158,7 +158,9 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       rootBounds = levelLists[0].map { it.second }.reduce { acc, bounds -> acc.apply { add(bounds) } }
       transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-      magnitude = min(1.0, hypot(xOff, yOff))
+      // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
+      // You might say that this is ( •_•)>⌐■-■ / (⌐■_■) an edge-case.
+      magnitude = min(0.98, hypot(xOff, yOff))
       angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
       transform.translate(rootBounds.width / 2.0 - rootBounds.x, rootBounds.height / 2.0 - rootBounds.y)

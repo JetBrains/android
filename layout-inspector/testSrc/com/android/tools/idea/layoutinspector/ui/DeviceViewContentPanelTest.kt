@@ -19,20 +19,16 @@ import com.android.testutils.PropertySetterRule
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.view
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -51,7 +47,7 @@ private const val DIFF_THRESHOLD = 0.05
 class DeviceViewContentPanelTest {
 
   @get:Rule
-  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())
+  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())!!
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
@@ -146,6 +142,34 @@ class DeviceViewContentPanelTest {
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+
+  @Test
+  fun testRotationDoesntThrow() {
+    val model = model {
+      view(ROOT, 0, 0, 500, 1000) {
+        // Use a RTL name to force TextLayout to be used
+        view(VIEW1, 125, 150, 250, 250, qualifiedName = "שמי העברי", imageBottom = mock(Image::class.java))
+      }
+    }
+
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(10, 15, TYPE_INT_ARGB)
+    val graphics = generatedImage.createGraphics()
+
+    model.selection = model[VIEW1]!!
+    val panel = DeviceViewContentPanel(model, DeviceViewSettings())
+    panel.setSize(10, 15)
+    panel.model.rotate(-1.0, -1.0)
+
+    for (i in 0..20) {
+      panel.model.rotate(-2.0, 0.1)
+      for (j in 0..20) {
+        panel.model.rotate(0.1, 0.0)
+        panel.paint(graphics)
+      }
+    }
   }
 
   @Test
