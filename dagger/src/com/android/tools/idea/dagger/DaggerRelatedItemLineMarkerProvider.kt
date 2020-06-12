@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.localization.DaggerBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
@@ -25,8 +26,7 @@ import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.util.NotNullLazyValue
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -42,9 +42,9 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import javax.swing.Icon
 
 /**
- * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
+ * Provides [RelatedItemLineMarkerInfo] for Dagger elements.
  *
- * Adds gutter icon that allows to navigate from Dagger consumers to Dagger providers and vice versa.
+ * Adds gutter icon that allows to navigate between Dagger elements.
  */
 class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -66,9 +66,11 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     override fun getCustomName() = customNameToDisplay
   }
 
+  @WorkerThread
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
     if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
+    ProgressManager.checkCanceled()
     if (!element.canBeLineMarkerProvide) return
 
     // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
@@ -85,6 +87,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       else -> return
     }
 
+    if (gotoTargets.isEmpty()) return
+
     val typeForMetrics = getTypeForMetrics(parent)
 
     val info = RelatedItemLineMarkerInfo<PsiElement>(
@@ -95,12 +99,11 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       getTooltipProvider(parent, gotoTargets),
       { mouseEvent, elt ->
         elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
-        when (gotoTargets.value.size) {
-          0 -> JBPopupFactory.getInstance()
-            .createMessage("No related items")
-            .show(RelativePoint(mouseEvent))
-          1 -> gotoTargets.value.first().navigate()
-          else -> NavigationUtil.getRelatedItemsPopup(gotoTargets.value, "Go to Related Files").show(RelativePoint(mouseEvent))
+        if (gotoTargets.size == 1) {
+          gotoTargets.first().navigate()
+        }
+        else {
+          NavigationUtil.getRelatedItemsPopup(gotoTargets, "Go to Related Files").show(RelativePoint(mouseEvent))
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
@@ -111,13 +114,13 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   private fun getTooltipProvider(
     targetElement: PsiElement,
-    gotoTargets: NotNullLazyValue<List<GotoRelatedItem>>
+    gotoTargets: List<GotoRelatedItem>
   ): (PsiElement) -> String {
     return {
       val fromElementString = SymbolPresentationUtil.getSymbolPresentableText(targetElement)
 
-      if (gotoTargets.value.size == 1) {
-        with(gotoTargets.value.single()) {
+      if (gotoTargets.size == 1) {
+        with(gotoTargets.single()) {
           val toElementString = customName ?: SymbolPresentationUtil.getSymbolPresentableText(element!!)
 
           when (group) {
@@ -145,84 +148,79 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
   }
 
-  private fun getIconAndGoToItemsForSubcomponent(subcomponent: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
-    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute(): List<GotoRelatedItem> {
-        // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
-        val asPsiClass = subcomponent.toPsiClass()!!
-        return getDaggerParentComponentsForSubcomponent(asPsiClass)
-                 .map { GotoItemWithAnalyticsTracking(subcomponent, it, message("parent.components")) } +
-               getModulesForComponent(asPsiClass).map {
-                 GotoItemWithAnalyticsTracking(subcomponent, it, message("modules.included"))
-               } +
-               getSubcomponents(asPsiClass).map {
-                 GotoItemWithAnalyticsTracking(subcomponent, it, message("subcomponents"))
-               }
-      }
+  private fun getIconAndGoToItemsForSubcomponent(subcomponent: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
+    val asPsiClass = subcomponent.toPsiClass()!!
+
+    val parents = getDaggerParentComponentsForSubcomponent(asPsiClass)
+      .map { GotoItemWithAnalyticsTracking(subcomponent, it, message("parent.components")) }
+
+    ProgressManager.checkCanceled()
+    val modules = getModulesForComponent(asPsiClass).map {
+      GotoItemWithAnalyticsTracking(subcomponent, it, message("modules.included"))
+    }
+
+    ProgressManager.checkCanceled()
+    val subcomponents = getSubcomponents(asPsiClass).map {
+      GotoItemWithAnalyticsTracking(subcomponent, it, message("subcomponents"))
+    }
+
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, parents + modules + subcomponents)
+  }
+
+  private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    // component is always PsiClass or KtClass, see [isDaggerComponent].
+    val componentAsPsiClass = component.toPsiClass()!!
+
+    val components = getDependantComponentsForComponent(componentAsPsiClass)
+      .map { GotoItemWithAnalyticsTracking(component, it, message("parent.components")) }
+
+    ProgressManager.checkCanceled()
+    val subcomponents = getSubcomponents(componentAsPsiClass).map {
+      GotoItemWithAnalyticsTracking(component, it, message("subcomponents"))
+    }
+
+    ProgressManager.checkCanceled()
+    val modules = getModulesForComponent(componentAsPsiClass).map {
+      GotoItemWithAnalyticsTracking(component, it, message("modules.included"))
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, components + subcomponents + modules)
+  }
+
+  private fun getIconAndGoToItemsForModule(module: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    // [module] is always PsiClass or KtClass, see [isDaggerModule].
+    val gotoTargets = getUsagesForDaggerModule(module.toPsiClass()!!).map {
+      val group = if (it.isDaggerComponent) message("included.in.components") else message("included.in.modules")
+      GotoItemWithAnalyticsTracking(module, it, group)
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
   }
 
-  private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
-    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute(): List<GotoRelatedItem> {
-        // component is always PsiClass or KtClass, see [isDaggerComponent].
-        val componentAsPsiClass = component.toPsiClass()!!
-        return getDependantComponentsForComponent(componentAsPsiClass)
-                 .map { GotoItemWithAnalyticsTracking(component, it, message("parent.components")) } +
-               getSubcomponents(componentAsPsiClass).map {
-                 GotoItemWithAnalyticsTracking(component, it, message("subcomponents"))
-               } +
-               getModulesForComponent(componentAsPsiClass).map {
-                 GotoItemWithAnalyticsTracking(component, it, message("modules.included"))
-               }
+  private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers = getDaggerConsumersFor(provider).map {
+      val nameToDisplay = when (it) {
+        is PsiField -> it.parentOfType<PsiClass>()?.name
+        is PsiParameter -> it.parentOfType<PsiMethod>()?.name
+        else -> error("[Dagger editor] invalid consumer type ${it::class}")
       }
+      GotoItemWithAnalyticsTracking(provider, it, message("consumers"), nameToDisplay)
     }
-    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
+
+    ProgressManager.checkCanceled()
+    val components = getDaggerComponentMethodsForProvider(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.components"), it.parentOfType<PsiClass>()?.name)
+    }
+
+    ProgressManager.checkCanceled()
+    val entryPoints = getDaggerEntryPointsMethodsForProvider(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.entry.points"), it.parentOfType<PsiClass>()?.name)
+    }
+
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers + components + entryPoints)
   }
 
-  private fun getIconAndGoToItemsForModule(module: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
-    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute(): List<GotoRelatedItem> {
-        // [module] is always PsiClass or KtClass, see [isDaggerModule].
-        return getUsagesForDaggerModule(module.toPsiClass()!!).map {
-          val group = if (it.isDaggerComponent) message("included.in.components") else message("included.in.modules")
-          GotoItemWithAnalyticsTracking(module, it, group)
-        }
-      }
-    }
-    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
-  }
-
-  private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
-    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute(): List<GotoRelatedItem> {
-        val consumers = getDaggerConsumersFor(provider).map {
-          val nameToDisplay = when (it) {
-            is PsiField -> it.parentOfType<PsiClass>()?.name
-            is PsiParameter -> it.parentOfType<PsiMethod>()?.name
-            else -> error("[Dagger editor] invalid consumer type ${it::class}")
-          }
-          GotoItemWithAnalyticsTracking(provider, it, message("consumers"), nameToDisplay)
-        }
-        val components = getDaggerComponentMethodsForProvider(provider).map {
-          GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.components"), it.parentOfType<PsiClass>()?.name)
-        }
-        val entryPoints = getDaggerEntryPointsMethodsForProvider(provider).map {
-          GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.entry.points"), it.parentOfType<PsiClass>()?.name)
-        }
-        return consumers + components + entryPoints
-      }
-    }
-    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
-  }
-
-  private fun getProvidersFor(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
-    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute() = getDaggerProvidersFor(consumer).map {
-        GotoItemWithAnalyticsTracking(consumer, it, message("providers"))
-      }
-    }
+  private fun getProvidersFor(consumer: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    val gotoTargets = getDaggerProvidersFor(consumer).map { GotoItemWithAnalyticsTracking(consumer, it, message("providers")) }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }
 
