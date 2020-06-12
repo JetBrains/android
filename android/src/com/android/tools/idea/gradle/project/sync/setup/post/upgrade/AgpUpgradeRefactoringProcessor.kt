@@ -62,6 +62,8 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
+  var foundUsages: Boolean = false
+
   override fun performRefactoring(usages: Array<out UsageInfo>?) {
     usages?.forEach {
       if (it is GradleBuildModelUsageInfo) {
@@ -129,6 +131,7 @@ class AgpUpgradeRefactoringProcessor(
     usages.addAll(AgpGradleVersionRefactoringProcessor(this).findUsages())
     usages.addAll(AgpJava8DefaultRefactoringProcessor(this).findUsages())
 
+    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -196,6 +199,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         }
       }
     }
+    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -256,6 +260,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         }
       }
     }
+    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -323,6 +328,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         }
       }
     }
+    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -389,6 +395,7 @@ class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProces
         }
       }
     }
+    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
