@@ -22,6 +22,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -62,5 +63,15 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   @Override
   protected @Nullable JComponent createCenterPanel() {
     return myPanel;
+  }
+
+  @Override
+  protected void doOKAction() {
+    List<AgpUpgradeComponentRefactoringProcessor> selectedValues = myList.getSelectedValuesList();
+    myProcessor.getClasspathRefactoringProcessor().setEnabled(selectedValues.contains(myProcessor.getClasspathRefactoringProcessor()));
+    for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
+      p.setEnabled(selectedValues.contains(p));
+    }
+    super.doOKAction();
   }
 }
