@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -58,15 +57,14 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -194,7 +192,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     myUpdateIssuesQueue.queue(new Update(this) {
       @Override
       public void run() {
-        Set<PsIssue> issues = Sets.newHashSet();
+        Set<PsIssue> issues = new HashSet<PsIssue>();
         for (AbstractDependencyNode<?, ? extends PsBaseDependency> node : selection) {
           for (PsBaseDependency dependency : node.getModels()) {
             issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency.getPath(), null));

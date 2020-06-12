@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsD
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.android.tools.idea.gradle.structure.model.*
-import com.google.common.collect.Sets
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.SimpleTextAttributes
@@ -124,7 +123,7 @@ fun createNodesForResolvedDependencies(
   parent: AbstractPsNode,
   collection: PsDependencyCollection<*, *, *, *>
 ): List<AbstractPsModelNode<*>> {
-  val allTransitive = Sets.newHashSet<String>()
+  val allTransitive = hashSetOf<String>()
   val children = ArrayList<AbstractPsModelNode<*>>()
 
   val declared = SortedList(

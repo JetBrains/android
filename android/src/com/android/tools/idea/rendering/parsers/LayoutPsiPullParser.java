@@ -78,7 +78,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
@@ -90,6 +89,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1039,7 +1039,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
     String visibleChild = rootTag.getAttributeValue("visibleChildren", TOOLS_URI);
     if (visibleChild != null) {
-      Set<Integer> indices = Sets.newHashSet();
+      Set<Integer> indices = new HashSet<Integer>();
       for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
         try {
           indices.add(Integer.parseInt(s));

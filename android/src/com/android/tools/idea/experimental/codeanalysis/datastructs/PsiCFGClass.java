@@ -17,7 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiClass;
@@ -26,6 +25,7 @@ import com.intellij.psi.PsiLambdaExpression;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierList;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -115,9 +115,9 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     mFieldMap = Maps.newHashMap();
 
     mSuperCFGClass = null;
-    mImplementedInterfacesSet = Sets.newHashSet();
-    mDirectSubClasses = Sets.newHashSet();
-    mDirectSubInterfaces = Sets.newHashSet();
+    mImplementedInterfacesSet = new HashSet<PsiCFGClass>();
+    mDirectSubClasses = new HashSet<PsiCFGClass>();
+    mDirectSubInterfaces = new HashSet<PsiCFGClass>();
     mMethodList = new ArrayList<>();
 
 
@@ -344,7 +344,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     if (nestedInnerClassMap.containsKey(name)) {
       currentCFGClassSet = nestedInnerClassMap.get(name);
     } else {
-      currentCFGClassSet = Sets.newHashSet();
+      currentCFGClassSet = new HashSet<PsiCFGClass>();
       nestedInnerClassMap.put(name, currentCFGClassSet);
     }
 

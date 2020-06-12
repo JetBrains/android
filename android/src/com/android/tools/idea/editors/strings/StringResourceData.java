@@ -21,7 +21,6 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.intellij.facet.Facet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -33,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -145,7 +145,7 @@ public class StringResourceData {
   @NotNull
   @VisibleForTesting
   Collection<Locale> getMissingTranslations(@NotNull StringResourceKey key) {
-    Set<Locale> missingTranslations = Sets.newHashSet();
+    Set<Locale> missingTranslations = new HashSet<Locale>();
     for (Locale locale : getLocaleSet()) {
       StringResource stringResource = getStringResource(key);
       if (stringResource.isTranslationMissing(locale)) {

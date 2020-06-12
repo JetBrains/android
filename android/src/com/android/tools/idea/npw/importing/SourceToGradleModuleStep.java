@@ -15,13 +15,28 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.DOES_NOT_EXIST;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.EMPTY_PATH;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.INTERNAL_ERROR;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.IS_PROJECT_OR_MODULE;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.MISSING_SUBPROJECTS;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.NOT_ADT_OR_GRADLE;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.NO_MODULES_SELECTED;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.OK;
+import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.VALIDATING;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.WARNING;
+
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.npw.AsyncValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.IconProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
@@ -29,9 +44,9 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,13 +66,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -66,10 +74,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.*;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.WARNING;
+import java.util.TreeSet;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard Step that allows the user to point to an existing source directory (ADT or Gradle) to import as a new Android Gradle module.
@@ -250,7 +261,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     if (modules == null) {
       return PathValidationResult.ofType(INTERNAL_ERROR);
     }
-    Set<String> missingSourceModuleNames = Sets.newTreeSet();
+    Set<String> missingSourceModuleNames = new TreeSet<String>();
     for (ModuleToImport module : modules) {
       if (module.location == null || !module.location.exists()) {
         missingSourceModuleNames.add(module.name);

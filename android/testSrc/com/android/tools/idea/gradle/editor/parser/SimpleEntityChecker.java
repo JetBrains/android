@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.gradle.editor.entity.AbstractSimpleGradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
 import com.android.tools.idea.gradle.editor.metadata.GradleEditorEntityMetaData;
-import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-
 public class SimpleEntityChecker<T extends AbstractSimpleGradleEditorEntity> extends AbstractPropertyChecker<T> {
 
-  @NotNull private final Set<GradleEditorEntityMetaData> myExpectedMetaData = Sets.newHashSet();
+  @NotNull private final Set<GradleEditorEntityMetaData> myExpectedMetaData = new HashSet<GradleEditorEntityMetaData>();
   @NotNull private final String myTargetDescription;
 
   private SimpleEntityChecker(@NotNull String targetDescription) {

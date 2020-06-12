@@ -56,7 +56,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -85,9 +84,7 @@ import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -102,14 +99,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
+import java.util.TreeSet;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
@@ -660,7 +651,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
-    Set<UpdatablePackage> toolsPackages = Sets.newTreeSet();
+    Set<UpdatablePackage> toolsPackages = new TreeSet<UpdatablePackage>();
     for (UpdatablePackage info : packages.getConsolidatedPkgs().values()) {
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();

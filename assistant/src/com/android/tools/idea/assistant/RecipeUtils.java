@@ -24,7 +24,6 @@ import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -35,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,8 +66,8 @@ public class RecipeUtils {
     }
 
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
-    Set<String> classpathEntries = Sets.newHashSet();
-    Set<String> plugins = Sets.newHashSet();
+    Set<String> classpathEntries = new HashSet<String>();
+    Set<String> plugins = new HashSet<String>();
     List<File> sourceFiles = new ArrayList<>();
     List<File> targetFiles = new ArrayList<>();
     RecipeMetadata metadata = new RecipeMetadata(recipe, module);

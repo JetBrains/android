@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.text;
+
 import com.android.tools.idea.gradle.editor.entity.ExternalDependencyGradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
 import com.android.tools.idea.gradle.editor.metadata.GradleEditorEntityMetaData;
-import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.text;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ExternalDependencyChecker {
 
@@ -34,7 +33,7 @@ public class ExternalDependencyChecker {
   private final GroupChecker myGroupExpectations = new GroupChecker();
   private final ArtifactChecker myArtifactExpectations = new ArtifactChecker();
   private final VersionChecker myVersionExpectations = new VersionChecker();
-  private final Set<GradleEditorEntityMetaData> myExpectedMetaData = Sets.newHashSet();
+  private final Set<GradleEditorEntityMetaData> myExpectedMetaData = new HashSet<GradleEditorEntityMetaData>();
 
   @Nullable private String myExpectedEntityText;
 

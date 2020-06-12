@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   // Map of the current state
   private Map<Key, Object> myState = Maps.newHashMap();
   // Set of changed key/scope pairs which have been modified since the last call to clearRecentUpdates()
-  private Set<Key> myRecentlyUpdated = Sets.newHashSet();
+  private Set<Key> myRecentlyUpdated = new HashSet<Key>();
   private Scope myScope;
   private final Collection<WeakReference<ScopedStoreListener>> myListeners = Lists.newArrayListWithCapacity(4);
   @Nullable private ScopedStateStore myParent;

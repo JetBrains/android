@@ -23,7 +23,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.editor.entity.ExternalDependencyGradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.RangeMarker;
@@ -37,6 +36,7 @@ import com.intellij.util.text.CharArrayUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -173,7 +173,7 @@ public class GradleEditorModelUtil {
   public static EntityInfo collectInfo(@NotNull Collection<Variable> variables,
                                        @NotNull GradleEditorModelParseContext context,
                                        @Nullable AssignmentFilter filter) {
-    Set<Variable> processed = Sets.newHashSet();
+    Set<Variable> processed = new HashSet<Variable>();
     Stack<Variable> toProcess = new Stack<Variable>();
     toProcess.addAll(variables);
     List<GradleEditorSourceBinding> sourceBindings = new ArrayList<>();

@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.CollectingOutputReceiver;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ddmlib.*;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InstalledApkCache implements Disposable {
   private final DeviceStateCache<CacheData> myCache;
@@ -135,7 +138,7 @@ public class InstalledApkCache implements Disposable {
     }
 
     String lastUpdateTime = "";
-    Set<Integer> users = Sets.newHashSet();
+    Set<Integer> users = new HashSet<Integer>();
     for (String line : lines) {
       line = line.trim();
       if (line.startsWith("lastUpdateTime")) {

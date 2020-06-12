@@ -16,14 +16,15 @@
 package com.android.tools.idea.gradle.editor.ui;
 
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * {@link GradleEditorEntityUi} registry.
@@ -34,7 +35,7 @@ public class GradleEditorEntityUiRegistry {
     @NotNull
     @Override
     protected Set<GradleEditorEntityUi<?>> compute() {
-      Set<GradleEditorEntityUi<?>> result = Sets.newHashSet();
+      Set<GradleEditorEntityUi<?>> result = new HashSet<GradleEditorEntityUi<?>>();
       result.add(new SimpleGradleEntityUi());
       result.add(new ExternalDependencyEntityUi());
       Collections.addAll(result, GradleEditorEntityUi.EP_NAME.getExtensions());

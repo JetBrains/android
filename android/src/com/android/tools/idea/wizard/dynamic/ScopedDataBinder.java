@@ -26,13 +26,12 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.TextAccessor;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -44,14 +43,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JRadioButton;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -130,10 +122,10 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
 
   // Record of keys that have already been changed or updated during a round to prevent
   // recursive derivations.
-  private final Set<Key> myGuardedKeys = Sets.newHashSet();
+  private final Set<Key> myGuardedKeys = new HashSet<Key>();
 
   // Record of keys that the user has manually edited
-  private final Set<Key> myUserEditedKeys = Sets.newHashSet();
+  private final Set<Key> myUserEditedKeys = new HashSet<Key>();
 
   // Flags to guard against cyclical updates
   private boolean myAlreadySavingState;

@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.util;
 
@@ -65,8 +51,6 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
-import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
-
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.FileResourceNameValidator;
@@ -89,7 +73,6 @@ import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -123,8 +106,6 @@ import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.XmlElementFactory;
-import com.intellij.psi.search.PsiElementProcessor;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -138,6 +119,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -342,7 +324,7 @@ public class AndroidResourceUtil {
       if (facet == null) {
         return PsiField.EMPTY_ARRAY;
       }
-      Set<String> names = Sets.newHashSet();
+      Set<String> names = new HashSet<String>();
       for (XmlTag attr : tag.getSubTags()) {
         if (TAG_ATTR.equals(attr.getName())) {
           String attrName = attr.getAttributeValue(ATTR_NAME);

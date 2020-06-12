@@ -27,7 +27,6 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
@@ -50,6 +49,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.psi.SearchUtils;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -79,7 +79,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
     }
 
     final List<PsiFile> bitmaps = new ArrayList<>();
-    final Set<PsiElement> references = Sets.newHashSet();
+    final Set<PsiElement> references = new HashSet<PsiElement>();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
     LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
@@ -111,7 +111,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
       }
     }
 
-    Set<PsiFile> applicableFiles = Sets.newHashSet();
+    Set<PsiFile> applicableFiles = new HashSet<PsiFile>();
     applicableFiles.addAll(bitmaps);
     for (PsiElement element : references) {
       PsiFile containingFile = element.getContainingFile();

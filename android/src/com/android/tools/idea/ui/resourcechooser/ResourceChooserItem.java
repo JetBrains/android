@@ -33,15 +33,15 @@ import com.android.tools.idea.res.PredefinedSampleDataResourceRepository;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -213,7 +213,7 @@ public abstract class ResourceChooserItem {
     @Override
     @NotNull
     public List<String> getQualifiers() {
-      Set<String> set = Sets.newHashSet();
+      Set<String> set = new HashSet<String>();
       for (ResourceItem item : myResourceItems) {
         String q = item.getConfiguration().getQualifierString();
         if (!q.isEmpty()) {

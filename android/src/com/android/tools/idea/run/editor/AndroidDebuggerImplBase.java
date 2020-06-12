@@ -18,7 +18,6 @@ package com.android.tools.idea.run.editor;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
-import com.google.common.collect.Sets;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.Executor;
@@ -32,6 +31,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
+import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +85,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
   public synchronized Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version) {
     if (mySupportedBreakpointTypes == null) {
       XDebuggerUtil debuggerUtil = XDebuggerUtil.getInstance();
-      mySupportedBreakpointTypes = Sets.newHashSet();
+      mySupportedBreakpointTypes = new HashSet<XBreakpointType<?, ?>>();
       for (Class bpTypeCls : breakpointTypeClasses) {
         mySupportedBreakpointTypes.add(debuggerUtil.findBreakpointType(bpTypeCls));
       }
