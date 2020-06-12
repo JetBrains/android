@@ -93,7 +93,7 @@ public interface SmaliTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == ACCESS_MODIFIER) {
+      if (type == ACCESS_MODIFIER) {
         return new SmaliAccessModifierImpl(node);
       }
       else if (type == ANNOTATIONS_SPEC) {

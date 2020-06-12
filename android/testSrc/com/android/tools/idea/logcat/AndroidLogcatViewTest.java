@@ -15,32 +15,37 @@
  */
 package com.android.tools.idea.logcat;
 
-import static org.junit.Assert.assertEquals;
-
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
-import javax.swing.ListModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.swing.*;
+
+import static org.junit.Assert.assertEquals;
 
 public final class AndroidLogcatViewTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private AndroidLogcatView myLogcatView;
+  private final Disposable myDisposable = Disposer.newDisposable();
 
   @Before
   public void newAndroidLogcatView() {
-    ApplicationManager.getApplication().invokeAndWait(() -> myLogcatView = new AndroidLogcatView(myRule.getProject(), new DeviceContext()));
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      myLogcatView = new AndroidLogcatView(myRule.getProject(), new DeviceContext(), myDisposable);
+    });
   }
 
   @After
   public void disposeOfLogcatView() {
-    Disposer.dispose(myLogcatView);
+    Disposer.dispose(myDisposable);
   }
 
   @Test

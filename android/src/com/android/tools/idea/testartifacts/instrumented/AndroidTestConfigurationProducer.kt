@@ -39,6 +39,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
 
 /**
  * A [com.intellij.execution.actions.RunConfigurationProducer] implementation for [AndroidTestRunConfiguration].
@@ -87,9 +88,11 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     // for non-Gradle project and other configuration is available, prefer the other one.
     !GradleProjectInfo.getInstance(self.configuration.project).isBuildWithGradle -> false
 
-    // If the other configuration type is JUnitConfigurationType, prefer our configuration. Although those tests may be able to
-    // run on both environment if they are written with the unified-api (androidx.test, Espresso), here we prioritize instrumentation.
+    // If the other configuration type is JUnitConfigurationType or GradleExternalTaskConfigurationType, prefer our configuration.
+    // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
+    // here we prioritize instrumentation.
     other.configurationType is JUnitConfigurationType -> true
+    other.configurationType is GradleExternalTaskConfigurationType -> true
 
     // Otherwise, we don't have preference. Let the IDE to decide which one to use.
     else -> false

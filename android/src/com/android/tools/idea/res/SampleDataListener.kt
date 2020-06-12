@@ -17,19 +17,22 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
-
+import com.android.tools.idea.res.SampleDataListener.Companion.ensureSubscribed
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.*
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileEvent
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to
@@ -60,12 +63,15 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
   }
 
   /** Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS and PSI changes. */
-  private class Subscriber(val project: Project) :
-    LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), project) {
-
+  private class Subscriber(val project: Project) : LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project)),
+                                                   Disposable {
     override fun subscribe() {
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+      // Never use Application or Project as parents for disposables, as they will be leaked on plugin unload.
+      VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
       AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
+    }
+
+    override fun dispose() {
     }
   }
 

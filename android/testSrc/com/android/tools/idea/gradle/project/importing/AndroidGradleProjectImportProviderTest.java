@@ -33,7 +33,7 @@ public class AndroidGradleProjectImportProviderTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mockGradleProjectImporter = new IdeComponents(getProject()).mockApplicationService(GradleProjectImporter.class);
+    mockGradleProjectImporter = new IdeComponents(getProject(), getTestRootDisposable()).mockApplicationService(GradleProjectImporter.class);
   }
 
   public void testDelegatesToGradleProjectImporter() {
@@ -43,6 +43,6 @@ public class AndroidGradleProjectImportProviderTest extends PlatformTestCase {
                                                          .collect(Collectors.toList());
     assertSize(1, androidProviders);
     androidProviders.get(0).getBuilder().commit(getProject());
-    verify(mockGradleProjectImporter, times(1)).importProjectCore(eq(getProject().getBaseDir()));
+    verify(mockGradleProjectImporter, times(1)).importProjectCore(eq(getProject().getBaseDir()), eq(getProject()));
   }
 }

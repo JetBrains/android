@@ -21,7 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.res.findIdsInFile
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.util.androidFacet
-import com.intellij.codeInsight.CodeInsightBundle
+import com.intellij.analysis.AnalysisBundle
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
@@ -62,7 +62,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(", "
   }
 
   override fun getUnresolvedMessage(value: String?): String {
-    return CodeInsightBundle.message("error.cannot.resolve.default.message", value)
+    return AnalysisBundle.message("error.cannot.resolve.default.message", value)
   }
 
   private fun pickMostRelevantId(resolveResultList: Array<ResolveResult>, context: ConvertContext): ResolveResult? {

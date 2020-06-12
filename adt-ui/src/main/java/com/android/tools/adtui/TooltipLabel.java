@@ -26,8 +26,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Iterator;
-import java.util.Optional;
 
 /**
  * A label which automatically listens to all focus events whenever it is part of the current UI

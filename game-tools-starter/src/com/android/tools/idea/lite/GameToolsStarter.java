@@ -15,32 +15,25 @@
  */
 package com.android.tools.idea.lite;
 
-import com.intellij.ide.CliResult;
 import com.intellij.openapi.application.ApplicationStarter;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.wm.WindowManager;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Entry point for running "studio tools".
  */
-public class GameToolsStarter implements ApplicationStarter {
+final class GameToolsStarter implements ApplicationStarter {
   @Override
   public String getCommandName() {
     return "game-tools";
   }
 
   @Override
-  public void premain(String[] args) {
+  public void premain(@NotNull List<String> args) {
   }
 
   @Override
-  public void main(String[] args) {
+  public void main(String @NotNull [] args) {
     // TODO (b/135942818): Create a project and quick launch into profilers
   }
 
@@ -51,13 +44,7 @@ public class GameToolsStarter implements ApplicationStarter {
   }
 
   @Override
-  public boolean allowAnyModalityState() {
-    return true;
-  }
-
-  @NotNull
-  @Override
-  public Future<CliResult> processExternalCommandLineAsync(@NotNull List<String> args, @Nullable String currentDirectory) {
-    return new CompletableFuture<>();
+  public int getRequiredModality() {
+    return ANY_MODALITY;
   }
 }

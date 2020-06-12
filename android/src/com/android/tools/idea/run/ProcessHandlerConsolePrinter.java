@@ -20,10 +20,10 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.util.Key;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A simple logger which outputs to a process handler. If a process handler is not initially present, stores output until one is set.
@@ -44,7 +44,7 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
   @NotNull private final Object myLock = new Object();
 
   @GuardedBy("myLock")
-  @NotNull private final List<Message> myStoredMessages = Lists.newArrayList();
+  @NotNull private final List<Message> myStoredMessages = new ArrayList<>();
   @GuardedBy("myLock")
   @Nullable private ProcessHandler myProcessHandler;
 

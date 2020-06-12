@@ -36,14 +36,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author nik
- *
  * This is a copy of FileDownloaderImpl with a change in downloadFile to attempt
  * to download again without using compression when a download error happens.
  * This is a temporary fix until we found and fixed the problem with compressed
@@ -67,6 +66,12 @@ public class FontFileDownloader implements FileDownloader {
     myFileDescriptions = fileDescriptions;
     myParentComponent = parentComponent;
     myDialogTitle = IdeBundle.message("progress.download.0.title", StringUtil.capitalize(presentableDownloadName));
+  }
+
+  @Override
+  public @NotNull CompletableFuture<List<Pair<VirtualFile, DownloadableFileDescription>>> downloadWithBackgroundProgress(
+    @Nullable String targetDirectoryPath, @Nullable Project project) {
+    throw new UnsupportedOperationException("Async operations are not supported");
   }
 
   @Nullable

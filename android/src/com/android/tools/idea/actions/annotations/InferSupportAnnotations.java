@@ -15,6 +15,20 @@
  */
 package com.android.tools.idea.actions.annotations;
 
+import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
+import static com.android.tools.lint.checks.AnnotationDetector.ATTR_ALL_OF;
+import static com.android.tools.lint.checks.AnnotationDetector.ATTR_ANY_OF;
+import static com.android.tools.lint.checks.AnnotationDetector.BINDER_THREAD_ANNOTATION;
+import static com.android.tools.lint.checks.AnnotationDetector.MAIN_THREAD_ANNOTATION;
+import static com.android.tools.lint.checks.AnnotationDetector.PERMISSION_ANNOTATION;
+import static com.android.tools.lint.checks.AnnotationDetector.UI_THREAD_ANNOTATION;
+import static com.android.tools.lint.checks.AnnotationDetector.WORKER_THREAD_ANNOTATION;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.COLOR_INT_ANNOTATION;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.COLOR_INT_MARKER_TYPE;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.DIMENSION_MARKER_TYPE;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.PX_ANNOTATION;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
+
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
@@ -32,7 +46,50 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiArrayInitializerMemberValue;
+import com.intellij.psi.PsiBinaryExpression;
+import com.intellij.psi.PsiCall;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassObjectAccessExpression;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiConditionalExpression;
+import com.intellij.psi.PsiDocCommentOwner;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiForeachStatement;
+import com.intellij.psi.PsiIfStatement;
+import com.intellij.psi.PsiLambdaExpression;
+import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiNameValuePair;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiParenthesizedExpression;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiReturnStatement;
+import com.intellij.psi.PsiSwitchStatement;
+import com.intellij.psi.PsiThrowStatement;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeCastExpression;
+import com.intellij.psi.PsiTypeElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -43,15 +100,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.ArrayUtil;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.*;
-
-import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
-import static com.android.tools.lint.checks.AnnotationDetector.*;
-import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
 
 /**
  * Infer support annotations, e.g. if a method returns {@code R.drawable.something},
@@ -242,7 +300,7 @@ public class InferSupportAnnotations {
     @NotNull
     public List<String> getResourceTypeAnnotations() {
       if (types != null && !types.isEmpty()) {
-        List<String> annotations = Lists.newArrayList();
+        List<String> annotations = new ArrayList<>();
         for (ResourceType type : types) {
           StringBuilder oldAnnotation = new StringBuilder();
           StringBuilder newAnnotation = new StringBuilder();
@@ -821,7 +879,7 @@ public class InferSupportAnnotations {
         if (constraints == null) {
           constraints = new Constraints();
         }
-        List<Object> permissions = Lists.newArrayList();
+        List<Object> permissions = new ArrayList<>();
 
         PsiAnnotationMemberValue value = annotation.findAttributeValue(null); // TODO: Or "value" ?
         addPermissions(value, permissions);
@@ -1250,7 +1308,7 @@ public class InferSupportAnnotations {
       sb.append("INFER SUPPORT ANNOTATIONS REPORT\n");
       sb.append("================================\n\n");
 
-      List<String> list = Lists.newArrayList();
+      List<String> list = new ArrayList<>();
       for (UsageInfo info : infos) {
         ((InferSupportAnnotations.ConstraintUsageInfo)info).addInferenceExplanations(list);
       }

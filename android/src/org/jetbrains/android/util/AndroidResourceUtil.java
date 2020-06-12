@@ -65,6 +65,8 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.FileResourceNameValidator;
@@ -100,6 +102,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -120,6 +123,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
+import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.PsiElementProcessor;
@@ -1182,8 +1186,8 @@ public class AndroidResourceUtil {
       return 0;
     }
     else if (file1 != null && file2 != null) {
-      boolean xml1 = file1.getFileType() == StdFileTypes.XML;
-      boolean xml2 = file2.getFileType() == StdFileTypes.XML;
+      boolean xml1 = FileTypeRegistry.getInstance().isFileOfType(file1, StdFileTypes.XML);
+      boolean xml2 = FileTypeRegistry.getInstance().isFileOfType(file2, StdFileTypes.XML);
       if (xml1 != xml2) {
         return xml1 ? -1 : 1;
       }
@@ -1347,22 +1351,14 @@ public class AndroidResourceUtil {
     String resourceName = idResource.getName();
 
     // TODO(b/113646219): find the right one, if there are multiple, not the first one.
-    PsiElementProcessor.FindFilteredElement processor = new PsiElementProcessor.FindFilteredElement(element -> {
-      if (element instanceof XmlAttribute) {
-        XmlAttribute attr = (XmlAttribute)element;
-        String attrValue = attr.getValue();
-        if (isIdDeclaration(attrValue)) {
-          ResourceUrl resourceUrl = ResourceUrl.parse(attrValue);
-          if (resourceUrl != null && resourceUrl.name.equals(resourceName)) {
-            return true;
-          }
-        }
+    return SyntaxTraverser.psiTraverser(xmlFile).filter(XmlAttribute.class).filter(attr -> {
+      String attrValue = attr.getValue();
+      if (isIdDeclaration(attrValue)) {
+        ResourceUrl resourceUrl = ResourceUrl.parse(attrValue);
+        return resourceUrl != null && resourceUrl.name.equals(resourceName);
       }
       return false;
-    });
-    PsiTreeUtil.processElements(xmlFile, processor);
-
-    return (XmlAttribute)processor.getFoundElement();
+    }).first();
   }
 
   /**

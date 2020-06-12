@@ -27,7 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs
+import com.intellij.testFramework.HeavyPlatformTestCase.synchronizeTempDirVfs
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.io.File
 

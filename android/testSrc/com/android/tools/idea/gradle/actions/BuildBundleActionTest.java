@@ -94,7 +94,11 @@ public class BuildBundleActionTest extends PlatformTestCase {
       if (myDefaultTestDialog != null) {
         Messages.setTestDialog(myDefaultTestDialog);
       }
-    } finally {
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -142,7 +146,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any(), any());
   }
 
-  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
+  public void testUpdateGradlePluginCanceledNotification() {
     Module appModule = createModule("app1");
     setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
     when(myMainArtifact.getBundleTaskName()).thenReturn(null);

@@ -19,16 +19,16 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.testframework.sm.runner.ui.TestsPresentationUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.TestActionEvent;
 import org.mockito.Mock;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -47,8 +47,8 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(project).replaceProjectService(ProjectStructure.class, myProjectStructure);
+    ServiceContainerUtil.replaceService(project, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(project, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
 
     myAction = new MakeGradleProjectAction();
   }
@@ -67,7 +67,7 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
   public void testDoPerformWithFailedSync() {
     // Simulate failed sync.
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil.replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     // when sync fails, the list of "leaf" modules is empty.

@@ -28,23 +28,12 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.Rectangle
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.DefaultListModel
-import javax.swing.JComponent
-import javax.swing.JList
-import javax.swing.JPopupMenu
-import javax.swing.ListCellRenderer
-import javax.swing.ListModel
-import javax.swing.ListSelectionModel
+import javax.swing.*
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-import javax.swing.SwingUtilities
 import kotlin.math.max
 import kotlin.math.min
 

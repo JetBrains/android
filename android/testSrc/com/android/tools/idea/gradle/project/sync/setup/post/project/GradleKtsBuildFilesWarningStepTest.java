@@ -44,7 +44,7 @@ public class GradleKtsBuildFilesWarningStepTest extends PlatformTestCase {
    * Check that a warning is created when the project uses kts build files
    */
   public void testNotificationShownForProjectWithKts() {
-    myWarningStep.doSetUpProject(myProject, true);
+    myWarningStep.doSetUpProject(getProject(), true);
     verify(myNotification).showWarningIfNotShown();
   }
 
@@ -52,17 +52,17 @@ public class GradleKtsBuildFilesWarningStepTest extends PlatformTestCase {
    * Check that a warning is *NOT* created when the project does not use kts build files
    */
   public void testNotificationNotShownForProjectWithoutKts() {
-    myWarningStep.doSetUpProject(myProject, false);
+    myWarningStep.doSetUpProject(getProject(), false);
     verify(myNotification, never()).showWarningIfNotShown();
   }
 
   public void testStateSavedToProjectUserDataWithKts() {
-    myWarningStep.doSetUpProject(myProject, true);
-    assertTrue(myProject.getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
+    myWarningStep.doSetUpProject(getProject(), true);
+    assertTrue(getProject().getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
   }
 
   public void testStateSavedToProjectUserDataWithoutKts() {
-    myWarningStep.doSetUpProject(myProject, false);
-    assertFalse(myProject.getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
+    myWarningStep.doSetUpProject(getProject(), false);
+    assertFalse(getProject().getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
   }
 }

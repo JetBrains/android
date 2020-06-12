@@ -17,13 +17,13 @@ package com.android.tools.idea.editors.layoutInspector.ptable
 
 import com.android.tools.property.ptable.PTableItem
 import com.intellij.openapi.util.SystemInfo
-import javax.swing.JComponent
-import java.awt.event.ActionEvent
-import javax.swing.JPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * Used by [LITableCellEditor] to provide the JComponent for editing a cell.
@@ -48,7 +48,7 @@ class LIComponentEditor {
   init {
     myTextField.addActionListener(ActionListener { this.textChanged(it) })
     val fg = UIUtil.getTableSelectionForeground()
-    val bg = UIUtil.getTableSelectionBackground()
+    val bg = UIUtil.getTableSelectionBackground(true)
     myPanel = JPanel(BorderLayout(if (SystemInfo.isMac) 0 else 2, 0))
     myPanel.foreground = fg
     myPanel.background = bg

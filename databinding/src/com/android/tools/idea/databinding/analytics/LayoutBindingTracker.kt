@@ -53,7 +53,7 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
   }
 
   private val layoutBindingProjectComponent
-    get() = project.getComponent(LayoutBindingProjectComponent::class.java)
+    get() = LayoutBindingProjectComponent.getInstance(project)
 
   private fun isDataBindingEnabled() = layoutBindingProjectComponent.getDataBindingEnabledFacets().isNotEmpty()
 

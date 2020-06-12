@@ -19,12 +19,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 public class ComponentStack {
   private final ComponentManager myComponentManager;

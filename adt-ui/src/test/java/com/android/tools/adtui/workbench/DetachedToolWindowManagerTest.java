@@ -15,30 +15,33 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.adtui.workbench.DetachedToolWindowManager.DetachedToolWindowFactory;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.KeyboardFocusManager;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.mockito.Mock;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
-  private static volatile boolean DARK = UIUtil.isUnderDarcula();
+  private static volatile boolean DARK = StartupUiUtil.isUnderDarcula();
 
   @Mock
   private FileEditorManager myEditorManager;
@@ -81,17 +84,13 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myDetachedToolWindowFactory.create(any(Project.class), any(ToolWindowDefinition.class)))
       .thenReturn(myDetachedToolWindow1, myDetachedToolWindow2, null);
 
-    myManager = new DetachedToolWindowManager(
-      ApplicationManager.getApplication(),
-      getProject(),
-      FileEditorManager.getInstance(getProject()));
-    myManager.initComponent();
+    myManager = new DetachedToolWindowManager(getProject());
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
-    assert myManager.getComponentName().equals("DetachedToolWindowManager");
     myListener = myManager.getFileEditorManagerListener();
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
-    myManager.projectOpened();
+    when(myEditorManager.getAllEditors()).thenReturn(new FileEditor[0]);
+    when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     //noinspection unchecked
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
@@ -118,7 +117,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
     UIUtil.dispatchAllInvocationEvents();
-    myManager.projectClosed();
+    Disposer.dispose(myManager);
     verify(myDetachedToolWindow1).updateSettingsInAttachedToolWindow();
   }
 

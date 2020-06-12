@@ -37,3 +37,4 @@ class AndroidSqlFileType : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
  * Icon used for all things related to our SQL support.
  */
 val ANDROID_SQL_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
+

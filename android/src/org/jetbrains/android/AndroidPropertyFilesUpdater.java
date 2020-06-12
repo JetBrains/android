@@ -1,10 +1,10 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
-import com.intellij.ProjectTopics;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
 import com.intellij.lang.properties.psi.PropertiesFile;
@@ -14,10 +14,9 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -40,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import javax.swing.event.HyperlinkEvent;
@@ -66,14 +66,19 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   private final SingleAlarm myAlarm;
   private final Project myProject;
 
-  private AndroidPropertyFilesUpdater(Project project) {
-    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, this);
-    myProject = project;
-
-    if (!ApplicationManager.getApplication().isUnitTestMode() &&
-        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      addProjectPropertiesUpdatingListener();
+  public static class ModuleRootListenerImpl implements ModuleRootListener {
+    @Override
+    public void rootsChanged(@NotNull final ModuleRootEvent event) {
+      Project project = event.getProject();
+      if (!project.isDefault()) {
+        ServiceManager.getService(project, AndroidPropertyFilesUpdater.class).onRootsChanged();
+      }
     }
+  }
+
+  private AndroidPropertyFilesUpdater(Project project) {
+    myAlarm = new SingleAlarm(() -> ApplicationManager.getApplication().invokeLater(this::updatePropertyFilesIfNecessary), 50, this);
+    myProject = project;
   }
 
   @Override
@@ -84,13 +89,8 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     myAlarm.cancel();
   }
 
-  private void addProjectPropertiesUpdatingListener() {
-    myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(@NotNull final ModuleRootEvent event) {
-        StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
-      }
-    });
+  private void onRootsChanged() {
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
   }
 
   private void updatePropertyFilesIfNecessary() {
@@ -104,10 +104,8 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     final List<VirtualFile> files = new ArrayList<>();
     final List<Runnable> changes = new ArrayList<>();
 
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-      if (facet != null && !AndroidModel.isRequired(facet)) {
+    for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
+      if (!AndroidModel.isRequired(facet)) {
         final String updatePropertyFiles = facet.getProperties().UPDATE_PROPERTY_FILES;
         final boolean ask = updatePropertyFiles.isEmpty();
 
@@ -283,7 +281,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
 
           for (int i = 0; i < newDepValues.size(); i++) {
             final String value = newDepValues.get(i);
-            projectProperties.addProperty(AndroidUtils.ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX + Integer.toString(i + 1), value);
+            projectProperties.addProperty(AndroidUtils.ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX + (i + 1), value);
           }
         }
       });
@@ -325,16 +323,14 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
         });
       }
       else {
-        if (!Comparing.equal(property.getValue(), targetPropertyValue)) {
+        if (!Objects.equals(property.getValue(), targetPropertyValue)) {
           final PsiElement element = property.getPsiElement();
-          if (element != null) {
-            changes.add(new Runnable() {
-              @Override
-              public void run() {
-                element.replace(createProperty(project, targetPropertyValue).getPsiElement());
-              }
-            });
-          }
+          changes.add(new Runnable() {
+            @Override
+            public void run() {
+              element.replace(createProperty(project, targetPropertyValue).getPsiElement());
+            }
+          });
         }
       }
     }

@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (C) 2020 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <actions>
+    <action
+        id="LayoutEditor.HelpAssistant"
+        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
+        icon="StudioIcons.Common.HELP"
+        text="Show Help Panel"
+        description="Show/Hide Help Panel for Layout Editor">
+    </action>
+    <action
+        id="LayoutEditor.HelpAssistant.Full"
+        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
+        icon="StudioIcons.Common.HELP"
+        text="Show Help Panel"
+        description="Show/Hide Help Panel for Layout Editor">
+    </action>
+    <action
+        id="LayoutEditor.HelpAssistant.ConstraintLayout"
+        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
+        text="Constraint Layout Help Panel"
+        description="Create Help Panel for Constraint Layout Editor">
+    </action>
+    <action
+        id="LayoutEditor.HelpAssistant.MotionLayout"
+        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
+        text="Motion Layout Help Panel"
+        description="Create Help Panel for Motion Layout Editor">
+    </action>
+  </actions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.MotionLayoutPanelAssistantBundleCreator"/>
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.ConstraintLayoutPanelAssistantBundleCreator"/>
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorPanelAssistantBundleCreator"/>
+  </extensions>
+</idea-plugin>

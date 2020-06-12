@@ -19,21 +19,21 @@ import com.android.tools.idea.profilers.AndroidProfilerToolWindow;
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ToolWindowManager;
+import java.awt.BorderLayout;
+import java.beans.PropertyChangeListener;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  * Opens an .hprof or .trace file in Android Profiler by creating an imported session. The editor is responsible for opening the
@@ -60,7 +60,7 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
   }
 
   private static void importFileIntoAndroidProfiler(@NotNull final Project project, VirtualFile file) {
-    ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
     if (window != null) {
       window.setShowStripeButton(true);
       // Makes sure the window is visible because opening a file is an explicit indication that the user wants to view the file,

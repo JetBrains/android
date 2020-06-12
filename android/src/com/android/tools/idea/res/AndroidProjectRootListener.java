@@ -46,7 +46,7 @@ public class AndroidProjectRootListener {
   }
 
   private AndroidProjectRootListener(@NotNull Project project) {
-    project.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         moduleRootsOrDependenciesChanged(project);
@@ -60,7 +60,7 @@ public class AndroidProjectRootListener {
    * @param project the project whose module roots changed
    */
   private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
-    DumbService.getInstance(project).queueTask(new DumbModeTask() {
+    DumbService.getInstance(project).queueTask(new DumbModeTask(project) {
       @Override
       public void performInDumbMode(@NotNull ProgressIndicator indicator) {
         if (!project.isDisposed()) {

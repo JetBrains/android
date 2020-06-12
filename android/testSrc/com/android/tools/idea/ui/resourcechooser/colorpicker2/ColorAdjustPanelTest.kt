@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito

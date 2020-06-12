@@ -47,7 +47,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
 /**
  * Test methods of {@link GradleApkProvider}.
  */

@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.intellij.ui.scale.JBUIScale;
+
 import com.android.tools.idea.common.scene.ScenePicker;
 import java.awt.BasicStroke;
 import java.awt.Canvas;

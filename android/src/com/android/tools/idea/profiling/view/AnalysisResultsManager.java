@@ -28,25 +28,27 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager {
   private final AnalysisResultsContent myContent;
 
   @NotNull
   public static AnalysisResultsManager getInstance(@NotNull Project project) {
-    return project.getComponent(AnalysisResultsManager.class);
+    return project.getService(AnalysisResultsManager.class);
   }
 
   protected AnalysisResultsManager(@NotNull Project project) {
     super(project);
 
     myContent = new AnalysisResultsContent();
-    Disposer.register(this, () -> myContent.dispose());
+    Disposer.register(this, myContent::dispose);
   }
 
   @Override
@@ -54,7 +56,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     myContent.update(designer);
 
     if (designer == null) {
-      myToolWindow.setAvailable(false, null);
+      myToolWindow.setAvailable(false);
     }
     else {
       DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
@@ -64,7 +66,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
         activeDesigner.putClientProperty(getComponentName(), myContent);
       }
       myToolWindow.setIcon(getIcon());
-      myToolWindow.setAvailable(true, null);
+      myToolWindow.setAvailable(true);
       myToolWindow.show(null);
     }
   }
@@ -89,10 +91,10 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
 
   @NotNull
   @Override
-  protected AnAction[] createActions() {
-    return new AnAction[]{new ToggleAction(AndroidBundle.message("android.captures.analysis.results.manager.run.name"),
-                                           AndroidBundle.message("android.captures.analysis.results.manager.run.description"),
-                                           AllIcons.Toolwindows.ToolWindowRun) {
+  protected List<AnAction> createActions() {
+    return Collections.singletonList(new ToggleAction(AndroidBundle.message("android.captures.analysis.results.manager.run.name"),
+                                                      AndroidBundle.message("android.captures.analysis.results.manager.run.description"),
+                                                      AllIcons.Toolwindows.ToolWindowRun) {
       @Override
       public boolean isSelected(@NotNull AnActionEvent e) {
         AnalysisResultsContent analysisResultsContent = getContentFromDesigner();
@@ -114,17 +116,17 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
         super.update(e);
         Presentation presentation = e.getPresentation();
         if (isSelected(e)) {
-          presentation.setText(AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.name"));
-          presentation.setDescription(AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.description"));
+          presentation.setText(AndroidBundle.messagePointer("android.captures.analysis.results.manager.run.disabled.name"));
+          presentation.setDescription(AndroidBundle.messagePointer("android.captures.analysis.results.manager.run.disabled.description"));
           presentation.setIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Execute));
         }
         else {
-          presentation.setText(AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.name"));
-          presentation.setDescription(AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.description"));
+          presentation.setText(AndroidBundle.messagePointer("android.captures.analysis.results.manager.run.enabled.name"));
+          presentation.setDescription(AndroidBundle.messagePointer("android.captures.analysis.results.manager.run.enabled.description"));
           presentation.setIcon(AllIcons.Toolwindows.ToolWindowRun);
         }
       }
-    }};
+    });
   }
 
   @NotNull
@@ -187,7 +189,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   @Nullable
   private AnalysisResultsContent getContentFromDesigner() {
     DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
-    if (activeDesigner != null && activeDesigner instanceof CapturePanel) {
+    if (activeDesigner instanceof CapturePanel) {
       Object property = activeDesigner.getClientProperty(getComponentName());
       if (property instanceof LightToolWindow) {
         LightToolWindow lightToolWindow = (LightToolWindow)property;

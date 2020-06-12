@@ -19,8 +19,8 @@ import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
-import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.intellij.openapi.keymap.MacKeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;

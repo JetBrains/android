@@ -24,16 +24,14 @@
 
 package com.android.tools.idea
 
-import com.android.SdkConstants.ANDROID_MANIFEST_XML
-import com.android.SdkConstants.DOT_AAR
-import com.android.SdkConstants.FD_JARS
-import com.android.SdkConstants.LIBS_FOLDER
+import com.android.SdkConstants.*
 import com.android.builder.model.AaptOptions
 import com.android.projectmodel.AndroidSubmodule
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.diagnostic.PerformanceWatcher
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -47,23 +45,30 @@ import java.io.File
  * TODO: ExternalLibrary.address is unique within an [AndroidSubmodule], not necessarily within a [Project]
  */
 fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary> {
+  val snapshot = PerformanceWatcher.takeSnapshot()
   return ModuleManager.getInstance(project)
     .modules
     .asSequence()
-    .map(::findDependenciesWithResources)
-    .fold(HashMap()) { inProject, inModule ->
+    // Don't iterate *all* project modules *recursively*, as this is O(n*n) complexity, where n is the modules count.
+    .map{findDependenciesWithResources(it, recursively = false)}
+    .fold(HashMap<String, ExternalLibrary>()) { inProject, inModule ->
       inProject.putAll(inModule)
       inProject
+    }
+    .also {
+      snapshot.logResponsivenessSinceCreation("Searching for external libraries with Android resources. Found ${it.size} libraries.")
     }
 }
 
 /**
  * Returns information about all [ExternalLibrary] dependencies that contribute resources in a given module, indexed by
  * [ExternalLibrary.address] which is unique within a project.
+ *
+ * @param recursively indicates if the module dependencies should be searched recursively. `false` = search only own module dependencies
  */
-fun findDependenciesWithResources(module: Module): Map<String, ExternalLibrary> {
+fun findDependenciesWithResources(module: Module, recursively: Boolean = true): Map<String, ExternalLibrary> {
   return module.getModuleSystem()
-    .getResolvedDependentLibraries()
+    .getResolvedDependentLibraries(recursively)
     .filterIsInstance<ExternalLibrary>()
     .filter { it.hasResources }
     .associateBy { library -> library.address }

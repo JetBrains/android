@@ -21,16 +21,12 @@ import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.property.ptable.PTable;
-import com.android.tools.property.ptable.PTableGroupItem;
-import com.android.tools.property.ptable.PTableItem;
-import com.android.tools.property.ptable.PTableModel;
+import com.android.tools.adtui.util.CausedFocusEventWrapper;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
@@ -43,6 +39,11 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -89,9 +90,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import sun.awt.CausedFocusEvent;
 
-public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> implements ViewAllPropertiesAction.Model {
+public class NlPropertiesPanel extends PropertiesPanel implements ViewAllPropertiesAction.Model {
   static final String PROPERTY_MODE = "properties.mode";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
@@ -496,21 +496,15 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     Component newFocusedComponent = (Component)event.getNewValue();
     if (!isAncestorOf(newFocusedComponent) ||
         !(newFocusedComponent.getParent() instanceof JComponent) ||
-        !(awtEvent instanceof CausedFocusEvent)) {
+        !CausedFocusEventWrapper.isFocusEventWithCause(awtEvent)) {
       return false;
     }
-    CausedFocusEvent focusEvent = (CausedFocusEvent)awtEvent;
-    switch (focusEvent.getCause()) {
-      case TRAVERSAL:
-      case TRAVERSAL_UP:
-      case TRAVERSAL_DOWN:
-      case TRAVERSAL_FORWARD:
-      case TRAVERSAL_BACKWARD:
-        break;
-      default:
-        return false;
-    }
-    return true;
+    CausedFocusEventWrapper focusEvent = CausedFocusEventWrapper.newInstanceOrNull(awtEvent);
+    assert focusEvent != null: "CausedFocusEventWrapper.isFocusEventWithCause==true => CausedFocusEventWrapper.newInstanceOrNull!=null";
+
+    return focusEvent.isTraversal() ||
+        focusEvent.isTraversalUp() || focusEvent.isTraversalDown() ||
+        focusEvent.isTraversalForward() || focusEvent.isTraversalBackward();
   }
 
   @NotNull

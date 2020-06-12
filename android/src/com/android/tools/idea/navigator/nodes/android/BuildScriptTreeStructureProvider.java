@@ -22,12 +22,17 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+
 /**
  * This provider is a workaround for the ResourceBundleGrouper and the Kotlin plugin overriding
  * nodes in the Android project view.
  */
 public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
-  @NotNull private TreeStructureProvider myRealTreeStructureProvider;
+  @NotNull private final TreeStructureProvider myRealTreeStructureProvider;
 
   public BuildScriptTreeStructureProvider(@NotNull TreeStructureProvider provider) {
     myRealTreeStructureProvider = provider;
@@ -35,8 +40,8 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
 
   @NotNull
   @Override
-  public Collection<AbstractTreeNode> modify(@NotNull AbstractTreeNode parent,
-                                             @NotNull Collection<AbstractTreeNode> children,
+  public Collection<AbstractTreeNode<?>> modify(@NotNull AbstractTreeNode<?> parent,
+                                             @NotNull Collection<AbstractTreeNode<?>> children,
                                              @Nullable ViewSettings settings) {
     if (parent instanceof AndroidBuildScriptsGroupNode) {
       return children;
@@ -47,7 +52,7 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
 
   @Nullable
   @Override
-  public Object getData(@NotNull Collection<AbstractTreeNode> selected, @NotNull String dataName) {
+  public Object getData(@NotNull Collection<AbstractTreeNode<?>> selected, @NotNull String dataName) {
     return myRealTreeStructureProvider.getData(selected, dataName);
   }
 

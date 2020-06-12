@@ -71,7 +71,7 @@ import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
-import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
@@ -123,7 +123,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     String projectPath = toSystemDependentName(myProjectModel.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true) {
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, null,true) {
       @Override
       public boolean isResolveModulePerSourceSet() {
         return false;
@@ -136,7 +136,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
                                                          new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
-    GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();
+    GradleProjectResolverExtension next = new CommonGradleProjectResolverExtension();
     next.setProjectResolverContext(myResolverCtx);
     myProjectResolver.setNext(next);
   }

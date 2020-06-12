@@ -75,7 +75,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -289,7 +289,7 @@ public class AvdManagerConnection {
    */
   @NotNull
   public List<String> getSystemImageUpdates() {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     SystemImageUpdateDependency[] dependencies = getSystemImageUpdateDependencies();
     if (dependencies == null) {
       return requested;

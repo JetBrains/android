@@ -15,27 +15,29 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import static com.android.SdkConstants.DOT_FTL;
+
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.TypedVariable;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.bind.*;
+import java.io.File;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import java.io.File;
-import java.io.Reader;
-import java.util.List;
-
-import static com.android.SdkConstants.DOT_FTL;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A recipe is a list of instructions which, when executed, modify a project.
@@ -62,7 +64,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "requireJavaVersion", type = RequireJavaVersionInstruction.class),
     @XmlElement(name = "addDynamicFeature", type = AddDynamicFeatureInstruction.class),
   })
-  private List<RecipeInstruction> instructions = Lists.newArrayList();
+  private List<RecipeInstruction> instructions = new ArrayList<>();
 
   /**
    * A "folder" attribute can be specified on a recipe tag to handle loading of relative files

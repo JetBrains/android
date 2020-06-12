@@ -190,12 +190,6 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     myImporter.importProjects(Collections.singletonList(mySelectedProject));
   }
 
-  @SuppressWarnings("ConstantConditions")
-  @Override
-  public boolean validate(@Nullable Project current, Project dest) {
-    return super.validate(current, dest);
-  }
-
   private static void openSummary(Project project) {
     VirtualFile summary = project.getBaseDir().findChild(IMPORT_SUMMARY_TXT);
     if (summary != null) {

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
+import static com.intellij.util.ui.update.UiNotifyConnector.doWhenFirstShown;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WelcomeFrameProvider;
@@ -23,16 +24,13 @@ import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.ScreenUtil;
+import java.awt.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-
-import static com.intellij.util.ui.update.UiNotifyConnector.doWhenFirstShown;
-
 /**
- * {@link WelcomeFrameProvider} for the {@link FirstRunWizard}.
+ * {@link WelcomeFrameProvider} for the {@link StudioFirstRunWelcomeScreen}.
  */
-public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
+public final class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
   @Override
   public IdeFrame createFrame() {
     WelcomeFrame frame = WelcomeScreenProvider.EP_NAME.computeSafeIfAny(provider -> {

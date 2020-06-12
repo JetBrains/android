@@ -34,6 +34,7 @@ import java.util.Set;
  */
 public abstract class ModuleImporter {
   private static final Logger LOG = Logger.getInstance(ModuleImporter.class);
+
   private static final Key<ModuleImporter[]> KEY_IMPORTERS = new Key<>("com.android.tools.importers");
   private static final Key<ModuleImporter> KEY_CURRENT_IMPORTER = new Key<>("com.android.tools.currentImporter");
   private static final ModuleImporter NONE = new ModuleImporter() {

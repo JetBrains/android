@@ -24,14 +24,12 @@ import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowAnchor
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.isA
-import org.mockito.Mockito.clearInvocations
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 
 /**
  * Test cases that verify behavior of the profiler service. A PlatformTestCase is used for access to the Application and Project
@@ -49,7 +47,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
   fun testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManagerEx.getInstance(myProject)
+    val windowManager = ToolWindowManager.getInstance(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)
@@ -63,7 +61,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManagerEx.getInstance(myProject)
+    val windowManager = ToolWindowManager.getInstance(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)

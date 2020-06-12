@@ -65,7 +65,6 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.analytics.BaseUsageTrackerImplTest;
-import com.android.tools.idea.common.analytics.UsageTrackerUtilTest;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
@@ -87,6 +86,7 @@ import com.google.wireless.android.sdk.stats.LayoutFavoriteAttributeChangeEvent;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
 import com.google.wireless.android.sdk.stats.SearchOption;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collections;
@@ -98,7 +98,6 @@ import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
-import org.picocontainer.MutablePicoContainer;
 
 public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private static final String ATTR_CUSTOM_NAME = "MyCustomPropertyName";
@@ -381,10 +380,10 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     myModel = mock(NlModel.class);
     when(myModel.getFacet()).thenReturn(myFacet);
 
-    UsageTrackerUtilTest.registerComponentInstance((MutablePicoContainer)myModule.getPicoContainer(),
-                                                   ModuleResourceManagers.class,
-                                                   moduleResourceManagers,
-                                                   getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myModule,
+                                        ModuleResourceManagers.class,
+                                        moduleResourceManagers,
+                                        getTestRootDisposable());
 
     when(moduleResourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
     when(moduleResourceManagers.getFrameworkResourceManager()).thenReturn(frameworkResourceManager);

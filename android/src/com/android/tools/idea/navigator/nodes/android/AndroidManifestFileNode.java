@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FD_MAIN;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.psi.PsiDirectory.EMPTY_ARRAY;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
@@ -99,7 +98,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
   @Override
   @NotNull
   public PsiDirectory[] getFolders() {
-    return EMPTY_ARRAY;
+    return PsiDirectory.EMPTY_ARRAY;
   }
 
   @Override

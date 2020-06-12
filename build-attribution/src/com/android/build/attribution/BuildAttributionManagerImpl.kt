@@ -26,15 +26,12 @@ import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuild
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
-import java.util.UUID
+import java.util.*
 
-class BuildAttributionManagerImpl(
-  val project: Project
-) : BuildAttributionManager {
+class BuildAttributionManagerImpl(private val project: Project) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
   private val pluginContainer = PluginContainer()
 

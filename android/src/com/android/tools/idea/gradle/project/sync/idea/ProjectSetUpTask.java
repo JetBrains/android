@@ -73,8 +73,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       }
 
       if (importedProject) {
-        // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-        // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+        // We need to do this because AndroidGradleProjectStartupActivity#runActivity is being called when the project is created, instead
+        // of when the project is opened. When 'runActivity' is called, the project is not fully configured, and it does not look
         // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
         // listeners to be registered.
         AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);

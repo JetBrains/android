@@ -38,7 +38,7 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 public class GradleWrapperTest extends PlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     createIfNotExists(wrapperFilePath);
 
@@ -52,7 +52,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneAll() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     write("#Wed Apr 10 15:27:10 PDT 2013\n" +
           "distributionBase=GRADLE_USER_HOME\n" +
@@ -72,7 +72,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     write("#Wed Apr 10 15:27:10 PDT 2013\n" +
           "distributionBase=GRADLE_USER_HOME\n" +
@@ -91,7 +91,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
   public void testUpdateDistributionUrlReplacesGradleWrapper() throws IOException {
     // Test that when we replace to a new version we use -all.zip
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     write("#Wed Apr 10 15:27:10 PDT 2013\n" +
           "distributionBase=GRADLE_USER_HOME\n" +
@@ -110,7 +110,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
   public void testUpdateDistributionUrlUpgradeGradleWrapper() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     write("#Tue Feb 19 10:20:30 PDT 2019\n" +
           "distributionBase=GRADLE_USER_HOME\n" +
@@ -130,7 +130,7 @@ public class GradleWrapperTest extends PlatformTestCase {
   }
 
   public void testGetPropertiesFilePath() {
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperPath = GradleWrapper.getDefaultPropertiesFilePath(projectPath);
 
     List<String> expected = Lists.newArrayList(splitPath(projectPath.getPath()));
@@ -141,7 +141,7 @@ public class GradleWrapperTest extends PlatformTestCase {
   }
 
   public void testCreateWithSpecificGradleVersion() throws IOException {
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
@@ -153,7 +153,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
   // http://b.android.com/218575
   public void testCreateWithoutSpecificGradleVersion() throws IOException {
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = Projects.getBaseDirPath(getProject());
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 

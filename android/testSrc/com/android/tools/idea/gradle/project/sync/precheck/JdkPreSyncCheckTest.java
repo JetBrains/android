@@ -49,11 +49,12 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
 
     loadSimpleApplication();
 
-    myMockIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
-    myMockJdks = new IdeComponents(getProject()).mockApplicationService(Jdks.class);
+    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
+    myMockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    myMockJdks = ideComponents.mockApplicationService(Jdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myJdkPreSyncCheck = new JdkPreSyncCheck();
     StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.override(false);

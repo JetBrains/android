@@ -52,7 +52,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -60,8 +59,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
-import java.awt.Cursor;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1096,7 +1094,7 @@ public class Scene implements SelectionListener, Disposable {
                                          @AndroidDpCoordinate int y,
                                          @AndroidDpCoordinate int width,
                                          @AndroidDpCoordinate int height) {
-    List<SceneComponent> within = Lists.newArrayList();
+    List<SceneComponent> within = new ArrayList<>();
     if (getRoot() != null) {
       addWithin(within, getRoot(), x, y, width, height);
     }

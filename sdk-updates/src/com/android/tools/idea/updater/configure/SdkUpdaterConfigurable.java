@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.repository.api.*;
+import com.android.repository.api.Channel;
+import com.android.repository.api.DelegatingProgressIndicator;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.PackageOperation;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.util.InstallerUtil;
@@ -32,8 +38,13 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -48,15 +59,21 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.AncestorEvent;
-import java.io.File;
-import java.util.*;
 
 /**
  * Configurable for the Android SDK Manager.
@@ -86,7 +103,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return "Android SDK Updater";
+    return AndroidBundle.message("configurable.SdkUpdaterConfigurable.display.name");
   }
 
   @Nullable
@@ -158,7 +175,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     boolean sourcesModified = myPanel.areSourcesModified();
     myPanel.saveSources();
 
-    final List<LocalPackage> toDelete = Lists.newArrayList();
+    final List<LocalPackage> toDelete = new ArrayList<>();
     final Map<RemotePackage, UpdatablePackage> requestedPackages = Maps.newHashMap();
     for (PackageNodeModel model : myPanel.getStates()) {
       if (model.getState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
@@ -228,7 +245,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
               sb.append(issue);
               sb.append(", ");
             }
-            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb.toString();
+            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb;
           }
           else {
             message = "Unable to resolve dependencies for " + item.getDisplayName();
@@ -398,7 +415,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   static boolean confirmChange(HtmlBuilder message) {
-    String[] options = {Messages.OK_BUTTON, Messages.CANCEL_BUTTON};
+    String[] options = {Messages.getOkButton(), Messages.getCancelButton()};
     Icon icon = AllIcons.General.Warning;
 
     // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscreen

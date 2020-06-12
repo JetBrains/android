@@ -23,9 +23,6 @@ import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -34,8 +31,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.picocontainer.MutablePicoContainer
-import kotlin.reflect.KClass
 
 @RunWith(JUnit4::class)
 class LaunchCompatibilityCheckerTest {
@@ -48,7 +43,8 @@ class LaunchCompatibilityCheckerTest {
   @Before
   fun setUp() {
     facet = AndroidFacet.getInstance(projectRule.module)!!
-    mockManifestManager = projectRule.module.mockService(MergedManifestManager::class)
+    mockManifestManager = mock(MergedManifestManager::class.java)
+    facet.putUserData(MergedManifestManager.MANIFEST_MANAGER_KEY, mockManifestManager)
   }
 
   @Test
@@ -95,16 +91,4 @@ private fun mockManifest(minSdkVersion: AndroidVersion) : MergedManifestSnapshot
   return mock(MergedManifestSnapshot::class.java).also {
     `when`(it.minSdkVersion).thenReturn(minSdkVersion)
   }
-}
-
-private fun <T: Any> Module.mockService(serviceInterface: KClass<T>): T {
-  val mockedImplementation = mock(serviceInterface.java)
-  (picoContainer as MutablePicoContainer).apply {
-    unregisterComponent(serviceInterface.java.name)
-    registerComponentInstance(serviceInterface.java.name, mockedImplementation)
-  }
-  if (mockedImplementation is Disposable) {
-      Disposer.register(this, mockedImplementation)
-  }
-  return mockedImplementation
 }

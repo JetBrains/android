@@ -173,11 +173,6 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
       val textEditorPasses = textEditorHighlighter?.createPassesForEditor() ?: HighlightingPass.EMPTY_ARRAY
       return designEditorPasses + textEditorPasses
     }
-
-    override fun createPassesForVisibleArea(): Array<HighlightingPass> {
-      // BackgroundEditorHighlighter#createPassesForVisibleArea is deprecated and not used, so we can safely return an empty array here.
-      return HighlightingPass.EMPTY_ARRAY
-    }
   }
 }
 

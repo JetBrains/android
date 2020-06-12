@@ -27,6 +27,7 @@ import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.UByteList
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
+import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import org.junit.After
 import org.junit.Assert
@@ -60,7 +61,7 @@ class HeapAnalysisTest {
   }
 
   private fun getBaselinePath(fileName: String) =
-    TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/analysis-baseline/$fileName").toPath()
+    AndroidTestPaths.adtSources().resolve("android/testData/profiling/analysis-baseline/$fileName")
 
   class MemoryBackedIntList(size: Int) : IntList {
     private val array = IntArray(size)

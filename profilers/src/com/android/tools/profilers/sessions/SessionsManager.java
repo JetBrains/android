@@ -282,7 +282,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
         sessionArtifacts.addAll(artifacts);
       }
-      Collections.sort(sessionArtifacts, ARTIFACT_COMPARATOR);
+      sessionArtifacts.sort(ARTIFACT_COMPARATOR);
     });
 
     // Trigger artifact updates.
@@ -689,7 +689,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         sessionArtifacts.addAll(artifacts);
       }
     }
-    Collections.sort(sessionArtifacts, ARTIFACT_COMPARATOR);
+    sessionArtifacts.sort(ARTIFACT_COMPARATOR);
 
     List newProtos = sessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
     if (!previousProtos.equals(newProtos)) {

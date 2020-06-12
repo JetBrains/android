@@ -110,8 +110,8 @@ public final class ConvertLayoutToDataBindingAction extends AbstractIntentionAct
       return false;
     }
 
-    LayoutBindingProjectComponent component = project.getComponent(LayoutBindingProjectComponent.class);
-    return component != null && !component.getDataBindingEnabledFacets().isEmpty();
+    LayoutBindingProjectComponent component = LayoutBindingProjectComponent.getInstance(project);
+    return !component.getDataBindingEnabledFacets().isEmpty();
   }
 
   @Override

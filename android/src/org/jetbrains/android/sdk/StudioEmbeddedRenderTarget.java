@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.download.AndroidLayoutlibDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,16 +47,18 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
   private static final String FRAMEWORK_RES_JAR = "framework_res.jar";
 
+  public static final String LAYOUTLIB_BUNDLED_PATH = "plugins/android/lib/layoutlib/";
+
   // Possible paths of the embedded "layoutlib" directory.
   private static final String[] EMBEDDED_LAYOUTLIB_PATHS = {
     // Bundled path.
-    "/plugins/android/lib/layoutlib/",
+    LAYOUTLIB_BUNDLED_PATH,
     // Development path.
-    "/../../prebuilts/studio/layoutlib/",
+    "../../prebuilts/studio/layoutlib/",
     // IDEA path.
-    "/community/android/tools-base/layoutlib/",
+    "community/build/dependencies/build/android-sdk/prebuilts/studio/layoutlib/",
     // IDEA community path.
-    "/android/tools-base/layoutlib/"
+    "build/dependencies/build/android-sdk/prebuilts/studio/layoutlib/"
   };
 
   @Nullable private final String myBasePath;
@@ -79,7 +82,10 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
    * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering.
    */
   public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) {
-    if (ourDisableEmbeddedTargetForTesting) {
+    StudioEmbeddedRenderTarget embeddedRenderer = getInstance();
+    if (!embeddedRenderer.isValid() || ourDisableEmbeddedTargetForTesting) {
+      // There is no embedded layoutlib in Idea distribution. It will be downloaded automatically on first use.
+      // However in offline mode download may fail, PlatformRenderer should be used in this case.
       return new CompatibilityRenderTarget(target, target.getVersion().getApiLevel(), target);
     }
 
@@ -90,9 +96,10 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       target = compatRenderTarget.getRealTarget();
     }
 
-    return new CompatibilityRenderTarget(getInstance(), api, target);
+    return new CompatibilityRenderTarget(embeddedRenderer, api, target);
   }
 
+  @NotNull
   @VisibleForTesting
   public static StudioEmbeddedRenderTarget getInstance() {
     if (ourStudioEmbeddedTarget == null) {
@@ -105,12 +112,15 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     myBasePath = getEmbeddedLayoutLibPath();
   }
 
+  private boolean isValid(){
+    return myBasePath != null;
+  }
   /**
    * Returns the URL for the embedded layoutlib distribution.
    */
   @Nullable
   private static String getEmbeddedLayoutLibPath() {
-    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath() + "/");
 
     StringBuilder notFoundPaths = new StringBuilder();
     for (String path : EMBEDDED_LAYOUTLIB_PATHS) {
@@ -129,7 +139,16 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       }
     }
 
-    LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths.toString());
+    AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
+    File dir = AndroidLayoutlibDownloader.getInstance().getHostDir(LAYOUTLIB_BUNDLED_PATH);
+    if (dir.exists()) {
+      return dir.getAbsolutePath() + File.separator;
+    }
+    else {
+      notFoundPaths.append(dir).append('\n');
+    }
+
+    LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths);
     return null;
   }
 
@@ -283,5 +302,9 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   @Override
   public int compareTo(IAndroidTarget o) {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
+  }
+
+  public static void resetInstance() {
+    ourStudioEmbeddedTarget = null;
   }
 }

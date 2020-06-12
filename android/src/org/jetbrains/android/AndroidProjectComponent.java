@@ -10,9 +10,9 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -20,10 +20,10 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.messages.Topic;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
@@ -34,42 +34,45 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class AndroidProjectComponent implements ProjectComponent, Disposable {
+@Service
+public final class AndroidProjectComponent implements Disposable {
   private final Project myProject;
 
   private static boolean ourDynamicTemplateMenuCreated;
 
-  protected AndroidProjectComponent(Project project) {
+  private AndroidProjectComponent(@NotNull Project project) {
     myProject = project;
   }
 
-  @Override
-  public void projectOpened() {
-    final CompilerManager manager = CompilerManager.getInstance(myProject);
-    manager.addBeforeTask(new AndroidPrecompileTask());
+  private static AndroidProjectComponent getService(Project project){
+    return ServiceManager.getService(project, AndroidProjectComponent.class);
+  }
 
-    if (!ApplicationManager.getApplication().isUnitTestMode() &&
-        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
+  public static class AndroidProjectStartupActivity implements StartupActivity.DumbAware {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      final CompilerManager manager = CompilerManager.getInstance(project);
+      manager.addBeforeTask(new AndroidPrecompileTask());
 
-      if (ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) {
-        createAndroidSpecificComponents();
+      if (ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+        getService(project).createAndroidSpecificComponents();
       }
       else {
-        final MessageBusConnection connection = myProject.getMessageBus().connect();
+        final MessageBusConnection connection = project.getMessageBus().connect();
 
         connection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
           @Override
           public void facetAdded(@NotNull Facet facet) {
             if (facet instanceof AndroidFacet) {
-              createAndroidSpecificComponents();
+              getService(project).createAndroidSpecificComponents();
               connection.disconnect();
             }
           }
         });
       }
-    }
 
-    registerTemplatesAutoRefresh();
+      getService(project).registerTemplatesAutoRefresh();
+    }
   }
 
   private void registerTemplatesAutoRefresh() {
@@ -184,7 +187,7 @@ public class AndroidProjectComponent implements ProjectComponent, Disposable {
   }
 
   private void generate(final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess) {
-    TransactionGuard.getInstance().submitTransactionAndWait(
+    ApplicationManager.getApplication().invokeAndWait(
       () -> AndroidCompileUtil.createGenModulesAndSourceRoots(myProject, facetsToProcess.keySet()));
 
     for (Map.Entry<AndroidFacet, Collection<AndroidAutogeneratorMode>> entry : facetsToProcess.entrySet()) {

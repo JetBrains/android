@@ -38,6 +38,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,13 +80,14 @@ public class GradleProjectImporter {
    * storage to force their re-import.
    */
   @Nullable
-  public Project importProjectCore(@NotNull VirtualFile projectFolder) {
-    Project newProject;
+  public Project importProjectCore(@NotNull VirtualFile projectFolder, @Nullable Project newProject) {
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
-      String projectName = projectFolder.getName();
-      newProject = createProject(projectName, projectFolderPath);
+      if (newProject == null) {
+        String projectName = projectFolder.getName();
+        newProject = createProject(projectName, projectFolderPath);
+      }
       importProjectNoSync(new Request(newProject));
     }
     catch (Throwable e) {
@@ -142,7 +144,8 @@ public class GradleProjectImporter {
 
     String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
+    @NotNull GradleVersion gradleVersion = projectSettings.resolveGradleVersion();
+    GradleProjectImportUtil.setupGradleSettings(newProject, projectSettings, externalProjectPath, gradleVersion);
     GradleSettings.getInstance(newProject).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);

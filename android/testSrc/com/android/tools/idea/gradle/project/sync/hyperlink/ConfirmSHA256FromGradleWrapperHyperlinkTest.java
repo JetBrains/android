@@ -25,9 +25,11 @@ import com.android.tools.idea.gradle.util.PersistentSHA256Checksums;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
+import java.util.Calendar;
 import java.util.Properties;
 
 /**
@@ -54,6 +56,7 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
     assertThat(hyperlink.toHtml()).isEqualTo(EXPECTED_HTML);
   }
 
+  @Bombed(user = "Andrei.Kuznetsov", description = "https://youtrack.jetbrains.com/issue/IDEA-233200", month = Calendar.DECEMBER, day=30, year = 2020)
   public void testExecute() throws Exception {
     loadSimpleApplication();
     Project project = getProject();

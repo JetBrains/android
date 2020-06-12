@@ -30,7 +30,7 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -77,7 +77,8 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
-import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.ui.content.ContentManagerListener;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -97,6 +98,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -350,9 +352,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
           else {
             buildState.buildFinished(FAILED);
-            GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
+            BuildEnvironment buildEnvironment =
+              GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
+            GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain();
             ExternalSystemException userFriendlyError =
-              projectResolverChain.getUserFriendlyError(null, buildError, myRequest.getBuildFilePath().getPath(), null);
+                projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, myRequest.getBuildFilePath().getPath(), null);
             taskListener.onFailure(id, userFriendlyError);
           }
         }
@@ -561,7 +565,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
   }
 
-  private class CloseListener extends ContentManagerAdapter implements VetoableProjectManagerListener {
+  private class CloseListener implements VetoableProjectManagerListener, ContentManagerListener {
     private boolean myIsApplicationExitingOrProjectClosing;
     private boolean myUserAcceptedCancel;
 

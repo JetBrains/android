@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resources.base
 
-import com.intellij.util.containers.ObjectIntHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntMap
 import java.io.IOException
 
 /**
@@ -28,11 +28,10 @@ data class ResourceSourceFileImpl(
   override val relativePath: String?,
   override val configuration: RepositoryConfiguration
 ): ResourceSourceFile {
-
   @Throws(IOException::class)
-  override fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
+  override fun serialize(stream: Base128OutputStream, configIndexes: Object2IntMap<String>) {
     stream.writeString(relativePath)
-    stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
+    stream.writeInt(configIndexes.getInt(configuration.folderConfiguration.qualifierString))
   }
 
   companion object {

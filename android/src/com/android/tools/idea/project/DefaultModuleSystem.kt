@@ -136,14 +136,18 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedDependentLibraries(): Collection<Library> {
+  override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
-    ModuleRootManager.getInstance(module)
+    val orderEnumerator = ModuleRootManager.getInstance(module)
       .orderEntries()
       .librariesOnly()
-      .recursively()
-      .forEachLibrary { library ->
+
+    if (includeExportedTransitiveDeps) {
+      orderEnumerator.recursively().exportedOnly()
+    }
+
+    orderEnumerator.forEachLibrary { library ->
         // Typically, a library xml looks like the following:
         //     <CLASSES>
         //      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/appcompat-v7-27.1.1.aar/e2434af65905ee37277d482d7d20865d/res" />
@@ -175,7 +179,7 @@ class DefaultModuleSystem(override val module: Module) :
         ))
 
         true // continue processing.
-      }
+    }
 
     return ImmutableList.copyOf(libraries)
   }

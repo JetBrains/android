@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.XmlCodeStyleSettingsProvider;
@@ -31,12 +32,10 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
 
   @NonNls private static final String ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP = "Android XML code style notification";
 
-  private final Project myProject;
-  private final EditorNotifications myNotifications;
+  private final Project project;
 
   public AndroidCodeStyleNotificationProvider(Project project) {
-    myProject = project;
-    myNotifications = EditorNotifications.getInstance(project);
+    this.project = project;
   }
 
   @NotNull
@@ -47,12 +46,12 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
 
   @Nullable
   @Override
-  public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+  public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     if (file.getFileType() != XmlFileType.INSTANCE ||
         !(fileEditor instanceof TextEditor)) {
       return null;
     }
-    final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+    final Module module = ModuleUtilCore.findModuleForFile(file, project);
 
     if (module == null) {
       return null;
@@ -68,7 +67,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     if (resDir == null || !ModuleResourceManagers.getInstance(facet).getLocalResourceManager().isResourceDir(resDir)) {
       return null;
     }
-    final CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(myProject);
+    final CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(project);
     final AndroidXmlCodeStyleSettings androidSettings = AndroidXmlCodeStyleSettings.getInstance(settings);
 
     if (androidSettings.USE_CUSTOM_SETTINGS) {
@@ -93,8 +92,8 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         @Override
         public void run() {
           ShowSettingsUtilImpl.showSettingsDialog(
-            myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.CONFIGURABLE_DISPLAY_NAME, "");
-            myNotifications.updateAllNotifications();
+            project, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.getConfigurableDisplayNameText(), "");
+          EditorNotifications.getInstance(project).updateAllNotifications();
         }
       });
 
@@ -103,7 +102,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         public void run() {
           NotificationsConfiguration.getNotificationsConfiguration()
             .changeSettings(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.NONE, false, false);
-          myNotifications.updateAllNotifications();
+          EditorNotifications.getInstance(project).updateAllNotifications();
         }
       });
     }

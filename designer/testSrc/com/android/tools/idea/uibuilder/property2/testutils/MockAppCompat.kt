@@ -16,12 +16,9 @@
 package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.projectsystem.EP_NAME
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 

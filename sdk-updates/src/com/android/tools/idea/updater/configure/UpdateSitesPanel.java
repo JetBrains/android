@@ -18,6 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ModalityState;
@@ -28,9 +29,10 @@ import com.intellij.ui.AnActionButtonUpdater;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AsyncProcessIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Panel that shows the current {@link RepositorySource}s.
@@ -56,7 +58,7 @@ public class UpdateSitesPanel {
   }
 
   private void createUIComponents() {
-    mySourcesLoadingIcon = new AsyncProcessIcon("Loading...");
+    mySourcesLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
     mySourcesTableModel = new SourcesTableModel(() -> mySourcesLoadingPanel.setVisible(true),
                                                 () -> mySourcesLoadingPanel.setVisible(false), ModalityState.current());
     myUpdateSitesTable = new TableView<>(mySourcesTableModel);
@@ -81,7 +83,7 @@ public class UpdateSitesPanel {
       public boolean isEnabled(@NotNull AnActionEvent e) {
         return mySourcesTableModel.isEditable();
       }
-    }).addExtraAction(new AnActionButton("Select All", AllIcons.Actions.Selectall) {
+    }).addExtraAction(new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.select.all"), AllIcons.Actions.Selectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(true);
@@ -91,7 +93,7 @@ public class UpdateSitesPanel {
       public boolean isEnabled() {
         return mySourcesTableModel.hasEditableRows();
       }
-    }).addExtraAction(new AnActionButton("Deselect All", AllIcons.Actions.Unselectall) {
+    }).addExtraAction(new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.deselect.all"), AllIcons.Actions.Unselectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(false);

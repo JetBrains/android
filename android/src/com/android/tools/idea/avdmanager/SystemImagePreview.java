@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
@@ -28,17 +28,26 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import icons.AndroidIcons;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * Displays information about a {@link SystemImage}, including its
@@ -196,13 +205,13 @@ public class SystemImagePreview {
     if (icon != null) {
       return icon;
     }
-    int size = JBUI.scale(128);
-    Image image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    int size = JBUIScale.scale(128);
+    Image image = ImageUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);
-    Font f = UIUtil.getLabelFont();
-    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUI.scale(100));
+    Font f = StartupUiUtil.getLabelFont();
+    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUIScale.scale(100));
     g.setColor(JBColor.background());
     g.fillRect(0, 0, size, size);
     g.setColor(JBColor.foreground());

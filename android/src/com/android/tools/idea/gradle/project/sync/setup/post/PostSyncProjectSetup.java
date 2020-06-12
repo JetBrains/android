@@ -93,7 +93,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
-public class PostSyncProjectSetup {
+public final class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final ProjectStructure myProjectStructure;
@@ -103,7 +103,6 @@ public class PostSyncProjectSetup {
   @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
-  @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -111,16 +110,9 @@ public class PostSyncProjectSetup {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull IdeInfo ideInfo,
-                              @NotNull ProjectStructure projectStructure,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull GradleSyncInvoker syncInvoker,
-                              @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues) {
-    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), RunManagerEx.getInstanceEx(project));
+  public PostSyncProjectSetup(@NotNull Project project) {
+    this(project, IdeInfo.getInstance(), ProjectStructure.getInstance(project), GradleProjectInfo.getInstance(project), GradleSyncInvoker.getInstance(), GradleSyncState.getInstance(project), DependencySetupIssues.getInstance(project), new ProjectSetup(project),
+         new ModuleSetup(project));
   }
 
   @NonInjectable
@@ -133,8 +125,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
-                       @NotNull ModuleSetup moduleSetup,
-                       @NotNull RunManagerEx runManager) {
+                       @NotNull ModuleSetup moduleSetup) {
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -144,7 +135,6 @@ public class PostSyncProjectSetup {
     myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
-    myRunManager = runManager;
   }
 
   /**
@@ -353,14 +343,11 @@ public class PostSyncProjectSetup {
 
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
-    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensions(myProject);
-    RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
-
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
     Key<? extends BeforeRunTask> makeTaskId = myIdeInfo.isAndroidStudio() ? MakeBeforeRunTaskProvider.ID : CompileStepBeforeRun.ID;
     BeforeRunTaskProvider targetProvider = null;
-    for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
+    for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : BeforeRunTaskProvider.EP_NAME.getExtensions(myProject)) {
       if (makeTaskId.equals(provider.getId())) {
         targetProvider = provider;
         break;
@@ -368,15 +355,16 @@ public class PostSyncProjectSetup {
     }
 
     if (targetProvider != null) {
+      RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
       // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
       Map<RunConfiguration, List<BeforeRunTask>> currentTasks = new HashMap<>();
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : runManager.getConfigurationsList(junitConfigurationType)) {
         currentTasks.put(runConfiguration, new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration)));
       }
 
       // Fix the "JUnit Run Configuration" templates.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-        RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
+        RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
         AndroidJUnitConfiguration runConfiguration = (AndroidJUnitConfiguration)template.getConfiguration();
         // Set the correct "Make step" in the "JUnit Run Configuration" template.
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
@@ -384,7 +372,7 @@ public class PostSyncProjectSetup {
       }
 
       // Fix existing JUnit Configurations.
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : runManager.getConfigurationsList(junitConfigurationType)) {
         // Keep the previous configurations in existing run configurations
         runManager.setBeforeRunTasks(runConfiguration, currentTasks.get(runConfiguration));
       }

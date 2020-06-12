@@ -146,8 +146,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.idea.util.AndroidTestPaths
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.PathManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -164,7 +164,7 @@ class ViewInspectorBuilderTest {
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/designer/testData/property/"
+    projectRule.fixture.testDataPath = AndroidTestPaths.adtSources().resolve("designer/testData/property/").toString()
     addManifest(projectRule.fixture)
   }
 

@@ -19,8 +19,8 @@ package com.android.tools.idea.editors.layeredimage;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightFillLayout;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import org.intellij.images.editor.ImageEditor;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacade {
+final class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacade, Disposable {
   private final ThreeComponentsSplitter myContentSplitter;
   private final JComponent myContentComponent;
   private final Image myImage;
@@ -52,7 +52,7 @@ class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacad
     contentPanel.add(toolbar);
     contentPanel.add(editorComponent);
 
-    myContentSplitter = new ThreeComponentsSplitter();
+    myContentSplitter = new ThreeComponentsSplitter(this);
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
     myContentSplitter.setInnerComponent(contentPanel);
@@ -70,8 +70,8 @@ class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacad
     return myContentSplitter;
   }
 
-  void dispose() {
-    Disposer.dispose(myContentSplitter);
+  @Override
+  public void dispose() {
   }
 
   JComponent getPreferredFocusedComponent() {

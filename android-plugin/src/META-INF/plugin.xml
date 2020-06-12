@@ -1,13 +1,16 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <name>Android Support</name>
+  <name>Android</name>
   <id>org.jetbrains.android</id>
   <description>
     <![CDATA[
     Supports the development of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA and Android Studio.
     ]]>
   </description>
+  <category>Android</category>
   <version>10.4.0</version>
-  <vendor>JetBrains &amp; Google</vendor>
+  <vendor>JetBrains, Google</vendor>
+  <depends>com.intellij.platform.images</depends>
+  <depends>com.intellij.modules.java-capable</depends>
   <depends>com.intellij.modules.java</depends>
 
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -27,9 +30,8 @@
   <xi:include href="/META-INF/android-layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <!-- Currently we do not include "assistant.xml", "connection-assistant.xml" and "whats-new-assistant.xml" into IJ.
+       These modules are only included into AndroidStudio (see AndroidStudioPlugin.xml) -->
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/compose-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>

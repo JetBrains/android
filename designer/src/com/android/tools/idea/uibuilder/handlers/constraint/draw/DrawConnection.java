@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import static com.intellij.util.ui.JBUI.scale;
+import static com.intellij.ui.scale.JBUIScale.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;

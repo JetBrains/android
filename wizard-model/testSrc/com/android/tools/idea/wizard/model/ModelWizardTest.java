@@ -21,13 +21,12 @@ import static org.junit.Assert.fail;
 import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -155,7 +154,7 @@ public class ModelWizardTest {
 
   @Test
   public void wizardRunsFinishOnModelsInOrder() throws Exception {
-    List<RecordFinishedModel> finishList = Lists.newArrayList();
+    List<RecordFinishedModel> finishList = new ArrayList<>();
     RecordFinishedStep step1 = new RecordFinishedStep(new RecordFinishedModel(finishList));
     RecordFinishedStep step2 = new RecordFinishedStep(new RecordFinishedModel(finishList));
     RecordFinishedStep step3 = new RecordFinishedStep(new RecordFinishedModel(finishList));
@@ -379,7 +378,7 @@ public class ModelWizardTest {
 
   @Test
   public void finishedWizardsSkipModelsOfHiddenSteps() throws Exception {
-    List<RecordFinishedModel> finishList = Lists.newArrayList();
+    List<RecordFinishedModel> finishList = new ArrayList<>();
     RecordFinishedModel recordModel = new RecordFinishedModel(finishList);
     RecordFinishedStep recordStep = new RecordFinishedStep(recordModel);
     recordStep.setShouldSkip();

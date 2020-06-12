@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2016-2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.android.repository.api.Channel;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
-import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.manager.RepoManagerImpl;
@@ -32,22 +31,28 @@ import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentManager;
-import com.intellij.ide.externalComponents.ExternalComponentManagerImpl;
+import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
+import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
+import com.intellij.testFramework.ExtensionTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -82,8 +87,11 @@ public class SdkComponentSourceTest extends UsefulTestCase {
       public void dispose() {}
     };
     MockApplication instance = new MockApplication(myDisposable);
-    instance.registerService(ExternalComponentManager.class, ExternalComponentManagerImpl.class);
+    instance.registerService(ExternalComponentManager.class);
     instance.registerService(UpdateSettings.class, UpdateSettings.class);
+    instance.getExtensionArea().registerExtensionPoint(ExternalComponentSource.EP_NAME, ExternalComponentSource.class.getName(),
+                                                       ExtensionPoint.Kind.INTERFACE, myDisposable);
+
     ApplicationManager.setApplication(instance, myDisposable);
 
     myFileOp = new MockFileOp();
@@ -99,9 +107,9 @@ public class SdkComponentSourceTest extends UsefulTestCase {
 
     final FakeDownloader downloader = new FakeDownloader(myFileOp);
 
-    List<String> remotePaths = Lists.newArrayList();
-    List<Revision> remoteRevisions = Lists.newArrayList();
-    List<Integer> remoteChannels = Lists.newArrayList();
+    List<String> remotePaths = new ArrayList<>();
+    List<Revision> remoteRevisions = new ArrayList<>();
+    List<Integer> remoteChannels = new ArrayList<>();
 
     remotePaths.add("newerRemote");
     remoteRevisions.add(new Revision(1, 1));
@@ -140,14 +148,14 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     remoteChannels.add(1);
 
     String url = "http://example.com/repo";
-    downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes());
+    downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(StandardCharsets.UTF_8));
 
     final RepoManager mgr = new RepoManagerImpl(myFileOp);
     mgr.setLocalPath(new File("/sdk"));
     mgr.registerSchemaModule(AndroidSdkHandler.getRepositoryModule());
     mgr.registerSchemaModule(AndroidSdkHandler.getCommonModule());
     mgr.registerSourceProvider(new FakeRepositorySourceProvider(
-      ImmutableList.<RepositorySource>of(new SimpleRepositorySource(url, "dummy", true, mgr.getSchemaModules(), null))));
+      ImmutableList.of(new SimpleRepositorySource(url, "dummy", true, mgr.getSchemaModules(), null))));
 
     myChannelId = 0;
 
@@ -188,12 +196,15 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     try {
       Disposer.dispose(myDisposable);
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
   }
 
-  public void testAvailableStableVersions() throws Exception {
+  public void testAvailableStableVersions() {
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     Set<UpdatableExternalComponent> components = Sets.newTreeSet(COMPONENT_COMPARATOR);
     components.addAll(myTestComponentSource.getAvailableVersions(progress, null));
@@ -204,7 +215,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertFalse(componentIter.hasNext());
   }
 
-  public void testAvailableBetaVersions() throws Exception {
+  public void testAvailableBetaVersions() {
     myChannelId = 1;
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(true), null);
     Set<UpdatableExternalComponent> components = Sets.newTreeSet(COMPONENT_COMPARATOR);
@@ -254,7 +265,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertEquals(new Revision(1, 0, 0), ((RepoPackage)c.getKey()).getVersion());
   }
 
-  public void testCurrentVersions() throws Exception {
+  public void testCurrentVersions() {
     Set<UpdatableExternalComponent> components = Sets.newTreeSet(COMPONENT_COMPARATOR);
     components.addAll(myTestComponentSource.getCurrentVersions());
     Iterator<UpdatableExternalComponent> componentIter = components.iterator();
@@ -298,7 +309,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertFalse(componentIter.hasNext());
   }
 
-  public void testStatuses() throws Exception {
+  public void testStatuses() {
     myFileOp.recordExistingFile("/sdk/platforms/android-23/package.xml",
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
                                 "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\" " +
@@ -334,8 +345,8 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertTrue(statuses.contains(Pair.create("Android Platform Version:", "API 23: Android 6.0 (Marshmallow) revision 2")));
   }
 
-  public void testIgnored() throws Exception {
-    final AtomicReference<String> id = new AtomicReference<String>();
+  public void testIgnored() {
+    final AtomicReference<String> id = new AtomicReference<>();
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     for (UpdatableExternalComponent c : myTestComponentSource.getAvailableVersions(progress, null)) {
       if ("package newerRemote".equals(c.getName())) {
@@ -344,21 +355,27 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     }
     assertNotNull(id.get());
 
-    ExternalComponentManager.getInstance().registerComponentSource(myTestComponentSource);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
     UpdateSettings settings = new UpdateSettings() {
+      @Override
+      public List<String> getKnownExternalUpdateSources() {
+        return getEnabledExternalUpdateSources();
+      }
+
       @Override
       public List<String> getEnabledExternalUpdateSources() {
         return ImmutableList.of(myTestComponentSource.getName());
       }
 
       @Override
+      @NotNull
       public List<String> getIgnoredBuildNumbers() {
         return ImmutableList.of(id.get());
       }
     };
 
-    /* TODO(jbakermalone): fails to compile after IDEA 181.4203.550 merge
-    Collection<ExternalUpdate> updates = UpdateChecker.updateExternal(true, settings, progress);
+    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -367,20 +384,26 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertEquals(new Revision(1, 0, 0, 2), ((RepoPackage)component.getKey()).getVersion());
 
     assertFalse(iter.hasNext());
-    */
   }
 
-  public void testUpdates() throws Exception {
-    ExternalComponentManager.getInstance().registerComponentSource(myTestComponentSource);
+  public void testUpdates() {
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
+
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings() {
+      @Override
+      public List<String> getKnownExternalUpdateSources() {
+        return getEnabledExternalUpdateSources();
+      }
+
       @Override
       public List<String> getEnabledExternalUpdateSources() {
         return ImmutableList.of(myTestComponentSource.getName());
       }
     };
-    /* TODO(jbakermalone): fails to compile after IDEA 181.4203.550 merge
-    Collection<ExternalUpdate> updates = UpdateChecker.updateExternal(true, settings, progress);
+
+    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -393,21 +416,27 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertEquals(new Revision(1, 1, 0), ((RepoPackage)component.getKey()).getVersion());
 
     assertFalse(iter.hasNext());
-    */
   }
 
-  public void testBetaUpdates() throws Exception {
+  public void testBetaUpdates() {
     myChannelId = 1;
-    ExternalComponentManager.getInstance().registerComponentSource(myTestComponentSource);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
+
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings() {
+      @Override
+      public List<String> getKnownExternalUpdateSources() {
+        return getEnabledExternalUpdateSources();
+      }
+
       @Override
       public List<String> getEnabledExternalUpdateSources() {
         return ImmutableList.of(myTestComponentSource.getName());
       }
     };
-    /* TODO(jbakermalone): fails to compile after IDEA 181.4203.550 merge
-    Collection<ExternalUpdate> updates = UpdateChecker.updateExternal(true, settings, progress);
+
+    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -424,18 +453,17 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     assertEquals(new Revision(2, 0, 0), ((RepoPackage)component.getKey()).getVersion());
 
     assertFalse(iter.hasNext());
-    */
   }
 
   private static String getLocalRepoXml(String path, Revision revision) {
-    return getRepoXml(ImmutableList.of(path), ImmutableList.of(revision), ImmutableList.<Integer>of(), false);
+    return getRepoXml(ImmutableList.of(path), ImmutableList.of(revision), ImmutableList.of(), false);
   }
 
   private static String getRepoXml(List<String> paths, List<Revision> revisions, List<Integer> channels, boolean remote) {
     StringBuilder result = new StringBuilder(
       "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-    "<ns4:repository xmlns:ns4=\"http://schemas.android.com/repository/android/generic/01\"" +
-    "                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
+      "<ns4:repository xmlns:ns4=\"http://schemas.android.com/repository/android/generic/01\"" +
+      "                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
     if (remote) {
       result.append("<channel id=\"channel-0\">stable</channel>");
       result.append("<channel id=\"channel-1\">beta</channel>");

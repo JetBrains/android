@@ -53,9 +53,9 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     List<VirtualFile> sourceFolders = getSourceFolders();
-    List<AbstractTreeNode> children = new ArrayList<>(sourceFolders.size());
+    List<AbstractTreeNode<?>> children = new ArrayList<>(sourceFolders.size());
 
     assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);

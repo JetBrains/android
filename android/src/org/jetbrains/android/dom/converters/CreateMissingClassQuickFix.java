@@ -30,16 +30,25 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * A quick fix that creates non-existing class, used, e.g., for invalid android:name references in AndroidManifest.xml file
@@ -99,7 +108,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
     }
 
     final Collection<NamedIdeaSourceProvider> providerList = SourceProviderManager.getInstance(facet). getCurrentSourceProviders();
-    final List<VirtualFile> javaDirectories = Lists.newArrayList();
+    final List<VirtualFile> javaDirectories = new ArrayList<>();
     for (IdeaSourceProvider provider : providerList) {
       javaDirectories.addAll(provider.getJavaDirectories());
     }

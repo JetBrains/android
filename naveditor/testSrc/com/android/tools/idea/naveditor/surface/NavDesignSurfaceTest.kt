@@ -24,11 +24,7 @@ import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.inlineDrawRect
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.common.surface.InteractionManager
-import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.*
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -41,6 +37,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.idea.Bombed
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -58,17 +55,12 @@ import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.*
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
+import java.util.*
 import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -492,6 +484,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(root, component)
   }
 
+  @Bombed(year = 2020, month = Calendar.OCTOBER, day = 1, user = "Andrei.Kuznetsov",
+          description = "missing path: ../unitTest/res/navigation/navigation.xml")
   fun testConfiguration() {
     val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)

@@ -26,13 +26,13 @@ import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.GradleContext;
 import com.android.tools.lint.detector.api.GradleScanner;
 import com.android.tools.lint.detector.api.Location;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -174,7 +174,7 @@ public class LintIdeGradleVisitor extends GradleVisitor {
             String statementName = applicationStatement.getInvokedExpression().getText();
             GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
             Map<String, String> namedArguments = Maps.newHashMap();
-            List<String> unnamedArguments = Lists.newArrayList();
+            List<String> unnamedArguments = new ArrayList<>();
             for (GroovyPsiElement groovyPsiElement : argumentList.getAllArguments()) {
               if (groovyPsiElement instanceof GrNamedArgument) {
                 GrNamedArgument namedArgument = (GrNamedArgument)groovyPsiElement;

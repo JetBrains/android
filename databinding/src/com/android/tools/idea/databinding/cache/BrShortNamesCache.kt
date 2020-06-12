@@ -30,7 +30,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
 
 private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
 
@@ -40,7 +39,7 @@ private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
  * See [LightBrClass]
  */
 class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val component = LayoutBindingProjectComponent.getInstance(project)
   private val allFieldNamesCache: CachedValue<Array<String>>
 
   init {
@@ -71,10 +70,6 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
     return BR_CLASS_NAME_LIST
   }
 
-  override fun getAllClassNames(dest: HashSet<String>) {
-    dest.add(DataBindingUtil.BR)
-  }
-
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {
     // BR files are only fields, no methods
     return PsiMethod.EMPTY_ARRAY
@@ -87,7 +82,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     // BR files are only fields, no methods
     return true
   }

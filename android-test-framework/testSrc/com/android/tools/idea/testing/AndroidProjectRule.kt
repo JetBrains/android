@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.io.FilePaths.toSystemDependentPath
+import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
@@ -29,21 +30,20 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
 import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Rule that provides access to a [Project] containing one module configured
@@ -51,7 +51,7 @@ import java.io.File
  *
  * The defaults settings are using a [LightTempDirTestFixtureImpl] which means
  * that it does not create any file on disk,
- * but instead relly on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
+ * but instead rely on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
  *
  * For tests that rely on file on disk, use the [AndroidProjectRule.Factory.onDisk()]
  * factory method to use a full on disk fixture with a single module, otherwise use
@@ -92,6 +92,8 @@ class AndroidProjectRule private constructor(
   : NamedExternalResource() {
 
   lateinit var fixture: CodeInsightTestFixture
+  val mockitoCleaner = MockitoThreadLocalsCleaner()
+
   val module: Module get() = fixture.module
 
   val project: Project get() = fixture.project
@@ -105,7 +107,7 @@ class AndroidProjectRule private constructor(
   companion object {
     /**
      * Returns an [AndroidProjectRule] that uses a fixture which create the
-     * project in an in memeroy TempFileSystem
+     * project in an in memory TempFileSystem
      *
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
      */
@@ -182,6 +184,17 @@ class AndroidProjectRule private constructor(
   }
 
   override fun before(description: Description) {
+    try {
+      doBeforeActions(description)
+    } catch (t: Throwable){
+      // cleanup if init failed
+      mockitoCleaner.cleanupAndTearDown()
+      throw t
+    }
+  }
+
+  private fun doBeforeActions(description: Description) {
+    mockitoCleaner.setup()
     fixture = if (lightFixture) {
       createLightFixture()
     }
@@ -228,7 +241,7 @@ class AndroidProjectRule private constructor(
 
     val projectBuilder = IdeaTestFixtureFactory
         .getFixtureFactory()
-        .createFixtureBuilder(fixtureName ?: description.testClass.simpleName)
+        .createFixtureBuilder(fixtureName ?: description.displayName)
 
     val tempDirFixture =
       if (projectModuleBuilders.isEmpty()) {
@@ -241,7 +254,7 @@ class AndroidProjectRule private constructor(
         object : TempDirTestFixtureImpl() {
           private val tempDir by lazy { toSystemDependentPath(projectBuilder.fixture.project.basePath)!! }
 
-          override fun getTempHome(): File = tempDir
+          override fun getTempHome(): Path = tempDir.toPath()
 
           override fun tearDown() {
             val existed = tempDir.exists()
@@ -296,5 +309,7 @@ class AndroidProjectRule private constructor(
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
     }
     fixture.tearDown()
+    mockitoCleaner.cleanupAndTearDown()
+    AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }
 }

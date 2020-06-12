@@ -16,19 +16,20 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.property.ptable.PTableCellEditor;
 import com.android.tools.property.ptable.PTableCellEditorProvider;
 import com.android.tools.property.ptable.PTableItem;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
+public final class NlXmlEditors implements PTableCellEditorProvider, LafManagerListener, Disposable {
   private final Project myProject;
   private NlTableCellEditor myPropertyEditor;
   private NlTableCellEditor myAddPropertyEditor;
@@ -36,11 +37,17 @@ public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent,
 
   @NotNull
   public static NlXmlEditors getInstance(@NotNull Project project) {
-    return project.getComponent(NlXmlEditors.class);
+    return project.getService(NlXmlEditors.class);
   }
 
   private NlXmlEditors(@NotNull Project project) {
     myProject = project;
+
+    ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(LafManagerListener.TOPIC, this);
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @Nullable
@@ -88,29 +95,5 @@ public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent,
   @Override
   public void lookAndFeelChanged(@NotNull LafManager source) {
     resetCachedEditors();
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-    LafManager.getInstance().addLafManagerListener(this);
-  }
-
-  @Override
-  public void disposeComponent() {
-    LafManager.getInstance().removeLafManagerListener(this);
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return NlXmlEditors.class.getSimpleName();
   }
 }

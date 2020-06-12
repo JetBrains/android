@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -27,12 +28,14 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.util.SyncUtil;
+import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -51,6 +54,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.download.AndroidLayoutlibDownloader;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +124,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
-    myWorkBench.setLoadingText("Loading...");
+    myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText());
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
@@ -208,6 +212,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
             return;
           }
 
+          if (cause instanceof ProcessCanceledException){
+            // e.g. when IDEA user clicks 'cancel' button while required resources are downloaded from the Internet .
+            myWorkBench.loadingStopped("Failed to initialize editor (operation canceled).");
+            assert !IdeInfo.getInstance().isAndroidStudio(): "AndroidStudio has all the resources bundled with the IDE.";
+            return;
+          }
+
           myWorkBench.loadingStopped("Failed to initialize editor.");
           Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
         }
@@ -216,6 +227,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   @NotNull
   private NlModel createAndInitNeleModel() {
+    AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
     XmlFile file = ReadAction.compute(() -> getFile());
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {

@@ -15,26 +15,33 @@
  */
 package com.android.tools.idea.profiling.view;
 
-import com.intellij.designer.*;
+import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.designer.LightToolWindow;
+import com.intellij.designer.LightToolWindowContent;
+import com.intellij.designer.LightToolWindowManager;
+import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import icons.AndroidIcons;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Dummy LightToolWindowManager because the framework requires two managers at the same time.
  */
 public class EmptyManager extends CaptureEditorLightToolWindowManager {
-  @NotNull private JPanel myEmptyPanel = new JPanel();
+  @NotNull private final JPanel myEmptyPanel = new JPanel();
 
   @NotNull
   public static EmptyManager getInstance(@NotNull Project project) {
-    return project.getComponent(EmptyManager.class);
+    return project.getService(EmptyManager.class);
   }
 
   protected EmptyManager(@NotNull Project project) {
@@ -72,8 +79,8 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
 
   @NotNull
   @Override
-  protected AnAction[] createActions() {
-    return AnAction.EMPTY_ARRAY;
+  protected List<AnAction> createActions() {
+    return Collections.emptyList();
   }
 
   @NotNull
@@ -108,7 +115,6 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
     return createContent(designer, new LightToolWindowContent() {
       @Override
       public void dispose() {
-
       }
     }, getToolWindowTitleBarText(), getIcon(), myEmptyPanel, myEmptyPanel, 0, createActions());
   }

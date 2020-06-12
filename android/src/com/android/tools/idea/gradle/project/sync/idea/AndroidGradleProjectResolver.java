@@ -500,10 +500,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   @NotNull
-  public Set<Class> getExtraProjectModelClasses() {
+  public Set<Class<?>> getExtraProjectModelClasses() {
     // Use LinkedHashSet to maintain insertion order.
     // GlobalLibraryMap should be requested after AndroidProject.
-    Set<Class> modelClasses = new LinkedHashSet<>();
+    Set<Class<?>> modelClasses = new LinkedHashSet<>();
     modelClasses.add(AndroidProject.class);
     modelClasses.add(NativeAndroidProject.class);
     modelClasses.add(GlobalLibraryMap.class);
@@ -624,7 +624,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private AndroidExtraModelProvider configureAndGetExtraModelProvider() {
+  private ProjectImportModelProvider configureAndGetExtraModelProvider() {
     // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
     // to decide which models to request from Gradle.
     Project project = myProjectFinder.findProject(resolverCtx);

@@ -17,7 +17,6 @@ package com.android.tools.idea.actions
 
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getModuleTemplates

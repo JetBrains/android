@@ -42,8 +42,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import kotlin.math.max
 
 class HeapDumpSnapshotRunnable(
@@ -160,7 +159,7 @@ class HeapDumpSnapshotRunnable(
         return false
       }
 
-      val nextCheckPropertyMs = PropertiesComponent.getInstance().getOrInitLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
+      val nextCheckPropertyMs = PropertiesComponent.getInstance().getLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
       val currentTimestampMs = System.currentTimeMillis()
 
       if (nextCheckPropertyMs > currentTimestampMs) {

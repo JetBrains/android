@@ -11,9 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
- * @author nik
- */
 public class AndroidBuildProcessParametersProvider extends BuildProcessParametersProvider {
   @NotNull
   @Override

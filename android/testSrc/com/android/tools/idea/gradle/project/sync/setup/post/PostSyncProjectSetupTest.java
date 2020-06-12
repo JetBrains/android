@@ -48,7 +48,7 @@ import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FinishBuildEvent;
 import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
@@ -76,7 +76,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
   @Mock private GradleProjectBuilder myProjectBuilder;
-  @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private SyncViewManager myViewManager;
 
@@ -88,18 +87,15 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    myRunManager = RunManagerImpl.getInstanceImpl(project);
-
     new IdeComponents(myProject).replaceProjectService(SyncViewManager.class, myViewManager);
 
     ProjectStructureStub projectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, projectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
-                                       myDependencySetupIssues, myProjectSetup, myModuleSetup, myRunManager);
+                                       myDependencySetupIssues, myProjectSetup, myModuleSetup);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    myRunManager = null;
     mySetup = null;
     super.tearDown();
   }
@@ -112,25 +108,28 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
-    myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(project);
+    RunnerAndConfigurationSettings settings = runManager.createConfiguration(jUnitConfiguration, configurationFactory);
+    settings.storeInDotIdeaFolder();
+    runManager.addConfiguration(settings);
 
-    List<RunConfiguration> junitRunConfigurations = myRunManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
+    List<RunConfiguration> junitRunConfigurations = runManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
-      assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
-      assertEquals(MakeBeforeRunTaskProvider.ID, myRunManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
+      assertSize(1, runManager.getBeforeRunTasks(runConfiguration));
+      assertEquals(MakeBeforeRunTaskProvider.ID, runManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
     }
 
     RunConfiguration runConfiguration = junitRunConfigurations.get(0);
-    List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
+    List<BeforeRunTask> tasks = new LinkedList<>(runManager.getBeforeRunTasks(runConfiguration));
 
     MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project);
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
-    myRunManager.setBeforeRunTasks(runConfiguration, tasks);
+    runManager.setBeforeRunTasks(runConfiguration, tasks);
 
     mySetup.setUpProject(request, myTaskId, null);
-    assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
+    assertSize(2, runManager.getBeforeRunTasks(runConfiguration));
 
     verify(myGradleProjectInfo, times(2)).setNewProject(false);
     verify(myGradleProjectInfo, times(2)).setImportedProject(false);

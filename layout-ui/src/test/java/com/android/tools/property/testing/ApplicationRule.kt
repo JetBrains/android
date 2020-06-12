@@ -22,6 +22,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestLoggerFactory
 import org.junit.rules.ExternalResource
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import javax.swing.SwingUtilities
 
 /**
@@ -31,9 +33,9 @@ import javax.swing.SwingUtilities
  * than using [com.intellij.idea.IdeaTestApplication].
  */
 open class ApplicationRule : ExternalResource() {
-
-  private var rootDisposable: Disposable? = Disposer.newDisposable()
-  private var application: MockApplication? = TestApplication(rootDisposable!!)
+  private lateinit var testName: String
+  private var rootDisposable: Disposable? = null
+  private var application: MockApplication? = null
 
   val testRootDisposable: Disposable
     get() = rootDisposable!!
@@ -47,10 +49,17 @@ open class ApplicationRule : ExternalResource() {
     }
   }
 
+  override fun apply(base: Statement, description: Description): Statement {
+    testName = description.displayName
+    return super.apply(base, description)
+  }
+
   /**
    * Setup a test Application instance with a few common services needed for property tests.
    */
   override fun before() {
+    rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
+    application = TestApplication(rootDisposable!!, testName)
     ApplicationManager.setApplication(application!!, rootDisposable!!)
   }
 
@@ -60,9 +69,13 @@ open class ApplicationRule : ExternalResource() {
     application = null
   }
 
-  private class TestApplication(disposable: Disposable): MockApplication(disposable) {
+  private class TestApplication(disposable: Disposable, val name: String): MockApplication(disposable) {
     override fun invokeLater(runnable: Runnable) {
       SwingUtilities.invokeLater(runnable)
+    }
+
+    override fun toString(): String {
+      return "TestApplication@${name}"
     }
   }
 }

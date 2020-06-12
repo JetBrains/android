@@ -26,8 +26,4 @@ public abstract class AndroidExecutionTarget extends ExecutionTarget {
   @Nullable
   public abstract IDevice getIDevice();
 
-  @Override
-  public boolean isExternallyManaged() {
-    return true;
-  }
 }

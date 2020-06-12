@@ -60,7 +60,7 @@ class ResourcePickerDialogTest {
     runInEdtAndWait { runInAllowSaveMode { projectRule.project.save() } }
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
-    list.ui = HeadlessListUI()
+    list.setUI(HeadlessListUI())
 
     var point = list.indexToLocation(0)
     simulateMouseClick(list, point, 1)
@@ -77,7 +77,7 @@ b/145854765 */
   fun selectResource() {
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
-    list.ui = HeadlessListUI()
+    list.setUI(HeadlessListUI())
     val point = list.indexToLocation(0)
     // Simulate double clicking on an asset.
     simulateMouseClick(list, point, 2)
@@ -106,7 +106,7 @@ b/145854765 */
     }
     assertThat(waitForSampleDataList.isConditionRealized).isTrue()
 
-    sampleDataList!!.ui = HeadlessListUI()
+    sampleDataList!!.setUI(HeadlessListUI())
     val point = sampleDataList!!.indexToLocation(0)
     simulateMouseClick(sampleDataList!!, point, 2)
     // We don't know for a fact what resource will come first, so just check that the format is correct.
@@ -126,7 +126,7 @@ b/145854765 */
     setUp()
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
-    list.ui = HeadlessListUI()
+    list.setUI(HeadlessListUI())
     val point = list.indexToLocation(0)
     // First resource should now have 2 versions.
     assertThat(list.model.getElementAt(0).assets).hasSize(2)

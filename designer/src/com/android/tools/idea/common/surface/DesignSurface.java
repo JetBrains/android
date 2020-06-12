@@ -77,14 +77,7 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
-import java.awt.AWTEvent;
-import java.awt.Adjustable;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -100,14 +93,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.concurrent.GuardedBy;
-import javax.swing.JComponent;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -997,7 +983,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {
-      myZoomListeners = Lists.newArrayList();
+      myZoomListeners = new ArrayList<>();
     }
     else {
       myZoomListeners.remove(listener);
@@ -1200,7 +1186,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     @Override
-    public boolean canBePreprocessed(MouseEvent e) {
+    public boolean canBePreprocessed(@NotNull MouseEvent e) {
       return JBScrollPane.canBePreprocessed(e, this);
     }
 

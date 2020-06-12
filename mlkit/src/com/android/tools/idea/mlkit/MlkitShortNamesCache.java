@@ -95,7 +95,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   }
 
   @Override
-  public boolean processMethodsWithName(@NotNull String name, @NotNull GlobalSearchScope scope, @NotNull Processor<PsiMethod> processor) {
+  public boolean processMethodsWithName(@NotNull String name, @NotNull GlobalSearchScope scope, @NotNull Processor<? super PsiMethod> processor) {
     return true;
   }
 

@@ -38,7 +38,7 @@ public final class AndroidExecutionUtil {
 
   @NotNull
   public static Map<AndroidCompilerMessageKind, List<String>> doExecute(String[] argv,
-                                                                        @NotNull Map<? extends String, ? extends String> enviroment)
+                                                                        @NotNull Map<String, String> enviroment)
     throws IOException {
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
     final Process process;

@@ -21,9 +21,7 @@ import com.intellij.util.ui.UIUtilities;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicGraphicsUtils;
-import javax.swing.plaf.basic.BasicListUI;
 import javax.swing.plaf.basic.BasicTableUI;
-import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;

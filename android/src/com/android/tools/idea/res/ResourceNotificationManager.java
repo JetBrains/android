@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.SdkConstants.ANDROID_PREFIX;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
@@ -39,29 +36,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiErrorElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiTreeChangeEvent;
-import com.intellij.psi.PsiTreeChangeListener;
-import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlComment;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlText;
-import com.intellij.psi.xml.XmlToken;
+import com.intellij.psi.*;
+import com.intellij.psi.xml.*;
 import com.intellij.util.messages.MessageBusConnection;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.concurrent.GuardedBy;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.concurrent.GuardedBy;
+import java.util.*;
+
+import static com.android.SdkConstants.ANDROID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /**
  * The {@linkplain ResourceNotificationManager} provides notifications to editors that
@@ -147,7 +134,7 @@ public class ResourceNotificationManager {
    */
   @NotNull
   public static ResourceNotificationManager getInstance(@NotNull Project project) {
-    return project.getComponent(ResourceNotificationManager.class);
+    return project.getService(ResourceNotificationManager.class);
   }
 
   @NotNull
@@ -822,7 +809,7 @@ public class ResourceNotificationManager {
   }
 
   /*
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
+    final MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
 
   private class MyAndroidPlatformListener implements ModuleRootListener {

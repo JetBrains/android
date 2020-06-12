@@ -43,11 +43,10 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
@@ -70,14 +69,16 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
   private final boolean myFallback;
+  private final Computable<String> myInstallPathProvider;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
-  public AbstractDeployTask(
-    @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback) {
+  public AbstractDeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback,
+                            Computable<String> installPathProvider) {
     myProject = project;
     myPackages = packages;
     myFallback = fallback;
+    myInstallPathProvider = installPathProvider;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -143,12 +144,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
   private String getLocalInstaller() {
-    File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
-    if (!path.exists()) {
-      // Development mode
-      path = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/deploy/installer/android-installer");
-    }
-    return path.getAbsolutePath();
+    return myInstallPathProvider.compute();
   }
 
   protected static List<String> getPathsToInstall(@NotNull List<File> apkFiles) {

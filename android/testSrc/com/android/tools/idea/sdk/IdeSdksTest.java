@@ -27,7 +27,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.sdklib.IAndroidTarget;
@@ -35,28 +34,27 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 
 /**
  * Tests for {@link IdeSdks}.
  */
 public class IdeSdksTest extends PlatformTestCase {
-  @Mock private IdeInfo myIdeInfo;
+  private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
@@ -66,7 +64,7 @@ public class IdeSdksTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+    myIdeInfo = IdeInfo.getInstance();
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myAndroidSdkPath = getSdk();
@@ -146,7 +144,7 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   private void assertOneSdkPerAvailableTarget(@NotNull List<Sdk> sdks) {
-    List<IAndroidTarget> platformTargets = Lists.newArrayList();
+    List<IAndroidTarget> platformTargets = new ArrayList<>();
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(myAndroidSdkPath);
     assertNotNull(sdkData);
     for (IAndroidTarget target : sdkData.getTargets()) {
@@ -168,8 +166,9 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testUseEmbeddedJdk() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-
+    if (!myIdeInfo.isAndroidStudio()) {
+      return; // Idea does not have embedded JDK. Skip this test.
+    }
     ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
 
     // The path of the JDK should be the same as the embedded one.
@@ -187,7 +186,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testIsJavaSameVersionTrue() {
     Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
     File fakeFile = new File(myProject.getBasePath());
     doReturn(JDK_1_8).when(spyJdks).findVersion(same(fakeFile));
     assertTrue(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
@@ -195,7 +194,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testIsJavaSameVersionLower() {
     Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
     File fakeFile = new File(myProject.getBasePath());
     doReturn(JDK_1_7).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
@@ -203,7 +202,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testIsJavaSameVersionHigher() {
     Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
     File fakeFile = new File(myProject.getBasePath());
     doReturn(JDK_1_9).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
@@ -245,5 +244,4 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isTrue();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
   }
-
 }

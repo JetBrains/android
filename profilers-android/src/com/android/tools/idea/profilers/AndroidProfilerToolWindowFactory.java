@@ -17,12 +17,10 @@ package com.android.tools.idea.profilers;
 
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -33,7 +31,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
+public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String ID = "Android Profiler";
   private static final String PROFILER_TOOL_WINDOW_TITLE = "Profiler";
   private static final Map<Content, AndroidProfilerToolWindow> PROJECT_PROFILER_MAP = new HashMap<>();
@@ -42,9 +40,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+        ToolWindow window = toolWindowManager.getToolWindow(ID);
         if (window == null) {
           return;
         }
@@ -58,10 +56,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   }
 
   @Override
-  public void init(ToolWindow toolWindow) {
-    toolWindow.setToHideOnEmptyContent(true);
-    toolWindow.hide(null);
-    toolWindow.setShowStripeButton(false);
+  public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
 
     // When we initialize the ToolWindow we call to the profiler service to also make sure it is initialized.
@@ -70,7 +65,12 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     // Note: The AndroidProfilerService is where all application level components should be managed. This means if
     // we have something that impacts the TransportPipeline or should be done only once for X instances of
     // profilers or projects it will need to be handled there.
-    AndroidProfilerService.getInstance();
+    AndroidProfilerService.getInstance(); // FIXME-ank2: too early!
+  }
+
+  @Override
+  public boolean shouldBeAvailable(@NotNull Project project) {
+    return false; // No tool window (and its stripe button) should be visible after startup.
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -94,13 +94,13 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
    */
   @Nullable
   public static AndroidProfilerToolWindow getProfilerToolWindow(@NotNull Project project) {
-    ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(ID);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
     if (window == null) {
       return null;
     }
 
     ContentManager contentManager = window.getContentManager();
-    if (contentManager == null || contentManager.getContentCount() == 0) {
+    if (contentManager.getContentCount() == 0) {
       return null;
     }
 
@@ -113,11 +113,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       PROJECT_PROFILER_MAP.remove(content);
       toolWindow.getContentManager().removeAllContents(true);
     }
-  }
-
-  @Override
-  public boolean value(Project project) {
-    return true;
   }
 }
 

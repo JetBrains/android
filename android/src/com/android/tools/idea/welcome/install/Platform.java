@@ -30,12 +30,12 @@ import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>Install Android SDK components for developing apps targeting Lollipop
@@ -79,7 +79,7 @@ public class Platform extends InstallableComponent {
 
   @NotNull
   private static List<AndroidVersion> getInstalledPlatformVersions(@Nullable AndroidSdkHandler handler) {
-    List<AndroidVersion> result = Lists.newArrayList();
+    List<AndroidVersion> result = new ArrayList<>();
     if (handler != null) {
       RepositoryPackages packages = handler.getSdkManager(new StudioLoggerProgressIndicator(Platform.class)).getPackages();
       for (LocalPackage p : packages.getLocalPackages().values()) {

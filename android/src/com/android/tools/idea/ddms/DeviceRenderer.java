@@ -123,7 +123,7 @@ public class DeviceRenderer {
     return false;
   }
 
-  static final class DeviceComboBoxRenderer extends ColoredListCellRenderer<IDevice> {
+  public static final class DeviceComboBoxRenderer extends ColoredListCellRenderer<IDevice> {
     @NotNull
     private String myEmptyText;
     private boolean myShowSerial;

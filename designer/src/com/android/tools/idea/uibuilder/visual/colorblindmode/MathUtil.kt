@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
+import java.lang.Double.isNaN
 import kotlin.math.roundToInt
 
 /**
@@ -68,9 +69,14 @@ open class Double3D(
   val second: Double,
   val third: Double) {
   fun color(): Int {
-    val r: Int = if (first.isNaN()) 0 else first.roundToInt()
-    val g: Int = if (second.isNaN()) 0 else second.roundToInt()
-    val b: Int = if (third.isNaN()) 0 else third.roundToInt()
+    // For unknown reason kotlinc fail to compile first.inNaN with the error:
+    // Error: Kotlin: Overload resolution ambiguity:
+    // public inline fun Double.isNaN(): Boolean defined in kotlin
+    // public inline fun Double.isNaN(): Boolean defined in kotlin
+    // Revert this back, when kotlinc manage to compile it.
+    val r: Int = if (isNaN(first)) 0 else first.roundToInt()
+    val g: Int = if (isNaN(second)) 0 else second.roundToInt()
+    val b: Int = if (isNaN(third)) 0 else third.roundToInt()
 
     return r shl 16 or (g shl 8) or b
   }

@@ -31,7 +31,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LayersManager extends NlAbstractWindowManager {
+public final class LayersManager extends NlAbstractWindowManager {
   private LayersPanel myLayersPanel;
 
   public LayersManager(@NotNull Project project) {
@@ -53,7 +53,7 @@ public class LayersManager extends NlAbstractWindowManager {
     super.updateToolWindow(designer);
 
     if (designer == null) {
-      myToolWindow.setAvailable(false, null);
+      myToolWindow.setAvailable(false);
       if (myLayersPanel != null) {
         myLayersPanel.setImage(null);
       }
@@ -64,7 +64,7 @@ public class LayersManager extends NlAbstractWindowManager {
         createWindowContent(myLayersPanel, myLayersPanel, null);
       }
       myLayersPanel.setImage(getImage(designer));
-      myToolWindow.setAvailable(true, null);
+      myToolWindow.setAvailable(true);
       myToolWindow.show(null);
     }
   }
@@ -96,7 +96,8 @@ public class LayersManager extends NlAbstractWindowManager {
     ToolWindowAnchor anchor;
     if (value == null) {
       anchor = getAnchor();
-    } else {
+    }
+    else {
       anchor = value.equals("ToolWindow") ? null : ToolWindowAnchor.fromText(value);
     }
 

@@ -1,11 +1,22 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.openapi.util.io.FileUtil;
-import gnu.trove.THashMap;
-import gnu.trove.THashSet;
+import com.intellij.util.containers.CollectionFactory;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.android.*;
+import org.jetbrains.jps.android.AndroidDependencyProcessor;
+import org.jetbrains.jps.android.AndroidDependencyType;
+import org.jetbrains.jps.android.AndroidJpsUtil;
+import org.jetbrains.jps.android.AndroidPlatform;
+import org.jetbrains.jps.android.AndroidPreDexBuilder;
 import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -22,10 +33,6 @@ import org.jetbrains.jps.indices.IgnoredFileIndex;
 import org.jetbrains.jps.indices.ModuleExcludeIndex;
 import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -64,10 +71,10 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     if (extension.isLibrary()) {
       return Collections.emptyList();
     }
-    final Map<String, String> libPackage2ModuleName = new THashMap<String, String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> appClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> javaClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> libClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
+    final Map<String, String> libPackage2ModuleName = CollectionFactory.createFilePathMap();
+    final Set<String> appClassesDirs = CollectionFactory.createFilePathSet();
+    final Set<String> javaClassesDirs = CollectionFactory.createFilePathSet();
+    final Set<String> libClassesDirs = CollectionFactory.createFilePathSet();
 
     final File moduleClassesDir = new ModuleBuildTarget(
       myModule, JavaModuleBuildTargetType.PRODUCTION).getOutputDir();
@@ -108,7 +115,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
         appClassesDirs.add(testModuleClassesDir.getPath());
       }
     }
-    final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
+    final List<BuildRootDescriptor> result = new ArrayList<>();
 
     for (String classesDir : appClassesDirs) {
       result.add(new MyClassesDirBuildRootDescriptor(this, new File(classesDir), ClassesDirType.ANDROID_APP));
@@ -175,14 +182,14 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
 
   @Override
   public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry registry, TargetOutputIndex outputIndex) {
-    final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>(
+    final List<BuildTarget<?>> result = new ArrayList<>(
       super.computeDependencies(registry, outputIndex));
     result.add(new AndroidAarDepsBuildTarget(myModule));
     result.add(new AndroidPreDexBuildTarget(myModule.getProject()));
     return result;
   }
 
-  public static class MyTargetType extends AndroidBuildTargetType<AndroidDexBuildTarget> {
+  public static final class MyTargetType extends AndroidBuildTargetType<AndroidDexBuildTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {

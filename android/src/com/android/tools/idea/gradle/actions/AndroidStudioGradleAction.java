@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -67,6 +68,10 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   private static boolean isGradleProject(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    return project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle();
+    if (project == null) {
+      return false;
+    }
+    GradleProjectInfo info = GradleProjectInfo.getInstance(project);
+    return info.isBuildWithGradle() && (!info.getAndroidModules().isEmpty() || IdeInfo.getInstance().isAndroidStudio());
   }
 }

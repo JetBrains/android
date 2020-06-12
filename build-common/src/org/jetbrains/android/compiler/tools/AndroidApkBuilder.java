@@ -1,19 +1,9 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.tools;
+
+import static org.jetbrains.android.util.AndroidCompilerMessageKind.ERROR;
+import static org.jetbrains.android.util.AndroidCompilerMessageKind.INFORMATION;
+import static org.jetbrains.android.util.AndroidCompilerMessageKind.WARNING;
 
 import com.android.SdkConstants;
 import com.android.jarutils.DebugKeyProvider;
@@ -29,29 +19,43 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.text.DateFormatUtil;
-import org.jetbrains.android.util.*;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static org.jetbrains.android.util.AndroidCompilerMessageKind.*;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBuildTestingManager;
+import org.jetbrains.android.util.AndroidCompilerMessageKind;
+import org.jetbrains.android.util.AndroidExecutionUtil;
+import org.jetbrains.android.util.AndroidNativeLibData;
+import org.jetbrains.android.util.SafeSignedJarBuilder;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author yole
  */
 public class AndroidApkBuilder {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.tools.AndroidApkBuilder");
+  private static final Logger LOG = Logger.getInstance(AndroidApkBuilder.class);
 
   @NonNls private static final String UNALIGNED_SUFFIX = ".unaligned";
   @NonNls private static final String EXT_NATIVE_LIB = "so";
@@ -62,11 +66,11 @@ public class AndroidApkBuilder {
   private static Map<AndroidCompilerMessageKind, List<String>> filterUsingKeystoreMessages(Map<AndroidCompilerMessageKind, List<String>> messages) {
     List<String> infoMessages = messages.get(INFORMATION);
     if (infoMessages == null) {
-      infoMessages = new ArrayList<String>();
+      infoMessages = new ArrayList<>();
       messages.put(INFORMATION, infoMessages);
     }
     final List<String> errors = messages.get(ERROR);
-    for (Iterator<String> iterator = errors.iterator(); iterator.hasNext();) {
+    for (Iterator<String> iterator = errors.iterator(); iterator.hasNext(); ) {
       String s = iterator.next();
       if (s.startsWith("Using keystore:")) {
         // not actually an error
@@ -77,7 +81,7 @@ public class AndroidApkBuilder {
     return messages;
   }
 
-  @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
+  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static void collectDuplicateEntries(@NotNull String rootFile, @NotNull Set<String> entries, @NotNull Set<String> result)
     throws IOException {
     final JavaResourceFilter javaResourceFilter = new JavaResourceFilter();
@@ -137,9 +141,9 @@ public class AndroidApkBuilder {
         sdkPath,
         customKeystorePath}, "\n"));
     }
-    final Map<AndroidCompilerMessageKind, List<String>> map = new HashMap<AndroidCompilerMessageKind, List<String>>();
-    map.put(ERROR, new ArrayList<String>());
-    map.put(WARNING, new ArrayList<String>());
+    final Map<AndroidCompilerMessageKind, List<String>> map = new HashMap<>();
+    map.put(ERROR, new ArrayList<>());
+    map.put(WARNING, new ArrayList<>());
 
     final File outputDir = new File(finalApk).getParentFile();
     if (!outputDir.exists() && !outputDir.mkdirs()) {
@@ -218,14 +222,14 @@ public class AndroidApkBuilder {
                                                                             @NotNull String[] externalJars,
                                                                             @NotNull String[] nativeLibsFolders,
                                                                             @NotNull String outputApk,
-                                                                            @NotNull String apkPath,
+                                                                            @NotNull String resApkPath,
                                                                             @Nullable String customKeystorePath,
                                                                             boolean signed,
                                                                             @NotNull Condition<File> resourceFilter) {
-    final Map<AndroidCompilerMessageKind, List<String>> result = new HashMap<AndroidCompilerMessageKind, List<String>>();
-    result.put(ERROR, new ArrayList<String>());
-    result.put(INFORMATION, new ArrayList<String>());
-    result.put(WARNING, new ArrayList<String>());
+    final Map<AndroidCompilerMessageKind, List<String>> result = new HashMap<>();
+    result.put(ERROR, new ArrayList<>());
+    result.put(INFORMATION, new ArrayList<>());
+    result.put(WARNING, new ArrayList<>());
 
     FileOutputStream fos = null;
     SignedJarBuilder builder = null;
@@ -263,8 +267,8 @@ public class AndroidApkBuilder {
         return result;
       }
 
-      if (!new File(apkPath).exists()) {
-        result.get(ERROR).add("File " + apkPath + " not found. Try to rebuild project");
+      if (!new File(resApkPath).exists()) {
+        result.get(ERROR).add("File " + resApkPath + " not found. Try to rebuild project");
         return result;
       }
 
@@ -287,7 +291,7 @@ public class AndroidApkBuilder {
       fos = new FileOutputStream(outputApk);
       builder = new SafeSignedJarBuilder(fos, key, certificate, outputApk);
 
-      FileInputStream fis = new FileInputStream(apkPath);
+      FileInputStream fis = new FileInputStream(resApkPath);
       try {
         builder.writeZip(fis, null);
       }
@@ -297,16 +301,16 @@ public class AndroidApkBuilder {
 
       builder.writeFile(dexEntryFile, AndroidBuildCommonUtils.CLASSES_FILE_NAME);
 
-      final HashSet<String> added = new HashSet<String>();
+      final HashSet<String> added = new HashSet<>();
       for (String resourceRootPath : javaResourceRoots) {
-        final HashSet<File> javaResources = new HashSet<File>();
+        final HashSet<File> javaResources = new HashSet<>();
         final File resourceRoot = new File(resourceRootPath);
         collectStandardJavaResources(resourceRoot, javaResources, resourceFilter);
         writeStandardJavaResources(javaResources, resourceRoot, builder, added);
       }
 
-      Set<String> duplicates = new HashSet<String>();
-      Set<String> entries = new HashSet<String>();
+      Set<String> duplicates = new HashSet<>();
+      Set<String> entries = new HashSet<>();
       for (String externalJar : externalJars) {
         collectDuplicateEntries(externalJar, entries, duplicates);
       }
@@ -327,7 +331,7 @@ public class AndroidApkBuilder {
         }
       }
 
-      final HashSet<String> nativeLibs = new HashSet<String>();
+      final HashSet<String> nativeLibs = new HashSet<>();
       for (String nativeLibsFolderPath : nativeLibsFolders) {
         final File nativeLibsFolder = new File(nativeLibsFolderPath);
         final File[] children = nativeLibsFolder.listFiles();
@@ -360,9 +364,6 @@ public class AndroidApkBuilder {
     catch (KeyStoreException e) {
       return addExceptionMessage(e, result);
     }
-    catch (GeneralSecurityException e) {
-      return addExceptionMessage(e, result);
-    }
     finally {
       if (builder != null) {
         try {
@@ -388,13 +389,13 @@ public class AndroidApkBuilder {
   }
 
   private static DebugKeyProvider createDebugKeyProvider(final Map<AndroidCompilerMessageKind, List<String>> result, String path) throws
-                                                                                                                               KeyStoreException,
-                                                                                                                               NoSuchAlgorithmException,
-                                                                                                                               CertificateException,
-                                                                                                                               UnrecoverableEntryException,
-                                                                                                                               IOException,
-                                                                                                                               DebugKeyProvider.KeytoolException,
-                                                                                                                               AndroidLocation.AndroidLocationException {
+                                                                                                                                  KeyStoreException,
+                                                                                                                                  NoSuchAlgorithmException,
+                                                                                                                                  CertificateException,
+                                                                                                                                  UnrecoverableEntryException,
+                                                                                                                                  IOException,
+                                                                                                                                  DebugKeyProvider.KeytoolException,
+                                                                                                                                  AndroidLocation.AndroidLocationException {
 
     return new DebugKeyProvider(path, null, new DebugKeyProvider.IKeyGenOutput() {
       @Override
@@ -415,7 +416,7 @@ public class AndroidApkBuilder {
                                            boolean debugBuild,
                                            Set<String> added)
     throws IOException {
-    ArrayList<File> list = new ArrayList<File>();
+    ArrayList<File> list = new ArrayList<>();
     collectNativeLibraries(child, list, debugBuild);
 
     for (File file : list) {
@@ -433,7 +434,7 @@ public class AndroidApkBuilder {
   }
 
   private static Map<AndroidCompilerMessageKind, List<String>> addExceptionMessage(Exception e,
-                                                                                Map<AndroidCompilerMessageKind, List<String>> result) {
+                                                                                   Map<AndroidCompilerMessageKind, List<String>> result) {
     LOG.info(e);
     String simpleExceptionName = e.getClass().getCanonicalName();
     result.get(ERROR).add(simpleExceptionName + ": " + e.getMessage());
@@ -462,7 +463,7 @@ public class AndroidApkBuilder {
 
   public static void collectStandardJavaResources(@NotNull File folder,
                                                   @NotNull Collection<File> result,
-                                                  @NotNull Condition<File> filter) {
+                                                  @NotNull Condition<? super File> filter) {
     final File[] children = folder.listFiles();
 
     if (children != null) {
@@ -510,7 +511,7 @@ public class AndroidApkBuilder {
   private static class MyResourceFilter extends JavaResourceFilter {
     private final Set<String> myExcludedEntries;
 
-    public MyResourceFilter(@NotNull Set<String> excludedEntries) {
+    private MyResourceFilter(@NotNull Set<String> excludedEntries) {
       myExcludedEntries = excludedEntries;
     }
 

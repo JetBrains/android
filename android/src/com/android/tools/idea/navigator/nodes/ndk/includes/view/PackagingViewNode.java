@@ -67,7 +67,7 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Project project = getProject();
     if (project == null) {
       //noinspection unchecked
@@ -93,7 +93,7 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
 
   @Override
   protected void writeDescription(@NotNull PresentationDataWrapper presentation) {
-    presentation.setIcon(AllIcons.Nodes.JavaModuleRoot);
+    presentation.setIcon(AllIcons.Nodes.Module);
     PackageValue value = getPackageValue();
     presentation.addText(value.getSimplePackageName(), REGULAR_ATTRIBUTES);
     if (myShowPackageType) {

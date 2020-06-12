@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -50,7 +51,7 @@ fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
-class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     // Ensure the transport service is started
@@ -75,6 +76,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }
+
+  override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()
 }
 
 /**

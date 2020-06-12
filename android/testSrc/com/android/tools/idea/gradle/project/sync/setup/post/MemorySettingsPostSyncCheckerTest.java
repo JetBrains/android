@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
@@ -22,9 +25,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   @Mock
@@ -45,7 +45,7 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
 
   public void testNoNotificationIfSmallRam() {
     stubHostData(4096);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
   }
@@ -60,8 +60,8 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   public void testNotificationIfRecommended() {
     when(myReminder.shouldAsk()).thenReturn(true);
     stubHostData(16 * 1024);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
     Notification[] notifications = getNotifications();
     // Check twice but there should be only one notification
     assertSize(1, notifications);
@@ -76,7 +76,7 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
 
   private Notification[] getNotifications() {
     return NotificationsManager.getNotificationsManager().getNotificationsOfType(
-      MemorySettingsNotification.class, myProject);
+      MemorySettingsNotification.class, getProject());
   }
 
   private void stubHostData(int machineMemInMB) {

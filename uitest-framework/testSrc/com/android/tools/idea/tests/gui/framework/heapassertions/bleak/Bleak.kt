@@ -64,7 +64,7 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
   entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
   entry(-3) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
-  entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
+  entry(-4) == "com.intellij.util.indexing.impl.storage.VfsAwareMapIndexStorage#myCache" ||
   entry(-3) == "com.intellij.util.indexing.IndexingStamp#myTimestampsCache" ||
   entry(-3) == "com.intellij.util.indexing.IndexingStamp#ourFinishedFiles" ||
   entry(-3) == "com.intellij.openapi.fileEditor.impl.EditorWindow#myRemovedTabs" ||

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a map of {@link GradleDslElement}s from their names.
@@ -32,7 +31,7 @@ public class GradleDslElementMap extends GradlePropertiesDslElement {
 
   @NotNull
   protected <E extends GradleDslElement> Collection<E> getValues(Class<E> clazz) {
-    List<E> result = Lists.newArrayList();
+    List<E> result = new ArrayList<>();
     for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
       GradleDslElement propertyElement = entry.getValue();
       if (clazz.isInstance(propertyElement)) {

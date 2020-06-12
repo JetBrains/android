@@ -69,11 +69,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
@@ -128,7 +124,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
   @NotNull
   private static ActionGroup createRefactoringMenu() {
-    DefaultActionGroup group = new DefaultActionGroup("_Refactor", true);
+    DefaultActionGroup group = DefaultActionGroup.createPopupGroup(() -> "_Refactor");
     com.intellij.openapi.actionSystem.ActionManager manager =
       com.intellij.openapi.actionSystem.ActionManager.getInstance();
 
@@ -355,7 +351,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     Collections.sort(viewActions);
 
-    List<AnAction> target = Lists.newArrayList();
+    List<AnAction> target = new ArrayList<>();
     for (ViewAction viewAction : viewActions) {
       addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
@@ -408,7 +404,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       target.add(new ToggleViewActionWrapper((ToggleViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ToggleViewActionGroup) {
-      List<ToggleViewActionWrapper> actions = Lists.newArrayList();
+      List<ToggleViewActionWrapper> actions = new ArrayList<>();
       for (ToggleViewAction action : ((ToggleViewActionGroup)viewAction).getActions()) {
         actions.add(new ToggleViewActionWrapper(action, editor, handler, parent, newSelection));
       }
@@ -700,7 +696,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     @NotNull
     @Override
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
-      List<AnAction> actions = Lists.newArrayList();
+      List<AnAction> actions = new ArrayList<>();
       for (ViewAction viewAction : myAction.getActions()) {
         addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
       }
@@ -721,7 +717,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                          @NotNull ViewHandler handler,
                                          @NotNull NlComponent component,
                                          @NotNull List<NlComponent> selectedChildren) {
-      super(null, action.getLabel(), action.getIcon());
+      super(action.getLabel(), action.getLabel(), action.getIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
@@ -748,7 +744,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       removeAll();
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
-        List<AnAction> actions = Lists.newArrayList();
+        List<AnAction> actions = new ArrayList<>();
         for (ViewAction viewAction : rows.get(0)) {
           addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }
@@ -773,7 +769,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
           }
           continue;
         }
-        List<AnAction> actions = Lists.newArrayList();
+        List<AnAction> actions = new ArrayList<>();
         for (ViewAction viewAction : row) {
           addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }

@@ -19,20 +19,11 @@ import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.argumentName
-import com.android.tools.idea.naveditor.model.defaultValue
-import com.android.tools.idea.naveditor.model.isArgument
-import com.android.tools.idea.naveditor.model.nullable
-import com.android.tools.idea.naveditor.model.setArgumentNameAndLog
-import com.android.tools.idea.naveditor.model.setDefaultValueAndLog
-import com.android.tools.idea.naveditor.model.setNullableAndLog
-import com.android.tools.idea.naveditor.model.setTypeAndLog
-import com.android.tools.idea.naveditor.model.typeAttr
+import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.res.FloatResources
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.openapi.application.ApplicationManager
@@ -51,6 +42,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.kotlin.utils.doNothing
 import java.awt.CardLayout
+import java.util.*
 import java.awt.Dimension
 import java.lang.IllegalStateException
 import javax.swing.Action
@@ -279,13 +271,13 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
     when {
       selectedType == Type.BOOLEAN && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
-        defaultValueComboModel.update(Lists.newArrayList<String>(null, "true", "false"))
+        defaultValueComboModel.update(Arrays.asList<String>(null, "true", "false"))
       }
       selectedType == Type.CUSTOM_ENUM && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
         val list = ClassUtil.findPsiClass(psiManager, type.orEmpty())
                      ?.fields
-                     ?.filter { it is PsiEnumConstant }
+                     ?.filterIsInstance<PsiEnumConstant>()
                      ?.map { it.name }?.toMutableList<String?>()
                    ?: mutableListOf()
         list.add(null)

@@ -21,7 +21,6 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -33,20 +32,9 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.TextFieldWithAutoCompletion;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import icons.AndroidIcons;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
@@ -54,13 +42,10 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Area;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,11 +60,11 @@ public class ResourceSwatchComponent extends JPanel {
   private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
 
   /** Padding used between the icon and the text field */
-  private static final int PADDING = JBUI.scale(3);
+  private static final int PADDING = JBUIScale.scale(3);
   /** Padding around the text in the text field */
-  private static final int TEXT_PADDING = JBUI.scale(8);
+  private static final int TEXT_PADDING = JBUIScale.scale(8);
   /** Size of rounded corners for the icon and the text field */
-  private static final int ARC_SIZE = JBUI.scale(2);
+  private static final int ARC_SIZE = JBUIScale.scale(2);
   private static final Color DEFAULT_BORDER_COLOR = Gray._170;
   private static final Color WARNING_BORDER_COLOR = JBColor.ORANGE;
 
@@ -87,8 +72,8 @@ public class ResourceSwatchComponent extends JPanel {
     @Override
     public void paintSwatch(@NotNull Component c, @NotNull Graphics g, int x, int y, int w, int h) {
       Icon QUESTION_ICON = AndroidIcons.GreyQuestionMark;
-      int horizontalMargin = (w + JBUI.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
-      int verticalMargin = (h + JBUI.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
+      int horizontalMargin = (w + JBUIScale.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
+      int verticalMargin = (h + JBUIScale.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
       QUESTION_ICON.paintIcon(c, g, x + horizontalMargin, y + verticalMargin);
     }
   };
@@ -96,7 +81,7 @@ public class ResourceSwatchComponent extends JPanel {
   private @Nullable final TextFieldWithAutoCompletion<String> myTextField;
   private @Nullable final JLabel myTextLabel;
   private final ClickableLabel mySwatchButton;
-  private final List<ActionListener> myTextListeners = Lists.newArrayList();
+  private final List<ActionListener> myTextListeners = new ArrayList<>();
 
   private Color myBorderColor;
   private final @NotNull Project myProject;
@@ -358,8 +343,8 @@ public class ResourceSwatchComponent extends JPanel {
   }
 
   public abstract static class SwatchIcon implements Icon {
-    private static final int SPACING = JBUI.scale(3);
-    private static final int TRIANGLE_SIZE = JBUI.scale(13);
+    private static final int SPACING = JBUIScale.scale(3);
+    private static final int TRIANGLE_SIZE = JBUIScale.scale(13);
 
     private int mySize;
     private boolean myIsStack;

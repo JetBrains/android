@@ -25,15 +25,15 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.components.JBLabel;
-import java.awt.Font;
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,14 +81,14 @@ public class IssuesViewer {
       PsIssue.Severity severity = issue.getSeverity();
       List<PsIssue> currentIssues = issuesBySeverity.get(severity);
       if (currentIssues == null) {
-        currentIssues = Lists.newArrayList();
+        currentIssues = new ArrayList<>();
         issuesBySeverity.put(severity, currentIssues);
       }
       currentIssues.add(issue);
     }
 
     List<PsIssue.Severity> severities = Lists.newArrayList(issuesBySeverity.keySet());
-    Collections.sort(severities, (t1, t2) -> t1.getPriority() - t2.getPriority());
+    severities.sort((t1, t2) -> t1.getPriority() - t2.getPriority());
 
     int typeCount = severities.size();
     assert typeCount < 5; // There are only 4 types of issues

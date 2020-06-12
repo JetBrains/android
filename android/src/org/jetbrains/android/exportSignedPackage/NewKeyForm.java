@@ -195,7 +195,7 @@ public abstract class NewKeyForm {
     if (createdStore) {
       if (errorBuilder.length() > 0) {
         String prefix = AndroidBundle.message("android.create.new.key.error.prefix");
-        Messages.showErrorDialog(myContentPanel, prefix + '\n' + errorBuilder.toString());
+        Messages.showErrorDialog(myContentPanel, prefix + '\n' + errorBuilder);
       }
     }
     else {

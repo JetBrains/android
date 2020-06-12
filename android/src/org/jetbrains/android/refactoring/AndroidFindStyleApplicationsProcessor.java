@@ -10,6 +10,7 @@ import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -34,7 +35,6 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
@@ -93,7 +93,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   @NotNull
   @Override
   protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-    return new UsageViewDescriptorAdapter() {
+    return new UsageViewDescriptor() {
       @NotNull
       @Override
       public PsiElement[] getElements() {
@@ -214,7 +214,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
     for (VirtualFile subdir : subdirs) {
       for (VirtualFile child : subdir.getChildren()) {
-        if (child.getFileType() == XmlFileType.INSTANCE &&
+        if (FileTypeRegistry.getInstance().isFileOfType(child, XmlFileType.INSTANCE) &&
             (myFileToScan == null || myFileToScan.equals(child))) {
           filesToProcess.add(child);
         }
@@ -233,7 +233,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
         psiFilesToProcess.add(psiFile);
       }
     }
-    final CacheManager cacheManager = CacheManager.SERVICE.getInstance(project);
+    final CacheManager cacheManager = CacheManager.getInstance(project);
     final GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
 
     for (Map.Entry<AndroidAttributeInfo, String> entry : myAttrMap.entrySet()) {

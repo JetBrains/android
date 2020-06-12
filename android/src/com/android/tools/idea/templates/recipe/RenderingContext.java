@@ -20,20 +20,18 @@ import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.StudioTemplateLoader;
 import com.android.tools.idea.templates.Template;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import freemarker.template.Configuration;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Use the {@link Builder} class for creating a {@link RenderingContext} instance.
@@ -93,13 +91,13 @@ public class RenderingContext {
     myLoader = new StudioTemplateLoader(initialTemplatePath);
     myFreemarker = new FreemarkerConfiguration();
     myFreemarker.setTemplateLoader(myLoader);
-    mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.newArrayList();
-    myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.newArrayList();
-    myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.newArrayList();
-    myPlugins = outPlugins != null ? outPlugins : Lists.newArrayList();
-    myClasspathEntries = outClasspathEntries != null ? outClasspathEntries : Lists.newArrayList();
+    mySourceFiles = outSourceFiles != null ? outSourceFiles : new ArrayList<>();
+    myTargetFiles = outTargetFiles != null ? outTargetFiles : new ArrayList<>();
+    myFilesToOpen = outOpenFiles != null ? outOpenFiles : new ArrayList<>();
+    myPlugins = outPlugins != null ? outPlugins : new ArrayList<>();
+    myClasspathEntries = outClasspathEntries != null ? outClasspathEntries : new ArrayList<>();
     myDependencies = outDependencies != null ? outDependencies : LinkedHashMultimap.create();
-    myWarnings = Lists.newArrayList();
+    myWarnings = new ArrayList<>();
   }
 
   @NotNull
@@ -307,12 +305,12 @@ public class RenderingContext {
       myProject = project;
       myCommandName = "Instantiate Template";
       myParams = Collections.emptyMap();
-      myOutputRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+      myOutputRoot = new File(project.getBasePath());
       myModuleRoot = myOutputRoot;
     }
 
     /**
-     * Create a {@link Builder} that uses the project base dir as the template output and module dir.
+     * Create a {@link Builder} that uses the project base path as the template output and module dir.
      * Recommended version.
      */
     public static Builder newContext(@NotNull Template template, @NotNull Project project) {
@@ -320,7 +318,7 @@ public class RenderingContext {
     }
 
     /**
-     * Create a {@link Builder} that uses the project base dir as the template output and module dir.
+     * Create a {@link Builder} that uses the project base path as the template output and module dir.
      * Use this version if there is no {@link Template} instance available.
      */
     public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {

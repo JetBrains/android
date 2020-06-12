@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.Configurable;
@@ -40,6 +41,7 @@ import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -60,6 +62,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -213,7 +216,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       MyMoveAction moveUpAction = new MyMoveAction(MOVE_UP, -1, IconUtil.getMoveUpIcon());
       MyMoveAction moveDownAction = new MyMoveAction(MOVE_DOWN, 1, IconUtil.getMoveUpIcon());
 
-      ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(myConfigurations).setAsUsualTopToolbar()
+      ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(myConfigurations)
+        .setToolbarPosition(ActionToolbarPosition.TOP)
+        .setPanelBorder(JBUI.Borders.empty())
         .setMoveUpAction(moveUpAction).setMoveUpActionUpdater(moveUpAction).setMoveUpActionName(MOVE_UP)
         .setMoveDownAction(moveDownAction).setMoveDownActionUpdater(moveDownAction).setMoveDownActionName(MOVE_DOWN)
         .setRemoveAction(removeAction).setRemoveActionUpdater(removeAction).setRemoveActionName(REMOVE)
@@ -225,9 +230,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     @Nls
     @Override
-    public String getDisplayName() {
-      return "CPU Recording Configurations";
-    }
+  public String getDisplayName() {
+    return AndroidBundle.message("configurable.ProfilingConfigurable.display.name");
+  }
 
     @Nullable
     @Override

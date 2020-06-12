@@ -30,11 +30,16 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.*;
 
 /**
  * List of subdirectories where a new XML resource should be added.
@@ -75,7 +80,7 @@ public class CreateXmlResourceSubdirPanel {
 
     decorator.setRemoveAction(button -> doDeleteDirectory());
 
-    final AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
+    final AnActionButton selectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.text.select.all"), PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doSelectAllDirs();
@@ -83,7 +88,7 @@ public class CreateXmlResourceSubdirPanel {
     };
     decorator.addExtraAction(selectAll);
 
-    final AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
+    final AnActionButton unselectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.text.unselect.all"), PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doUnselectAllDirs();
@@ -161,7 +166,7 @@ public class CreateXmlResourceSubdirPanel {
       directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
-    Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
+    directories.sort((f1, f2) -> f1.getName().compareTo(f2.getName()));
 
     final Map<String, JCheckBox> oldCheckBoxes = myCheckBoxes;
     final int selectedIndex = myDirectoriesList.getSelectedIndex();

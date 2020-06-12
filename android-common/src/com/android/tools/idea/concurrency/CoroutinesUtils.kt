@@ -19,20 +19,12 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.*
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 
@@ -71,7 +63,9 @@ object AndroidDispatchers {
   val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = logger(::LOG)
+object L {
+  val LOG: Logger get() = Logger.getInstance(L::class.java)
+}
 
 /**
  * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally
@@ -81,10 +75,10 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
   if (throwable !is ProcessCanceledException) {
     val coroutineName = ctx[CoroutineName]?.name
     if (coroutineName != null) {
-      LOG.error(coroutineName, throwable)
+      L.LOG.error(coroutineName, throwable)
     }
     else {
-      LOG.error(throwable)
+      L.LOG.error(throwable)
     }
   }
 }

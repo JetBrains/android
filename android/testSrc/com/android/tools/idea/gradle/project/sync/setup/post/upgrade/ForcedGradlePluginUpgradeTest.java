@@ -59,7 +59,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
 
     new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
   }
 
   @Override
@@ -68,6 +68,9 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
       if (myOriginalTestDialog != null) {
         ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(myOriginalTestDialog);
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

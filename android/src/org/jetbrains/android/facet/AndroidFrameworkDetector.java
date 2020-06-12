@@ -48,9 +48,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author nik
- */
 public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
   private static final NotificationGroup ANDROID_MODULE_IMPORTING_NOTIFICATION = NotificationGroup.balloonGroup("Android Module Importing");
 

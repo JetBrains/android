@@ -714,7 +714,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     TestCase.assertFalse(variants!!.contains("p1.p2.LabelView"))
     TestCase.assertTrue(variants.contains("p1.p2.LabelView1"))
 
-    runWriteCommandAction(null) {
+    runWriteCommandAction(project) {
       try {
         labelViewJava.delete(null)
       }
@@ -1751,7 +1751,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val action = AndroidCreateOnClickHandlerAction()
     TestCase.assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    runWriteCommandAction(null) { action.invoke(myFixture.project, myFixture.editor, myFixture.file) }
+    myFixture.launchAction(action)
     myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity_after.java", false)
   }
@@ -1771,7 +1771,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
     TestCase.assertEquals(1, actions.size)
-    runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    myFixture.launchAction(actions[0])
     myFixture.checkResultByFile("$myTestFolder/onClickIntentionWithContext.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.kt", "$myTestFolder/OnClickActivity_after.kt", false)
   }
@@ -1783,7 +1783,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
     TestCase.assertEquals(1, actions.size)
-    runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    myFixture.launchAction(actions[0])
 
     myFixture.checkResultByFile("$myTestFolder/onClickIntentionWithContext.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.kt", "$myTestFolder/OnClickActivityWithLayout_after.kt", false)
@@ -1796,7 +1796,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
     TestCase.assertEquals(1, actions.size)
-    runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    myFixture.launchAction(actions[0])
 
     myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.kt", "$myTestFolder/OnClickActivityWithLayout_after.kt", false)
@@ -1818,7 +1818,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
     TestCase.assertEquals(1, actions.size)
-    runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    myFixture.launchAction(actions[0])
 
     myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity1_after.java", false)

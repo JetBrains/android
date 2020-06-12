@@ -27,7 +27,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,8 +46,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
-import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -290,7 +289,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
       findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
-    String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
+    String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls, false);
     assertNotNull(doc);
     assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
   }
@@ -334,10 +333,9 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     List<IntentionAction> actions = highlightAndFindQuickFixes(klass);
     assertEquals(1, actions.size());
     IntentionAction action = actions.get(0);
-    assertInstanceOf(action, klass);
-    WriteCommandAction.runWriteCommandAction(
-      null, () -> (klass.cast(action)).invoke(getProject(), myFixture.getEditor(), null));
-    myFixture.checkResultByFile(myTestFolder + "/" + expectedFile);
+    assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    myFixture.launchAction(action);
+    myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
   }
 }
 

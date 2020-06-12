@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.EXT_GRADLE;
@@ -31,11 +36,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
@@ -47,8 +47,7 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
@@ -94,13 +93,12 @@ import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.impl.ApplicationImpl;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
@@ -111,6 +109,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -118,7 +120,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -260,7 +262,7 @@ public final class GradleUtil {
    */
   @NotNull
   public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
-    List<Library> libraries = Lists.newArrayList();
+    List<Library> libraries = new ArrayList<>();
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
     IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
@@ -468,8 +470,8 @@ public final class GradleUtil {
   public static void stopAllGradleDaemonsAndRestart() {
     DefaultGradleConnector.close();
     Application application = ApplicationManager.getApplication();
-    if (application instanceof ApplicationImpl) {
-      ((ApplicationImpl)application).restart(true);
+    if (application instanceof ApplicationEx) {
+      ((ApplicationEx)application).restart(true);
     }
     else {
       application.restart();
@@ -534,10 +536,9 @@ public final class GradleUtil {
    * Obtains the default path for the module (Gradle sub-project) with the given name inside the given directory.
    */
   @NotNull
-  public static File getModuleDefaultPath(@NotNull VirtualFile parentDir, @NotNull String gradlePath) {
+  public static Path getModuleDefaultPath(@NotNull Path parentDir, @NotNull String gradlePath) {
     assert !gradlePath.isEmpty();
-    String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
-    return new File(virtualToIoFile(parentDir), relativePath);
+    return parentDir.resolve(getDefaultPhysicalPathFromGradlePath(gradlePath));
   }
 
   /**
@@ -559,12 +560,12 @@ public final class GradleUtil {
         return true;
       }
     }
-    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-    if (location.isFile()) {
+    Path location = getModuleDefaultPath(Paths.get(project.getBasePath()), gradlePath);
+    if (Files.isRegularFile(location)) {
       return true;
     }
-    if (location.isDirectory()) {
-      File[] children = location.listFiles();
+    if (Files.isDirectory(location)) {
+      File[] children = location.toFile().listFiles();
       return children == null || children.length > 0;
     }
     return false;
@@ -812,7 +813,7 @@ public final class GradleUtil {
   }
 
   public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);

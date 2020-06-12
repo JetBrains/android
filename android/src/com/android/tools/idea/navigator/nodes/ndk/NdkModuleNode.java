@@ -57,7 +57,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  protected Collection<AbstractTreeNode> getModuleChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     Module module = getValue();
     if (module == null) {
       return Collections.emptyList();
@@ -73,9 +73,9 @@ public class NdkModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  public static Collection<AbstractTreeNode> getNativeSourceNodes(@NotNull Project project,
-                                                                  @NotNull NdkModuleModel ndkModel,
-                                                                  @NotNull ViewSettings settings) {
+  public static Collection<AbstractTreeNode<?>> getNativeSourceNodes(@NotNull Project project,
+                                                                     @NotNull NdkModuleModel ndkModel,
+                                                                     @NotNull ViewSettings settings) {
     NativeAndroidProject nativeAndroidProject = ndkModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
@@ -90,7 +90,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
         return NdkLibraryNode.getSourceFolderNodes(project, nativeLibraries.values(), settings, sourceFileExtensions);
       }
     }
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     for (String name : nativeLibraries.keySet()) {
       String nativeLibraryType = "";
       String nativeLibraryName = trimEnd(name, ".so");
@@ -120,7 +120,8 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       }
     }
     if (children.size() == 1) {
-      return children.get(0).getChildren();
+      //noinspection unchecked
+      return (Collection<AbstractTreeNode<?>>)children.get(0).getChildren();
     }
     return children;
   }

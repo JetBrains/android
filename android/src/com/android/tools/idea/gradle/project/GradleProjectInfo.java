@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
+
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -28,33 +35,23 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.Consumer;
-import java.util.Arrays;
+import java.io.File;
+import java.util.List;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import javax.swing.*;
-import java.io.File;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-
-public class GradleProjectInfo {
+public final class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
@@ -66,12 +63,17 @@ public class GradleProjectInfo {
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleProjectInfo.class);
+    return project.getService(GradleProjectInfo.class);
   }
 
+  public GradleProjectInfo(@NotNull Project project) {
+    this(project, AndroidProjectInfo.getInstance(project), ProjectFileIndex.getInstance(project));
+  }
+
+  @NonInjectable
   public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull ProjectFileIndex projectFileIndex) {
     myProject = project;
-    myProjectInfo = projectInfo;
+    myProjectInfo = AndroidProjectInfo.getInstance(project);
     myProjectFileIndex = projectFileIndex;
     myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
@@ -122,10 +124,6 @@ public class GradleProjectInfo {
       if (myProject.isDisposed()) {
         return false;
       }
-      if (Arrays.stream(ModuleManager.getInstance(myProject).getModules())
-        .anyMatch(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it))) {
-        return true;
-      }
       if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
         return true;
       }
@@ -134,6 +132,11 @@ public class GradleProjectInfo {
       if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
         return true;
       }
+
+      if (!GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()){
+        return true;
+      }
+
       return hasTopLevelGradleFile();
     });
   }

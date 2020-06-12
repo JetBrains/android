@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
+
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
@@ -22,7 +24,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
@@ -31,26 +32,24 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Combobox that populates itself with the skins used by existing devices. Also allows adding a
  * new skin by browsing.
  */
 public class SkinChooser extends ComboboxWithBrowseButton implements ItemListener, ItemSelectable {
-  private List<ItemListener> myListeners = Lists.newArrayList();
+  private List<ItemListener> myListeners = new ArrayList<>();
   private boolean myResolveSystemImageSkins;
 
   public SkinChooser(@Nullable Project project, boolean resolveSystemImageSkins) {
@@ -126,7 +125,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
         .forEach(result::add);
     }
 
-    List<File> resultList = Lists.newArrayList();
+    List<File> resultList = new ArrayList<>();
     resultList.add(NO_SKIN);
     resultList.addAll(result);
     return resultList;

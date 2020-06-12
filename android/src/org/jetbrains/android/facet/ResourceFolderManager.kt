@@ -15,9 +15,7 @@
  */
 package org.jetbrains.android.facet
 
-import com.android.SdkConstants.FD_MAIN
-import com.android.SdkConstants.FD_RES
-import com.android.SdkConstants.FD_SOURCES
+import com.android.SdkConstants.*
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
@@ -26,8 +24,8 @@ import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Splitter
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -40,11 +38,7 @@ import com.intellij.util.messages.Topic
  * editing the gradle files or after a delayed project initialization), and it also provides some state caching between IDE sessions such
  * that before the gradle initialization is done, it returns the folder set as it was before the IDE exited.
  */
-class ResourceFolderManager(
-  val module: Module,
-  private val buildVariantUpdater: BuildVariantUpdater
-) : ModificationTracker, Disposable {
-
+class ResourceFolderManager(val module: Module) : ModificationTracker, Disposable {
   companion object {
     private val FOLDERS_KEY = Key.create<Folders>(ResourceFolderManager::class.qualifiedName!!)
 
@@ -52,7 +46,7 @@ class ResourceFolderManager(
 
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ResourceFolderManager {
-      return ModuleServiceManager.getService(facet.module, ResourceFolderManager::class.java)!!
+      return facet.module.getService(ResourceFolderManager::class.java)!!
     }
 
     @JvmField
@@ -85,13 +79,14 @@ class ResourceFolderManager(
 
   init {
     AndroidProjectRootListener.ensureSubscribed(module.project)
-    buildVariantUpdater.addSelectionChangeListener(listener)
+    BuildVariantUpdater.getInstance(module.project).addSelectionChangeListener(listener)
   }
 
   override fun getModificationCount() = generation
 
   override fun dispose() {
-    buildVariantUpdater.removeSelectionChangeListener(listener)
+    val buildVariantUpdater = module.project.serviceIfCreated<BuildVariantUpdater>()
+    buildVariantUpdater?.removeSelectionChangeListener(listener)
   }
 
   /**

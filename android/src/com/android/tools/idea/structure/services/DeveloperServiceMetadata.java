@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A developer service is an association of code dependencies, manifest files, code samples, and
@@ -41,11 +40,11 @@ public final class DeveloperServiceMetadata {
   @NotNull private final String myDescription;
   @NotNull private final Icon myIcon;
 
-  @NotNull private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull private final List<String> myClasspathEntries = Lists.newArrayList();
-  @NotNull private final List<String> myPlugins = Lists.newArrayList();
-  @NotNull private final List<String> myPermissions = Lists.newArrayList();
-  @NotNull private final List<String> myModifiedFiles = Lists.newArrayList();
+  @NotNull private final List<String> myDependencies = new ArrayList<>();
+  @NotNull private final List<String> myClasspathEntries = new ArrayList<>();
+  @NotNull private final List<String> myPlugins = new ArrayList<>();
+  @NotNull private final List<String> myPermissions = new ArrayList<>();
+  @NotNull private final List<String> myModifiedFiles = new ArrayList<>();
 
   @Nullable private URI myLearnMoreLink;
   @Nullable private URI myApiLink;

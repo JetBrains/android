@@ -19,9 +19,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import javax.swing.Action;
-import java.awt.Dimension;
+import java.awt.*;
+import javax.swing.*;
 
 public class MECreatConstraintSetTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateConstraintSet {

@@ -71,7 +71,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   }
 
   public void testFixAndReportFoundIssues() {
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     String mismatchingEncoding = "UTF-8";
     myStrategy.setMismatchingEncoding(mismatchingEncoding);
@@ -90,7 +90,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   }
 
   public void testFixAndReportFoundIssuesWithNoMismatch() {
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myStrategy.setMismatchingEncoding(null);
     myStrategy.fixAndReportFoundIssues();

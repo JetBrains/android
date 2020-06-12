@@ -39,7 +39,7 @@ public class DeviceMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super(null, "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
+    super("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
@@ -256,7 +256,7 @@ public class DeviceMenuAction extends DropDownAction {
 
   private void addGenericDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
     if (!devices.isEmpty()) {
-      DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
+      DefaultActionGroup genericGroup = DefaultActionGroup.createPopupGroup(() -> "_Generic Phones and Tablets");
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
         genericGroup.add(new SetDeviceAction(myRenderContext, label, device, null, current == device));

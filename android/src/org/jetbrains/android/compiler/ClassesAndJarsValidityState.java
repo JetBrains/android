@@ -1,12 +1,12 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
 import com.intellij.compiler.CompilerIOUtil;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.openapi.compiler.ValidityState;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
 * @author Eugene.Kudelevsky
@@ -28,7 +29,7 @@ class ClassesAndJarsValidityState implements ValidityState {
         fillMap(child, visited);
       }
     }
-    else if (StdFileTypes.CLASS.equals(file.getFileType()) || file.getFileType() instanceof ArchiveFileType) {
+    else if (FileTypeRegistry.getInstance().isFileOfType(file, StdFileTypes.CLASS) || file.getFileType() instanceof ArchiveFileType) {
       if (file.isValid()) {
         myFiles.put(file.getPath(), file.getTimeStamp());
       }
@@ -36,7 +37,7 @@ class ClassesAndJarsValidityState implements ValidityState {
   }
 
   public ClassesAndJarsValidityState(@NotNull Collection<VirtualFile> files) {
-    myFiles = new HashMap<String, Long>();
+    myFiles = new HashMap<>();
     Set<VirtualFile> visited = new HashSet<VirtualFile>();
     for (VirtualFile file : files) {
       fillMap(file, visited);
@@ -44,7 +45,7 @@ class ClassesAndJarsValidityState implements ValidityState {
   }
 
   public ClassesAndJarsValidityState(@NotNull DataInput in) throws IOException {
-    myFiles = new HashMap<String, Long>();
+    myFiles = new HashMap<>();
     int size = in.readInt();
     while (size-- > 0) {
       final String path = CompilerIOUtil.readString(in);

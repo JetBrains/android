@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 @file:JvmName("RecipeMergeUtils")
-
 package com.android.tools.idea.templates
 
-import com.android.SdkConstants.ATTR_ID
-import com.android.SdkConstants.ATTR_NAME
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
-import com.android.SdkConstants.XMLNS_PREFIX
+import com.android.SdkConstants.*
 import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
@@ -30,20 +26,14 @@ import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.utils.StdLogger
 import com.android.utils.XmlUtils
 import com.google.common.base.Charsets
-import com.google.common.collect.Lists.newArrayList
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.xml.XmlComment
-import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
-import com.intellij.psi.xml.XmlTagChild
-import com.intellij.psi.xml.XmlText
+import com.intellij.psi.xml.*
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
@@ -53,7 +43,8 @@ import java.io.InputStream
  * Utility methods to support the recipe.xml merge instruction.
  */
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger
+  get() = Logger.getInstance("#com.android.tools.idea.templates.RecipeMergeUtils")
 
 private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
@@ -136,7 +127,7 @@ fun mergeResourceFile(project: Project,
     return targetPsiFile.text
   }
 
-  val prependElements = newArrayList<XmlTagChild>()
+  val prependElements = ArrayList<XmlTagChild>()
   var indent: XmlText? = null
   // Try to merge items of the same name
   val old = root.subTags.associateBy { getResourceId(it) }
@@ -182,7 +173,7 @@ fun mergeResourceFile(project: Project,
               prependElements.removeAt(0)
               // If we're adding something we'll need a newline/indent after it
               if (prependElements.isNotEmpty()) {
-                prependElements.add(indent)
+                prependElements.add(indent!!)
               }
             }
             for (element in prependElements) {

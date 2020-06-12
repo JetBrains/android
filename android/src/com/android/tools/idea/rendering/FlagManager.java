@@ -118,7 +118,8 @@ public class FlagManager {
   }
 
   public static boolean showFlagsForLanguages() {
-    return UISettings.getInstance().getState().getLanguageFlags();
+    return false;
+    //return UISettings.getInstance().getState().getLanguageFlags(); // FIXME-ank2: no such method
   }
 
   /**

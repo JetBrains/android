@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.AndroidTextUtils;
@@ -27,11 +13,9 @@ import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.ElementManipulator;
 import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -381,7 +365,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     PsiFile file = psiClass.getContainingFile();
     if (file instanceof PsiClassOwner) {
       PsiClassOwner psiFile = (PsiClassOwner)file;
-      if (Comparing.equal(psiFile.getPackageName(), basePackageName)) {
+      if (Objects.equals(psiFile.getPackageName(), basePackageName)) {
         String name = getName(psiClass);
         if (name != null) {
           final String dottedName = '.' + name;
@@ -560,13 +544,8 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
         assert newName != null;
 
-        final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
         final TextRange range = new TextRange(myStart, getRangeInElement().getEndOffset());
-
-        if (manipulator != null) {
-          return manipulator.handleContentChange(myElement, range, newName);
-        }
-        return element;
+        return ElementManipulators.handleContentChange(myElement, range, newName);
       }
       LOG.error("PackageClassConverter resolved to " + element.getClass());
       return super.bindToElement(element);

@@ -18,7 +18,7 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
-    addFactory(new AndroidRunConfigurationFactory(this));
+    addFactory(new AndroidRunConfigurationFactory(this, "Android App"));
   }
 
   @Override
@@ -27,8 +27,11 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
   }
 
   public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
-    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
+    private @NotNull String myId;
+
+    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type, @NotNull String id) {
       super(type);
+      myId = id;
     }
 
     @NotNull
@@ -54,6 +57,11 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
       if (CompileStepBeforeRun.ID.equals(providerID)) {
         task.setEnabled(false);
       }
+    }
+
+    @Override
+    public @NotNull String getId() {
+      return myId;
     }
   }
 

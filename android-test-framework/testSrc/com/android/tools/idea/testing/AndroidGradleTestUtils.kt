@@ -585,6 +585,8 @@ fun setupTestProjectFromAndroidModel(
         override fun getGroup(): String = ""
         override fun getVersion(): String = "unspecified"
         override fun getChildProjects(): Map<String, ExternalProject> = mapOf()
+        override fun getSourceCompatibility(): String? = null
+        override fun getTargetCompatibility(): String? = null
         override fun getProjectDir(): File = basePath
         override fun getBuildDir(): File = buildPath
         override fun getBuildFile(): File? = null

@@ -1,6 +1,4 @@
-/*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.database;
 
@@ -13,15 +11,15 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
-import icons.AndroidArtworkIcons;
-import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import icons.AndroidIcons;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import javax.swing.Icon;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -150,18 +148,18 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   @Override
   public Icon getBaseIcon() {
-    return AndroidArtworkIcons.Icons.Android;
+    return AndroidIcons.Android;
   }
 
   @Override
   public boolean equalConfiguration(@NotNull LocalDataSource o) {
     if (!(o instanceof AndroidDataSource)) return super.equalConfiguration(o);
-    if (!Comparing.equal(getComment(), o.getComment())) return false;
+    if (!Objects.equals(getComment(), o.getComment())) return false;
 
     State s = ((AndroidDataSource)o).getState();
-    if (!Comparing.equal(myState.deviceId, s.deviceId)) return false;
-    if (!Comparing.equal(myState.packageName, s.packageName)) return false;
-    if (!Comparing.equal(myState.databaseName, s.databaseName)) return false;
+    if (!Objects.equals(myState.deviceId, s.deviceId)) return false;
+    if (!Objects.equals(myState.packageName, s.packageName)) return false;
+    if (!Objects.equals(myState.databaseName, s.databaseName)) return false;
     if (!Comparing.equal(myState.external, s.external)) return false;
 
     return true;

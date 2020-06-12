@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 
 enum class ParsingState {
-  NORMAL, PATH
+  NORMAL, PATH, CANCELED_PATH
 }
 
 /**
@@ -31,25 +31,46 @@ enum class ParsingState {
  *  for maximum performance.
  */
 class GenericFileFilter(private val project: Project, private val localFileSystem: LocalFileSystem) : Filter {
+  companion object {
+    /**
+     *  Max filename considered during parsing. Do not confuse with file path, which may contain several file names separated by '/' or '\'.
+     *
+     * Modern popular FS do not allow file names longer than 255.*/
+    const val FILENAME_MAX = 255
+
+    /**
+     * Min path length to be considered.
+     *
+     * E.g. lonely slashes should be ignored.
+     */
+    const val PATH_MIN = 2
+  }
+
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
     val indexOffset = entireLength - line.length
     val items = mutableListOf<Filter.ResultItem>()
     var state = ParsingState.NORMAL
     var pathStartIndex = -1
+    var lastPathSegmentStart = -1
     var i = 0
+
+    fun startPathMode(){
+      state = ParsingState.PATH
+      pathStartIndex = i
+      lastPathSegmentStart = i
+    }
+
     while (i < line.length) {
       when (state) {
         ParsingState.NORMAL -> {
           when {
             line[i] == '/' -> {
               // Start parsing a Linux path
-              state = ParsingState.PATH
-              pathStartIndex = i
+              startPathMode()
             }
             line[i] in 'A'..'Z' && (line.startsWith(":\\", startIndex = i + 1) || line.startsWith(":/", startIndex = i + 1) ) -> {
               // Start parsing a Windows path
-              state = ParsingState.PATH
-              pathStartIndex = i
+              startPathMode()
               i += 2
             }
           }
@@ -57,6 +78,9 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
         ParsingState.PATH -> {
           fun addItem(pathEndIndex: Int, lineNumber: Int, columnNumber: Int): Boolean {
             state = ParsingState.NORMAL
+            if (pathEndIndex - lastPathSegmentStart > FILENAME_MAX) return false
+            if (pathEndIndex - pathStartIndex < PATH_MIN) return false
+
             val path = line.substring(pathStartIndex, pathEndIndex)
             val file = try {
               localFileSystem.findFileByPathIfCached(path)
@@ -74,6 +98,17 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
             return false
           }
           when {
+            line[i] == '\\' || line[i] == '/' -> {
+              lastPathSegmentStart = i + 1
+              if (i - pathStartIndex > 1){
+                val path = line.substring(pathStartIndex, i)
+                val file = localFileSystem.findFileByPathIfCached(path)
+                if (file == null){
+                  // skip remaining. If a prent does not exist, children will not exist either.
+                  state = ParsingState.CANCELED_PATH
+                }
+              }
+            }
             line[i] == ':' -> {
               val pathEndIndex = i
               var lineNumber = 1
@@ -102,12 +137,13 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
               addItem(pathEndIndex, lineNumber - 1, columnNumber - 1)
             }
             // Paths can have withe spaces and links get cut early (https://issuetracker.google.com/issues/136242040)
-            line[i].isWhitespace() -> if (!addItem(i, 0, 0)) {
-              // Do not break path current if it does not belong to a valid file
+            line[i].isWhitespace() -> if (!addItem(i, 0, 0) && (i - lastPathSegmentStart) < FILENAME_MAX) {
+              // Do not break path current if it does not belong to a valid file, and filename does not exceed max allowed len
               state = ParsingState.PATH
             }
           }
         }
+        ParsingState.CANCELED_PATH -> if (line[i].isWhitespace()) state = ParsingState.NORMAL
       }
       i++
     }

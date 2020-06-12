@@ -44,7 +44,6 @@ import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import com.intellij.find.findUsages.FindUsagesHandler;
@@ -72,7 +71,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.InheritanceUtil;
@@ -555,7 +553,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       int r = 0;
       if (ASK) {
         r = Messages.showDialog(project, message("rename.alternate.resources.question"), message("rename.dialog.title"),
-                                new String[]{Messages.YES_BUTTON, Messages.NO_BUTTON}, 1, Messages.getQuestionIcon());
+                                new String[]{Messages.getYesButton(), Messages.getNoButton()}, 1, Messages.getQuestionIcon());
       }
       if (r == 0) {
         for (PsiFile candidate : alternativeResources) {
@@ -800,7 +798,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     Collection<Library> libraries = null;
     // Write a set of descriptions to library references. Put them in a list first such that we can
     // sort the (to for example make test output stable.)
-    List<String> descriptions = Lists.newArrayList();
+    List<String> descriptions = new ArrayList<>();
     for (ResourceItem item : all) {
       if (!local.contains(item)) {
         if (libraries == null) {

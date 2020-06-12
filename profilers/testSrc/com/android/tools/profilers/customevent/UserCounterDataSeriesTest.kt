@@ -29,8 +29,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.energy.FakeEnergyService
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.ObjectUtils.assertNotNull
-import com.intellij.util.indexing.impl.DebugAssertions.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

@@ -81,6 +81,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
     @Override
     protected void tearDown() throws Exception {
       Project project;
+      Set<ResourceRepository> repositoriesToDispose = this.repositoriesToDispose;
       try {
         project = getProject();
       } finally {

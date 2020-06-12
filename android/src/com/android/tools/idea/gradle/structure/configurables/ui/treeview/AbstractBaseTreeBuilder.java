@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import com.google.common.collect.Lists;
+import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
+import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
+
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
-import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   public AbstractBaseTreeBuilder(@NotNull JTree tree,
@@ -85,7 +83,7 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   }
 
   public void expandParents(@NotNull List<? extends SimpleNode> nodes) {
-    List<SimpleNode> toExpand = Lists.newArrayList();
+    List<SimpleNode> toExpand = new ArrayList<>();
     for (SimpleNode node : nodes) {
       SimpleNode parent = node.getParent();
       if (parent != null) {

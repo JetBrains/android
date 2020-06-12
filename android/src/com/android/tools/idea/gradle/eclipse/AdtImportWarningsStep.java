@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.projectImport.ProjectImportWizardStep;
-
-import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 class AdtImportWarningsStep extends ProjectImportWizardStep {
   private JTextArea myWarnings;
@@ -46,7 +45,7 @@ class AdtImportWarningsStep extends ProjectImportWizardStep {
     GradleImport importer = AdtImportProvider.getImporter(getWizardContext());
     if (importer != null) {
       StringBuilder sb = new StringBuilder();
-      List<String> problems = Lists.newArrayList();
+      List<String> problems = new ArrayList<>();
       problems.addAll(importer.getErrors());
       problems.addAll(importer.getWarnings());
       if (!problems.isEmpty()) {

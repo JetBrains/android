@@ -25,6 +25,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -33,14 +34,15 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import java.awt.Color;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for external annotators that place resource icons in the gutter of the editor.
@@ -169,7 +171,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
                     @NotNull AnnotationHolder holder) {
     iconRendererMap.forEach((k, v) -> {
       if (k.isValid()) {
-        holder.createInfoAnnotation(k, null).setGutterIconRenderer(v);
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(k).gutterIconRenderer(v).create();
       }
     });
   }

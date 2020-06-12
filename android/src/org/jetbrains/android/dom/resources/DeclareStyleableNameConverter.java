@@ -20,6 +20,8 @@ import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.Processor;
+import java.util.HashSet;
+import com.intellij.util.xml.*;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.CustomReferenceConverter;

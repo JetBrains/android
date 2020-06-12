@@ -50,7 +50,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -77,8 +76,7 @@ import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
-import java.awt.CardLayout;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -91,16 +89,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -547,7 +544,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @Override
   public String getDisplayName() {
-    return "SDK Location";
+    return AndroidBundle.message("configurable.IdeSdksConfigurable.display.name");
   }
 
   @Override
@@ -687,7 +684,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @NotNull
   public List<ProjectConfigurationError> validateState() {
-    List<ProjectConfigurationError> errors = Lists.newArrayList();
+    List<ProjectConfigurationError> errors = new ArrayList<>();
 
     String msg = validateAndroidSdkPath();
     if (msg != null) {

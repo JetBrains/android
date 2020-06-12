@@ -49,12 +49,13 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -86,7 +87,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private GradleFiles myGradleFiles;
 
   private BuildVariantUpdater myVariantUpdater;
-  private List<Library> myModuleDependencies = Lists.newArrayList();
+  private List<Library> myModuleDependencies = new ArrayList<>();
 
   @Override
   protected void setUp() throws Exception {
@@ -112,10 +113,9 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(myIdeDependencies.getModuleDependencies()).thenReturn(myModuleDependencies);
 
-    IdeComponents ideComponents = new IdeComponents(project);
-    ideComponents.replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    ServiceContainerUtil.replaceService(project, PostSyncProjectSetup.class, myPostSyncProjectSetup, getTestRootDisposable());
     // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
-    ideComponents.replaceProjectService(GradleFiles.class, myGradleFiles);
+    ServiceContainerUtil.replaceService(project, GradleFiles.class, myGradleFiles, getTestRootDisposable());
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
                                                new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),

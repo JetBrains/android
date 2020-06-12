@@ -52,7 +52,7 @@ class LIEditableItemCellRenderer : TableCellRenderer {
     val bg: Color
     if (isSelected) {
       fg = UIUtil.getTableSelectionForeground()
-      bg = UIUtil.getTableSelectionBackground()
+      bg = UIUtil.getTableSelectionBackground(true)
     } else {
       fg = UIUtil.getTableForeground()
       bg = PropertiesTablePanel.ITEM_BACKGROUND_COLOR

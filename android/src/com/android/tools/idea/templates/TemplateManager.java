@@ -38,7 +38,6 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
@@ -107,7 +106,11 @@ public class TemplateManager {
    * templates with the application instead of waiting for SDK updates.
    */
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
-  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates", "/community/android/tools-base/templates"};
+  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {
+    "/../../tools/base/templates",
+    "/community/build/dependencies/build/android-sdk/tools-base/templates",
+    "/build/dependencies/build/android-sdk/tools-base/templates"
+  };
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
@@ -325,7 +328,7 @@ public class TemplateManager {
 
     // Sort by file name (not path as is File's default)
     if (templates.size() > 1) {
-      Collections.sort(templates, Comparator.comparing(File::getName));
+      templates.sort(Comparator.comparing(File::getName));
     }
 
     return templates;
@@ -349,7 +352,7 @@ public class TemplateManager {
 
   @NotNull
   public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
-    List<File> templates = Lists.newArrayList();
+    List<File> templates = new ArrayList<>();
     if (new File(externalDirectory, TEMPLATE_XML_NAME).exists()) {
       templates.add(externalDirectory);
     }
@@ -368,7 +371,7 @@ public class TemplateManager {
 
   @NotNull
   public List<File> getTemplateDirectoriesFromAars(@Nullable Project project) {
-    List<File> templateDirectories = Lists.newArrayList();
+    List<File> templateDirectories = new ArrayList<>();
     if (project != null && project.getBaseDir() != null) {
       if (myAarCache == null) {
         String prefix = project.getName();
@@ -400,7 +403,7 @@ public class TemplateManager {
 
   @NotNull
   private List<File> getHighestVersionedTemplateRoot(@NotNull File artifactNameRoot) {
-    List<File> templateDirectories = Lists.newArrayList();
+    List<File> templateDirectories = new ArrayList<>();
     File highestVersionDir = null;
     Revision highestVersionNumber = null;
     for (File versionDir : listFiles(artifactNameRoot)) {
@@ -453,7 +456,7 @@ public class TemplateManager {
         return Lists.newArrayList(table.row(category).values());
       }
       else {
-        return Lists.newArrayList();
+        return new ArrayList<>();
       }
     }
   }
@@ -469,7 +472,7 @@ public class TemplateManager {
   public void refreshDynamicTemplateMenu(@Nullable Project project) {
     synchronized (CATEGORY_TABLE_LOCK) {
       if (myTopGroup == null) {
-        myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
+        myTopGroup = DefaultActionGroup.createFlatGroup(() -> "AndroidTemplateGroup");
       } else {
         myTopGroup.removeAll();
       }
@@ -717,7 +720,7 @@ public class TemplateManager {
   }
 
   private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
-    ArrayList<TemplateHandle> templates = Lists.newArrayList();
+    ArrayList<TemplateHandle> templates = new ArrayList<>();
     for (String category : categories) {
       templates.addAll(getTemplateList(formFactor, category, excluded));
     }
@@ -727,7 +730,7 @@ public class TemplateManager {
       templates.addAll(getTemplateList(formFactor, "Wear", excluded));
     }
 
-    Collections.sort(templates, (o1, o2) -> {
+    templates.sort((o1, o2) -> {
       TemplateMetadata m1 = o1.getMetadata();
       TemplateMetadata m2 = o2.getMetadata();
       return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());

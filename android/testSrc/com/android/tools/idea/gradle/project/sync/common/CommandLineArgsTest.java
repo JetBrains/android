@@ -41,6 +41,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.BuildNumber;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.Build;
 import org.mockito.Mock;

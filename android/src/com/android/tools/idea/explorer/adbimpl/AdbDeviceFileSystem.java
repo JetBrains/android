@@ -51,6 +51,10 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     myFileTransfer = new AdbFileTransfer(myDevice, myFileOperations, myEdtExecutor, myTaskExecutor);
   }
 
+  public AdbDeviceFileSystem(AdbDeviceFileSystemService service, IDevice device) {
+    this(device, service.getEdtExecutor(), service.getTaskExecutor());
+  }
+
   boolean isDevice(@Nullable IDevice device) {
     return myDevice.equals(device);
   }

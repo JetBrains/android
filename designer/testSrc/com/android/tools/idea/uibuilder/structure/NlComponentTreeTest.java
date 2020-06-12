@@ -63,8 +63,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -130,6 +129,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myTextView = findFirst(TEXT_VIEW);
     myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
     Disposer.register(myDisposable, myTree);
+    flushUpdateQueue();
   }
 
   @NotNull
@@ -173,13 +173,24 @@ public class NlComponentTreeTest extends LayoutTestCase {
       myActionHandler = null;
       myDataContext = null;
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
   }
 
+  // flush should be performed (at least) each time after:
+  //  0. new NlComponentTree(...)
+  //  1. mySurface.setModel(...)
+  //  2. myTree.expandRow(...);
+  private void flushUpdateQueue() throws InterruptedException {
+    myTree.myUpdateQueue.flush();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  }
+
   public void testTreeStructure() {
-    UIUtil.dispatchAllInvocationEvents();
     assertEquals("<RelativeLayout>  [expanded]\n" +
                  "    <LinearLayout>  [expanded]\n" +
                  "        <Button>\n" +
@@ -187,11 +198,11 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "    <AbsoluteLayout>\n", toTree());
   }
 
-  public void testTreeStructureOfAppBar() {
+  public void testTreeStructureOfAppBar() throws Exception {
     SyncNlModel model = createModelWithAppBar();
     mySurface.setModel(model);
     myTree.setDesignSurface(mySurface);
-    UIUtil.dispatchAllInvocationEvents();
+    flushUpdateQueue();
     assertEquals("<android.support.design.widget.CoordinatorLayout>  [expanded]\n" +
                  "    <android.support.design.widget.AppBarLayout>  [expanded]\n" +
                  "        <android.support.design.widget.CollapsingToolbarLayout>  [expanded]\n" +
@@ -233,7 +244,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   @SuppressWarnings("UnnecessaryLocalVariable")
-  public void testHierarchyUpdate() {
+  public void testHierarchyUpdate() throws Exception {
     // Extract xml
     XmlTag tagLinearLayout = myLinearLayout.getTagDeprecated();
     XmlTag tagTextView = myTextView.getTagDeprecated();
@@ -264,7 +275,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     newLinearLayout.addChild(newButton);
 
     myTree.modelDerivedDataChanged(myModel);
-    UIUtil.dispatchAllInvocationEvents();
+    flushUpdateQueue();
     assertEquals("<RelativeLayout>  [expanded]\n" +
                  "    <LinearLayout>\n" +
                  "        <Button>\n" +
@@ -358,9 +369,10 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "        <Button>  [selected]\n");
   }
 
-  public void testDropOnChain() {
+  public void testDropOnChain() throws Exception {
     myModel = createModelWithConstraintLayout();
     mySurface.setModel(myModel);
+    flushUpdateQueue();
     NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName());
     copy(myButton);
     mySurface.getSelectionModel().toggle(chain);
@@ -580,10 +592,11 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
+    flushUpdateQueue();
 
     // Check initial state
     myTree.expandRow(3);
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    flushUpdateQueue();
 
     TreePath pathForRow4 = myTree.getPathForRow(4);
     TreePath pathForRow5 = myTree.getPathForRow(5);
@@ -617,6 +630,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     // We manually notify the model changed event to ensure that the paths are updated
     myTree.modelDerivedDataChanged(myModel);
     myTree.expandRow(3); // Ensure that the the barrier's children path are not collapsed
+    flushUpdateQueue();
 
     // Check that button2 and button3 are swapped
     pathForRow4 = myTree.getPathForRow(4);
@@ -629,16 +643,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    flushUpdateQueue();
 
     // Check initial state
     myTree.expandRow(3);
+    flushUpdateQueue();
+
     TreePath pathForRow4 = myTree.getPathForRow(4);
     myTree.setSelectionPath(pathForRow4);
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     ((DeleteProvider)myTree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     String constraintReferences = myModel.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
     assertThat(constraintReferences).isEqualTo("button3");
   }

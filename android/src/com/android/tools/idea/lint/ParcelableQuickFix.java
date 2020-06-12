@@ -386,7 +386,11 @@ public class ParcelableQuickFix implements LintIdeQuickFix {
 
     private static boolean isConstructorWithParcelParameter(@NotNull PsiMethod method) {
       PsiParameterList params = method.getParameterList();
-      return method.isConstructor() && params.getParametersCount() == 1 && params.getParameters()[0].getType().equalsToText(CLASS_PARCEL);
+      if (method.isConstructor()) {
+        PsiParameter parameter = params.getParameter(0);
+        return parameter != null && parameter.getType().equalsToText(CLASS_PARCEL);
+      }
+      return false;
     }
 
     private static boolean isWriteToParcelMethod(@NotNull PsiMethod method) {

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
@@ -30,17 +31,14 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * DynamicWizard seeks to provide a flexible base for
@@ -78,7 +76,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   // The name of this wizard for display to the user
   protected String myName;
   // List of the paths that this wizard contains. Paths can be optional or required.
-  protected ArrayList<AndroidStudioWizardPath> myPaths = Lists.newArrayList();
+  protected ArrayList<AndroidStudioWizardPath> myPaths = new ArrayList<>();
   // The current path
   protected AndroidStudioWizardPath myCurrentPath;
   // An iterator to keep track of the user's progress through the paths.

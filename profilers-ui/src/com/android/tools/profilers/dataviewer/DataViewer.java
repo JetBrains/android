@@ -16,10 +16,8 @@
 package com.android.tools.profilers.dataviewer;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * A class which provides a view for a target data buffer. For example, an image may be rendered directly, while an xml

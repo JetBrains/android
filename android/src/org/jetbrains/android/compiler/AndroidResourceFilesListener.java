@@ -22,6 +22,7 @@ import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -132,7 +133,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     @NotNull
     private MultiMap<Module, AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap() {
       if (myProject.isDisposed()) {
-        return MultiMap.emptyInstance();
+        return MultiMap.empty();
       }
       MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
 
@@ -181,14 +182,14 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         modes.add(AndroidAutogeneratorMode.AAPT);
         modes.add(AndroidAutogeneratorMode.BUILDCONFIG);
       }
-      else if (file.getFileType() == AidlFileType.INSTANCE) {
+      else if (FileTypeRegistry.getInstance().isFileOfType(file, AidlFileType.INSTANCE)) {
         VirtualFile sourceRoot = findSourceRoot(module, file);
         if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getAidlGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.AIDL);
         }
       }
       else if (file.getFileType() == AndroidRenderscriptFileType.INSTANCE) {
-        VirtualFile sourceRoot = findSourceRoot(module, file);
+        final VirtualFile sourceRoot = findSourceRoot(module, file);
         if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getRenderscriptGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.RENDERSCRIPT);
         }

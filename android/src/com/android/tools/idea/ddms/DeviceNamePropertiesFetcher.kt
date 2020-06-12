@@ -31,7 +31,7 @@ import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
-/**
+  /**
  * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming
  * In such case, this class can be used to get property without blocking thread
  * [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not available.
@@ -45,7 +45,7 @@ import java.util.concurrent.Future
 class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceNameProperties>,
                                   private val parent: Disposable) : Disposable by parent, DeviceNamePropertiesProvider {
   private val edtExecutor = EdtExecutorService.getInstance()
-  private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor(DeviceNamePropertiesFetcher::class.toString())
+  private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
   private val defaultValue = DeviceNameProperties(null, null, null, null)
   // This cache is for ListenableFuture<DeviceNameProperties> and must be accessed by taskExecutor only
   // Tasks will be queued up and make sure run as single thread

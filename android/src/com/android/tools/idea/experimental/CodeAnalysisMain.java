@@ -18,15 +18,16 @@ package com.android.tools.idea.experimental;
 import com.android.tools.idea.experimental.codeanalysis.PsiCFGScene;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
 import com.android.tools.idea.experimental.codeanalysis.utils.PsiCFGAnalysisUtil;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
 import java.util.ArrayList;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class CodeAnalysisMain {
 
@@ -91,10 +92,10 @@ public class CodeAnalysisMain {
   }
 
   protected PsiFile[] findAllJavaFiles(@NotNull Project project, @NotNull AnalysisScope scope) {
-    final ArrayList<PsiFile> retList = Lists.newArrayList();
+    final ArrayList<PsiFile> retList = new ArrayList<>();
     scope.accept(new PsiElementVisitor() {
       @Override
-      public void visitFile(PsiFile file) {
+      public void visitFile(@NotNull PsiFile file) {
         if (file instanceof PsiJavaFile) {
           retList.add(file);
         }
@@ -117,7 +118,7 @@ public class CodeAnalysisMain {
   }
 
   private PsiClass[] extractProjectClasses(PsiFile pFile) {
-    ArrayList<PsiClass> retList = Lists.newArrayList();
+    ArrayList<PsiClass> retList = new ArrayList<>();
 
     //Look for class declarations in these files
     if (!(pFile instanceof PsiJavaFile)) {

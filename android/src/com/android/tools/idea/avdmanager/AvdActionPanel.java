@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -31,19 +30,18 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An action panel that behaves similarly to an Android overflow menu. Actions which
@@ -57,7 +55,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.Actions.MoveDown);
   private final Border myMargins = JBUI.Borders.empty(5, 3, 5, 3);
 
-  public List<FocusableHyperlinkLabel> myVisibleComponents = Lists.newArrayList();
+  public List<FocusableHyperlinkLabel> myVisibleComponents = new ArrayList<>();
 
   private boolean myFocused;
   private int myFocusedComponent = -1;

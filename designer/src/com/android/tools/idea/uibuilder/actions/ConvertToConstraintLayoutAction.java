@@ -15,6 +15,31 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ANDROID_WEBKIT_PKG;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_FOREGROUND;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.FQCN_ADAPTER_VIEW;
+import static com.android.SdkConstants.REQUEST_FOCUS;
+import static com.android.SdkConstants.TAG_DATA;
+import static com.android.SdkConstants.TAG_IMPORT;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_VARIABLE;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_N_DP;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.WEB_VIEW;
+import static java.util.Locale.ROOT;
+
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -33,7 +58,6 @@ import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -50,20 +74,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static java.util.Locale.ROOT;
 
 /**
  * Action which converts a given layout hierarchy to a ConstraintLayout.
@@ -278,7 +305,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         return;
       }
 
-      myToBeFlattened = Lists.newArrayList();
+      myToBeFlattened = new ArrayList<>();
       processComponent(myLayout);
 
       flatten();
@@ -371,7 +398,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
             continue;
           }
           if (toDelete == null) {
-            toDelete = Lists.newArrayList();
+            toDelete = new ArrayList<>();
           }
           toDelete.add(name);
         }
@@ -410,7 +437,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       }
       documentManager.doPostponedOperationsAndUnblockDocument(document);
 
-      List<TextRange> ranges = Lists.newArrayList();
+      List<TextRange> ranges = new ArrayList<>();
       for (NlComponent component : myToBeFlattened) {
         XmlTag tag = component.getTagDeprecated();
         PsiElement openStart = null;

@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
@@ -39,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
-
 class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private final ToolContent<T> myContent;
   private final ToolWindowEx myToolWindow;
@@ -60,7 +60,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     updateState(correspondingWindow);
     myContent.setToolContext(correspondingWindow.getContext());
     myContent.registerCallbacks(this);
-    myToolWindow.setAvailable(true, null);
+    myToolWindow.setAvailable(true);
     myToolWindow.setType(toToolWindowType(correspondingWindow), null);
     myToolWindow.setSplitMode(correspondingWindow.isSplit(), null);
     myToolWindow.show(null);
@@ -68,7 +68,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   public void hide() {
     myContent.setToolContext(null);
-    myToolWindow.setAvailable(false, null);
+    myToolWindow.setAvailable(false);
   }
 
   @Override
@@ -123,17 +123,15 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private void setAdditionalActions(@NotNull ToolWindowEx toolWindow) {
+  private void setAdditionalActions(@NotNull ToolWindow toolWindow) {
     List<AnAction> actionList = myContent.getAdditionalActions();
     if (!actionList.isEmpty()) {
-      AnAction[] actions = new AnAction[actionList.size()];
-      actionList.toArray(actions);
-      toolWindow.setTitleActions(actions);
+      toolWindow.setTitleActions(actionList);
     }
   }
 
   private void setAdditionalGearPopupActions(@NotNull ToolWindowEx toolWindow) {
-    DefaultActionGroup attachedSide = new DefaultActionGroup("Attached Side", true);
+    DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
     attachedSide.add(new AttachToSideAction(Side.LEFT));
     attachedSide.add(new AttachToSideAction(Side.RIGHT));
     attachedSide.add(new DetachedAction());
@@ -166,7 +164,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       if (myCorrespondingToolWindow != null) {
-        myToolWindow.setAvailable(false, null);
+        myToolWindow.setAvailable(false);
         updateSettingsInAttachedToolWindow();
         myCorrespondingToolWindow.setLeft(mySide.isLeft());
         myCorrespondingToolWindow.setPropertyAndUpdate(DETACHED, false);

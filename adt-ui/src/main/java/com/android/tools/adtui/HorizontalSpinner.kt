@@ -44,7 +44,7 @@ private val DEFAULT_BORDER = RoundedLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 
 private fun setupArrowUI(button: JButton, newBorder: Border, icon: Icon): JButton =
   button.apply {
     // Use the MetalButtonIU to have a consistent UI across platforms
-    ui = MetalButtonUI()
+    setUI(MetalButtonUI())
     isContentAreaFilled = false
     isFocusPainted = false
     isOpaque = false
@@ -127,10 +127,10 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) : AdtPrimar
     get() = _selectedIndex
 
   private var _selectedIndex: Int = -1
-  private val leftButton = JButton(AllIcons.Actions.Left).apply {
+  private val leftButton = JButton(AllIcons.General.ArrowLeft).apply {
     name = "prev"
   }
-  private val rightButton = JButton(AllIcons.Actions.Right).apply {
+  private val rightButton = JButton(AllIcons.General.ArrowRight).apply {
     name = "next"
   }
   private var cell: Component? = null
@@ -143,9 +143,9 @@ class HorizontalSpinner<T> private constructor(_model: ListModel<T>) : AdtPrimar
   init {
     border = DEFAULT_BORDER
 
-    setupArrowUI(leftButton, AdtUiUtils.DEFAULT_RIGHT_BORDER, AllIcons.Actions.Left)
+    setupArrowUI(leftButton, AdtUiUtils.DEFAULT_RIGHT_BORDER, AllIcons.General.ArrowLeft)
       .addActionListener { innerSetSelectedIndex(_selectedIndex - 1) }
-    setupArrowUI(rightButton, AdtUiUtils.DEFAULT_LEFT_BORDER, AllIcons.Actions.Right)
+    setupArrowUI(rightButton, AdtUiUtils.DEFAULT_LEFT_BORDER, AllIcons.General.ArrowRight)
       .addActionListener { innerSetSelectedIndex(_selectedIndex + 1) }
 
     add(leftButton, BorderLayout.LINE_START)

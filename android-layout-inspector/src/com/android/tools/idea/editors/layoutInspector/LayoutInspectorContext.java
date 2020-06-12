@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.annotations.NonNull;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.HandleViewDebug;
@@ -25,9 +24,6 @@ import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.model.LayoutFileData;
 import com.android.layoutinspector.model.ViewNode;
 import com.android.layoutinspector.model.ViewProperty;
-import com.android.tools.property.ptable.PTable;
-import com.android.tools.property.ptable.PTableItem;
-import com.android.tools.property.ptable.PTableModel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITTableCellEditorProvider;
@@ -38,9 +34,14 @@ import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTreeRenderer;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.observable.collections.ObservableList;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
@@ -52,16 +53,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.TableSpeedSearch;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -70,10 +61,18 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.imageio.ImageIO;
+import javax.swing.JMenuItem;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LayoutInspectorContext implements Disposable, DataProvider, ViewNodeActiveDisplay.ViewNodeActiveDisplayListener,
                                                TreeSelectionListener, RollOverTree.TreeHoverListener,
@@ -251,7 +250,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   public static List<PTableItem> convertToItems(@NotNull Map<String, List<ViewProperty>> properties, @NotNull EditHandler editHandler) {
     List<PTableItem> items = new ArrayList<>();
     List<String> sortedKeys = new ArrayList<>(properties.keySet());
-    Collections.sort(sortedKeys, String::compareToIgnoreCase);
+    sortedKeys.sort(String::compareToIgnoreCase);
     for (String key : sortedKeys) {
       items.add(new LITableGroupItem(key, properties.get(key), editHandler));
     }
@@ -407,9 +406,9 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   }
 
   private static void createNotification(@NotNull String message, @NotNull NotificationType type) {
-    Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group"),
-                                              AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"),
-                                              message, type, null));
+    Notifications.Bus.notify(new Notification(
+      NotificationGroup.createIdWithTitle("Layout Inspector", AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group")),
+                                              AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"), message, type, null));
   }
 
   private class RenderSubtreePreviewActionListener implements ActionListener {

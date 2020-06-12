@@ -1,32 +1,72 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+
 import com.android.ide.common.resources.LocaleManager;
-import com.android.ide.common.resources.configuration.*;
-import com.android.resources.*;
+import com.android.ide.common.resources.configuration.CountryCodeQualifier;
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.KeyboardStateQualifier;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.configuration.NavigationMethodQualifier;
+import com.android.ide.common.resources.configuration.NavigationStateQualifier;
+import com.android.ide.common.resources.configuration.NetworkCodeQualifier;
+import com.android.ide.common.resources.configuration.NightModeQualifier;
+import com.android.ide.common.resources.configuration.ResourceQualifier;
+import com.android.ide.common.resources.configuration.ScreenDimensionQualifier;
+import com.android.ide.common.resources.configuration.ScreenHeightQualifier;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.ide.common.resources.configuration.ScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.TextInputMethodQualifier;
+import com.android.ide.common.resources.configuration.TouchScreenQualifier;
+import com.android.ide.common.resources.configuration.UiModeQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.resources.Density;
+import com.android.resources.Keyboard;
+import com.android.resources.KeyboardState;
+import com.android.resources.LayoutDirection;
+import com.android.resources.Navigation;
+import com.android.resources.NavigationState;
+import com.android.resources.NightMode;
+import com.android.resources.ResourceEnum;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenRatio;
+import com.android.resources.ScreenSize;
+import com.android.resources.TouchScreen;
+import com.android.resources.UiMode;
 import com.android.tools.idea.rendering.FlagManager;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -34,8 +74,27 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+import java.util.Objects;
+import javax.swing.AbstractListModel;
+import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -165,7 +224,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myAddQualifierButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final ResourceQualifier selectedQualifier = (ResourceQualifier)myAvailableQualifiersList.getSelectedValue();
+        ResourceQualifier selectedQualifier = myAvailableQualifiersList.getSelectedValue();
         if (selectedQualifier != null) {
           final int index = myAvailableQualifiersList.getSelectedIndex();
 
@@ -186,7 +245,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myRemoveQualifierButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final ResourceQualifier selectedQualifier = (ResourceQualifier)myChosenQualifiersList.getSelectedValue();
+        ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
         if (selectedQualifier != null) {
           final int index = myChosenQualifiersList.getSelectedIndex();
 
@@ -294,7 +353,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
   private ResourceQualifier getActualQualifier(ResourceQualifier qualifier) {
     for (ResourceQualifier qualifier1 : myActualQualifiersConfig.getQualifiers()) {
-      if (Comparing.equal(qualifier1.getShortName(), qualifier.getShortName())) {
+      if (Objects.equals(qualifier1.getShortName(), qualifier.getShortName())) {
         return qualifier1;
       }
     }
@@ -302,7 +361,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private void updateQualifierEditor() {
-    final ResourceQualifier selectedQualifier = (ResourceQualifier)myChosenQualifiersList.getSelectedValue();
+    ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
     if (selectedQualifier != null && myEditors.containsKey(selectedQualifier.getShortName())) {
       final CardLayout layout = (CardLayout)myQualifierOptionsPanel.getLayout();
       layout.show(myQualifierOptionsPanel, selectedQualifier.getShortName());
@@ -321,7 +380,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private void updateLists() {
     Object qualifier = myAvailableQualifiersList.getSelectedValue();
     final ResourceQualifier[] availableQualifiers = filterUnsupportedQualifiers(myAvailableQualifiersConfig.getQualifiers());
-    myAvailableQualifiersList.setModel(new CollectionListModel(availableQualifiers));
+    myAvailableQualifiersList.setModel(new CollectionListModel<>(availableQualifiers));
     myAvailableQualifiersList.setSelectedValue(qualifier, true);
 
     if (myAvailableQualifiersList.getSelectedValue() == null && myAvailableQualifiersList.getItemsCount() > 0) {
@@ -330,7 +389,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     qualifier = myChosenQualifiersList.getSelectedValue();
     final ResourceQualifier[] chosenQualifiers = filterUnsupportedQualifiers(myChosenQualifiersConfig.getQualifiers());
-    myChosenQualifiersList.setModel(new CollectionListModel(chosenQualifiers));
+    myChosenQualifiersList.setModel(new CollectionListModel<>(chosenQualifiers));
     myChosenQualifiersList.setSelectedValue(qualifier, true);
 
     if (myChosenQualifiersList.getSelectedValue() == null && myChosenQualifiersList.getItemsCount() > 0) {
@@ -339,7 +398,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private ResourceQualifier[] filterUnsupportedQualifiers(ResourceQualifier[] qualifiers) {
-    final List<ResourceQualifier> result = new ArrayList<ResourceQualifier>();
+    final List<ResourceQualifier> result = new ArrayList<>();
     for (ResourceQualifier qualifier : qualifiers) {
       if (myEditors.containsKey(qualifier.getShortName())) {
         result.add(qualifier);
@@ -355,8 +414,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private void createUIComponents() {
     myQualifierOptionsPanel = new JPanel(new CardLayout());
 
-    final JPanel leftPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
-    myAvailableQualifiersList = new JBList();
+    final JPanel leftPanel = new JPanel(new BorderLayout(JBUIScale.scale(5), JBUIScale.scale(5)));
+    myAvailableQualifiersList = new JBList<>();
     myAvailableQualifiersList.setMinimumSize(JBUI.size(10, 10));
     JBLabel label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.available.qualifiers.label"));
     label.setLabelFor(myAvailableQualifiersList);
@@ -364,8 +423,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     leftPanel.add(new JBScrollPane(myAvailableQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
-    final JPanel rightPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
-    myChosenQualifiersList = new JBList();
+    final JPanel rightPanel = new JPanel(new BorderLayout(JBUIScale.scale(5), JBUIScale.scale(5)));
+    myChosenQualifiersList = new JBList<>();
     myChosenQualifiersList.setMinimumSize(JBUI.size(10, 10));
     label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
     label.setLabelFor(myChosenQualifiersList);
@@ -518,7 +577,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U>> extends MyQualifierEditor<T> {
-    private final JComboBox myComboBox = new JComboBox();
+    private final JComboBox<U> myComboBox = new ComboBox<>();
     private final Class<U> myEnumClass;
 
     protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
@@ -549,8 +608,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       return panel;
     }
 
-    protected ComboBoxModel createModel() {
-      return new EnumComboBoxModel<U>(myEnumClass);
+    protected ComboBoxModel<U> createModel() {
+      return new EnumComboBoxModel<>(myEnumClass);
     }
 
     @NotNull
@@ -680,12 +739,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
    * Specialized combo box model which filters out enum values that are marked as not interesting. This
    * is to discourage app developers from creating specialized resource folders for specific densities.
    */
-  private static class DensityComboBoxModel extends AbstractListModel implements ComboBoxModel {
+  private static class DensityComboBoxModel extends AbstractListModel<Density> implements ComboBoxModel<Density> {
     private final List<Density> myList;
     private Density mySelected = null;
 
     public DensityComboBoxModel() {
-      myList = new ArrayList<Density>();
+      myList = new ArrayList<>();
       for (Density density : Density.values()) {
         if (density.isRecommended()) {
           myList.add(density);
@@ -727,7 +786,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
 
     @Override
-    protected ComboBoxModel createModel() {
+    protected ComboBoxModel<Density> createModel() {
       return new DensityComboBoxModel();
     }
 
@@ -1080,8 +1139,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private class MyLocaleEditor extends MyQualifierEditor<LocaleQualifier> {
-    private final JBList myLanguageList = new JBList();
-    private final JBList myRegionList = new JBList();
+    private final JBList<String> myLanguageList = new JBList<>();
+    private final JBList<String> myRegionList = new JBList<>();
     private JBCheckBox myShowAllRegions;
     private JBLabel myWarningsLabel;
 
@@ -1100,7 +1159,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       JBLabel regionLabel = new JBLabel("Specific Region Only:");
 
-      SortedListModel<String> languageModel = new SortedListModel<String>(new Comparator<String>() {
+      SortedListModel<String> languageModel = new SortedListModel<>(new Comparator<String>() {
         @Override
         public int compare(String s1, String s2) {
           // Special language comparator: We want to prefer 2-letter language codes.
@@ -1167,13 +1226,13 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         @Override
         public void valueChanged(ListSelectionEvent listSelectionEvent) {
           // If selecting languages, attempt to pick relevant regions, if applicable
-          updateRegionList((String)myLanguageList.getSelectedValue());
+          updateRegionList(myLanguageList.getSelectedValue());
         }
       });
       myShowAllRegions.addChangeListener(new ChangeListener() {
         @Override
         public void stateChanged(ChangeEvent changeEvent) {
-          updateRegionList((String)myLanguageList.getSelectedValue());
+          updateRegionList(myLanguageList.getSelectedValue());
         }
       });
 
@@ -1182,8 +1241,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
-      final Ref<String> preferred = new Ref<String>(null);
-      SortedListModel<String> regionModel = new SortedListModel<String>(new Comparator<String>() {
+      final Ref<String> preferred = new Ref<>(null);
+      SortedListModel<String> regionModel = new SortedListModel<>(new Comparator<String>() {
         @Override
         public int compare(String s1, String s2) {
           // Sort "Any Region" to the top
@@ -1269,11 +1328,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @NotNull
     @Override
     LocaleQualifier apply() throws InvalidOptionValueException {
-      String selectedLanguage = (String)myLanguageList.getSelectedValue();
+      String selectedLanguage = myLanguageList.getSelectedValue();
       if (selectedLanguage == null) {
         throw new InvalidOptionValueException("Select a language tag");
       }
-      String selectedRegion = (String)myRegionList.getSelectedValue();
+      String selectedRegion = myRegionList.getSelectedValue();
       if (FAKE_VALUE.equals(selectedRegion)) {
         selectedRegion = null;
       }

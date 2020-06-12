@@ -16,19 +16,23 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationOwner;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLambdaExpression;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class PsiCFGClass implements PsiAnnotationOwner {
 
@@ -105,8 +109,8 @@ public class PsiCFGClass implements PsiAnnotationOwner {
       qualifiedClassName = "";
     }
 
-    this.declaredAnonymousClass = Lists.newArrayList();
-    this.declaredLambda = Lists.newArrayList();
+    this.declaredAnonymousClass = new ArrayList<>();
+    this.declaredLambda = new ArrayList<>();
     mMethodMap = Maps.newHashMap();
     mFieldMap = Maps.newHashMap();
 
@@ -114,7 +118,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     mImplementedInterfacesSet = Sets.newHashSet();
     mDirectSubClasses = Sets.newHashSet();
     mDirectSubInterfaces = Sets.newHashSet();
-    mMethodList = Lists.newArrayList();
+    mMethodList = new ArrayList<>();
 
 
     mSignatureMethodMap = Maps.newHashMap();
@@ -196,7 +200,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
    */
   @NotNull
   public PsiCFGClass[] getAllSupers() {
-    List<PsiCFGClass> supersList = Lists.newArrayList();
+    List<PsiCFGClass> supersList = new ArrayList<>();
     supersList.add(this.mSuperCFGClass);
     supersList.addAll(this.mImplementedInterfacesSet);
     return supersList.toArray(PsiCFGClass.EMPTY_ARRAY);

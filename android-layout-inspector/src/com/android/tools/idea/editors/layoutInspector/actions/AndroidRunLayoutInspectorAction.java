@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
-    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title.legacy"),
-          AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
+    super(AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.title.legacy"),
+          AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
   }
 
@@ -42,11 +42,11 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   public void update(AnActionEvent e) {
     e.getPresentation().setVisible(!LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     if (isDebuggerPaused(e.getProject())) {
-      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
+      e.getPresentation().setDescription(AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.description.disabled"));
       e.getPresentation().setEnabled(false);
     }
     else {
-      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description"));
+      e.getPresentation().setDescription(AndroidBundle.messagePointer("android.ddms.actions.layoutinspector.description"));
       e.getPresentation().setEnabled(true);
     }
   }

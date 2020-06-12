@@ -15,7 +15,24 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import com.google.common.collect.Lists;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ui.UIUtil.getToolTipBackground;
+import static com.intellij.util.ui.UIUtil.getToolTipForeground;
+import static com.intellij.util.ui.UIUtil.isReallyTypedEvent;
+import static java.awt.Font.BOLD;
+import static java.awt.event.KeyEvent.KEY_TYPED;
+import static java.awt.event.KeyEvent.VK_BACK_SPACE;
+import static java.awt.event.KeyEvent.VK_ENTER;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_PAGE_DOWN;
+import static java.awt.event.KeyEvent.VK_PAGE_UP;
+import static java.awt.event.KeyEvent.VK_RIGHT;
+import static java.lang.Character.isLetterOrDigit;
+import static javax.swing.SwingUtilities.getAncestorOfClass;
+
 import com.intellij.ide.util.treeView.AbstractTreeUi;
 import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.util.ActionCallback;
@@ -24,28 +41,24 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.speedSearch.SpeedSearchSupply;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ui.UIUtil.*;
-import static java.awt.Font.BOLD;
-import static java.awt.event.KeyEvent.*;
-import static java.lang.Character.isLetterOrDigit;
-import static javax.swing.SwingUtilities.getAncestorOfClass;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   @NonNls private static final String ENTERED_PREFIX_PROPERTY_NAME = "enteredPrefix";
@@ -249,7 +262,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
 
     ActionCallback initialized = myTreeBuilder.getInitialized();
     initialized.doWhenDone(() -> {
-      List<AbstractPsModelNode> nodes = Lists.newArrayList();
+      List<AbstractPsModelNode> nodes = new ArrayList<>();
       myTreeBuilder.accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
         @Override
         public boolean visit(@NotNull AbstractPsModelNode node) {
@@ -289,7 +302,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   private List<AbstractPsModelNode> findNodes(@NotNull String searchQuery) {
     String pattern = searchQuery.trim();
 
-    List<AbstractPsModelNode> nodes = Lists.newArrayList();
+    List<AbstractPsModelNode> nodes = new ArrayList<>();
     ActionCallback initialized = myTreeBuilder.getInitialized();
     initialized.doWhenDone(() -> myTreeBuilder.accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
       @Override

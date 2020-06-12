@@ -17,8 +17,8 @@ package com.android.tools.idea.testing
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.util.AndroidTestPaths
 import com.android.tools.idea.util.toVirtualFile
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
@@ -27,10 +27,9 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.io.ZipUtil
 import java.io.File
 
-private const val ROOT_FOLDER = "../.."
-private const val LEGACY_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/com/android/support/"
-private const val ANDROIDX_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/androidx/"
-private const val GOOGLE_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/com/google/android/"
+private const val LEGACY_FOLDER = "com/android/support/"
+private const val ANDROIDX_FOLDER = "androidx/"
+private const val GOOGLE_FOLDER = "com/google/android/"
 
 /**
  * Adds a dependency from prebuilts to an existing test fixture.
@@ -61,10 +60,10 @@ object Dependencies {
     }
 
     private fun load(dependency: String) {
-      val root = File(PathManager.getHomePath())
-      val legacyFolder = root.resolve(LEGACY_FOLDER)
-      val androidFolder = root.resolve(ANDROIDX_FOLDER)
-      val googleFolder = root.resolve(GOOGLE_FOLDER)
+      val root = AndroidTestPaths.prebuiltsRepo()
+      val legacyFolder = root.resolve(LEGACY_FOLDER).toFile()
+      val androidFolder = root.resolve(ANDROIDX_FOLDER).toFile()
+      val googleFolder = root.resolve(GOOGLE_FOLDER).toFile()
       val legacyFile = legacyFolder.resolve(dependency)
       val androidxFile = androidFolder.resolve(dependency)
       val googleFile = googleFolder.resolve(dependency)

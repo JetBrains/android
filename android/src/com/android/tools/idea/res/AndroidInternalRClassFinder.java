@@ -31,13 +31,16 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.Processor;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.augment.AndroidInternalRClass;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * An element finder which finds the Android internal R class.
@@ -51,7 +54,7 @@ public class AndroidInternalRClassFinder extends PsiElementFinder {
 
   public AndroidInternalRClassFinder(@NotNull Project project) {
     ApplicationManager.getApplication().getMessageBus().connect(project).subscribe(
-      ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Adapter() {
+      ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Listener() {
         @Override
         public void jdkRemoved(@NotNull final Sdk sdk) {
           synchronized (myLock) {

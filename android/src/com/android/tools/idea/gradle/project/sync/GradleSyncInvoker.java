@@ -51,7 +51,6 @@ import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -63,7 +62,6 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import java.util.List;
@@ -71,7 +69,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleSyncInvoker {
+public final class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
@@ -81,8 +79,8 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
-    this(fileDocumentManager, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker() {
+    this(FileDocumentManager.getInstance(), new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
@@ -148,15 +146,15 @@ public class GradleSyncInvoker {
       application.invokeAndWait(syncTask);
     }
     else if (request.runInBackground) {
-      TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
+      application.invokeLater(syncTask, project.getDisposed());
     }
     else {
-      TransactionGuard.getInstance().submitTransactionAndWait(syncTask);
+      application.invokeAndWait(syncTask);
     }
   }
 
   private static boolean isBuildInProgress(@NotNull Project project) {
-    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
+    IdeFrame frame = WindowManagerEx.getInstanceEx().findFrameFor(project);
     StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
     if (statusBar == null) {
       return false;

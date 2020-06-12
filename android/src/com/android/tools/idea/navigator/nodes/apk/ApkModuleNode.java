@@ -133,11 +133,11 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  public Collection<AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
 
     ViewSettings settings = getSettings();
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     if (myApkPsiFile != null) {
       children.add(new PsiFileNode(myProject, myApkPsiFile, settings));
     }

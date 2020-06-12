@@ -17,16 +17,11 @@ package com.android.tools.idea.experimental.actions;
 
 import com.android.tools.idea.experimental.CodeAnalysisMain;
 import com.android.tools.idea.experimental.codeanalysis.PsiCFGScene;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
-import com.android.tools.idea.experimental.codeanalysis.utils.PsiCFGAnalysisUtil;
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

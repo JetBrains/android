@@ -19,11 +19,11 @@ import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -59,7 +59,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
     final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
 
     if (processHandler.isProcessTerminated()) {
-      ExecutionManager.getInstance(project).getContentManager().removeRunContent(executor, descriptor);
+      RunContentManager.getInstance(project).removeRunContent(executor, descriptor);
       return false;
     }
     content.getManager().setSelectedContent(content);

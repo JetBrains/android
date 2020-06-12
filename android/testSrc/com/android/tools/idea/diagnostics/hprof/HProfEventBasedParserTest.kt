@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
 import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
+import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import gnu.trove.TObjectIntHashMap
 import org.junit.After
@@ -32,13 +32,12 @@ import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 class HProfEventBasedParserTest {
 
-  private var file: File = TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/sample.hprof")
-  private val channel: FileChannel = FileChannel.open(Paths.get(file.toString()), StandardOpenOption.READ)
+  private var file: Path = AndroidTestPaths.adtSources().resolve("android/testData/profiling/sample.hprof")
+  private val channel: FileChannel = FileChannel.open(file, StandardOpenOption.READ)
   private val parser = HProfEventBasedParser(channel)
   private val tmpFolder: TemporaryFolder = TemporaryFolder()
 
@@ -136,6 +135,6 @@ class HProfEventBasedParserTest {
   }
 
   private fun getBaselinePath(fileName: String) =
-    TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/$fileName").toPath()
+    AndroidTestPaths.adtSources().resolve("android/testData/profiling/$fileName")
 
 }

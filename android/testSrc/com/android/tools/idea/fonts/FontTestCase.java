@@ -16,11 +16,10 @@
 package com.android.tools.idea.fonts;
 
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class FontTestCase extends AndroidTestCase {
   protected File myFontPath;

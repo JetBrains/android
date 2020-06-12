@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.variant.profiles;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
+
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -39,16 +42,29 @@ import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.BooleanTableCellEditor;
+import com.intellij.ui.BooleanTableCellRenderer;
+import com.intellij.ui.CheckboxTree;
+import com.intellij.ui.CheckedTreeNode;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Function;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
-import org.jetbrains.android.util.BooleanCellRenderer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.*;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -57,13 +73,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
-import java.text.Collator;
-import java.util.*;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
+import org.jetbrains.android.util.BooleanCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProjectProfileSelectionDialog extends DialogWrapper {
   private static final SimpleTextAttributes UNRESOLVED_ATTRIBUTES =
@@ -139,7 +151,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
               textRenderer.append(myConflicts.size() == 1 ? "[Conflict]" : "[Conflicts]", attributes);
             }
 
-            textRenderer.setIcon(AllIcons.Actions.Module);
+            textRenderer.setIcon(AllIcons.Nodes.Module);
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
@@ -216,8 +228,8 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       List<String> variantNames = Lists.newArrayList(dependenciesByVariant.keySet());
       Collections.sort(variantNames);
 
-      List<String> consolidatedVariants = Lists.newArrayList();
-      List<String> variantsToSkip = Lists.newArrayList();
+      List<String> consolidatedVariants = new ArrayList<>();
+      List<String> variantsToSkip = new ArrayList<>();
 
       int variantCount = variantNames.size();
       for (int i = 0; i < variantCount; i++) {
@@ -423,7 +435,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   }
 
   private void filterProjectStructure(@NotNull List<ConflictTableRow> rows) {
-    List<Module> selectedConflictSources = Lists.newArrayList();
+    List<Module> selectedConflictSources = new ArrayList<>();
     for (ConflictTableRow row : rows) {
       if (row.myFilter) {
         selectedConflictSources.add(row.myConflict.getSource());
@@ -478,7 +490,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           ColoredTreeCellRenderer textRenderer = getTextRenderer();
           if (data instanceof Conflict.AffectedModule) {
             textRenderer.append(((Conflict.AffectedModule)data).getTarget().getName());
-            textRenderer.setIcon(AllIcons.Actions.Module);
+            textRenderer.setIcon(AllIcons.Nodes.Module);
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
@@ -573,7 +585,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     static final int SOURCE_COLUMN = 1;
     static final int RESOLVED_COLUMN = 2;
 
-    final List<ConflictTableRow> myRows = Lists.newArrayList();
+    final List<ConflictTableRow> myRows = new ArrayList<>();
     final Function<List<ConflictTableRow>, Void> myFilterFunction;
 
     ConflictsTableModel(@NotNull List<Conflict> conflicts, Function<List<ConflictTableRow>, Void> filterFunction) {
@@ -729,7 +741,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
   private static class ModuleTreeElement {
     @NotNull final Module myModule;
-    @NotNull final List<Conflict> myConflicts = Lists.newArrayList();
+    @NotNull final List<Conflict> myConflicts = new ArrayList<>();
 
     ModuleTreeElement(@NotNull Module module) {
       myModule = module;

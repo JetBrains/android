@@ -23,12 +23,11 @@ import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,7 +66,8 @@ public abstract class ActionManager<S extends DesignSurface> {
     return new DesignSurfaceActionsToolbar(mySurface, mySurface, mySurface).getDesignSurfaceToolbar();
   }
 
-  public final void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
+  // non-final for testing
+  public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
     Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
     showPopup(invoker, event.getX(), event.getY(), leafComponent);
   }

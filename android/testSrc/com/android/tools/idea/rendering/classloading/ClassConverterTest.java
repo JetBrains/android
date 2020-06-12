@@ -15,20 +15,48 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-import com.google.common.collect.Lists;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.*;
-import org.jetbrains.org.objectweb.asm.tree.ClassNode;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.classVersionToJdk;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.findHighestMajorVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentJdkVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getMagic;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getMinorVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.jdkToClassVersion;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.rewriteClass;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PROTECTED;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ASM5;
+import static org.jetbrains.org.objectweb.asm.Opcodes.GETFIELD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_1;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_2;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ILOAD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.IRETURN;
+import static org.jetbrains.org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
+import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
+import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
 
+import com.google.common.collect.Lists;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.tools.idea.rendering.classloading.ClassConverter.*;
-import static org.jetbrains.org.objectweb.asm.Opcodes.*;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.FieldVisitor;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.tree.ClassNode;
 
 public class ClassConverterTest extends TestCase {
   public void testClassVersionToJdk() {
@@ -54,6 +82,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(50, jdkToClassVersion("1.6.1"));
     assertEquals(51, jdkToClassVersion("1.7.0"));
     assertEquals(45, jdkToClassVersion("1.1"));
+    assertEquals(53, jdkToClassVersion("9"));
     assertEquals(55, jdkToClassVersion("11"));
     assertEquals(55, jdkToClassVersion("11.0.2+9-b159.56"));
   }

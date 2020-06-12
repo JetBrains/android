@@ -24,6 +24,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -61,7 +62,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Map<VirtualFile, String> scripts = getBuildScriptsWithQualifiers();
     List<PsiFileNode> children = new ArrayList<>(scripts.size());
 
@@ -85,7 +86,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
       // include all .gradle and ProGuard files from each module
       for (VirtualFile file : findAllGradleScriptsInModule(module)) {
-        if (file.getFileType() == proguardFileType) {
+        if (FileTypeRegistry.getInstance().isFileOfType(file, proguardFileType)) {
           buildScripts.put(file, String.format("ProGuard Rules for %1$s", module.getName()));
         }
         else {

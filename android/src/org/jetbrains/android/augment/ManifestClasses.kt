@@ -20,15 +20,9 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.text.StringUtil.getShortName
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiType
+import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -41,7 +35,6 @@ import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
 
-private val LOG: Logger get() = logger(::LOG)
 
 /**
  * Manifest class for a given module.
@@ -90,6 +83,9 @@ sealed class ManifestInnerClass(
   name: String,
   parentClass: PsiClass
 ) : AndroidLightInnerClassBase(parentClass, name) {
+  companion object {
+    val LOG: Logger = Logger.getInstance(ManifestClass::class.java)
+  }
 
   protected data class FieldInfo(val fieldName: String, val fieldValue: String)
 

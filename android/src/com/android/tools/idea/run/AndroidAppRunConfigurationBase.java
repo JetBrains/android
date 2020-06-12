@@ -57,6 +57,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -76,7 +77,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -363,7 +364,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       executionManager.getRunningDescriptors(s -> s != null && s.getConfiguration() == configuration);
     runningDescriptors = runningDescriptors.stream().filter(descriptor -> {
       RunContentDescriptor contentDescriptor =
-        executionManager.getContentManager().findContentDescriptor(executor, descriptor.getProcessHandler());
+        RunContentManager.getInstance(project).findContentDescriptor(executor, descriptor.getProcessHandler());
       return contentDescriptor != null && executionManager.getExecutors(contentDescriptor).contains(executor);
     }).collect(Collectors.toList());
 

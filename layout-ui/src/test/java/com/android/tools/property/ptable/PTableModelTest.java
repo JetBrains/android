@@ -15,17 +15,17 @@
  */
 package com.android.tools.property.ptable;
 
-import com.google.common.collect.Lists;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-import javax.swing.event.TableModelListener;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import javax.swing.event.TableModelListener;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class PTableModelTest extends TestCase {
   private PTableModel myModel;
@@ -168,7 +168,7 @@ public class PTableModelTest extends TestCase {
   private static List<PTableItem> createItems(Object... items) {
     assert (items.length % 2) == 0;
 
-    List<PTableItem> result = Lists.newArrayList();
+    List<PTableItem> result = new ArrayList<>();
 
     for (int i = 0; i < items.length; i += 2) {
       SimpleItem node = new SimpleItem((String)items[i]);

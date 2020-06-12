@@ -17,26 +17,18 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.tools.idea.concurrency.transform
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.concurrency.readOnPooledThread
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.meta.Annotated
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.KnownValues
-import com.android.tools.idea.gradle.structure.model.meta.ListProperty
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.getText
-import com.android.tools.idea.gradle.structure.model.meta.maybeValue
-import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture

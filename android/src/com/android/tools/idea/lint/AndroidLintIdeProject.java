@@ -44,7 +44,6 @@ import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
@@ -71,7 +70,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -97,7 +95,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
    */
   @NonNull
   public static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
-    List<Project> projects = Lists.newArrayList();
+    List<Project> projects = new ArrayList<>();
 
     Map<Project, Module> projectMap = Maps.newHashMap();
     Map<Module, Project> moduleMap = Maps.newHashMap();
@@ -264,7 +262,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       return;
     }
 
-    List<Project> dependencies = Lists.newArrayList();
+    List<Project> dependencies = new ArrayList<>();
     // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
     // (e.g. Java-only modules)
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, true);
@@ -644,7 +642,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @Override
     public List<File> getAssetFolders() {
       if (assetFolders == null) {
-        assetFolders = Lists.newArrayList();
+        assetFolders = new ArrayList<>();
         for (IdeaSourceProvider provider : SourceProviderManager.getInstance(myFacet).getAllSourceProviders()) {
           Collection<VirtualFile> dirs = provider.getAssetsDirectories();
           for (VirtualFile dir : dirs) {
@@ -665,7 +663,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
           AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
           if (androidModel != null) {
             ProductFlavor flavor = androidModel.getAndroidProject().getDefaultConfig().getProductFlavor();
-            proguardFiles = Lists.newArrayList();
+            proguardFiles = new ArrayList<>();
             for (File file : flavor.getProguardFiles()) {
               if (file.exists()) {
                 proguardFiles.add(file);
@@ -1038,7 +1036,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         }
 
         if (javaLibraries == null) {
-          javaLibraries = Lists.newArrayList();
+          javaLibraries = new ArrayList<>();
           File jarFile = myLibrary.getJarFile();
           if (jarFile.exists()) {
             javaLibraries.add(jarFile);

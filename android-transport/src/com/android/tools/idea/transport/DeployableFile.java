@@ -19,6 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.util.function.Supplier;
+
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,11 +89,18 @@ public final class DeployableFile {
   @NotNull
   public File getDir() {
     File dir = new File(myHomePathSupplier.get(), myReleaseDir);
-    if (!dir.exists()) {
-      // Development mode
-      dir = new File(myHomePathSupplier.get(), myDevDir);
+    if (dir.exists()) {
+      return dir;
     }
-    return dir;
+
+    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+    dir = AndroidProfilerDownloader.getInstance().getHostDir(myReleaseDir);
+    if (dir.exists()) {
+      return dir;
+    } else {
+      // Development mode
+      return new File(myHomePathSupplier.get(), myDevDir);
+    }
   }
 
   public static class Builder {

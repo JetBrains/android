@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
-import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
@@ -24,18 +24,20 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
-private val LOG = Logger.getInstance(RoomDependencyChecker::class.java)
+private val LOG = logger<RoomDependencyChecker>()
 
 /**
  * Checks if project uses Room (any module depends on Room)
  */
-class RoomDependencyChecker(val project: Project, private val cachedValuesManager: CachedValuesManager) {
+class RoomDependencyChecker(val project: Project) {
   companion object {
-    fun getInstance(project: Project): RoomDependencyChecker = ServiceManager.getService(project, RoomDependencyChecker::class.java)!!
+    fun getInstance(project: Project) = project.service<RoomDependencyChecker>()
   }
 
-  fun isRoomPresent(): Boolean = cachedValuesManager.getCachedValue(project) {
-    CachedValueProvider.Result(calculateIsRoomPresent(), ProjectRootModificationTracker.getInstance(project))
+  fun isRoomPresent(): Boolean {
+    return CachedValuesManager.getManager(project).getCachedValue(project) {
+      CachedValueProvider.Result(calculateIsRoomPresent(), ProjectRootModificationTracker.getInstance(project))
+    }
   }
 
   private fun calculateIsRoomPresent(): Boolean {

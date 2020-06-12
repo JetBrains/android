@@ -95,7 +95,6 @@ import com.android.utils.XmlUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -117,6 +116,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -671,7 +671,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (includes != null && !includes.isEmpty()) {
       for (String include : includes) {
         if (visiting.contains(include)) {
-          List<String> list = Lists.newLinkedList();
+          List<String> list = new LinkedList<>();
           list.add(include);
           list.add(from);
           return list;

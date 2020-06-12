@@ -15,25 +15,31 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages list of modules.
@@ -104,7 +110,7 @@ public final class ModuleListModel {
       namesToModules.put(module.name, module);
     }
     Multimap<ModuleToImport, ModuleToImport> requiredModules = LinkedListMultimap.create();
-    Queue<ModuleToImport> queue = Lists.newLinkedList();
+    Queue<ModuleToImport> queue = new LinkedList<>();
 
     for (ModuleToImport module : modules) {
       if (Objects.equal(module, myPrimaryModule) || !isUnselected(module, false)) {

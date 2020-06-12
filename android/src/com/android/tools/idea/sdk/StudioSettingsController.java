@@ -16,15 +16,23 @@
 
 package com.android.tools.idea.sdk;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
+
 import com.android.repository.api.Channel;
 import com.android.repository.api.SettingsController;
-import com.intellij.openapi.components.*;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.RoamingType;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.intellij.util.proxy.CommonProxy;
+import java.net.Proxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.net.Proxy;
 
 /**
  * Controller class to get settings values using intellij persistent data mechanism.
@@ -35,7 +43,8 @@ import java.net.Proxy;
   name = "StudioSettingsController",
   storages = @Storage(value = "remotesdk.xml", roamingType = RoamingType.DISABLED)
 )
-public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>, SettingsController {
+public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>, SettingsController,
+                                                 Disposable {
 
   private PersistentState myState = new PersistentState();
 
@@ -113,5 +122,19 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
     return Proxy.NO_PROXY;
   }
 
-  private StudioSettingsController() {}
+  @VisibleForTesting
+  StudioSettingsController() {
+    if (isAndroidSdkManagerEnabled()) {
+      setUpAuthenticator();
+    }
+  }
+
+  private void setUpAuthenticator() {
+    CommonProxy.getInstance().setCustomAuth(getClass().getName(), new AndroidAuthenticator());
+  }
+
+  @Override
+  public void dispose() {
+    CommonProxy.getInstance().removeCustomAuth(getClass().getName());
+  }
 }

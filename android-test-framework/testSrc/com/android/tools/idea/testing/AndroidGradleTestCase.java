@@ -31,14 +31,12 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.Lists;
-import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -56,7 +54,8 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -130,7 +129,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     super.setUp();
 
     StudioFlags.KOTLIN_DSL_PARSING.override(true);
-    IdeaTestApplication.getInstance();
+    TestApplicationManager.getInstance();
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
@@ -166,24 +165,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     myAndroidFacet = null;
     if (myFixture != null) {
       try {
-        Project project = myFixture.getProject();
-        // Since we don't really open the project, but we manually register listeners in the gradle importer
-        // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-        // that here, otherwise the testsuite will leak
-        if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
-          projectComponent.projectClosed();
-        }
+        myFixture.tearDown();
       }
-      finally {
-        try {
-          myFixture.tearDown();
-        }
-        catch (Throwable e) {
-          LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
-        }
-        myFixture = null;
+      catch (Throwable e) {
+        LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
       }
+      myFixture = null;
     }
   }
 
@@ -197,7 +184,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        HeavyPlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
       myAndroidFacet = null;
       myModules = null;

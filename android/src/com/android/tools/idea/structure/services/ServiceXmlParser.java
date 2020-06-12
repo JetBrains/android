@@ -15,9 +15,24 @@
  */
 package com.android.tools.idea.structure.services;
 
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.observable.ui.*;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.collections.ObservableList;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.SelectedIndexProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -26,8 +41,6 @@ import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.collections.ObservableList;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
@@ -39,33 +52,29 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.swing.*;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
-import static com.google.common.base.CaseFormat.UPPER_CAMEL;
-import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+import javax.swing.*;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Class which handles the parsing of a service.xml file. Note that a service.xml file is
@@ -204,7 +213,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   public void install() {
-    List<File> filesToOpen = Lists.newArrayList();
+    List<File> filesToOpen = new ArrayList<>();
     analyzeRecipe(false, filesToOpen, null, null, null, null, null);
     TemplateUtils.openEditors(myModule.getProject(), filesToOpen, true);
   }
@@ -304,8 +313,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
     Set<String> classpathEntries = Sets.newHashSet();
     Set<String> plugins = Sets.newHashSet();
-    List<File> sourceFiles = Lists.newArrayList();
-    List<File> targetFiles = Lists.newArrayList();
+    List<File> sourceFiles = new ArrayList<>();
+    List<File> targetFiles = new ArrayList<>();
     analyzeRecipe(true, null, dependencies, classpathEntries, plugins, sourceFiles, targetFiles);
 
     // Ignore test configurations here.
