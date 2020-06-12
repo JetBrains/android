@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
@@ -34,6 +35,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.Label
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JCheckBox
@@ -86,9 +88,17 @@ class ConfigureDynamicModuleStep(
       moduleTitle()
     }.visible = model.isInstant
 
+    row { Label("")()} // Vertical spacer
+
     row {
       // TODO(qumeric): labelFor?
       fusingCheckbox()
+    }
+
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      row {
+        gradleKtsCheck()
+      }
     }
   }
   override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))

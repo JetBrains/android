@@ -63,7 +63,8 @@ class DynamicFeatureModel(
         featureTitle.get(),
         featureFusing.get(),
         downloadInstallKind.value,
-        deviceFeatures
+        deviceFeatures,
+        useGradleKts.get()
       )
     }
 
