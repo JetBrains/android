@@ -165,7 +165,7 @@ data class ProjectChecker(
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate") }
+      FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
     }
 
     val projectContext = RenderingContext(

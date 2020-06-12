@@ -18,12 +18,14 @@ package com.android.tools.idea.npw.java
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.validator.ClassNameValidator
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.Label
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JTextField
@@ -53,6 +55,13 @@ class ConfigureLibraryModuleStep(
     row {
       labelFor("Language:", languageCombo)
       languageCombo()
+    }
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      row { Label("")()} // Vertical spacer
+
+      row {
+        gradleKtsCheck()
+      }
     }
   }
 
