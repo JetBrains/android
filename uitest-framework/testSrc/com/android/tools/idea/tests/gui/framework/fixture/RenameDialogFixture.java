@@ -15,27 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.fest.reflect.core.Reflection.field;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.ui.EditorTextField;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.fest.reflect.core.Reflection.field;
 
 public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
@@ -60,8 +61,9 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
                                              @NotNull final RenameHandler handler,
                                              @NotNull Robot robot)
   {
-    TransactionGuard.submitTransaction(element.getProject(),
-      () -> handler.invoke(element.getProject(), new PsiElement[] { element }, SimpleDataContext.getProjectContext(element.getProject())));
+    ApplicationManager.getApplication().invokeLater(
+      () -> handler.invoke(element.getProject(), new PsiElement[] { element }, SimpleDataContext.getProjectContext(element.getProject())),
+      element.getProject().getDisposed());
     JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, RefactoringBundle.message("rename.title")).and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
