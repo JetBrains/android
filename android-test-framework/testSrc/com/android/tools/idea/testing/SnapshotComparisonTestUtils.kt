@@ -82,9 +82,14 @@ private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   return fullSnapshotName to expectedText
 }
 
-private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> =
-  snapshotSuffixes
-    .map { File("${TestUtils.getWorkspaceFile(snapshotDirectoryWorkspaceRelativePath)}/${project.substringAfter("projects/")}$it.txt") }
+private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> {
+  val configuredWorkspace =
+    System.getProperty(updateSnapshotsJvmProperty)?.takeUnless { it.isEmpty() }
+      ?.let { File(it).resolve(snapshotDirectoryWorkspaceRelativePath) }
+    ?: TestUtils.getWorkspaceFile(snapshotDirectoryWorkspaceRelativePath)
+  return snapshotSuffixes
+    .map { File("$configuredWorkspace/${project.substringAfter("projects/")}$it.txt") }
+}
 
 private fun SnapshotComparisonTest.updateSnapshotFile(snapshotName: String, text: String) {
   getCandidateSnapshotFiles(snapshotName)
