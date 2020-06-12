@@ -234,9 +234,24 @@ class AgpVersionUsageInfo(
 }
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: GradleVersion, new: GradleVersion, gradleVersion: GradleVersion): super(project, current, new) {
+    this.gradleVersion = gradleVersion
+  }
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
+    // FIXME(xof): this is (theoretically) wrong; the version in question is the version of Gradle that the project
+    //  will use, after refactoring, not necessarily the minimum-supported version of Gradle.
+    //  This means this refactoring is intertwingled with the refactoring which upgrades the Gradle version in the wrapper properties,
+    //  though in practice it is not currently a problem (the behaviour changed in Gradle 4.0).
+    //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
+    //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
+    //  inspect the buildModel or the project to determine the appropriate version of Gradle.
+    //  However: at least if we have gone through a preview, the UsageInfo ordering is randomized as
+    //  BaseRefactoringProcessor#customizeUsagesView / UsageViewUtil#getNotExcludedUsageInfos makes a Set of
+    //  them.
+    this.gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION)!!
+  }
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  val gradleVersion: GradleVersion
 
   override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -252,8 +267,10 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
             val repositories = model.buildscript().repositories()
             if (!repositories.hasGoogleMavenRepository()) {
               // TODO(xof) if we don't have a psiElement, we should add a suitable parent (and explain what
-              //  we're going to do in terms of that parent.
-              repositories.psiElement?.let { element -> usages.add(RepositoriesNoGMavenUsageInfo(element, current, new, repositories)) }
+              //  we're going to do in terms of that parent.  (But a buildscript block without a repositories block is unusual)
+              repositories.psiElement?.let {
+                element -> usages.add(RepositoriesNoGMavenUsageInfo(element, current, new, repositories, gradleVersion))
+              }
             }
           }
           else -> Unit
@@ -283,24 +300,14 @@ class RepositoriesNoGMavenUsageInfo(
   element: PsiElement,
   current: GradleVersion,
   new: GradleVersion,
-  private val repositoriesModel: RepositoriesModel
+  private val repositoriesModel: RepositoriesModel,
+  private val gradleVersion: GradleVersion
 ) : GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return "Add google() to buildscript repositories"
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    // FIXME(xof): this is (theoretically) wrong; the version in question is the version of Gradle that the project
-    //  will use, not the minimum-supported version of Gradle.
-    //  This means this is intertwingled with the refactoring which upgrades Gradle version, though in practice
-    //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0).
-    //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
-    //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
-    //  inspect the buildModel or the project to determine the appropriate version of Gradle.
-    //  However: at least if we have gone through a preview, the UsageInfo ordering is randomized as
-    //  BaseRefactoringProcessor#customizeUsagesView / UsageViewUtil#getNotExcludedUsageInfos makes a Set of
-    //  them.
-    val gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION) ?: return
     repositoriesModel.addGoogleMavenRepository(gradleVersion)
   }
 }
