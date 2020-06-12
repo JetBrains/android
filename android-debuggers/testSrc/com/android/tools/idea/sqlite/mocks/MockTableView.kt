@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
@@ -60,6 +61,8 @@ open class MockTableView : TableView {
   override fun setRowOffset(rowOffset: Int) { }
 
   override fun revertLastTableCellEdit() { }
+
+  override fun setColumnSortIndicator(orderBy: OrderBy) { }
 
   override fun showPageSizeValue(maxRowCount: Int) { }
 }

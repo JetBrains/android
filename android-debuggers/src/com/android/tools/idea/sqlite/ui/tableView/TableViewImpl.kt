@@ -114,6 +114,8 @@ class TableViewImpl : TableView {
   // variable used to restore focus to the table after the loading screen is shown
   private var tableHadFocus: Boolean = false
 
+  private var orderBy: OrderBy = OrderBy.NotOrdered
+
   init {
     val southPanel = JPanel(BorderLayout())
     val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
@@ -324,6 +326,10 @@ class TableViewImpl : TableView {
     myRevertLastTableCellEdit = null
   }
 
+  override fun setColumnSortIndicator(orderBy: OrderBy) {
+    this.orderBy = orderBy
+  }
+
   override fun reportError(message: String, t: Throwable?) {
     notifyError(message, t)
   }
@@ -424,7 +430,7 @@ class TableViewImpl : TableView {
     PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(copyToClipboardAction, setNullAction), ActionManager.getInstance())
   }
 
-  private class MyTableHeaderRenderer : TableCellRenderer {
+  private inner class MyTableHeaderRenderer : TableCellRenderer {
     override fun getTableCellRendererComponent(
       table: JTable,
       value: Any,
@@ -451,7 +457,13 @@ class TableViewImpl : TableView {
         else {
           columnNameLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
         }
-        sortIcon.icon = AllIcons.General.ArrowSplitCenterV
+
+        sortIcon.icon = when (val o = orderBy) {
+          is OrderBy.NotOrdered -> AllIcons.General.ArrowSplitCenterV
+          is OrderBy.Asc -> if (o.column.name == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
+          is OrderBy.Desc -> if (o.column.name == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
+        }
+
         columnNameLabel.text = value as String
       }
 
