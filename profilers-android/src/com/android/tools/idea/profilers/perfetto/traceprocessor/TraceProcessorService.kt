@@ -74,8 +74,9 @@ class TraceProcessorServiceImpl(
   override fun getProcessMetadata(traceId: Long): List<ProcessModel> {
     val query = QueryBatchRequest.newBuilder()
       // Query metadata for all processes.
-      .addQuery(QueryParameters.newBuilder().setProcessMetadataRequest(
-        QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
       .build()
 
     LOGGER.info("TPD Service: Querying process metadata for trace $traceId.")
@@ -99,16 +100,22 @@ class TraceProcessorServiceImpl(
   override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {
     val queryBuilder = QueryBatchRequest.newBuilder()
       // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
-      .addQuery(QueryParameters.newBuilder().setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setProcessMetadataRequest(QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
       // Query scheduling for all processes, as we need it to build the cpu/core data series anyway.
-      .addQuery(QueryParameters.newBuilder().setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
 
     // Now let's add the queries that we limit for the processes we're interested in:
     for (id in processIds) {
-      queryBuilder.addQuery(QueryParameters.newBuilder().setTraceEventsRequest(
-        QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
-      queryBuilder.addQuery(QueryParameters.newBuilder().setCountersRequest(
-          QueryParameters.CountersParameters.newBuilder().setProcessId(id.toLong())))
+      queryBuilder.addQuery(QueryParameters.newBuilder()
+                              .setTraceId(traceId)
+                              .setTraceEventsRequest(QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
+      queryBuilder.addQuery(QueryParameters.newBuilder()
+                              .setTraceId(traceId)
+                              .setCountersRequest(QueryParameters.CountersParameters.newBuilder().setProcessId(id.toLong())))
     }
 
     LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
@@ -132,7 +139,9 @@ class TraceProcessorServiceImpl(
   override fun loadMemoryData(traceId: Long, abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
     val converter = HeapProfdConverter(abi, symbolizer, memorySet, WindowsNameDemangler())
     val query = QueryBatchRequest.newBuilder()
-      .addQuery(QueryParameters.newBuilder().setMemoryRequest(Memory.AllocationDataRequest.getDefaultInstance()).build())
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setMemoryRequest(Memory.AllocationDataRequest.getDefaultInstance()))
       .build()
 
     LOGGER.info("TPD Service: Querying process metadata for trace $traceId.")
