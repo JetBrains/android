@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 
@@ -24,4 +26,15 @@ import com.intellij.openapi.project.Project
  * representations for a single source code file.
  */
 internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
-  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview")
+  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview") {
+  override fun getState(level: FileEditorStateLevel): SourceCodeEditorWithMultiRepresentationPreviewState =
+    SourceCodeEditorWithMultiRepresentationPreviewState(textEditor.getState(level), preview.getState(level))
+
+  override fun setState(state: FileEditorState, exactState: Boolean) {
+    super.setState(state, exactState)
+    if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
+      textEditor.setState(state.editorState)
+      preview.setState(state.previewState)
+    }
+  }
+}

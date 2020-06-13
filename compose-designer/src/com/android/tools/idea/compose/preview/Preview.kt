@@ -65,6 +65,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
@@ -173,6 +174,11 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
   }
 
 /**
+ * Key for the persistent state for the Compose Preview.
+ */
+private const val SELECTED_GROUP_KEY = "selectedGroup"
+
+/**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
@@ -187,7 +193,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
-  private val psiFilePointer = SmartPointerManager.createPointer<PsiFile>(psiFile)
+  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
@@ -377,9 +383,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
-   * Callback called after refresh has happened
+   * Callback first time after the preview has loaded the initial state and it's ready to restore
+   * any saved state.
    */
-  var onRefresh: (() -> Unit)? = null
+  private var onRestoreState: (() -> Unit)? = null
 
   private val notificationsPanel = NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
@@ -632,6 +639,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
 
+    // Restore
+    onRestoreState?.invoke()
+    onRestoreState = null
+
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
@@ -786,8 +797,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     withContext(uiThread) {
       surface.zoomToFit()
     }
-
-    onRefresh?.invoke()
   }
 
   /**
@@ -849,6 +858,20 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       finally {
         refreshCallsCount.decrementAndGet()
         updateSurfaceVisibilityAndNotifications()
+      }
+    }
+  }
+
+  override fun getState(): PreviewRepresentationState? {
+    val selectedGroupName = previewElementProvider.groupNameFilter.name ?: return null
+    return mapOf(SELECTED_GROUP_KEY to selectedGroupName)
+  }
+
+  override fun setState(state: PreviewRepresentationState) {
+    val selectedGroupName = state[SELECTED_GROUP_KEY] ?: return
+    onRestoreState = {
+      availableGroups.find { it.name == selectedGroupName }?.let {
+        groupFilter = it
       }
     }
   }
