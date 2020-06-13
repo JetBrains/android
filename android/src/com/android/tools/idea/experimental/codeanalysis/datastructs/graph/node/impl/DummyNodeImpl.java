@@ -17,15 +17,16 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.DummyNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
-import com.google.common.collect.Sets;
+import java.util.HashSet;
 
 public class DummyNodeImpl extends GraphNodeImpl implements DummyNode {
 
   public DummyNodeImpl(BlockGraph parentGraph) {
     this.mBlockGraph = parentGraph;
-    this.mInNodes = Sets.newHashSet();
-    this.mOutNodes = Sets.newHashSet();
+    this.mInNodes = new HashSet<GraphNode>();
+    this.mOutNodes = new HashSet<GraphNode>();
     this.mStmtList = null;
   }
 

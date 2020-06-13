@@ -23,9 +23,8 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
-
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -107,7 +106,7 @@ public class Callgraph {
       Maps.newHashMap(), new Supplier<Set<PsiCFGMethod>>() {
         @Override
         public Set<PsiCFGMethod> get() {
-          return Sets.newHashSet();
+          return new HashSet<PsiCFGMethod>();
         }
       }
     );
@@ -116,7 +115,7 @@ public class Callgraph {
       Maps.newHashMap(), new Supplier<Set<GraphNode>>() {
         @Override
         public Set<GraphNode> get() {
-          return Sets.newHashSet();
+          return new HashSet<GraphNode>();
         }
       }
     );
@@ -125,7 +124,7 @@ public class Callgraph {
       Maps.newHashMap(), new Supplier<Set<GraphNode>>() {
         @Override
         public Set<GraphNode> get() {
-          return Sets.newHashSet();
+          return new HashSet<GraphNode>();
         }
       }
     );
@@ -134,7 +133,7 @@ public class Callgraph {
       Maps.newHashMap(), new Supplier<Set<GraphNode>>() {
         @Override
         public Set<GraphNode> get() {
-          return Sets.newHashSet();
+          return new HashSet<GraphNode>();
         }
       }
     );
@@ -143,7 +142,7 @@ public class Callgraph {
       Maps.newHashMap(), new Supplier<Set<PsiCFGMethod>>() {
         @Override
         public Set<PsiCFGMethod> get() {
-          return Sets.newHashSet();
+          return new HashSet<PsiCFGMethod>();
         }
       }
     );
@@ -152,11 +151,11 @@ public class Callgraph {
       Maps.newHashMap(), new Supplier<Set<PsiCFGMethod>>() {
         @Override
         public Set<PsiCFGMethod> get() {
-          return Sets.newHashSet();
+          return new HashSet<PsiCFGMethod>();
         }
       }
     );
-    allMethodsInGraph = Sets.newHashSet();
+    allMethodsInGraph = new HashSet<PsiCFGMethod>();
 
   }
 

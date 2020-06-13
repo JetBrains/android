@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElem
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -57,6 +56,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -71,7 +71,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
+  @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = new HashSet<GradleDslFile>();
   @NotNull private final GradleDslWriter myGradleDslWriter;
   @NotNull private final GradleDslParser myGradleDslParser;
 

@@ -24,7 +24,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextComponentAccessor;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,7 +105,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   private List<File> getSkins() {
     List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
 
-    Set<File> result = Sets.newTreeSet();
+    Set<File> result = new TreeSet<File>();
     for (Device device : devices) {
       File skinFile = AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile(), null, FileOpUtils.create());
       if (skinFile != null && skinFile.exists()) {

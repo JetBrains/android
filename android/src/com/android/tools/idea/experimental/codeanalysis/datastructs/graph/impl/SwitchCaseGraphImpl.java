@@ -19,8 +19,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.Switch
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.SwitchBranchingNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphExitNodeImpl;
-import com.google.common.collect.Sets;
-
 import java.util.HashSet;
 
 public class SwitchCaseGraphImpl extends BlockGraphImpl implements SwitchCaseGraph {
@@ -50,7 +48,7 @@ public class SwitchCaseGraphImpl extends BlockGraphImpl implements SwitchCaseGra
 
   public SwitchCaseGraphImpl() {
     super();
-    mCaseNodesSet = Sets.newHashSet();
+    mCaseNodesSet = new HashSet<GraphNode>();
 
 
     if (mExitNode instanceof BlockGraphExitNodeImpl) {

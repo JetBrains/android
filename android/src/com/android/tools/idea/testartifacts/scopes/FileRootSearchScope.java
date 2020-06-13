@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.scopes;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
@@ -30,6 +29,7 @@ import com.intellij.psi.search.SearchScope;
 import gnu.trove.TObjectIntHashMap;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -164,7 +164,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
   @Contract(value = "_, _ -> new", pure = true)
   @NotNull
   private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, boolean add) {
-    Set<File> roots = Sets.newHashSet();
+    Set<File> roots = new HashSet<File>();
     myDirRootPaths.forEach(file -> {
       roots.add(file);
       return true;

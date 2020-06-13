@@ -18,8 +18,8 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.devices.Abi;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -27,13 +27,13 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
 
 public class LaunchCompatibility {
   @NonNls private static final String GOOGLE_APIS_TARGET_NAME = "Google APIs";
@@ -133,7 +133,7 @@ public class LaunchCompatibility {
 
     // Verify that the device ABI matches one of the target ABIs for JNI apps.
     if (supportedAbis != null) {
-      Set<String> deviceAbis = Sets.newLinkedHashSet();
+      Set<String> deviceAbis = new LinkedHashSet<String>();
       for (Abi abi : device.getAbis()) {
         deviceAbis.add(abi.toString());
       }

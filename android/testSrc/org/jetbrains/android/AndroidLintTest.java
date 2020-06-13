@@ -131,7 +131,6 @@ import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.android.utils.CharSequences;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LintIssueId;
 import com.google.wireless.android.sdk.stats.LintPerformance;
@@ -165,6 +164,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1085,7 +1085,7 @@ public class AndroidLintTest extends AndroidTestCase {
     // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
     for (RefEntity refEntity : map.keys()) {
       for (CommonProblemDescriptor descriptor : map.get(refEntity)) {
-        Set<String> familyNames = Sets.newHashSet();
+        Set<String> familyNames = new HashSet<String>();
         QuickFix[] fixes = descriptor.getFixes();
         if (fixes != null) {
           for (QuickFix fix : fixes) {

@@ -25,7 +25,6 @@ import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -36,6 +35,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +71,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   private Map<String, Boolean> myAcceptances = Maps.newHashMap();
 
   // Only licenses that have not been accepted in the past by the user are displayed.
-  private Set<String> myVisibleLicenses = Sets.newHashSet();
+  private Set<String> myVisibleLicenses = new HashSet<String>();
 
   // All package paths that will get installed.
   private List<RemotePackage> myInstallRequests;

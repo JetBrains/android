@@ -37,7 +37,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,9 +56,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.util.TreeSet;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -222,7 +220,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     if (myModules == null) {
       return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.error"));
     }
-    Set<String> missingSourceModuleNames = Sets.newTreeSet();
+    Set<String> missingSourceModuleNames = new TreeSet<>();
     for (ModuleToImport module : myModules) {
       if (module.location == null || !module.location.exists()) {
         missingSourceModuleNames.add(module.name);

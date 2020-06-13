@@ -24,7 +24,6 @@ import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
-import com.google.common.collect.Sets
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.containers.stream
@@ -184,7 +183,7 @@ class NeleFlagsPropertyItem(
   }
 
   companion object {
-    private val GRAVITY_OVERRIDES = Sets.newHashSet("top", "bottom", "right", "left", "start", "end")
+    private val GRAVITY_OVERRIDES = hashSetOf("top", "bottom", "right", "left", "start", "end")
     private const val GRAVITY_MAPPED_VALUE_CENTER = 0x11
     private val VALUE_SPLITTER = Splitter.on("|").trimResults()
   }

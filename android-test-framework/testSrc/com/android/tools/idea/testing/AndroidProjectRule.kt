@@ -25,7 +25,6 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -43,7 +42,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
 import java.io.File
 import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * Rule that provides access to a [Project] containing one module configured
@@ -207,7 +205,7 @@ class AndroidProjectRule private constructor(
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
     if (projectModuleBuilders.isNotEmpty()) {
-      invokeAndWaitIfNeeded {
+      ApplicationManager.getApplication().invokeAndWait {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
         AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())

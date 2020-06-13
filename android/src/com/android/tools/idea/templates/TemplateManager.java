@@ -258,7 +258,7 @@ public class TemplateManager {
     if (root == null) {
       // Development build?
       for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
-        root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + path));
+        root = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(new File(homePath + path));
 
         if (root != null) {
           break;

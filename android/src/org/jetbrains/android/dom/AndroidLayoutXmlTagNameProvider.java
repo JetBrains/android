@@ -18,7 +18,6 @@ package org.jetbrains.android.dom;
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
@@ -72,7 +71,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       TagNameVariantCollector.getTagDescriptors(tag, NAMESPACES, null);
 
     // Find the framework widgets that have a support library alternative
-    Set<String> supportAlternatives = Sets.newHashSet();
+    Set<String> supportAlternatives = new HashSet<String>();
     for (XmlElementDescriptor descriptor : variants) {
       String qualifiedName = descriptor.getName(tag);
 
@@ -81,7 +80,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       }
     }
 
-    final Set<String> addedNames = Sets.newHashSet();
+    final Set<String> addedNames = new HashSet<String>();
     for (XmlElementDescriptor descriptor : variants) {
       String qualifiedName = descriptor.getName(tag);
       if (!addedNames.add(qualifiedName)) {

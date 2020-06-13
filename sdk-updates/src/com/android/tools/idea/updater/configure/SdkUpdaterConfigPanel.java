@@ -56,7 +56,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -100,6 +99,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -652,7 +652,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
-    Set<UpdatablePackage> toolsPackages = Sets.newTreeSet();
+    Set<UpdatablePackage> toolsPackages = new TreeSet<UpdatablePackage>();
     for (UpdatablePackage info : packages.getConsolidatedPkgs().values()) {
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();

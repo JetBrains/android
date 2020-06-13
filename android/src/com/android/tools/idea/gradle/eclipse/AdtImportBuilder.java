@@ -42,7 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
  * delegate to {@link org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder}
  * to perform the IntelliJ model import.
  */
-public class AdtImportBuilder extends ProjectImportBuilder<String> {
+public final class AdtImportBuilder extends ProjectImportBuilder<String> {
   private File mySelectedProject;
   private GradleImport myImporter;
   private final boolean myCreateProject;
@@ -107,18 +107,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   @Override
-  @Nullable
-  public List<String> getList() {
-    return null;
-  }
-
-  @Override
   public boolean isMarked(String element) {
     return false;
-  }
-
-  @Override
-  public void setList(List<String> list) {
   }
 
   @Override

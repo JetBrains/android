@@ -25,10 +25,10 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +53,7 @@ public class GradleProjectDependencyParser {
       return Collections.emptySet();
     }
     else {
-      Set<String> result = Sets.newHashSet();
+      Set<String> result = new HashSet<String>();
       ProjectBuildModel projectModel = ProjectBuildModel.getOrLog(project);
       if (projectModel != null) {
         GradleBuildModel buildModel = projectModel.getModuleBuildModel(buildFile);

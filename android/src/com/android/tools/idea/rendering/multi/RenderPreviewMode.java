@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.rendering.multi;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * The {@linkplain RenderPreviewMode} records what type of configurations to
@@ -103,7 +102,7 @@ public enum RenderPreviewMode {
   public static void deleteId(@Nullable String id) {
     if (id != null) {
       if (ourDeletedIds == null) {
-        ourDeletedIds = Sets.newHashSet();
+        ourDeletedIds = new HashSet<String>();
       }
       ourDeletedIds.add(id);
     }

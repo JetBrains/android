@@ -58,7 +58,6 @@ import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -68,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -1249,8 +1249,8 @@ class EclipseProject implements Comparable<EclipseProject> {
       }
 
       List<EclipseProject> all = new ArrayList<EclipseProject>();
-      Set<EclipseProject> seen = Sets.newHashSet();
-      Set<EclipseProject> path = Sets.newHashSet();
+      Set<EclipseProject> seen = new HashSet<EclipseProject>();
+      Set<EclipseProject> path = new HashSet<EclipseProject>();
       seen.add(this);
       path.add(this);
       addLibraryProjects(all, seen, path);

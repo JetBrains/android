@@ -1,45 +1,30 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.sdk;
-
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.OptionalLibrary;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static com.android.SdkConstants.FD_PLATFORMS;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.util.PathUtil.getCanonicalPath;
+
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -103,7 +88,7 @@ public class AndroidPlatform {
                                       @Nullable Library.ModifiableModel model,
                                       @Nullable Map<String, AndroidSdkData> parsedSdks) {
     VirtualFile[] files = model != null ? model.getFiles(CLASSES) : library.getFiles(CLASSES);
-    Set<String> jarPaths = Sets.newHashSet();
+    Set<String> jarPaths = new HashSet<String>();
     VirtualFile frameworkLibrary = null;
     for (VirtualFile file : files) {
       VirtualFile vFile = JarFileSystem.getInstance().getVirtualFileForJar(file);
@@ -133,7 +118,7 @@ public class AndroidPlatform {
         }
         IAndroidTarget resultTarget = null;
         for (IAndroidTarget target : sdkData.getTargets()) {
-          String targetsFrameworkLibPath = getCanonicalPath(target.getPath(ANDROID_JAR));
+          String targetsFrameworkLibPath = FileUtil.toCanonicalPath(target.getPath(ANDROID_JAR));
           if (frameworkLibrary.getPath().equals(targetsFrameworkLibPath)) {
             if (target.isPlatform()) {
               if (resultTarget == null) resultTarget = target;
@@ -147,7 +132,7 @@ public class AndroidPlatform {
               }
               else {
                 for (OptionalLibrary optionalLibrary : libraries) {
-                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJar().getAbsolutePath()))) {
+                  if (!jarPaths.contains(FileUtil.toCanonicalPath(optionalLibrary.getJar().getAbsolutePath()))) {
                     ok = false;
                   }
                 }

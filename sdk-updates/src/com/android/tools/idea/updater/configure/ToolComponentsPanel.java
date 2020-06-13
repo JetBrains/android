@@ -32,7 +32,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
@@ -40,14 +39,14 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
-import java.awt.CardLayout;
+import java.awt.*;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +90,7 @@ public class ToolComponentsPanel {
   @VisibleForTesting
   UpdaterTreeNode myToolsSummaryRootNode;
 
-  Set<PackageNodeModel> myStates = Sets.newHashSet();
+  Set<PackageNodeModel> myStates = new HashSet<PackageNodeModel>();
 
   private boolean myModified = false;
   private final ChangeListener myModificationListener = e -> refreshModified();

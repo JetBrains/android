@@ -25,13 +25,13 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
+import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
@@ -164,11 +164,11 @@ b/145854905 */
   fun testSetPaletteWithDisposedProject() {
     val foo = createTempDir("foo")
     val bar = createTempDir("bar")
-    val tempProject = ProjectManagerEx.getInstanceEx().createProject(null, foo.path)!!
+    val tempProject = ProjectManagerEx.getInstanceEx().newProject(foo.toPath(), createTestOpenProjectOptions())!!
     val localDependencyManager: DependencyManager
 
     try {
-      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
+      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable {
         ModuleManager.getInstance(tempProject).newModule(bar.path, StdModuleTypes.JAVA.id)
       })
 

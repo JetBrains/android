@@ -17,15 +17,14 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.google.common.base.Function;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Looks up locations of the Gradle subprojects that are in the same parent project.
@@ -79,7 +78,7 @@ public class GradleSiblingLookup implements Function<String, VirtualFile> {
   @Override
   public VirtualFile apply(String input) {
     if (mySiblingsMap == null) {
-      mySiblingsMap = findSiblings(myImportSource, myDestination, Sets.<VirtualFile>newHashSet());
+      mySiblingsMap = findSiblings(myImportSource, myDestination, new HashSet<VirtualFile>());
     }
     return mySiblingsMap.get(input);
   }

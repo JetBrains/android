@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
 
-public class ComponentStack {
+public final class ComponentStack {
   private final ComponentManager myComponentManager;
   private final MutablePicoContainer myContainer;
   private final Deque<ComponentItem> myComponents;
@@ -68,7 +68,7 @@ public class ComponentStack {
     }
   }
 
-  private static class ComponentItem {
+  private static final class ComponentItem {
     private final Class key;
     private final Object instance;
 
