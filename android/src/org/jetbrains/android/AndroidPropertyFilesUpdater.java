@@ -15,6 +15,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -58,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
 // This class supports JPS projects and relies on APIs which should not be used in AS otherwise. We suppress related warnings to
 // avoid cluttering of the build output.
 @SuppressWarnings("deprecation")
+@Service
 public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");

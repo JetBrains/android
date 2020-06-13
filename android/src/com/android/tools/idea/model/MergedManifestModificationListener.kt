@@ -89,6 +89,12 @@ class MergedManifestModificationListener(
   override fun fileWithNoDocumentChanged(file: VirtualFile) = possiblyIrrelevantFileChanged(file)
 
   override fun documentChanged(event: DocumentEvent) {
+    if (project.isDisposed()) {
+      // note that event may arrive from any project, not only from myProject
+      // myProject can be temporarily disposed in light tests
+      return
+    }
+
     val document = event.document
     val psiFile = psiDocumentManager.getCachedPsiFile(document)
 
@@ -146,7 +152,7 @@ class MergedManifestModificationListener(
 
   companion object {
     @JvmStatic
-    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionService::class.java).ensureSubscribed()
+    fun ensureSubscribed(project: Project) = project.getService(SubscriptionService::class.java).ensureSubscribed()
   }
 }
 

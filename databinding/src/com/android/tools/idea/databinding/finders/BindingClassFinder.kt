@@ -43,7 +43,7 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
   private val packageBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
 
   init {
-    val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+    val component = LayoutBindingProjectComponent.getInstance(project)
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
     val cachedValuesManager = CachedValuesManager.getManager(project)
 

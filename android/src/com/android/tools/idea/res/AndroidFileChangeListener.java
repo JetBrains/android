@@ -37,6 +37,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -102,7 +103,7 @@ public class AndroidFileChangeListener implements Disposable {
 
   @NotNull
   public static AndroidFileChangeListener getInstance(@NotNull Project project) {
-    return project.getComponent(AndroidFileChangeListener.class);
+    return project.getService(AndroidFileChangeListener.class);
   }
 
   public AndroidFileChangeListener(@NotNull Project project) {
@@ -110,13 +111,24 @@ public class AndroidFileChangeListener implements Disposable {
     myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
     myRegistry = ResourceFolderRegistry.getInstance(project);
     myEditorNotifications = EditorNotifications.getInstance(myProject);
+  }
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(new MyPsiListener(), this);
+  private void subscribe() {
+    PsiManager.getInstance(myProject).addPsiTreeChangeListener(new MyPsiListener(), this);
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(myProject, myRegistry), this);
 
     MessageBusConnection connection = myProject.getMessageBus().connect(this);
+
+    // TODO-ank3: replace with xml-declared listener
     connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener(myRegistry));
     connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener(myRegistry));
+  }
+
+  static final class SubscribeOnStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      getInstance(project).subscribe();
+    }
   }
 
   @Override
@@ -379,15 +391,23 @@ public class AndroidFileChangeListener implements Disposable {
     private final FileDocumentManager myFileDocumentManager;
     private final PsiDocumentManager myPsiDocumentManager;
     private final ResourceFolderRegistry myRegistry;
+    private final Project myProject;
 
     private MyDocumentListener(@NotNull Project project, @NotNull ResourceFolderRegistry registry) {
       myPsiDocumentManager = PsiDocumentManager.getInstance(project);
       myFileDocumentManager = FileDocumentManager.getInstance();
       myRegistry = registry;
+      myProject = project;
     }
 
     @Override
     public void documentChanged(@NotNull DocumentEvent event) {
+      if (myProject.isDisposed()) {
+        // note that event may arrive from any project, not only from myProject
+        // myProject can be temporarily disposed in light tests
+        return;
+      }
+
       Document document = event.getDocument();
       PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
       if (psiFile == null) {

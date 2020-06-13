@@ -36,8 +36,7 @@ class ProjectLayoutResourcesModificationTracker(project: Project): ModificationT
       project.getService(ProjectLayoutResourcesModificationTracker::class.java)
   }
 
-  private val component: LayoutBindingProjectComponent = project.getComponent(
-    LayoutBindingProjectComponent::class.java)
+  private val component: LayoutBindingProjectComponent = LayoutBindingProjectComponent.getInstance(project)
 
   override fun getModificationCount(): Long {
     return component.getAllBindingEnabledFacets()
