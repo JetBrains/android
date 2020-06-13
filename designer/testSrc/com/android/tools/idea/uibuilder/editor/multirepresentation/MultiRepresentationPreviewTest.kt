@@ -15,32 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
-import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import junit.framework.TestCase
-import org.mockito.ArgumentMatchers.endsWith
-import org.mockito.AdditionalAnswers.returnsSecondArg
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.never
-import org.mockito.Mockito.times
 import org.mockito.MockitoAnnotations
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
-
-  @Mock
-  private lateinit var persistenceManager: PropertiesComponent
-
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
 
   override fun setUp() {
@@ -58,272 +46,227 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
   private class UpdatableMultiRepresentationPreview(psiFile: PsiFile,
                                                     providers: List<PreviewRepresentationProvider>,
-                                                    persistenceManager: PropertiesComponent) :
-    MultiRepresentationPreview(psiFile, providers, { persistenceManager }) {
+                                                    initialState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState()) :
+    MultiRepresentationPreview(psiFile, providers) {
+
     init {
+      // Simulate initial initialization by IntelliJ of the state loaded from disk
+      setState(initialState)
       // Do the activation since this is not embedded within an actual editor.
       onActivate()
     }
+
+    val currentState: MultiRepresentationPreviewFileEditorState get() = getState(FileEditorStateLevel.FULL)
 
     fun forceUpdateRepresentations() {
       super.updateRepresentations()
     }
   }
 
-  private class SamplePreviewRepresentation : PreviewRepresentation {
-    var nActivations = 0
-
-    override val component = JPanel()
-    override fun updateNotifications(parentEditor: FileEditor) {}
-    override fun dispose() {}
-    override fun onActivate() {
-      nActivations++
-    }
-
-    override fun onDeactivate() {
-      nActivations--
-    }
-  }
-
-  private open class SimpleProvider(override val displayName: String, val isAccept: Boolean) : PreviewRepresentationProvider {
-    override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
-    override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = SamplePreviewRepresentation()
-  }
-
   fun testNoProviders_noHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
-    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, listOf(), persistenceManager)
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, listOf())
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
-
-    Mockito.verify(persistenceManager, never()).setValue(anyString(), anyString())
   }
 
   fun testNoProviders_someHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("foo")
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
-    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, listOf(), persistenceManager)
-
-    TestCase.assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-    TestCase.assertEquals("foo", multiPreview.currentRepresentationName)
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, listOf(), MultiRepresentationPreviewFileEditorState("for"))
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq(""))
+    assertEquals("", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testSingleAcceptingProvider_noHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      sampleFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
+      sampleFile, listOf(TestPreviewRepresentationProvider("Accepting", true)))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting"))
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
 
     multiPreview.currentRepresentationName = "foo"
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
-    TestCase.assertEquals("foo", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("foo"))
+    assertNull(multiPreview.currentRepresentation)
+    assertEquals("foo", multiPreview.currentRepresentationName)
+    assertEquals("foo", multiPreview.currentState.selectedRepresentationName)
 
 
     multiPreview.currentRepresentationName = "Accepting"
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, times(2)).setValue(endsWith("_selected"), eq("Accepting"))
+    assertNotNull(multiPreview.currentRepresentation)
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testSingleAcceptingProvider_validHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Accepting")
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      sampleFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
+      sampleFile, listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEmpty(multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
 
     multiPreview.currentRepresentationName = "Accepting"
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, never()).setValue(anyString(), anyString())
+    assertNotNull(multiPreview.currentRepresentation)
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
   }
 
   fun testSingleAcceptingProvider_invalidHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("foo")
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      sampleFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
+      sampleFile, listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
-    TestCase.assertEquals("foo", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, never()).setValue(anyString(), anyString())
+    assertEmpty(multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting"))
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testSingleNonAcceptingProvider_noHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      sampleFile, listOf(SimpleProvider("NonAccepting", false)), persistenceManager)
+      sampleFile, listOf(TestPreviewRepresentationProvider("NonAccepting", false)))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, never()).setValue(anyString(), anyString())
+    assertEquals("", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testMultipleProviders_noHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
       sampleFile,
       listOf(
-        SimpleProvider("Accepting1", true),
-        SimpleProvider("Accepting2", true),
-        SimpleProvider("NonAccepting", false)),
-      persistenceManager)
+        TestPreviewRepresentationProvider("Accepting1", true),
+        TestPreviewRepresentationProvider("Accepting2", true),
+        TestPreviewRepresentationProvider("NonAccepting", false)))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, never()).setValue(anyString(), anyString())
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "NonAccepting")
-    TestCase.assertEquals("Accepting1", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting1"))
-
+    assertEquals("Accepting1", multiPreview.currentRepresentationName)
+    assertEquals("Accepting1", multiPreview.currentState.selectedRepresentationName)
     multiPreview.currentRepresentationName = "Accepting2"
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
-    TestCase.assertEquals("Accepting2", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting2"))
+    assertNotNull(multiPreview.currentRepresentation)
+    assertEquals("Accepting2", multiPreview.currentRepresentationName)
+    assertEquals("Accepting2", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testMultipleProviders_validHistory() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Accepting2")
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
       sampleFile,
       listOf(
-        SimpleProvider("Accepting1", true),
-        SimpleProvider("Accepting2", true),
-        SimpleProvider("NonAccepting", false)),
-      persistenceManager)
+        TestPreviewRepresentationProvider("Accepting1", true),
+        TestPreviewRepresentationProvider("Accepting2", true),
+        TestPreviewRepresentationProvider("NonAccepting", false)),
+      MultiRepresentationPreviewFileEditorState("Accepting2"))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
-    TestCase.assertEquals("Accepting2", multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "NonAccepting")
-    TestCase.assertEquals("Accepting2", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, never()).setValue(anyString(), anyString())
+    assertEquals("Accepting2", multiPreview.currentRepresentationName)
 
     multiPreview.currentRepresentationName = "Accepting1"
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
-    TestCase.assertEquals("Accepting1", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting1"))
+    assertNotNull(multiPreview.currentRepresentation)
+    assertEquals("Accepting1", multiPreview.currentRepresentationName)
+    assertEquals("Accepting1", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testMultipleProviders_conditionallyAccepting() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("ConditionallyAccepting")
-
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     val conditionallyAccepting = object : PreviewRepresentationProvider {
       var isAccept = false
       override val displayName = "ConditionallyAccepting"
       override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
-      override fun createRepresentation(psiFile: PsiFile) = SamplePreviewRepresentation()
+      override fun createRepresentation(psiFile: PsiFile) = TestPreviewRepresentation()
     }
 
     multiPreview = UpdatableMultiRepresentationPreview(
       sampleFile,
       listOf(
-        SimpleProvider("Accepting", true),
+        TestPreviewRepresentationProvider("Accepting", true),
         conditionallyAccepting),
-      persistenceManager)
+      MultiRepresentationPreviewFileEditorState("ConditionallyAccepting"))
 
-    TestCase.assertNull(multiPreview.currentRepresentation)
+    assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
-    TestCase.assertEquals("ConditionallyAccepting", multiPreview.currentRepresentationName)
 
     multiPreview.forceUpdateRepresentations()
+    // ConditionalAccepting is not available so it will not be restored by the surface load.
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
 
-    TestCase.assertNotNull(multiPreview.currentRepresentation)
+    assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "ConditionallyAccepting")
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting"))
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
 
     conditionallyAccepting.isAccept = true
     multiPreview.forceUpdateRepresentations()
@@ -332,26 +275,24 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     multiPreview.currentRepresentationName = "ConditionallyAccepting"
 
-    TestCase.assertEquals("ConditionallyAccepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("ConditionallyAccepting"))
+    assertEquals("ConditionallyAccepting", multiPreview.currentRepresentationName)
+    assertEquals("ConditionallyAccepting", multiPreview.currentState.selectedRepresentationName)
 
     conditionallyAccepting.isAccept = false
     multiPreview.forceUpdateRepresentations()
 
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "ConditionallyAccepting")
-    TestCase.assertEquals("Accepting", multiPreview.currentRepresentationName)
-    Mockito.verify(persistenceManager, times(2)).setValue(endsWith("_selected"), eq("Accepting"))
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
   fun testPreviewRepresentationShortcutsRegistered() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("initialRepresentation")
-
     val shortcutsApplicableComponent = Mockito.mock(JComponent::class.java)
 
     val initiallyAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
     Mockito.`when`(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
-    val initiallyAcceptingProvider = object : SimpleProvider("initialRepresentation", true) {
+    val initiallyAcceptingProvider = object : TestPreviewRepresentationProvider("initialRepresentation", true) {
       override fun createRepresentation(psiFile: PsiFile) = initiallyAcceptedRepresentation
     }
 
@@ -371,7 +312,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
       listOf(
         initiallyAcceptingProvider,
         laterAcceptingProvider),
-      persistenceManager)
+      MultiRepresentationPreviewFileEditorState("initialRepresentation"))
     multiPreview.forceUpdateRepresentations()
 
     Mockito.verify(initiallyAcceptedRepresentation, never()).registerShortcuts(any())
@@ -390,8 +331,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testUpdateNotificationsPropagated() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
-
     val representation1 = Mockito.mock(PreviewRepresentation::class.java)
     Mockito.`when`(representation1.component).thenReturn(JPanel())
     val acceptingProvider1 = object : PreviewRepresentationProvider {
@@ -419,7 +358,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      sampleFile, listOf(acceptingProvider1, acceptingProvider2, nonAcceptingProvider), persistenceManager)
+      sampleFile, listOf(acceptingProvider1, acceptingProvider2, nonAcceptingProvider))
 
     multiPreview.updateNotifications()
 
@@ -436,22 +375,43 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     Mockito.verify(representation3, never()).updateNotifications(any())
   }
 
-  fun testActivationDeactivation() {
-    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Representation1")
+  fun testVerifyStateIsCorrectlyLoaded() {
+    val state1 = mapOf("id" to "state1")
+    val state3 = mapOf("id" to "state3")
+
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
-    val representation1 = SamplePreviewRepresentation()
-    val representation2 = SamplePreviewRepresentation()
+    multiPreview = UpdatableMultiRepresentationPreview(
+      sampleFile,
+      listOf(
+        TestPreviewRepresentationProvider("Accepting1", true),
+        TestPreviewRepresentationProvider("Accepting2", true),
+        TestPreviewRepresentationProvider("Accepting3", true)),
+      MultiRepresentationPreviewFileEditorState("Accepting2", listOf(
+        Representation("Accepting1", state1),
+        Representation("Accepting3", state3)
+      )))
+    multiPreview.forceUpdateRepresentations()
+    assertNull((multiPreview.currentRepresentation as TestPreviewRepresentation).state)
+    multiPreview.currentRepresentationName = "Accepting1"
+    multiPreview.forceUpdateRepresentations()
+    assertEquals(state1, (multiPreview.currentRepresentation as TestPreviewRepresentation).state)
+    multiPreview.currentRepresentationName = "Accepting3"
+    multiPreview.forceUpdateRepresentations()
+    assertEquals(state3, (multiPreview.currentRepresentation as TestPreviewRepresentation).state)
+  }
+
+  fun testActivationDeactivation() {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val representation1 = TestPreviewRepresentation()
+    val representation2 = TestPreviewRepresentation()
 
     multiPreview = UpdatableMultiRepresentationPreview(
       sampleFile,
       listOf(
-        object : SimpleProvider("Representation1", true) {
-          override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation1
-        },
-        object : SimpleProvider("Representation2", true) {
-          override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation2
-        }),
-      persistenceManager)
+        TestPreviewRepresentationProvider("Representation1", true, representation1),
+        TestPreviewRepresentationProvider("Representation2", true, representation2)
+      ),
+      MultiRepresentationPreviewFileEditorState("Representation1"))
     multiPreview.forceUpdateRepresentations()
 
     assertEquals(1, representation1.nActivations)
