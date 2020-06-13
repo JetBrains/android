@@ -43,7 +43,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
@@ -54,7 +53,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -176,22 +175,26 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
     StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
 
-      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        HeavyPlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        ProjectManagerEx.getInstanceEx().forceCloseProject(openProjects[0]);
+        ProjectRule.checkThatNoOpenProjects();
       }
       myAndroidFacet = null;
       myModules = null;
     }
     finally {
       try {
-        assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
+        assertEquals(0, projectManager.getOpenProjects().length);
+      }
+      catch (Throwable e) {
+        addSuppressedException(e);
       }
       finally {
         //noinspection ThrowFromFinallyBlock
@@ -269,7 +272,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  public File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
+  protected File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));

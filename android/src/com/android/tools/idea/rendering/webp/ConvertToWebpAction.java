@@ -44,7 +44,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Sets;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
@@ -69,6 +68,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -377,7 +377,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     private Set<String> getLauncherIconNames(LinkedList<VirtualFile> roots) {
       // Find all the modules that apply to the file search roots
-      Set<Module> modules = Sets.newHashSet();
+      Set<Module> modules = new HashSet<Module>();
       for (VirtualFile file : roots) {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
         if (module != null) {
@@ -390,7 +390,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       }
 
       // Find all the android modules/facets
-      Set<AndroidFacet> facets = Sets.newHashSet();
+      Set<AndroidFacet> facets = new HashSet<AndroidFacet>();
       for (Module module : modules) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
@@ -400,7 +400,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
       // For each android facet, go through the merged manifest and gather up icons
       // TODO: Prune out libraries here if we have the dependent app module too
-      Set<String> names = Sets.newHashSet();
+      Set<String> names = new HashSet<String>();
       for (AndroidFacet facet : facets) {
         Document document = MergedManifestManager.getSnapshot(facet).getDocument();
         if (document != null && document.getDocumentElement() != null) {

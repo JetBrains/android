@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -724,7 +724,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
     @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
     if (moduleDirPath == null) return null;
-    final String path = PathUtil.getCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
+    final String path = FileUtil.toCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
     return path != null ? PathUtil.getLocalPath(path) : null;
   }
 

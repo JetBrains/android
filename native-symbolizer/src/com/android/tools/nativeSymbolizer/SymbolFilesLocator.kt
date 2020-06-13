@@ -21,12 +21,11 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.NdkVariant
 import com.android.utils.FileUtils
-import com.google.common.collect.Sets
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
-import java.util.Locale
+import java.util.*
 
 /**
  * Given a map of possible symbols locations finds symbol files
@@ -96,7 +95,7 @@ fun getArchToSymDirsMap(project: Project): Map<String, Set<File>> {
  *  Return all dirs where they are.
  */
 private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
-  val symDirs = Sets.newLinkedHashSet<File>()
+  val symDirs = LinkedHashSet<File>()
   val abiName = abi.toString()
 
   // 1. APK debugging symbols dirs

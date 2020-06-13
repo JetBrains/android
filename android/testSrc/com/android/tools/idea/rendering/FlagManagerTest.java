@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.DOT_PNG;
+
 import com.android.ide.common.resources.LocaleManager;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -23,14 +25,11 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
-import junit.framework.TestCase;
-
-import javax.swing.*;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-
-import static com.android.SdkConstants.DOT_PNG;
+import javax.swing.*;
+import junit.framework.TestCase;
 
 @SuppressWarnings("javadoc")
 public class FlagManagerTest extends TestCase {
@@ -132,7 +131,7 @@ public class FlagManagerTest extends TestCase {
     }
 
     Set<String> unused = Sets.newHashSet(LocaleManager.getRegionCodes(false));
-    Set<String> reachable = Sets.newHashSet();
+    Set<String> reachable = new HashSet<String>();
     Multimap<String,String> regionToLanguages = ArrayListMultimap.create();
     for (String language : LocaleManager.getLanguageCodes(false)) {
       for (String region : LocaleManager.getRelevantRegions(language)) {

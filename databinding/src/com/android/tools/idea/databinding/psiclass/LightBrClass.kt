@@ -15,30 +15,17 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.tools.idea.databinding.util.BrUtil
-import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
+import com.android.tools.idea.databinding.util.BrUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementFactory
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiIdentifier
-import com.intellij.psi.PsiJavaFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiModifierListOwner
-import com.intellij.psi.PsiType
+import com.intellij.psi.*
 import com.intellij.psi.impl.light.LightField
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
@@ -75,8 +62,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
   init {
     fieldCache = CachedValuesManager.getManager(facet.module.project).createCachedValue(
       // TODO(davidherman): Reliance on javaStructureModificationTracker is known to cause performance problems.
-      object : ResourceCacheValueProvider<Array<PsiField>>(facet, cacheLock,
-                                                           psiManager.modificationTracker.javaStructureModificationTracker) {
+      object : ResourceCacheValueProvider<Array<PsiField>>(facet, cacheLock, psiManager.modificationTracker) {
         override fun doCompute(): Array<PsiField> {
           val project = facet.module.project
           val elementFactory = PsiElementFactory.getInstance(project)

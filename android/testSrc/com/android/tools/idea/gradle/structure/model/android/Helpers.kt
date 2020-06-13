@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.concurrency.AsyncPromise
 import java.util.concurrent.TimeUnit
@@ -47,16 +48,24 @@ fun PsProjectImpl.testResolve() {
   refreshFrom(gradleModels.get())
 }
 
+/**
+ * Waits when future will be completed
+ * Also dispatches all EDT invocation events to avoid EDT blocking in tests
+ */
 fun <R> waitForFuture(future: ListenableFuture<R>, timeout: Long, timeUnit: TimeUnit): R? {
   val asyncPromise = AsyncPromise<R?>()
   future.addCallback(
     success = { asyncPromise.setResult(it) },
-    failure = { when (it) {
-      null -> asyncPromise.setError("Undefined error. See logs for details")
-      else -> asyncPromise.setError(it)
-    } }
+    failure = {
+      when (it) {
+        null -> asyncPromise.setError("Undefined error. See logs for details")
+        else -> asyncPromise.setError(it)
+      }
+    }
   )
-  return PlatformTestUtil.waitForPromise(asyncPromise, timeUnit.toMillis(timeout))
+  return invokeAndWaitIfNeeded {
+    PlatformTestUtil.waitForPromise(asyncPromise, timeUnit.toMillis(timeout))
+  }
 }
 
 fun PsModelDescriptor.testEnumerateProperties(): Set<ModelProperty<*, *, *, *>> {

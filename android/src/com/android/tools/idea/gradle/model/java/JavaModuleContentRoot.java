@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
-import com.google.common.collect.Sets;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -66,7 +66,7 @@ public class JavaModuleContentRoot implements Serializable {
     Collection<File> excludeDirPaths = Collections.emptySet();
     Set<File> exclude = original.getExcludeDirectories();
     if (exclude != null) {
-      excludeDirPaths = Sets.newHashSet();
+      excludeDirPaths = new HashSet<File>();
       for (File path : exclude) {
         if (path != null) {
           excludeDirPaths.add(path);
@@ -82,7 +82,7 @@ public class JavaModuleContentRoot implements Serializable {
     if (directories == null) {
       return Collections.emptySet();
     }
-    Set<File> paths = Sets.newHashSet();
+    Set<File> paths = new HashSet<File>();
     for (IdeaSourceDirectory directory : directories) {
       paths.add(directory.getDirectory());
     }

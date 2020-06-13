@@ -47,6 +47,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.rules.ProjectModelRule;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -188,7 +189,7 @@ public class AndroidModuleDependenciesSetupTest extends HeavyPlatformTestCase {
   }
 
   public void testSetupWithChangedPaths() throws IOException {
-    ignoreTestUnderWorkspaceModel();
+    ProjectModelRule.ignoreTestUnderWorkspaceModel();
 
     File cachedPath = createTempFile("fakeLibrary.jar", "");
     File sourcePath = createTempFile("fakeLibrary-sources.jar", "");

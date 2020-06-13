@@ -68,6 +68,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.SystemProperties;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -82,6 +83,7 @@ import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 public class GradleSyncExecutor {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
@@ -197,7 +199,10 @@ public class GradleSyncExecutor {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     @NotNull GradleVersion gradleVersion = projectSettings.resolveGradleVersion();
-    GradleProjectImportUtil.setupGradleSettings(project, projectSettings, externalProjectPath, gradleVersion);
+    @NotNull GradleSettings settings = GradleSettings.getInstance(project);
+    GradleProjectImportUtil.setupGradleSettings(settings);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, Paths.get(externalProjectPath));
+    GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, gradleVersion);
     GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);

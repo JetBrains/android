@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -28,10 +29,10 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.platform.PlatformProjectOpenProcessor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -71,7 +72,8 @@ public final class GradleProjects {
    */
   public static void open(@NotNull Project project) {
     Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
-    PlatformProjectOpenProcessor.openExistingProject(projectDir, OpenProjectTask.withCreatedProject(project));
+    updateLastProjectLocation(projectDir);
+    ProjectManagerEx.getInstanceEx().openProject(projectDir, OpenProjectTask.withCreatedProject(project));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {

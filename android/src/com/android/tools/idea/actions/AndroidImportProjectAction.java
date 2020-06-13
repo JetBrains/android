@@ -31,6 +31,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
@@ -73,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
  * The code in the original action cannot be extended or reused. It is implemented using static methods and the method where we change the
  * behavior is at the bottom of the call chain.
  */
-public class AndroidImportProjectAction extends AnAction {
+public final class AndroidImportProjectAction extends AnAction {
   @NonNls private static final String LAST_IMPORTED_LOCATION = "last.imported.location";
   private static final Logger LOG = Logger.getInstance(AndroidImportProjectAction.class);
 
@@ -263,8 +264,7 @@ public class AndroidImportProjectAction extends AnAction {
       }
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
-      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-      Project project = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
+      Project project = ProjectManagerEx.getInstanceEx().newProject(projectDirPath.toPath(), OpenProjectTask.newProject().withProjectName(wizard.getProjectName()));
       if (project == null) {
         return;
       }

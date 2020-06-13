@@ -18,8 +18,8 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,8 +103,8 @@ public class GraphNodeImpl implements GraphNode {
 
   public GraphNodeImpl(BlockGraph parentGraph) {
     this.mBlockGraph = parentGraph;
-    this.mInNodes = Sets.newHashSet();
-    this.mOutNodes = Sets.newHashSet();
+    this.mInNodes = new HashSet<GraphNode>();
+    this.mOutNodes = new HashSet<GraphNode>();
     this.mStmtList = new ArrayList<>();
     this.mContainsInvoke = false;
   }

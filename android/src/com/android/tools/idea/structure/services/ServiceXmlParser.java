@@ -46,7 +46,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -61,6 +60,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -311,8 +311,8 @@ import org.xml.sax.helpers.DefaultHandler;
 
   private void closeServiceTag() {
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
-    Set<String> classpathEntries = Sets.newHashSet();
-    Set<String> plugins = Sets.newHashSet();
+    Set<String> classpathEntries = new HashSet<String>();
+    Set<String> plugins = new HashSet<String>();
     List<File> sourceFiles = new ArrayList<>();
     List<File> targetFiles = new ArrayList<>();
     analyzeRecipe(true, null, dependencies, classpathEntries, plugins, sourceFiles, targetFiles);
