@@ -26,7 +26,6 @@
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
   <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
 
-  <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
@@ -650,7 +649,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
     <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
-    <projectService serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
 
@@ -833,7 +831,6 @@
 
 
   <extensionPoints>
-    <extensionPoint qualifiedName="org.jetbrains.android.mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint qualifiedName="org.jetbrains.android.lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
 
