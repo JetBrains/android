@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer
 import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -338,7 +338,7 @@ class ResourceImportDialog(
   }
 
   override fun getHelpID(): String? {
-    return STUDIO_HELP_PREFIX + "studio/write/resource-manager"
+    return AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
   }
 
   override fun doValidate(): ValidationInfo? {

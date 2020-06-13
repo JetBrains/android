@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.actions.ElementCreator;
@@ -70,7 +70,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   private static final String ATTRIBUTE_FINAL = "FINAL";
   private static final String ATTRIBUTE_ABSTRACT = "ABSTRACT";
   private static final String ATTRIBUTE_IMPORT_BLOCK = "IMPORT_BLOCK";
-  private static final String HELP_ID = StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/newjclass.html";
+  private static final String HELP_ID = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/newjclass.html";
 
   private JPanel myPanel;
   private JLabel myNameLabel;
