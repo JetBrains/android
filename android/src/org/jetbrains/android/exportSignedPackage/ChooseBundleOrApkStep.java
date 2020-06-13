@@ -16,7 +16,7 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.ui.HyperlinkLabel;
 
 import javax.swing.*;
@@ -46,7 +46,7 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   public String getHelpId() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/dynamic-delivery/overview.html";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/overview.html";
   }
 
   @Override

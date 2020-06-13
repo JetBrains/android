@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.dynamicapp
 
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.help.StudioHelpManagerImpl
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.validator.ProjectNameValidator
 import com.android.tools.idea.observable.BindingsManager
@@ -170,4 +170,4 @@ class ConfigureModuleDownloadOptionsStep(
   }
 }
 
-private val linkUrl = StudioHelpManagerImpl.STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/fusing"
+private const val linkUrl = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/fusing"

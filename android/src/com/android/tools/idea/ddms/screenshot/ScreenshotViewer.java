@@ -22,7 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.device.DeviceArtDescriptor;
 import com.android.tools.idea.device.DeviceArtPainter;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -456,7 +456,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @Nullable
   @Override
   protected String getHelpId() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/am-screenshot.html";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/am-screenshot.html";
   }
 
   @Override
