@@ -23,6 +23,7 @@ import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -100,12 +101,19 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
-    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    String path = "plugins/android/resources/profilers-transform.jar";
+    File file = new File(PathManager.getHomePath(), path);
     if (file.exists()) {
       return file;
     }
 
+    file  = getOptionalIjPath(path);
+    if (file != null && file.exists()) {
+      return file;
+    }
+
     // Development build
+    assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
     String relativePath = toSystemDependentName("/../../bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
   }
@@ -116,13 +124,21 @@ public class EmbeddedDistributionPaths {
     if (file.exists()) {
       return file.getAbsolutePath();
     }
-    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
-    File dir = AndroidProfilerDownloader.getInstance().getHostDir(path);
-    if (dir.exists()) {
-      return dir.getAbsolutePath();
+
+    file = getOptionalIjPath(path);
+    if (file != null && file.exists()) {
+      return file.getAbsolutePath();
     }
       // Development mode
-    return new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android-installer").getAbsolutePath();
+    assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
+    return new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/deploy/installer/android-installer").getAbsolutePath();
+  }
+
+  @Nullable
+  private File getOptionalIjPath(String path) {
+    // IJ does not bundle some large resources from android plugin, and downloads them on demand.
+    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+    return AndroidProfilerDownloader.getInstance().getHostDir(path);
   }
 
   @Nullable

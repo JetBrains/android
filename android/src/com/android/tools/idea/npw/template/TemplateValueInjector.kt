@@ -110,7 +110,6 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
-import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 import java.util.HashMap
 
@@ -362,7 +361,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addKotlinVersion() {
-    val kotlinVersion = bundledRuntimeVersion()
+    val kotlinVersion = KotlinVersionProvider.getInstance().kotlinVersionForGradle
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     myTemplateValues[ATTR_KOTLIN_VERSION] = kotlinVersion
     myTemplateValues[ATTR_KOTLIN_EAP_REPO] = setOf("rc", "eap", "-M").any { it in kotlinVersion }

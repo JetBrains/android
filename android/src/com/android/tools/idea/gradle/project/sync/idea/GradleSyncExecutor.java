@@ -147,7 +147,7 @@ public class GradleSyncExecutor {
       // auto-discovery of the gradle project located in the IDE Project.basePath can not be applied to IntelliJ IDEA
       // because IDEA still supports working with gradle projects w/o built-in gradle integration
       // (e.g. using generated project by 'idea' gradle plugin)
-      if (IdeInfo.getInstance().isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) { // FIXME-ank3
         String foundPath = attemptToLinkGradleProject(myProject);
         if (foundPath != null) {
           androidProjectCandidatesPaths.add(foundPath);

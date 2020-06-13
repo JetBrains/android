@@ -290,7 +290,7 @@
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
-    <postStartupActivity implementation="com.android.tools.idea.res.PsiProjectListener$SubscribeOnStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$SubscribeOnStartupActivity"/>
     <postStartupActivity implementation="org.jetbrains.android.AndroidProjectComponent$AndroidProjectStartupActivity"/>
 
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectComponent" />
@@ -303,6 +303,7 @@
     <projectService serviceImplementation="com.android.tools.idea.databinding.LayoutBindingProjectComponent" />
     <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionService" />
     <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionService" />
+    <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
 
     <moduleService serviceImplementation="com.android.tools.idea.databinding.DataBindingModuleComponent" />
 
@@ -314,7 +315,7 @@
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectDumbStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first, before OpenFilesActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first"/>
     <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidExecutors" />
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>

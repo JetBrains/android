@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
+import com.android.tools.idea.npw.template.KotlinVersionProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.wizard.template.FormFactor
@@ -39,7 +40,6 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 
 val log: Logger get() = logger<ProjectTemplateDataBuilder>()
@@ -65,7 +65,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   var overridePathCheck: Boolean? = null
 
   internal fun setEssentials(project: Project) {
-    kotlinVersion = bundledRuntimeVersion()
+    kotlinVersion = KotlinVersionProvider.getInstance().kotlinVersionForGradle
     gradlePluginVersion = determineGradlePluginVersion(project)
     javaVersion = determineJavaVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
