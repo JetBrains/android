@@ -46,7 +46,6 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -185,15 +184,9 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
       console.clear();
       final Module module = facet.getModule();
 
-      if (!AndroidMavenUtil.isMavenizedModule(module)) {
-        console.print("Please ", ConsoleViewContentType.ERROR_OUTPUT);
-        console.printHyperlink("configure", p -> AndroidSdkUtils.openModuleDependenciesConfigurable(module));
-        console.print(" Android SDK\n", ConsoleViewContentType.ERROR_OUTPUT);
-      }
-      else {
-        console.print(AndroidBundle.message("android.maven.cannot.parse.android.sdk.error", module.getName()) + '\n',
-                      ConsoleViewContentType.ERROR_OUTPUT);
-      }
+      console.print("Please ", ConsoleViewContentType.ERROR_OUTPUT);
+      console.printHyperlink("configure", p -> AndroidSdkUtils.openModuleDependenciesConfigurable(module));
+      console.print(" Android SDK\n", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 

@@ -29,7 +29,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -43,8 +42,6 @@ import java.util.Map;
 import org.jetbrains.android.compiler.tools.AndroidDxWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.maven.AndroidMavenProvider;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -92,18 +89,6 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
   }
 
   public static VirtualFile getOutputDirectoryForDex(@NotNull Module module) {
-    if (AndroidMavenUtil.isMavenizedModule(module)) {
-      AndroidMavenProvider mavenProvider = AndroidMavenUtil.getMavenProvider();
-      if (mavenProvider != null) {
-        String buildDirPath = mavenProvider.getBuildDirectory(module);
-        if (buildDirPath != null) {
-          VirtualFile buildDir = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(buildDirPath));
-          if (buildDir != null) {
-            return buildDir;
-          }
-        }
-      }
-    }
     return CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
   }
 

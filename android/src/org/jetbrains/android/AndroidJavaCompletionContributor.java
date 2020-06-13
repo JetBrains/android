@@ -22,7 +22,6 @@ import java.util.Objects;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.AndroidDeprecationInspection;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,21 +36,6 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
 
     if (facet == null) {
       return;
-    }
-
-    if (AndroidMavenUtil.isMavenizedModule(facet.getModule())) {
-      resultSet.runRemainingContributors(parameters, result -> {
-        final Object obj = result.getLookupElement().getObject();
-
-        if (obj instanceof PsiClass) {
-          final String qName = ((PsiClass)obj).getQualifiedName();
-
-          if (qName != null && !isAllowedInAndroid(qName)) {
-            return;
-          }
-        }
-        resultSet.passResult(result);
-      });
     }
 
     boolean filterPrivateResources = shouldFilterPrivateResources(position, facet);
