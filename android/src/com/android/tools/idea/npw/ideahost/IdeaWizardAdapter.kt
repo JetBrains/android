@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.ideahost
 
-import com.android.tools.idea.help.StudioHelpManagerImpl
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -53,7 +53,7 @@ internal class IdeaWizardAdapter(
       override fun updateDataModel() {
         // Not required as the guest wizard is using its own data model, updated via bindings.
       }
-      override fun getHelpId(): String? = StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/projects/create-project.html"
+      override fun getHelpId(): String? = AndroidWebHelpProvider.HELP_PREFIX + "studio/projects/create-project.html"
     }
 
   init {

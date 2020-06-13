@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -90,7 +91,7 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
 
   @Override
   public String getHelpTopic() {
-    return "reference.dialogs.rundebug.AndroidTestRunConfigurationType";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html";
   }
 
   public ConfigurationFactory getFactory() {
