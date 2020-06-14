@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.impl.ApplicationInfoImpl;
@@ -25,6 +26,7 @@ public class AndroidPluginTest extends AndroidTestCase {
     IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
     assertNotNull(plugin);
 
-    assertTrue(ApplicationInfoImpl.getShadowInstance().isEssentialPlugin("org.jetbrains.android"));
+    assertEquals(IdeInfo.getInstance().isAndroidStudio(),
+                 ApplicationInfoImpl.getShadowInstance().isEssentialPlugin("org.jetbrains.android"));
   }
 }
