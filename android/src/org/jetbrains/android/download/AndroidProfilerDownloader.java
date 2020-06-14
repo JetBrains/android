@@ -18,12 +18,6 @@ public class AndroidProfilerDownloader extends AndroidComponentDownloader {
     return "android-plugin-resources";
   }
 
-  @NotNull
-  @Override
-  protected String getVersion() {
-    return PROFILER_OVERRIDE_VERSION;
-  }
-
   public static AndroidProfilerDownloader getInstance() {
     return Holder.INSTANCE;
   }
