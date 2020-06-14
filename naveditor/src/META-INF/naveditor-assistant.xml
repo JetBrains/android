@@ -14,13 +14,17 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends optional = "true" config-file="naveditor-assistant.xml">com.intellij.modules.androidstudio</depends>
+  <actions>
+    <action
+        id="LayoutEditor.HelpAssistant.NavEditor"
+        class="com.android.tools.idea.naveditor.actions.NavEditorHelperAssistanceAction"
+        icon="StudioIcons.Common.HELP"
+        text="Show Help Panel"
+        description="Show Help Panel for Navigation Editor">
+    </action>
+  </actions>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.naveditor.editor.NavEditorProvider"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
-
-    <projectService serviceImplementation="com.android.tools.idea.naveditor.property.editors.NavPropertyEditors" />
-    <projectService serviceImplementation="com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage" />
+  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
+    <assistantBundleCreator implementation="com.android.tools.idea.naveditor.actions.NavEditorPanelAssistantBundleCreator"/>
   </extensions>
 </idea-plugin>
