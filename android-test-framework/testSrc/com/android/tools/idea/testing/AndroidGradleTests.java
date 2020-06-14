@@ -25,7 +25,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.io.Files.write;
+import static com.google.common.io.Files.asCharSink;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
@@ -41,10 +41,12 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.npw.template.KotlinVersionProvider;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
@@ -61,7 +63,6 @@ import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -125,21 +126,23 @@ public class AndroidGradleTests {
       for (File child : notNullize(path.listFiles())) {
         updateToolingVersionsAndPaths(child, false, localRepositories, gradleVersion, gradlePluginVersion);
       }
+      return;
     }
-    else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
+
+    BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
+    String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
+    String kotlinVersion = KotlinVersionProvider.getInstance().getKotlinVersionForGradle();
+
+    if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
       String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
       if (localRepositories == null) {
         localRepositories = getLocalRepositoriesForGroovy();
       }
 
-      BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
-
-      String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests();
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -156,7 +159,7 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, path, Charsets.UTF_8);
+        asCharSink(path, Charsets.UTF_8).write(contents);
       }
     }
     else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
@@ -166,16 +169,13 @@ public class AndroidGradleTests {
         localRepositories = getLocalRepositoriesForKotlin();
       }
 
-      BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
-
-      String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
       contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
       contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
-                                   KotlinCompilerVersion.VERSION);
+                                   kotlinVersion);
       // "implementation"(kotlin("stdlib", "1.3.61"))
       contents =
-        replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", KotlinCompilerVersion.VERSION);
+        replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", kotlinVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
@@ -185,19 +185,9 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, path, Charsets.UTF_8);
+        asCharSink(path, Charsets.UTF_8).write(contents);
       }
     }
-  }
-
-  public static String getKotlinVersionForTests() {
-    String kotlinVersion = TestUtils.getKotlinVersionForTests();
-    if (kotlinVersion.contains("-release-")){
-      // RELEASE versions should be stripped. E.g. "1.3.50-release-128" should become "1.3.50"
-      // don't strip EAP versions, e.g. "1.3.60-eap-143" should remain "1.3.60-eap-143"
-      kotlinVersion = kotlinVersion.split("-")[0];
-    }
-    return kotlinVersion;
   }
 
   @NotNull
@@ -245,15 +235,16 @@ public class AndroidGradleTests {
    */
   public static void applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(File projectRoot) throws IOException {
     File projectBuildGradle = new File(projectRoot, "build.gradle");
-    assertAbout(file()).that(projectBuildGradle).isFile();
-    try (FileOutputStream out = new FileOutputStream(projectBuildGradle, true)) {
-      out.write("\n\n// Ugly workaround for OOME:Metaspace in Gradle daemon\n".getBytes(Charsets.UTF_8));
-      out.write(("gradle.services.get(org.gradle.tooling.internal.provider.serialization.PayloadSerializer.class)\n" +
-                 "  .classLoaderRegistry.delegate.cache.classLoaderIds.localCache.values()\n" +
-                 "  .each {\n" +
-                 "    if (it.hasProperty('name') && it.name == 'client-owned-daemon-payload-loader')\n" +
-                 "      it.loadClass('org.gradle.tooling.internal.adapter.ProtocolToModelAdapter').newInstance().REFLECTION_METHOD_INVOKER.lookupCache.store.clear()\n" +
-                 "  }").getBytes(Charsets.UTF_8));
+    if (projectBuildGradle.isFile()) {
+      asCharSink(projectBuildGradle, Charsets.UTF_8, FileWriteMode.APPEND).write(
+        "\n\n" +
+        "// Ugly workaround for OOME:Metaspace in Gradle daemon\n" +
+        "gradle.services.get(org.gradle.tooling.internal.provider.serialization.PayloadSerializer.class)\n" +
+        "  .classLoaderRegistry.delegate.cache.classLoaderIds.localCache.values()\n" +
+        "  .each {\n" +
+        "    if (it.hasProperty('name') && it.name == 'client-owned-daemon-payload-loader')\n" +
+        "      it.loadClass('org.gradle.tooling.internal.adapter.ProtocolToModelAdapter').newInstance().REFLECTION_METHOD_INVOKER.lookupCache.store.clear()\n" +
+        "  }");
     }
   }
 
@@ -359,6 +350,7 @@ public class AndroidGradleTests {
 
   /**
    * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
+   *
    * @throws IOException
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
@@ -487,7 +479,7 @@ public class AndroidGradleTests {
     File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
     File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
     TestCase.assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
-               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+                        settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
   }
 
   public static TestGradleSyncListener syncProject(@NotNull Project project,
@@ -516,6 +508,7 @@ public class AndroidGradleTests {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion);
+    applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(projectRoot);
   }
 
   /**
