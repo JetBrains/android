@@ -207,7 +207,6 @@ public class ModelBuilder {
       when(surface.getSceneManager()).thenReturn(sceneManager);
       when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
-      when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
