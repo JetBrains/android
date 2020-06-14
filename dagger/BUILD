@@ -91,6 +91,7 @@ iml_module(
         "//tools/idea/plugins/java-i18n:intellij.java.i18n",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/plugins/eclipse:intellij.eclipse",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
