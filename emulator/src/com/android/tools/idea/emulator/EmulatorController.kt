@@ -351,7 +351,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   override fun dispose() {
-    channel?.shutdownNow()
+    channel?.shutdown()
   }
 
   override fun equals(other: Any?): Boolean {
