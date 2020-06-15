@@ -20,14 +20,8 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Disposer
-import com.intellij.ui.IdeUICustomization
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.any
@@ -39,9 +33,6 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
 class DeployTaskTest {
-  private val rootDisposable: Disposable = Disposer.newDisposable()
-  private val application: MockApplication = MockApplication(rootDisposable)
-
   @Mock private lateinit var project: Project
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
@@ -49,20 +40,7 @@ class DeployTaskTest {
 
   @Before
   fun setup() {
-    ApplicationManager.setApplication(application, rootDisposable)
-    application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
-  }
-
-  @After
-  fun shutdown() {
-    Disposer.dispose(rootDisposable)
-
-    // Null out the static reference in [ApplicationManager].
-    // Keeping a reference to a disposed object can cause problems for other tests.
-    val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
-    field.isAccessible = true
-    field.set(null, null)
   }
 
   @Test
