@@ -272,6 +272,8 @@ public class AndroidTargetData {
     }
 
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
+                                                                                  // FIXME-ank3: false should be replaced with isLayoutLibStandard
+                                                                                  false &&
                                                                                   myTarget instanceof CompatibilityRenderTarget,
                                                                                   languages);
   }
