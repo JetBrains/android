@@ -85,7 +85,6 @@ class AppInspectionView(
   private lateinit var currentProcess: ProcessDescriptor
 
   init {
-    component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
     val edtExecutor = EdtExecutorService.getInstance()
     processModel = AppInspectionProcessModel(edtExecutor, appInspectionDiscoveryHost, getPreferredProcesses)
     Disposer.register(this, processModel)
