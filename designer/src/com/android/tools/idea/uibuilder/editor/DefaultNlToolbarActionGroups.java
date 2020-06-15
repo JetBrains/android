@@ -42,6 +42,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,13 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID));
+    AnAction assistantAction =
+      ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID);
+    // FIXME-ank3: add assistant to IDEA?
+    if (assistantAction != null) {
+      group.add(assistantAction);
+    }
+
     return group;
   }
 
