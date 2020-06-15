@@ -42,7 +42,6 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -1073,7 +1072,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
         else if ( !value.equals(myOriginalName) &&
-            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
           // Another device with this name already exists
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());

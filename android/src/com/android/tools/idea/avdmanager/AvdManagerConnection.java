@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_HOME_ENV;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
@@ -1060,26 +1059,18 @@ public class AvdManagerConnection {
     return true;
   }
 
-  public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
-    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
-    if (displayName == null) {
-      displayName = avdInfo.getName().replaceAll("[_-]+", " ");
-    }
-    return displayName;
-  }
-
-  public String uniquifyDisplayName(String name) {
+  public String uniquifyDisplayName(@NotNull String name) {
     int suffix = 1;
     String result = name;
-    while (findAvdWithName(result)) {
+    while (findAvdWithDisplayName(result)) {
       result = String.format(Locale.US, "%1$s %2$d", name, ++suffix);
     }
     return result;
   }
 
-  public boolean findAvdWithName(String name) {
+  public boolean findAvdWithDisplayName(@NotNull String name) {
     for (AvdInfo avd : getAvds(false)) {
-      if (getAvdDisplayName(avd).equals(name)) {
+      if (avd.getDisplayName().equals(name)) {
         return true;
       }
     }
