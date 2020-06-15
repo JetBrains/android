@@ -44,7 +44,7 @@ import java.io.IOException
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized::class)
-abstract class GradleFileModelTestCase {
+abstract class PsdGradleFileModelTestCase {
 
   data class TestFileName(val path: String) {
     fun toFile(testDataPath: String, testDataExtension: String): File {

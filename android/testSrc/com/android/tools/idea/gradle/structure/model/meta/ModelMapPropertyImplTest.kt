@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.intellij.testFramework.RunsInEdt
@@ -27,7 +27,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 @RunsInEdt
-class ModelMapPropertyImplTest : GradleFileModelTestCase() {
+class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
   var modifiedCount: Int = 0
   var prepareForModificationCount: Int = 0
 
