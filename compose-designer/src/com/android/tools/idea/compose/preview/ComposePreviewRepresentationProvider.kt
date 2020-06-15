@@ -64,8 +64,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
-        title = message("action.switch.layout.title"),
-        description = message("action.switch.layout.description"),
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS),
       if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null

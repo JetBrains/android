@@ -46,12 +46,10 @@ data class SurfaceLayoutManagerOption(val displayName: String, val layoutManager
 /**
  * [DropDownAction] that allows switching the layout manager in the surface.
  */
-class SwitchSurfaceLayoutManagerAction(title: String = "Switch Layout",
-                                       description: String = "Changes the layout of the preview elements.",
-                                       private val layoutManagerSwitcher: LayoutManagerSwitcher,
+class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: LayoutManagerSwitcher,
                                        layoutManagers: List<SurfaceLayoutManagerOption>) : DropDownAction(
-  title,
-  description,
+  "Switch Layout",
+  "Changes the layout of the preview elements.",
   AllIcons.Debugger.RestoreLayout) {
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
