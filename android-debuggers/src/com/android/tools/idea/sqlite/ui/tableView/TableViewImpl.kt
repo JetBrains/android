@@ -130,7 +130,7 @@ class TableViewImpl : TableView {
 
     readOnlyLabel.isVisible = false
     readOnlyLabel.name = "read-only-label"
-    readOnlyLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
+    readOnlyLabel.border = BorderFactory.createEmptyBorder(0, 12, 0, 0)
     southPanel.add(readOnlyLabel, BorderLayout.WEST)
     val pagingControlsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     southPanel.add(pagingControlsPanel, BorderLayout.EAST)
