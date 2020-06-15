@@ -148,4 +148,27 @@ public final class ModifyDeviceSetDialogTest {
     assertFalse(action.isEnabled());
     assertEquals("Run", action.getValue(Action.NAME));
   }
+
+  @Test
+  public void initOkActionDoesntDisableActionAfterTableModelEventsAreHandled() {
+    // Arrange
+    Key key = new Key("Pixel_4_API_30");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getDeviceKeysSelectedWithDialog()).thenReturn(Collections.singleton(key));
+
+    // Act
+    initDialog(() -> true, model, project -> service);
+
+    // Assert
+    assertTrue(myDialog.getOKAction().isEnabled());
+  }
 }
