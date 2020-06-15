@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamEventListener
 import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport

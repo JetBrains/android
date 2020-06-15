@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.ide
+package com.android.tools.idea.appinspection.test
 
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
-import com.google.common.util.concurrent.MoreExecutors
 import java.util.concurrent.Executor
 
 class TestProcessNotifier: ProcessNotifier {

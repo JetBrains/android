@@ -17,26 +17,34 @@ package com.android.tools.idea.appinspection.test
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.idea.appinspection.api.AppInspectionTarget
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
+import com.android.tools.idea.appinspection.internal.AppInspectionTarget
+import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
-import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
+import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
+import com.android.tools.idea.appinspection.internal.DefaultAppInspectorLauncher
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
-import com.android.tools.idea.transport.manager.TransportPoller
 import com.android.tools.idea.transport.manager.TransportStreamChannel
+import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
 import org.junit.runner.Description
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -50,10 +58,15 @@ class AppInspectionServiceRule(
   private val grpcServer: FakeGrpcServer
 ) : NamedExternalResource() {
   lateinit var client: TransportClient
-  lateinit var executorService: ThreadPoolExecutor
+  lateinit var executorService: ExecutorService
+  lateinit var streamManager: TransportStreamManager
   lateinit var streamChannel: TransportStreamChannel
   lateinit var transport: AppInspectionTransport
   lateinit var jarCopier: AppInspectionTestUtils.TestTransportJarCopier
+  internal lateinit var targetManager: AppInspectionTargetManager
+  lateinit var launcher: AppInspectorLauncher
+  lateinit var processNotifier: ProcessNotifier
+  lateinit var apiServices: AppInspectionApiServices
 
   private val stream = Common.Stream.newBuilder()
     .setType(Common.Stream.Type.DEVICE)
@@ -77,27 +90,34 @@ class AppInspectionServiceRule(
 
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
-    streamChannel =
-      TransportStreamChannel(stream, TransportPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100)))
-    executorService = ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, LinkedBlockingQueue())
+    streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+    streamChannel = TransportStreamChannel(stream, streamManager.poller)
+    executorService = Executors.newSingleThreadExecutor()
     transport = AppInspectionTransport(client, stream, process, executorService, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
+    targetManager = AppInspectionTargetManager(executorService, client)
+    processNotifier = AppInspectionProcessDiscovery(executorService, streamManager)
+    launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery) { jarCopier }
+    apiServices = DefaultAppInspectionApiServices(targetManager, processNotifier, launcher)
   }
 
   override fun after(description: Description) {
-    TransportPoller.removePoller(streamChannel.poller)
+    TransportStreamManager.unregisterManager(streamManager)
     executorService.shutdownNow()
+    timer.currentTimeNs += 1
   }
 
   /**
    * Launches a new [AppInspectionTarget] and sets the optional [commandHandler].
    */
-  fun launchTarget(
+  internal fun launchTarget(
+    process: ProcessDescriptor,
+    project: String = TEST_PROJECT,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer)
   ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    val targetFuture = attachAppInspectionTarget(transport, jarCopier)
+    val targetFuture = targetManager.attachToProcess(process, jarCopier, streamChannel, project)
     timer.currentTimeNs += 1
     return targetFuture
   }
@@ -156,6 +176,10 @@ class AppInspectionServiceRule(
         .build()
     )
     timer.currentTimeNs += 1
+  }
+
+  fun addProcessListener(listener: ProcessListener) {
+    processNotifier.addProcessListener(executorService, listener)
   }
 
   /**

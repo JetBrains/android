@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
+import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
@@ -85,7 +86,7 @@ class AppInspectionProcessesModelTest {
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
     val fakeProcessB = fakeStream.createFakeProcess("B", 101)
 
-    var processedChangedCount = 0;
+    var processedChangedCount = 0
     model.addSelectedProcessListeners { processedChangedCount++ }
 
     assertThat(processedChangedCount).isEqualTo(0)

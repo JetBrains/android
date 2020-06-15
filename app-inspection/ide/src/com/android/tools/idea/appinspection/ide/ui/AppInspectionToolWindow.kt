@@ -71,7 +71,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
 
   private val appInspectionView = AppInspectionView(
     project,
-    AppInspectionDiscoveryService.instance.discoveryHost,
+    AppInspectionDiscoveryService.instance.apiServices,
     ideServices,
     ::getPreferredProcesses
   )

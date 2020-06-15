@@ -19,22 +19,20 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
-import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
-import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 
 
-class AppInspectionDiscoveryHostTest {
+class AppInspectionProcessDiscoveryTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
@@ -50,8 +48,11 @@ class AppInspectionDiscoveryHostTest {
     }
   }
 
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
+
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
 
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
@@ -91,11 +92,8 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun makeNewConnectionFiresListener() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     val latch = CountDownLatch(1)
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         latch.countDown()
       }
@@ -112,9 +110,6 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun addListenerReceivesExistingConnections() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
 
     // Generate a new process.
@@ -123,7 +118,7 @@ class AppInspectionDiscoveryHostTest {
 
     val latch = CountDownLatch(1)
     val processesList = mutableListOf<ProcessDescriptor>()
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processesList.add(descriptor)
         latch.countDown()
@@ -145,13 +140,9 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun processDisconnectNotifiesListener() {
-    // Setup
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
@@ -173,14 +164,10 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun processReconnects() {
-    // Setup
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     val firstProcessLatch = CountDownLatch(1)
     val secondProcessLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         if (firstProcessLatch.count > 0) {
           firstProcessLatch.countDown()
@@ -210,12 +197,8 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun twoProcessWithSamePidFromDifferentStream() {
-    // Setup
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     val latch = CountDownLatch(2)
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         latch.countDown()
       }
@@ -241,12 +224,8 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun processesRunningOnTwoIdenticalDeviceModels() {
-    // Setup
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     val latch = CountDownLatch(2)
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         latch.countDown()
       }
@@ -275,13 +254,9 @@ class AppInspectionDiscoveryHostTest {
 
   @Test
   fun discoveryFiltersProcessByDeviceApiLevel() {
-    // Setup
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     val latch = CountDownLatch(1)
     lateinit var processDescriptor: ProcessDescriptor
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processDescriptor = descriptor
         latch.countDown()
@@ -329,15 +304,12 @@ class AppInspectionDiscoveryHostTest {
   // Test the scenario where discovery encounters a device it has discovered before.
   @Test
   fun discoveryIgnoresPastEventsFromReconnectedDevice() {
-    // Setup
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
     val firstProcessReadyLatch = CountDownLatch(1)
     val secondProcessReadyLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
     var firstProcessTimestamp: Long? = null
     var secondProcessTimestamp: Long? = null
-    discoveryHost.addProcessListener(executor, object : ProcessListener {
+    appInspectionRule.addProcessListener(object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         if (firstProcessReadyLatch.count > 0) {
           firstProcessTimestamp = timer.currentTimeNs
