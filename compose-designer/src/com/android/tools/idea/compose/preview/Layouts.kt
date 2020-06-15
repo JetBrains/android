@@ -29,6 +29,6 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS = listOf(
 )
 
 /**
- * Default layout manager selected in the preview.nnnn
+ * Default layout manager selected in the preview.
  */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
