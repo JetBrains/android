@@ -60,7 +60,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
   fun testDoubleClickToNavigateToFileOfPreview() {
     val navigationManager = Mockito.mock(LayoutNavigationManager::class.java)
-    registerProjectComponent(LayoutNavigationManager::class.java, navigationManager)
+    registerProjectService(LayoutNavigationManager::class.java, navigationManager)
     val handler = VisualizationInteractionHandler(myModel.surface) { Mockito.mock(VisualizationModelsProvider::class.java) }
     val file = myModel.virtualFile
     val view = myModel.surface.sceneManager?.sceneView!!

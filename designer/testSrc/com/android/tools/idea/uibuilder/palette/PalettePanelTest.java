@@ -122,7 +122,7 @@ public class PalettePanelTest extends LayoutTestCase {
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
     registerApplicationService(CopyPasteManager.class, myCopyPasteManager);
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
-    registerApplicationService(ActionManager.class, myActionManager);  // ActionManager is too complex to be mocked in a heavy test
+    //registerApplicationService(ActionManager.class, myActionManager);  // ActionManager is too complex to be mocked in a heavy test
     registerProjectService(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
