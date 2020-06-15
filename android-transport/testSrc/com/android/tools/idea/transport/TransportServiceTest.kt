@@ -45,11 +45,6 @@ class TransportServiceTest : LightPlatformTestCase() {
     Disposer.register(testRootDisposable, myService)
   }
 
-  @Throws(Exception::class)
-  override fun tearDown() {
-    super.tearDown()
-  }
-
   /**
    * Validate that events and bytes can be sent from a custom stream to the database, which can then be queried via a client.
    */
