@@ -35,7 +35,6 @@ import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Grad
 import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
@@ -44,6 +43,7 @@ import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
@@ -101,6 +101,7 @@ import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -112,7 +113,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.LibraryData;
 import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData;
+import com.intellij.openapi.externalSystem.model.project.LibraryLevel;
+import com.intellij.openapi.externalSystem.model.project.LibraryPathType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -132,12 +136,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
+import kotlin.Unit;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.build.BuildEnvironment;
@@ -146,6 +152,7 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
@@ -265,6 +272,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return moduleDataNode;
   }
 
+  @Override
+  public @NotNull Set<Class<?>> getToolingExtensionsClasses() {
+    return ImmutableSet.of(KaptModelBuilderService.class, Unit.class);
+  }
+
   /**
    * Creates and attaches the following models to the moduleNode depending on the type of module:
    * <ul>
@@ -291,6 +303,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
     CachedVariants cachedVariants = findCachedVariants(gradleModule);
+
     // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
     if (androidProject != null) {
       Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
@@ -324,10 +337,16 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // Then we require all Java modules to export their dependencies.
       myIsImportPre3Dot0 |= androidModel.getFeatures().shouldExportDependencies();
 
-      // This functionality should be moved to the KaptProjectResovlerExtension.
-      patchMissingKaptInformationOntoAndroidModel(androidModel, kaptGradleModel);
       moduleNode.createChild(ANDROID_MODEL, androidModel);
+
+      // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
+      patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
+    } else {
+      // We also need to patch java modules as we disabled the kapt resolver.
+      patchMissingKaptInformationOntoModelAndDataNode(null, moduleNode, kaptGradleModel);
     }
+
+
 
     // 2 -  If we have an NativeAndroidProject then we need to construct an NdkModuleModel
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
@@ -497,26 +516,53 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   /**
-   * Adds the Kapt generated source directories to Android models generated source folders.
+   * Adds the Kapt generated source directories to Android models generated source folders and sets up the kapt generated class library
+   * for both Android and non-android modules.
    * <p>
    * This should probably not be done here. If we need this information in the Android model then this should
    * be the responsibility of the Android Gradle plugin. If we don't then this should be handled by the
    * KaptProjectResolverExtension, however as of now this class only works when module per source set is
    * enabled.
    */
-  private static void patchMissingKaptInformationOntoAndroidModel(@NotNull AndroidModuleModel androidModel,
-                                                                  @Nullable KaptGradleModel kaptGradleModel) {
+  private static void patchMissingKaptInformationOntoModelAndDataNode(@Nullable AndroidModuleModel androidModel,
+                                                                      @NotNull DataNode<ModuleData> moduleDataNode,
+                                                                      @Nullable KaptGradleModel kaptGradleModel) {
     if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
       return;
     }
 
+    Set<File> generatedClassesDirs = new HashSet<>();
     kaptGradleModel.getSourceSets().forEach(sourceSet -> {
       File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
-      IdeBaseArtifact artifact = findArtifact(sourceSet, androidModel);
-      if (artifact != null && kotlinGenSourceDir != null) {
-        artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
+      if (androidModel != null) {
+        IdeBaseArtifact artifact = findArtifact(sourceSet, androidModel);
+        if (artifact != null && kotlinGenSourceDir != null) {
+          artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
+        }
+      }
+
+      // We should really only add the current variant here, but we need to work out how to store this information and switch
+      // the library. For now just add all of them.
+      File classesDirFile = sourceSet.getGeneratedClassesDirFile();
+      if (classesDirFile != null) {
+        generatedClassesDirs.add(classesDirFile);
       }
     });
+
+    // Code adapted from KaptProjectResolverExtension
+    LibraryData newLibrary = new LibraryData(GRADLE_SYSTEM_ID, "kaptGeneratedClasses");
+    LibraryData existingData = moduleDataNode.getChildren().stream().map(node -> node.getData()).filter(
+      (data) -> data instanceof LibraryDependencyData &&
+                newLibrary.getExternalName().equals(((LibraryDependencyData)data).getExternalName()))
+      .map(data -> ((LibraryDependencyData)data).getTarget()).findFirst().orElse(null);
+
+    if (existingData != null) {
+      generatedClassesDirs.forEach((file) -> existingData.addPath(LibraryPathType.BINARY, file.getAbsolutePath()));
+    } else {
+      generatedClassesDirs.forEach((file) -> newLibrary.addPath(LibraryPathType.BINARY, file.getAbsolutePath()));
+      LibraryDependencyData libraryDependencyData = new LibraryDependencyData(moduleDataNode.getData(), newLibrary, LibraryLevel.MODULE);
+      moduleDataNode.createChild(LIBRARY_DEPENDENCY, libraryDependencyData);
+    }
   }
 
   @Nullable
@@ -591,7 +637,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // In AndroidStudio pre-3.0 all dependencies need to be exported, the common resolvers do not set this.
     // to remedy this we need to go through all datanodes added by other resolvers and set this flag.
     if (myIsImportPre3Dot0) {
-      Collection<DataNode<LibraryDependencyData>> libraryDataNodes = findAll(ideModule, ProjectKeys.LIBRARY_DEPENDENCY);
+      Collection<DataNode<LibraryDependencyData>> libraryDataNodes = findAll(ideModule, LIBRARY_DEPENDENCY);
       for (DataNode<LibraryDependencyData> libraryDataNode : libraryDataNodes) {
         libraryDataNode.getData().setExported(true);
       }
@@ -748,6 +794,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMaps);
   }
 
+  /**
+   * Note that this method not always used, its functionality is only present when not using a
+   * {@link ProjectImportModelProvider}. Any classes added here also need to be requested in the
+   * provider.
+   */
   @Override
   @NotNull
   public Set<Class<?>> getExtraProjectModelClasses() {
@@ -759,6 +810,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     modelClasses.add(GlobalLibraryMap.class);
     modelClasses.add(GradlePluginModel.class);
     modelClasses.add(ProjectSyncIssues.class);
+
+    // We disable the Kapt resolver extension in studio to solve some issues with duplicate/extra paths.
+    // As a result we need to request the model class here so we can still use it.
+    modelClasses.add(KaptGradleModel.class);
     return modelClasses;
   }
 
