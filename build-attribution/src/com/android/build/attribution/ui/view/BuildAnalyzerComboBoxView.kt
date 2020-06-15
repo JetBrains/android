@@ -86,17 +86,27 @@ class BuildAnalyzerComboBoxView(
   }
 
   init {
-    pagesPanel.select(model.selectedData, true)
-    additionalControlsPanel.select(model.selectedData, true)
+    // Select each page to trigger it's addition to the components tree.
+    // It solves the problem that color theme changes are not applied to the components
+    // that are created already but are not added to the components tree.
+    selectPage(BuildAnalyzerViewModel.DataSet.TASKS)
+    selectPage(BuildAnalyzerViewModel.DataSet.WARNINGS)
+    selectPage(BuildAnalyzerViewModel.DataSet.OVERVIEW)
+
+    selectPage(model.selectedData)
 
     model.dataSetSelectionListener = {
       fireActionHandlerEvents = false
       model.selectedData.let {
-        pagesPanel.select(it, true)
-        additionalControlsPanel.select(it, true)
+        selectPage(it)
         dataSetCombo.selectedItem = it
       }
       fireActionHandlerEvents = true
     }
+  }
+
+  private fun selectPage(page: BuildAnalyzerViewModel.DataSet) {
+    pagesPanel.select(page, true)
+    additionalControlsPanel.select(page, true)
   }
 }
