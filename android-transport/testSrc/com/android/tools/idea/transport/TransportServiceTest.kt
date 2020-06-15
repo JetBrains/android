@@ -21,6 +21,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PlatformTestCase
 import java.io.IOException
@@ -47,11 +48,11 @@ class TransportServiceTest : PlatformTestCase() {
 
     super.setUp()
     myService = TransportService()
+    Disposer.register(testRootDisposable, myService)
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
-    myService.dispose()
     myClient?.shutdown()
     super.tearDown()
   }
