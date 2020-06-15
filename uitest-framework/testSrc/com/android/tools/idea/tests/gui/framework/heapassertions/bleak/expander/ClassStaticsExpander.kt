@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DoNotTrace
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
-import com.intellij.util.ref.DebugReflectionUtil
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
+import sun.misc.Unsafe
 import java.lang.reflect.Modifier
 
 /** [ClassStaticsExpander] takes a Class object and generates children for all of its static fields,
  * using [FieldLabel]s for the edge labels.
  */
-class ClassStaticsExpander(g: HeapGraph): DefaultObjectExpander(g, { _, _, _ -> false}) {
+class ClassStaticsExpander: Expander() {
   override fun canExpand(obj: Any) = obj is Class<*>
   override fun expand(n: Node) {
-    if (DebugReflectionUtil.isInitialized(n.obj as Class<*>)) {
-      for (field in DebugReflectionUtil.getAllFields(n.obj)) {
+    if ((n.obj as Class<*>).isInitialized() && !DoNotTrace::class.java.isAssignableFrom(n.obj)) {
+      for (field in ReflectionUtil.getAllFields(n.obj)) {
         if ((field.modifiers and Modifier.STATIC) != 0) {
           val value = field.get(null)
           if (value != null) {
@@ -43,16 +44,30 @@ class ClassStaticsExpander(g: HeapGraph): DefaultObjectExpander(g, { _, _, _ -> 
       val obj = e.label.field.get(null)
       if (obj != null) return n.addEdgeTo(obj, e.label)
     }
-    // for the instance fields of the Class object. Note the classLoader field is not exposed via reflection.
-    return super.expandCorrespondingEdge(n, e)
+    return null
   }
 
   override fun getChildForLabel(n: Node, label: Label): Node? {
     if (label is FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
       return n.getNode(label.field.get(null))
     }
-    // for the instance fields of the Class object. Note the classLoader field is not exposed via reflection.
-    return super.getChildForLabel(n, label)
+    return null
+  }
+
+  companion object {
+    private val Unsafe_shouldBeInitialized = Unsafe::class.java.getDeclaredMethod("shouldBeInitialized", Class::class.java)
+    private val unsafe: Unsafe
+
+    init {
+      Unsafe_shouldBeInitialized.isAccessible = true
+      val theUnsafeField = Unsafe::class.java.getDeclaredField("theUnsafe")
+      theUnsafeField.isAccessible = true
+      unsafe = theUnsafeField.get(null) as Unsafe
+    }
+
+    private fun Class<*>.isInitialized(): Boolean {
+      return !(Unsafe_shouldBeInitialized.invoke(unsafe, this) as Boolean)
+    }
   }
 
 }

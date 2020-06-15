@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.webp.ConvertToWebpAction;
 import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class AndroidLintConvertToWebpInspection extends AndroidLintInspectionBase {
   public AndroidLintConvertToWebpInspection() {
@@ -37,8 +37,8 @@ public class AndroidLintConvertToWebpInspection extends AndroidLintInspectionBas
 
   @Override
   @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return new AndroidLintQuickFix[]{
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return new LintIdeQuickFix[]{
       new DefaultLintQuickFix("Convert images to WebP...") {
         @Override
         public boolean isApplicable(@NotNull PsiElement startElement,

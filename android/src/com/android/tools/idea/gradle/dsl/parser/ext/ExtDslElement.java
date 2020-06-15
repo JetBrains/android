@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,10 +35,11 @@ import java.util.Map;
  * </p>
  */
 public final class ExtDslElement extends GradleDslBlockElement {
-  @NonNls public static final String EXT_BLOCK_NAME = "ext";
+  public static final PropertiesElementDescription<ExtDslElement> EXT =
+    new PropertiesElementDescription<>("ext", ExtDslElement.class, ExtDslElement::new);
 
-  public ExtDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXT_BLOCK_NAME));
+  public ExtDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   /*

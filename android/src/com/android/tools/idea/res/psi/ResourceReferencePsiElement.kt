@@ -30,12 +30,14 @@ import com.android.tools.idea.res.getResourceName
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
-import com.intellij.psi.ElementDescriptionLocation
-import com.intellij.psi.ElementDescriptionProvider
+import com.android.tools.idea.util.androidFacet
+import com.android.utils.reflection.qualifiedName
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
-import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.ElementDescriptionLocation
+import com.intellij.psi.ElementDescriptionProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -43,14 +45,17 @@ import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.impl.compiled.ClsFieldImpl
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
-import com.intellij.usageView.UsageViewTypeLocation
 import com.intellij.refactoring.rename.RenameHandler
+import com.intellij.usageView.UsageViewTypeLocation
 import icons.StudioIcons
 import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.ResourceLightField
+import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 import org.jetbrains.android.util.AndroidResourceUtil
 import javax.swing.Icon
@@ -77,6 +82,8 @@ class ResourceReferencePsiElement(
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
+    @JvmField val RESOURCE_CONTEXT_SCOPE: Key<SearchScope> = Key.create<SearchScope>(::RESOURCE_CONTEXT_SCOPE.qualifiedName)
+    @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create<PsiElement>(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {
@@ -114,7 +121,12 @@ class ResourceReferencePsiElement(
       else {
         ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
       }
-      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, element.name), element.manager)
+      val resourceName = when (element) {
+        is ResourceLightField -> element.getResourceName()
+        is StyleableAttrLightField -> element.name
+        else -> null
+      } ?: return null
+      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), element.manager)
     }
 
     /**
@@ -147,9 +159,13 @@ class ResourceReferencePsiElement(
         val tag = element.parentOfType<XmlTag>() ?: return null
         if ((element.parent as XmlAttribute).name != ATTR_NAME) return null
         val type = AndroidResourceUtil.getResourceTypeForResourceTag(tag) ?: return null
-        if (!type.isValueBased()) return null
-        val name = element.value
-        val resourceReference = ResourceReference(ResourceNamespace.TODO(), type, name)
+        val resourceReference = if (type == ResourceType.ATTR) {
+          ResourceUrl.parseAttrReference(element.value)?.resolve(element) ?: return null
+        } else {
+          if (!type.isValueBased()) return null
+          val name = element.value
+          ResourceReference(ResourceNamespace.TODO(), type, name)
+        }
         return ResourceReferencePsiElement(resourceReference, element.manager)
       }
     }
@@ -195,7 +211,9 @@ class ResourceReferencePsiElement(
   fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
     // Framework resources are not writable.
     if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
-      return ResourceReferencePsiElement(this.resourceReference, this.psiManager, true)
+      val writableElement = ResourceReferencePsiElement(this.resourceReference, this.psiManager, true)
+      copyCopyableDataTo(writableElement)
+      return writableElement
     }
     return null
   }

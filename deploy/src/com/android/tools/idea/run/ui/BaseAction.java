@@ -50,9 +50,10 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.xdebugger.XDebugSession;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -285,8 +286,12 @@ public abstract class BaseAction extends AnAction {
         .filter(client -> Integer.toString(client.getDebuggerListenPort()).equals(debuggerPort))
         .findAny()
         .orElse(null);
-      if (remoteDebuggedClient != null && session.getXDebugSession() != null) {
-        return session.getXDebugSession().getRunContentDescriptor().getProcessHandler();
+      if (remoteDebuggedClient != null) {
+        // IDEA-239076
+        XDebugSession debugSession = session.getXDebugSession();
+        if (debugSession != null && !debugSession.isStopped()) {
+          return debugSession.getRunContentDescriptor().getProcessHandler();
+        }
       }
     }
 
@@ -294,7 +299,7 @@ public abstract class BaseAction extends AnAction {
   }
 
   @Nullable
-  private static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
+  protected static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
     if (processHandler instanceof RemoteDebugProcessHandler) {
       // Special case for remote debugger.
       return DefaultDebugExecutor.getDebugExecutorInstance();

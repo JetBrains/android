@@ -148,6 +148,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "}\n",
                  getTextForFile("app/src/main/java/com/example/google/migrate2appcompat/CustomView.java"));
 
+/* b/146019491
     assertEquals("package com.example.google.migrate2appcompat;\n" +
                  "\n" +
                  "import android.app.Activity;\n" +
@@ -233,6 +234,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "    }\n" +
                  "}\n",
                  getTextForFile("mylibrarybase/src/main/java/com/example/appandmodules/mylibarybase/SpecialLibraryUtility.java"));
+b/146019491 */
   }
 
   /**
@@ -296,7 +298,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
 
   private static String getAppCompatGradleCoordinate() {
     return RepositoryUrlManager.get().getArtifactStringCoordinate(GoogleMavenArtifactId.APP_COMPAT_V7,
-                                                                  v -> v.getMajor() == GradleImport.CURRENT_COMPILE_VERSION,
+                                                                  v -> v.getMajor() == Math.min(28, GradleImport.CURRENT_COMPILE_VERSION),
                                                                   false);
   }
 }

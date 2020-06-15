@@ -1,1 +1,1 @@
-val test by extra(extra["xyz"])
+val test by extra(rootProject.extra["xyz"])

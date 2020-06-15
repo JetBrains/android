@@ -15,6 +15,11 @@
  */
 package org.jetbrains.android.util;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
+
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.internal.project.ProjectProperties;
@@ -49,7 +54,11 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.lexer.Lexer;
-import com.intellij.notification.*;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -74,7 +83,14 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
@@ -89,25 +105,27 @@ import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.ATTR_CONTEXT;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.intellij.openapi.application.ApplicationManager.getApplication;
+import javax.swing.*;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author yole, coyote
@@ -377,8 +395,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
     if (facet == null) {
       facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-      AndroidFacetConfiguration configuration = facet.getConfiguration();
-      configuration.init(module, contentRoot);
+      setUpAndroidFacetConfiguration(facet, contentRoot.getPath());
       if (library) {
         facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
       }
@@ -387,6 +404,31 @@ public class AndroidUtils extends CommonAndroidUtil {
     model.commit();
 
     return facet;
+  }
+
+  public static void setUpAndroidFacetConfiguration(@NotNull AndroidFacet androidFacet, @NotNull String baseDirectoryPath) {
+    setUpAndroidFacetConfiguration(androidFacet.getModule(), androidFacet.getConfiguration(), baseDirectoryPath);
+  }
+
+  public static void setUpAndroidFacetConfiguration(@NotNull Module module,
+                                                    @NotNull AndroidFacetConfiguration androidFacetConfiguration,
+                                                    @NotNull String baseDirectoryPath) {
+    String s = AndroidRootUtil.getPathRelativeToModuleDir(module, baseDirectoryPath);
+    if (s == null || s.isEmpty()) {
+      return;
+    }
+    AndroidFacetProperties properties = androidFacetConfiguration.getState();
+    properties.GEN_FOLDER_RELATIVE_PATH_APT = '/' + s + properties.GEN_FOLDER_RELATIVE_PATH_APT;
+    properties.GEN_FOLDER_RELATIVE_PATH_AIDL = '/' + s + properties.GEN_FOLDER_RELATIVE_PATH_AIDL;
+    properties.MANIFEST_FILE_RELATIVE_PATH = '/' + s + properties.MANIFEST_FILE_RELATIVE_PATH;
+    properties.RES_FOLDER_RELATIVE_PATH = '/' + s + properties.RES_FOLDER_RELATIVE_PATH;
+    properties.ASSETS_FOLDER_RELATIVE_PATH = '/' + s + properties.ASSETS_FOLDER_RELATIVE_PATH;
+    properties.LIBS_FOLDER_RELATIVE_PATH = '/' + s + properties.LIBS_FOLDER_RELATIVE_PATH;
+    properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH = '/' + s + properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
+
+    for (int i = 0; i < properties.RES_OVERLAY_FOLDERS.size(); i++) {
+      properties.RES_OVERLAY_FOLDERS.set(i, '/' + s + properties.RES_OVERLAY_FOLDERS.get(i));
+    }
   }
 
   @Nullable
@@ -771,7 +813,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
     for (String url : urls) {
       if (sdkHomeCanonicalPath != null) {
-        url = StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
+        url = StringUtil.replace(url, AndroidFacetProperties.SDK_HOME_MACRO, sdkHomeCanonicalPath);
       }
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }

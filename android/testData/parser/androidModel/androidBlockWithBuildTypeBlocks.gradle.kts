@@ -16,10 +16,10 @@
 android {
   buildTypes {
     getByName("type1") {
-      applicationIdSuffix("typeSuffix-1")
+      setApplicationIdSuffix("typeSuffix-1")
     }
     getByName("type2") {
-      applicationIdSuffix("typeSuffix-2")
+      setApplicationIdSuffix("typeSuffix-2")
     }
   }
 }

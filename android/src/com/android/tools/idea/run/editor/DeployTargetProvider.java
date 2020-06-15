@@ -70,7 +70,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
    * Returns whether the current deploy target needs to ask for user input on every launch.
    * If this method is overridden to return true, then {@link #showPrompt} must also be overridden.
    */
-  public boolean requiresRuntimePrompt() {
+  public boolean requiresRuntimePrompt(@NotNull Project project) {
     return false;
   }
 

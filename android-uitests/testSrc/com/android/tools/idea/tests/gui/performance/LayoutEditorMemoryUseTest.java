@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.performance;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -29,19 +28,22 @@ import com.intellij.testFramework.LeakHunter;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.MemoryDumpHelper;
 import com.intellij.util.containers.ContainerUtil;
-import gnu.trove.*;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
+import gnu.trove.THashMap;
+import gnu.trove.THashSet;
+import gnu.trove.TObjectIntHashMap;
+import gnu.trove.TObjectIntIterator;
 import java.lang.ref.PhantomReference;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * The test executes a basic scenario of layout editor (shows the layout and editor tabs of three different
@@ -68,7 +70,7 @@ public class LayoutEditorMemoryUseTest {
   private static final Logger LOG = Logger.getInstance(LayoutEditorMemoryUseTest.class);
   private static final boolean CAPTURE_HEAP_DUMPS = false;
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   @NotNull
   private static TObjectIntHashMap<String> copyMapWithSizeOnly(THashMap<String, THashSet<Object>> map) {
@@ -96,7 +98,6 @@ public class LayoutEditorMemoryUseTest {
     LOG.warn(sb.toString());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/140633211
   @Test
   public void navigateAndEdit() throws Exception {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -169,24 +170,19 @@ public class LayoutEditorMemoryUseTest {
    * The state after each run should be the same as just after the {@code warmUp()} method.
     */
   public void runScenario(IdeFrameFixture fixture) {
-    StudioFlags.NELE_SPLIT_EDITOR.override(false);
     String[] layoutFilePaths = {
       "app/src/main/res/layout/layout2.xml",
       "app/src/main/res/layout/widgets.xml",
       "app/src/main/res/layout/textstyles.xml",
     };
 
-    // First file on design tab
-    fixture.getEditor().open(layoutFilePaths[0], EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true).waitForRenderToFinish();
-    // Second file on design tab, then switch to editor tab
-    fixture.getEditor().open(layoutFilePaths[1], EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true).waitForRenderToFinish();
-    fixture.getEditor().getLayoutPreview(true).waitForRenderToFinish();
-    // Third file on editor tab
-    fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
-      getLayoutPreview(true).waitForRenderToFinish();
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
+    // First file on design mode
+    fixture.getEditor().open(layoutFilePaths[0], EditorFixture.Tab.DESIGN).getLayoutEditor(true).waitForRenderToFinish();
+    // Second file on design mode, then switch to text mode
+    fixture.getEditor().open(layoutFilePaths[1], EditorFixture.Tab.DESIGN).getLayoutEditor(true).waitForRenderToFinish();
+    fixture.getEditor().selectEditorTab(EditorFixture.Tab.EDITOR);
+    // Third file on text mode
+    fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR);
   }
 
   private static class LeakedInstancesTracker {

@@ -1,5 +1,5 @@
 ext {
-  def val = "hello"
+  def val1 = "hello"
   def otherVal = "goodbye"
-  prop1 = [key1: 'value', key2: val, key3: 23, key4: true]
+  prop1 = [key1: 'value', key2: val1, key3: 23, key4: true]
 }

@@ -37,7 +37,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener {
+public class EnergyProfilerStage extends StreamingStage implements CodeNavigator.Listener {
   private static final String HAS_USED_ENERGY_SELECTION = "energy.used.selection";
   private static final String ENERGY_EVENT_ORIGIN_INDEX = "energy.event.origin";
 
@@ -81,11 +81,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myAxis = new ResizingAxisComponentModel.Builder(myDetailedUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT)
       .setMarkerRange(EnergyMonitor.AXIS_MARKER_RANGE).build();
     myEventMonitor = new EventMonitor(profilers);
-    myLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getDataRange());
-    myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange());
-    myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), profilers.getTimeline().getTooltipRange());
+    myLegends = new EnergyUsageLegends(myDetailedUsage, getTimeline().getDataRange());
+    myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, getTimeline().getTooltipRange());
+    myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), getTimeline().getTooltipRange());
 
-    myRangeSelectionModel = new RangeSelectionModel(profilers.getTimeline().getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
     myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
@@ -106,14 +106,14 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myFetcher = new EnergyEventsFetcher(
       profilers.getClient(),
       profilers.getSession(),
-      profilers.getTimeline().getSelectionRange(),
+      getTimeline().getSelectionRange(),
       profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
 
     myEventModel = createEventChartModel(profilers);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
-    myUpdatable = elapsedNs -> getStudioProfilers().getTimeline().getTooltipRange().changed(Range.Aspect.RANGE);
+    myUpdatable = elapsedNs -> getTimeline().getTooltipRange().changed(Range.Aspect.RANGE);
   }
 
   @Override
@@ -313,9 +313,9 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     }
   }
 
-  private static StateChartModel<Common.Event> createEventChartModel(StudioProfilers profilers) {
+  private StateChartModel<Common.Event> createEventChartModel(StudioProfilers profilers) {
     StateChartModel<Common.Event> stateChartModel = new StateChartModel<>();
-    Range range = profilers.getTimeline().getViewRange();
+    Range range = getTimeline().getViewRange();
     TransportServiceGrpc.TransportServiceBlockingStub transportClient = profilers.getClient().getTransportClient();
     long streamId = profilers.getSession().getStreamId();
     int pid = profilers.getSession().getPid();

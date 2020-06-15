@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.model.DIMMER_QNAME
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.UNKNOWN
 import com.google.common.annotations.VisibleForTesting
-import java.awt.Dimension
+import com.intellij.openapi.actionSystem.DataKey
+import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -29,7 +36,7 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sqrt
 
-private const val LAYER_SPACING = 150
+val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
 data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
 
@@ -39,21 +46,78 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   var yOff = 0.0
 
-  private var rootDimension: Dimension = Dimension()
+  private var rootBounds: Rectangle = Rectangle()
   private var maxDepth: Int = 0
 
   internal val maxWidth
-    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.width.toFloat()).toInt()
+    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.width.toFloat()).toInt()
 
   internal val maxHeight
-    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
+    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.height.toFloat()).toInt()
+
+  val isRotated
+    get() = xOff != 0.0 || yOff != 0.0
 
   @VisibleForTesting
   var hitRects = listOf<ViewDrawInfo>()
 
+  val modificationListeners = mutableListOf<() -> Unit>()
+
+  var overlay: Image? = null
+    set(value) {
+      if (value != null) {
+        resetRotation()
+      }
+      field = value
+      modificationListeners.forEach { it() }
+    }
+
+  var overlayAlpha: Float = INITIAL_ALPHA_PERCENT / 100f
+    set(value) {
+      field = value
+      modificationListeners.forEach { it() }
+    }
+
+  var layerSpacing: Int = INITIAL_LAYER_SPACING
+    set(value) {
+      field = value
+      refresh()
+    }
+
   init {
+    model.modificationListeners.add { _, new, _ ->
+      if (new == null) {
+        overlay = null
+      }
+    }
     refresh()
   }
+
+  val rotatable
+    get() = model.hasSubImages && overlay == null
+
+  val pictureType
+    get() =
+      when {
+        model.root.children.any { it.imageType == PNG_AS_REQUESTED } -> {
+          // If we find that we've requested and received a png, that's what we'll use first
+          PNG_AS_REQUESTED
+        }
+        model.root.children.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
+          // We got a PNG because the SKP we would have gotten was too big.
+          PNG_SKP_TOO_LARGE
+        }
+        model.root.children.all { it.imageType == PNG_SKP_TOO_LARGE || it.qualifiedName == DIMMER_QNAME } -> {
+          // If everything is an SKP (or a dimmer we added) then the type is SKP
+          SKP
+        }
+        else -> {
+          UNKNOWN
+        }
+      }
+
+  val isActive
+    get() = !model.isEmpty
 
   fun findTopRect(x: Double, y: Double): ViewNode? {
     return hitRects.findLast {
@@ -67,62 +131,88 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     refresh()
   }
 
-  @VisibleForTesting
   fun refresh() {
+    if (!rotatable) {
+      xOff = 0.0
+      yOff = 0.0
+    }
+    if (model.isEmpty) {
+      rootBounds = Rectangle()
+      maxDepth = 0
+      hitRects = emptyList()
+      modificationListeners.forEach { it() }
+      return
+    }
     val root = model.root
-    rootDimension = Dimension(root.width, root.height)
+
+    val levelLists = mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>()
+    // Each window should start completely above the previous window, hence level = levelLists.size
+    root.children.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
+    maxDepth = levelLists.size
+
     val newHitRects = mutableListOf<ViewDrawInfo>()
     val transform = AffineTransform()
-    transform.translate(-root.width / 2.0, -root.height / 2.0)
+    var magnitude = 0.0
+    var angle = 0.0
+    if (maxDepth > 0) {
+      rootBounds = levelLists[0].map { it.second }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-    val magnitude = min(1.0, hypot(xOff, yOff))
-    val angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
+      magnitude = min(1.0, hypot(xOff, yOff))
+      angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
-    transform.translate(rootDimension.width / 2.0 - model.root.x, rootDimension.height / 2.0 - model.root.y)
-    transform.rotate(angle)
-    val levelLists = mutableListOf<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>()
-    buildLevelLists(model.root, model.root.bounds, levelLists)
-
+      transform.translate(rootBounds.width / 2.0 - rootBounds.x, rootBounds.height / 2.0 - rootBounds.y)
+      transform.rotate(angle)
+    }
+    else {
+      rootBounds = Rectangle()
+    }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
-    maxDepth = levelLists.size
     hitRects = newHitRects.toList()
+    modificationListeners.forEach { it() }
   }
 
   private fun buildLevelLists(root: ViewNode,
                               parentClip: Rectangle,
-                              levelListCollector: MutableList<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>,
-                              level: Int = 0) {
-    val levelList = levelListCollector.getOrNull(level)
-                    ?: mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>().also { levelListCollector.add(it) }
-    val clip = parentClip.intersection(root.bounds)
-    // add to the first sub level list with no rects that intersect ours
-    val subLevelList = levelList.find { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
-                       ?: mutableListOf<Pair<ViewNode, Rectangle>>().also { levelList.add(it) }
-    subLevelList.add(Pair(root, clip))
-    root.children.forEach { buildLevelLists(it, clip, levelListCollector, level + 1) }
+                              levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
+                              level: Int) {
+    var childClip = parentClip
+    var newLevelIndex = level
+    if (root.visible) {
+      newLevelIndex = levelListCollector
+        .subList(level, levelListCollector.size)
+        .indexOfFirst { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+      if (newLevelIndex == -1) {
+        newLevelIndex = levelListCollector.size
+        levelListCollector.add(mutableListOf())
+      }
+      else {
+        newLevelIndex += level
+      }
+      val levelList = levelListCollector[newLevelIndex]
+      childClip = parentClip.intersection(root.bounds)
+      levelList.add(Pair(root, childClip))
+    }
+    root.children.forEach { buildLevelLists(it, childClip, levelListCollector, newLevelIndex) }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,
                                    magnitude: Double,
                                    angle: Double,
-                                   allLevels: List<List<List<Pair<ViewNode, Rectangle>>>>,
+                                   allLevels: List<List<Pair<ViewNode, Rectangle>>>,
                                    newHitRects: MutableList<ViewDrawInfo>) {
     allLevels.forEachIndexed { level, levelList ->
-      levelList.forEachIndexed { subLevel, subLevelList ->
-        subLevelList.forEach { (view, clip) ->
-          val viewTransform = AffineTransform(transform)
+      levelList.forEach { (view, clip) ->
+        val viewTransform = AffineTransform(transform)
 
-          val sign = if (xOff < 0) -1 else 1
-          viewTransform.translate(
-            magnitude * ((level - maxDepth / 2) + (subLevel.toFloat() / levelList.size.toFloat())) * LAYER_SPACING * sign,
-            0.0)
-          viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
-          viewTransform.rotate(-angle)
-          viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
+        val sign = if (xOff < 0) -1 else 1
+        viewTransform.translate(magnitude * (level - maxDepth / 2) * layerSpacing * sign, 0.0)
+        viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
+        viewTransform.rotate(-angle)
+        viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-          val rect = viewTransform.createTransformedShape(view.bounds)
-          newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
-        }
+        val rect = viewTransform.createTransformedShape(view.bounds)
+        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
       }
     }
   }

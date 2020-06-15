@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -33,19 +34,28 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateAPKProjectTest extends DebuggerTestBase {
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() ->
+    new AvdSpec.Builder()
+  );
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(avdRule)
+    .around(guiTest);
 
   @Before
-  public void removeExistingApkProjects() {
+  public void setup() throws IOException {
     // An ~/ApkProjects directory will show us a dialog in the middle of the test
     // to overwrite the directory. Delete the directory now so it won't trip the test.
     CreateAPKProjectTestUtil.removeApkProjectsDirectory();
+
+    DebuggerTestUtil.setupSpecialSdk(avdRule);
+    DebuggerTestUtil.symlinkLldb();
   }
 
   /**
@@ -70,7 +80,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // Bug: http://b/65172343
+  @RunIn(TestGroup.FAST_BAZEL)
   public void debugLocallyBuiltApk() throws Exception {
     File projectRoot = buildApkLocally("ApkDebug");
 
@@ -107,8 +117,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
 
     String debugConfigName = "app-x86-debug";
 
-    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
-    ideFrame.debugApp(debugConfigName, emulator.getDefaultAvdName());
+    ideFrame.debugApp(debugConfigName, avdRule.getMyAvd().getName());
 
     String debugWindowJava = "app-x86-debug-java";
     DebugToolWindowFixture debugWindow = ideFrame.getDebugToolWindow();

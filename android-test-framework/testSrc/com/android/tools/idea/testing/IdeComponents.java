@@ -15,30 +15,19 @@
  */
 package com.android.tools.idea.testing;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static com.google.common.base.Preconditions.checkState;
 import static org.mockito.Mockito.mock;
 
-import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.NotNullLazyKey;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.util.pico.DefaultPicoContainer;
-import java.lang.reflect.Field;
-import java.util.ArrayDeque;
-import java.util.Queue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.stubbing.Answer;
-import org.picocontainer.ComponentAdapter;
 
 public final class IdeComponents {
   private Project myProject;
@@ -90,7 +79,7 @@ public final class IdeComponents {
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
-    assertNotNull(myProject);
+    checkState(myProject != null);
     ServiceContainerUtil.replaceService(myProject, serviceType, mock, myDisposable);
     return mock;
   }

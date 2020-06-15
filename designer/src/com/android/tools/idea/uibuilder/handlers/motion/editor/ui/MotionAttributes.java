@@ -15,12 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_COLOR_DRAWABLE_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_COLOR_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_INTEGER_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_STRING_VALUE;
+
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Provides a view within MotionLayout with all the basic information under the ConstraintSet.
@@ -32,10 +49,16 @@ public class MotionAttributes {
   private boolean mDefinedTransform = false;
   private boolean mDefinedMotion = false;
   private String mId;
+  private String mLayoutFrom = "undefined";
+
   private HashMap<String , DefinedAttribute> definedAttributes = new HashMap<>();
 
   public String getId() {
     return mId;
+  }
+
+  public String getLayoutSource() {
+    return mLayoutFrom;
   }
 
   public static class DefinedAttribute {
@@ -69,6 +92,16 @@ public class MotionAttributes {
       return nameSpace;
     }
 
+    @Nullable
+    public String getSourceId() {
+      return source_id;
+    }
+
+    @Nullable
+    public String getCustomType() {
+      return customType;
+    }
+
     public boolean isLayoutAttribute() {
       return MotionSceneAttrs.layout_tags.contains(name);
     }
@@ -84,6 +117,8 @@ public class MotionAttributes {
     public boolean isMotionAttribute() {
       return MotionSceneAttrs.ourMotion_tags.contains(name);
     }
+
+    public boolean isCustomAttribute() { return customType != null; }
   }
 
   public MTag getConstraintSet() {
@@ -129,6 +164,7 @@ public class MotionAttributes {
         definedAttributes.put(newAttribute.name , newAttribute);
       }
       if (!mDefinedLayout && MotionSceneAttrs.isLayoutAttribute(attr)) {
+        mLayoutFrom = "MotionLayout";
         DefinedAttribute newAttribute = new DefinedAttribute();
         newAttribute.source_id = null;
         newAttribute.nameSpace = attr.mNamespace;
@@ -185,6 +221,53 @@ public class MotionAttributes {
   }
 
 
+  static HashMap<String,HashSet<String>> validMap = new HashMap<>( );
+  static {
+    validMap.put(ATTR_CUSTOM_COLOR_VALUE, new HashSet<>(Arrays.asList("int")));
+    validMap.put(ATTR_CUSTOM_COLOR_DRAWABLE_VALUE, new HashSet<>(Arrays.asList("Drawable")));
+    validMap.put(ATTR_CUSTOM_INTEGER_VALUE, new HashSet<>(Arrays.asList("int")));
+    validMap.put(ATTR_CUSTOM_FLOAT_VALUE, new HashSet<>(Arrays.asList("float")));
+    validMap.put(ATTR_CUSTOM_STRING_VALUE, new HashSet<>(Arrays.asList( "CharSequence", "String")));
+    validMap.put(ATTR_CUSTOM_DIMENSION_VALUE, new HashSet<>(Arrays.asList("float" )));
+    validMap.put(ATTR_CUSTOM_PIXEL_DIMENSION_VALUE, new HashSet<>(Arrays.asList("float" )));
+    validMap.put(ATTR_CUSTOM_BOOLEAN_VALUE, new HashSet<>(Arrays.asList( "boolean")));
+  }
+
+  public static Set<String> getCustomAttributesFor(NlComponent nlComponent, String customAttributeType) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(nlComponent);
+    if (viewInfo == null) {
+      return Collections.emptySet();
+    }
+    Object o = viewInfo.getViewObject();
+    if (o == null) {
+      return Collections.emptySet();
+    }
+    Method[] m = o.getClass().getMethods();
+    HashSet<String> ret = new HashSet<>();
+    HashSet<String> valid  = validMap.get(customAttributeType);
+    for (int i = 0; i < m.length; i++) {
+      Method method = m[i];
+      String name = method.getName();
+      if (!name.startsWith("set")) {
+        continue;
+      }
+      if (!Character.isUpperCase(name.charAt(3))) {
+        continue;
+      }
+      Class<?>[] types = method.getParameterTypes();
+      if (types.length != 1) {
+        continue;
+      }
+      String typeStr = types[0].getSimpleName();
+      if (valid.contains(typeStr)) {
+        name = Character.toLowerCase(name.charAt(3))+name.substring(4);
+        ret.add(name);
+      }
+    }
+    return ret;
+  }
+
+
 
   public void consume(boolean definedLayout, boolean definedPropertySet, boolean definedTransform, boolean definedMotion) {
     mDefinedLayout |= definedLayout;
@@ -204,6 +287,7 @@ public class MotionAttributes {
         if (mDefinedLayout) {
           return;
         }
+        mLayoutFrom = constraintSetId;
         mDefinedLayout = true;
         break;
       case PROPERTY_SET:
@@ -225,6 +309,9 @@ public class MotionAttributes {
         mDefinedMotion = true;
         break;
       case ALL:
+        if (!mDefinedLayout) {
+          mLayoutFrom = constraintSetId;
+        }
         mDefinedLayout = true;
         mDefinedPropertySet = true;
         mDefinedMotion = true;

@@ -18,14 +18,24 @@ package org.jetbrains.android.dom.converters;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.ElementManipulators;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementResolveResult;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.ResolveResult;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiPackageReference;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.ConvertContext;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.CustomReferenceConverter;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.GenericDomValue;
 import org.jetbrains.android.AndroidApplicationPackageRenameProcessor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -77,7 +87,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
       // package rename refactoring
       AndroidFacet facet = AndroidFacet.getInstance(getElement());
       if (facet != null) {
-        AndroidModel androidModel = facet.getModel();
+        AndroidModel androidModel = AndroidModel.get(facet);
         if (androidModel != null && androidModel.overridesManifestPackage() || facet.getConfiguration().isLibraryProject()) {
           return new PsiPackageReference(this, range, index);
         }

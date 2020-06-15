@@ -23,6 +23,8 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.geom.Rectangle2D
+import java.util.LinkedList
+import java.util.Queue
 
 private const val RANGE_MIN = 0.0
 private const val RANGE_MAX = 100.0
@@ -95,9 +97,11 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
           get() = _focusedNode
 
       init {
-        val nodes = mutableListOf(root)
+        val nodes: Queue<HTreeNode> = LinkedList()
+        nodes.offer(root)
+
         while (nodes.isNotEmpty()) {
-          val node = nodes.removeAt(0)
+          val node = nodes.remove()
           node.children.forEach { nodes.add(it as HTreeNode) }
           node.parent?.let { parent ->
             node.depth = parent.depth + 1

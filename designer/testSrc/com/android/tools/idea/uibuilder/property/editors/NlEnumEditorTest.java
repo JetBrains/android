@@ -36,7 +36,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myUndoManager = mock(UndoManagerImpl.class);
-    registerProjectComponentImplementation(UndoManager.class, myUndoManager);
+    registerProjectComponent(UndoManager.class, myUndoManager);
     myFixture.setTestDataPath(getTestDataPath());
     myEditorFixture = EnumEditorFixture.create(NlEnumEditor::createForTest);
   }

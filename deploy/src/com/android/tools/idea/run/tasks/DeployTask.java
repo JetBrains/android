@@ -23,19 +23,18 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class DeployTask extends AbstractDeployTask {
 
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
   private static final String ID = "DEPLOY";
 
-  private final String userInstallOptions;
+  private final String[] userInstallOptions;
 
   /**
    * Creates a task to deploy a list of apks.
@@ -48,7 +47,12 @@ public class DeployTask extends AbstractDeployTask {
                     String userInstallOptions,
                     Computable<String> installPathProvider) {
     super(project, packages, false, installPathProvider);
-    this.userInstallOptions = userInstallOptions;
+    if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
+      userInstallOptions = userInstallOptions.trim();
+      this.userInstallOptions = userInstallOptions.split("\\s");
+    } else {
+      this.userInstallOptions = new String[0];
+    }
   }
 
   @NotNull

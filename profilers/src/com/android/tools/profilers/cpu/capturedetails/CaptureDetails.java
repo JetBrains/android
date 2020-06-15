@@ -19,20 +19,22 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.audits.RenderAuditModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * An interface that represents a capture details, e.g it can be {@link TopDown}, {@link BottomUp},
+ * An abstract class that represents a capture details, e.g it can be {@link TopDown}, {@link BottomUp},
  * {@link CallChart} or {@link FlameChart}.
  */
-public interface CaptureDetails {
-  enum Type {
+public abstract class CaptureDetails {
+  public enum Type {
     TOP_DOWN(TopDown::new),
     BOTTOM_UP(BottomUp::new),
     CALL_CHART(CallChart::new),
@@ -46,27 +48,60 @@ public interface CaptureDetails {
       myBuilder = builder;
     }
 
-    public CaptureDetails build(Range range, CaptureNode node, CpuCapture cpuCapture) {
+    public CaptureDetails build(@NotNull Range range, @NotNull List<CaptureNode> node, @NotNull CpuCapture cpuCapture) {
       return myBuilder.build(range, node, cpuCapture);
     }
   }
 
-  Type getType();
+  @NotNull
+  private final CpuCapture myCapture;
+
+  protected CaptureDetails(@NotNull CpuCapture cpuCapture) {
+    myCapture = cpuCapture;
+  }
+
+  @NotNull
+  public CpuCapture getCapture() {
+    return myCapture;
+  }
+
+  @NotNull
+  public abstract Type getType();
 
   interface CaptureDetailsBuilder {
-    CaptureDetails build(Range range, CaptureNode captureNode, CpuCapture cpuCapture);
+    /**
+     * @param range The time range to filter the incoming list of {@link CaptureNode}s to.
+     * @param captureNodes The list of nodes we want to visualize. For groups of nodes a new parent node will be created and all capture
+     *                     nodes will be reparented to this new node.
+     *                     Note: This reparenting is done via the {@link VisualNodeCaptureNode} so no CaptureNode data is mutated.
+     * @param cpuCapture The capture which the captureNodes were referenced from.
+     */
+    CaptureDetails build(Range range, List<CaptureNode> captureNodes, CpuCapture cpuCapture);
   }
 
-  interface ChartDetails extends CaptureDetails {
+  static abstract class ChartDetails extends CaptureDetails {
+    protected ChartDetails(@NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
+    }
     @Nullable
-    CaptureNode getNode();
+    abstract CaptureNode getNode();
   }
 
-  class TopDown implements CaptureDetails {
+  public static class TopDown extends CaptureDetails {
     @Nullable private final TopDownTreeModel myModel;
 
-    public TopDown(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
-      myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
+    TopDown(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
+      if (nodes.isEmpty()) {
+        myModel = null;
+        return;
+      }
+      Range captureRange = cpuCapture.getRange();
+      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
+      nodes.forEach(visual::addChild);
+      visual.setStartGlobal((long)captureRange.getMin());
+      visual.setEndGlobal((long)captureRange.getMax());
+      myModel = new TopDownTreeModel(range, new TopDownNode(visual));
     }
 
     @Nullable
@@ -75,16 +110,29 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.TOP_DOWN;
     }
   }
 
-  class BottomUp implements CaptureDetails {
+  public static class BottomUp extends CaptureDetails {
     @Nullable private BottomUpTreeModel myModel;
 
-    public BottomUp(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
-      myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
+    BottomUp(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
+      if (nodes.isEmpty()) {
+        myModel = null;
+        return;
+      }
+      Range captureRange = cpuCapture.getRange();
+      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
+      nodes.forEach(visual::addChild);
+      visual.setStartGlobal((long)captureRange.getMin());
+      visual.setEndGlobal((long)captureRange.getMax());
+      BottomUpNode buNode = new BottomUpNode(visual);
+      buNode.update(range);
+      myModel = new BottomUpTreeModel(range, buNode);
     }
 
     @Nullable
@@ -93,18 +141,26 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.BOTTOM_UP;
     }
   }
 
-  class CallChart implements ChartDetails {
+  public static class CallChart extends ChartDetails {
     @NotNull private final Range myRange;
     @Nullable private CaptureNode myNode;
 
-    public CallChart(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
+    public CallChart(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       myRange = range;
-      myNode = node;
+      if (nodes.isEmpty()) {
+        myNode = null;
+        return;
+      }
+      // TODO: Add support for multi-select CallChart nodes if we change the UI.
+      myNode = nodes.get(0);
+
     }
 
     @NotNull
@@ -119,12 +175,13 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.CALL_CHART;
     }
   }
 
-  class FlameChart implements ChartDetails {
+  public static class FlameChart extends ChartDetails {
     public enum Aspect {
       /**
        * When the root changes.
@@ -139,34 +196,55 @@ public interface CaptureDetails {
     @NotNull private final Range mySelectionRange;
     @NotNull private final AspectModel<Aspect> myAspectModel;
 
-    public FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode, @Nullable CpuCapture cpuCapture) {
+    FlameChart(@NotNull Range selectionRange, @NotNull List<CaptureNode> captureNodes, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       mySelectionRange = selectionRange;
       myFlameRange = new Range();
       myAspectModel = new AspectModel<>();
 
-      if (captureNode == null) {
+      if (captureNodes.isEmpty()) {
         myFlameNode = null;
         myTopDownNode = null;
         return;
       }
-      myTopDownNode = new TopDownNode(captureNode);
+      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
+      captureNodes.sort(Comparator.comparingLong(CaptureNode::getStartGlobal));
+      captureNodes.forEach(visual::addChild);
+      // This needs to be the start of the earliest node to have an accurate range for multi-selected items.
+      visual.setStartGlobal(captureNodes.get(0).getStartGlobal());
 
+      // Update the node to compute the total children time.
+      myTopDownNode = new TopDownNode(visual);
+      myTopDownNode.update(new Range(0, Double.MAX_VALUE));
+
+      // This gets mapped to the sum of all children. this makes an assumption that this node has 0 self time.
+      // Because we are creating this node that is a valid assumption.
+      // We map to the sum of all children because when multiple nodes are selected nodes with the same Id are merged.
+      // When they are merged the sum of time is less than or equal to the total time of each node. We need the time to
+      // be accurate as when we compute the capture space to screen space calculations for the graph we need to know what
+      // 100% is.
+      visual.setEndGlobal(visual.getStartGlobal() + (long)myTopDownNode.getGlobalChildrenTotal());
       selectionRange.addDependency(myAspectModel).onChange(Range.Aspect.RANGE, this::selectionRangeChanged);
       selectionRangeChanged();
     }
 
     private void selectionRangeChanged() {
       assert myTopDownNode != null;
+      // This range needs to account for the multiple children,
+      // does it need to account for the merged children?
       myTopDownNode.update(mySelectionRange);
       if (myTopDownNode.getGlobalTotal() > 0) {
         double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
         myFlameNode = convertToFlameChart(myTopDownNode, start, 0);
+        myFlameNode.setEndGlobal(myFlameNode.getLastChild().getEndGlobal());
+        // This is the range used by the HTreeChart to determine if a node is in the range or out of the range.
+        // Because the node is already filtered to the selection we can use the length of the node.
+        myFlameRange.set(myFlameNode.getStart(), myFlameNode.getEnd());
       }
       else {
         myFlameNode = null;
       }
 
-      myFlameRange.set(mySelectionRange);
       myAspectModel.changed(Aspect.NODE);
     }
 
@@ -187,6 +265,7 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.FLAME_CHART;
     }
@@ -234,17 +313,19 @@ public interface CaptureDetails {
     }
   }
 
-  class RenderAuditCaptureDetails implements CaptureDetails {
+  public static class RenderAuditCaptureDetails extends CaptureDetails {
 
     private final RenderAuditModel myRenderAuditModel;
 
-    public RenderAuditCaptureDetails(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+    RenderAuditCaptureDetails(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       // The Render Audit tab is only added in the CapturePane is the capture is an AtraceCpuCapture
       assert cpuCapture instanceof AtraceCpuCapture;
       myRenderAuditModel = new RenderAuditModel((AtraceCpuCapture)cpuCapture);
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.RENDER_AUDIT;
     }

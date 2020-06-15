@@ -27,7 +27,6 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
@@ -46,7 +45,6 @@ import com.android.tools.idea.ui.resourcechooser.preview.ResourceEditorTab;
 import com.android.tools.idea.ui.resourcechooser.preview.ResourceTablePanel;
 import com.android.tools.idea.ui.resourcechooser.preview.SampleDrawablePanel;
 import com.android.tools.idea.ui.resourcechooser.util.SimpleTabUI;
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
 import com.android.tools.idea.util.DefaultIgnorable;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -73,6 +71,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -181,7 +180,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * <p>
  * TODO: Perform validation (such as cyclic layout resource detection for layout selection)
  */
-public class ChooseResourceDialog extends ResourcePickerDialog {
+public class ChooseResourceDialog extends DialogWrapper {
   private static final String TYPE_KEY = "ResourceType";
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
@@ -1003,9 +1002,9 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
 
   @NotNull
   @Override
-  protected DialogStyle getStyle() {
+  protected DialogWrapper.DialogStyle getStyle() {
     // will draw the line between the main panel and the action buttons.
-    return DialogStyle.COMPACT;
+    return DialogWrapper.DialogStyle.COMPACT;
   }
 
   public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
@@ -1194,7 +1193,6 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
     getSelectedPanel().myReferencePanel.setLocationSettingsOpen(true);
   }
 
-  @Override
   public String getResourceName() {
     return myResultResourceName;
   }
@@ -1376,7 +1374,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
       CompletableFuture.runAsync(() -> {
         List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(4);
-        if (showSampleDataPicker && StudioFlags.NELE_SAMPLE_DATA_UI.get()) {
+        if (showSampleDataPicker) {
           ResourceChooserGroup sampleDataItems = ResourceChooserGroups.createSampleDataGroup(type, myFacet);
           if (!sampleDataItems.isEmpty()) {
             groups.add(sampleDataItems);

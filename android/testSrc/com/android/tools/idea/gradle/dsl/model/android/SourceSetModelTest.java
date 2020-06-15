@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_IN_SOURCE_SET_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS;
@@ -72,10 +75,10 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
-    sourceSets.get(0).root().setValue("newRoot1");
-    sourceSets.get(1).root().setValue("newRoot2");
-    sourceSets.get(2).root().setValue("newRoot3");
-    sourceSets.get(3).root().setValue("newRoot4");
+    setRootOf(sourceSets, "set1", "newRoot1");
+    setRootOf(sourceSets, "set2", "newRoot2");
+    setRootOf(sourceSets, "set3", "newRoot3");
+    setRootOf(sourceSets, "set4", "newRoot4");
     verifySourceSetRoot(buildModel, "newRoot");
 
     buildModel.resetState();
@@ -93,13 +96,15 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
-    sourceSets.get(0).root().setValue("newRoot1");
-    sourceSets.get(1).root().setValue("newRoot2");
-    sourceSets.get(2).root().setValue("newRoot3");
-    sourceSets.get(3).root().setValue("newRoot4");
+    setRootOf(sourceSets, "set1", "newRoot1");
+    setRootOf(sourceSets, "set2", "newRoot2");
+    setRootOf(sourceSets, "set3", "newRoot3");
+    setRootOf(sourceSets, "set4", "newRoot4");
     verifySourceSetRoot(buildModel, "newRoot");
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY_EXPECTED);
+
     verifySourceSetRoot(buildModel, "newRoot");
     buildModel.reparse();
     verifySourceSetRoot(buildModel, "newRoot");
@@ -146,6 +151,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertEquals("root", "source", sourceSet.root());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY_EXPECTED);
+
     assertEquals("root", "source", sourceSet.root());
 
     buildModel.reparse();
@@ -202,10 +209,16 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     }
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     checkForInValidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
     assertThat(android.sourceSets()).isEmpty();
+  }
+
+  private static void setRootOf(@NotNull List<SourceSetModel> sourceSetModels, @NotNull String set, @NotNull String root) {
+    sourceSetModels.stream().filter(ss -> ss.name().equals(set)).findFirst().ifPresent(s -> s.root().setValue(root));
   }
 
   private static void verifySourceSetRoot(@NotNull GradleBuildModel buildModel, @NotNull String rootPrefix) {
@@ -214,17 +227,15 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     List<SourceSetModel> sourceSets = android.sourceSets();
     assertThat(sourceSets).hasSize(4);
-
-    verifySourceSetRoot(sourceSets, rootPrefix);
+    for (int i = 1; i <= sourceSets.size(); i++) {
+      verifySourceSetRoot(sourceSets, rootPrefix, i);
+    }
   }
 
-  private static void verifySourceSetRoot(@NotNull List<SourceSetModel> sourceSets, @NotNull String rootPrefix) {
-    int i = 1;
-    for (SourceSetModel sourceSet : sourceSets) {
-      assertEquals("name", "set" + i, sourceSet.name());
-      assertEquals("root", rootPrefix + i, sourceSet.root());
-      i++;
-    }
+  private static void verifySourceSetRoot(@NotNull List<SourceSetModel> sourceSets, @NotNull String rootPrefix, int i) {
+    assertTrue(sourceSets.stream().anyMatch(ss -> ss.name().equals("set" + i)));
+    sourceSets.stream().filter(ss -> ss.name().equals("set" + i)).findFirst()
+      .ifPresent(set -> assertEquals("root", rootPrefix + i, set.root()));
   }
 
   @Test
@@ -252,6 +263,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSet(sourceSet, false /*to verify that the block elements are still not saved to the file*/);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
     sourceSets = android.sourceSets();
@@ -334,6 +347,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     sourceSet.removeResources();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.

@@ -58,6 +58,19 @@ class EmptyTablePanelTest {
 
     override var editedItem: PTableItem? = null
 
+    override fun addItem(item: PTableItem): PTableItem {
+      val newItems = ArrayList(items)
+      newItems.add(item)
+      items = newItems
+      return item
+    }
+
+    override fun removeItem(item: PTableItem) {
+      val newItems = ArrayList(items)
+      newItems.remove(item)
+      items = newItems
+    }
+
     override fun addListener(listener: PTableModelUpdateListener) {
       listeners.add(listener)
     }

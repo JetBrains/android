@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
-import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineDrawRect
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getActionType
@@ -45,11 +45,11 @@ object ActionDecorator : NavBaseDecorator() {
     val view = component.scene.designSurface.focusedSceneView ?: return
     val actionType = nlComponent.getActionType(component.scene.root?.nlComponent)
     val isPopAction = nlComponent.popUpTo != null
-    val scale = sceneContext.scale.toFloat()
+    val scale = sceneContext.inlineScale
     when (actionType) {
       ActionType.NONE -> return
       ActionType.GLOBAL, ActionType.EXIT -> {
-        @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
+        val drawRect = component.inlineDrawRect(view)
         list.add(DrawHorizontalAction(drawRect, scale, color, isPopAction))
       }
       else -> {
@@ -57,7 +57,7 @@ object ActionDecorator : NavBaseDecorator() {
 
         val sourceNlComponent = scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
         val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return
-        val sourceRect = Coordinates.getSwingRectDip(view, sourceSceneComponent.fillDrawRect2D(0, null))
+        val sourceRect = sourceSceneComponent.inlineDrawRect(view)
 
         if (actionType == ActionType.SELF) {
           list.add(DrawSelfAction(sourceRect, scale, color, isPopAction))
@@ -65,7 +65,7 @@ object ActionDecorator : NavBaseDecorator() {
         else {
           val targetNlComponent = nlComponent.effectiveDestination ?: return
           val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
-          val destRect = Coordinates.getSwingRectDip(view, destinationSceneComponent.fillDrawRect2D(0, null))
+          val destRect = destinationSceneComponent.inlineDrawRect(view)
 
           list.add(DrawAction(sourceRect, destRect, scale, color, isPopAction))
         }

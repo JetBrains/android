@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.hprof.parser.StaticFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.Type
 import com.android.tools.idea.diagnostics.hprof.util.HprofWriter
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
+import gnu.trove.TLongIntHashMap
 import gnu.trove.TObjectHashingStrategy
 import gnu.trove.TObjectLongHashMap
 import java.io.ByteArrayOutputStream
@@ -38,9 +39,13 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
 
   private val objectToIdMap = TObjectLongHashMap<Any>(TObjectHashingStrategy.IDENTITY)
   private val stringToIdMap = TObjectLongHashMap<String>()
+  private val classObjectIdToClassSerialNumber = TLongIntHashMap()
 
   private var nextStringId = 1L
   private var nextObjectId = 1L
+  private var nextStackFrameId = 1L
+  private var nextStackTraceSerialNumberId = 1
+  private var nextClassSerialNumber = 1
 
   private val idSize = 8
 
@@ -60,6 +65,32 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
   fun addRootUnknown(o: Any) {
     val id = addObject(o)
     writer.writeRootUnknown(id)
+  }
+
+  fun addRootJavaFrame(o: Any, threadSerialNumber: Int, frameIndex: Int) {
+    val id = addObject(o)
+    writer.writeRootJavaFrame(id, threadSerialNumber, frameIndex)
+  }
+
+  fun addStackTrace(thread: Thread, topFramesCount: Int): Int {
+    val stackTrace = thread.stackTrace
+    val stackFrameIds = LongArray(kotlin.math.min(topFramesCount, stackTrace.size))
+    for (i in stackFrameIds.indices) {
+      val ste = stackTrace[i]
+      val stackFrameId = nextStackFrameID()
+      stackFrameIds[i] = stackFrameId
+      val classObjectId = addObject(Class.forName(ste.className))
+      val classSerialNumber = getClassSerialNumber(classObjectId)
+      writer.writeStackFrame(stackFrameId,
+                             addString(ste.className + "." + ste.methodName),
+                             addString("()"),
+                             0,
+                             classSerialNumber,
+                             if (ste.isNativeMethod) -1 else ste.lineNumber)
+    }
+    val stackTraceSerialNumber = nextStackTraceSerialNumberID()
+    writer.writeStackTrace(stackTraceSerialNumber, thread.id, stackFrameIds)
+    return stackTraceSerialNumber
   }
 
   fun addObject(o: Any?): Long {
@@ -187,7 +218,9 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
 
     objectToIdMap.put(oClass, id)
 
-    writer.writeLoadClass(0, id, 0, classNameStringId)
+    val classSerialNumber = nextClassSerialNumber()
+    classObjectIdToClassSerialNumber.put(id, classSerialNumber)
+    writer.writeLoadClass(classSerialNumber, id, 0, classNameStringId)
 
     var instanceSize = 0
     val instanceFields = mutableListOf<InstanceFieldEntry>()
@@ -228,6 +261,9 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
   }
 
   private fun nextObjectID() = nextObjectId++
+  private fun nextStackFrameID() = nextStackFrameId++
+  private fun nextStackTraceSerialNumberID() = nextStackTraceSerialNumberId++
+  private fun nextClassSerialNumber() = nextClassSerialNumber++
 
   private fun addString(string: String): Long {
     if (stringToIdMap.contains(string)) return stringToIdMap[string]
@@ -235,6 +271,8 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     writer.writeStringInUTF8(id, string)
     return id
   }
+
+  private fun getClassSerialNumber(classObjectId: Long) = classObjectIdToClassSerialNumber[classObjectId]
 
   private fun nextStringID() = nextStringId++
 

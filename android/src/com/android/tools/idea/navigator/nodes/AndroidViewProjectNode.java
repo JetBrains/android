@@ -21,6 +21,8 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -61,7 +63,9 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
     ViewSettings settings = getSettings();
-    List<AbstractTreeNode<?>> children = ModuleNodeUtils.createChildModuleNodes(myProject, null, myProjectViewPane, settings);
+    AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();
+    List<AbstractTreeNode<?>> children =
+      ModuleNodeUtils.createChildModuleNodes(myProject, projectSystem.getSubmodules(), myProjectViewPane, settings);
 
     // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
     // are still visible. See https://code.google.com/p/android/issues/detail?id=76564

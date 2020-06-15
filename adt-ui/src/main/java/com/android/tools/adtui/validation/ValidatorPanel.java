@@ -23,9 +23,11 @@ import static com.intellij.xml.util.XmlStringUtil.wrapInHtml;
 import com.android.tools.adtui.validation.validators.TrueValidator;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -34,6 +36,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.SwingHelper;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -53,7 +56,15 @@ public final class ValidatorPanel extends JPanel implements Disposable {
 
   private final ListenerManager myListeners = new ListenerManager();
   private final List<Validator.Result> myResults = new ArrayList<>();
-  private final BoolProperty myHasErrors = new BoolValueProperty();
+  private final ObjectProperty<Validator.Result> myValidationResult = new ObjectValueProperty<>(Validator.Result.OK);
+  private final BooleanExpression myHasErrorsExpression = new BooleanExpression(myValidationResult) {
+    @NotNull
+    @Override
+    public Boolean get() {
+      return myValidationResult.get().getSeverity() == Validator.Severity.ERROR;
+    }
+  };
+
 
   private JPanel myRootPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
@@ -61,7 +72,6 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   private JBLabel mySeverityIcon;
   private JEditorPane myValidationText;
   private ErrorDetailDialog myErrorDetailDialog;
-  private Validator.Result myValidationResult = Validator.Result.OK;
 
   /**
    * Initializes the validator panel.
@@ -83,7 +93,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
 
     myValidationText.addHyperlinkListener(event -> {
       if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-        String detailedMessage = myValidationResult.getDetailedMessage();
+        String detailedMessage = myValidationResult.get().getDetailedMessage();
         if (myErrorDetailDialog == null) {
           myErrorDetailDialog = new ErrorDetailDialog(errorDetailDialogTitle, errorDetailHeader, detailedMessage);
           // Remove reference to the error detail dialog when it is closed.
@@ -108,6 +118,9 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    * Register a {@link Validator} linked to a target property. Whenever the target property
    * changes, the validator will be tested with its value.
    * <p>
+   * You can also optionally specify dependency properties. If any of these are updated, their
+   * value isn't used, but they also cause the validator to get rerun.
+   * <p>
    * If multiple validators produce non-OK results, the maximum severity wins. If there are
    * multiple messages with the same severity, the message produced by the validator that
    * was registered first wins.
@@ -115,15 +128,22 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    * See also {@link #hasErrors()}, which will be true if any validator has returned an
    * {@link Validator.Severity#ERROR} result.
    */
-  public <T> void registerValidator(@NotNull ObservableValue<T> value, @NotNull Validator<? super T> validator) {
+  public <T> void registerValidator(@NotNull ObservableValue<T> value,
+                                    @NotNull Validator<? super T> validator,
+                                    @NotNull ObservableValue<?>... dependencies) {
+    ArrayList<ObservableValue<?>> triggerObjects = Lists.newArrayList(value);
+    if (dependencies.length > 0) {
+      triggerObjects.addAll(Arrays.asList(dependencies));
+    }
+
     int index = myResults.size();
     myResults.add(Validator.Result.OK);
-    myListeners.listenAndFire(value, () -> {
+    myListeners.listenAll(triggerObjects).withAndFire(() -> {
       Validator.Result oldValue = myResults.get(index);
       Validator.Result newValue = validator.validate(value.get());
       if (!newValue.equals(oldValue)) {
         myResults.set(index, newValue);
-        updateValidationText();
+        updateActiveValidationResult();
       }
     });
   }
@@ -171,30 +191,45 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    */
   @NotNull
   public ObservableBool hasErrors() {
-    return myHasErrors;
+    return myHasErrorsExpression;
   }
 
-  private void updateValidationText() {
-    myValidationResult = Validator.Result.OK;
+  /**
+   * Returns the current {@link Validator.Result}.
+   *
+   * Prefer using {@link #hasErrors()} if possible, as it is a simpler expression, but this value
+   * is also exposed in case it is useful for more specific use-cases.
+   */
+  @NotNull
+  public ObservableValue<Validator.Result> getValidationResult() {
+    return myValidationResult;
+  }
+
+  /**
+   * Updates the current value set in {@link #myValidationResult} as well as any UI affected by the
+   * change.
+   */
+  private void updateActiveValidationResult() {
+    Validator.Result activeResult = Validator.Result.OK;
     for (Validator.Result result : myResults) {
-      if (result.getSeverity().compareTo(myValidationResult.getSeverity()) > 0) {
-        myValidationResult = result;
-        if (myValidationResult.getSeverity() == Validator.Severity.ERROR) {
+      if (result.getSeverity().compareTo(activeResult.getSeverity()) > 0) {
+        activeResult = result;
+        if (activeResult.getSeverity() == Validator.Severity.ERROR) {
           break;
         }
       }
     }
 
-    if (myValidationResult.getSeverity() == Validator.Severity.OK) {
+    if (activeResult.getSeverity() == Validator.Severity.OK) {
       mySeverityIcon.setIcon(null);
       myValidationText.setText(BLANK_HTML);
     }
     else {
-      mySeverityIcon.setIcon(myValidationResult.getSeverity().getIcon());
-      String message = myValidationResult.getMessage().trim();
+      mySeverityIcon.setIcon(activeResult.getSeverity().getIcon());
+      String message = activeResult.getMessage().trim();
       // A message has to be wrapped in HTML to be displayed properly by JEditorPane.
       if (!isWrappedInHtml(message)) {
-        if (!StringUtil.isEmpty(myValidationResult.getDetailedMessage())) {
+        if (!StringUtil.isEmpty(activeResult.getDetailedMessage())) {
           message = wrapInHtml("<a href=\"details\">" + convertToHtml(message) + "</a>"); // Make the whole message a hyperlink.
         }
         else {
@@ -204,7 +239,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
       myValidationText.setText(message);
     }
 
-    myHasErrors.set(myValidationResult.getSeverity() == Validator.Severity.ERROR);
+    myValidationResult.set(activeResult);
   }
 
   @NotNull

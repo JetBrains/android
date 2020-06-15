@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepositoryFixture;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
@@ -230,7 +230,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //    2 styles declared in both
     //------------------------------------------
     //    4 total styles
-    assertEquals(4, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).keySet().size());
+    assertEquals(4, appResources.getResourceNames(RES_AUTO, ResourceType.STYLEABLE).size());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
@@ -318,15 +318,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     }
 
     @Override
-    @NotNull
-    protected ResourceTable getFullTable() {
-      return myDelegate.getFullTable();
-    }
-
-    @Override
     @Nullable
-    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
-      return getFullTable().get(namespace, type);
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+      return myDelegate.getMap(namespace, type);
     }
 
     @Override
@@ -339,6 +333,12 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     @Nullable
     public String getPackageName() {
       return myDelegate.getPackageName();
+    }
+
+    @Override
+    @NotNull
+    public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
+      return myDelegate.accept(visitor);
     }
 
     @Override

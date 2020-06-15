@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
+
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -31,13 +34,7 @@ import java.awt.*;
 
 public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
-  private final Project myProject;
-  private boolean myShow;
-
-  public StringResourceEditorNotificationProvider(@NotNull Project project) {
-    myProject = project;
-    myShow = true;
-  }
+  private boolean myHide;
 
   @NotNull
   @Override
@@ -47,25 +44,17 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
 
   @Nullable
   @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!myShow || !StringResourceEditorProvider.canViewTranslations(myProject, file)) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
+    if (myHide || !canViewTranslations(project, file)) {
       return null;
     }
 
     final InfoPanel panel = new InfoPanel();
     panel.setText("Edit translations for all locales in the translations editor.");
-    panel.createActionLabel("Open editor", new Runnable() {
-      @Override
-      public void run() {
-        StringResourceEditorProvider.openEditor(myProject, file);
-      }
-    });
-    panel.createActionLabel("Hide notification", new Runnable() {
-      @Override
-      public void run() {
-        panel.setVisible(false);
-        myShow = false;
-      }
+    panel.createActionLabel("Open editor", () -> openEditor(project, file));
+    panel.createActionLabel("Hide notification", () -> {
+      panel.setVisible(false);
+      myHide = true;
     });
     return panel;
   }

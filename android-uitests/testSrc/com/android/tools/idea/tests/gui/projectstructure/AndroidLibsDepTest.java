@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -78,20 +82,20 @@ public class AndroidLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesWithMultiAndroidLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
 
     DependenciesTestUtil.createAndroidLibrary(ideFrame, LIB_NAME_1);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "IMPLEMENTATION");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "implementation");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_1, DependenciesTestUtil.CLASS_NAME_1);
 
     createAndroidLibrary(ideFrame, LIB_NAME_2);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "API");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, LIB_NAME_1, LIB_NAME_2);
   }
 
-  private void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
+  static private void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                     @NotNull String moduleName) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToAndroidLibrary()

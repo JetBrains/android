@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -112,6 +113,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
   @Nullable
   public abstract ListenableFuture<BufferedImage> toImage();
 
+  @UiThread
   @Override
   @NotNull
   public PersistentState getState() {
@@ -124,12 +126,16 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
     return state;
   }
 
+  @UiThread
   @Override
   public void loadState(@NotNull PersistentState state) {
     myTrimmed.set(state.get(TRIMMED_PROPERTY, false));
     myPaddingPercent.set(state.get(PADDING_PERCENT_PROPERTY, 0));
     myScalingPercent.set(state.get(SCALING_PERCENT_PROPERTY, 100));
-    myColor.setNullableValue(state.getDecoded(COLOR_PROPERTY, rgb -> ColorUtil.fromHex(rgb)));
+    Color color = state.getDecoded(COLOR_PROPERTY, rgb -> ColorUtil.fromHex(rgb));
+    if (color != null) {
+      myColor.setValue(color);
+    }
     myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
   }
 }

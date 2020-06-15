@@ -25,7 +25,8 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.BaseComponent;
+import com.intellij.openapi.application.PreloadingActivity;
+import com.intellij.openapi.progress.ProgressIndicator;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.PropertyKey;
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
  */
-public class AndroidStudioSystemHealthMonitor implements BaseComponent {
+public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
   public static final HProfDatabase ourHProfDatabase = new HProfDatabase(
           Paths.get(PathManager.getTempPath()));
 
@@ -42,6 +43,11 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
   // The group should be registered by SystemHealthMonitor
   private final NotificationGroup myGroup = NotificationGroup.findRegisteredGroup("System Health");
+
+  @Override
+  public void preload(@NotNull ProgressIndicator indicator) {
+
+  }
 
   public static @Nullable
   AndroidStudioSystemHealthMonitor getInstance() {
@@ -82,21 +88,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
    * Gets an action name based on its class. For Android Studio code, we use simple names for plugins we use canonical names.
    */
   static String getActionName(@NotNull Class actionClass, @NotNull Presentation templatePresentation) {
-    Class currentClass = actionClass;
-    while (currentClass.isAnonymousClass()) {
-      currentClass = currentClass.getEnclosingClass();
-    }
-    String packageName = currentClass.getPackage().getName();
-    if (packageName.startsWith("com.android.") || packageName.startsWith("com.intellij.") || packageName.startsWith("org.jetbrains.") ||
-        packageName.startsWith("or.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
-
-      String actionName = currentClass.getSimpleName();
-      // ExecutorAction points to many different Run/Debug actions, we use the template text to distinguish.
-      if (actionName.equals("ExecutorAction")) {
-        actionName += "#" + templatePresentation.getText();
-      }
-      return actionName;
-    }
-    return currentClass.getCanonicalName();
+    return null;
   }
 }

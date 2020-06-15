@@ -57,15 +57,11 @@ import com.mxgraph.swing.util.mxGraphTransferable;
 import com.mxgraph.swing.view.mxInteractiveCanvas;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
-import java.awt.BorderLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 class ModuleVariantsInfoGraph extends DialogWrapper {

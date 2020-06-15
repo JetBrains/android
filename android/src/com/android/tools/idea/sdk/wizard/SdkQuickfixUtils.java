@@ -45,7 +45,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import java.awt.Component;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

@@ -29,7 +29,8 @@ import org.jetbrains.annotations.NotNull;
  * Base class for the external native build models like {@link CMakeModelImpl} and {@link NdkBuildModelImpl}.
  */
 public abstract class AbstractBuildModelImpl extends GradleDslBlockModel implements AbstractBuildModel {
-  @NonNls private static final String PATH = "path";
+  @NonNls public static final String PATH = "mPath";
+  // TODO(xof): support buildStagingPath here
 
   protected AbstractBuildModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
     super(dslElement);
@@ -38,6 +39,6 @@ public abstract class AbstractBuildModelImpl extends GradleDslBlockModel impleme
   @Override
   @NotNull
   public ResolvedPropertyModel path() {
-    return GradlePropertyModelBuilder.create(myDslElement, PATH).asMethod(true).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
+    return getFileModelForProperty(PATH);
   }
 }

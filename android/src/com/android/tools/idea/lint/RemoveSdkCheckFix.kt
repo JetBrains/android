@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint
 
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  * Removes an obsolete if-SDK_INT check. This is only handling Kotlin code since for Java
  * we reuse the builtin SimplifyBooleanExpressionFix check.
  */
-class RemoveSdkCheckFix(var removeThen: Boolean) : AndroidLintQuickFix {
+class RemoveSdkCheckFix(var removeThen: Boolean) : LintIdeQuickFix {
 
   override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     val ifExpression = findSdkConditional(startElement) ?: return
@@ -59,7 +59,8 @@ class RemoveSdkCheckFix(var removeThen: Boolean) : AndroidLintQuickFix {
       else {
         parent.addBefore(keep, ifExpression)
       }
-    } else {
+    }
+    else {
     }
     ifExpression.delete()
   }

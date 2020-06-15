@@ -37,6 +37,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -52,6 +53,8 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -201,7 +204,9 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
           JBLabel name = new JBLabel(flag.getDisplayName());
           name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
-          name.setToolTipText(flag.getId());
+
+          JBLabel id = new JBLabel("(" + flag.getId() + ")");
+          id.setFont(EditorUtil.getEditorFont());
 
           JTextArea description = new JTextArea(flag.getDescription());
           description.setFont(UIUtil.getLabelFont());
@@ -226,7 +231,10 @@ public final class StudioFlagsDialog extends DialogWrapper {
           flagEditorPanel.add(flagEditor.editorComponent());
           flagEditorPanel.add(resetLink);
 
-          flagPanel.add(name);
+          JPanel namePanel = new JPanel(new HorizontalLayout(JBUI.scale(UIUtil.DEFAULT_HGAP)));
+          namePanel.add(name);
+          namePanel.add(id);
+          flagPanel.add(namePanel);
           flagPanel.add(description);
           flagPanel.add(flagEditorPanel);
           groupPanel.add(flagPanel);
@@ -252,6 +260,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
   private static boolean showFlag(@NotNull Flag<?> flag, @Nullable String searchText) {
     return StringUtil.isEmptyOrSpaces(searchText) ||
+           StringUtil.containsIgnoreCase(flag.getId(), searchText) ||
            StringUtil.containsIgnoreCase(flag.getDisplayName(), searchText) ||
            StringUtil.containsIgnoreCase(flag.getDescription(), searchText);
   }

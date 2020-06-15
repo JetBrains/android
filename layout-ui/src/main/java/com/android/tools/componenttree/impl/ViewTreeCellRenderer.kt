@@ -68,6 +68,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.tagName = type.tagNameOf(node).substringAfterLast('.')
     renderer.textValue = type.textValueOf(node)
     renderer.treeIcon = type.iconOf(node)
+    renderer.enabledValue = type.isEnabled(node)
 
     renderer.generate()
     return renderer
@@ -88,6 +89,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var tagName = ""
     var textValue: String? = null
     var treeIcon: Icon? = null
+    var enabledValue = true
+
     private val baseFontMetrics = getFontMetrics(UIUtil.getLabelFont())
     private val boldFontMetrics = getFontMetrics(deriveFont(UIUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
 
@@ -134,16 +137,18 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       clear()
       icon = treeIcon
       toolTipText = generateTooltip()
-      if (!append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, boldFontMetrics, maxWidth)) {
+      var attributes = if (!enabledValue) SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES else SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
+      if (!append(id, attributes, boldFontMetrics, maxWidth)) {
         return
       }
       if (id == null || textValue.isNullOrEmpty()) {
         val tagText = if (id != null) " - $tagName" else tagName
-        if (!append(tagText, SimpleTextAttributes.REGULAR_ATTRIBUTES, baseFontMetrics, maxWidth)) {
+        attributes = if (!enabledValue) SimpleTextAttributes.GRAYED_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES
+        if (!append(tagText, attributes, baseFontMetrics, maxWidth)) {
           return
         }
       }
-      val attributes = if (!selectedValue) SimpleTextAttributes.GRAYED_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES
+      attributes = if (!selectedValue || !enabledValue) SimpleTextAttributes.GRAYED_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES
       textValue?.nullize()?.let { append(" - \"$it\"", attributes, baseFontMetrics, maxWidth) }
     }
 

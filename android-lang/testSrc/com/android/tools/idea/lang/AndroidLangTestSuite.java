@@ -28,6 +28,7 @@ public class AndroidLangTestSuite extends IdeaTestSuiteBase {
       "prebuilts/studio/sdk",
       "tools/adt/idea/android-lang/testData",
       "tools/adt/idea/android/annotations",
+      "tools/adt/idea/android/testData",
       "tools/base/templates",
       "tools/idea/java"); // For the mock JDK.
   }

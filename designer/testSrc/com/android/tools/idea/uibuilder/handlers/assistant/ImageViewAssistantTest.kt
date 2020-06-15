@@ -42,7 +42,6 @@ class ImageViewAssistantTest {
     val rule = AndroidProjectRule.inMemory()
   }
 
-
   @Test
   fun uiState() {
     val nlComponent = Mockito.mock(NlComponent::class.java)
@@ -61,8 +60,8 @@ class ImageViewAssistantTest {
         toolSrc = value
       }
     }
-    val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent, {}),
-                                       imageHandler)
+
+    val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent, {}), imageHandler)
     val content = assistant.component.content
     val useAllCheckBox = UIUtil.findComponentOfType(content, JCheckBox::class.java)!!
     val sampleSetComboBox = UIUtil.findComponentOfType(content, JComboBox::class.java)!!
@@ -73,13 +72,12 @@ class ImageViewAssistantTest {
     assertThat(useAllCheckBox.isEnabled).isFalse()
     assertThat(sampleResourceList.isEnabled).isFalse()
 
-
     sampleSetComboBox.selectedIndex = 1
     assertThat(sampleSetComboBox.selectedIndex).isEqualTo(1)
     assertThat(useAllCheckBox.isEnabled).isTrue()
     assertThat(useAllCheckBox.isSelected).isTrue()
     assertThat(sampleResourceList.isEnabled).isFalse()
-    assertThat(toolSrc).isEqualTo("@tools:sample/backgrounds/scenic")
+    assertThat(toolSrc).isEqualTo("@tools:sample/avatars")
 
     useAllCheckBox.isSelected = false
     assertThat(sampleSetComboBox.selectedIndex).isEqualTo(1)
@@ -87,7 +85,7 @@ class ImageViewAssistantTest {
     assertThat(useAllCheckBox.isSelected).isFalse()
     assertThat(sampleResourceList.isEnabled).isTrue()
     assertThat(sampleResourceList.selectedIndex).isEqualTo(0)
-    assertThat(toolSrc).isEqualTo("@tools:sample/backgrounds/scenic[0]")
+    assertThat(toolSrc).isEqualTo("@tools:sample/avatars[0]")
 
     sampleSetComboBox.selectedIndex = 2
     assertThat(sampleSetComboBox.selectedIndex).isEqualTo(2)
@@ -95,7 +93,7 @@ class ImageViewAssistantTest {
     assertThat(useAllCheckBox.isSelected).isFalse()
     assertThat(sampleResourceList.isEnabled).isTrue()
     assertThat(sampleResourceList.selectedIndex).isEqualTo(0)
-    assertThat(toolSrc).isEqualTo("@tools:sample/avatars[0]")
+    assertThat(toolSrc).isEqualTo("@tools:sample/backgrounds/scenic[0]")
 
     useAllCheckBox.isSelected = true
     assertThat(sampleSetComboBox.selectedIndex).isEqualTo(2)
@@ -103,7 +101,7 @@ class ImageViewAssistantTest {
     assertThat(useAllCheckBox.isSelected).isTrue()
     assertThat(sampleResourceList.isEnabled).isFalse()
     assertThat(sampleResourceList.selectedIndex).isEqualTo(-1)
-    assertThat(toolSrc).isEqualTo("@tools:sample/avatars")
+    assertThat(toolSrc).isEqualTo("@tools:sample/backgrounds/scenic")
 
     sampleSetComboBox.selectedIndex = 0
     assertThat(sampleSetComboBox.selectedIndex).isEqualTo(0)

@@ -16,6 +16,8 @@
 package com.android.tools.idea.lint
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder
 import com.intellij.codeInspection.JavaSuppressionUtil
@@ -34,8 +36,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilBase
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurrounder
@@ -56,7 +56,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /** Fix which surrounds an API warning with a version check  */
-class AddTargetVersionCheckQuickFix(private val api: Int) : AndroidLintQuickFix {
+class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
 
   override fun getName(): String {
     return "Surround with if (VERSION.SDK_INT >= VERSION_CODES.${getVersionField(api, false)}) { ... }"
@@ -75,7 +75,7 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : AndroidLintQuickFix 
         val expression = PsiTreeUtil.getParentOfType(startElement, PsiExpression::class.java, false)
         expression != null
       }
-      KotlinLanguage.INSTANCE ->  {
+      KotlinLanguage.INSTANCE -> {
         getKotlinTargetExpression(startElement) != null
       }
       else -> false

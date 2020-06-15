@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 class EventsLimiter(private val eventCount : Int,
                     private val periodMs : Long,
-                    private val singleShotOnly : Boolean,
+                    private val manualReset : Boolean,
                     private val timeProvider : () -> Long = { TimeUnit.NANOSECONDS.toMillis(System.nanoTime())})
 {
   private val LOCK = Object()
@@ -47,7 +47,7 @@ class EventsLimiter(private val eventCount : Int,
       if (currentTimeMs - timeMs >= periodMs) {
         return false
       }
-      if (singleShotOnly) {
+      if (manualReset) {
         disabled = true
       }
       queue.clear()
@@ -59,7 +59,15 @@ class EventsLimiter(private val eventCount : Int,
     synchronized(LOCK) {
       val result = disabled
       disabled = true
+      queue.clear()
       return result
+    }
+  }
+
+  fun reset() {
+    synchronized(LOCK) {
+      disabled = false
+      queue.clear()
     }
   }
 }

@@ -16,21 +16,20 @@
 package com.android.tools.idea.transport.poller
 
 
-import com.google.common.truth.Truth.assertThat
-import junit.framework.TestCase.fail
-
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import junit.framework.TestCase.fail
+import org.junit.Rule
+import org.junit.Test
 import java.util.ArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import org.junit.Rule
-import org.junit.Test
 
 private const val TIMEOUT_MILLISECONDS: Long = 10000
 
@@ -41,6 +40,11 @@ class TransportEventPollerTest {
 
   @get:Rule
   val grpcServer = FakeGrpcServer.createFakeGrpcServer("TransportEventPollerTestChannel", transportService, transportService)!!
+
+  private fun generateEchoEvent(ts: Long) = Common.Event.newBuilder()
+    .setTimestamp(ts)
+    .setKind(Common.Event.Kind.ECHO)
+    .build()
 
   /**
    * Tests that a newly created listener with already-connected device+process
@@ -167,42 +171,47 @@ class TransportEventPollerTest {
     val transportClient = TransportClient(grpcServer.name)
     val transportEventPoller = TransportEventPoller.createPoller(
       transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250))
+      TimeUnit.MILLISECONDS.toNanos(250)
+    )
 
     // First event exists before listener is registered
-    val echoEvent = Common.Event.newBuilder()
-      .setTimestamp(0)
-      .setKind(Common.Event.Kind.ECHO)
-      .build()
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvent)
+    val echoEvents = mutableListOf<Common.Event>()
+    echoEvents.add(generateEchoEvent(0))
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvents[0])
 
     // Create listener for ECHO event that should remove itself after 3 callbacks.
     val eventLatch1 = CountDownLatch(3)
     var receivedEventsCount1 = 0;
-    val echoListener1 = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
-                                               startTime = { 0L },
-                                               endTime = { 1L },
-                                               callback = { event ->
-                                                 assertThat(event).isEqualTo(echoEvent)
-                                                 // Update count before countDown() which could trigger await() immediately
-                                                 receivedEventsCount1++
-                                                 eventLatch1.countDown()
-                                                 eventLatch1.count == 0L
-                                               },
-                                               executor = MoreExecutors.directExecutor())
+    val echoListener1 = TransportEventListener(
+      eventKind = Common.Event.Kind.ECHO,
+      startTime = { 0L },
+      endTime = { 3L },
+      callback = { event ->
+        assertThat(event).isEqualTo(echoEvents[receivedEventsCount1])
+        // Update count before countDown() which could trigger await() immediately
+        receivedEventsCount1++
+        eventLatch1.countDown()
+        eventLatch1.count == 0L
+      },
+      executor = MoreExecutors.directExecutor()
+    )
     val eventLatch2 = CountDownLatch(5)
     var receivedEventsCount2 = 0;
-    val echoListener2 = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
-                                               startTime = { 0L },
-                                               endTime = { 1L },
-                                               callback = { event ->
-                                                 assertThat(event).isEqualTo(echoEvent)
-                                                 // Update count before countDown() which could trigger await() immediately
-                                                 receivedEventsCount2++
-                                                 eventLatch2.countDown()
-                                                 false
-                                               },
-                                               executor = MoreExecutors.directExecutor())
+    val echoListener2 = TransportEventListener(
+      eventKind = Common.Event.Kind.ECHO,
+      startTime = { 0L },
+      endTime = { 5L },
+      callback = { event ->
+        assertThat(event).isEqualTo(echoEvents[receivedEventsCount2])
+        // Update count before countDown() which could trigger await() immediately
+        receivedEventsCount2++
+        eventLatch2.countDown()
+        echoEvents.add(generateEchoEvent(receivedEventsCount2.toLong()))
+        transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvents[receivedEventsCount2])
+        false
+      },
+      executor = MoreExecutors.directExecutor()
+    )
     transportEventPoller.registerListener(echoListener1)
     transportEventPoller.registerListener(echoListener2)
 
@@ -210,8 +219,7 @@ class TransportEventPollerTest {
     try {
       eventLatch1.await()
       eventLatch2.await()
-    }
-    catch (e: InterruptedException) {
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
@@ -219,6 +227,47 @@ class TransportEventPollerTest {
     // we should have stopped triggering the callback after 3 counts.
     assertThat(receivedEventsCount1).isEqualTo(3)
     assertThat(receivedEventsCount2).isEqualTo(5)
+  }
+
+  @Test
+  fun pollerTracksEventListenerTimestamp() {
+    val transportClient = TransportClient(grpcServer.name)
+    val transportEventPoller = TransportEventPoller.createPoller(
+      transportClient.transportStub,
+      TimeUnit.MILLISECONDS.toNanos(250)
+    )
+
+    val latch1 = CountDownLatch(1)
+    val latch2 = CountDownLatch(1)
+    var eventsSeen = 0
+    TransportEventListener(
+      eventKind = Common.Event.Kind.ECHO,
+      startTime = { 0L },
+      callback = {
+        if (it.timestamp == 10L) {
+          eventsSeen ++
+          latch1.countDown()
+        } else if (it.timestamp == 20L) {
+          eventsSeen ++
+          latch2.countDown()
+        }
+        false
+      },
+      executor = MoreExecutors.directExecutor()
+    ).also { transportEventPoller.registerListener(it) }
+
+    // Add event with timestamp 10
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(10))
+    latch1.await()
+
+    // Add event with timestamp 5. This shouldn't be picked up by poller because last seen event was ts=10.
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(5))
+
+    // Add event with timestamp 20
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(20))
+    latch2.await()
+
+    assertThat(eventsSeen).isEqualTo(2)
   }
 
   /**

@@ -19,14 +19,17 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.M
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
@@ -157,12 +160,12 @@ public class MotionSceneTag implements MTag {
   public String getTreeId() {
     switch (getTagName()) {
       case Tags.CONSTRAINTSET:
-        return getAttributeValue(ATTR_ANDROID_ID);
+        return Utils.stripID(getAttributeValue(ATTR_ANDROID_ID));
       case Tags.TRANSITION:
         return String.format("%1$s|%2$s|%3$s",
-                             getAttributeValue(ATTR_ANDROID_ID),
-                             getAttributeValue(ATTR_CONSTRAINTSET_START),
-                             getAttributeValue(ATTR_CONSTRAINTSET_END));
+                             Utils.stripID(getAttributeValue(ATTR_ANDROID_ID)),
+                             Utils.stripID(getAttributeValue(ATTR_CONSTRAINTSET_START)),
+                             Utils.stripID(getAttributeValue(ATTR_CONSTRAINTSET_END)));
       case Tags.KEY_ATTRIBUTE:
       case Tags.KEY_POSITION:
       case Tags.KEY_CYCLE:
@@ -274,17 +277,10 @@ public class MotionSceneTag implements MTag {
     out.print("\n" + space + "<" + getTagName());
     for (XmlAttribute value : myXmlTag.getAttributes()) {
       out.print(
-        "\n" + space + "   " + value.getNamespacePrefix() + ":" + value.getName() + "=\"" + value.getValue()
+        "\n" + space + "   " + value.getName() + "=\"" + value.getValue()
         + "\"");
       String ret = "  ";
-      ret +=  " getValue() = "+value.getValue();
-      ret +=  " getNamespacePrefix() = "+value.getNamespacePrefix();
-      ret +=  " getNamespace() = "+value.getNamespace();
-      ret +=  " getName() = "+value.getName();
-      ret +=  " getValue() = "+value.getLocalName();
-      ret +=  " getValue() = "+value.getDisplayValue();
-      System.out.print(ret);
-    }
+     }
     out.println(" >");
 
     for (MTag child : myChildren) {
@@ -299,9 +295,14 @@ public class MotionSceneTag implements MTag {
     return mParent;
   }
 
-  @Override
-  public void deleteTag() {
-    // TODO WE NEED THE ABILITY TO DELETE TAGS
+  private static MotionSceneTag.Root getRoot(MotionSceneTag tag) {
+    while (!(tag instanceof MotionSceneTag.Root)) {
+      tag = tag.mParent;
+      if (tag == null) {
+        return null;
+      }
+    }
+    return (MotionSceneTag.Root)tag;
   }
 
   @Override
@@ -326,11 +327,13 @@ public class MotionSceneTag implements MTag {
     return new MotionSceneTagWriter(this);
   }
 
-  static class Root extends MotionSceneTag {
+  public static class Root extends MotionSceneTag {
     Project mProject;
     VirtualFile mVirtualFile;
     XmlFile mXmlFile;
     NlModel mModel;
+    Track myTrack = null;
+
     public Root(XmlTag tag, Project project,
                 VirtualFile virtualFile,
                 XmlFile file,NlModel model) {
@@ -342,14 +345,31 @@ public class MotionSceneTag implements MTag {
     }
   }
 
+  /**
+   * Parse a tree and have a track;
+   * @param motionLayout
+   * @param project
+   * @param virtualFile
+   * @param file
+   * @param track
+   * @return
+   */
+  public static MotionSceneTag.Root parse(NlComponent motionLayout,
+                                          Project project,
+                                          VirtualFile virtualFile,
+                                          XmlFile file,
+                                          Track track) {
+    MotionSceneTag.Root root =  parse(motionLayout,project,virtualFile,file);
+    root.myTrack = track;
+    return root;
+  }
 
-  public static MotionSceneTag parse(NlComponent motionLayout,
+  public static MotionSceneTag.Root parse(NlComponent motionLayout,
                                      Project project,
                                      VirtualFile virtualFile,
                                      XmlFile file) {
     NlModel model = motionLayout.getModel();
 
-    MotionSceneTag motionSceneModel = new Root(file.getRootTag(), project, virtualFile, file, model);
-    return motionSceneModel;
+    return new Root(file.getRootTag(), project, virtualFile, file, model);
   }
 }

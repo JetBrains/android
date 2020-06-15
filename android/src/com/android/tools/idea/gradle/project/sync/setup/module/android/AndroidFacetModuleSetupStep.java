@@ -15,26 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.io.File;
-import java.util.Collection;
-
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
+import com.android.builder.model.SourceProvider;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.model.AndroidModel;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import java.io.File;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
@@ -45,7 +49,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     Module module = context.getModule();
     IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
 
-    AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
+    AndroidFacet facet = ideModelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID);
     if (facet == null) {
       facet = createAndAddFacet(module, ideModelsProvider);
     }
@@ -62,7 +66,8 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidModuleModel androidModel) {
-    JpsAndroidModuleProperties facetProperties = facet.getProperties();
+    AndroidFacetProperties facetProperties = facet.getProperties();
+    //noinspection deprecation  This is one of legitimate assignments to this property.
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
     facetProperties.PROJECT_TYPE = androidModel.getAndroidProject().getProjectType();
@@ -73,12 +78,35 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     facetProperties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.getResDirectories());
     facetProperties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.getAssetsDirectories());
 
+    facetProperties.RES_FOLDERS_RELATIVE_PATH =
+      Stream.concat(
+        androidModel
+          .getActiveSourceProviders()
+          .stream()
+          .flatMap(provider -> provider.getResDirectories().stream()),
+        androidModel.getMainArtifact().getGeneratedResourceFolders().stream()
+      )
+        .map(it -> VfsUtilCore.pathToUrl(it.getAbsolutePath()))
+        .collect(Collectors.joining(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION));
+
+    IdeAndroidArtifact androidTestArtifact = androidModel.getArtifactForAndroidTest();
+    facetProperties.TEST_RES_FOLDERS_RELATIVE_PATH =
+      Stream.concat(
+        androidModel
+          .getTestSourceProviders()
+          .stream()
+          .flatMap(provider -> provider.getResDirectories().stream()),
+        androidTestArtifact != null ? androidTestArtifact.getGeneratedResourceFolders().stream() : Stream.empty()
+      )
+        .map(it -> VfsUtilCore.pathToUrl(it.getAbsolutePath()))
+        .collect(Collectors.joining(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION));
+
     syncSelectedVariant(facetProperties, androidModel);
-    facet.setModel(androidModel);
+    AndroidModel.set(facet, androidModel);
     androidModel.syncSelectedVariantAndTestArtifact(facet);
   }
 
-  private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetProperties,
+  private static void syncSelectedVariant(@NotNull AndroidFacetProperties facetProperties,
                                           @NotNull AndroidModuleModel androidModel) {
     String variantStoredInFacet = facetProperties.SELECTED_BUILD_VARIANT;
     if (isNotEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {

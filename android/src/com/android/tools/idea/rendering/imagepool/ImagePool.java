@@ -78,10 +78,46 @@ public interface ImagePool {
    */
   public void dispose();
 
+  /**
+   * Interface for bucket specific stats
+   */
+  interface BucketStats {
+    int getMinWidth();
+    int getMinHeight();
+    int maxSize();
+
+    /**
+     * Returns the last time the bucket was accessed in milliseconds.
+     */
+    long getLastAccessTimeMs();
+
+    /**
+     * Returns the number of times this bucket contained an image that was reused.
+     */
+    long bucketHits();
+
+    /**
+     * Returns the number of times this bucket was empty when an image from it was needed.
+     */
+    long bucketMisses();
+
+    /**
+     * Returns the number of times we had an image that was freed but could not be returned to this bucket.
+     */
+    long bucketWasFull();
+
+    /**
+     * Returns the number of times we had an image that was returned to this bucket.
+     */
+    long imageWasReturned();
+  }
+
   interface Stats {
     long totalBytesAllocated();
 
     long totalBytesInUse();
+
+    BucketStats[] getBucketStats();
   }
 
   /**

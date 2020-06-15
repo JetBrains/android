@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -36,9 +33,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -79,21 +74,6 @@ public class GradleUtilTest {
   public void getPathSegmentsWithEmptyString() {
     List<String> pathSegments = GradleUtil.getPathSegments("");
     assertEquals(0, pathSegments.size());
-  }
-
-  @Test
-  public void getGradleBuildFilePath() {
-    myTempDir = Files.createTempDir();
-    File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
-    assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
-  }
-
-  @Test
-  public void getKtsGradleBuildFilePath() throws IOException {
-    myTempDir = createTempDir();
-    File ktsBuildFilePath = new File(myTempDir, FN_BUILD_GRADLE_KTS);
-    writeToFile(ktsBuildFilePath, "");
-    assertEquals(ktsBuildFilePath, GradleUtil.getGradleBuildFilePath(myTempDir));
   }
 
   @Test

@@ -19,13 +19,12 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.StudioMonitorStageView;
+import com.android.tools.profilers.StageView;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class NetworkMonitorTooltipView extends ProfilerMonitorTooltipView<NetworkMonitor> {
-  public NetworkMonitorTooltipView(StudioMonitorStageView parent, @NotNull NetworkMonitorTooltip tooltip) {
+  public NetworkMonitorTooltipView(StageView parent, @NotNull NetworkMonitorTooltip tooltip) {
     super(tooltip.getMonitor());
   }
 

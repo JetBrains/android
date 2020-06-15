@@ -27,6 +27,7 @@ import java.awt.*;
 /**
  * Base class for the first run wizard steps. Ensures consistent look and
  * feel for the pages.
+ * @deprecated use {@link com.android.tools.idea.wizard.model.ModelWizardStep}
  */
 public abstract class FirstRunWizardStep extends DynamicWizardStep {
   public static final String SETUP_WIZARD = "Setup Wizard";
@@ -75,7 +76,7 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
     return myComponent;
   }
 
-  // This is here for legacy
+  @Deprecated
   protected final void setComponent(@NotNull JComponent component) {
     int inset = WizardConstants.STUDIO_WIZARD_TOP_INSET * 2;
     component.setBorder(BorderFactory.createEmptyBorder(inset, inset, inset, inset));

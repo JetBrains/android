@@ -34,9 +34,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSys
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL
-import com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion
-import com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion
-import com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes
+import com.android.tools.idea.gradle.util.GradleUtil.*
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -148,12 +146,6 @@ open class GradleSyncState @NonInjectable internal constructor (
     fun isSingleVariantSync(): Boolean {
       return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() || GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC
     }
-
-    // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
-    // activate Compound Sync if Single Variant Sync is also enabled.
-    @JvmStatic
-    fun isCompoundSync(): Boolean =
-      StudioFlags.BUILD_AFTER_SYNC_ENABLED.get() && StudioFlags.COMPOUND_SYNC_ENABLED.get() && isSingleVariantSync()
 
     @JvmStatic
     fun isLevel4Model(): Boolean = StudioFlags.L4_DEPENDENCY_MODEL.get()
@@ -381,18 +373,6 @@ open class GradleSyncState @NonInjectable internal constructor (
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED)
   }
 
-  /**
-   * Triggered when source generation has been completed. This may be before OR after the sync has finished.
-   */
-  open fun sourceGenerationFinished() {
-    val sourceGenerationEndTimeStamp = System.currentTimeMillis()
-    sourceGenerationEndedTimeStamp = sourceGenerationEndTimeStamp
-
-    LOG.info("Finished source generation of project '${project.name}'.")
-    syncPublisher { sourceGenerationFinished(project) }
-    // TODO: add metric to UsageTracker
-  }
-
   /*
    * END GradleSyncListener methods
    */
@@ -529,11 +509,11 @@ open class GradleSyncState @NonInjectable internal constructor (
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     val message = """
-      Android Studio and Gradle are using different locations for the JDK.
-      Android Studio: ${ideSdks.jdkPath}
-      Gradle: ${IdeSdks.getJdkFromJavaHome()}
-      Using different JDK locations might cause Gradle to spawn multiple daemons
-      when executing tasks for Android Studio and other external processes.
+      Android Studio is using the following JDK location when running Gradle:
+      ${ideSdks.jdkPath}
+      Using different JDK locations on different processes might cause Gradle to
+      spawn multiple daemons, for example, by executing Gradle tasks from a terminal
+      while using Android Studio.
     """.trimIndent()
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
@@ -617,8 +597,6 @@ open class GradleSyncState @NonInjectable internal constructor (
   }
 
   private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
-    // Check in implied order (Compound requires SVS requires New Sync)
-    isCompoundSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_COMPOUND
     isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
     else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
   }

@@ -39,11 +39,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 /**

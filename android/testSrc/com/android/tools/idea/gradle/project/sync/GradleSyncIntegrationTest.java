@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY;
 import static com.android.tools.idea.testing.TestProjectPaths.CUSTOM_BUILD_SCRIPT_DEPS;
@@ -34,6 +35,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
@@ -48,6 +50,7 @@ import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -60,6 +63,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,20 +76,23 @@ import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.TestGradleSyncListener;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
@@ -103,6 +110,7 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -110,6 +118,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -119,6 +128,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.LeakHunter;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -136,6 +146,8 @@ import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -165,11 +177,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      // TODO(b/117274283): Remove when upgrading to Kotlin 1.3.30, or whichever version fixes KT-30076
-      if ("syncWithKotlinDsl".equals(getTestName(true))) {
-        return;
-      }
-
       // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
       Object model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
       if (model != null) {
@@ -184,11 +191,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
     return false;
   }
 
@@ -482,26 +484,19 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertThat(sourceFolderPaths).isNotEmpty();
   }
 
-  public void testGradleSyncActionAfterFailedSync() {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
+  public void testGradleSyncActionAfterFailedSync() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "**error***");
+    requestSyncAndGetExpectedFailure();
 
     SyncProjectAction action = new SyncProjectAction();
-
     Presentation presentation = new Presentation();
     presentation.setEnabledAndVisible(false);
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getPresentation()).thenReturn(presentation);
     when(event.getProject()).thenReturn(getProject());
-
-    assertFalse(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
-    action.update(event);
-    assertFalse(presentation.isEnabledAndVisible());
-
-    Module app = createModule("app");
-    createAndAddGradleFacet(app);
-
-    assertTrue(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
     action.update(event);
     assertTrue(presentation.isEnabledAndVisible());
   }
@@ -614,6 +609,22 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
     }
   }
+
+  /* TODO(b/142753914): GradleSyncIntegrationTest.testWithKotlinMpp fails with Kotlin version 1.3.60-withExperimentalGoogleExtensions-20191014
+  public void testWithKotlinMpp() throws Exception {
+    loadProject(KOTLIN_MPP);
+
+    // Verify that 7 modules are created.
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertSize(7, modules);
+
+    // Verify module names are as expected.
+    List<String> moduleNames = Arrays.stream(modules).map(Module::getName).collect(toList());
+    List<String> expectedModuleNames = asList("kotlinMpp", "app", "app_commonMain", "app_commonTest",
+                                              "shared", "shared_commonMain", "shared_commonTest");
+    assertThat(moduleNames).containsExactlyElementsIn(expectedModuleNames);
+  }
+  */
 
   public void testSyncGetsGradlePluginModel() throws Exception {
     loadProject(SIMPLE_APPLICATION);
@@ -742,12 +753,10 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
     when(taskId.findProject()).thenReturn(project);
 
-/* b/137231583
     // Verify that the task "help" can be found and executed.
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
                                                            new ExternalSystemTaskNotificationListenerAdapter() {
                                                            }));
-b/137231583 */
   }
 
   public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
@@ -830,25 +839,18 @@ b/137231583 */
     assertEquals(finishIdCaptor.getValue(), startIdCaptor.getValue());
   }
 
-  public void testContentRootDataNodeWithBuildSrcModule() throws Exception {
-    loadSimpleApplication();
-
-    // Create buildSrc folder under root project.
-    File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    File buildFile = new File(buildSrcDir, "build.gradle");
-    writeToFile(buildFile, "repositories {}");
-
-    // Request Gradle sync.
-    requestSyncAndWait();
+  public void testSyncWithBuildSrcModule() throws Exception {
+    loadProject(APP_WITH_BUILDSRC);
 
     // Verify that buildSrc modules exists.
-    Module buildSrcModule = getModule("buildSrc");
+    Module buildSrcModule = getModule(getName() + "_buildSrc");
     assertNotNull(buildSrcModule);
     DataNode<ModuleData> moduleData = GradleUtil.findGradleModuleData(buildSrcModule);
     assertNotNull(moduleData);
 
     // Verify that ContentRootData DataNode is created for buildSrc module.
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
+    File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
     if (isModulePerSourceSet()) {
       String buildSrcDirPath = buildSrcDir.getPath();
       assertThat(ContainerUtil.map(contentRootData, e -> e.getData().getRootPath())).containsExactly(
@@ -864,6 +866,10 @@ b/137231583 */
       assertThat(contentRootData).hasSize(1);
       assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
     }
+
+    // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
+    Module lib1Module = getModule(getName() + "_lib1");
+    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getName() + "_lib2", DependencyScope.COMPILE, true);
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
@@ -879,6 +885,22 @@ b/137231583 */
 
     // Check that the new option is visible from the IDE.
     assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+  }
+
+  public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
+    loadSimpleApplication();
+
+    // Default option value should be true (at least at the moment)
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
+
+    // explicitly set the option
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid { dependenciesInfo { includeInApk false\nincludeInBundle false } }");
+    requestSyncAndWait();
+
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
   }
 
   public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
@@ -902,7 +924,67 @@ b/137231583 */
     assertTrue(appModel.isKaptEnabled());
 
     GradleModuleModel rootModel = GradleFacet.getInstance(getModule("lib")).getGradleModuleModel();
-    assertFalse(rootModel.isKaptEnabled());
+    assertTrue(rootModel.isKaptEnabled());
+  }
+
+  public void testKaptIsNotEnabled() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+
+    GradleModuleModel appModel = GradleFacet.getInstance(getModule("app")).getGradleModuleModel();
+    assertFalse(appModel.isKaptEnabled());
+  }
+
+  public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {
+    loadSimpleApplication();
+    SyncViewManager viewManager = mock(SyncViewManager.class);
+    new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
+    SimulatedSyncErrors.registerSyncErrorToSimulate(new Throwable("Fake sync error"));
+
+    requestSyncAndGetExpectedFailure();
+
+    ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
+    verify(viewManager, timeout(1000).times(3)).onEvent(any(), eventCaptor.capture());
+
+    List<BuildEvent> events = eventCaptor.getAllValues();
+    assertThat(events).hasSize(3);
+    assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
+    assertThat(events.get(2)).isInstanceOf(FinishBuildEvent.class);
+    FinishBuildEvent event = (FinishBuildEvent)events.get(2);
+    FailureResult failureResult = (FailureResult)event.getResult();
+    assertThat(failureResult.getFailures()).isNotEmpty();
+    assertThat(failureResult.getFailures().get(0).getMessage()).isEqualTo("Fake sync error");
+  }
+
+  public void testUnresolvedDependency() throws IOException {
+    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null);
+    Project project = getProject();
+    TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
+      GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+      GradleProjectImporter.getInstance().importProjectNoSync(request);
+      return AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest());
+    });
+
+    assertTrue(AndroidGradleTests.syncFailed(syncListener));
+  }
+
+  /**
+   * Verify that daemons can be stopped (b/150790550).
+   * @throws Exception
+   */
+  public void testDaemonStops() throws Exception {
+    loadSimpleApplication();
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
+    GradleDaemonServices.stopDaemons();
+    daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
+    for (DaemonState status : daemonStatus) {
+      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
+    }
+    requestSyncAndWait();
+    daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
   }
 
   @NotNull

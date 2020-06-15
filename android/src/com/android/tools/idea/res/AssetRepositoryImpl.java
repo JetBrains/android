@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -34,7 +35,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -175,7 +176,7 @@ public class AssetRepositoryImpl extends AssetRepository {
                                                     @NotNull Function<Library, String> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
       Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
-        .flatMap(f -> IdeaSourceProvider.getAllIdeaSourceProviders(f).stream())
+        .flatMap(f -> SourceProviderManager.getInstance(f).getAllSourceProviders().stream())
         .distinct()
         .map(sourceMapper)
         .flatMap(Collection::stream);

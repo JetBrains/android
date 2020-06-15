@@ -15,18 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase;
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
-import com.android.tools.idea.testing.TestMessagesDialog;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.util.SystemProperties;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-
-import java.io.File;
-import java.util.UUID;
-
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -35,6 +23,17 @@ import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+
+import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.testing.TestMessagesDialog;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.util.SystemProperties;
+import java.io.File;
+import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 /**
  * Tests for {@link GradleDistributionCleanUpTask}
@@ -54,11 +53,6 @@ public class GradleDistributionCleanUpTaskTest extends GradleSyncIntegrationTest
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
     return false;
   }
 

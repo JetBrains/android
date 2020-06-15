@@ -3,6 +3,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -33,6 +34,7 @@ import com.intellij.util.Consumer;
 import com.intellij.util.FilteredQuery;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.CustomReferenceConverter;
@@ -48,7 +50,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -59,8 +61,9 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Options {
-    @Nullable String[] inheriting();
+    String[] inheriting() default {};
     boolean completeLibraryClasses() default false;
+    boolean includeDynamicFeatures() default false;
   }
 
   /**
@@ -245,11 +248,12 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     final String manifestPackage = getManifestPackage(context);
     final String[] extendClassesNames = getClassNames(domElement);
     final boolean completeLibraryClasses = getCompleteLibraryClasses(domElement);
+    final boolean includeDynamicFeatures = getIncludeDynamicFeatures(domElement);
 
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
     VirtualFile file = element.getContainingFile().getVirtualFile();
-    final boolean isTestFile = facet != null && file != null && IdeaSourceProvider.isTestFile(facet, file);
+    final boolean isTestFile = facet != null && file != null && IdeaSourceProviderUtil.isTestFile(facet, file);
 
     if (strValue.isEmpty()) {
       return PsiReference.EMPTY_ARRAY;
@@ -270,7 +274,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
           final TextRange range = new TextRange(start + myPartStart, start + index);
           final MyReference reference =
             new MyReference(element, range, manifestPackage, myExtraBasePackages, startsWithPoint, start, myIsPackage, module,
-                            extendClassesNames, completeLibraryClasses, isTestFile);
+                            extendClassesNames, completeLibraryClasses, isTestFile, includeDynamicFeatures);
           result.add(reference);
         }
 
@@ -288,6 +292,11 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
+  private boolean getIncludeDynamicFeatures(DomElement domElement) {
+    Options options = domElement.getAnnotation(Options.class);
+    return options != null && options.includeDynamicFeatures();
+  }
+
   public boolean getCompleteLibraryClasses(@NotNull DomElement domElement) {
     Options options = domElement.getAnnotation(Options.class);
     return options != null ? options.completeLibraryClasses() : myCompleteLibraryClasses;
@@ -296,7 +305,12 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
   @NotNull
   private String[] getClassNames(@NotNull DomElement domElement) {
     Options options = domElement.getAnnotation(Options.class);
-    return options != null ? options.inheriting() : myExtendClassesNames;
+    if (options == null || options.inheriting().length == 0) {
+      return myExtendClassesNames;
+    }
+    else {
+      return options.inheriting();
+    }
   }
 
   @Nullable
@@ -383,6 +397,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     private final String[] myExtendsClasses;
     private final boolean myCompleteLibraryClasses;
     private final boolean myIncludeTests;
+    private final boolean myIncludeDynamicFeatures;
 
     private MyReference(PsiElement element,
                        TextRange range,
@@ -394,7 +409,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
                        @Nullable Module module,
                        String[] extendsClasses,
                        boolean completeLibraryClasses,
-                       boolean includeTests) {
+                       boolean includeTests, boolean includeDynamicFeatures) {
       super(element, range, true);
       myManifestPackage = manifestPackage;
       myExtraBasePackages = extraBasePackages;
@@ -405,6 +420,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
       myExtendsClasses = extendsClasses;
       myCompleteLibraryClasses = completeLibraryClasses;
       myIncludeTests = includeTests;
+      myIncludeDynamicFeatures = includeDynamicFeatures;
     }
 
     @Override
@@ -421,10 +437,23 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
       GlobalSearchScope scope = myModule != null
                                 ? myModule.getModuleWithDependenciesAndLibrariesScope(myIncludeTests)
                                 : myElement.getResolveScope();
+      if (myIsPackage) {
+        return findPackageFromString(value, facade, myManifestPackage);
+      }
+      return findClassFromString(value, facade, expandSearchScope(myModule, scope), myManifestPackage, myExtraBasePackages);
+    }
 
-      return myIsPackage ?
-             findPackageFromString(value, facade, myManifestPackage) :
-             findClassFromString(value, facade, scope, myManifestPackage, myExtraBasePackages);
+    private GlobalSearchScope expandSearchScope(@Nullable Module module, @NotNull GlobalSearchScope currentScope) {
+      if (module == null || !myIncludeDynamicFeatures) {
+        return currentScope;
+      }
+      List<Module> dynamicFeatureModules = ProjectSystemUtil.getModuleSystem(module).getDynamicFeatureModules();
+      if (dynamicFeatureModules.isEmpty()) {
+        return currentScope;
+      }
+      GlobalSearchScope dynamicFeatureScope =
+        GlobalSearchScope.union(ContainerUtil.map(dynamicFeatureModules, it -> it.getModuleContentScope()));
+      return currentScope.union(dynamicFeatureScope);
     }
 
     @NotNull
@@ -484,7 +513,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
       } else {
         scope = GlobalSearchScope.moduleWithDependenciesScope(myModule);
       }
-      Query<PsiClass> query = new FilteredQuery<>(ClassInheritorsSearch.search(base, scope, true),
+      Query<PsiClass> query = new FilteredQuery<>(ClassInheritorsSearch.search(base, expandSearchScope(myModule, scope), true),
                                                   psiClass -> psiClass.hasModifier(JvmModifier.PUBLIC));
       return query.findAll();
     }

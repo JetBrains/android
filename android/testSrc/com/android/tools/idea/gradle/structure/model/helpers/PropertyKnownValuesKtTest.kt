@@ -31,7 +31,7 @@ import org.junit.Test
 class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
 
   fun testBuildTypeMatchingFallbackValuesCore() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -40,7 +40,7 @@ class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
   }
 
   fun testProductFlavorMatchingFallbackValuesCore() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 

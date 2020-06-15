@@ -23,6 +23,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +58,8 @@ import trebuchet.util.PrintlnImportFeedback;
  * Trebuchet is our parser for atrace (systrace) raw data.
  */
 public class AtraceParser implements TraceParser {
+  @VisibleForTesting
+  static final long UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50);
   /**
    * A value to be used when we don't know the process we want to parse.
    * Note: The max process id values we can have is max short, and some invalid process names can be -1 so
@@ -125,7 +130,7 @@ public class AtraceParser implements TraceParser {
     myCaptureTreeNodes = new HashMap<>();
     myThreadStateData = new HashMap<>();
     myCpuSchedulingToCpuData = new HashMap<>();
-    myCpuUtilizationSeries = new LinkedList<>();
+    myCpuUtilizationSeries = new ArrayList<>();
   }
 
   @Override
@@ -143,8 +148,8 @@ public class AtraceParser implements TraceParser {
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();
-    myFrameInfo = new AtraceFrameManager(myProcessModel, this::convertToUserTimeUs, findRenderThreadId(myProcessModel));
-    return new AtraceCpuCapture(this, traceId);
+    myFrameInfo = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction(), findRenderThreadId(myProcessModel));
+    return new AtraceCpuCapture(this, myFrameInfo, traceId);
   }
 
   /**
@@ -299,39 +304,6 @@ public class AtraceParser implements TraceParser {
   }
 
   /**
-   * Returns a series of frames where gaps between frames are filled with empty frames. This allows the caller to determine the
-   * frame length by looking at the delta between a valid frames series and the empty frame series that follows it. The delta between
-   * an empty frame series and the following frame is idle time between frames.
-   */
-  @NotNull
-  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
-    List<SeriesData<AtraceFrame>> framesSeries = new ArrayList<>();
-    List<AtraceFrame> framesList = myFrameInfo.buildFramesList(filter);
-    // Look at each frame converting them to series data.
-    // The last frame is handled outside the for loop as we need to add an entry for the frame as well as an entry for the frame ending.
-    // Single frames are handled in the last frame case.
-    for (int i = 1; i < framesList.size(); i++) {
-      AtraceFrame current = framesList.get(i);
-      AtraceFrame past = framesList.get(i - 1);
-      framesSeries.add(new SeriesData<>(convertToUserTimeUs(past.getTotalRangeSeconds().getMin()), past));
-
-      // Need to get the time delta between two frames.
-      // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
-      if (past.getTotalRangeSeconds().getMax() < current.getTotalRangeSeconds().getMin()) {
-        framesSeries.add(new SeriesData<>(convertToUserTimeUs(past.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
-      }
-    }
-
-    // Always add the last frame, and a null frame following to properly setup the series for the UI.
-    if (!framesList.isEmpty()) {
-      AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
-      framesSeries.add(new SeriesData<>(convertToUserTimeUs(lastFrame.getTotalRangeSeconds().getMin()), lastFrame));
-      framesSeries.add(new SeriesData<>(convertToUserTimeUs(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
-    }
-    return framesSeries;
-  }
-
-  /**
    * @return Returns a map of {@link CpuThreadInfo} to {@link CaptureNode}. The capture nodes are built from {@link SliceGroup} maintaining
    * the order and hierarchy.
    */
@@ -395,11 +367,17 @@ public class AtraceParser implements TraceParser {
    */
   private void buildCpuStateData() {
     // Add initial value to start of series for proper visualization.
-    myCpuUtilizationSeries.add(new SeriesData<>(convertToUserTimeUs(myModel.getBeginTimestamp()), 0L));
+    long endUserTime = convertToUserTimeUs(myModel.getEndTimestamp());
+    long startUserTime = convertToUserTimeUs(myModel.getBeginTimestamp());
+
+    for(long i = startUserTime; i < endUserTime+UTILIZATION_BUCKET_LENGTH_US; i += UTILIZATION_BUCKET_LENGTH_US) {
+      myCpuUtilizationSeries.add(new SeriesData<>(i, 0L));
+    }
+
     for (CpuModel cpu : myModel.getCpus()) {
-      ListIterator<SeriesData<Long>> cpuSeriesIt = myCpuUtilizationSeries.listIterator();
       List<SeriesData<CpuThreadSliceInfo>> processList = new ArrayList<>();
       CpuProcessSlice lastSlice = cpu.getSlices().get(0);
+      long lastBucketCounted = -1;
       for (CpuProcessSlice slice : cpu.getSlices()) {
         long sliceStartTimeUs = convertToUserTimeUs(slice.getStartTime());
         long sliceEndTimeUs = convertToUserTimeUs(slice.getEndTime());
@@ -413,9 +391,20 @@ public class AtraceParser implements TraceParser {
                            new CpuThreadSliceInfo(slice.getThreadId(), slice.getThreadName(), slice.getId(), slice.getName(), durationUs)));
         lastSlice = slice;
 
-        // While looping the process slices we build our CPU utilization graph so we don't need to loop the same data twice.
         if (slice.getId() == myProcessId) {
-          buildCpuUtilizationData(cpuSeriesIt, sliceStartTimeUs, sliceEndTimeUs);
+          // Calculate our start time.
+          long startBucket = (sliceStartTimeUs - startUserTime) / UTILIZATION_BUCKET_LENGTH_US;
+          // The delta between this time and the end time is how much time we still need to account for in the loop.
+          long sliceTimeInBucket = sliceStartTimeUs;
+          // Terminate on series bounds because the time given from the Model doesn't seem to be accurate.
+          for(int i = (int)Math.max(0, startBucket); sliceEndTimeUs > sliceTimeInBucket && i < myCpuUtilizationSeries.size(); i++) {
+            // We want to know the time from the start of the event to the end of the bucket so we compute where our bucket ends.
+            long bucketEndTime = startUserTime + UTILIZATION_BUCKET_LENGTH_US * (i+1);
+            // Because the time to the end of the bucket may (and often is) longer than our total time we take the min of the two.
+            long bucketTime = Math.min(bucketEndTime, sliceEndTimeUs) - sliceTimeInBucket;
+            myCpuUtilizationSeries.get(i).value += bucketTime;
+            sliceTimeInBucket += bucketTime;
+          }
         }
       }
 
@@ -424,88 +413,14 @@ public class AtraceParser implements TraceParser {
       myCpuSchedulingToCpuData.put(cpu.getId(), processList);
     }
 
-    // When we are done we have a count of how many processes are running at any time. Here we convert that count to % of CPU used.
+    // When we have finished processing all CPUs the utilization series contains the total time each CPU spent in each bucket.
+    // Here we normalize this value across the max total wall clock time that could be spent in each bucket and end with our utilization.
+    double utilizationTotalTime = UTILIZATION_BUCKET_LENGTH_US * myModel.getCpus().size();
     myCpuUtilizationSeries.replaceAll((series) -> {
-      series.value *= (long)(100 / (myModel.getCpus().size() * 1.0));
+      // Normalize the utilization time as a percent form 0-1 then scale up to 0-100.
+      series.value = (long)(series.value/utilizationTotalTime * 100.0);
       return series;
     });
-  }
-
-  /**
-   * Helper function to build CPU utilization data series. This function loops the current cpu utilization series looking for
-   * the first element that is greater than our process start time and adds a new entry before that point. It then increments the value
-   * of each series element following. The iteration continues until it finds the first element greater than our process end time.
-   * A new series object is inserted just before this point. The result of this is the initial list is modified to have 2 elements added
-   * with each element in the middle incremented by one.
-   * <p>
-   * The start and end times represent a slice when the core is used continuously, and the core's utilization data before the start
-   * timestamp has been captured by cpuSeriesIt.
-   *
-   * @param cpuSeriesIt      An iterator to the list of utilization series data. This function will use the iterator in the current state and
-   *                         not reset it.
-   * @param sliceStartTimeUs The converted time of the slice start.
-   * @param sliceEndTimeUs   The converted time of the slice end.
-   * @return
-   */
-  @NotNull
-  private static SeriesData<Long> buildCpuUtilizationData(ListIterator<SeriesData<Long>> cpuSeriesIt,
-                                                          Long sliceStartTimeUs,
-                                                          Long sliceEndTimeUs) {
-    // Assume our CPU usage is 0, and we are changing it to 1.
-    Long usedCpuCount = 1L;
-    SeriesData<Long> last = null;
-    if (cpuSeriesIt.hasPrevious()) {
-      last = cpuSeriesIt.previous();
-    }
-    // Move a pointer through our current series looking for where we start beyond our current process.
-    // Process =     [xxxxxx]
-    // Series = |-------| |------|
-    // Pointer  ^  ->   ^
-    while (cpuSeriesIt.hasNext()) {
-      SeriesData<Long> current = cpuSeriesIt.next();
-      if (current.x > sliceStartTimeUs) {
-        // Note: previous returns the current node but it sets the index to be the previous index.
-        // If we wanted the previous element without storing last we need to call previous twice.
-        cpuSeriesIt.previous();
-        // Last can be null happen if the first element is greater than our process start time.
-        if (last != null) {
-          usedCpuCount = last.value + 1;
-        }
-        break;
-      }
-      last = current;
-    }
-    // Add a new entry into our series for the current process start time.
-    // Using the example above, we can see that we add an entry for the new process.
-    // Process =     [xxxxxx]
-    // Series = |----|--| |------|
-    // Pointer       ^
-    SeriesData<Long> startProcessPoint = new SeriesData<>(sliceStartTimeUs, usedCpuCount);
-    cpuSeriesIt.add(startProcessPoint);
-    last = startProcessPoint;
-    // Now we search for a time greater than our end time, and update the process count of each element along the way.
-    // Process =     [xxxxxx]
-    // Series = |----|--| |------|
-    // Pointer                   ^
-    while (cpuSeriesIt.hasNext()) {
-      SeriesData<Long> current = cpuSeriesIt.next();
-      if (current.x > sliceEndTimeUs) {
-        cpuSeriesIt.previous();
-        usedCpuCount = last.value;
-        break;
-      }
-      current.value++;
-      usedCpuCount = current.value;
-      cpuSeriesIt.set(current);
-      last = current;
-    }
-
-    //Decrement current CPU count back to last CPU count and add element to our series.
-    usedCpuCount--;
-    SeriesData<Long> endProcessPoint = new SeriesData<>(sliceEndTimeUs, usedCpuCount);
-    cpuSeriesIt.add(endProcessPoint);
-    last = endProcessPoint;
-    return last;
   }
 
   /**
@@ -538,6 +453,13 @@ public class AtraceParser implements TraceParser {
 
   private long convertToUserTimeUs(double timestampInSeconds) {
     return (long)secondsToUs((timestampInSeconds - myModel.getBeginTimestamp()) + myMonoTimeAtBeginningSeconds);
+  }
+
+  // This provides a function that implements convertToUserTimeUs, without holding into the myModel object for the begin timestamp reference.
+  private Function<Double, Long> convertToUserTimeUsFunction() {
+    double beginTimestamp = myModel.getBeginTimestamp();
+    double monoTimeAtBeginningSeconds = myMonoTimeAtBeginningSeconds;
+    return timestampInSeconds -> (long)secondsToUs((timestampInSeconds - beginTimestamp) + monoTimeAtBeginningSeconds);
   }
 
   /**

@@ -15,16 +15,33 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class RepositoriesDslElement extends GradleDslBlockElement {
-  @NonNls public static final String REPOSITORIES_BLOCK_NAME = "repositories";
+  public static final PropertiesElementDescription<RepositoriesDslElement> REPOSITORIES =
+    new PropertiesElementDescription<>("repositories", RepositoriesDslElement.class, RepositoriesDslElement::new);
 
-  public RepositoriesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(REPOSITORIES_BLOCK_NAME));
+  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"flatDir", FlatDirRepositoryDslElement.FLAT_DIR},
+    {"jcenter", MavenRepositoryDslElement.JCENTER},
+    {"maven", MavenRepositoryDslElement.MAVEN}
+  }).collect(toImmutableMap(data -> (String)data[0], data -> (PropertiesElementDescription)data[1]));
+
+  @NotNull
+  @Override
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
+  public RepositoriesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

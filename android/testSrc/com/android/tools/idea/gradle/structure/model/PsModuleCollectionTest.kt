@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -37,8 +38,8 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun patchPreparedProject(projectRoot: File) {
-    defaultPatchPreparedProject(projectRoot)
+  override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?) {
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion)
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
@@ -59,7 +60,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
 
   fun testNotSyncedModules() {
-    loadProject(TestProjectPaths.PSD_SAMPLE) {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY) {
       it.findFileByRelativePath("settings.gradle")!!.let {
         it.setBinaryContent("include ':app', ':lib', ':dyn_feature' ".toByteArray(it.charset))
       }
@@ -82,7 +83,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
 
   fun testNonAndroidGradlePluginFirst() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     // Edit the settings file, but do not sync.
     val virtualFile = this.project.baseDir.findFileByRelativePath("app/build.gradle")!!
@@ -109,7 +110,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
 
   fun testNestedModules() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -117,7 +118,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(module).isNotNull()
     assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
     assertThat(module.variables.getVariableScopes().map { it.name })
-        .containsExactly("${project.name} (build script)", "${project.name} (project)", "nested1", "nested1-deep")
+        .containsExactly("${project.name} (build script)", "${project.name} (project)", ":nested1", ":nested1:deep")
   }
 
   fun testRelocatedModules_withoutResolvedModels() {
@@ -143,7 +144,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
   
   fun testEmptyParentsInNestedModules() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)

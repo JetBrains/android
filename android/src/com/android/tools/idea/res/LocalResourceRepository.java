@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -83,7 +83,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  * <p>
  * Only the {@linkplain ResourceFolderRepository} needs to listen for user edits and file changes. It
- * uses {@linkplain PsiProjectListener}, a single listener which is shared by all repositories in the
+ * uses {@linkplain AndroidFileChangeListener}, a single listener which is shared by all repositories in the
  * same project, to get notified when something in one of its resource files changes, and it uses the
  * PSI change event to selectively update the repository data structures, if possible.
  * </p>
@@ -128,8 +128,6 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
 public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements ModificationTracker {
-  private static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
-
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
 
   private final String myDisplayName;
@@ -175,22 +173,20 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
+  @GuardedBy("ITEM_MAP_LOCK")
   protected void invalidateParentCaches() {
-    synchronized (ITEM_MAP_LOCK) {
-      if (myParents != null) {
-        for (MultiResourceRepository parent : myParents) {
-          parent.invalidateCache(this);
-        }
+    if (myParents != null) {
+      for (MultiResourceRepository parent : myParents) {
+        parent.invalidateCache();
       }
     }
   }
 
-  protected void invalidateParentCaches(@NotNull ResourceNamespace namespace, @NotNull ResourceType... types) {
-    synchronized (ITEM_MAP_LOCK) {
-      if (myParents != null) {
-        for (MultiResourceRepository parent : myParents) {
-          parent.invalidateCache(this, namespace, types);
-        }
+  @GuardedBy("ITEM_MAP_LOCK")
+  protected void invalidateParentCaches(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
+    if (myParents != null) {
+      for (MultiResourceRepository parent : myParents) {
+        parent.invalidateCache(repository, types);
       }
     }
   }
@@ -267,22 +263,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   /**
-   * Package accessible version of {@link #getOrCreateMap(ResourceNamespace, ResourceType)}.
+   * Package accessible version of {@link #getMap(ResourceNamespace, ResourceType)}.
    * Do not call outside of {@link MultiResourceRepository}.
    */
-  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NotNull
-  ListMultimap<String, ResourceItem> getOrCreateMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
-    return getOrCreateMap(namespace, type);
-  }
-
-  /**
-   * Package accessible version of {@link #getFullTable()}. Do not call outside of {@link MultiResourceRepository}.
-   */
-  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NotNull
-  ResourceTable getFullTablePackageAccessible() {
-    return getFullTable();
+  @GuardedBy("ITEM_MAP_LOCK")
+  @Nullable
+  ListMultimap<String, ResourceItem> getMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    return getMap(namespace, type);
   }
 
   public static final class EmptyRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
@@ -299,20 +286,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return Collections.emptySet();
     }
 
-    @Override
-    @NotNull
-    protected ResourceTable getFullTable() {
-      return new ResourceTable();
-    }
-
+    @GuardedBy("ITEM_MAP_LOCK")
     @Override
     @Nullable
-    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
-      if (create) {
-        throw new UnsupportedOperationException();
-      } else {
-        return null;
-      }
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+      return null;
     }
 
     @Override
@@ -325,6 +303,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     @Nullable
     public String getPackageName() {
       return myNamespace.getPackageName();
+    }
+
+    @NonNull
+    @Override
+    public ResourceVisitor.VisitResult accept(@NonNull ResourceVisitor visitor) {
+      return ResourceVisitor.VisitResult.CONTINUE;
     }
   }
 }

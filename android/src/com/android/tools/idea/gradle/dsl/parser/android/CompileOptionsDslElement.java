@@ -15,12 +15,68 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
-  public CompileOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent);
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap =
+    Stream.concat(
+      BaseCompileOptionsDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"encoding", property, ENCODING, VAR},
+        {"incremental", property, INCREMENTAL, VAR}
+      })).collect(toModelMap());
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
+    Stream.concat(
+      BaseCompileOptionsDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"encoding", property, ENCODING, VAR},
+        {"encoding", exactly(1), ENCODING, SET},
+        {"incremental", property, INCREMENTAL, VAR},
+        {"incremental", exactly(1), INCREMENTAL, SET},
+      })).collect(toModelMap());
+  public static final PropertiesElementDescription<CompileOptionsDslElement> COMPILE_OPTIONS =
+    new PropertiesElementDescription<>("compileOptions", CompileOptionsDslElement.class, CompileOptionsDslElement::new);
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
+
+  public CompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

@@ -1,57 +1,117 @@
 MODULE: MyApplication
     by Facet:
-        main
-            Manifest:
-                ./AndroidManifest.xml
-            AssetsDirectories:
-                ./assets
-            JavaDirectories:
-                ./
-            ResDirectories:
-                ./res
          (IDEA)
-            Manifest:
-                ./AndroidManifest.xml
+            ManifestFileUrls:
+                file://./AndroidManifest.xml
+            ManifestFiles:
+                file://./AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://.
+            ManifestDirectories:
+                file://.
+            AidlDirectoryUrls:
+                file://./gen
+            AssetsDirectoryUrls:
+                file://./assets
             AssetsDirectories:
-                ./assets
+                file://./assets
+            JavaDirectoryUrls:
+                file://.
             JavaDirectories:
-                ./
+                file://.
+            RenderscriptDirectoryUrls:
+                file://./gen
+            ResDirectoryUrls:
+                file://./res
             ResDirectories:
-                ./res
+                file://./res
     by IdeaSourceProviders:
         Manifests:
-            ./AndroidManifest.xml
+            file://./AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./AndroidManifest.xml
+                ManifestFiles:
+                    file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
+                AssetsDirectories:
+                    file://./assets
+                JavaDirectoryUrls:
+                    file://.
+                JavaDirectories:
+                    file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
+                ResDirectories:
+                    file://./res
+        UnitTestSources:
+            UnitTestSources (IDEA)
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
         AllIdeaSourceProviders:
              (IDEA)
-                Manifest:
-                    ./AndroidManifest.xml
+                ManifestFileUrls:
+                    file://./AndroidManifest.xml
+                ManifestFiles:
+                    file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
                 AssetsDirectories:
-                    ./assets
+                    file://./assets
+                JavaDirectoryUrls:
+                    file://.
                 JavaDirectories:
-                    ./
+                    file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
                 ResDirectories:
-                    ./res
-        AllSourceProviders:
-            main
-                Manifest:
-                    ./AndroidManifest.xml
-                AssetsDirectories:
-                    ./assets
-                JavaDirectories:
-                    ./
-                ResDirectories:
-                    ./res
+                    file://./res
         CurrentSourceProviders:
              (IDEA)
-                Manifest:
-                    ./AndroidManifest.xml
+                ManifestFileUrls:
+                    file://./AndroidManifest.xml
+                ManifestFiles:
+                    file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
                 AssetsDirectories:
-                    ./assets
+                    file://./assets
+                JavaDirectoryUrls:
+                    file://.
                 JavaDirectories:
-                    ./
+                    file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
                 ResDirectories:
-                    ./res
-        CurrentTestSourceProviders:
+                    file://./res
+        CurrentUnitTestSourceProviders:
+        CurrentAndroidTestSourceProviders:
 MODULE: justLib
 MODULE: justLib.sub1
 MODULE: justLib.sub2

@@ -15,16 +15,34 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
-  @NonNls public static final String EXTERNAL_NATIVE_BUILD_BLOCK_NAME = "externalNativeBuild";
+  public static final PropertiesElementDescription<ExternalNativeBuildDslElement> EXTERNAL_NATIVE_BUILD =
+    new PropertiesElementDescription<>("externalNativeBuild", ExternalNativeBuildDslElement.class, ExternalNativeBuildDslElement::new);
 
-  public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD_BLOCK_NAME));
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"cmake", CMakeDslElement.CMAKE},
+    {"ndkBuild", NdkBuildDslElement.NDK_BUILD},
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
+  public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

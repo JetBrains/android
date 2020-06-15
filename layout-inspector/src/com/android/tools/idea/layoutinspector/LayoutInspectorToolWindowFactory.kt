@@ -16,24 +16,37 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.InspectorPanel
+import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.transport.TransportService
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.intellij.ide.startup.ServiceNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import java.awt.BorderLayout
+import javax.swing.JPanel
 
-const val TOOL_WINDOW_ID = "Layout Inspector"
 
-private val INSPECTOR_PANEL = Key.create<InspectorPanel>("InspectorPanel")
+const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
+
+private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
 
 /**
- * Get the DeviceViewPanel from the specified layout inspector [toolWindow].
+ * Get the [LayoutInspector] for the specified layout inspector [toolWindow].
  */
-fun lookupDeviceWindow(toolWindow: ToolWindow): DeviceViewPanel? =
-  toolWindow.contentManager?.getContent(0)?.getUserData(INSPECTOR_PANEL)?.deviceViewPanel
+fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
+  toolWindow.contentManager?.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -41,10 +54,25 @@ fun lookupDeviceWindow(toolWindow: ToolWindow): DeviceViewPanel? =
 internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    // Ensure the transport service is started
+    if (TransportService.getInstance() == null) {
+      throw ServiceNotReadyException()
+    }
     val contentManager = toolWindow.contentManager
-    val panel = InspectorPanel(project, TOOL_WINDOW_ID, project)
-    val content = contentManager.factory.createContent(panel, "", true)
-    content.putUserData(INSPECTOR_PANEL, panel)
+
+    val model = InspectorModel(project)
+    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
+    val viewSettings = DeviceViewSettings()
+    val layoutInspector = LayoutInspector(model, workbench)
+    val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, project)
+    workbench.init(deviceViewPanel, layoutInspector, listOf(
+      LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
+
+    val contentPanel = JPanel(BorderLayout())
+    contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
+    contentPanel.add(workbench, BorderLayout.CENTER)
+    val content = contentManager.factory.createContent(contentPanel, "", true)
+    content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }
@@ -61,17 +89,22 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
   private var wasWindowVisible = false
 
   override fun stateChanged() {
-    val preferredProcess = getPreferredInspectorProcess(project) ?: return
-    val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
+    val window = ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
     val isWindowVisible = window.isVisible // Layout Inspector tool window is expanded.
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
+    if (windowVisibilityChanged && isWindowVisible) {
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+                         .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
+                                                    .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN)))
+    }
+    val preferredProcess = getPreferredInspectorProcess(project) ?: return
     if (!windowVisibilityChanged || !isWindowVisible) {
       return
     }
-    val panel = lookupDeviceWindow(window) ?: return
-    if (!panel.layoutInspector.client.isConnected) {
-      panel.layoutInspector.client.attach(preferredProcess)
+    val inspector = lookupLayoutInspector(window) ?: return
+    if (!inspector.currentClient.isConnected) {
+      inspector.allClients.find { it.attachIfSupported(preferredProcess) != null }
     }
   }
 }

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -64,13 +62,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -91,6 +87,10 @@ public class RenderService implements Disposable {
   private static ExecutorService ourRenderingExecutor;
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
+  /**
+   * {@link Key} used to keep the RenderService instance project association. They key is also used as synchronization object to guard the
+   * access to the new instances.
+   */
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
   private static boolean isFirstCall = true;
 
@@ -161,17 +161,21 @@ public class RenderService implements Disposable {
    */
   @NotNull
   public static RenderService getInstance(@NotNull Project project) {
-    RenderService renderService = project.getUserData(KEY);
-    if (renderService == null) {
-      renderService = new RenderService(project);
-      project.putUserData(KEY, renderService);
+    synchronized (KEY) {
+      RenderService renderService = project.getUserData(KEY);
+      if (renderService == null) {
+        renderService = new RenderService(project);
+        project.putUserData(KEY, renderService);
+      }
+      return renderService;
     }
-    return renderService;
   }
 
   @TestOnly
   public static void setForTesting(@NotNull Project project, @Nullable RenderService renderService) {
-    project.putUserData(KEY, renderService);
+    synchronized (KEY) {
+      project.putUserData(KEY, renderService);
+    }
   }
 
   @VisibleForTesting
@@ -196,24 +200,6 @@ public class RenderService implements Disposable {
       }
     }
     return null;
-  }
-
-  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target,
-                                           @MagicConstant(flagsFromClass = Features.class) int capability) {
-    Project project = module.getProject();
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    if (platform != null) {
-      try {
-        LayoutLibrary library = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
-        if (library != null) {
-          return library.supports(capability);
-        }
-      }
-      catch (RenderingException e) {
-        // Ignore: if service can't be found, that capability isn't available
-      }
-    }
-    return false;
   }
 
   /** Returns true if the given file can be rendered */
@@ -436,6 +422,7 @@ public class RenderService implements Disposable {
     private boolean isSecurityManagerEnabled = true;
     private float myDownscaleFactor = 1f;
     private boolean showDecorations = true;
+    private boolean showWithToolsAttributes = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
@@ -540,6 +527,12 @@ public class RenderService implements Disposable {
       return this;
     }
 
+    @NotNull
+    public RenderTaskBuilder disableToolsAttributes() {
+      this.showWithToolsAttributes = false;
+      return this;
+    }
+
     /**
      * @see RenderTask#setRenderingMode(SessionParams.RenderingMode)
      */
@@ -550,7 +543,7 @@ public class RenderService implements Disposable {
     }
 
     /**
-     * @see RenderTask#setOverrideBgColor(Integer)
+     * @see RenderTask#setTransparentBackground()
      */
     @NotNull
     public RenderTaskBuilder useTransparentBackground() {
@@ -586,11 +579,6 @@ public class RenderService implements Disposable {
         LayoutLibrary layoutLib;
         try {
           layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
-          if (layoutLib == null) {
-            String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
-            myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
-            return null;
-          }
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
@@ -605,18 +593,6 @@ public class RenderService implements Disposable {
           String message = e.getPresentableMessage();
           message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
-          return null;
-        }
-
-        if (myPsiFile != null &&
-            TAG_PREFERENCE_SCREEN.equals(AndroidUtils.getRootTagName(myPsiFile)) &&
-            !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-          // This means that user is using an outdated version of layoutlib. A warning to update has already been
-          // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
-          myLogger
-            .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
-                                                         "Update it using the SDK Manager"));
-
           return null;
         }
 
@@ -638,14 +614,15 @@ public class RenderService implements Disposable {
           task
             .setDecorations(showDecorations)
             .setHighQualityShadows(useHighQualityShadows)
-            .setShadowEnabled(isShadowEnabled);
+            .setShadowEnabled(isShadowEnabled)
+            .setShowWithToolsAttributes(showWithToolsAttributes);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
           }
 
           if (useTransparentBackground) {
-            task.setOverrideBgColor(0);
+            task.setTransparentBackground();
           }
 
           if (myRenderingMode != null) {

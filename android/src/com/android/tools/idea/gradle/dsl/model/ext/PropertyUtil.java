@@ -312,11 +312,10 @@ public class PropertyUtil {
    */
   private static boolean checkForModifiedName(@NotNull GradleDslElement originalElement, @NotNull GradleDslElement newElement) {
     GradleNameElement oNameElement = originalElement.getNameElement();
-    PsiElement oNamePsiElement = oNameElement.getNamedPsiElement();
-    if (oNamePsiElement == null) {
+    String oldName = oNameElement.getOriginalName();
+    if (oldName == null) {
       return false;
     }
-    String oldName = oNamePsiElement.getText();
 
     GradleNameElement nNameElement = newElement.getNameElement();
     String newName = nNameElement.getLocalName();

@@ -256,7 +256,7 @@ class TypeResolverSdkTest {
           "Tag: ${it.tag}, Attr: ${it.attribute}, Got: ${it.found}, Wanted: ${it.expected}") }
       }
       System.err.println()
-      found.forEach { tag, count -> System.err.println(
+      found.forEach { (tag, count) -> System.err.println(
         "${String.format("%4d", count)}: attributes found for: $tag ${formatError(tag)}") }
       System.err.println("\n==============================================================>")
     }

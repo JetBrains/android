@@ -15,14 +15,43 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
 @State(name = "AndroidEditors", storages = @Storage("androidEditors.xml"))
 public class AndroidEditorSettings implements PersistentStateComponent<AndroidEditorSettings.MyState> {
+  public enum EditorMode {
+    CODE("Code", AllIcons.General.LayoutEditorOnly),
+    SPLIT("Split", AllIcons.General.LayoutEditorPreview),
+    DESIGN("Design", AllIcons.General.LayoutPreviewOnly);
+
+    @NotNull
+    private final String myDisplayName;
+
+    @NotNull
+    private final Icon myIcon;
+
+    EditorMode(@NotNull String displayName, @NotNull Icon icon) {
+      myDisplayName = displayName;
+      myIcon = icon;
+    }
+
+    @Override
+    public String toString() {
+      return myDisplayName;
+    }
+
+    @NotNull
+    public Icon getIcon() {
+      return myIcon;
+    }
+  }
+
   private GlobalState myGlobalState = new GlobalState();
 
   public static AndroidEditorSettings getInstance() {
@@ -66,6 +95,8 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private boolean myRetina = true;
     private boolean myPreferXmlEditor = false;
     private boolean myShowLint = false;
+    private EditorMode myPreferredEditorMode;
+    private EditorMode myPreferredDrawableEditorMode;
 
     public boolean isRetina() {
       return myRetina;
@@ -121,6 +152,22 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setPreferXmlEditor(boolean preferXmlEditor) {
       myPreferXmlEditor = preferXmlEditor;
+    }
+
+    public EditorMode getPreferredEditorMode() {
+      return myPreferredEditorMode;
+    }
+
+    public void setPreferredEditorMode(EditorMode preferredEditorMode) {
+      myPreferredEditorMode = preferredEditorMode;
+    }
+
+    public EditorMode getPreferredDrawableEditorMode() {
+      return myPreferredDrawableEditorMode;
+    }
+
+    public void setPreferredDrawableEditorMode(EditorMode preferredDrawableEditorMode) {
+      myPreferredDrawableEditorMode = preferredDrawableEditorMode;
     }
   }
 }

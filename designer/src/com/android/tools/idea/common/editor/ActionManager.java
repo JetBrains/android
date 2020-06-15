@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.intellij.openapi.Disposable;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.ShortcutSet;
-import java.awt.Component;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,39 +42,18 @@ public abstract class ActionManager<S extends DesignSurface> {
     mySurface = surface;
   }
 
-  private void registerAction(@NotNull AnAction action,
-                              @NotNull ShortcutSet shortcutSet,
-                              @NotNull JComponent component,
-                              @Nullable Disposable parentDisposable) {
-    Disposable disposable;
-    if (parentDisposable != null) {
-      disposable = parentDisposable;
-    }
-    else if (component instanceof Disposable) {
-      disposable = (Disposable)component;
-    }
-    else {
-      disposable = mySurface;
-    }
-    action.registerCustomShortcutSet(shortcutSet, component, disposable);
+  protected static void registerAction(@NotNull AnAction action,
+                                       @NonNls String actionId,
+                                       @NotNull JComponent component) {
+    Arrays.stream(com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet().getShortcuts())
+      .filter(shortcut -> shortcut instanceof KeyboardShortcut && ((KeyboardShortcut)shortcut).getSecondKeyStroke() == null)
+      .forEach(shortcut -> registerAction(action, ((KeyboardShortcut)shortcut).getFirstKeyStroke(), component));
   }
 
-  protected final void registerAction(@NotNull AnAction action,
-                                      @NonNls String actionId,
-                                      @NotNull JComponent component,
-                                      @Nullable Disposable parentDisposable) {
-    registerAction(action,
-                   com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-                   component,
-                   parentDisposable
-    );
-  }
-
-  protected final void registerAction(@NotNull AnAction action,
-                                      @NotNull KeyStroke keyStroke,
-                                      @NotNull JComponent component,
-                                      @Nullable Disposable parentDisposable) {
-    registerAction(action, new CustomShortcutSet(keyStroke), component, parentDisposable);
+  protected static void registerAction(@NotNull AnAction action,
+                                       @NotNull KeyStroke keyStroke,
+                                       @NotNull JComponent component) {
+    KeyBindingKt.registerAnActionKey(component, () -> action, keyStroke, action.getClass().getSimpleName(), JComponent.WHEN_FOCUSED);
   }
 
   @NotNull
@@ -90,6 +68,11 @@ public abstract class ActionManager<S extends DesignSurface> {
 
   // non-final for testing
   public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
+    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
+    showPopup(invoker, event.getX(), event.getY(), leafComponent);
+  }
+
+  public final void showPopup(@NotNull Component invoker, int x, int y, @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = getPopupMenuActions(leafComponent);
     if (group.getChildrenCount() == 0) {
       return;
@@ -97,8 +80,7 @@ public abstract class ActionManager<S extends DesignSurface> {
 
     com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
     ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
-    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
-    popupMenu.getComponent().show(invoker, event.getX(), event.getY());
+    popupMenu.getComponent().show(invoker, x, y);
   }
 
   /**
@@ -114,11 +96,8 @@ public abstract class ActionManager<S extends DesignSurface> {
    * Register keyboard shortcuts onto the provided component.
    *
    * @param component        The component onto which shortcut should be registered.
-   * @param parentDisposable A disposable used to unregister the actions. If the parameter is null but
-   *                         component is a {@link Disposable}, component will be used as the parent disposable.
    */
-  public abstract void registerActionsShortcuts(@NotNull JComponent component,
-                                                @Nullable Disposable parentDisposable);
+  public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
   /**
    * Creates a pop-up menu for the given component

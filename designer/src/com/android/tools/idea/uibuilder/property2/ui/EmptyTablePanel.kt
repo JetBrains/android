@@ -42,6 +42,7 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
     val text = JEditorPane()
     text.contentType = "text/html"
     text.isEditable = false
+    text.isFocusable = false
     text.text = createText()
     text.isOpaque = false
     text.border = JBUI.Borders.empty(BORDER_SIZE)

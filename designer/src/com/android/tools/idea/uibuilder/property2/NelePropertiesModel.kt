@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_LAYOUT
-import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -29,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
@@ -46,21 +42,19 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.psi.xml.XmlFile
+import com.intellij.pom.Navigatable
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.LocalResourceManager
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.concurrent.Future
 import javax.swing.event.ChangeListener
 
-private const val UPDATE_QUEUE_NAME = "android.layout.propertysheet"
+private const val UPDATE_QUEUE_NAME = "propertysheet"
 private const val UPDATE_IDENTITY = "updateProperies"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
 
@@ -70,6 +64,7 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 open class NelePropertiesModel(parentDisposable: Disposable,
                                val provider: PropertiesProvider,
                                val facet: AndroidFacet,
+                               private val updateQueue: MergingUpdateQueue,
                                private val updateOnComponentSelectionChanges: Boolean) : PropertiesModel<NelePropertyItem>, Disposable {
   val project: Project = facet.module.project
 
@@ -77,7 +72,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
   private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
-  private val accessorySelectionListener = AccessorySelectionListener { panel, selection -> handlePanelSelectionUpdate(panel, selection) }
+  private val accessorySelectionListener = AccessorySelectionListener { panel, type, accessory, selection ->
+    handlePanelSelectionUpdate(panel, type, accessory, selection)
+  }
   private val renderListener = RenderListener { handleRenderingCompleted() }
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
@@ -86,8 +83,12 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private val liveComponents = mutableListOf<NlComponent>()
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
+  constructor(parentDisposable: Disposable, facet: AndroidFacet, updateQueue: MergingUpdateQueue) :
+    this(parentDisposable, NelePropertiesProvider(facet), facet, updateQueue, true)
+
   constructor(parentDisposable: Disposable, facet: AndroidFacet) :
-    this(parentDisposable, NelePropertiesProvider(facet), facet, true)
+    this(parentDisposable, facet, MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null,
+                                                     Alarm.ThreadToUse.SWING_THREAD))
 
   var surface: DesignSurface?
     get() = activeSurface
@@ -101,9 +102,6 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       field = value
       firePropertyValueChangeIfNeeded()
     }
-
-  @VisibleForTesting
-  val updateQueue = createMergingUpdateQueue()
 
   @VisibleForTesting
   var lastSelectionUpdate: Future<Boolean> = Futures.immediateFuture(false)
@@ -151,6 +149,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     return defaultValueProvider?.provideDefaultValue(property)
   }
 
+  open fun getPropertyTag(property: NelePropertyItem): XmlTag? = property.firstTag
+
   open fun getPropertyValue(property: NelePropertyItem): String? {
     ApplicationManager.getApplication().assertIsDispatchThread()
     var prev: String? = null
@@ -189,32 +189,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
             firePropertiesGenerated()
           }
         }
-        else if (property.namespace == ANDROID_URI && property.name == ATTR_NAME) {
-          val component = property.components[0]
-          val layout = newValue?.let { findLayoutForClass(component, it) }
-          component.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout)
-        }
       }
     })
-  }
-
-  private fun findLayoutForClass(component: NlComponent, className: String): String? {
-    val module = component.model.module
-    val resourceManager = LocalResourceManager.getInstance(module) ?: return null
-
-    for (resourceFile in resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-      .filterIsInstance<XmlFile>()) {
-      val contextClass = AndroidUtils.getContextClass(module, resourceFile) ?: continue
-      if (contextClass.qualifiedName == className) {
-        return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)
-      }
-    }
-
-    return null
-  }
-
-  private fun createMergingUpdateQueue(): MergingUpdateQueue {
-    return MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD)
   }
 
   private fun useDesignSurface(surface: DesignSurface?) {
@@ -225,8 +201,16 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       activeSceneView = surface?.focusedSceneView
       (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
-    if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {
-      scheduleSelectionUpdate(surface, activeSceneView?.selectionModel?.selection ?: emptyList())
+    makeInitialSelection(surface, activePanel)
+  }
+
+  private fun makeInitialSelection(surface: DesignSurface?, panel: AccessoryPanelInterface?) {
+    if (panel != null) {
+      panel.requestSelection()
+    }
+    else if (surface != null) {
+      val newSelection: List<NlComponent> = activeSceneView?.selectionModel?.selection ?: emptyList()
+      designSurfaceListener.componentSelectionChanged(surface, newSelection)
     }
   }
 
@@ -258,27 +242,53 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     new?.addListener(accessorySelectionListener)
   }
 
-  private fun scheduleSelectionUpdate(surface: DesignSurface?, components: List<NlComponent>) {
+  private fun scheduleSelectionUpdate(
+    surface: DesignSurface?,
+    panel: AccessoryPanelInterface?,
+    type: Any?,
+    accessory: Any?,
+    components: List<NlComponent>
+  ) {
     updateLiveListeners(Collections.emptyList())
     updateQueue.queue(object : Update(UPDATE_IDENTITY) {
       override fun run() {
-        handleSelectionUpdate(surface, components)
+        handleSelectionUpdate(surface, panel, type, accessory, components)
       }
     })
   }
 
-  protected open fun wantComponentSelectionUpdate(surface: DesignSurface?,
-                                                  activeSurface: DesignSurface?,
-                                                  activePanel: AccessoryPanelInterface?): Boolean {
-    return surface == activeSurface && activePanel == null && !facet.isDisposed
+  private fun getRootComponent(surface: DesignSurface?): List<NlComponent> {
+    return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let {listOf(it)} ?: return emptyList()
   }
 
-  private fun handleSelectionUpdate(surface: DesignSurface?, components: List<NlComponent>) {
+  protected open fun wantSelectionUpdate(
+    surface: DesignSurface?,
+    activeSurface: DesignSurface?,
+    accessoryPanel: AccessoryPanelInterface?,
+    activePanel: AccessoryPanelInterface?,
+    selectedAccessoryType: Any?,
+    selectedAccessory: Any?
+  ): Boolean {
+    return surface != null &&
+           surface == activeSurface &&
+           accessoryPanel == accessoryPanel &&
+           selectedAccessoryType == null &&
+           selectedAccessory == null &&
+           !facet.isDisposed
+  }
+
+  private fun handleSelectionUpdate(
+    surface: DesignSurface?,
+    panel: AccessoryPanelInterface?,
+    type: Any?,
+    accessory: Any?,
+    components: List<NlComponent>
+  ) {
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
-    val wantUpdate = { wantComponentSelectionUpdate(surface, activeSurface, activePanel) }
-    val future = application.executeOnPooledThread<Boolean> { loadProperties(null, components, wantUpdate) }
+    val wantUpdate = { wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory) }
+    val future = application.executeOnPooledThread<Boolean> { loadProperties(type, accessory, components, wantUpdate) }
 
     // Enable our testing code to wait for the above pooled thread execution.
     if (application.isUnitTestMode) {
@@ -287,30 +297,32 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   }
 
   protected fun updateLiveListeners(components: List<NlComponent>) {
-    liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
-    liveComponents.clear()
-    liveComponents.addAll(components)
-    liveComponents.forEach { it.addLiveChangeListener(liveChangeListener) }
-  }
-
-  protected open fun wantPanelSelectionUpdate(panel: AccessoryPanelInterface, activePanel: AccessoryPanelInterface?): Boolean {
-    return panel == activePanel && panel.selectedAccessory == null && !facet.isDisposed
-  }
-
-  private fun handlePanelSelectionUpdate(panel: AccessoryPanelInterface, components: List<NlComponent>) {
-    // Obtaining the properties, especially the first time around on a big project
-    // can take close to a second, so we do it on a separate thread..
-    val application = ApplicationManager.getApplication()
-    val wantUpdate = { wantPanelSelectionUpdate(panel, activePanel) }
-    val future = application.executeOnPooledThread<Boolean> { loadProperties(panel.selectedAccessory, components, wantUpdate) }
-
-    // Enable our testing code to wait for the above pooled thread execution.
-    if (application.isUnitTestMode) {
-      lastSelectionUpdate = future
+    synchronized(liveComponents) {
+      liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
+      liveComponents.clear()
+      liveComponents.addAll(components)
+      liveComponents.forEach { it.addLiveChangeListener(liveChangeListener) }
     }
   }
 
-  protected open fun loadProperties(accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
+  private fun sameAsTheCurrentLiveListeners(components: List<NlComponent>): Boolean {
+    synchronized(liveComponents) {
+      return components == liveComponents
+    }
+  }
+
+  private fun handlePanelSelectionUpdate(
+    panel: AccessoryPanelInterface,
+    selectedAccessoryType: Any?,
+    selectedAccessory: Any?,
+    components: List<NlComponent>
+  ) {
+    if (wantSelectionUpdate(activeSurface, activeSurface, panel, activePanel, selectedAccessoryType, selectedAccessory)) {
+      scheduleSelectionUpdate(activeSurface, panel, selectedAccessoryType, selectedAccessory, components)
+    }
+  }
+
+  protected open fun loadProperties(type: Any?, accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
     if (!wantUpdate()) {
       return false
     }
@@ -344,15 +356,20 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
   }
 
+  fun firePropertyValueChanged() {
+    listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
+  }
+
   fun firePropertyValueChangeIfNeeded() {
     val components = activeSurface?.selectionModel?.selection ?: return
-    if (components.isEmpty() || components != liveComponents) {
+    if (components.isEmpty() || !sameAsTheCurrentLiveListeners(components)) {
       // If there are no components currently selected, there is nothing to update.
-      // If the currently selected components are different from the components being shown, there must be a pending selection update and
-      // therefore no need to update the property values.
+      // If the currently selected components are different from the components being shown,
+      // there must be a pending selection update and therefore no need to update the property
+      // values.
       return
     }
-    listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
+    firePropertyValueChanged()
   }
 
   private fun createDefaultPropertyValueProvider(): DefaultPropertyValueProvider? {
@@ -360,10 +377,21 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     return NeleDefaultPropertyValueProvider(view.sceneManager)
   }
 
+  open fun browseToValue(property: NelePropertyItem) {
+    val tag = property.firstTag ?: return
+    val resourceReference = property.resolveValueAsReference(property.value) ?: return
+    val folderConfiguration = property.getFolderConfiguration() ?: return
+    val targetElement = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(resourceReference, tag, folderConfiguration) ?: return
+    if (targetElement is Navigatable) {
+      targetElement.navigate(true)
+    }
+  }
+
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
     override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
-      if (liveComponents != newSelection) {
-        scheduleSelectionUpdate(surface, newSelection)
+      val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
+      if (activePanel == null && !sameAsTheCurrentLiveListeners(displayedComponents)) {
+        scheduleSelectionUpdate(surface, null, null, null, displayedComponents)
       }
     }
   }

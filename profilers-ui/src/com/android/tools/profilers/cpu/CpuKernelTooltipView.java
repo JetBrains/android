@@ -16,29 +16,27 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.intellij.util.ui.JBUI;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 /**
  * This class manages the elements shown in the tooltip when the tooltip is visible.
  * The data is populated by listening to changes from the {@link CpuKernelTooltip.Aspect} as well as
  * listening to when the timeline range changes.
  */
-public class CpuKernelTooltipView extends ProfilerTooltipView {
+public class CpuKernelTooltipView extends TooltipView {
   @NotNull private final CpuKernelTooltip myTooltip;
-  @NotNull private final ProfilerTimeline myTimeline;
-  private final int myProcessId;
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myThread;
   @NotNull private final JLabel myProcess;
@@ -46,10 +44,8 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel myCpu;
   @NotNull private final JPanel myUnavailableDetails;
 
-  protected CpuKernelTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuKernelTooltip tooltip) {
-    super(view.getTimeline());
-    myProcessId = view.getStage().getStudioProfilers().getSession().getPid();
-    myTimeline = view.getTimeline();
+  protected CpuKernelTooltipView(@NotNull JComponent parent, @NotNull CpuKernelTooltip tooltip) {
+    super(tooltip.getTimeline());
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
     myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
@@ -68,13 +64,13 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  private void addRow(JPanel parent, JComponent c) {
+  private static void addRow(JPanel parent, JComponent c) {
     int nextRow = parent.getComponentCount();
     parent.add(c, new TabularLayout.Constraint(nextRow, 0));
   }
 
   private void threadSliceInfoChanged() {
-    Range range = myTimeline.getTooltipRange();
+    Range range = getTimeline().getTooltipRange();
     CpuThreadSliceInfo threadSlice = myTooltip.getCpuThreadSliceInfo();
     myContent.removeAll();
     if (range.isEmpty() || threadSlice == null) {
@@ -88,7 +84,7 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     addRow(myContent, myDuration);
     myCpu.setText(String.format("CPU: %d", myTooltip.getCpuId()));
     addRow(myContent, myCpu);
-    if (myProcessId != threadSlice.getProcessId()) {
+    if (myTooltip.getProcessId() != threadSlice.getProcessId()) {
       addRow(myContent, myUnavailableDetails);
     }
   }

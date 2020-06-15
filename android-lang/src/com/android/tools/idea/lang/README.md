@@ -106,3 +106,44 @@ We use Grammar-Kit to create the PSI classes as well (there's one for every non-
 by `ParserDefinition.createElement`.
 
 Note that not every PSI tree is backed up an AST: that's the whole point of stub indexes. See IntelliJ SDK docs for more.
+
+## Find Usages
+
+### Extremely simplified process of find usages:
+
+When looking for usages of a `PsiElement`, IntelliJ starts by identifying a string by which this element is expected to be referenced.
+Usually this string is `PsiNamedElement::name`, but this can be overridden, to do this, you need to implement a reference searcher (see
+`RoomReferenceSearchExecutor`). For every `PsiElement` there is `SearchScope`, taken from the `PsiElement` useScope. It is also intersected
+with the scope define by the user in the UI and union with scopes from **useScopeEnlarger** extension point.
+
+With help of word index Intellij collects files that contain **string** from given search scope. In every collected file we find all offsets
+there **string** occurs. For every offset we check all PsiReferences at this offset and if PsiReference.referenceResolvesTo(`PsiElement`)
+returns true we add it to result. This is based on ReferencesSearch.search when using the DefaultFindUsagesHandler, and the references and
+the target element are typically matched in the SingleTargetRequestResultProcessor.
+
+If you want references from your custom language (e.g. ProGuard/R8) to elements defined in an existing language (e.g. Kotlin) to be found,
+there are three important components:
+
+1. Correct search scope.
+2. Correct word index for your files.
+3. Correct references.
+
+### Correct search scope
+
+Intellij optimizes search and restricts search scope. For example, in Java for package-visible classes to package, private members search
+scope to files and so on. If your custom language allows using elements outside of their "real" visible scope, you should extend search
+scope for such elements through **useScopeEnlarger** extension point. See `RoomUseScopeEnlarger` and `ProguardR8UseScopeEnlarger`. This
+should be done carefully, as it can ruin refactoring performance.
+
+### Correct word index for your files
+
+During search process Intellij checks only the files whose word index contains word we are looking for. If you haven't specified
+`ScanningIdIndexer` for you language Intellij would build word index by using `SimpleWordsScanner`. It breaks text into words at boundaries
+of sequences of English letters. If your language contains "words" that `SimpleWordsScanner` could not recognise e.g. words that contains
+special symbols, you should add your implementation of `ScanningIdIndexer` through **idIndexer** extension point. See `ProguardR8IdIndexer`
+and `AndroidSqlIdIndexer`. It is recommended to always provide **idIndexer** that relies on lexer for your language.
+
+### Correct references
+
+Make sure that your reference not only resolves to element what you are looking for but that reference **offset** is the same as offset of
+the word you are looking for.

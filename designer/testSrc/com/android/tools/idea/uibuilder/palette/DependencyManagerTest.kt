@@ -17,12 +17,13 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes
@@ -30,16 +31,10 @@ import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiManager
 import com.intellij.testFramework.createTestOpenProjectOptions
-import com.intellij.testFramework.registerExtension
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
-import java.io.File
 import java.util.*
 import java.util.concurrent.Future
 
@@ -55,7 +50,7 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
-    project.registerExtension<AndroidProjectSystemProvider>(EP_NAME, testProjectSystem, testRootDisposable)
+    testProjectSystem.useInTests()
     panel = mock(PalettePanel::class.java)
     palette = NlPaletteModel.get(myFacet).getPalette(LayoutFileType)
     disposable = Disposer.newDisposable()
@@ -132,6 +127,7 @@ class DependencyManagerTest : AndroidTestCase() {
     // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
     assertTrue(dependencyManager!!.useAndroidXDependencies())
 
+/* b/145854905
     val gradlePropertiesFile = ApplicationManager.getApplication().runWriteAction(Computable<VirtualFile> {
       val projectDir = VfsUtil.findFileByIoFile(File(project.basePath), true)!!
       projectDir.createChildData(null, FN_GRADLE_PROPERTIES)
@@ -156,6 +152,7 @@ class DependencyManagerTest : AndroidTestCase() {
     simulateProjectSync()
     assertTrue(dependencyManager!!.useAndroidXDependencies())
     assertEquals(2, dependencyUpdateCount)
+b/145854905 */
   }
 
   fun testNoNotificationOnProjectSyncBeforeSetPalette() {

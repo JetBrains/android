@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.scene.Placeholder;
@@ -48,7 +49,11 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
+  @Nullable
+  public Interaction createInteraction(@NotNull ScreenView screenView,
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y,
+                                       @NotNull NlComponent component) {
     return new SceneInteraction(screenView);
   }
 

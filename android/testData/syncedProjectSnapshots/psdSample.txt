@@ -2,10 +2,12 @@ PROJECT             : testPsdSample
     MODULE              : app
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testPsdSample
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,22 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basic/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/bar/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBar/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBarDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBar/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testBar/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -240,6 +256,53 @@ PROJECT             : testPsdSample
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/res
+        LIBRARY             : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.test:monitor:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.test:runner:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-<VERSION>/res [-]
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -429,15 +492,73 @@ PROJECT             : testPsdSample
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY             : Gradle: junit:junit:4.12@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12@jar [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     MODULE              : deep2
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : nested2
         - ModuleGroupPath   : trans
         - ModuleGroupPath   : deep2
+        ExternalModuleGroup : testPsdSample.nested2.trans
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/trans/deep2/deep2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/deep2/deep2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -450,6 +571,14 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -535,10 +664,12 @@ PROJECT             : testPsdSample
     MODULE              : dyn_feature
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : dyn_feature
+        ExternalModuleGroup : testPsdSample
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/dyn_feature/dyn_feature.iml
+        ModuleFile          : <PROJECT>/.idea/modules/dyn_feature/dyn_feature.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -551,6 +682,14 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -636,10 +775,12 @@ PROJECT             : testPsdSample
     MODULE              : jav
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : jav
+        ExternalModuleGroup : testPsdSample
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jav/jav.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jav/jav.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -661,10 +802,12 @@ PROJECT             : testPsdSample
     MODULE              : lib
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : testPsdSample
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -677,6 +820,14 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1005,10 +1156,12 @@ PROJECT             : testPsdSample
     MODULE              : nested1
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : nested1
+        ExternalModuleGroup : testPsdSample
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested1
         LinkedProjectPath   : <PROJECT>/nested1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested1/nested1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/nested1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1021,6 +1174,14 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1107,10 +1268,12 @@ PROJECT             : testPsdSample
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : nested1
         - ModuleGroupPath   : deep
+        ExternalModuleGroup : testPsdSample.nested1
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested1:deep
         LinkedProjectPath   : <PROJECT>/nested1/deep
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested1/deep/nested1-deep.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested1/deep/nested1-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1123,6 +1286,14 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1208,10 +1379,12 @@ PROJECT             : testPsdSample
     MODULE              : nested2
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : nested2
+        ExternalModuleGroup : testPsdSample
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/nested2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/nested2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1224,6 +1397,18 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basic/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basicDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/testBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1352,10 +1537,12 @@ PROJECT             : testPsdSample
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : nested2
         - ModuleGroupPath   : deep
+        ExternalModuleGroup : testPsdSample.nested2
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/deep/nested2-deep.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/deep/nested2-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1368,6 +1555,14 @@ PROJECT             : testPsdSample
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1452,10 +1647,12 @@ PROJECT             : testPsdSample
         ORDER_ENTRY         : <Module source>
     MODULE              : testPsdSample
         - ModuleGroupPath   : testPsdSample
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testPsdSample
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testPsdSample.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testPsdSample.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
@@ -1470,10 +1667,12 @@ PROJECT             : testPsdSample
         - ModuleGroupPath   : testPsdSample
         - ModuleGroupPath   : nested2
         - ModuleGroupPath   : trans
+        ExternalModuleGroup : testPsdSample.nested2
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/trans/trans.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/trans.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

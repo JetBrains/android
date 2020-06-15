@@ -1,7 +1,7 @@
 package org.jetbrains.android.intentions;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalInspectionTool;

@@ -100,7 +100,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     setTitle(TITLE);
     setModal(false);
 
-    myClient = new TransportClient(TransportService.getInstance().getChannelName());
+    myClient = new TransportClient(TransportService.CHANNEL_NAME);
 
     myProcessSelectionAction = new CommonAction("Select Process", AllIcons.General.Add);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
@@ -218,9 +218,9 @@ public class TransportPipelineDialog extends DialogWrapper {
       ApplicationManager.getApplication()::invokeLater,
       event -> !event.getStream().hasStreamConnected(),
       event -> {
-        Common.Stream stream = event.getStream().getStreamConnected().getStream();
-        myStreamIdMap.remove(stream.getStreamId());
-        myProcessesMap.remove(stream.getStreamId());
+        // Group ID here is Stream ID
+        myStreamIdMap.remove(event.getGroupId());
+        myProcessesMap.remove(event.getGroupId());
         rebuildDevicesDropdown();
         return false;
       });

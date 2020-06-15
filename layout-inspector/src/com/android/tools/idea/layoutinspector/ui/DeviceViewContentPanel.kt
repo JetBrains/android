@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.adtui.common.AdtPrimaryPanel
+import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.ui.PopupHandler
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -33,14 +38,29 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JPanel
+import java.awt.geom.GeneralPath
+import java.awt.geom.Path2D.WIND_NON_ZERO
+import java.awt.geom.Rectangle2D
 
 private const val MARGIN = 50
 
-class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : JPanel() {
+private const val NORMAL_BORDER_THICKNESS = 1f
+private const val EMPHASIZED_BORDER_THICKNESS = 5f
+private const val EMPHASIZED_BORDER_OUTLINE_THICKNESS = 7f
+private const val LABEL_FONT_SIZE = 30f
 
-  private val inspectorModel = layoutInspector.layoutInspectorModel
-  var model = DeviceViewPanelModel(inspectorModel)
+private val EMPHASIZED_LINE_COLOR = Color(106, 161, 211)
+private val EMPHASIZED_LINE_STROKE = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
+private val EMPHASIZED_LINE_OUTLINE_STROKE = BasicStroke(EMPHASIZED_BORDER_OUTLINE_THICKNESS)
+private val SELECTED_LINE_COLOR = Color(24, 134, 247)
+private val SELECTED_LINE_STROKE = EMPHASIZED_LINE_STROKE
+private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
+private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
+private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
+
+class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
+
+  val model = DeviceViewPanelModel(inspectorModel)
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -50,17 +70,9 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
   )
 
   init {
-    layoutInspector.modelChangeListeners.add(::modelChanged)
     inspectorModel.modificationListeners.add(::modelChanged)
-    inspectorModel.selectionListeners.add(::selectionChanged)
-    val mouseListener = object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        inspectorModel.selection = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
-                                                     (e.y - size.height / 2.0) / viewSettings.scaleFraction)
-        repaint()
-      }
-    }
-    addMouseListener(mouseListener)
+    inspectorModel.selectionListeners.add { _, _ -> repaint() }
+    inspectorModel.hoverListeners.add { _, _ -> repaint() }
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent?) {
         repaint()
@@ -72,40 +84,60 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
       private var y = 0
 
       override fun mousePressed(e: MouseEvent) {
+        if (e.isConsumed) return
         x = e.x
         y = e.y
       }
 
       override fun mouseDragged(e: MouseEvent) {
-        var xRotation = 0.0
-        var yRotation = 0.0
-        if (viewSettings.viewMode != ViewMode.FIXED) {
-          xRotation = (e.x - x) * 0.001
-          x = e.x
+        if (e.isConsumed) return
+        if (!model.rotatable) {
+          // can't rotate
+          return
         }
-        if (viewSettings.viewMode == ViewMode.XY) {
-          yRotation = (e.y - y) * 0.001
-          y = e.y
-        }
+        val xRotation = (e.x - x) * 0.001
+        val yRotation = (e.y - y) * 0.001
+        x = e.x
+        y = e.y
         if (xRotation != 0.0 || yRotation != 0.0) {
           model.rotate(xRotation, yRotation)
         }
         repaint()
       }
+
+      private fun nodeAtPoint(e: MouseEvent) = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                                 (e.y - size.height / 2.0) / viewSettings.scaleFraction)
+
+      override fun mouseClicked(e: MouseEvent) {
+        if (e.isConsumed) return
+        inspectorModel.selection = nodeAtPoint(e)
+      }
+
+      override fun mouseMoved(e: MouseEvent) {
+        if (e.isConsumed) return
+        inspectorModel.hoveredNode = findClickedComponent(e.x, e.y)
+      }
     }
     addMouseListener(listener)
     addMouseMotionListener(listener)
 
-    viewSettings.modificationListeners.add {
-      if (viewSettings.viewMode == ViewMode.FIXED) {
-        model.resetRotation()
+    addMouseListener(object : PopupHandler() {
+      override fun invokePopup(comp: Component, x: Int, y: Int) {
+        showViewContextMenu(findClickedComponent(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
-      // no need to handle X_ONLY since we can only get there starting at FIXED, so rotation will already be 0
+    })
+
+    viewSettings.modificationListeners.add { repaint() }
+    model.modificationListeners.add {
+      revalidate()
       repaint()
     }
   }
 
-  override fun paint(g: Graphics) {
+  private fun findClickedComponent(x: Int, y: Int) = model.findTopRect((x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                                      (y - size.height / 2.0) / viewSettings.scaleFraction)
+
+  override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
     g2d.color = background
     g2d.fillRect(0, 0, width, height)
@@ -120,10 +152,18 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     // ViewNode.imageTop are images that the parents draw on top of their
     // children. Therefore draw them in the reverse order (children first).
     model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
+
+    if (model.overlay != null) {
+      g2d.composite = AlphaComposite.SrcOver.derive(model.overlayAlpha)
+      val bounds = model.hitRects[0].bounds.bounds
+      g2d.drawImage(model.overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
+    }
   }
 
-  override fun getPreferredSize() = Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
-                                              (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
+  override fun getPreferredSize() =
+    if (inspectorModel.isEmpty) Dimension(0, 0)
+    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
+                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
 
   private fun drawView(g: Graphics,
                        drawInfo: ViewDrawInfo,
@@ -132,14 +172,28 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     val selection = inspectorModel.selection
     val view = drawInfo.node
-    if (viewSettings.drawBorders) {
-      if (view == selection) {
-        g2.color = JBColor.RED
-        g2.stroke = BasicStroke(3f)
+    val hoveredNode = inspectorModel.hoveredNode
+    if (viewSettings.drawBorders || view == selection || view == hoveredNode) {
+      when (view) {
+        selection, hoveredNode -> {
+          g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
+          g2.stroke = EMPHASIZED_LINE_OUTLINE_STROKE
+          g2.draw(drawInfo.bounds)
+        }
       }
-      else {
-        g2.color = JBColor.BLUE
-        g2.stroke = BasicStroke(1f)
+      when (view) {
+        selection -> {
+          g2.color = SELECTED_LINE_COLOR
+          g2.stroke = SELECTED_LINE_STROKE
+        }
+        hoveredNode -> {
+          g2.color = EMPHASIZED_LINE_COLOR
+          g2.stroke = EMPHASIZED_LINE_STROKE
+        }
+        else -> {
+          g2.color = NORMAL_LINE_COLOR
+          g2.stroke = NORMAL_LINE_STROKE
+        }
       }
       g2.draw(drawInfo.bounds)
     }
@@ -148,38 +202,49 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
 
     if (image != null) {
       val composite = g2.composite
-      if (selection != null && view != selection) {
+      // Check hasSubImages, since it doesn't make sense to dim if we're only showing one image.
+      if (selection != null && view != selection && inspectorModel.hasSubImages) {
         g2.composite = AlphaComposite.SrcOver.derive(0.6f)
       }
       g2.clip(drawInfo.clip)
       UIUtil.drawImage(g2, image, view.x, view.y, null)
       g2.composite = composite
     }
-    if (viewSettings.drawBorders && view == selection) {
-      g2.color = Color.BLACK
-      g2.font = g2.font.deriveFont(20f)
-      g2.drawString(view.unqualifiedName, view.x + 5, view.y + 25)
+    if (viewSettings.drawLabel && view == selection) {
+      g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
+      val fontMetrics = g2.fontMetrics
+      val width = fontMetrics.stringWidth(view.unqualifiedName)
+      val height = fontMetrics.maxAscent + fontMetrics.maxDescent
+      val border = height * 0.3f
+      g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
+      g2.stroke = EMPHASIZED_LINE_OUTLINE_STROKE
+      val outlinePath = GeneralPath(WIND_NON_ZERO)
+      outlinePath.moveTo(view.x.toFloat(), view.y.toFloat() - EMPHASIZED_BORDER_OUTLINE_THICKNESS)
+      outlinePath.lineTo(view.x.toFloat(),
+                         view.y - height.toFloat() - border + EMPHASIZED_BORDER_THICKNESS)
+      outlinePath.lineTo(view.x.toFloat() + width + 2f * border - EMPHASIZED_BORDER_THICKNESS,
+                         view.y - height.toFloat() - border + EMPHASIZED_BORDER_THICKNESS)
+      outlinePath.lineTo(view.x.toFloat() + width + 2f * border - EMPHASIZED_BORDER_THICKNESS,
+                         view.y.toFloat() - EMPHASIZED_BORDER_OUTLINE_THICKNESS)
+      if (width + 2f * border - EMPHASIZED_BORDER_THICKNESS > view.width) {
+        outlinePath.lineTo(view.x.toFloat() + width + 2f * border - EMPHASIZED_BORDER_THICKNESS,
+                           view.y.toFloat())
+        outlinePath.lineTo(view.x.toFloat() + view.width.toFloat() + EMPHASIZED_BORDER_OUTLINE_THICKNESS,
+                           view.y.toFloat())
+      }
+      g2.draw(outlinePath)
+      g2.color = SELECTED_LINE_COLOR
+      g2.fill(Rectangle2D.Float(view.x.toFloat() - EMPHASIZED_BORDER_THICKNESS / 2f,
+                                view.y - height - border + EMPHASIZED_BORDER_THICKNESS / 2f,
+                                width + 2f * border, height + border))
+      g2.color = Color.WHITE
+      g2.drawString(view.unqualifiedName, view.x + border, view.y - border)
     }
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  private fun selectionChanged(old: ViewNode?, new: ViewNode?) {
-    repaint()
   }
 
   @Suppress("UNUSED_PARAMETER")
   private fun modelChanged(old: ViewNode?, new: ViewNode?, structuralChange: Boolean) {
     model.refresh()
-    repaint()
-  }
-
-  private fun modelChanged(old: InspectorModel, new: InspectorModel) {
-    old.selectionListeners.remove(::selectionChanged)
-    new.selectionListeners.add(::selectionChanged)
-    old.modificationListeners.remove(::modelChanged)
-    new.modificationListeners.add(::modelChanged)
-
-    model = DeviceViewPanelModel(new)
     repaint()
   }
 }

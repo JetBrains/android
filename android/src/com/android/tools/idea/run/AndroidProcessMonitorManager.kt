@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.run
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
 import com.intellij.execution.process.ProcessOutputTypes
 import java.io.Closeable
-import javax.annotation.concurrent.GuardedBy
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A thread-safe manager to manage multiple [SingleDeviceAndroidProcessMonitor]s concurrently.
@@ -52,8 +55,8 @@ class AndroidProcessMonitorManager(
                                         textEmitter)
     }
 ) : Closeable {
-  @GuardedBy("this")
-  private val myMonitors: HashMap<IDevice, SingleDeviceAndroidProcessMonitor> = HashMap()
+  private val myMonitors: ConcurrentMap<IDevice, SingleDeviceAndroidProcessMonitor> = ConcurrentHashMap()
+  private val myIsOnAllTargetProcessesTerminatedCalled = AtomicBoolean()
 
   private val myMonitorListener = object : SingleDeviceAndroidProcessMonitorStateListener {
     override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
@@ -78,8 +81,7 @@ class AndroidProcessMonitorManager(
   /**
    * Adds a [device] and starts monitoring processes on the device. If the given device has been added already, it will be no-op.
    */
-  @WorkerThread
-  @Synchronized
+  @AnyThread
   fun add(device: IDevice) {
     myMonitors.computeIfAbsent(device) {
       singleDeviceAndroidProcessMonitorFactory(
@@ -88,33 +90,33 @@ class AndroidProcessMonitorManager(
   }
 
   /**
-   * Returns true if a given [device] is managed by this class.
+   * Returns a process monitor for a given [device] if it is managed by this class, otherwise null is returned.
    */
   @WorkerThread
-  @Synchronized
-  fun isAssociated(device: IDevice) = myMonitors.containsKey(device)
+  fun getMonitor(device: IDevice): SingleDeviceAndroidProcessMonitor? = myMonitors[device]
+
+  /**
+   * Checks if a given device is monitored by this manager. Returns true if it is monitored otherwise false.
+   */
+  @AnyThread
+  fun isAssociated(device: IDevice) = myMonitors.contains(device)
 
   /**
    * Removes a [device] and notifies [AndroidProcessMonitorManagerListener.onAllTargetProcessesTerminated] if this is the very last one.
    */
   @WorkerThread
   private fun remove(device: IDevice) {
-    var allTargetProcessFinished = false
-    synchronized(this) {
-      if (myMonitors.remove(device) != null) {
-        allTargetProcessFinished = myMonitors.isEmpty()
+    if (myMonitors.remove(device) != null) {
+      if (myMonitors.isEmpty() && myIsOnAllTargetProcessesTerminatedCalled.compareAndSet(false, true)) {
+        listener.onAllTargetProcessesTerminated()
       }
-    }
-
-    if (allTargetProcessFinished) {
-      listener.onAllTargetProcessesTerminated()
     }
   }
 
   /**
    * Terminates all target processes running on monitored devices and stops capturing logcat messages from devices.
    */
-  @Synchronized
+  @WorkerThread
   override fun close() {
     myMonitors.values.forEach { it.close() }
     myMonitors.clear()
@@ -125,7 +127,7 @@ class AndroidProcessMonitorManager(
    * Detaches monitor from devices and stops capturing logcat messages from devices.
    * Unlike [close], all target processes will not be terminated and leave running.
    */
-  @Synchronized
+  @WorkerThread
   fun detachAndClose() {
     myMonitors.values.forEach { it.detachAndClose() }
     close()

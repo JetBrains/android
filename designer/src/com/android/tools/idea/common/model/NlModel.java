@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.model;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
@@ -48,9 +46,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
@@ -60,7 +56,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -76,8 +71,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -93,9 +86,18 @@ import org.jetbrains.annotations.Nullable;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
+
+  /**
+   * Responsible for updating {@link NlModel} once results from LayoutLibSceneManager is available as {@link TagSnapshotTreeNode}.
+   */
+  public interface NlModelUpdaterInterface {
+
+    void update(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
+  }
+
   public static final int DELAY_AFTER_TYPING_MS = 250;
 
-  private static final boolean CHECK_MODEL_INTEGRITY = false;
+  static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = new HashSet<String>();
 
   @NotNull private final AndroidFacet myFacet;
@@ -104,8 +106,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
-  private final String myModelDisplayName;
-  private NlComponent myRootComponent;
+  private String myModelDisplayName;
+  @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
   private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
@@ -129,6 +131,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
    */
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
+
+  @NotNull private final NlModelUpdaterInterface myModelUpdater;
 
   @Slow
   @NotNull
@@ -170,8 +174,20 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                @NotNull VirtualFile file,
                                @NotNull Configuration configuration,
                                @NotNull Consumer<NlComponent> componentRegistrar,
+                               @Nullable NlModelUpdaterInterface modelUpdater) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, modelUpdater);
+  }
+
+  @Slow
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
+                               @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull Configuration configuration,
+                               @NotNull Consumer<NlComponent> componentRegistrar,
                                @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider);
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, null);
   }
 
   protected NlModel(@Nullable Disposable parent,
@@ -180,7 +196,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar) {
-    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile);
+    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null);
   }
 
   @VisibleForTesting
@@ -190,7 +206,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
-                    @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
+                    @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
+                    @Nullable NlModelUpdaterInterface modelUpdater) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
     myModelDisplayName = modelDisplayName;
@@ -206,6 +223,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", DELAY_AFTER_TYPING_MS,
                                            true, null, this, null, SWING_THREAD);
     myUpdateQueue.setRestartTimerOnAdd(true);
+    if (modelUpdater == null) {
+      myModelUpdater = new DefaultModelUpdater();
+    } else {
+      myModelUpdater = modelUpdater;
+    }
   }
 
   /**
@@ -214,6 +236,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
    */
   public void activate(@NotNull Object source) {
+    if (getFacet().isDisposed()) {
+      return;
+    }
+
     // TODO: Tracking the source is just a workaround for the model being shared so the activations and deactivations are
     // handled correctly. This should be solved by moving the removing this responsibility from the model. The model shouldn't
     // need to keep track of activations/deactivation and they should be handled by the caller.
@@ -310,7 +336,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-    new ModelUpdater(this).update(newRoot, roots);
+    myModelUpdater.update(this, newRoot, roots);
+  }
+
+  protected void setRootComponent(NlComponent root) {
+    myRootComponent = root;
   }
 
   public void checkStructure() {
@@ -424,7 +454,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * // TODO: move this mechanism to LayoutlibSceneManager, or, ideally, remove the need for it entirely by
    * // moving all the derived data into the Scene.
    */
-  public void notifyListenersModelUpdateComplete() {
+  public void notifyListenersModelDerivedDataChanged() {
     myListeners.forEach(listener -> listener.modelDerivedDataChanged(this));
   }
 
@@ -435,7 +465,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    *
    * @param animate if true, warns the listeners to animate the layout update
    */
-  public void notifyListenersModelLayoutComplete(boolean animate) {
+  public void notifyListenersModelChangedOnLayout(boolean animate) {
     myListeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 
@@ -489,330 +519,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     @NotNull
     List<TagSnapshotTreeNode> getChildren();
-  }
-
-  /**
-   * Synchronizes a {@linkplain NlModel} such that the component hierarchy
-   * is up to date wrt tag snapshots etc. Crucially, it attempts to preserve
-   * component hierarchy (since XmlTags may sometimes not survive a PSI reparse, but we
-   * want the {@linkplain NlComponent} instances to keep the same instances across these
-   * edits such that for example the selection (a set of {@link NlComponent} instances)
-   * are preserved.
-   */
-  private static class ModelUpdater {
-    private final NlModel myModel;
-    private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
-    private final Map<NlComponent, XmlTag> myComponentToTagMap = Maps.newIdentityHashMap();
-    /**
-     * Map from snapshots in the old component map to the corresponding components
-     */
-    protected final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
-    /**
-     * Map from tags in the view render tree to the corresponding snapshots
-     */
-    private final Map<XmlTag, TagSnapshot> myTagToSnapshot = Maps.newHashMap();
-
-    public ModelUpdater(@NotNull NlModel model) {
-      myModel = model;
-    }
-
-    private void recordComponentMapping(@NotNull XmlTag tag, @NotNull NlComponent component) {
-      // Is the component already registered to some other tag?
-      XmlTag prevTag = myComponentToTagMap.get(component);
-      if (prevTag != null) {
-        // Yes. Unregister it.
-        myTagToComponentMap.remove(prevTag);
-      }
-
-      myComponentToTagMap.put(component, tag);
-      myTagToComponentMap.put(tag, component);
-    }
-
-    /**
-     * Update the component hierarchy associated with this {@link NlModel} such
-     * that the associated component list correctly reflects the latest versions of the
-     * XML PSI file, the given tag snapshot and {@link TagSnapshotTreeNode} hierarchy
-     */
-    @VisibleForTesting
-    public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-      if (newRoot == null) {
-        myModel.myRootComponent = null;
-        return;
-      }
-
-      // Make sure the root is valid during these operation.
-      myModel.myRootComponent = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
-        if (!newRoot.isValid()) {
-          return null;
-        }
-
-        // Next find the snapshots corresponding to the missing components.
-        // We have to search among the view infos in the new components.
-        for (TagSnapshotTreeNode root : roots) {
-          gatherTagsAndSnapshots(root, myTagToSnapshot);
-        }
-
-        // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
-        // form the old map
-        mapOldToNew(newRoot);
-
-        for (Map.Entry<XmlTag, NlComponent> entry : myTagToComponentMap.entrySet()) {
-          XmlTag tag = entry.getKey();
-          NlComponent component = entry.getValue();
-          if (!component.getTagName().equals(tag.getName())) {
-            // One or more incompatible changes: PSI nodes have been reused unpredictably
-            // so completely recompute the hierarchy
-            myTagToComponentMap.clear();
-            myComponentToTagMap.clear();
-            break;
-          }
-        }
-
-        // Build up the new component tree
-        return createTree(newRoot);
-      });
-
-      // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
-      // data
-      for (NlComponent component : myTagToComponentMap.values()) {
-        component.setSnapshot(null);
-      }
-
-      // Update the components' snapshots
-      for (TagSnapshotTreeNode root : roots) {
-        updateHierarchy(root);
-      }
-    }
-
-    private void mapOldToNew(@NotNull XmlTag newRootTag) {
-      ApplicationManager.getApplication().assertReadAccessAllowed();
-
-      // First build up a new component tree to reflect the latest XmlFile hierarchy.
-      // If there have been no structural changes, these map 1-1 from the previous hierarchy.
-      // We first attempt to do it based on the XmlTags:
-      //  (1) record a map from XmlTag to NlComponent in the previous component list
-      for (NlComponent component : myModel.getComponents()) {
-        gatherTagsAndSnapshots(component);
-      }
-
-      // Look for any NlComponents no longer present in the new set
-      List<XmlTag> missing = new ArrayList<>();
-      Set<XmlTag> remaining = Sets.newIdentityHashSet();
-      remaining.addAll(myTagToComponentMap.keySet());
-      checkMissing(newRootTag, remaining, missing);
-
-      // If we've just removed a component, there will be no missing tags; we
-      // can build the new/updated component hierarchy directly from the old
-      // NlComponent instances
-      if (missing.isEmpty()) {
-        return;
-      }
-
-      // If we've just added a component, there will be no remaining tags from
-      // old component instances. In this case all components should be new
-      // instances
-      if (remaining.isEmpty()) {
-        return;
-      }
-
-      // Try to map more component instances from old to new.
-      // We will do this via multiple heuristics:
-      //   - mapping id's
-      //   - looking at all component attributes (e.g. snapshots)
-
-      // First check by id.
-      // Note: We can't use XmlTag#getAttribute on the old component hierarchy;
-      // those elements may not be valid and PSI will throw exceptions if we
-      // attempt to access them.
-      Map<String, NlComponent> oldIds = Maps.newHashMap();
-      for (Map.Entry<TagSnapshot, NlComponent> entry : mySnapshotToComponent.entrySet()) {
-        TagSnapshot snapshot = entry.getKey();
-        if (snapshot != null) {
-          String id = snapshot.getAttribute(ATTR_ID, ANDROID_URI);
-          if (id != null) {
-            oldIds.put(id, entry.getValue());
-          }
-        }
-      }
-      ListIterator<XmlTag> missingIterator = missing.listIterator();
-      while (missingIterator.hasNext()) {
-        XmlTag tag = missingIterator.next();
-        String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-        if (id != null) {
-          // TODO: Consider unifying @+id/ and @id/ references here
-          // (though it's unlikely for this to change across component
-          // synchronization operations)
-          NlComponent component = oldIds.get(id);
-          if (component != null) {
-            recordComponentMapping(tag, component);
-            remaining.remove(component.getTagDeprecated());
-            missingIterator.remove();
-          }
-        }
-      }
-
-      if (missing.isEmpty() || remaining.isEmpty()) {
-        // We've now resolved everything
-        return;
-      }
-
-      // Next attempt to correlate components based on tag snapshots
-
-      // First compute fingerprints of the old components
-      Multimap<Long, TagSnapshot> snapshotIds = ArrayListMultimap.create();
-      for (XmlTag old : remaining) {
-        NlComponent component = myTagToComponentMap.get(old);
-        if (component != null) { // this *should* be the case
-          TagSnapshot snapshot = component.getSnapshot();
-          if (snapshot != null) {
-            snapshotIds.put(snapshot.getSignature(), snapshot);
-          }
-        }
-      }
-
-      // Note that we're using a multimap rather than a map for these keys,
-      // so if you have the same exact element and attributes multiple times,
-      // they'll be found and matched in the same order. (This works because
-      // we're also tracking the missing xml tags in iteration order by using a
-      // list instead of a set.)
-      missingIterator = missing.listIterator();
-      while (missingIterator.hasNext()) {
-        XmlTag tag = missingIterator.next();
-        TagSnapshot snapshot = myTagToSnapshot.get(tag);
-        if (snapshot != null) {
-          long signature = snapshot.getSignature();
-          Collection<TagSnapshot> snapshots = snapshotIds.get(signature);
-          if (!snapshots.isEmpty()) {
-            TagSnapshot first = snapshots.iterator().next();
-            NlComponent component = mySnapshotToComponent.get(first);
-            if (component != null) {
-              recordComponentMapping(tag, component);
-              remaining.remove(component.getTagDeprecated());
-              missingIterator.remove();
-            }
-          }
-        }
-      }
-
-      // Finally, if there's just a single tag in question, it might have been
-      // that we changed an attribute of a tag (so the fingerprint no longer matches).
-      // If the tag name is identical, we'll go ahead.
-      if (missing.size() == 1 && remaining.size() == 1) {
-        XmlTag oldTag = remaining.iterator().next();
-        NlComponent component = myTagToComponentMap.get(oldTag);
-        if (component != null) {
-          XmlTag newTag = missing.get(0);
-          TagSnapshot snapshot = component.getSnapshot();
-          if (snapshot != null) {
-            if (snapshot.tagName.equals(newTag.getName())) {
-              recordComponentMapping(newTag, component);
-            }
-          }
-        }
-      }
-    }
-
-    /**
-     * Processes through the XML tag hierarchy recursively, and checks
-     * whether the tag is in the remaining set, and if so removes it,
-     * otherwise adds it to the missing set.
-     */
-    private static void checkMissing(XmlTag tag, Set<XmlTag> remaining, List<XmlTag> missing) {
-
-      boolean found = remaining.remove(tag);
-      if (!found) {
-        missing.add(tag);
-      }
-      for (XmlTag child : tag.getSubTags()) {
-        checkMissing(child, remaining, missing);
-      }
-    }
-
-    private void gatherTagsAndSnapshots(@NotNull NlComponent component) {
-      XmlTag tag = component.getTagDeprecated();
-
-      recordComponentMapping(tag, component);
-      mySnapshotToComponent.put(component.getSnapshot(), component);
-
-      for (NlComponent child : component.getChildren()) {
-        gatherTagsAndSnapshots(child);
-      }
-    }
-
-    private static void gatherTagsAndSnapshots(@NotNull TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
-      TagSnapshot snapshot = node.getTagSnapshot();
-      if (snapshot != null) {
-        map.put(snapshot.tag, snapshot);
-      }
-
-      for (TagSnapshotTreeNode child : node.getChildren()) {
-        gatherTagsAndSnapshots(child, map);
-      }
-    }
-
-    @NotNull
-    private NlComponent createTree(@NotNull XmlTag tag) {
-      NlComponent component = myTagToComponentMap.get(tag);
-      if (component == null) {
-        // New component: tag didn't exist in the previous component hierarchy,
-        // and no similar tag was found
-        component = myModel.createComponent(tag);
-        recordComponentMapping(tag, component);
-      }
-
-      XmlTag[] subTags = tag.getSubTags();
-      if (subTags.length > 0) {
-        if (CHECK_MODEL_INTEGRITY) {
-          Set<NlComponent> seen = new HashSet<NlComponent>();
-          Set<XmlTag> seenTags = new HashSet<XmlTag>();
-          for (XmlTag t : subTags) {
-            if (seenTags.contains(t)) {
-              assert false : t;
-            }
-            seenTags.add(t);
-            NlComponent registeredComponent = myTagToComponentMap.get(t);
-            if (registeredComponent != null) {
-              if (seen.contains(registeredComponent)) {
-                assert false : registeredComponent;
-              }
-              seen.add(registeredComponent);
-            }
-          }
-        }
-
-        List<NlComponent> children = new ArrayList<>(subTags.length);
-        for (XmlTag subtag : subTags) {
-          NlComponent child = createTree(subtag);
-          children.add(child);
-        }
-        component.setChildren(children);
-      }
-      else {
-        component.setChildren(null);
-      }
-
-      return component;
-    }
-
-    private void updateHierarchy(@NotNull TagSnapshotTreeNode node) {
-      TagSnapshot snapshot = node.getTagSnapshot();
-      NlComponent component;
-      if (snapshot != null) {
-        component = mySnapshotToComponent.get(snapshot);
-        if (component == null) {
-          component = myTagToComponentMap.get(snapshot.tag);
-        }
-
-        if (component != null) {
-          component.setSnapshot(snapshot);
-          assert snapshot.tag != null;
-          component.setTag(snapshot.tag);
-        }
-      }
-      for (TagSnapshotTreeNode child : node.getChildren()) {
-        updateHierarchy(child);
-      }
-    }
   }
 
   @NotNull
@@ -1067,7 +773,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
-    NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
+    if (insertType != InsertType.MOVE_WITHIN) {
+      NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
+    } else {
+      callback.run();
+    }
   }
 
   private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
@@ -1087,6 +797,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       });
 
       notifyModified(ChangeType.ADD_COMPONENTS);
+
+      // Select the newly created components
+      // Moved here (temporarily) from the commit part of DragDropInteraction.moveTo
+      // b/145295141 was created to keep track of the cleanup to move it back to DragDropInteraction.
+      if (insertType == InsertType.CREATE && surface != null) {
+        surface.getSelectionModel().setSelection(toAdd);
+      }
     });
   }
 
@@ -1166,6 +883,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public long getId() {
     return myId;
+  }
+
+  public void setModelDisplayName(@Nullable String name) {
+    myModelDisplayName = name;
   }
 
   @Nullable

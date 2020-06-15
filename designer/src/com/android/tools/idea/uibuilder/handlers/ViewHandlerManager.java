@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROID_APP_PKG;
-import static com.android.SdkConstants.ANDROID_VIEW_PKG;
-import static com.android.SdkConstants.ANDROID_WEBKIT_PKG;
-import static com.android.SdkConstants.ANDROID_WIDGET_PREFIX;
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.tools.idea.uibuilder.model.ClassResolutionUtilsKt.findClassesForViewTag;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -33,7 +30,6 @@ import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,7 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,8 +62,6 @@ public class ViewHandlerManager implements Disposable {
    * View handlers are named the same as the class for the view they represent, plus this suffix
    */
   private static final String HANDLER_CLASS_SUFFIX = "Handler";
-  private static final Set<String> NO_PREFIX_PACKAGES = ImmutableSet
-    .of(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG, ANDROID_APP_PKG);
 
   private final Project myProject;
   private final Map<String, ViewHandler> myHandlers = Maps.newHashMap();
@@ -260,20 +253,23 @@ public class ViewHandlerManager implements Disposable {
     // to try searching in the users source code and try to use that one.
     Logger.getInstance(ViewHandler.class).debug("Looking for user code defined handlers for " + viewTag);
     return ApplicationManager.getApplication().runReadAction((Computable<ViewHandler>)() -> {
-      try {
-        String qualifiedClassName = getFullyQualifiedClassName(viewTag);
-        if (qualifiedClassName != null) {
-          String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-          JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
-          PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+      if (myProject.isDisposed()) {
+        return NONE;
+      }
 
-          if (classes.length == 0) {
+      try {
+        PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
+        if (viewClasses.length > 0) {
+          String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
+          PsiClass[] handlerClasses =
+            JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+
+          if (handlerClasses.length == 0) {
             // No view handler found for this class; look up the custom view and get the handler for its
             // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
             // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
             // ViewHandler instead.
-            classes = facade.findClasses(qualifiedClassName, GlobalSearchScope.allScope(myProject));
-            for (PsiClass cls : classes) {
+            for (PsiClass cls : viewClasses) {
               PsiClass superClass = cls.getSuperClass();
               if (superClass != null) {
                 String fqn = superClass.getQualifiedName();
@@ -284,7 +280,7 @@ public class ViewHandlerManager implements Disposable {
             }
           }
           else {
-            for (PsiClass cls : classes) {
+            for (PsiClass cls : handlerClasses) {
               // Look for bytecode and instantiate if possible, then return
               // TODO: Instantiate
               Logger.getInstance(ViewHandler.class).debug(String.format(
@@ -299,21 +295,6 @@ public class ViewHandlerManager implements Disposable {
       }
       return NONE;
     });
-  }
-
-  @Nullable
-  private String getFullyQualifiedClassName(@NotNull String viewTag) {
-    if (viewTag.indexOf('.') > 0) {
-      return viewTag;
-    }
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
-    for (String packageName : NO_PREFIX_PACKAGES) {
-      PsiClass[] classes = facade.findClasses(packageName + viewTag, GlobalSearchScope.allScope(myProject));
-      if (classes.length > 0) {
-        return packageName + viewTag;
-      }
-    }
-    return null;
   }
 
   /**

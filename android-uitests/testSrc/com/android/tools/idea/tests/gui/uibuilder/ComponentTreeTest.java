@@ -25,7 +25,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
-import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -49,7 +49,6 @@ public final class ComponentTreeTest {
   @Rule
   public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/140560022
   @Test
   public void testDropThatOpensDialog() {
     WizardUtils.createNewProject(myGuiTest);
@@ -74,7 +73,7 @@ public final class ComponentTreeTest {
     // TODO This step takes around 10 s when this UI test does it (not when I do it manually). Make it faster.
     layoutEditor.getComponentTree().drop("android.support.constraint.ConstraintLayout");
 
-    ResourceExplorerDialogFixture dialog = ResourceExplorerDialogFixture.find(myGuiTest.robot());
+    ResourcePickerDialogFixture dialog = ResourcePickerDialogFixture.find(myGuiTest.robot());
     // TODO Same here
     dialog.getResourceExplorer().selectTab("Mip Map");
     dialog.getResourceExplorer().selectResource("ic_launcher");

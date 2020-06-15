@@ -1,0 +1,61 @@
+<templateSet group="AndroidLogKotlin">
+  <template name="logd" value="android.util.Log.d(TAG, &quot;$METHOD_NAME$: $content$&quot;)" description="Log.d(TAG, String)" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="kotlinFunctionName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="logi" value="android.util.Log.i(TAG, &quot;$METHOD_NAME$: $content$&quot;)" description="Log.i(TAG, String)" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="kotlinFunctionName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="logw" value="android.util.Log.w(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$)" description="Log.w(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="kotlinFunctionName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="exception" expression="" defaultValue="e" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="loge" value="android.util.Log.e(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$)" description="Log.e(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="kotlinFunctionName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="exception" expression="" defaultValue="e" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="wtf" value="android.util.Log.wtf(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$)" description="Log.wtf(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="kotlinFunctionName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="exception" expression="" defaultValue="e" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="logm" value="android.util.Log.d(TAG, $content$)" description="Log method name and its arguments" toReformat="true" toShortenFQNames="true">
+    <variable name="content" expression="groovyScript(&quot;def params = _2.collect {it + ' = $' + it}.join(', '); return '\&quot;' + _1 + '() called' + (params.empty  ? '' : ' with: ' + params) + '\&quot;'&quot;, kotlinFunctionName(), functionParameters())" defaultValue="" alwaysStopAt="false" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="logr" value="android.util.Log.d(TAG, &quot;$METHOD_NAME$() returned: $result&quot;)" description="Log result of this method" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="kotlinFunctionName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="result" expression="variableOfType(methodReturnType())" defaultValue="" alwaysStopAt="false" />
+    <context>
+      <option name="KOTLIN_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="logt" value="private const val TAG = &quot;$fileName$&quot;" description="A static logtag with your current filename" toReformat="true" toShortenFQNames="true">
+    <variable name="fileName" expression="groovyScript(&quot;_1.take(Math.min(23, _1.length()));&quot;, fileNameWithoutExtension())" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_CLASS" value="true" />
+      <option name="KOTLIN_OBJECT_DECLARATION" value="true" />
+    </context>
+  </template>
+</templateSet>

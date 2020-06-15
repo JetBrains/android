@@ -30,6 +30,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.idea.Bombed;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
@@ -39,6 +40,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Collections;
@@ -183,7 +185,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   public void testGeneratedImage() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
 
-    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("../unitTest/res/layout/activity_main.xml");
+    VirtualFile file = NavTestCase.findVirtualProjectFile(getProject(), "../unitTest/res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     NlModel model = NlModel.create(getProject(), null, myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());

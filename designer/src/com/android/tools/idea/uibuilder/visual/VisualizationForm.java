@@ -20,35 +20,37 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ScreenOrientation;
-import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
-import com.android.tools.idea.common.error.IssuePanelSplitter;
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
@@ -60,17 +62,18 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.EmptyIcon;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ArrayList;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.DefaultFocusTraversalPolicy;
+import java.awt.event.AdjustmentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -84,9 +87,11 @@ import org.jetbrains.annotations.Nullable;
  * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
  * removed after we enable split editor.
  */
-public class VisualizationForm implements Disposable {
+public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
+
+  private static final String RENDERING_MESSAGE = "Rendering Previews...";
 
   /**
    * horizontal gap between different previews
@@ -96,15 +101,8 @@ public class VisualizationForm implements Disposable {
   /**
    * vertical gap between different previews
    */
-  @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 60;
+  @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 48;
 
-  /**
-   * We predefined some pixel devices for now.
-   */
-  private static final List<String> DEVICES_TO_DISPLAY =
-    ImmutableList.of("Pixel 3", "Pixel 3 XL", "Pixel 3a", "Pixel 3a XL", "Pixel 2", "Pixel 2 XL", "Pixel", "Pixel XL", "Pixel C");
-
-  private final VisualizationManager myManager;
   private final Project myProject;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
@@ -112,7 +110,7 @@ public class VisualizationForm implements Disposable {
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
-  private JLabel myFileNameLabel;
+  private JComponent myActionToolbarPanel;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
@@ -125,25 +123,45 @@ public class VisualizationForm implements Disposable {
   private FileEditor myPendingEditor;
 
   private FileEditor myEditor;
+
+  @NotNull private ConfigurationSet myCurrentConfigurationSet;
+  @NotNull private VisualizationModelsProvider myCurrentModelsProvider;
+
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
    */
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
-  public VisualizationForm(@NotNull VisualizationManager manager) {
-    myManager = manager;
-    myProject = myManager.getProject();
+  public VisualizationForm(@NotNull Project project) {
+    myProject = project;
+    myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
+    myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
+
     mySurface = NlDesignSurface.builder(myProject, myProject)
       .showModelNames()
       .setIsPreview(false)
-      .setEditable(false)
+      .setEditable(true)
+      .setSceneManagerProvider((surface, model) -> {
+        Supplier<RenderSettings> renderSettingsProvider = () -> {
+          RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
+          boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
+          // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
+          return settings.copy(0.0f, false, showDecoration);
+        };
+        return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
+      })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
+      .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,
                                                      VERTICAL_SCREEN_DELTA))
+      .setMinScale(0.10)
+      .setMaxScale(4)
       .build();
-    mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
+    mySurface.addPanZoomListener(this);
+
+    updateScreenMode();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
@@ -151,35 +169,66 @@ public class VisualizationForm implements Disposable {
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText());
     myWorkBench.setToolContext(mySurface);
-    myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
+
+    myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
+    myRoot.add(myWorkBench, BorderLayout.CENTER);
+    myRoot.setFocusCycleRoot(true);
+    myRoot.setFocusTraversalPolicy(new VisualizationTraversalPolicy(mySurface));
+  }
+
+  private void updateScreenMode() {
+    switch (myCurrentConfigurationSet) {
+      case COLOR_BLIND_MODE:
+        mySurface.setScreenMode(SceneMode.COLOR_BLIND, false);
+        break;
+      default:
+        mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
+        break;
+    }
+  }
+
+  @NotNull
+  private JComponent createToolbarPanel() {
+    myActionToolbarPanel = new AdtPrimaryPanel(new BorderLayout());
+    myActionToolbarPanel.setBorder(BorderFactory.createCompoundBorder(
+      BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+      BorderFactory.createEmptyBorder(0, 6, 0, 0))
+    );
+    updateActionToolbar();
+    return myActionToolbarPanel;
+  }
+
+  private void updateActionToolbar() {
+    myActionToolbarPanel.removeAll();
+    DefaultActionGroup group = new DefaultActionGroup();
+    String fileName = myFile != null ? myFile.getName() : "";
+    // Add an empty action and disable it permanently for displaying file name.
+    group.add(new TextLabelAction(fileName));
+    group.addSeparator();
+    group.add(new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet)));
+    if (myFile != null) {
+      PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
+      AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
+      if (facet != null) {
+        ActionGroup configurationActions = myCurrentModelsProvider.createActions(file, facet);
+        group.addAll(configurationActions);
+      }
+    }
+    DropDownAction viewOptions = new DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE);
+    viewOptions.add(new ToggleShowDecorationAction());
+    viewOptions.setPopup(true);
+    group.add(viewOptions);
+    // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
+    // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
+    // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
+    ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
+    actionToolbar.updateActionsImmediately();
+    ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
+    myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
   }
 
   private void createContentPanel() {
     myContentPanel = new JPanel(new BorderLayout());
-    myFileNameLabel = new JLabel();
-    // Create an action group and fill a dummy action for now. This makes the height of toolbar same as layout editor's.
-    // TODO: Remove the dummy action when another action is added.
-    ActionGroup group = new DefaultActionGroup(new AnAction(EmptyIcon.create(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width,
-                                                                             ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height)) {
-      @Override
-      public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setEnabled(false);
-        e.getPresentation().setVisible(true);
-      }
-
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-      }
-    });
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
-
-    JComponent fileNamePanel = new AdtPrimaryPanel(new BorderLayout());
-    fileNamePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
-                                                             BorderFactory.createEmptyBorder(0, 6, 0, 0)));
-    fileNamePanel.add(myFileNameLabel, BorderLayout.WEST);
-    fileNamePanel.add(toolbar.getComponent(), BorderLayout.CENTER);
-
-    myContentPanel.add(fileNamePanel, BorderLayout.NORTH);
     myContentPanel.add(mySurface, BorderLayout.CENTER);
   }
 
@@ -187,6 +236,7 @@ public class VisualizationForm implements Disposable {
     if (editor != myEditor) {
       myEditor = editor;
       mySurface.setFileEditorDelegate(editor);
+      updateActionToolbar();
     }
   }
 
@@ -267,7 +317,7 @@ public class VisualizationForm implements Disposable {
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    myWorkBench.loadingStopped("Preview is unavailable until after a successful project sync");
+    myWorkBench.loadingStopped("Previews are unavailable until after a successful project sync");
   }
 
   private void initPreviewFormAfterBuildOnEventDispatchThread() {
@@ -276,13 +326,15 @@ public class VisualizationForm implements Disposable {
     }
     if (myContentPanel == null) {
       createContentPanel();
-      myWorkBench.init(myContentPanel, mySurface, ImmutableList.of());
+      myWorkBench.init(myContentPanel, mySurface, ImmutableList.of(), false);
+      // The toolbar is in the root panel which contains myWorkBench. To traverse to toolbar we need to traverse out from myWorkBench.
+      myWorkBench.setFocusCycleRoot(false);
     }
     initNeleModel();
   }
 
   private void initNeleModel() {
-    myWorkBench.showLoading("Rendering Previews...");
+    myWorkBench.showLoading(RENDERING_MESSAGE);
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
@@ -304,7 +356,7 @@ public class VisualizationForm implements Disposable {
       return;
     }
 
-    myFileNameLabel.setText(file.getName());
+    updateActionToolbar();
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore. There is no need to hold
     // to the Future since Future.cancel does not really interrupt the work.
@@ -315,33 +367,10 @@ public class VisualizationForm implements Disposable {
       .supplyAsync(() -> {
         // Hide the content while adding the models.
         myWorkBench.hideContent();
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
-        List<Device> devices = configurationManager.getDevices();
-        Configuration defaultConfig = configurationManager.getConfiguration(file.getVirtualFile());
-
-        List<Device> deviceList = new ArrayList<>();
-        for (String name : DEVICES_TO_DISPLAY) {
-          devices.stream().filter(device -> name.equals(device.getDisplayName())).findFirst().ifPresent(deviceList::add);
-        }
-
-        if (deviceList.isEmpty()) {
+        List<NlModel> models = myCurrentModelsProvider.createNlModels(this, file, facet);
+        if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
           return null;
-        }
-
-        List<NlModel> models = new ArrayList<>();
-        VirtualFile virtualFile = file.getVirtualFile();
-        Consumer<NlComponent> registrar = mySurface.getComponentRegistrar();
-
-        for (Device d : deviceList) {
-          Configuration config = defaultConfig.clone();
-          config.setDevice(d, false);
-          String label = d.getDisplayName();
-          Dimension size = d.getScreenSize(ScreenOrientation.PORTRAIT);
-          if (size != null) {
-            label = label + " (" + size.width + " x " + size.height + ")";
-          }
-          models.add(NlModel.create(this, label, facet, virtualFile, config, registrar));
         }
         return models;
       }, AppExecutorUtil.getAppExecutorService()).thenAcceptAsync(models -> {
@@ -363,7 +392,7 @@ public class VisualizationForm implements Disposable {
               return CompletableFuture.completedFuture(null);
             }
             else {
-              return mySurface.addModel(model, false);
+              return mySurface.addModel(model);
             }
           });
         }
@@ -373,7 +402,12 @@ public class VisualizationForm implements Disposable {
         addModelFuture.thenRunAsync(() -> {
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            mySurface.setScale(0.25 / mySurface.getScreenScalingFactor());
+            double lastScaling = VisualizationToolSettings.getInstance().getGlobalState().getScale();
+            if (!mySurface.setScale(lastScaling)) {
+              // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
+              // configuration set.
+              mySurface.updateScrolledAreaSize();
+            }
             myWorkBench.showContent();
           }
           else {
@@ -385,7 +419,10 @@ public class VisualizationForm implements Disposable {
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
   public void fileClosed(@NotNull FileEditorManager editorManager, @NotNull VirtualFile file) {
-    if (myEditor != null && file.equals(myFile)) {
+    if (myEditor == null) {
+      setNoActiveModel();
+    }
+    else if (file.equals(myFile)) {
       if (ArrayUtil.find(editorManager.getAllEditors(file), myEditor) < 0) {
         setNoActiveModel();
       }
@@ -417,7 +454,6 @@ public class VisualizationForm implements Disposable {
     }
     else {
       myFile = models.get(0).getVirtualFile();
-      mySurface.zoomToFit();
       setEditor(myPendingEditor);
       myPendingEditor = null;
 
@@ -466,6 +502,33 @@ public class VisualizationForm implements Disposable {
     getAnalyticsManager().trackVisualizationToolWindow(false);
   }
 
+  @Override
+  public void onSelectedConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
+    if (myCurrentConfigurationSet != newConfigurationSet) {
+      myCurrentConfigurationSet = newConfigurationSet;
+
+      MultiViewMetricTrackerKt.trackOpenConfigSet(mySurface, myCurrentConfigurationSet);
+      VisualizationToolSettings.getInstance().getGlobalState().setConfigurationSet(newConfigurationSet);
+      myCurrentModelsProvider = newConfigurationSet.getModelsProviderCreator().invoke(this);
+      refresh();
+    }
+  }
+
+  @Override
+  public void onCurrentConfigurationSetUpdated() {
+    refresh();
+  }
+
+  /**
+   * Refresh the previews. This recreates the {@link NlModel}s from the current {@link ConfigurationSet}.
+   */
+  private void refresh() {
+    updateScreenMode();
+    updateActionToolbar();
+    // Dispose old models and create new models with new configuration set.
+    initNeleModel();
+  }
+
   private NlAnalyticsManager getAnalyticsManager() {
     return mySurface.getAnalyticsManager();
   }
@@ -473,5 +536,78 @@ public class VisualizationForm implements Disposable {
   @Nullable
   public final FileEditor getEditor() {
     return myEditor;
+  }
+
+  @Override
+  public void zoomChanged() {
+    VisualizationToolSettings.getInstance().getGlobalState().setScale(mySurface.getScale());
+  }
+
+  @Override
+  public void panningChanged(AdjustmentEvent adjustmentEvent) {
+    // Do nothing.
+  }
+
+  /**
+   * An disabled action for displaying text in action toolbar.
+   */
+  private static final class TextLabelAction extends AnAction {
+
+    TextLabelAction(@NotNull String text) {
+      super((String)null);
+      getTemplatePresentation().setText(text, false);
+      getTemplatePresentation().setEnabled(false);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      // Do nothing
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(false);
+    }
+
+    @Override
+    public boolean displayTextInToolbar() {
+      return true;
+    }
+  }
+
+  private final class ToggleShowDecorationAction extends ToggleAction {
+    private ToggleShowDecorationAction() {
+      super("Show System UI");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull AnActionEvent e) {
+      return VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
+    }
+
+    @Override
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
+      VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
+      myWorkBench.hideContent();
+      myWorkBench.showLoading(RENDERING_MESSAGE);
+      mySurface.forceUserRequestedRefresh().thenRun(() -> {
+        if (!Disposer.isDisposed(myWorkBench)) {
+          myWorkBench.showContent();
+        }
+      });
+    }
+  }
+
+  private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
+    @NotNull private DesignSurface mySurface;
+
+    private VisualizationTraversalPolicy(@NotNull DesignSurface surface) {
+      mySurface = surface;
+    }
+
+    @Override
+    public Component getDefaultComponent(Container aContainer) {
+      return mySurface.getLayeredPane();
+    }
   }
 }

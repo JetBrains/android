@@ -255,10 +255,14 @@ public class BaseCreatePanel extends JPanel {
         }
       }
     };
+    aa.putValue(Action.SHORT_DESCRIPTION, component.getToolTipText());
     return aa;
   }
 
   String addIdPrefix(String str) {
+    if (str == null) {
+      return null;
+    }
     if (str.startsWith("@+id/") || str.startsWith("@id/")) {
       return str;
     }

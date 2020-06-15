@@ -79,16 +79,19 @@ public class TutorialStep extends JPanel {
   @NotNull private final JPanel myContents;
   @NotNull private final Project myProject;
 
+  private final boolean myUseLocalHTMLPaths;
+
   private static Logger getLog() {
     return Logger.getInstance(TutorialStep.class);
   }
 
-  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex) {
+  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex, boolean useLocalHTMLPaths) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
     myProject = project;
     myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
+    myUseLocalHTMLPaths = useLocalHTMLPaths;
     setOpaque(false);
 
     // TODO: Consider the setup being in the ctors of customer inner classes.
@@ -118,12 +121,23 @@ public class TutorialStep extends JPanel {
       switch (element.getType()) {
         case SECTION:
           // TODO: Make a custom inner class to handle this.
-          JEditorPane section = new JEditorPane();
+          JEditorPane section = new JEditorPane() {
+            // Set the section to be as small as possible: this will make long lines wrap properly instead of forcing the panel to extend
+            // as long as the line. When a line can't be wrapped (e.g. a long word or an image), the horizontal scrollbar should appear.
+            @Override
+            public Dimension getPreferredSize() {
+              return getMinimumSize();
+            }
+          };
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
           section.setDragEnabled(false);
+          String content = element.getSection();
+          if (myUseLocalHTMLPaths) {
+            content = UIUtils.addLocalHTMLPaths(getClass().getClassLoader(), content);
+          }
           // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
-          UIUtils.setHtml(section, element.getSection(), ".as-shim { margin-top: 1px; }");
+          UIUtils.setHtml(section, content, ".as-shim { margin-top: 1px; }");
           myContents.add(section);
           addedNewComponent = true;
           break;

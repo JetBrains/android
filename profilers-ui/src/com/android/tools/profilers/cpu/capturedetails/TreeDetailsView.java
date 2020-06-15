@@ -28,12 +28,10 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -51,7 +49,10 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -59,6 +60,7 @@ import javax.swing.JTree;
 import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -70,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
  * A base view for {@link TopDownDetailsView} and {@link BottomUpDetailsView}.
  * They are almost similar except a few key differences, e.g bottom-up hides its root or lazy loads its children on expand.
  */
-abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
+public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getGlobalTotal));
 
@@ -80,11 +82,12 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   @NotNull private final AspectObserver myObserver;
   @Nullable protected final JTree myTree;
   @Nullable private final CpuTraceTreeSorter mySorter;
+  private final Set<TreePath> myExpandedPaths = new HashSet<>();
 
-  private TreeDetailsView(@NotNull CpuCapture capture,
-                          @NotNull IdeProfilerServices ideServices,
-                          @NotNull IdeProfilerComponents components,
-                          @Nullable CpuTreeModel<T> model) {
+  protected TreeDetailsView(@NotNull StudioProfilersView profilersView,
+                            @NotNull CpuCapture cpuCapture,
+                            @Nullable CpuTreeModel<T> model) {
+    super(profilersView);
     myObserver = new AspectObserver();
     if (model == null) {
       myPanel = getNoDataForThread();
@@ -101,21 +104,42 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
     myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setModel(model);
+    myTree.setRootVisible(model.isRootNodeIdValid());
     mySorter = new CpuTraceTreeSorter(myTree);
     mySorter.setModel(model, DEFAULT_SORT_ORDER);
 
     myPanel.add(createTableTree(), CARD_CONTENT);
     myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
-    CodeNavigator navigator = ideServices.getCodeNavigator();
-    if (capture.getType() != Cpu.CpuTraceType.ATRACE) {
-      components.createContextMenuInstaller().installNavigationContextMenu(myTree, navigator, () -> getCodeLocation(myTree));
+    CodeNavigator navigator = profilersView.getStudioProfilers().getIdeServices().getCodeNavigator();
+    if (cpuCapture.getType() != Cpu.CpuTraceType.ATRACE) {
+      profilersView.getIdeProfilerComponents().createContextMenuInstaller()
+        .installNavigationContextMenu(myTree, navigator, () -> getCodeLocation(myTree));
     }
 
     switchCardLayout(myPanel, model.isEmpty());
 
     // The structure of the tree changed, so sort with the previous sorting order.
-    model.getAspect().addDependency(myObserver).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> mySorter.sort());
+    model.getAspect().addDependency(myObserver).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> {
+      mySorter.sort();
+      resetTreeExpansionState();
+    });
+
+    myTree.addTreeExpansionListener(new ExpansionListener());
+  }
+
+  /**
+   * Helper function to load the tree expansion state from a set of cached TreePaths.
+   * Tree paths are captured each time the tree is expanded / collapsed this includes programmatically.
+   */
+  private void resetTreeExpansionState() {
+    // Grab a copy of the expanded paths because as we expand each path we modify this list directly.
+    Set<TreePath> paths = new HashSet<>(myExpandedPaths);
+    // Clear the global state since we have a copy of it that we will be enumerating.
+    // This will be reset by the TreeExpansionListener.
+    myExpandedPaths.clear();
+    assert myTree != null; // Shouldn't be possible for the tree to be null at this point.
+    paths.forEach(myTree::expandPath);
   }
 
   @NotNull
@@ -132,6 +156,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
                    .setPreferredWidth(900)
+                   .setMinWidth(160)
                    .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new MethodNameRenderer())
@@ -283,7 +308,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     private final boolean myShowPercentage;
     private final int myAlignment;
 
-    public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+    DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       myGetter = getter;
       myShowPercentage = showPercentage;
       myAlignment = alignment;
@@ -304,10 +329,10 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
         double v = myGetter.apply(node);
         if (myShowPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format("%.2f", v / root.getGlobalTotal() * 100), attributes);
+          append(String.format(Locale.getDefault(), "%.2f", v / root.getGlobalTotal() * 100), attributes);
         }
         else {
-          append(String.format("%,.0f", v), attributes);
+          append(String.format(Locale.getDefault(), "%,.0f", v), attributes);
         }
       }
       else {
@@ -335,7 +360,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
      */
     private double myPercentage;
 
-    public DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+    DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       super(getter, showPercentage, alignment);
       mySparkLineColor = ProfilerColors.CPU_CAPTURE_SPARKLINE;
       myPercentage = Double.NEGATIVE_INFINITY;
@@ -352,7 +377,9 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
       CpuTreeNode node = getNode(value);
       if (node != null) {
-        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalTotal();
+        // We grab the global children total in the case of multi-select this value ends up being the sum of our childrens time
+        // and what we want to display is what percentage of all our childrens time do we consume.
+        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalChildrenTotal();
       }
       mySparkLineColor = selected ? ProfilerColors.CPU_CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CPU_CAPTURE_SPARKLINE;
     }
@@ -361,10 +388,10 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     protected void paintComponent(Graphics g) {
       if (myPercentage > 0) {
         g.setColor(mySparkLineColor);
-        // The sparkline starts from the left side of the cell and is proportional to the value, occupying at most half of the cell.
+        // The sparkline starts from the left side of the cell and is proportional to the value, occupying the full cell.
         g.fillRect(TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
                    TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
-                   (int)(myPercentage * (getWidth() / 2 - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
+                   (int)(myPercentage * (getWidth() - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
                    getHeight() - TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
       }
       super.paintComponent(g);
@@ -409,17 +436,9 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     }
   }
 
-  static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
-    TopDownDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.TopDown topDown) {
-      this(view.getStage().getCapture(), view.getStage().getStudioProfilers().getIdeServices(),
-           view.getProfilersView().getIdeProfilerComponents(), topDown);
-    }
-
-    TopDownDetailsView(@NotNull CpuCapture capture,
-                       @NotNull IdeProfilerServices ideServices,
-                       @NotNull IdeProfilerComponents components,
-                       @NotNull CaptureDetails.TopDown topDown) {
-      super(capture, ideServices, components, topDown.getModel());
+  public static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
+    public TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
+      super(profilersView, topDown.getCapture(), topDown.getModel());
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
         return;
@@ -430,7 +449,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
-        protected void process(TreeModelEvent event, EventType type) {
+        protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
@@ -448,17 +467,9 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     }
   }
 
-  static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
-    BottomUpDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.BottomUp bottomUp) {
-      this(view.getStage().getCapture(), view.getStage().getStudioProfilers().getIdeServices(),
-           view.getProfilersView().getIdeProfilerComponents(), bottomUp);
-    }
-
-    BottomUpDetailsView(@NotNull CpuCapture capture,
-                        @NotNull IdeProfilerServices ideServices,
-                        @NotNull IdeProfilerComponents components,
-                        @NotNull CaptureDetails.BottomUp bottomUp) {
-      super(capture, ideServices, components, bottomUp.getModel());
+  public static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
+    public BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
+      super(profilersView, bottomUp.getCapture(), bottomUp.getModel());
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
         return;
@@ -480,7 +491,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
-        protected void process(TreeModelEvent event, EventType type) {
+        protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
           // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
           // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
           if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {
@@ -493,6 +504,56 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
+    }
+  }
+
+  private class ExpansionListener implements TreeExpansionListener {
+    /**
+     * Set to hold the paths of previously expanded children that are now hidden due to a collapsed parent.
+     * This set allows us to handle expanding/collapsing a parent (or grandparent) but maintain the hidden elements state.
+     * Eg.
+     * A
+     *  -> B
+     *     -> C
+     * When A is collapsed the path for B, and C are saved in this set and removed from the expanded paths set. This allows us to restore
+     * the state of B and C when A is expanded again.
+     */
+    private final Set<TreePath> myCollapsedParentChildExpandedPaths = new HashSet<>();
+
+    @Override
+    public void treeExpanded(TreeExpansionEvent event) {
+      TreePath toBeExpandedPath = event.getPath();
+      Set<TreePath> expandedChildren = new HashSet<>();
+      expandedChildren.add(toBeExpandedPath);
+      // Find cached children paths under this newly expanded node and reset their state.
+      myCollapsedParentChildExpandedPaths.forEach(path -> {
+        // We only want paths that are a child of our new path.
+        // Specifically we only want paths that are direct children, this function will be called recursively
+        // as we expand TreePaths in the expandedChildren set.
+        // Note: x.isDescendant(y) is backwards from how you may expect. It really means if y is a descendant of x.
+        if (toBeExpandedPath.isDescendant(path) && path.getParentPath().equals(toBeExpandedPath)) {
+          expandedChildren.add(path);
+        }
+      });
+      myCollapsedParentChildExpandedPaths.removeAll(expandedChildren);
+      myExpandedPaths.addAll(expandedChildren);
+      // Expand any children that were previously expanded under our newly expanded node. This forces a recursive call to treeExpanded.
+      expandedChildren.forEach(myTree::expandPath);
+    }
+
+    @Override
+    public void treeCollapsed(TreeExpansionEvent event) {
+      TreePath toBeCollapsedPath = event.getPath();
+      Set<TreePath> childExpandedPaths = new HashSet<>();
+      childExpandedPaths.add(toBeCollapsedPath);
+      // Cache off the state of all children under the newly collapsed node.
+      myExpandedPaths.forEach(path -> {
+        if (toBeCollapsedPath.isDescendant(path)) {
+          childExpandedPaths.add(path);
+        }
+      });
+      myExpandedPaths.removeAll(childExpandedPaths);
+      myCollapsedParentChildExpandedPaths.addAll(childExpandedPaths);
     }
   }
 }

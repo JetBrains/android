@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.refactoring.PackageWrapper
 import com.intellij.refactoring.util.RefactoringUtil

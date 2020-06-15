@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lang.androidSql.psi
 
-import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
 import com.android.tools.idea.lang.androidSql.ANDROID_SQL_ICON
+import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlTable
 import com.intellij.extapi.psi.PsiFileBase
@@ -40,7 +40,7 @@ class AndroidSqlTokenType(debugName: String) : IElementType(debugName, AndroidSq
 class AndroidSqlAstNodeType(debugName: String) : IElementType(debugName, AndroidSqlLanguage.INSTANCE)
 
 class AndroidSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, AndroidSqlLanguage.INSTANCE) {
-  override fun getFileType(): FileType = ANDROID_SQL_FILE_TYPE
+  override fun getFileType(): FileType = AndroidSqlFileType.INSTANCE
   override fun getIcon(flags: Int): Icon? = ANDROID_SQL_ICON
 }
 

@@ -15,10 +15,11 @@
  */
 package org.jetbrains.android.dom;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.project.DumbService;
@@ -31,6 +32,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.AndroidFindUsagesTest;
@@ -129,34 +131,34 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
   }
 
   public void testFileResourceFindUsages() throws Throwable {
-    doFindUsagesTest("xml", "additionalModules/lib/res/layout/");
+    doFindUsagesTest("xml", "additionalModules/lib/res/layout/", "additionalModules/lib/res/drawable/picture1.png");
   }
 
   public void testFileResourceFindUsages1() throws Throwable {
-    doFindUsagesTest("xml", "res/layout/");
+    doFindUsagesTest("xml", "res/layout/", "additionalModules/lib/res/drawable/picture1.png");
   }
 
   public void testFileResourceFindUsagesFromJava() throws Throwable {
-    doFindUsagesTest("java", "src/p1/p2/");
+    doFindUsagesTest("java", "src/p1/p2/", "additionalModules/lib/res/drawable/picture1.png");
   }
 
   public void testFileResourceFindUsagesFromJava1() throws Throwable {
-    doFindUsagesTest("java", "src/p1/p2/lib/");
+    doFindUsagesTest("java", "src/p1/p2/lib/", "additionalModules/lib/res/drawable/picture1.png");
   }
 
   public void testFileResourceFindUsagesFromJava2() throws Throwable {
-    doFindUsagesTest("java", "additionalModules/lib/src/p1/p2/lib/");
+    doFindUsagesTest("java", "additionalModules/lib/src/p1/p2/lib/", "additionalModules/lib/res/drawable/picture1.png");
   }
 
   public void testValueResourceFindUsages() throws Throwable {
-    doFindUsagesTest("xml", "additionalModules/lib/res/layout/");
+    doFindUsagesTest("xml", "additionalModules/lib/res/layout/", "additionalModules/lib/res/values/strings.xml");
   }
 
   public void testValueResourceFindUsages1() throws Throwable {
-    doFindUsagesTest("xml", "res/layout/");
+    doFindUsagesTest("xml", "res/layout/", "additionalModules/lib/res/values/strings.xml");
   }
 
-  private void doFindUsagesTest(String extension, String dir) throws Throwable {
+  private void doFindUsagesTest(String extension, String dir, String resourceDeclarationFilePath) throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass.java",
                                 "src/p1/p2/FindUsagesClass.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java",
@@ -179,11 +181,14 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
         }
       }
 
-      assertThat(buildFileList(result)).containsExactly(
-        newFilePath,
-        "res/values/styles.xml",
-        "additionalModules/lib/src/p1/p2/lib/FindUsagesClass.java",
-        "src/p1/p2/FindUsagesClass.java");
+      List<String> files = new ArrayList<>(Arrays.asList(newFilePath,
+                                                         "res/values/styles.xml",
+                                                         "additionalModules/lib/src/p1/p2/lib/FindUsagesClass.java",
+                                                         "src/p1/p2/FindUsagesClass.java"));
+      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+        files.add(resourceDeclarationFilePath);
+      }
+      assertThat(buildFileList(result)).containsExactlyElementsIn(files);
     });
 
   }

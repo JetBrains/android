@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
+import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.intellij.ide.BrowserUtil.browse;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -28,6 +29,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -57,8 +59,8 @@ public final class AutoImportNotificationProvider extends EditorNotifications.Pr
     if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return null;
     }
-    String name = file.getName();
-    if (FN_BUILD_GRADLE.equals(name) || FN_SETTINGS_GRADLE.equals(name)) {
+    File path = virtualToIoFile(file);
+    if (findGradleBuildFile(path).isFile() || findGradleSettingsFile(path).isFile()) {
       GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
       if (IdeInfo.getInstance().isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
         return new DisableAutoImportNotificationPanel(settings);

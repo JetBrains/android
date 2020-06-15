@@ -55,7 +55,6 @@ import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
-import com.android.tools.idea.util.SwingWorker;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -66,6 +65,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.concurrency.SwingWorker;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -117,7 +117,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final ObservableBool myHeightHasFocus;
   private final DoubleProperty myWidth = new DoubleValueProperty();
   private final DoubleProperty myHeight = new DoubleValueProperty();
-  private final ObjectProperty<Color> myColor;
+  private final ColorProperty myColor;
   private final IntProperty myOpacityPercent;
   private final BoolProperty myAutoMirrored;
 
@@ -186,9 +186,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                                                           myClipartRadioButton, myLocalFileRadioButton);
     myActiveAsset = new ObjectValueProperty<>(myClipartAssetButton.getAsset());
     myOutputName = new TextProperty(myOutputNameTextField);
+    myOutputName.set(DEFAULT_OUTPUT_NAME);
     myWidthHasFocus = new HasFocusProperty(myWidthTextField);
     myHeightHasFocus = new HasFocusProperty(myHeightTextField);
-    myColor = ObjectProperty.wrap(new ColorProperty(myColorPanel));
+    myColor = new ColorProperty(myColorPanel);
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
@@ -291,7 +292,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
-        myActiveAssetBindings.bind(ObjectProperty.wrap(activeAsset.color()), myColor);
+        myActiveAssetBindings.bind(activeAsset.color(), myColor);
       }
       myActiveAssetBindings.bind(activeAsset.opacityPercent(), myOpacityPercent);
       myActiveAssetBindings.bind(activeAsset.autoMirrored(), myAutoMirrored);
@@ -372,7 +373,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
     File file = myFileBrowser.getAsset().path().getValueOrNull();
     state.set(SOURCE_FILE_PROPERTY, file == null ? getProjectPath() : file.getPath(), getProjectPath());
-    state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
+    state.set(COLOR_PROPERTY, myColor.getValueOrNull(), DEFAULT_COLOR);
     state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
     return state;
@@ -383,12 +384,15 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     // Load persistent state of controls after dust settles.
     ApplicationManager.getApplication().invokeLater(
       () -> {
-        myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, DEFAULT_OUTPUT_NAME));
+        String name = state.get(OUTPUT_NAME_PROPERTY);
+        if (name != null) {
+          myOutputName.set(name);
+        }
         myAssetSourceType.set(state.get(ASSET_SOURCE_TYPE_PROPERTY, DEFAULT_ASSET_SOURCE_TYPE));
         PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
         myFileBrowser.getAsset().path().setValue(new File(path));
-        myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
+        myColor.setValue(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
         myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
       },
@@ -460,10 +464,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       @Nullable VectorAsset.Preview myPreview;
       @NotNull final VectorAsset myAsset;
       @Nullable final File myAssetFile;
-      // For some strange reason, possibly a JVM bug, changing "volatile" to "final" results in
-      // myVectorDrawableInfo being null inside the construct method.
-      // TODO: Investigate why this is happening.
-      @NotNull volatile VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
+      @NotNull final VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
       @NotNull final VdOverrideInfo myOverrideInfo;
       private int myPreviewWidth;
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -40,10 +40,11 @@ public class NamedModuleTemplateTest {
     File aidlDirectory = mock(File.class);
     List<File> resDirectories = ImmutableList.of(mock(File.class));
 
-    AndroidModuleTemplate mockProjectPaths = new AndroidModuleTemplate() {
+    AndroidModulePaths mockProjectPaths = new AndroidModulePaths() {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return javaDirectory; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getUnitTestDirectory(@Nullable String packageName) { return null; }
       @NotNull
       @Override public List<File> getResDirectories() { return resDirectories; }
       @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return aidlDirectory; }
@@ -68,10 +69,11 @@ public class NamedModuleTemplateTest {
 
   @Test
   public void testToSourceProviderWithEmptyDirectories() {
-    AndroidModuleTemplate mockProjectPaths = new AndroidModuleTemplate() {
+    AndroidModulePaths mockProjectPaths = new AndroidModulePaths() {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getUnitTestDirectory(@Nullable String packageName) { return null; }
       @NotNull @Override public List<File> getResDirectories() { return Collections.emptyList(); }
       @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getManifestDirectory() { return null; }

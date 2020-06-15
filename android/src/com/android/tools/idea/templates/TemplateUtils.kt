@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.SdkConstants.EXT_GRADLE
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.GradleUtil.isGradleScript
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.CaseFormat
@@ -143,7 +144,12 @@ object TemplateUtils {
   @JvmStatic
   fun reformatAndRearrange(project: Project, files: Iterable<File>) {
     WriteCommandAction.runWriteCommandAction(project) {
-      files.filter { it.isFile }.forEach {
+      files.asSequence()
+        .filter { it.isFile }
+        // We skip gradlew files, which IntelliJ recognizes as shell files and offers to install the bash IDE plugin. These files are
+        // created with the right formatting by the templates and we don't want the balloon on startup.
+        .filterNot { it.name.startsWith("gradlew") }
+        .forEach {
         val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
         reformatAndRearrange(project, virtualFile)
       }
@@ -178,7 +184,8 @@ object TemplateUtils {
                                    keepDocumentLocked: Boolean = false) {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-    if (virtualFile.extension == EXT_GRADLE) {
+    // TODO(qumeric): remove when the flag will be removed
+    if (isGradleScript(virtualFile) && !StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
       // Do not format Gradle files. Otherwise we get spurious "Gradle files have changed since last project sync" warnings that make UI
       // tests flaky.
       return

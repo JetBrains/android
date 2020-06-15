@@ -16,7 +16,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
@@ -37,7 +36,6 @@ import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.accessibility.ScreenReader;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -109,9 +107,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
-    if (!ScreenReader.isActive()) {
-      myPanel.setFocusCycleRoot(true);
-    }
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
@@ -427,7 +422,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     return button;
   }
 
-  private void updateActions() {
+  @VisibleForTesting
+  public void updateActions() {
     myActionButtons.forEach(UpdatableActionButton::update);
   }
 
@@ -451,12 +447,21 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
     attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
-    attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    if (myDefinition.isFloatingAllowed()) {
+      attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    }
     group.add(attachedSide);
     ActionManager manager = ActionManager.getInstance();
-    group.add(new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
-    group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
-    group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
+    if (myDefinition.isAutoHideAllowed()) {
+      group.add(
+        new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
+    }
+    if (myDefinition.isFloatingAllowed()) {
+      group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
+    }
+    if (myDefinition.isSplitModeChangesAllowed()) {
+      group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
+    }
   }
 
   static class DragEvent {
@@ -622,7 +627,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     public void update() {
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
-      ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
+      myAction.update(event);
     }
 
     @Override
@@ -640,6 +645,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setEnabled(true);
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       showSearchField(true);
     }
@@ -651,10 +662,16 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setEnabled(true);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
       int x = 0;
       int y = 0;
-      InputEvent inputEvent = e.getInputEvent();
+      InputEvent inputEvent = event.getInputEvent();
       if (inputEvent instanceof MouseEvent) {
         x = ((MouseEvent)inputEvent).getX();
         y = ((MouseEvent)inputEvent).getY();
@@ -667,6 +684,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private class HideAction extends AnAction {
    private HideAction() {
       super(UIBundle.messagePointer("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setEnabled(true);
     }
 
     @Override

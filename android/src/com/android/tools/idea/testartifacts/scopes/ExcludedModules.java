@@ -20,11 +20,10 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Module
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.HashSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Iterator;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class ExcludedModules implements Iterable<Module> {
   @NotNull private final Project myProject;

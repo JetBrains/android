@@ -36,8 +36,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -373,6 +372,12 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @Nullable
     private String myIconName;
 
+    @XmlAttribute(name = "hasLocalHTMLPaths")
+    private boolean myHasLocalHTMLPaths = false;
+
+    @XmlAttribute(name = "loadLazily")
+    private boolean myLoadLazily = false;
+
     protected String myResourceRoot;
 
     @XmlElements({
@@ -418,6 +423,16 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @NotNull
     public String getKey() {
       return myKey;
+    }
+
+    @Override
+    public boolean hasLocalHTMLPaths() {
+      return myHasLocalHTMLPaths;
+    }
+
+    @Override
+    public boolean shouldLoadLazily() {
+      return myLoadLazily;
     }
 
     @Nullable

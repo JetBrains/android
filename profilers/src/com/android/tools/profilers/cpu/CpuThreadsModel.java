@@ -34,10 +34,8 @@ import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
 public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.RangedCpuThread> {
-  @NotNull private static final String RENDER_THREAD_NAME = "RenderThread";
 
   @NotNull private final StudioProfilers myProfilers;
 
@@ -53,6 +50,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
 
   @NotNull private final Range myRange;
 
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
+  @SuppressWarnings("FieldCanBeLocal")
   @NotNull private final AspectObserver myAspectObserver;
 
   private final boolean myIsImportedTrace;
@@ -108,12 +107,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       // Merge the two lists.
       for (EventGroup eventGroup : response.getGroupsList()) {
         if (eventGroup.getEventsCount() > 0) {
-          Common.Event first = eventGroup.getEvents(0);
-          Common.Event last = eventGroup.getEvents(eventGroup.getEventsCount() - 1);
-          if (last.getTimestamp() < minNs && last.getIsEnded()) {
-            continue;
-          }
-          Cpu.CpuThreadData threadData = first.getCpuThread();
+          Cpu.CpuThreadData threadData = eventGroup.getEvents(0).getCpuThread();
           requestedThreadsRangedCpuThreads.put(threadData.getTid(), myThreadIdToCpuThread
             .computeIfAbsent(threadData.getTid(), id -> new RangedCpuThread(myRange, threadData.getTid(), threadData.getName())));
         }
@@ -158,50 +152,20 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   }
 
   private void sortElements() {
-    // Grab elements before we clear them.
-    Object[] elements = toArray();
+    // Copy elements into an array before we clear them.
+    RangedCpuThread[] elements = new RangedCpuThread[getSize()];
+    for (int i = 0; i < getSize(); ++i) {
+      elements[i] = get(i);
+    }
     clearOrderedElements();
-    // Sort the other threads by name, except for the process thread, and render thread. The process is moved to the top followed by
-    // the render thread.
-    Arrays.sort(elements, (a, b) -> {
-      RangedCpuThread first = (RangedCpuThread)a;
-      RangedCpuThread second = (RangedCpuThread)b;
-      // Process main thread should be first element.
-      if (first.isMainThread()) {
-        return -1;
-      }
-      else if (second.isMainThread()) {
-        return 1;
-      }
 
-      // Render render threads should be the next elements.
-      assert first.getName() != null;
-      assert second.getName() != null;
-      boolean firstIsRenderThread = first.getName().equals(RENDER_THREAD_NAME);
-      boolean secondIsRenderThread = second.getName().equals(RENDER_THREAD_NAME);
-      if (firstIsRenderThread && secondIsRenderThread) {
-        return first.getThreadId() - second.getThreadId();
-      }
-      else if (firstIsRenderThread) {
-        return -1;
-      }
-      else if (secondIsRenderThread) {
-        return 1;
-      }
-
-      // Finally the list is sorted by thread name, with conflicts sorted by thread id.
-      int nameResult = first.getName().compareTo(second.getName());
-      if (nameResult == 0) {
-        return first.getThreadId() - second.getThreadId();
-      }
-      return nameResult;
-    });
+    // Sort by the ThreadInfo field.
+    Arrays.sort(elements);
 
     // Even with the render thread at the top of the sorting, the pre-populated elements get priority so,
     // all of our threads will be added below our process thread in order.
-    for (Object element : elements) {
-      RangedCpuThread rangedCpuThread = (RangedCpuThread)element;
-      insertOrderedElement(rangedCpuThread);
+    for (RangedCpuThread element : elements) {
+      insertOrderedElement(element);
     }
   }
 
@@ -209,13 +173,13 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
    * Build a list of {@link RangedCpuThread} based from the threads contained in a given {@link CpuCapture}.
    */
   void buildImportedTraceThreads(@NotNull CpuCapture capture) {
-    // Create the RangedCpuThread objects from the capture's threads
-    List<RangedCpuThread> threads = capture.getThreads().stream()
+    capture.getThreads().stream()
+      // Create the RangedCpuThread objects from the capture's threads.
       .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture))
-      .collect(Collectors.toList());
-    // Now insert the elements in order.
-    threads.forEach(this::insertOrderedElement);
-    sortElements();
+      // Sort them by their natural order.
+      .sorted()
+      // Now insert the elements in order.
+      .forEach(this::insertOrderedElement);
   }
 
   void updateTraceThreadsForCapture(@NotNull CpuCapture capture) {
@@ -224,9 +188,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       buildImportedTraceThreads(capture);
     }
     else {
-      myThreadIdToCpuThread.forEach((key, value) -> {
-        value.applyCapture(capture);
-      });
+      myThreadIdToCpuThread.forEach((key, value) -> value.applyCapture(key, capture));
     }
   }
 
@@ -250,17 +212,14 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     }
   }
 
-  public class RangedCpuThread implements DragAndDropModelListElement {
-
-    private final int myThreadId;
-    private boolean myIsMainThread;
-    private final String myName;
+  public class RangedCpuThread implements DragAndDropModelListElement, Comparable<RangedCpuThread> {
+    @NotNull private final CpuThreadInfo myThreadInfo;
     private final Range myRange;
     private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
     /**
      * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
      * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
-     * {@link #myAtraceDataSeries}, populated when an atrace capture is parsed.
+     * {@link AtraceCpuCapture}, populated when an atrace capture is parsed.
      */
     private DataSeries<CpuProfilerStage.ThreadState> mySeries;
 
@@ -276,58 +235,59 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
      */
     public RangedCpuThread(Range range, int threadId, String name, @Nullable CpuCapture capture) {
       myRange = range;
-      myThreadId = threadId;
-      myName = name;
       myModel = new StateChartModel<>();
-      applyCapture(capture);
+      boolean isMainThread = applyCapture(threadId, capture);
+      myThreadInfo = new CpuThreadInfo(threadId, name, isMainThread);
     }
 
-    private void applyCapture(CpuCapture capture) {
+    /**
+     * @return true if this thread is the main thread.
+     */
+    private boolean applyCapture(int threadId, @Nullable CpuCapture capture) {
+      boolean isMainThread;
       if (myIsImportedTrace) {
         // For imported traces, the main thread ID can be obtained from the capture
-        myIsMainThread = myThreadId == capture.getMainThreadId();
+        assert capture != null;
+        isMainThread = threadId == capture.getMainThreadId();
         if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
           mySeries =
-            new AtraceDataSeries<>((AtraceCpuCapture)capture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
+            new AtraceDataSeries<>((AtraceCpuCapture)capture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(threadId));
         }
         else {
           // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
-          mySeries = new ImportedTraceThreadDataSeries(capture, myThreadId);
+          mySeries = new ImportedTraceThreadDataSeries(capture, threadId);
         }
       }
       else {
-        mySeries = createThreadStateDataSeries(capture);
+        mySeries = myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
+                   new CpuThreadStateDataSeries(myProfilers.getClient().getTransportClient(),
+                                                mySession.getStreamId(),
+                                                mySession.getPid(),
+                                                threadId,
+                                                capture) :
+                   new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, threadId, capture);
         // If we have an Atrace capture selected then we need to create a MergeCaptureDataSeries
         if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
           AtraceCpuCapture atraceCpuCapture = (AtraceCpuCapture)capture;
           AtraceDataSeries<CpuProfilerStage.ThreadState> atraceDataSeries =
-            new AtraceDataSeries<>(atraceCpuCapture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
+            new AtraceDataSeries<>(atraceCpuCapture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(threadId));
           mySeries = new MergeCaptureDataSeries<>(capture, mySeries, atraceDataSeries);
         }
         // For non-imported traces, the main thread ID is equal to the process ID of the current session
-        myIsMainThread = myThreadId == mySession.getPid();
+        isMainThread = threadId == mySession.getPid();
       }
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
-    }
-
-    private DataSeries<CpuProfilerStage.ThreadState> createThreadStateDataSeries(@Nullable CpuCapture capture) {
-      return myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()
-             ?
-             new CpuThreadStateDataSeries(myProfilers.getClient().getTransportClient(),
-                                          mySession.getStreamId(),
-                                          mySession.getPid(),
-                                          myThreadId,
-                                          capture)
-             : new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, myThreadId, capture);
+      return isMainThread;
     }
 
     public int getThreadId() {
-      return myThreadId;
+      return myThreadInfo.getId();
     }
 
+    @NotNull
     public String getName() {
-      return myName;
+      return myThreadInfo.getName();
     }
 
     public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
@@ -343,11 +303,15 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
      */
     @Override
     public int getId() {
-      return myThreadId;
+      return getThreadId();
     }
 
-    public boolean isMainThread() {
-      return myIsMainThread;
+    /**
+     * See {@link CpuThreadInfo} for sort order.
+     */
+    @Override
+    public int compareTo(@NotNull RangedCpuThread o) {
+      return myThreadInfo.compareTo(o.myThreadInfo);
     }
   }
 }

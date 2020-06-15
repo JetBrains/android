@@ -18,9 +18,15 @@ package com.android.tools.idea.common.scene;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.SceneView;
+import com.intellij.openapi.diagnostic.Logger;
+import java.awt.Cursor;
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implements a mouse interaction started on a Scene
@@ -42,6 +48,17 @@ public class SceneInteraction extends Interaction {
     mySceneView = sceneView;
   }
 
+  @Override
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent)event;
+      begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+    }
+    else {
+      Logger.getInstance(SceneInteraction.class).warn("The Scene Interaction shouldn't be started by event " + event);
+    }
+  }
+
   /**
    * Start the mouse interaction
    *
@@ -58,6 +75,17 @@ public class SceneInteraction extends Interaction {
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
     scene.mouseDown(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
+  }
+
+  @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent)event;
+      int mouseX = mouseEvent.getX();
+      int mouseY = mouseEvent.getY();
+      mySceneView.getContext().setMouseLocation(mouseX, mouseY);
+      update(mouseX, mouseY, mouseEvent.getModifiersEx());
+    }
   }
 
   /**
@@ -79,28 +107,54 @@ public class SceneInteraction extends Interaction {
     mySceneView.getSurface().repaint();
   }
 
+  @Override
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof MouseEvent;
+    MouseEvent mouseEvent = (MouseEvent)event;
+    end(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+  }
+
   /**
    * Ends the mouse interaction and commit the modifications if any
    *
    * @param x         The most recent mouse x coordinate applicable to this interaction
    * @param y         The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key mask
-   * @param canceled  True if the interaction was canceled, and false otherwise.
    */
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
-    super.end(x, y, modifiersEx, canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     final int androidX = Coordinates.getAndroidX(mySceneView, x);
     final int androidY = Coordinates.getAndroidY(mySceneView, y);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    if (canceled) {
-      scene.mouseCancel();
-    }
-    else {
-      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
-    }
+    scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
     mySceneView.getSurface().repaint();
+  }
+
+  @Override
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  /**
+   * Ends the mouse interaction and commit the modifications if any
+   *
+   * @param x         The most recent mouse x coordinate applicable to this interaction
+   * @param y         The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key mask
+   */
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    Scene scene = mySceneView.getScene();
+    scene.mouseCancel();
+    mySceneView.getSurface().repaint();
+  }
+
+  @Override
+  @Nullable
+  public Cursor getCursor() {
+    return mySceneView.getScene().getMouseCursor();
   }
 }

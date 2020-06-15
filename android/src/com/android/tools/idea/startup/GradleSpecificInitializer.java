@@ -16,7 +16,6 @@
 package com.android.tools.idea.startup;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.moveAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
@@ -24,10 +23,9 @@ import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
-import com.android.annotations.concurrency.Slow;
-import com.android.annotations.concurrency.UiThread;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
 import com.android.tools.idea.actions.AndroidImportProjectAction;
@@ -38,15 +36,15 @@ import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.ui.GuiTestingService;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
@@ -67,18 +65,22 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +89,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Performs Gradle-specific IDE initialization
  */
-public final class GradleSpecificInitializer implements Runnable {
+public class GradleSpecificInitializer implements Runnable {
+
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
   // Id for TemplateProjectSettingsGroup
@@ -96,15 +99,15 @@ public final class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
-    //DeployActionsInitializer.installActions(); // FIXME-ank2
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
     replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
+    hideAction("Groovy.CheckResources.Rebuild");
+    hideAction("Groovy.CheckResources.Make");
     setUpGradleViewToolbarActions();
     checkInstallPath();
 
-/* b/137334921
     ActionManager actionManager = ActionManager.getInstance();
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
@@ -112,83 +115,18 @@ public final class GradleSpecificInitializer implements Runnable {
     if (pluginAction != null) {
       pluginAction.getTemplatePresentation().setVisible(false);
     }
-b/137334921 */
 
-    // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initializers
-    // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
-    if (AndroidSdkUtils.isAndroidSdkManagerEnabled() && !GuiTestingService.getInstance().isGuiTestingMode()
-        && !ApplicationManager.getApplication().isUnitTestMode() && !ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      ApplicationManager.getApplication().executeOnPooledThread(GradleSpecificInitializer::setupSdk);
-    }
-  }
-
-  @Slow
-  private static void setupSdk() {
-    try {
-      // Setup JDK and Android SDK if necessary.
-      if (setupSdkSilently()) {
-        finishSdkSetup();
-        return;
-      }
-    }
-    catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
-      return;
-    }
-
-    UIUtil.invokeLaterIfNeeded(GradleSpecificInitializer::setUpSdkInteractively);
-  }
-
-  @UiThread
-  private static void setUpSdkInteractively() {
-    File androidSdkPath = getAndroidSdkPath();
-    if (androidSdkPath == null) {
-      return;
-    }
-
-    FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
-    // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
-    boolean promptSdkSelection = wizardMode == null;
-
-    Sdk sdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
-    if (sdk != null) {
-      // Rename the SDK to fit our default naming convention.
-      String sdkNamePrefix = AndroidSdks.SDK_NAME_PREFIX;
-      if (sdk.getName().startsWith(sdkNamePrefix)) {
-        SdkModificator sdkModificator = sdk.getSdkModificator();
-        sdkModificator.setName(sdkNamePrefix + sdk.getName().substring(sdkNamePrefix.length()));
-        sdkModificator.commitChanges();
-
-        // Rename the JDK that goes along with this SDK.
-        AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
-        if (additionalData != null) {
-          Sdk jdk = additionalData.getJavaSdk();
-          if (jdk != null) {
-            sdkModificator = jdk.getSdkModificator();
-            sdkModificator.setName(DEFAULT_JDK_NAME);
-            sdkModificator.commitChanges();
-          }
-        }
-
-        // Fill out any missing build APIs for this new SDK.
-        IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(androidSdkPath);
-      }
-    }
-
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+    if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
       try {
-        finishSdkSetup();
+        // Setup JDK and Android SDK if necessary
+        setupSdks();
+        checkAndroidSdkHome();
       }
       catch (Exception e) {
         LOG.error("Unexpected error while setting up SDKs: ", e);
       }
-    });
-  }
-
-  private static void finishSdkSetup() {
-    checkAndroidSdkHome();
-    checkAndSetAndroidSdkSources();
+      checkAndSetAndroidSdkSources();
+    }
   }
 
   /**
@@ -234,6 +172,9 @@ b/137334921 */
   }
 
   private static void setUpWelcomeScreenActions() {
+    // Force the new "flat" welcome screen.
+    System.setProperty("ide.new.welcome.screen.force", "true");
+
     // Update the Welcome Screen actions
     replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
@@ -319,25 +260,27 @@ b/137334921 */
     return group;
   }
 
-  /**
-   * Tries to set up Android SDK without user participation.
-   *
-   * @return true if an Android SDK was selected successfully
-   */
-  @Slow
-  private static boolean setupSdkSilently() {
+  private static void setupSdks() {
+    try {
+      repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.2.
+    }
+    catch (Throwable e) {
+      LOG.error("Failed to remove duplicate Android SDKs", e);
+    }
+
     IdeSdks ideSdks = IdeSdks.getInstance();
     File androidHome = ideSdks.getAndroidSdkPath();
 
     if (androidHome != null) {
-      String androidHomePath = androidHome.getAbsolutePath();
-      PathValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
-      if (result.isError()) {
+      Validator.Result result = PathValidator.forAndroidSdkLocation().validate(androidHome);
+      Validator.Severity severity = result.getSeverity();
+
+      if (severity == Validator.Severity.ERROR) {
         notifyInvalidSdk();
       }
 
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
-      return true;
+      return;
     }
 
     Sdk sdk = findFirstAndroidSdk();
@@ -345,10 +288,83 @@ b/137334921 */
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
       ideSdks.createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
-      return true;
+      return;
     }
 
-    return false;
+    // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      File androidSdkPath = getAndroidSdkPath();
+      if (androidSdkPath == null) {
+        return;
+      }
+
+      FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+      // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
+      boolean promptSdkSelection = wizardMode == null;
+
+      Sdk sdk1 = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
+      if (sdk1 != null) {
+        // Rename the SDK to fit our default naming convention.
+        String sdkNamePrefix = AndroidSdks.SDK_NAME_PREFIX;
+        if (sdk1.getName().startsWith(sdkNamePrefix)) {
+          SdkModificator sdkModificator = sdk1.getSdkModificator();
+          sdkModificator.setName(sdkNamePrefix + sdk1.getName().substring(sdkNamePrefix.length()));
+          sdkModificator.commitChanges();
+
+          // Rename the JDK that goes along with this SDK.
+          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk1);
+          if (additionalData != null) {
+            Sdk jdk = additionalData.getJavaSdk();
+            if (jdk != null) {
+              sdkModificator = jdk.getSdkModificator();
+              sdkModificator.setName(DEFAULT_JDK_NAME);
+              sdkModificator.commitChanges();
+            }
+          }
+
+          // Fill out any missing build APIs for this new SDK.
+          ideSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
+        }
+      }
+    });
+  }
+
+  /**
+   * Removes duplicate Android SDKs that could be created due to b/142005646.
+   */
+  private static void repairDuplicateAndroidSdks() {
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    Sdk[] sdks = jdkTable.getAllJdks();
+    if (sdks.length <= 1) {
+      return;
+    }
+
+    Multimap<List<String>, Sdk> androidSdksByClasses = ArrayListMultimap.create();
+    for (Sdk sdk : sdks) {
+      if (sdk.getSdkType().getName().equals(AndroidSdkType.SDK_NAME)) {
+        RootProvider rootProvider = sdk.getRootProvider();
+        String[] urls = rootProvider.getUrls(OrderRootType.CLASSES);
+        androidSdksByClasses.put(Arrays.asList(urls), sdk);
+      }
+    }
+    if (androidSdksByClasses.size() == androidSdksByClasses.keySet().size()) {
+      return; // No duplicates to remove.
+    }
+
+    for (List<String> classes : androidSdksByClasses.keySet()) {
+      Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
+      if (duplicateSdks.size() > 1) {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          boolean firstSkipped = false;
+          for (Sdk sdk : duplicateSdks) {
+            if (firstSkipped) {
+              jdkTable.removeJdk(sdk);
+            }
+            firstSkipped = true;
+          }
+        });
+      }
+    }
   }
 
   private static void checkAndroidSdkHome() {

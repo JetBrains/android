@@ -40,19 +40,15 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.property.ptable.StarState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.intellij.testFramework.ServiceContainerUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -430,7 +426,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     GradleCoordinate appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString());
 
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), ImmutableList.of(appCompatCoordinate));
-    ServiceContainerUtil.registerExtension(getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
     myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
     myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE);
     myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE);

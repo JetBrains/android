@@ -17,12 +17,13 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
-import com.android.builder.model.AndroidProject;
+import com.android.AndroidProjectTypes;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
@@ -36,6 +37,7 @@ import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -46,6 +48,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -77,12 +80,12 @@ public class DynamicAppUtils {
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
   @NotNull
-  public static List<Module> getDependentFeatureModules(@NotNull Module module) {
+  public static List<Module> getDependentFeatureModulesForBase(@NotNull Module module) {
     AndroidModuleModel androidModule = AndroidModuleModel.get(module);
     if (androidModule == null) {
       return ImmutableList.of();
     }
-    return getDependentFeatureModules(module.getProject(), androidModule.getAndroidProject());
+    return getDependentFeatureModulesForBase(module.getProject(), androidModule.getAndroidProject());
   }
 
   /**
@@ -108,7 +111,7 @@ public class DynamicAppUtils {
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
   @NotNull
-  public static List<Module> getDependentFeatureModules(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
+  public static List<Module> getDependentFeatureModulesForBase(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
     Map<String, Module> featureMap = getDynamicFeaturesMap(project);
     return androidProject.getDynamicFeatures().stream()
       .map(featurePath -> featureMap.get(featurePath))
@@ -122,8 +125,42 @@ public class DynamicAppUtils {
   @NotNull
   public static List<Module> getModulesToBuild(@NotNull Module module) {
     return Stream
-      .concat(Stream.of(module), getDependentFeatureModules(module).stream())
+      .concat(Stream.of(module), getDependentFeatureModulesForBase(module).stream())
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the list of {@link Module} instances corresponding to feature modules (legacy or dynamic)
+   * that depend on the given module.
+   *
+   * <p>Returns an empty list if feature-on-feature support is disabled.
+   *
+   * @param featureModule an instant or dynamic feature
+   */
+  @NotNull
+  public static List<Module> getFeatureModulesDependingOnFeature(@NotNull Module featureModule) {
+    if (!StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.get()) {
+      return ImmutableList.of();
+    }
+
+    return selectFeatureModules(ModuleManager.getInstance(featureModule.getProject()).getModuleDependentModules(featureModule).stream());
+  }
+
+  /**
+   * Returns the list of {@link Module} instances corresponding to feature modules (legacy or dynamic)
+   * on which the given feature module depends.
+   *
+   * <p>Returns an empty list if feature-on-feature support is disabled.
+   *
+   * @param featureModule an instant or dynamic feature
+   */
+  @NotNull
+  public static List<Module> getFeatureModuleDependenciesForFeature(@NotNull Module featureModule) {
+    if (!StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.get()) {
+      return ImmutableList.of();
+    }
+
+    return selectFeatureModules(Stream.of(ModuleRootManager.getInstance(featureModule).getDependencies()));
   }
 
   /**
@@ -291,10 +328,19 @@ public class DynamicAppUtils {
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
     if (targetDevices.stream().anyMatch(device -> device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP) &&
-        !getDependentFeatureModules(module).isEmpty()) {
+        !getDependentFeatureModulesForBase(module).isEmpty()) {
       return true;
     }
 
+    // Instrumented test support for Dynamic Features
+    if (configuration instanceof AndroidTestRunConfiguration) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null) {
+        if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -357,7 +403,7 @@ public class DynamicAppUtils {
         if (model == null) {
           return null;
         }
-        if (model.getAndroidProject().getProjectType() != AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+        if (model.getAndroidProject().getProjectType() != AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
           return null;
         }
         String gradlePath = getGradlePath(module);
@@ -368,6 +414,22 @@ public class DynamicAppUtils {
       })
       .filter(Objects::nonNull)
       .collect(Collectors.toMap(p -> p.first, p -> p.second, DynamicAppUtils::handleModuleAmbiguity));
+  }
+
+  /**
+   * Finds the modules in a stream that are either legacy or dynamic features.
+   */
+  @NotNull
+  private static List<Module> selectFeatureModules(Stream<Module> moduleStream) {
+    return moduleStream.filter(module -> {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel == null) {
+        return false;
+      }
+      int type = androidModuleModel.getAndroidProject().getProjectType();
+      return type == AndroidProjectTypes.PROJECT_TYPE_FEATURE || // Legacy
+             type == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+    }).collect(Collectors.toList());
   }
 
   /**

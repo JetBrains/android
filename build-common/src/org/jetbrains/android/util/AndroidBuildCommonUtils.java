@@ -64,9 +64,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidBuildCommonUtils {
   @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
-  public static final String SDK_HOME_MACRO = "%MODULE_SDK_HOME%";
-  public static final String PROGUARD_SYSTEM_CFG_FILE_URL =
-      "file://" + SDK_HOME_MACRO + "/tools/proguard/proguard-android.txt";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidCommonUtils");
 
   @NonNls public static final String MANIFEST_JAVA_FILE_NAME = "Manifest.java";
@@ -89,17 +86,11 @@ public class AndroidBuildCommonUtils {
 
   @NonNls public static final String RELEASE_BUILD_OPTION = "RELEASE_BUILD_KEY";
   @NonNls public static final String PROGUARD_CFG_PATHS_OPTION = "ANDROID_PROGUARD_CFG_PATHS";
-  @NonNls public static final String DIRECTORY_FOR_LOGS_NAME = "proguard_logs";
   @NonNls public static final String PROGUARD_OUTPUT_JAR_NAME = "obfuscated_sources.jar";
   @NonNls public static final String SYSTEM_PROGUARD_CFG_FILE_NAME = "proguard-android.txt";
   @NonNls private static final String PROGUARD_HOME_ENV_VARIABLE = "PROGUARD_HOME";
 
-  @NonNls public static final String INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME = "includeAssetsFromLibraries";
   @NonNls public static final String ADDITIONAL_NATIVE_LIBS_ELEMENT = "additionalNativeLibs";
-  @NonNls public static final String ITEM_ELEMENT = "item";
-  @NonNls public static final String ARCHITECTURE_ATTRIBUTE = "architecture";
-  @NonNls public static final String URL_ATTRIBUTE = "url";
-  @NonNls public static final String TARGET_FILE_NAME_ATTRIBUTE = "targetFileName";
 
   private static final String[] TEST_CONFIGURATION_TYPE_IDS =
     {"AndroidJUnit", "JUnit", "TestNG", "ScalaTestRunConfiguration", "SpecsRunConfiguration", "Specs2RunConfiguration"};

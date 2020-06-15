@@ -38,10 +38,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.util.FutureUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.swing.ListModel;
+import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.intellij.lang.annotations.Language;
@@ -80,7 +80,7 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel = new DataModel(getTestRootDisposable(), myDependencyManager);
     myCategoryListModel = myDataModel.getCategoryListModel();
     myItemListModel = myDataModel.getItemListModel();
-    replaceApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
   }
 
   @Override
@@ -193,7 +193,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager", "CardView",
+      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
       "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "TabLayout", "TabItem", "ViewStub",
       "<include>", "<fragment>", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
   }

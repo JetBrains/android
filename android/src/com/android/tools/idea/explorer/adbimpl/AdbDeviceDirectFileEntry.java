@@ -23,13 +23,13 @@ import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link AdbDeviceFileEntry} that goes directly to the remote file system for its file operations.
@@ -96,13 +96,14 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
     // Note: First try to download the file as the default user. If we get a permission error,
     //       download the file via a temp. directory using the "su 0" user.
     ListenableFuture<Void> futureDownload = myDevice.getAdbFileTransfer().downloadFile(this.myEntry, localPath, progress);
-    return myDevice.getTaskExecutor().catchingAsync(futureDownload, SyncException.class, syncError -> {
+    return myDevice.getTaskExecutor().catchingAsync(futureDownload, UndeclaredThrowableException.class, syncError -> {
       assert syncError != null;
-      if (isSyncPermissionError(syncError) && isDeviceSuAndNotRoot()) {
+      Throwable exception = syncError.getCause();
+      if (exception instanceof SyncException && isSyncPermissionError((SyncException)exception) && isDeviceSuAndNotRoot()) {
         return myDevice.getAdbFileTransfer().downloadFileViaTempLocation(getFullPath(), getSize(), localPath, progress, null);
       }
       else {
-        return Futures.immediateFailedFuture(syncError);
+        return Futures.immediateFailedFuture(exception);
       }
     });
   }

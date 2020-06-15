@@ -17,18 +17,18 @@ package com.android.tools.idea.templates;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
-import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORMFACTOR;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_IS_INSTANT_MODULE;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
 import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.Language;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
@@ -91,7 +91,6 @@ public class Template {
   public static final String TAG_PARAMETER = "parameter";
   public static final String TAG_THUMB = "thumb";
   public static final String TAG_THUMBS = "thumbs";
-  public static final String TAG_ICONS = "icons";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
@@ -249,7 +248,7 @@ public class Template {
         AndroidStudioEvent.newBuilder()
                           .setCategory(EventCategory.TEMPLATE)
                           .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-                          .setTemplateRenderer(titleToTemplateRenderer(title))
+                          .setTemplateRenderer(titleToTemplateRenderer(title, myMetadata.getFormFactor()))
                           .setKotlinSupport(
                             KotlinSupport.newBuilder()
                                          .setIncludeKotlinSupport(kotlinSupport)
@@ -273,7 +272,7 @@ public class Template {
   }
 
   @VisibleForTesting
-  static TemplateRenderer titleToTemplateRenderer(String title) {
+  static TemplateRenderer titleToTemplateRenderer(String title, @Nullable String formFactor) {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
@@ -284,7 +283,7 @@ public class Template {
       case "Empty Activity":
         return TemplateRenderer.EMPTY_ACTIVITY;
       case "Blank Activity":
-        return TemplateRenderer.BLANK_ACTIVITY;
+        return FormFactor.WEAR.id.equals(formFactor) ? TemplateRenderer.BLANK_WEAR_ACTIVITY : TemplateRenderer.BLANK_ACTIVITY;
       case "Layout XML File":
         return TemplateRenderer.LAYOUT_XML_FILE;
       case "Fragment (Blank)":
@@ -339,8 +338,6 @@ public class Template {
         return TemplateRenderer.RES_FOLDER;
       case "Android TV Activity":
         return TemplateRenderer.ANDROID_TV_ACTIVITY;
-      case "Blank Wear Activity":
-        return TemplateRenderer.BLANK_WEAR_ACTIVITY;
       case "Basic Activity":
         return TemplateRenderer.BASIC_ACTIVITIY;
       case "App Widget":
@@ -353,6 +350,24 @@ public class Template {
         return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
       case "Benchmark Module":
         return TemplateRenderer.BENCHMARK_LIBRARY_MODULE;
+      case "Fullscreen Fragment":
+        return TemplateRenderer.FRAGMENT_FULLSCREEN;
+      case "Google AdMob Ads Fragment":
+        return TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS;
+      case "Google Maps Fragment":
+        return TemplateRenderer.FRAGMENT_GOOGLE_MAPS;
+      case "Login Fragment":
+        return TemplateRenderer.FRAGMENT_LOGIN;
+      case "Modal Bottom Sheet":
+        return TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET;
+      case "Scrolling Fragment":
+        return TemplateRenderer.FRAGMENT_SCROLL;
+      case "Settings Fragment":
+        return TemplateRenderer.FRAGMENT_SETTINGS;
+      case "Fragment (with ViewModel)":
+        return TemplateRenderer.FRAGMENT_VIEWMODEL;
+      case "Empty Compose Activity":
+        return TemplateRenderer.COMPOSE_EMPTY_ACTIVITY;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
     }
@@ -541,8 +556,7 @@ public class Template {
                      !name.equals("option") &&
                      !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) &&
-                     !name.equals(TAG_ICONS) &&
-                     !name.equals(TAG_FORMFACTOR)) {
+                     !name.equals(TAG_FORM_FACTOR)) {
               LOG.error("WARNING: Unknown template directive " + name);
             }
           }

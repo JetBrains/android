@@ -3,6 +3,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
@@ -46,6 +47,7 @@ import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +56,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
+// This class supports JPS projects and relies on APIs which should not be used in AS otherwise. We suppress related warnings to
+// avoid cluttering of the build output.
+@SuppressWarnings("deprecation")
 @Service
 public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
@@ -102,7 +107,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     final List<Runnable> changes = new ArrayList<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         final String updatePropertyFiles = facet.getProperties().UPDATE_PROPERTY_FILES;
         final boolean ask = updatePropertyFiles.isEmpty();
 
@@ -209,7 +214,8 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
       AndroidRootUtil.readPropertyFile(module, SdkConstants.FN_LOCAL_PROPERTIES);
     final List<Runnable> changes = new ArrayList<>();
 
-    final IAndroidTarget androidTarget = facet.getAndroidTarget();
+    final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+    final IAndroidTarget androidTarget = androidPlatform == null ? null : androidPlatform.getTarget();
     final String androidTargetHashString = androidTarget != null ? androidTarget.hashString() : null;
     final VirtualFile[] dependencies = collectDependencies(module);
     final String[] dependencyPaths = toSortedPaths(dependencies);
@@ -302,7 +308,8 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
                                            @NotNull final PropertiesFile propertiesFile,
                                            @NotNull List<Runnable> changes) {
     final Project project = facet.getModule().getProject();
-    final IAndroidTarget androidTarget = facet.getAndroidTarget();
+    final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+    final IAndroidTarget androidTarget = androidPlatform == null ? null : androidPlatform.getTarget();
 
     if (androidTarget != null) {
       final String targetPropertyValue = androidTarget.hashString();
@@ -386,7 +393,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   @Nullable
   private static VirtualFile getBaseAndroidContentRoot(@NotNull Module module) {
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getManifestFile(facet) : null;
+    final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getPrimaryManifestFile(facet) : null;
     final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     if (manifestFile != null) {
       for (VirtualFile contentRoot : contentRoots) {

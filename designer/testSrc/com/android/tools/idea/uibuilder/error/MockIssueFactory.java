@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.error;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
@@ -27,7 +28,6 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 

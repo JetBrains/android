@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
+import static com.android.tools.idea.room.migrations.generators.GeneratorsUtil.makePublic;
 import static com.android.tools.idea.room.migrations.generators.MigrationClassGenerator.*;
 
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
@@ -68,6 +69,8 @@ public class JavaMigrationClassGenerator implements MigrationClassGenerator<PsiC
                                        @NotNull DatabaseUpdate databaseUpdate) {
     String migrationClassName = getMigrationClassName(databaseUpdate.getPreviousVersion(), databaseUpdate.getCurrentVersion());
     PsiClass migrationClass = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationClassName);
+
+    makePublic(migrationClass);
     addSuperClass(migrationClass);
     addMigrationConstructor(migrationClass, databaseUpdate);
     addMigrationMethod(migrationClass, databaseUpdate);

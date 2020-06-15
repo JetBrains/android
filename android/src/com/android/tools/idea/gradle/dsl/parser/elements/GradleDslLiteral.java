@@ -35,7 +35,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
     // Will be set in the call to #setValue
-    myIsReference = false;
+    setReference(false);
   }
 
   public GradleDslLiteral(@NotNull GradleDslElement parent,
@@ -44,7 +44,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
                           @NotNull PsiElement literal,
                           boolean isReference) {
     super(parent, psiElement, name, literal);
-    myIsReference = isReference;
+    setReference(isReference);
   }
 
   @Override
@@ -74,7 +74,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
     checkForValidValue(value);
     PsiElement element =
       ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> {
-        PsiElement psiElement = getDslFile().getParser().convertToPsiElement(value);
+        PsiElement psiElement = getDslFile().getParser().convertToPsiElement(this, value);
         getDslFile().getParser().setUpForNewValue(this, psiElement);
         return psiElement;
       });
@@ -116,7 +116,9 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   public String toString() {
     Object value = getValue();
-    return value != null ? value.toString() : super.toString();
+    String nameString = myName.toString();
+    String namePrefix = nameString.equals("") ? "" : (nameString + ": ");
+    return namePrefix + (value != null ? value.toString() : super.toString());
   }
 
   @Override
@@ -149,7 +151,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   @Nullable
   public String getReferenceText() {
-    if (!myIsReference) {
+    if (!isReference()) {
       return null;
     }
 

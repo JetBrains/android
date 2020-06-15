@@ -28,6 +28,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -54,7 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.swing.Icon;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -82,7 +84,7 @@ public class NlComponent implements NlAttributesHolder {
   private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
-  private NlComponentDelegate myDelegate;
+  private NlComponentModificationDelegate myComponentModificationDelegate;
 
   /**
    * Current open attributes transaction or null if none is open
@@ -100,16 +102,12 @@ public class NlComponent implements NlAttributesHolder {
     myBackend = new NlComponentBackendXml(model.getProject(), tag, tagPointer);
   }
 
-  @Nullable
-  public NlComponentDelegate getDelegate() {
-    return myDelegate;
+  public void setComponentModificationDelegate(@Nullable NlComponentModificationDelegate delegate) {
+    myComponentModificationDelegate = delegate;
   }
 
-  /** @Deprecated Please dont use this anymore. */
-  // TODO(b/140254908) Remove the NlComponentDelegate completely.
-  public void setDelegate(@Nullable NlComponentDelegate delegate) {
-    myDelegate = delegate;
-  }
+  @Nullable
+  public NlComponentModificationDelegate getComponentModificationDelegate() { return myComponentModificationDelegate; }
 
   public void setMixin(@NotNull XmlModelComponentMixin mixin) {
     assert myMixin == null;
@@ -211,9 +209,6 @@ public class NlComponent implements NlAttributesHolder {
   public void removeChild(@NotNull NlComponent component) {
     if (component == this) {
       throw new IllegalArgumentException();
-    }
-    if (myDelegate != null) {
-      myDelegate.willRemoveChild(component);
     }
     synchronized (children) {
       cachedChildrenCopy = null;
@@ -318,10 +313,15 @@ public class NlComponent implements NlAttributesHolder {
     return !(getTagDeprecated().getParent() instanceof XmlTag);
   }
 
+  @NotNull
   public NlComponent getRoot() {
     NlComponent component = this;
-    while (component != null && !component.isRoot()) {
-      component = component.getParent();
+    while (!component.isRoot()) {
+      NlComponent parent = component.getParent();
+      if (parent == null) {
+        break;
+      }
+      component = parent;
     }
     return component;
   }
@@ -374,10 +374,6 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      myDelegate.setAttribute(this, namespace, attribute, value);
-      return;
-    }
     XmlTag tag = getTagDeprecated();
     if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
@@ -395,8 +391,9 @@ public class NlComponent implements NlAttributesHolder {
     }
     // Handle validity
     myBackend.setAttribute(attribute, namespace, value);
-    if (mySnapshot != null) {
-      mySnapshot.setAttribute(attribute, namespace, prefix, value);
+    TagSnapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      snapshot.setAttribute(attribute, namespace, prefix, value);
     }
   }
 
@@ -424,25 +421,20 @@ public class NlComponent implements NlAttributesHolder {
     if (myCurrentTransaction != null) {
       return myCurrentTransaction.getAttribute(namespace, attribute);
     }
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      return myDelegate.getAttribute(this, namespace, attribute);
-    }
     return getAttribute(namespace, attribute);
   }
 
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      return myDelegate.getAttribute(this, namespace, attribute);
-    }
     return getAttributeImpl(namespace, attribute);
   }
 
   @Nullable
   public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
-    if (mySnapshot != null) {
-      return mySnapshot.getAttribute(attribute, namespace);
+    TagSnapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      return snapshot.getAttribute(attribute, namespace);
     }
 
     return myBackend.getAttribute(attribute, namespace);
@@ -462,21 +454,14 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
-    if (myDelegate != null && myDelegate.handlesAttributes(this)) {
-      List<AttributeSnapshot> attributes = myDelegate.getAttributes(this);
-      if (attributes != null) {
-        return attributes;
-      } else {
-        return Collections.emptyList();
-      }
-    }
     return getAttributesImpl();
   }
 
   @NotNull
   public List<AttributeSnapshot> getAttributesImpl() {
-    if (mySnapshot != null) {
-      return mySnapshot.attributes;
+    TagSnapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      return snapshot.attributes;
     }
 
     XmlTag tag = getTagDeprecated();
@@ -651,7 +636,9 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   private String assignId(@NotNull Set<String> ids) {
-    return assignId(getTagName(), ids);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(this);
+    String baseName = handler != null ? handler.generateBaseId(this) : getTagName();
+    return assignId(baseName, ids);
   }
 
   /**
@@ -689,7 +676,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @NotNull
-  public static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
+  private static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
 
     Project project = module.getProject();

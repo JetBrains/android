@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.CLASS_CONTEXT;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_RES_XML;
+import static com.android.SdkConstants.GET_STRING_METHOD;
+import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -29,25 +37,33 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.util.containers.SmartHashSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
 
 /**
  * Quickfix for generating a backup descriptor.
@@ -58,7 +74,7 @@ import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotE
  * <li>Reformat and open the generated descriptor.</li>
  * </ul>
  */
-class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
+class GenerateBackupDescriptorFix implements LintIdeQuickFix {
 
   private static final String XML_CONTENT_START = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                                   "<full-backup-content>\n";
@@ -175,7 +191,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 }
 
                 List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
-                    .findResourcesByFieldName(ResourceNamespace.TODO(), ResourceType.STRING.getName(), resource.name);
+                  .findResourcesByFieldName(ResourceNamespace.TODO(), ResourceType.STRING.getName(), resource.name);
 
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {
@@ -202,7 +218,6 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 }
               }
             }
-
           }
         });
       }
@@ -277,7 +292,8 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
     // shared preferences
     if (!sharedPrefs.isEmpty()) {
       sb.append("<!-- Exclude the shared preferences file that contains the GCM registrationId -->\n");
-    } else {
+    }
+    else {
       sb.append("<!-- Exclude specific shared preferences that contain GCM registration Id -->\n");
     }
 

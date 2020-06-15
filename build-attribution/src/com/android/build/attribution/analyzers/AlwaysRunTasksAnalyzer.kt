@@ -16,9 +16,9 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
-import com.android.build.attribution.data.TaskData
-import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
@@ -26,8 +26,10 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 /**
  * Analyzer for reporting tasks that always run due to misconfiguration.
  */
-class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
-  : BaseTasksAnalyzer(taskContainer), BuildEventsAnalyzer {
+class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
+                             taskContainer: TaskContainer,
+                             pluginContainer: PluginContainer)
+  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
   lateinit var alwaysRunTasks: List<AlwaysRunTaskData>
     private set
@@ -35,22 +37,26 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
   override fun receiveEvent(event: ProgressEvent) {
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
       (event.result as TaskSuccessResult).executionReasons?.forEach {
-        if (it == TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get() ||
-            it == TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()) {
-          alwaysRunTasksSet.add(AlwaysRunTaskData(getTask(event), it))
+        when (it) {
+          AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS.message -> alwaysRunTasksSet.add(
+            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS))
+          AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS.message -> alwaysRunTasksSet.add(
+            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))
+          AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE.message -> alwaysRunTasksSet.add(
+            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
         }
       }
     }
   }
 
   override fun onBuildSuccess() {
-    alwaysRunTasks = alwaysRunTasksSet.filter { warningsFilter.applyAlwaysRunTaskFilter(it.taskData) }
+    alwaysRunTasks = alwaysRunTasksSet.filter {
+      warningsFilter.applyAlwaysRunTaskFilter(it.taskData) && applyWhitelistedTasksFilter(it.taskData)
+    }
     alwaysRunTasksSet.clear()
   }
 
   override fun onBuildFailure() {
     alwaysRunTasksSet.clear()
   }
-
-  data class AlwaysRunTaskData(val taskData: TaskData, val reason: String)
 }

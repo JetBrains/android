@@ -15,32 +15,31 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.lint.checks.FontDetector.MIN_APPSUPPORT_VERSION;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-
-import static com.android.tools.lint.checks.FontDetector.MIN_APPSUPPORT_VERSION;
 
 /**
  * Quickfix which updates the appcompat-v7 support library to the latest version
  * which is the minimum for downloadable font support
  * (and also installs it in the local maven repository if necessary)
  */
-public class UpgradeAppCompatV7Fix implements AndroidLintQuickFix {
+public class UpgradeAppCompatV7Fix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement,
                     @NotNull PsiElement endElement,

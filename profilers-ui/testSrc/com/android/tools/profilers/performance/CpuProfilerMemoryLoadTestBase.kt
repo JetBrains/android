@@ -86,9 +86,6 @@ open class CpuProfilerMemoryLoadTestBase {
   protected fun loadCaptureAndReport(name:String, fileName:File?) {
     // Start as clean as we can.
     val before = getMemoryUsed()
-    // Enable flags that allow us to import all traces.
-    myIdeServices.enableImportTrace(true)
-    myIdeServices.enableAtrace(true)
     myIdeServices.enablePerfetto(true)
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeServices, myTimer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)

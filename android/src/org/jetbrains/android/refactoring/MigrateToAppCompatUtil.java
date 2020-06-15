@@ -23,9 +23,12 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.LintIdeRequest;
+import com.android.tools.idea.lint.AndroidLintIdeIssueRegistry;
+import com.android.tools.idea.lint.common.LintBatchResult;
+import com.android.tools.idea.lint.common.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeRequest;
+import com.android.tools.idea.lint.common.LintIdeSupport;
+import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
@@ -72,7 +75,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeCustomViewUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
@@ -135,8 +137,8 @@ class MigrateToAppCompatUtil {
     PsiManager manager = PsiManager.getInstance(project);
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
 
-    Map<Issue, Map<File, List<ProblemData>>> issues = computeCustomViewIssuesMap(project, modules);
-    Map<File, List<ProblemData>> fileListMap = issues.get(AppCompatCustomViewDetector.ISSUE);
+    Map<Issue, Map<File, List<LintProblemData>>> issues = computeCustomViewIssuesMap(project, modules);
+    Map<File, List<LintProblemData>> fileListMap = issues.get(AppCompatCustomViewDetector.ISSUE);
     if (fileListMap == null) {
       return Collections.emptyList();
     }
@@ -144,21 +146,21 @@ class MigrateToAppCompatUtil {
     List<ChangeCustomViewUsageInfo> result = new ArrayList<>();
 
     //noinspection ConstantConditions
-    Map<PsiFile, List<ProblemData>> psiFileListMap = fileListMap.entrySet().stream()
+    Map<PsiFile, List<LintProblemData>> psiFileListMap = fileListMap.entrySet().stream()
       .filter(e -> fileSystem.findFileByIoFile(e.getKey()) != null)
       .collect(Collectors.toMap(
         e -> manager.findFile(fileSystem.findFileByIoFile(e.getKey())),
         Map.Entry::getValue));
 
-    for (Map.Entry<PsiFile, List<ProblemData>> entry : psiFileListMap.entrySet()) {
+    for (Map.Entry<PsiFile, List<LintProblemData>> entry : psiFileListMap.entrySet()) {
       PsiFile psiFile = entry.getKey();
 
       if (!psiFile.isValid()) {
         continue;
       }
-      List<ProblemData> problemDataList = entry.getValue();
+      List<LintProblemData> problemDataList = entry.getValue();
 
-      for (ProblemData problemData : problemDataList) {
+      for (LintProblemData problemData : problemDataList) {
         int start = problemData.getTextRange().getStartOffset();
         LintFix fix = problemData.getQuickfixData();
         if (!(fix instanceof LintFix.ReplaceString)) continue;
@@ -182,8 +184,8 @@ class MigrateToAppCompatUtil {
    * @return map of issues with the problemdata.
    */
   @NotNull
-  static Map<Issue, Map<File, List<ProblemData>>> computeCustomViewIssuesMap(@NotNull Project project, @NotNull Module[] modules) {
-    Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
+  static Map<Issue, Map<File, List<LintProblemData>>> computeCustomViewIssuesMap(@NotNull Project project, @NotNull Module[] modules) {
+    Map<Issue, Map<File, List<LintProblemData>>> map = Maps.newHashMap();
     boolean detectorWasEnabled = AppCompatCustomViewDetector.ISSUE.isEnabledByDefault();
     AppCompatCustomViewDetector.ISSUE.setEnabledByDefault(true);
     AnalysisScope scope = new AnalysisScope(project);
@@ -191,7 +193,8 @@ class MigrateToAppCompatUtil {
     try {
       Set<Issue> issues = new HashSet<>(1);
       issues.add(AppCompatCustomViewDetector.ISSUE);
-      LintIdeClient client = LintIdeClient.forBatch(project, map, scope, issues);
+      LintBatchResult lintResult = new LintBatchResult(project, map, scope, issues);
+      LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
       LintRequest request = new LintIdeRequest(client, project, null, Arrays.asList(modules), false) {
         @NonNull
         @Override
@@ -211,7 +214,7 @@ class MigrateToAppCompatUtil {
         }
       };
       request.setScope(Scope.JAVA_FILE_SCOPE);
-      new LintDriver(new LintIdeIssueRegistry(), client, request).analyze();
+      new LintDriver(new AndroidLintIdeIssueRegistry(), client, request).analyze();
     }
     finally {
       AppCompatCustomViewDetector.ISSUE.setEnabledByDefault(detectorWasEnabled);

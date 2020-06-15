@@ -96,7 +96,7 @@ class PropertiesPageTest {
 
   @Test
   fun testNoSeparatorAddedBeforeFirstTableComponent() {
-    page!!.addTable(tableModel!!, false, tableUI!!)
+    page!!.addTable(tableModel!!, false, tableUI!!, emptyList())
 
     checkLineModels(pageLines, TableLineModel::class.java)
   }
@@ -141,7 +141,7 @@ class PropertiesPageTest {
     page!!.addEditor(makeEditor())
     val title = page!!.addTitle("Title1") as TitleLineModel
     title.makeExpandable(true)
-    page!!.addTable(tableModel!!, false, tableUI!!, title)
+    page!!.addTable(tableModel!!, false, tableUI!!, emptyList(), title)
 
     checkLineModels(pageLines,
                     SeparatorLineModel::class.java,

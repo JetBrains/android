@@ -31,17 +31,18 @@ import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -82,8 +83,8 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     super(profilersView, energyProfilerStage);
 
     getTooltipBinder().bind(EnergyStageTooltip.class, EnergyStageTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
 
     JBSplitter verticalSplitter = new JBSplitter(true);
     verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
@@ -126,16 +127,13 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
-    ProfilerTimeline timeline = profilers.getTimeline();
-    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), getTimeline().getViewRange());
+    StreamingTimeline timeline = getStage().getTimeline();
+    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(),
-                                timeline.getViewRange(),
-                                timeline.getDataRange(),
-                                getTooltipPanel(),
-                                getProfilersView().getComponent(),
-                                () -> selection.shouldShowSeekComponent());
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline,
+                                                              getTooltipPanel(),
+                                                              getProfilersView().getComponent(),
+                                                              () -> selection.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -296,7 +294,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+    textPane.setFont(TooltipView.TOOLTIP_BODY_FONT);
     textPane.setText(
       "The Energy Profiler models your app's estimated energy usage of CPU, Network, and GPS resources of your device. " +
       "It also highlights background events that may contribute to battery drain, " +

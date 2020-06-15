@@ -32,11 +32,9 @@ import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.PlatformTestUtil;
-import java.util.function.Function;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,9 +106,9 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     assertNull(viewManager.getHandler("TestTag"));
     viewManager.clearCache();
     ServiceContainerUtil.registerExtension(getProject(),
-                                           ViewHandlerManager.EP_NAME,
-                                           provider,
-                                           getTestRootDisposable());
+                                       ViewHandlerManager.EP_NAME,
+                                       provider,
+                                       getTestRootDisposable());
     assertTrue(viewManager.getHandler("TestTag") instanceof ViewStubHandler);
     assertNotNull(viewManager.getHandler(BOTTOM_APP_BAR));
   }

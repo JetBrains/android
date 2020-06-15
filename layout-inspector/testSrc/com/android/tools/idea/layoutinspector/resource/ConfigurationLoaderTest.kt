@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Configuration
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Resource
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ResourceConfiguration
@@ -112,5 +113,5 @@ class ConfigurationLoaderTest {
   }
 
   private fun stringTable(): StringTable =
-    StringTable(table.entries.map { StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
+    StringTableImpl(table.entries.map { StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
 }

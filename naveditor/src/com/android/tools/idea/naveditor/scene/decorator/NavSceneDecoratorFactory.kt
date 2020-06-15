@@ -26,7 +26,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 /**
  * Creates [SceneComponent]s from [NlComponent]s for the navigation editor.
  */
-class NavSceneDecoratorFactory : SceneDecoratorFactory() {
+object NavSceneDecoratorFactory : SceneDecoratorFactory() {
 
   override fun get(component: NlComponent): SceneDecorator {
     if (component.isAction) {
@@ -36,7 +36,7 @@ class NavSceneDecoratorFactory : SceneDecoratorFactory() {
       NavigationSchema.DestinationType.NAVIGATION -> NavigationDecorator
       NavigationSchema.DestinationType.ACTIVITY -> ActivityDecorator
       NavigationSchema.DestinationType.FRAGMENT, NavigationSchema.DestinationType.OTHER -> FragmentDecorator
-      else -> SceneDecoratorFactory.BASIC_DECORATOR
+      else -> BASIC_DECORATOR
     }
   }
 }

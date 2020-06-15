@@ -76,6 +76,10 @@ public class IssuePanelFixture extends JPanelFixture {
     return myIssuePanel.containsErrorWithText(text);
   }
 
+  public String getFullIssueText() {
+    return myIssuePanel.getFullIssueText();
+  }
+
   @Nullable
   public IssueView getSelectedIssueView() {
     return myIssuePanel.getSelectedIssueView();

@@ -13,52 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.ui
-
-import org.jetbrains.android.util.AndroidBundle.message
-
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.IconLoader
-import icons.AndroidIcons
-import java.io.File
-import java.io.IOException
-import javax.swing.Icon
 
 /**
  * Utility methods to load Template Images and find labels
  */
-object ActivityGallery {
-  /**
-   * Return the image associated with the current template, if it specifies one, or null otherwise.
-   */
-  @JvmStatic
-  fun getTemplateIcon(templateHandle: TemplateHandle?, isCppTemplate: Boolean): TemplateIcon? {
-    if (isCppTemplate) {
-      return TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
-    }
+@file:JvmName("ActivityGallery")
 
-    val thumb = templateHandle?.metadata?.thumbnailPath
-    if (thumb == null || thumb.isEmpty()) {
-      return TemplateIcon(AndroidIcons.Wizards.NoActivity)
-    }
+package com.android.tools.idea.npw.ui
 
-    val file = File(templateHandle.rootPath, thumb.replace('/', File.separatorChar))
-    val icon = IconLoader.findIcon(file.toURI().toURL()) ?: return null
-    return TemplateIcon(icon)
+import com.android.tools.idea.npw.template.TemplateHandle
+import com.android.tools.idea.wizard.template.Template
+import com.intellij.openapi.util.IconLoader
+import icons.AndroidIcons
+import org.jetbrains.android.util.AndroidBundle.message
+import java.io.File
+
+val cppIcon: TemplateIcon get() = TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
+
+/**
+ * Return the image associated with the current template, if it specifies one, or null otherwise.
+ */
+fun getTemplateIcon(templateHandle: TemplateHandle?): TemplateIcon? {
+  val thumb = templateHandle?.metadata?.thumbnailPath
+  if (thumb == null || thumb.isEmpty()) {
+    return TemplateIcon(AndroidIcons.Wizards.NoActivity)
   }
 
-  @JvmStatic
-  fun getTemplateImageLabel(templateHandle: TemplateHandle?, isCppTemplate: Boolean): String = when {
-    isCppTemplate -> message("android.wizard.gallery.item.add.cpp")
-    templateHandle == null -> message("android.wizard.gallery.item.add.no.activity")
-    else -> templateHandle.metadata.title ?: ""
-  }
-
-  @JvmStatic
-  fun getTemplateDescription(templateHandle: TemplateHandle?, isCppTemplate: Boolean): String = when {
-      isCppTemplate -> message("android.wizard.gallery.item.add.cpp.Desc")
-      templateHandle == null -> message("android.wizard.gallery.item.add.no.activity.desc")
-      else -> templateHandle.metadata.description ?: ""
-  }
+  val file = File(templateHandle.rootPath, thumb.replace('/', File.separatorChar))
+  val icon = IconLoader.findIcon(file.toURI().toURL()) ?: return null
+  return TemplateIcon(icon)
 }
+
+fun getTemplateImageLabel(templateHandle: TemplateHandle?): String = when (templateHandle) {
+  null -> message("android.wizard.gallery.item.add.no.activity")
+  else -> templateHandle.metadata.title ?: ""
+}
+
+fun getTemplateDescription(templateHandle: TemplateHandle?): String = when (templateHandle) {
+  null -> message("android.wizard.gallery.item.add.no.activity.desc")
+  else -> templateHandle.metadata.description ?: ""
+}
+
+fun getTemplateIcon(template: Template): TemplateIcon? {
+  if (template == Template.NoActivity) {
+    return TemplateIcon(AndroidIcons.Wizards.NoActivity)
+  }
+
+  val icon = IconLoader.findIcon(template.thumb().path) ?: return null
+  return TemplateIcon(icon)
+}
+

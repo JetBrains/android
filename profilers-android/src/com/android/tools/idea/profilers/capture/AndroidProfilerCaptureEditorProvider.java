@@ -34,8 +34,8 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return StudioFlags.PROFILER_OPEN_CAPTURES.get() && file.getExtension() != null
-           && (file.getExtension().equals(CpuCaptureFileType.EXTENSION) || file.getExtension().equals(MemoryCaptureFileType.EXTENSION));
+    return file.getExtension() != null &&
+           (file.getExtension().equals(CpuCaptureFileType.EXTENSION) || file.getExtension().equals(MemoryCaptureFileType.EXTENSION));
   }
 
   @NotNull

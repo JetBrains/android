@@ -50,7 +50,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     LocalResourceRepository parent =
       ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
 
-    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet));
+    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet.getModule().getProject()));
   }
 
   @Override
@@ -73,8 +73,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key5",
       "key6",
       "key7",
-      "key8",
       "key4",
+      "key8",
       "key9",
       "key10");
 
@@ -86,8 +86,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key1",
       "key3",
       "key7",
-      "key8",
       "key4",
+      "key8",
       "key9",
       "key10");
 
@@ -102,8 +102,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key1",
       "key3",
       "key7",
-      "key8",
       "key4",
+      "key8",
       "key9",
       "key10");
 
@@ -118,8 +118,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key1",
       "key3",
       "key7",
-      "key8",
       "key4",
+      "key8",
       "key9",
       "key10");
 

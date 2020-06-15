@@ -32,7 +32,6 @@ import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.serviceContainer.NonInjectable;
-import gnu.trove.THash;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ import kotlin.reflect.KType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class GradleInitScripts {
+public class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
 
@@ -56,8 +55,8 @@ public final class GradleInitScripts {
     this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }
 
-  @VisibleForTesting
   @NonInjectable
+  @VisibleForTesting
   GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myContentCreator = contentCreator;

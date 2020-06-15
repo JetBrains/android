@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.model;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
-import static com.google.common.truth.Truth.assertThat;
 
 public class MergedManifestInfoTest extends AndroidTestCase {
   public void testLastSyncTimestamp() throws Exception {
@@ -43,7 +43,7 @@ public class MergedManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetLibManifests() throws Exception {
-    List<VirtualFile> libManifests = MergedManifestContributors.determineFor(myFacet).libraryManifests;
+    List<VirtualFile> libManifests = ProjectSystemUtil.getModuleSystem(myFacet).getMergedManifestContributors().libraryManifests;
     // TODO: add external library dependency to local library module and check to make sure libManifests lists the local one first.
   }
 

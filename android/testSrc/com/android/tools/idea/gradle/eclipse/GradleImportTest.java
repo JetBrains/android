@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.gradle.eclipse;
 
 import static com.android.SdkConstants.ANDROID_LIBRARY_REFERENCE_FORMAT;
@@ -3404,7 +3403,7 @@ public class GradleImportTest extends AndroidTestCase {
     args.add("assembleDebug");
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(args);
     removeJcenter(new File(base, "build.gradle"));
-    AndroidGradleTests.updateGradleVersions(base);
+    AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES
+import com.android.tools.idea.gradle.dsl.TestFileName.MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY
+import com.android.tools.idea.gradle.dsl.TestFileName.MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
@@ -53,18 +57,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyValues() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC = "3"
-                 propRef = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propList = ["1", propB, propC, propRef, propInterpolated]
-                 propListRef = propList
-               }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES)
     val extModel = gradleBuildModel.ext()
 
     val propList = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
@@ -100,16 +93,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testWritePropertyValues() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC = "3"
-                 propRef = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propList = ["1", propB, propC, propRef, propInterpolated]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -153,17 +137,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddRemoveValues() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC = "3"
-                 propRef = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propList = ["1", propB, propC, propRef, propInterpolated]
-               }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES)
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
 
@@ -207,17 +181,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testInsertRemoveValues() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC = "3"
-                 propRef = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propList = ["1", propB, propC, propRef, propInterpolated]
-               }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES)
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
 
@@ -257,19 +221,13 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testRebindResolvedProperty() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propList = [1]
-               }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY)
     val buildModelInstance = gradleBuildModel
     val extModel = buildModelInstance.ext()
 
     val propList = extModel.findProperty("propList").wrap(::parseInt, ResolvedPropertyModel::asInt)
 
-    val newResolvedProperty = extModel.findProperty("newVar").resolve()
+    val newResolvedProperty = extModel.findProperty("ext.newVar").resolve()
     var localModified = false
     var localModifying = false
     @Suppress("UNCHECKED_CAST")
@@ -284,13 +242,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     assertThat(newResolvedProperty.getValue(GradlePropertyModel.INTEGER_TYPE), equalTo(1))
 
     applyChangesAndReparse(buildModelInstance)
-
-    val expected = """
-               ext {
-                 propList = [1]
-                 newVar = 1
-               }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED)
   }
 
 }

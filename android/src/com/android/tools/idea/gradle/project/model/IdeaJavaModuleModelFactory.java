@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
-import static org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension.getGradleOutputDir;
+import static java.util.Collections.emptyList;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
@@ -25,6 +24,7 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.Pair;
 import java.io.File;
@@ -41,8 +41,11 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
+import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 
@@ -63,14 +66,16 @@ public class IdeaJavaModuleModelFactory {
 
   @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
-                                @Nullable ExternalProject externalProject,
                                 @NotNull Collection<SyncIssue> syncIssues,
-                                boolean androidModuleWithoutVariants) {
+                                @Nullable ExternalProject externalProject,
+                                boolean androidModuleWithoutVariants,
+                                boolean isBuildable,
+                                @Nullable KaptGradleModel kaptModel) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
+    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule, kaptModel), dependencies.first, dependencies.second,
                                   getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
                                   ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
-                                  !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()),
+                                  !androidModuleWithoutVariants && isBuildable,
                                   androidModuleWithoutVariants);
   }
 
@@ -90,9 +95,10 @@ public class IdeaJavaModuleModelFactory {
   }
 
   @NotNull
-  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull IdeaModule ideaModule) {
+  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull IdeaModule ideaModule, @Nullable KaptGradleModel kaptModel) {
     Collection<? extends IdeaContentRoot> contentRoots = ideaModule.getContentRoots();
     Collection<JavaModuleContentRoot> javaModuleContentRoots = new ArrayList<>();
+
     if (contentRoots != null) {
       for (IdeaContentRoot contentRoot : contentRoots) {
         if (contentRoot != null) {
@@ -100,16 +106,37 @@ public class IdeaJavaModuleModelFactory {
         }
       }
     }
+    if (kaptModel != null) {
+      for (KaptSourceSetModel sourceSet : kaptModel.getSourceSets()) {
+        File kotlinSourcesDirFile = sourceSet.getGeneratedKotlinSourcesDirFile();
+        if (kotlinSourcesDirFile != null) {
+          javaModuleContentRoots.add(createContentRoot(kotlinSourcesDirFile, sourceSet.isTest()));
+        }
+        File sourcesDirFile = sourceSet.getGeneratedSourcesDirFile();
+        if (sourcesDirFile != null) {
+          javaModuleContentRoots.add(createContentRoot(sourcesDirFile, sourceSet.isTest()));
+        }
+      }
+    }
     return javaModuleContentRoots;
   }
 
   @NotNull
+  private static JavaModuleContentRoot createContentRoot(@NotNull File sourcesDirFile, boolean isTest) {
+    return new JavaModuleContentRoot(
+      sourcesDirFile,
+      emptyList(),
+      !isTest ? ImmutableList.of(sourcesDirFile) : emptyList(),
+      emptyList(),
+      emptyList(),
+      isTest ? ImmutableList.of(sourcesDirFile) : emptyList(),
+      emptyList(),
+      emptyList());
+  }
+
+  @NotNull
   private static Map<String, Set<File>> getArtifactsByConfiguration(@Nullable ExternalProject externalProject) {
-    Map<String, Set<File>> artifactsByConfiguration = Collections.emptyMap();
-    if (externalProject != null) {
-      artifactsByConfiguration = externalProject.getArtifactsByConfiguration();
-    }
-    return artifactsByConfiguration;
+    return externalProject != null ? externalProject.getArtifactsByConfiguration() : Collections.emptyMap();
   }
 
   @NotNull
@@ -154,5 +181,24 @@ public class IdeaJavaModuleModelFactory {
     }
     ExternalSourceSet mainSourceSet = externalProject.getSourceSets().get("main");
     return mainSourceSet == null ? null : mainSourceSet.getSourceCompatibility();
+  }
+
+  // TODO(b/145023422): Once merged use CommonGradleProjectResolverExtension#getGradleOutputDir!
+  // See 521231749b2a2a0187593d6dd4fa14fe9c078db0
+  @Nullable
+  private static File getGradleOutputDir(@NotNull ExternalProject externalProject,
+                                         @NotNull String sourceSetName,
+                                         @NotNull ExternalSystemSourceType sourceType) {
+    ExternalSourceSet sourceSet = externalProject.getSourceSets().get(sourceSetName);
+    if (sourceSet == null) return null;
+    return getGradleOutputDir(sourceSet.getSources().get(sourceType));
+  }
+
+  // TODO(b/145023422): Once merged use CommonGradleProjectResolverExtension#getGradleOutputDir!
+  // See 521231749b2a2a0187593d6dd4fa14fe9c078db0
+  @Nullable
+  private static File getGradleOutputDir(@Nullable ExternalSourceDirectorySet sourceDirectorySet) {
+    if (sourceDirectorySet == null) return null;
+    return sourceDirectorySet.getGradleOutputDirs().stream().findFirst().orElse(null);
   }
 }

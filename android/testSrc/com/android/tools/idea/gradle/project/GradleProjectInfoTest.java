@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
@@ -59,24 +60,35 @@ public class GradleProjectInfoTest extends PlatformTestCase {
     myProjectInfo = GradleProjectInfo.getInstance(getProject());
   }
 
-  public void testHasTopLevelGradleBuildFileUsingGradleProject() throws Exception {
+  public void testHasTopLevelGradleFileBuildGradle() throws Exception {
     createFileInProjectRoot(getProject(), "build.gradle");
-    assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
   }
 
-  public void testHasTopLevelGradleBuildFileWithKtsFile() throws Exception {
+  public void testHasTopLevelGradleFileWithBuildGradleKts() throws Exception {
     createFileInProjectRoot(getProject(), "build.gradle.kts");
-    assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
   }
 
+  public void testHasTopLevelGradleFileSettingsGradle() throws Exception {
+    createFileInProjectRoot(getProject(), "settings.gradle");
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
+  }
+
+  public void testHasTopLevelGradleFileWithSettingsGradleKts() throws Exception {
+    createFileInProjectRoot(getProject(), "settings.gradle.kts");
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
+  }
   public void testHasTopLevelGradleBuildFileUsingNonGradleProject() {
     File projectFolderPath = getBaseDirPath(getProject());
-    File buildFilePath = new File(projectFolderPath, "build.gradle");
-    if (buildFilePath.exists()) {
-      assertTrue("Failed to delete top-level build.gradle file", buildFilePath.delete());
+    String[] filenames = { "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts" };
+    for (String filename : filenames ) {
+      File buildFilePath = new File(projectFolderPath, filename);
+      if (buildFilePath.exists()) {
+        assertTrue("Failed to delete top-level " + filename + " file", buildFilePath.delete());
+      }
     }
-
-    assertFalse(myProjectInfo.hasTopLevelGradleBuildFile());
+    assertFalse(myProjectInfo.hasTopLevelGradleFile());
   }
 
   public void testIsBuildWithGradleUsingGradleProject() {
@@ -171,7 +183,7 @@ public class GradleProjectInfoTest extends PlatformTestCase {
     AndroidFacet facet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    facet.setModel(androidModel);
+    AndroidModel.set(facet, androidModel);
 
     ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
     Project project = getProject();

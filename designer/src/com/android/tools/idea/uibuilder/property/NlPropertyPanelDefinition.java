@@ -30,7 +30,7 @@ public class NlPropertyPanelDefinition extends ToolWindowDefinition<DesignSurfac
   public NlPropertyPanelDefinition(@NotNull AndroidFacet facet, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     // TODO: Get a different 13x13 tool window icon
     super("Attributes", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide,
-          PropertiesManager.MINIMUM_WIDTH, ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
+          PropertiesManager.MINIMUM_WIDTH, ToolWindowDefinition.DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE,
           (disposable) -> new NlPropertiesManager(facet, null, disposable));
   }
 }

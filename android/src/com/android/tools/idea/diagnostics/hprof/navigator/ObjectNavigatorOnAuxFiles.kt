@@ -241,7 +241,10 @@ class ObjectNavigatorOnAuxFiles(
 
   override fun getRootReasonForObjectId(id: Long): RootReason? {
     var rootReason = roots[id]
-    if (rootReason != null) {
+
+    // If the root is a java frame, then first check if any static or constant is a root too. This way,
+    // frame root will be reported only is there are no other roots.
+    if (rootReason != null && !rootReason.javaFrame) {
       return rootReason
     }
     classStore.forEachClass { classDefinition ->

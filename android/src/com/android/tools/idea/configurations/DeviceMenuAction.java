@@ -60,7 +60,7 @@ public class DeviceMenuAction extends DropDownAction {
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
-      Device device = configuration.getDevice();
+      Device device = configuration.getCachedDevice();
       String label = getDeviceLabel(device, true);
       presentation.setText(label, false);
     }
@@ -162,13 +162,13 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
       return true;
     }
-    Device current = configuration.getDevice();
+    Device current = configuration.getCachedDevice();
     ConfigurationManager configurationManager = configuration.getConfigurationManager();
 
     if (LIST_RECENT_DEVICES) {
@@ -194,7 +194,7 @@ public class DeviceMenuAction extends DropDownAction {
     addCustomDeviceSection(current);
     addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
     addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), current);
-    add(new RunAndroidAvdManagerAction("Add Device Definition..."));
+    add(ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     return true;
   }
@@ -285,10 +285,13 @@ public class DeviceMenuAction extends DropDownAction {
     public DeviceCategory(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
       super(text, description, null);
       myIcon = icon;
+    }
 
-      Presentation p = getTemplatePresentation();
-      p.setDisabledIcon(myIcon);
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      Presentation p = e.getPresentation();
       p.setEnabled(false);
+      p.setDisabledIcon(myIcon);
     }
 
     @Override
@@ -341,7 +344,7 @@ public class DeviceMenuAction extends DropDownAction {
       // Attempt to jump to the default orientation of the new device; for example, if you're viewing a layout in
       // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
       // (its default) unless of course there is a different layout that is the best fit for that device.
-      Device prevDevice = configuration.getDevice();
+      Device prevDevice = configuration.getCachedDevice();
       State prevState = configuration.getDeviceState();
       String newState = prevState != null ? prevState.getName() : null;
       if (prevDevice != null && prevState != null && prevState.isDefaultState() &&

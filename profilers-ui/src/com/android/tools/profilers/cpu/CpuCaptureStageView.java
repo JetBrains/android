@@ -15,27 +15,57 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.DragAndDropList;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.model.MultiSelectionModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
-import com.android.tools.adtui.trackgroup.TrackGroup;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.trackgroup.Track;
+import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.util.HashMap;
-import java.util.Map;
+import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,19 +74,54 @@ import org.jetbrains.annotations.NotNull;
  * all captures of type {@link Cpu.CpuTraceType} are supported.
  */
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
+  /**
+   * The percentage of the current view range's length to pan.
+   */
+  private static final double TIMELINE_PAN_FACTOR = 0.1;
+  private static final double TIMELINE_DRAG_FACTOR = 0.001;
   private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
-  private final JList<TrackGroupModel> myTrackGroupList;
+  /**
+   * Key binding keys.
+   */
+  private static final String ZOOM_IN_KEY = "zoom_in";
+  private static final String ZOOM_OUT_KEY = "zoom_out";
+  private static final String PAN_LEFT_KEY = "pan_left";
+  private static final String PAN_RIGHT_KEY = "pan_right";
+  private static final String PANNING_MODE_ON_KEY = "panning_mode_on";
+  private static final String PANNING_MODE_OFF_KEY = "panning_mode_off";
+
+  private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
-  private final JBSplitter mySplitter = new JBSplitter(false, 0.5f);
+  private final JScrollPane myScrollPane;
+
+  /**
+   * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
+   */
+  private boolean myIsPanningMode = false;
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
-    myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
-    myAnalysisPanel = new CpuAnalysisPanel(stage);
+    myTrackGroupList = createTrackGroupListPanel();
+    myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
+                                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myAnalysisPanel = new CpuAnalysisPanel(view, stage);
+
+    // Tooltip used in the stage
+    getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
+
+    // Tooltips used in the track groups
+    myTrackGroupList.getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuCaptureNodeTooltip.class, CpuCaptureNodeTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
-    stage.getMinimapModel().getRangeSelectionModel().addDependency(this)
-      .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
+    stage.getMultiSelectionModel().addDependency(this)
+      .onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
     updateComponents();
   }
 
@@ -65,55 +130,256 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     return new JPanel();
   }
 
+  @Override
+  public boolean shouldEnableZoomToSelection() {
+    // Zoom to Selection only works for trace event (i.e. CaptureNodeAnalysisModel) selection.
+    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
+    return !selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel;
+  }
+
+  @NotNull
+  @Override
+  public Range getZoomToSelectionRange() {
+    assert shouldEnableZoomToSelection();
+    // Zoom to Selection works on the range of the selected trace event.
+    CaptureNodeAnalysisModel selectedNode = (CaptureNodeAnalysisModel)getStage().getMultiSelectionModel().getSelection().get(0);
+    return selectedNode.getNodeRange();
+  }
+
+  @Override
+  public void addTimelineControlUpdater(@NotNull Runnable timelineControlUpdater) {
+    getStage().getMultiSelectionModel().addDependency(getProfilersView()).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION,
+                                                                                   timelineControlUpdater);
+  }
+
+  @Override
+  public boolean shouldShowDeselectAllLabel() {
+    return !getStage().getMultiSelectionModel().getSelection().isEmpty();
+  }
+
+  @Override
+  public void onDeselectAllAction() {
+    getStage().getMultiSelectionModel().clearSelection();
+  }
+
   private void updateComponents() {
     getComponent().removeAll();
     if (getStage().getState() == CpuCaptureStage.State.PARSING) {
       getComponent().add(new StatusPanel(getStage().getCaptureHandler(), "Parsing", "Abort"));
-    } else {
+    }
+    else {
+      // If we had any previously registered analyzing events we unregister them first.
+      // Note: This should only be done in the analyzing state since objects may not be created/setup before the model has transitioned
+      // to this state.
+      unregisterAnalyzingEvents();
+      registerAnalyzingEvents();
       getComponent().add(createAnalyzingComponents());
+      getComponent().revalidate();
+      // Request focus to enable keyboard shortcuts once loading finishes.
+      myTrackGroupList.getComponent().requestFocusInWindow();
     }
   }
 
-  private JComponent createAnalyzingComponents() {
-    JPanel container = new JPanel(new BorderLayout());
-    container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
-    container.add(
-      new JBScrollPane(myTrackGroupList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
-      BorderLayout.CENTER);
-    mySplitter.setFirstComponent(container);
-    mySplitter.setSecondComponent(myAnalysisPanel.getComponent());
-    return mySplitter;
-  }
-
-  private void updateTrackGroupList() {
-    // Force JList cell renderer to validate.
-    myTrackGroupList.updateUI();
+  /**
+   * Helper function for registering listeners on objects that may not be initialized until the capture has been parsed.
+   */
+  private void registerAnalyzingEvents() {
+    getStage().getMinimapModel().getRangeSelectionModel().addDependency(this)
+      .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
   }
 
   /**
-   * Creates a JList containing all the track groups in this stage.
+   * Helper function for unregistering listeners that get set when we enter the analyzing state for a capture.
    */
-  private static JList<TrackGroupModel> createTrackGroups(@NotNull TrackGroupListModel trackGroupListModel) {
-    // Caches TrackGroupViews for the list cell renderer.
-    Map<Integer, TrackGroup> trackGroupMap = new HashMap<>();
+  private void unregisterAnalyzingEvents() {
+    getStage().getMinimapModel().getRangeSelectionModel().removeDependencies(this);
+  }
 
-    DragAndDropList<TrackGroupModel> trackGroupList = new DragAndDropList<>(trackGroupListModel);
-    trackGroupList.setCellRenderer(new ListCellRenderer<TrackGroupModel>() {
+  private JComponent createAnalyzingComponents() {
+    // Minimap
+    CpuCaptureMinimapModel minimapModel = getStage().getMinimapModel();
+    CpuCaptureMinimapView minimap = new CpuCaptureMinimapView(minimapModel);
+    // Minimap tooltip uses the capture timeline
+    RangeTooltipComponent minimapTooltipComponent =
+      new RangeTooltipComponent(getStage().getCaptureTimeline(),
+                                getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false);
+    minimap.registerRangeTooltipComponent(minimapTooltipComponent);
+    minimap.addMouseListener(
+      new ProfilerTooltipMouseAdapter(
+        getStage(),
+        () -> new CpuCaptureStageCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
+
+    // Track Groups
+    loadTrackGroupModels();
+
+    JPanel container = new JPanel(new TabularLayout("*", "Fit-,*"));
+    // The tooltip component should be first so it draws on top of all elements. It's only responsible for showing tooltip in the minimap.
+    container.add(minimapTooltipComponent, new TabularLayout.Constraint(0, 0));
+    container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
+    container.add(myScrollPane, new TabularLayout.Constraint(1, 0));
+    container.add(createBottomAxisPanel(minimapModel.getRangeSelectionModel().getSelectionRange()), new TabularLayout.Constraint(2, 0));
+    initKeyBindings(container);
+
+    JBSplitter splitter = new JBSplitter(false, 0.5f);
+    splitter.setFirstComponent(container);
+    splitter.setSecondComponent(myAnalysisPanel.getComponent());
+    splitter.getDivider().setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 0, 1));
+    return splitter;
+  }
+
+  private void initKeyBindings(@NotNull JComponent container) {
+    InputMap inputMap = container.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    ActionMap actionMap = container.getActionMap();
+
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), ZOOM_IN_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), ZOOM_OUT_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), PAN_LEFT_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), PAN_RIGHT_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), PANNING_MODE_ON_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), PANNING_MODE_OFF_KEY);
+
+    actionMap.put(ZOOM_IN_KEY, new AbstractAction() {
       @Override
-      public Component getListCellRendererComponent(JList<? extends TrackGroupModel> list,
-                                                    TrackGroupModel value,
-                                                    int index,
-                                                    boolean isSelected,
-                                                    boolean cellHasFocus) {
-        return trackGroupMap.computeIfAbsent(value.getId(), id -> new TrackGroup(value, TRACK_RENDERER_FACTORY)).getComponent();
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().zoomIn();
       }
     });
-    return trackGroupList;
+    actionMap.put(ZOOM_OUT_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().zoomOut();
+      }
+    });
+    actionMap.put(PAN_LEFT_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().panView(-getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
+      }
+    });
+    actionMap.put(PAN_RIGHT_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
+      }
+    });
+    actionMap.put(PANNING_MODE_ON_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        setPanningMode(true, myTrackGroupList);
+      }
+    });
+    actionMap.put(PANNING_MODE_OFF_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        setPanningMode(false, myTrackGroupList);
+      }
+    });
+  }
+
+  @NotNull
+  private TrackGroupListPanel createTrackGroupListPanel() {
+    TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    MouseAdapter mouseListener = new MouseAdapter() {
+      private int myLastX = 0;
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        if (myIsPanningMode) {
+          myLastX = e.getX();
+        }
+      }
+
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        if (myIsPanningMode) {
+          // Panning is opposite direction (i.e. pan left to shift range right).
+          int deltaX = myLastX - e.getX();
+          myLastX = e.getX();
+          getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * deltaX * TIMELINE_DRAG_FACTOR);
+        }
+      }
+    };
+    trackGroupListPanel.getComponent().addMouseListener(mouseListener);
+    trackGroupListPanel.getComponent().addMouseMotionListener(mouseListener);
+    trackGroupListPanel.getComponent().addMouseWheelListener(new MouseWheelListener() {
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        if (AdtUiUtils.isActionKeyDown(e)) {
+          if (e.getWheelRotation() > 0) {
+            getStage().getTimeline().zoomOut();
+          }
+          else {
+            getStage().getTimeline().zoomIn();
+          }
+        }
+        else {
+          // Ctrl/Cmd key is not pressed, dispatch the wheel event to the scroll pane for scrolling to work.
+          e.setSource(myScrollPane);
+          myScrollPane.dispatchEvent(e);
+        }
+      }
+    });
+    return trackGroupListPanel;
+  }
+
+  private void setPanningMode(boolean isPanningMode, @NotNull TrackGroupListPanel trackGroupListPanel) {
+    myIsPanningMode = isPanningMode;
+    trackGroupListPanel.setEnabled(!isPanningMode);
+    getProfilersView().getComponent().setCursor(isPanningMode ? AdtUiCursors.GRABBING : null);
+  }
+
+  private static JComponent createBottomAxisPanel(@NotNull Range range) {
+    // Match track's column sizing.
+    JPanel axisPanel = new JPanel(new TabularLayout(Track.COL_SIZES));
+    axisPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    AxisComponent timeAxis = new AxisComponent(new ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT).build(),
+                                               AxisComponent.AxisOrientation.BOTTOM);
+    timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
+    timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
+    // Hide the axis line so it doesn't stack with panel border.
+    timeAxis.setShowAxisLine(false);
+    // Align with track content.
+    axisPanel.add(timeAxis, new TabularLayout.Constraint(0, 1));
+    return axisPanel;
+  }
+
+  private void updateTrackGroupList() {
+    // Force track group list to validate its children.
+    myTrackGroupList.getComponent().updateUI();
+  }
+
+  private void loadTrackGroupModels() {
+    // Track groups tooltip uses the track group timeline (based on minimap selection)
+    myTrackGroupList.setRangeTooltipComponent(
+      new RangeTooltipComponent(getStage().getTimeline(),
+                                myTrackGroupList.getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false));
+    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
+    myTrackGroupList.registerMultiSelectionModel(getStage().getMultiSelectionModel());
+  }
+
+  private void onTrackGroupSelectionChange() {
+    // Remove the last selection if any.
+    if (getStage().getAnalysisModels().size() > 1) {
+      getStage().removeCpuAnalysisModel(getStage().getAnalysisModels().size() - 1);
+    }
+
+    // Merge all selected items' analysis models and provide one combined model to the analysis panel.
+    getStage().getMultiSelectionModel().getSelection().stream()
+      .map(CpuAnalyzable::getAnalysisModel)
+      .reduce(CpuAnalysisModel::mergeWith)
+      .ifPresent(getStage()::addCpuAnalysisModel);
+
+    // Now update track groups.
+    updateTrackGroupList();
   }
 
   @VisibleForTesting
   @NotNull
-  protected final JList<TrackGroupModel> getTrackGroupList() {
+  protected final TrackGroupListPanel getTrackGroupList() {
     return myTrackGroupList;
   }
 

@@ -34,13 +34,13 @@ interface InspectorPanel {
   /**
    * Add a title line to the inspector.
    */
-  fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel
+  fun addTitle(title: String, actions: List<AnAction> = emptyList()): InspectorLineModel
 
   /**
    * Add an expandable title line to the inspector.
    */
-  fun addExpandableTitle(title: String, initiallyExpanded: Boolean = true, vararg actions: AnAction): InspectorLineModel {
-    val line = addTitle(title, *actions)
+  fun addExpandableTitle(title: String, initiallyExpanded: Boolean = true, actions: List<AnAction> = emptyList()): InspectorLineModel {
+    val line = addTitle(title, actions)
     line.makeExpandable(initiallyExpanded)
     return line
   }
@@ -75,6 +75,7 @@ interface InspectorPanel {
   fun addTable(tableModel: PTableModel,
                searchable: Boolean,
                tableUI: TableUIProvider,
+               actions: List<AnAction> = emptyList(),
                parent: InspectorLineModel? = null): TableLineModel
 
   /**

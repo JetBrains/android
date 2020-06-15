@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -43,13 +42,11 @@ class DependenciesTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
   }
 
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD // Restore the default.
   }
 
   @Test
@@ -95,6 +92,13 @@ class DependenciesTest {
         }
       }
       clickCancel()
+    }
+
+    ide.editor.open("app/build.gradle").run {
+      assertThat(currentFileContents)
+        .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
+                  "    implementation 'com.example.jlib:lib3:0.5'\n" +
+                  "    testImplementation 'junit:junit:4.11'\n")
     }
   }
 
@@ -255,6 +259,14 @@ class DependenciesTest {
       }
       clickCancel()
     }
+
+    ide.editor.open("app/build.gradle").run {
+      assertThat(currentFileContents)
+        .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
+                  "    implementation \"com.example.jlib:lib3:\${deps.lib3Version}\"\n" +
+                  "    implementation \"com.example.jlib:lib4:\${deps.lib4Version}\"\n" +
+                  "    testImplementation 'junit:junit:4.11'\n")
+    }
   }
 
   @Test
@@ -285,6 +297,13 @@ class DependenciesTest {
         }
       }
       clickCancel()
+    }
+    ide.editor.open("app/build.gradle").run {
+      println(currentFileContents)
+      assertThat(currentFileContents)
+        .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
+                  "    implementation project(path: ':mylibrary')\n" +
+                  "    testImplementation 'junit:junit:4.11'\n")
     }
   }
 

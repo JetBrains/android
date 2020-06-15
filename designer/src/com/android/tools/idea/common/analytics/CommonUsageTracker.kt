@@ -45,7 +45,7 @@ interface CommonUsageTracker {
    *
    * @param trigger The event that triggered the render action or null if not known.
    */
-  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, totalRenderTimeMs: Long)
+  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, totalRenderTimeMs: Long, wasInflated: Boolean)
 
   /**
    * Logs the given design tools event. This method will return immediately.
@@ -77,6 +77,6 @@ fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStu
 private fun getApplicationId(facet: AndroidFacet): String  = getApplicationIdProvider(facet).packageName
 
 private fun getApplicationIdProvider(facet: AndroidFacet): ApplicationIdProvider =
-  if (facet.model is AndroidModuleModel)
+  if (AndroidModel.get(facet) is AndroidModuleModel)
     GradleApplicationIdProvider(facet)
   else NonGradleApplicationIdProvider(facet)

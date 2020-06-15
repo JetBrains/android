@@ -65,13 +65,4 @@ public interface GradleSyncListener extends EventListener {
    */
   default void syncSkipped(@NotNull Project project) {
   }
-
-  /**
-   * Invoked when source generation for the project has finished.
-   *
-   * @param project the project, classes that implement this method must deal with
-   *                the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
-   */
-  default void sourceGenerationFinished(@NotNull Project project) {
-  }
 }

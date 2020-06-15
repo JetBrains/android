@@ -15,22 +15,27 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_MODULE_NAME
+import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
-import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
+import com.android.tools.idea.actions.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
+import com.android.tools.idea.naveditor.addDynamicFeatureModule
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo.DestinationType.FRAGMENT
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -39,6 +44,7 @@ import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.idea.Bombed
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.JavaPsiFacade
@@ -51,7 +57,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import junit.framework.TestCase
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -91,6 +96,8 @@ class AddDestinationMenuTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
+    addDynamicFeatureModule("dynamicfeaturemodule", myModule, myFixture)
+
     _modelBuilder = modelBuilder("nav.xml") {
       navigation("navigation") {
         fragment("fragment")
@@ -106,21 +113,23 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.model = model
     _menu = AddDestinationMenu(surface)
     _panel = getMainMenuPanel()
+    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
   }
 
   @Bombed(year = 2020, month = Calendar.OCTOBER, day = 1, user = "Andrei.Kuznetsov",
           description = "missing path: ../unitTest/res/layout/activity_main.xml")
   fun testContent() {
-    val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main.xml")
+    val virtualFile = findVirtualProjectFile(project, "../unitTest/res/layout/activity_main.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
     addFragment("fragment1")
     addFragment("fragment3")
     addFragment("fragment2")
+    addFragment("DynamicFragment", "dynamicfeaturemodule")
 
     addActivity("activity2")
     addActivityWithLayout("activity3")
-    val activity3VirtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity3.xml")
+    val activity3VirtualFile = findVirtualProjectFile(project, "../unitTest/res/layout/activity3.xml")
     val activity3XmlFile = PsiManager.getInstance(project).findFile(activity3VirtualFile!!) as XmlFile
 
     addActivityWithNavHost("activity1")
@@ -137,6 +146,9 @@ class AddDestinationMenuTest : NavTestCase() {
 
     val blankFragment =
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment"))
+    val dynamicFragment =
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.DynamicFragment"),
+                                     dynamicModuleName = "dynamicfeaturemodule")
     val fragment1 =
       Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1"))
     val fragment2 =
@@ -156,11 +168,12 @@ class AddDestinationMenuTest : NavTestCase() {
     val mainActivity = Destination.RegularDestination(
       parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile)
 
-    val expected = mutableListOf(placeHolder, blankFragment, fragment1, fragment2, fragment3, include1, include2, include3, includeNav,
-                                 activity2, activity3, mainActivity)
+    val expected = mutableListOf(placeHolder, blankFragment, dynamicFragment, fragment1, fragment2, fragment3, include1, include2, include3,
+                                 includeNav, activity2, activity3, mainActivity)
 
     var destinations = AddDestinationMenu(surface).destinations
-    assertEquals(destinations, expected)
+
+    Truth.assertThat(destinations).containsExactlyElementsIn(expected).inOrder()
 
     root.include("include1")
     modelBuilder.updateModel(model)
@@ -168,7 +181,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
     expected.remove(include1)
     destinations = AddDestinationMenu(surface).destinations
-    assertEquals(destinations, expected)
+    Truth.assertThat(destinations).containsExactlyElementsIn(expected).inOrder()
 
     root.fragment("fragment1", name = "mytest.navtest.fragment1")
     modelBuilder.updateModel(model)
@@ -176,7 +189,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
     expected.remove(fragment1)
     destinations = AddDestinationMenu(surface).destinations
-    assertEquals(destinations, expected)
+    Truth.assertThat(destinations).containsExactlyElementsIn(expected).inOrder()
 
     root.activity("activity2", name = "mytest.navtest.activity2")
     modelBuilder.updateModel(model)
@@ -184,7 +197,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
     expected.remove(activity2)
     destinations = AddDestinationMenu(surface).destinations
-    assertEquals(destinations, expected)
+    Truth.assertThat(destinations).containsExactlyElementsIn(expected).inOrder()
 
     root.activity("activity3", name = "mytest.navtest.activity3")
     modelBuilder.updateModel(model)
@@ -192,12 +205,13 @@ class AddDestinationMenuTest : NavTestCase() {
 
     expected.remove(activity3)
     destinations = AddDestinationMenu(surface).destinations
-    assertEquals(destinations, expected)
+    Truth.assertThat(destinations).containsExactlyElementsIn(expected).inOrder()
   }
 
   private fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
 
   override fun tearDown() {
+    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     _model = null
     _menu = null
     _surface = null
@@ -283,8 +297,8 @@ class AddDestinationMenuTest : NavTestCase() {
       assertEquals("fragment", added.tagName)
       assertEquals("@layout/frag_layout", added.layout)
       assertEquals("mytest.navtest.Frag", added.className)
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder()
                                                                .setHasClass(true)
@@ -315,8 +329,8 @@ class AddDestinationMenuTest : NavTestCase() {
       assertEquals("fragment", added.tagName)
       assertNull(added.layout)
       assertEquals("mytest.navtest.Frag", added.className)
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder()
                                                                .setHasClass(true)
@@ -340,7 +354,7 @@ class AddDestinationMenuTest : NavTestCase() {
       assertNull(component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
       assertNull(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
 
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
 
@@ -380,7 +394,7 @@ class AddDestinationMenuTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
     }
@@ -394,8 +408,22 @@ class AddDestinationMenuTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(ADD_INCLUDE).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(ADD_INCLUDE).build())
     }
+  }
+
+  fun testAddDynamicFragment() {
+    addFragment("DynamicFragment", "dynamicfeaturemodule")
+    val dynamicFragment =
+      Destination.RegularDestination(model.components[0], "fragment", null,
+                                     findClass("mytest.navtest.DynamicFragment"), dynamicModuleName = "dynamicfeaturemodule")
+
+    WriteCommandAction.runWriteCommandAction(surface.project, "", null, Runnable {
+      dynamicFragment.addToGraph()
+    })
+
+    val fragment = model.find("dynamicFragment")!!
+    assertEquals("dynamicfeaturemodule", fragment.getAttribute(AUTO_URI, ATTR_MODULE_NAME))
   }
 
   // Disabling test for now due to sporadic failures
@@ -411,9 +439,9 @@ class AddDestinationMenuTest : NavTestCase() {
     }
   }
   */
-  
-  private fun addFragment(name: String) {
-    addDestination(name, "android.support.v4.app.Fragment")
+
+  private fun addFragment(name: String, folder: String = "src/mytest/navtest") {
+    addDestination(name, "android.support.v4.app.Fragment", folder)
   }
 
   private fun addActivityWithNavHost(name: String) {
@@ -453,8 +481,8 @@ class AddDestinationMenuTest : NavTestCase() {
     addDestination(name, "android.app.Activity")
   }
 
-  private fun addDestination(name: String, parentClass: String) {
-    val relativePath = "src/mytest/navtest/$name.java"
+  private fun addDestination(name: String, parentClass: String, folder: String = "src/mytest/navtest") {
+    val relativePath = "$folder/$name.java"
     val fileText = """
       .package mytest.navtest;
       .import $parentClass;
@@ -506,7 +534,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
 
     val module = getAdditionalModuleByName("myLibrary")!!
     val facet = module.androidFacet!!
-    val model = NavModelBuilderUtil.model("nav.xml", facet, myFixture, { navigation("root") }).build();
+    val model = NavModelBuilderUtil.model("nav.xml", facet, myFixture, { navigation("root") }).build()
 
     val surface = NavDesignSurface(project, testRootDisposable)
     surface.model = model

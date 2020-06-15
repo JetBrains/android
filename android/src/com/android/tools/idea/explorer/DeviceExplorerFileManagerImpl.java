@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
+import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.device.fs.DownloadedFileData;
+import com.android.tools.idea.deviceExplorer.FileHandler;
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
@@ -30,14 +34,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathUtilRt;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,11 +51,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 
 /**
@@ -60,21 +66,39 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   private static final Logger LOGGER = Logger.getInstance(DeviceExplorerFileManagerImpl.class);
 
   @NotNull private final Project myProject;
-  @NotNull private final List<VirtualFile> myTemporaryEditorFiles = new ArrayList<>();
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
+  @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private Supplier<Path> myDefaultDownloadPath;
 
-  public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor) {
-    this(project, edtExecutor,
-         () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation()));
+  private DeviceExplorerFileManagerImpl(@NotNull Project project) {
+    this(
+      project,
+      new FutureCallbackExecutor(EdtExecutorService.getInstance()),
+      new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE),
+         () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation())
+    );
   }
 
+  @NonInjectable
   @VisibleForTesting
-  public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor,
+  public DeviceExplorerFileManagerImpl(@NotNull Project project,
+                                       @NotNull Executor edtExecutor,
+                                       @NotNull Executor taskExecutor,
                                        @NotNull Supplier<Path> downloadPathSupplier) {
     myProject = project;
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerAdapter());
+
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+      @Override
+      public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        if (VfsUtilCore.isAncestor(getDefaultDownloadPath().toFile(), VfsUtilCore.virtualToIoFile(file), true)) {
+          Path localPath = Paths.get(file.getPath());
+          deleteTemporaryFile(localPath);
+        }
+      }
+    });
+
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
+    myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
     myDefaultDownloadPath = downloadPathSupplier;
   }
 
@@ -94,79 +118,230 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFileEntry(
-    @NotNull DeviceFileEntry entry,
-    @NotNull Path localPath,
-    @NotNull FileTransferProgress progress) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
-
+  public ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry,
+                                                                @NotNull Path localPath,
+                                                                @NotNull DownloadProgress progress) {
+    SettableFuture<DownloadedFileData> futureResult = SettableFuture.create();
     FileUtils.mkdirs(localPath.getParent().toFile());
-    ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(localPath);
 
-    // Using VFS to delete files has the advantage of throwing VFS events,
-    // so listeners can react to actions on the files - for example by closing a file before it being deleted.
-    myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
-      @Override
-      public void onSuccess(VirtualFile virtualFile) {
-        TransactionGuard.submitTransaction(myProject, () -> {
-          // This assertions prevent regressions for b/141649841.
-          // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-          ApplicationManager.getApplication().runWriteAction(() -> {
-            deleteVirtualFile(futureResult, virtualFile);
-            downloadFile(futureResult, entry, localPath, progress);
-          });
-        });
-      }
+    TransactionGuard.submitTransaction(myProject, () -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        // this must be done inside a transaction, see DeviceExplorerFilesUtils.findFile
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
+        if (virtualFile != null) {
+          try {
+            deleteVirtualFile(virtualFile);
+          } catch (IOException exception) {
+            futureResult.setException(exception);
+            return;
+          }
+        }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        downloadFile(futureResult, entry, localPath, progress);
-      }
+        downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
+      });
     });
 
     return futureResult;
   }
 
-  private void deleteVirtualFile(SettableFuture<Void> futureResult, VirtualFile virtualFile) {
-    if (virtualFile != null) {
-      try {
-        // This assertions prevent regressions for b/141649841.
-        // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-        ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-        virtualFile.delete(this);
-      }
-      catch (IOException e) {
-        futureResult.setException(e);
-      }
-    }
+  public void deleteVirtualFile(@NotNull VirtualFile virtualFile) throws IOException {
+    // Using VFS to delete files has the advantage of throwing VFS events,
+    // so listeners can react to actions on the files - for example by closing a file before it being deleted.
+
+    // This assertions prevent regressions for b/141649841.
+    // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+    ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+    virtualFile.delete(this);
   }
 
-  private void downloadFile(
-    SettableFuture<Void> futureResult,
-    @NotNull DeviceFileEntry entry,
-    @NotNull Path localPath,
-    @NotNull FileTransferProgress progress
-  ) {
-    ListenableFuture<Void> result = entry.downloadFile(localPath, progress);
-    myEdtExecutor.addCallback(result, new FutureCallback<Void>() {
+  private void downloadFileAndAdditionalFiles(@NotNull SettableFuture<DownloadedFileData> futureResult,
+                                              @NotNull DeviceFileEntry entry,
+                                              @NotNull Path localPath,
+                                              @NotNull DownloadProgress progress) {
+    downloadFile(entry, localPath, progress, new FutureCallback<VirtualFile>() {
       @Override
-      public void onSuccess(@Nullable Void result) {
-        futureResult.set(null);
+      public void onSuccess(VirtualFile virtualFile) {
+        ListenableFuture<List<VirtualFile>> downloadAdditionalFiles = downloadAdditionalFiles(virtualFile, entry, progress);
+        myTaskExecutor.addCallback(downloadAdditionalFiles, new FutureCallback<List<VirtualFile>>() {
+          @Override
+          public void onSuccess(List<VirtualFile> additionalVirtualFiles) {
+            futureResult.set(
+              new DownloadedFileData(
+                new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath()),
+                virtualFile,
+                additionalVirtualFiles)
+            );
+          }
+
+          @Override
+          public void onFailure(@NotNull Throwable throwable) {
+            futureResult.setException(throwable);
+          }
+        });
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
         futureResult.setException(t);
-        deleteTemporaryFile(localPath);
       }
     });
   }
 
-  @Override
+  /**
+   * Downloads the file corresponding to the {@link DeviceFileEntry} passed as argument, to the local path specified.
+   * @param entry The entry corresponding to the file to download.
+   * @param localPath Where to download the file.
+   * @param progress Progress indicator for the download operation.
+   * @param callback An optional callback called once the download is over (success or failure).
+   * @return
+   */
   @NotNull
-  public ListenableFuture<Void> openFileInEditor(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor) {
-    return openFileInEditorWorker(entry, localPath, focusEditor);
+  private ListenableFuture<VirtualFile> downloadFile(@NotNull DeviceFileEntry entry,
+                                                     @NotNull Path localPath,
+                                                     @NotNull DownloadProgress progress,
+                                                     @Nullable FutureCallback<VirtualFile> callback) {
+    FileTransferProgress fileTransferProgress = createFileTransferProgress(entry, progress);
+    progress.onStarting(entry.getFullPath());
+    ListenableFuture<Void> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
+    ListenableFuture<VirtualFile> getVirtualFile = myTaskExecutor.transformAsync(downloadFileFuture,
+                                                                                 aVoid -> DeviceExplorerFilesUtils.findFile(localPath));
+    myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
+      @Override
+      public void onSuccess(VirtualFile virtualFile) {
+        // Set the device/path information on the virtual file so custom editors
+        // (e.g. database viewer) know which device this file is coming from.
+        DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
+        fileInfo.storeInVirtualFile(virtualFile);
+
+        progress.onCompleted(entry.getFullPath());
+        if (callback != null) callback.onSuccess(virtualFile);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        progress.onCompleted(entry.getFullPath());
+        deleteTemporaryFile(localPath);
+        if (callback != null) callback.onFailure(t);
+      }
+    });
+
+    return getVirtualFile;
+  }
+
+  /**
+   * Downloads files in addition to the original file, if required.
+   * <p>Some files require additional files to be downloaded in addition to the one selected by the user.
+   * (eg. a .db file requires other two files to be downloaded with it, .db-shm and .db-wal)
+   *
+   * These files are downloaded in sequence because adb does not support parallel operations.</p>
+   * @param originalLocalPath the local path of the original file.
+   * @param originalEntry the entry corresponding to the original file.
+   * @param progress used to keep track of the download progress.
+   * @return a [Future] that completes when all additional files have been downloaded.
+   */
+  @NotNull
+  private ListenableFuture<List<VirtualFile>> downloadAdditionalFiles(@NotNull VirtualFile originalFile,
+                                                                      @NotNull DeviceFileEntry originalEntry,
+                                                                      @NotNull DownloadProgress progress) {
+    List<String> additionalPaths = getAdditionalDevicePaths(originalEntry, originalFile);
+
+    ListenableFuture<List<DeviceFileEntry>> additionalEntriesFuture;
+    // if the additional entries all have the same parent it is much faster to get them directly using the parent node.
+    if (haveSameParent(originalEntry, additionalPaths)) {
+      DeviceFileEntry parent = originalEntry.getParent();
+      assert parent != null;
+      additionalEntriesFuture = getEntriesFromCommonParent(parent, additionalPaths);
+    } else {
+      additionalEntriesFuture = mapPathsToEntries(originalEntry.getFileSystem(), additionalPaths);
+    }
+
+    List<VirtualFile> virtualFiles = new ArrayList<>();
+
+    ListenableFuture<Void> fileDownloaded = myTaskExecutor.transformAsync(additionalEntriesFuture, additionalEntries -> {
+      assert additionalEntries != null;
+      return myEdtExecutor.executeFuturesInSequence(
+        additionalEntries.iterator(),
+        additionalEntry -> {
+          Path localPath = getDefaultLocalPathForEntry(additionalEntry);
+          FileUtils.mkdirs(localPath.getParent().toFile());
+
+          ListenableFuture<VirtualFile> downloadCompleted =
+            downloadFile(additionalEntry, localPath, progress, null);
+          return myTaskExecutor.transform(downloadCompleted, virtualFile -> { virtualFiles.add(virtualFile); return null; });
+        }
+      );
+    });
+
+    return myTaskExecutor.transform(fileDownloaded, aVoid -> virtualFiles);
+  }
+
+  /**
+   * Maps all the paths passed as argument to children of the given {@link DeviceFileEntry} node.
+   */
+  @NotNull
+  private ListenableFuture<List<DeviceFileEntry>> getEntriesFromCommonParent(@NotNull DeviceFileEntry parent, @NotNull List<String> paths) {
+    ListenableFuture<List<DeviceFileEntry>> getEntries = parent.getEntries();
+    return myTaskExecutor.transform(getEntries, entries -> {
+      assert entries != null;
+      return paths
+        .stream()
+        .map(path -> {
+          Optional<DeviceFileEntry> additionalEntryOptional = entries.stream().filter(e -> e.getFullPath().equals(path)).findFirst();
+          return additionalEntryOptional.get();
+        })
+        .collect(Collectors.toList());
+    });
+  }
+
+  private boolean haveSameParent(@NotNull DeviceFileEntry originalEntry, @NotNull List<String> additionalPaths) {
+    DeviceFileEntry parent = originalEntry.getParent();
+    String parentPath;
+    if (parent != null)
+      parentPath = parent.getFullPath();
+    else
+      parentPath = "";
+
+    for (String currentPath : additionalPaths) {
+      if (!parentPath.equals(AdbPathUtil.getParentPath(currentPath))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private FileTransferProgress createFileTransferProgress(@NotNull DeviceFileEntry entry, @NotNull DownloadProgress progress) {
+    return new FileTransferProgress() {
+      @Override
+      public void progress(long currentBytes, long totalBytes) {
+        progress.onProgress(entry.getFullPath(), currentBytes, totalBytes);
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return progress.isCancelled();
+      }
+    };
+  }
+
+  @NotNull
+  private ListenableFuture<List<DeviceFileEntry>> mapPathsToEntries(@NotNull DeviceFileSystem fileSystem, @NotNull List<String> paths) {
+    List<DeviceFileEntry> entries = new ArrayList<>();
+    ListenableFuture<Void> allDone = myTaskExecutor.executeFuturesInSequence(paths.iterator(), path -> {
+      ListenableFuture<DeviceFileEntry> futureEntry = fileSystem.getEntry(path);
+      return myTaskExecutor.transform(futureEntry, entry -> { entries.add(entry); return null; });
+    });
+
+    return myTaskExecutor.transform(allDone, aVoid -> entries);
+  }
+
+  @NotNull
+  private List<String> getAdditionalDevicePaths(@NotNull DeviceFileEntry entry, @NotNull VirtualFile virtualFile) {
+    List<String> additionalPaths = new ArrayList<>();
+    for(FileHandler fileHandler : FileHandler.EP_NAME.getExtensions()) {
+      additionalPaths.addAll(fileHandler.getAdditionalDevicePaths(entry.getFullPath(), virtualFile));
+    }
+    return additionalPaths;
   }
 
   @NotNull
@@ -192,66 +367,12 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return path.get();
   }
 
-  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor) {
-    ListenableFuture<VirtualFile> futureFile = DeviceExplorerFilesUtils.findFile(localPath);
-
-    return myEdtExecutor.transformAsync(futureFile, file -> {
-      // Set the device/path information on the virtual file so custom editors
-      // (e.g. database viewer) know which device this file is coming from.
-      DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
-      assert file != null;
-      file.putUserData(DeviceFileId.KEY, fileInfo);
-
-      SettableFuture<Void> settableFuture = SettableFuture.create();
-
-      TransactionGuard.submitTransaction(myProject, () -> {
-        try {
-          // This assertions prevent regressions for b/141649841.
-          // The underlying API expects to be called from a write-safe context.
-          // In a tests TestEditorManagerImpl is used instead of FileEditorManagerImpl, which doesn't assert for write action allowed.
-          // therefore we have to do it here.
-          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-          FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
-          if (type == null) {
-            throw new CancellationException("Operation cancelled by user");
-          }
-
-          // This assertions prevent regressions for b/141649841.
-          // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-          FileEditor[] editors = FileEditorManager.getInstance(myProject).openFile(file, focusEditor);
-          if (editors.length == 0) {
-            throw new RuntimeException(String.format("Unable to open file \"%s\" in editor", localPath));
-          }
-          myTemporaryEditorFiles.add(file);
-          settableFuture.set(null);
-        } catch (Exception e) {
-          settableFuture.setException(e);
-        }
-      });
-
-      return settableFuture;
-    });
-  }
-
   private static void deleteTemporaryFile(@NotNull Path localPath) {
     try {
       Files.deleteIfExists(localPath);
     }
     catch (IOException e) {
       LOGGER.warn(String.format("Error deleting device file from local file system \"%s\"", localPath), e);
-    }
-  }
-
-  private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
-    @Override
-    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      if (myTemporaryEditorFiles.contains(file)) {
-        myTemporaryEditorFiles.remove(file);
-
-        Path localPath = Paths.get(file.getPath());
-        deleteTemporaryFile(localPath);
-      }
     }
   }
 }

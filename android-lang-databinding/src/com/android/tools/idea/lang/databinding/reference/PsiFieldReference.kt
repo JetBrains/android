@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiModifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 /**
@@ -30,7 +30,7 @@ internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiModelField)
 
   override val resolvedType = field.fieldType
 
-  override val isStatic = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 
   override fun handleElementRename(newElementName: String): PsiElement? {
     val identifier = element.findElementAt(rangeInElement.startOffset) as? LeafPsiElement

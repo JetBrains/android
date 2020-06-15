@@ -30,7 +30,7 @@
   </item>
 
   <item android:id="@android:id/secondaryProgress">
-    <<error>bitmap</error>/>
+    <bitmap/>
   </item>
 
   <item android:id="@android:id/secondaryProgress">

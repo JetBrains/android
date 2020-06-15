@@ -16,20 +16,22 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.model.HNode;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 public interface HRenderer<N extends HNode<N>> {
   /**
    * Render a target {@link HNode}, fitting it into the specified {@code fullDrawingArea}.
    *
-   * @param isFocused If true, consider altering the node's color somehow to set it apart from other nodes in this chart.
+   * @param isFocused    If true, consider altering the node's color somehow to set it apart from other nodes in this chart.
+   * @param isDeselected true if the node is not the selected node, potentially showing a different color from the default state. False if
+   *                     either no node is selected or the node is the selected one.
    */
   void render(@NotNull Graphics2D g,
               @NotNull N node,
               @NotNull Rectangle2D fullDrawingArea,
               @NotNull Rectangle2D drawingArea,
-              boolean isFocused);
+              boolean isFocused,
+              boolean isDeselected);
 }

@@ -32,16 +32,28 @@ public class StudioCrashReport extends BaseStudioReport {
   private final List<String> descriptions;
   private final boolean isJvmCrash;
   private final long uptimeInMs;
+  private final String errorSignal;
+  private final String errorFrame;
+  private final String errorThread;
+  private final String nativeStack;
 
   private StudioCrashReport(@Nullable String version,
                             @NonNull List<String> descriptions,
                             @Nullable Map<String, String> productData,
                             boolean isJvmCrash,
-                            long uptimeInMs) {
+                            long uptimeInMs,
+                            @NonNull String errorSignal,
+                            @NonNull String errorFrame,
+                            @NonNull String errorThread,
+                            @NonNull String nativeStack) {
     super(version, productData, "Crash");
     this.descriptions = descriptions;
     this.isJvmCrash = isJvmCrash;
     this.uptimeInMs = uptimeInMs;
+    this.errorSignal = errorSignal;
+    this.errorFrame = errorFrame;
+    this.errorThread = errorThread;
+    this.nativeStack = nativeStack;
   }
 
   @Override
@@ -57,6 +69,13 @@ public class StudioCrashReport extends BaseStudioReport {
     String[] exceptionInfoAllLines = Throwables.getStackTraceAsString(exception).split("[\\r\\n]+");
     String exceptionInfo = Arrays.stream(exceptionInfoAllLines).limit(2).collect(Collectors.joining("\n"));
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, exceptionInfo);
+
+    if (isJvmCrash) {
+      builder.addTextBody("errorSignal", errorSignal);
+      builder.addTextBody("errorFrame", errorFrame);
+      builder.addTextBody("errorThread", errorThread);
+      builder.addTextBody("nativeStack", nativeStack);
+    }
   }
 
   @Override
@@ -70,6 +89,10 @@ public class StudioCrashReport extends BaseStudioReport {
     private List<String> descriptions;
     private boolean isJvmCrash = false;
     private long uptimeInMs = -1;
+    private String errorSignal = "";
+    private String errorFrame = "";
+    private String errorThread = "";
+    private String nativeStack = "";
 
     @Override
     protected Builder getThis() {
@@ -94,9 +117,34 @@ public class StudioCrashReport extends BaseStudioReport {
       return this;
     }
 
+    @NonNull
+    public Builder setErrorSignal(String errorSignal) {
+      this.errorSignal = errorSignal;
+      return this;
+    }
+
+    @NonNull
+    public Builder setErrorFrame(String errorFrame) {
+      this.errorFrame = errorFrame;
+      return this;
+    }
+
+    @NonNull
+    public Builder setErrorThread(String errorThread) {
+      this.errorThread = errorThread;
+      return this;
+    }
+
+    @NonNull
+    public Builder setNativeStack(String nativeStack) {
+      this.nativeStack = nativeStack;
+      return this;
+    }
+
     @Override
     public StudioCrashReport build() {
-      return new StudioCrashReport(getVersion(), descriptions, getProductData(), isJvmCrash, uptimeInMs);
+      return new StudioCrashReport(getVersion(), descriptions, getProductData(), isJvmCrash, uptimeInMs, errorSignal, errorFrame,
+                                   errorThread, nativeStack);
     }
   }
 }

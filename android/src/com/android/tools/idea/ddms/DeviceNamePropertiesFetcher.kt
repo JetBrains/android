@@ -17,21 +17,21 @@ package com.android.tools.idea.ddms
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrent.addCallback
-import com.android.tools.idea.concurrent.listenInPoolThread
-import com.android.tools.idea.concurrent.whenAllComplete
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.listenInPoolThread
+import com.android.tools.idea.concurrency.whenAllComplete
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
-/**
+  /**
  * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming
  * In such case, this class can be used to get property without blocking thread
  * [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not available.
@@ -74,7 +74,9 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
     return futures
         .listenInPoolThread(taskExecutor)
         .whenAllComplete()
-      .call(Callable { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) }, SameThreadExecutor.INSTANCE)
+        .call(
+          Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
+          MoreExecutors.directExecutor())
   }
 
   private fun isRetrieving(device: IDevice): Boolean {

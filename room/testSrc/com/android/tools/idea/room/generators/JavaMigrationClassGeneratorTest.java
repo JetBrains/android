@@ -75,7 +75,7 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
                  "import androidx.room.migration.Migration;\n" +
                  "import androidx.sqlite.db.SupportSQLiteDatabase;\n" +
                  "\n" +
-                 "class Migration_1_2 extends Migration {\n" +
+                 "public class Migration_1_2 extends Migration {\n" +
                  "    public Migration_1_2() {\n" +
                  "        super(1, 2);\n" +
                  "    }\n" +

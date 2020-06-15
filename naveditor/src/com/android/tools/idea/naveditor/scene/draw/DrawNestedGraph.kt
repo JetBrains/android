@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingRoundRectangle
+import com.android.tools.adtui.common.SwingStroke
+import com.android.tools.adtui.common.toSwingLength
+import com.android.tools.adtui.common.toSwingRect
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.scaledAndroidLength
+import com.android.tools.idea.common.model.times
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
@@ -24,50 +34,41 @@ import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
-import com.android.tools.idea.common.scene.draw.stringToRect2D
-import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBUI
-import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
-import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-@NavCoordinate
 @VisibleForTesting
-val NAVIGATION_ARC_SIZE = JBUI.scale(12f)
+val NAVIGATION_ARC_SIZE = scaledAndroidLength(12f)
 
-data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
-                           private val scale: Float,
+data class DrawNestedGraph(private val rectangle: SwingRectangle,
+                           private val scale: Scale,
                            private val frameColor: Color,
-                           private val frameThickness: Float,
+                           private val frameThickness: SwingLength,
                            private val text: String,
                            private val textColor: Color) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 6))
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(),
-                                                    stringToColor(tokens[2]), tokens[3].toFloat(),
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), tokens[1].toScale(),
+                                                    stringToColor(tokens[2]), tokens[3].toSwingLength(),
                                                     tokens[4], stringToColor(tokens[5]))
 
-  override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, colorToString(frameColor),
+  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(), scale, colorToString(frameColor),
                                          frameThickness.toString(), text, colorToString(textColor))
 
   override fun buildCommands(): List<DrawCommand> {
     val arcSize = NAVIGATION_ARC_SIZE * scale
-    val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
+    val roundRectangle = SwingRoundRectangle(rectangle, arcSize, arcSize)
 
-    val fillRectangle = FillShape(roundRectangle, COMPONENT_BACKGROUND)
-    val drawRectangle = DrawShape(roundRectangle, frameColor, BasicStroke(frameThickness))
+    val fillRectangle = FillShape(roundRectangle.value, COMPONENT_BACKGROUND)
+    val drawRectangle = DrawShape(roundRectangle.value, frameColor, SwingStroke(frameThickness))
 
     val font = regularFont(scale, Font.BOLD)
-    val rectangle = Rectangle2D.Float(roundRectangle.x, roundRectangle.y, roundRectangle.width, roundRectangle.height)
     val drawText = DrawTruncatedText(2, text, rectangle, textColor, font, true)
 
     return listOf(fillRectangle, drawRectangle, drawText)

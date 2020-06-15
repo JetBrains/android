@@ -84,7 +84,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   }
 
   @Override
-  public boolean requiresRuntimePrompt() {
+  public boolean requiresRuntimePrompt(@NotNull Project project) {
     return myProvidingMultipleTargets;
   }
 
@@ -94,10 +94,12 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Nullable
   public DeployTarget<State> showPrompt(@NotNull AndroidFacet facet) {
-    assert requiresRuntimePrompt();
+    Project project = facet.getModule().getProject();
+
+    assert requiresRuntimePrompt(project);
     myProvidingMultipleTargets = false;
 
-    SelectDeploymentTargetsDialog dialog = new SelectDeploymentTargetsDialog(facet.getModule().getProject());
+    SelectDeploymentTargetsDialog dialog = new SelectDeploymentTargetsDialog(project);
 
     if (!dialog.showAndGet()) {
       return null;
@@ -133,6 +135,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     ActionManager manager = ActionManager.getInstance();
     DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
 
-    return new DeviceAndSnapshotComboBoxTarget(action.getSelectedDevice(project), null);
+    return new DeviceAndSnapshotComboBoxTarget(action.getSelectedDevice(project));
   }
 }

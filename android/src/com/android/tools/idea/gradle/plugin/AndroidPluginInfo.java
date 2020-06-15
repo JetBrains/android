@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

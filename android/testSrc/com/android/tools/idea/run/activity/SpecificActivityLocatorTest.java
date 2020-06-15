@@ -65,14 +65,14 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "LauncherAlias");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.LauncherAlias");
     locator.validate();
   }
 
   public void testAliasNotDeclared() throws ActivityLocator.ActivityLocatorException {
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
-    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "NotLaunchable");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.NotLaunchable");
     try {
       locator.validate();
       fail("Validation succeeded for activity alias that isn't launchable.");
@@ -96,7 +96,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   public void testActivityWithSomeLauncherIntent() throws ActivityLocator.ActivityLocatorException {
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
-    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "SendHandler");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.SendHandler");
     locator.validate();
   }
 

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
+import com.android.builder.model.CodeShrinker;
 import com.android.builder.model.InstantRun;
 import com.android.builder.model.NativeLibrary;
 import com.android.builder.model.TestOptions;
@@ -160,7 +161,27 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
 
   @Nullable
   @Override
+  public String getBundleTaskOutputListingFile() {
+    return new File(myFileStructure.getRootFolderPath(),
+                    "build/intermediates/bundle_ide_model/" + myBuildType + "/output.json").getAbsolutePath();
+  }
+
+  @Nullable
+  @Override
   public String getApkFromBundleTaskName() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public String getApkFromBundleTaskOutputListingFile() {
+    return new File(myFileStructure.getRootFolderPath(),
+                    "build/intermediates/apk_from_bundle_ide_model/" + myBuildType + "/output.json").getAbsolutePath();
+  }
+
+  @Nullable
+  @Override
+  public CodeShrinker getCodeShrinker() {
     return null;
   }
 

@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
@@ -33,6 +34,10 @@ typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> 
 /**
  * Sometimes there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
+ *
+ * @param renderRunner a lambda which takes a single template renderer as an argument and:
+ * 1. Calls it with the right environment (e.g. in the proper thread).
+ * 2. Runs optional post-render tasks (e.g. Gradle Sync).
  */
 class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
   interface TemplateRendererListener {
@@ -122,11 +127,13 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     }
     renderRunner { project ->
       log.info("Generating sources.")
+      assert(!ApplicationManager.getApplication().isDispatchThread)
       multiRenderingStarted(project)
 
       // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
       // we make sure they are properly initialized when doDryRun/render is called below.
       with(templateRenderers) {
+
         forEach(TemplateRenderer::init)
         if (all(TemplateRenderer::doDryRun)) {
           forEach(TemplateRenderer::render)

@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.draw.DrawActivity
@@ -32,14 +35,14 @@ import java.awt.geom.Rectangle2D
 
 private val POSITION = Point(50, 150)
 private val SIZE = Dimension(100, 200)
-private val RECT = Rectangle2D.Float(419f, 469f, 50f, 100f)
-private val HEADER_RECT = Rectangle2D.Float(419f, 458f, 50f, 11f)
-private val IMAGE_RECT = Rectangle2D.Float(423f, 473f, 42f, 83f)
+private val RECT = SwingRectangle(Rectangle2D.Float(419f, 469f, 50f, 100f))
+private val HEADER_RECT = SwingRectangle(Rectangle2D.Float(419f, 458f, 50f, 11f))
+private val IMAGE_RECT = SwingRectangle(Rectangle2D.Float(423f, 473f, 42f, 83f))
 private val FRAME_COLOR = JBColor(0xa7a7a7, 0x2d2f31)
 private val SELECTED_COLOR = JBColor(0x1886f7, 0x9ccdff)
 private val TEXT_COLOR = JBColor(0xa7a7a7, 0x888888)
-private const val REGULAR_FRAME_THICKNESS = 1f
-private const val HIGHLIGHTED_FRAME_THICKNESS = 2f
+private val REGULAR_FRAME_THICKNESS = SwingLength(1f)
+private val HIGHLIGHTED_FRAME_THICKNESS = SwingLength(2f)
 
 class ActivityDecoratorTest : NavTestCase() {
   fun testContent() {
@@ -60,8 +63,8 @@ class ActivityDecoratorTest : NavTestCase() {
     ActivityDecorator.buildListComponent(displayList, 0, context, sceneComponent)
 
     assertEquals(2, displayList.commands.size)
-    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.scale.toFloat(), "f1", false, false), displayList.commands[0])
-    assertDrawCommandsEqual(DrawActivity(RECT, IMAGE_RECT, context.scale.toFloat(), FRAME_COLOR, REGULAR_FRAME_THICKNESS, TEXT_COLOR),
+    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.inlineScale, "f1", false, false), displayList.commands[0])
+    assertDrawCommandsEqual(DrawActivity(RECT, IMAGE_RECT, context.inlineScale, FRAME_COLOR, REGULAR_FRAME_THICKNESS, TEXT_COLOR),
                             displayList.commands[1])
   }
 
@@ -84,9 +87,9 @@ class ActivityDecoratorTest : NavTestCase() {
     ActivityDecorator.buildListComponent(displayList, 0, context, sceneComponent)
 
     assertEquals(2, displayList.commands.size)
-    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.scale.toFloat(), "f1", false, false), displayList.commands[0])
+    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.inlineScale, "f1", false, false), displayList.commands[0])
     assertDrawCommandsEqual(
-      DrawActivity(RECT, IMAGE_RECT, context.scale.toFloat(), SELECTED_COLOR, HIGHLIGHTED_FRAME_THICKNESS, TEXT_COLOR),
+      DrawActivity(RECT, IMAGE_RECT, context.inlineScale, SELECTED_COLOR, HIGHLIGHTED_FRAME_THICKNESS, TEXT_COLOR),
       displayList.commands[1])
   }
 }

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.android.repository.api.ProgressRunner;
-import com.android.tools.idea.util.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase;
 import java.util.concurrent.Future;

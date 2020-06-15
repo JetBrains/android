@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingFont
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.ui.JBColor
 import java.awt.Font
 import java.awt.geom.Rectangle2D
 
-private val RECT = Rectangle2D.Float(10f, 20f, 80f, 40f)
-private const val SCALE = 1.5f
+private val RECT = SwingRectangle(Rectangle2D.Float(10f, 20f, 80f, 40f))
+private val SCALE = Scale(1.5)
 private const val TEXT = "text"
-private val ICON_RECT1 = Rectangle2D.Float(10f, 20f, 21f, 21f)
-private val ICON_RECT2 = Rectangle2D.Float(69f, 20f, 21f, 21f)
-private val TEXT_RECT = Rectangle2D.Float(34f, 23f, 37f, 15f)
+private val ICON_RECT1 = SwingRectangle(Rectangle2D.Float(10f, 20f, 21f, 21f))
+private val ICON_RECT2 = SwingRectangle(Rectangle2D.Float(69f, 20f, 21f, 21f))
+private val TEXT_RECT = SwingRectangle(Rectangle2D.Float(34f, 23f, 37f, 15f))
 private val TEXT_COLOR = JBColor(0x656565, 0xbababb)
-private val FONT = Font("Default", Font.PLAIN, 18)
+private val FONT = SwingFont("Default", Font.PLAIN, SwingLength(18f))
 
 class DrawHeaderTest : NavTestCase() {
   fun testDrawHeader() {

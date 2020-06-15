@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.android
 
 import com.android.SdkConstants.CLASS_PARCEL
 import com.android.SdkConstants.CLASS_PARCELABLE
+import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
 import kotlinx.android.parcel.Parcelize

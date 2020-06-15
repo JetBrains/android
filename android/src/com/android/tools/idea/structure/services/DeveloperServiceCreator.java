@@ -41,8 +41,8 @@ import java.net.URL;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
 
 /**

@@ -105,4 +105,11 @@ public class EditTextHandler extends TextViewHandler {
     EditTextInputType inputType = EditTextInputType.getInputType(component);
     return inputType != null ? inputType.icon : DEFAULT_ICON;
   }
+
+  @NotNull
+  @Override
+  public String generateBaseId(@NotNull NlComponent component) {
+    String inputType = component.getAndroidAttribute(ATTR_INPUT_TYPE);
+    return EDIT_TEXT + (inputType == null ? "" : StringUtil.capitalize(inputType));
+  }
 }

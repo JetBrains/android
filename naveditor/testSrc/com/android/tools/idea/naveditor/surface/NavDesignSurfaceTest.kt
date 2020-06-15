@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.*
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -31,6 +32,7 @@ import com.android.tools.idea.naveditor.analytics.NavLogEvent
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
@@ -42,7 +44,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
@@ -59,7 +60,6 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
-import java.io.File
 import java.util.*
 import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
@@ -244,7 +244,6 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     `when`(surface.layeredPane).thenReturn(mock(JComponent::class.java))
-    `when`(surface.onDoubleClick(anyInt(), anyInt())).thenCallRealMethod()
     val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
@@ -334,7 +333,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface)
+    val manager = InteractionManager(surface, NavInteractionHandler(surface))
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -422,7 +421,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
 
-    NavSceneManager.updateHierarchy(model, model2)
+    updateHierarchy(model, model2)
     val newVersion = model.find("othersubnav")!!.getChild(0)!!
     assertNotEquals(orig, newVersion)
     surface.refreshRoot()
@@ -478,7 +477,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       manager.commitAllDocuments()
     }
 
-    NavSceneManager.updateHierarchy(model, model)
+    updateHierarchy(model, model)
 
     root = model.components[0]
     val component = surface.currentNavigation
@@ -492,7 +491,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
     assertNotEquals(defaultConfigurationManager, navConfigurationManager)
 
-    val navFile = VfsUtil.findFileByIoFile(File(project.basePath, "../unitTest/res/navigation/navigation.xml"), true)!!
+    val navFile = findVirtualProjectFile(project, "../unitTest/res/navigation/navigation.xml")!!
     val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
     val navConfiguration = navConfigurationManager.getConfiguration(navFile)
     val navDevice = navConfiguration.device
@@ -545,6 +544,49 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertNotEquals(initialSchema, NavigationSchema.get(myModule))
     verify(workbench).showLoading("Refreshing Navigators...")
     verify(workbench).hideLoading()
+  }
+
+  fun testRightClick() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val surface = model.surface as NavDesignSurface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get())
+    val sceneView = NavView(surface, surface.sceneManager!!)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
+
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
+
+    val manager = InteractionManager(surface, NavInteractionHandler(surface))
+    manager.startListening()
+
+    try {
+      val fragment1 = scene.getSceneComponent("fragment1")!!
+
+      val rect = fragment1.inlineDrawRect(sceneView)
+      val x1 = rect.center.x
+      val y = rect.center.y.toInt()
+      LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON3, x1.toInt(), y, 0)
+
+      val x2 = x1 + rect.width * 3
+      LayoutTestUtilities.moveMouse(manager, x1.toInt(), y, x2.toInt(), y)
+      LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON3, x2.toInt(), y, 0)
+
+      val x3 = x2 - rect.width
+      LayoutTestUtilities.moveMouse(manager, x2.toInt(), y, x3.toInt(), y)
+
+      // confirm that right clicking did not end up dragging the fragment
+      val finalRect = fragment1.inlineDrawRect(sceneView)
+      assertEquals(finalRect, rect)
+    }
+    finally {
+      manager.stopListening()
+    }
   }
 
   private fun addClass(@Language("JAVA") content: String): PsiClass {
@@ -602,7 +644,9 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(dependencies.count(), artifactIds.count())
 
     for (i in 0 until dependencies.count()) {
+/* b/145856229
       assertEquals(groupId, dependencies[i].groupId)
+b/145856229 */
       assertEquals(artifactIds[i], dependencies[i].artifactId)
     }
   }

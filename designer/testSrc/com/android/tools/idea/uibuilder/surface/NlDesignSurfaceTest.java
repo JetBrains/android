@@ -22,21 +22,21 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
-import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
@@ -81,17 +81,17 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
                                         .matchParentHeight());
     NlModel model = modelBuilder.build();
     mySurface.setModel(model);
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.RENDER, false);
     assertEquals(5, mySurface.myLayers.size());
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, false);
+    mySurface.setScreenMode(SceneMode.BLUEPRINT, false);
     assertEquals(5, mySurface.myLayers.size());
     // Make sure all dropped layers are disposed.
     assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.BOTH, false);
+    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
     assertEquals(9, mySurface.myLayers.size());
     // Make sure all dropped layers are disposed.
     assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
@@ -123,9 +123,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(SceneMode.SCREEN_ONLY.next(), SceneMode.BLUEPRINT_ONLY);
-    assertEquals(SceneMode.BLUEPRINT_ONLY.next(), SceneMode.BOTH);
-    assertEquals(SceneMode.BOTH.next(), SceneMode.SCREEN_ONLY);
+    assertEquals(SceneMode.RENDER.next(), SceneMode.BLUEPRINT);
+    assertEquals(SceneMode.BLUEPRINT.next(), SceneMode.RENDER_AND_BLUEPRINT);
+    assertEquals(SceneMode.RENDER_AND_BLUEPRINT.next(), SceneMode.RENDER);
   }
 
   public void testEmptyRenderSuccess() {
@@ -205,13 +205,13 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     assertNull(mySurface.getSceneManager().getRenderResult());
 
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.RENDER, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getFocusedSceneView());
     assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
-    mySurface.setScreenMode(SceneMode.BOTH, false);
+    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
@@ -505,7 +505,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     config.getFullConfig().setDensityQualifier(new DensityQualifier(Density.XHIGH));
     model.setConfiguration(config);
     mySurface.setModel(model);
-    assertEquals(2.f, mySurface.getSceneScalingFactor());
+    assertEquals(2.f, mySurface.getSceneManager(model).getSceneScalingFactor());
     mySurface.getScrollPane().setSize(1000, 1000);
     mySurface.zoomToFit();
     double origScale = mySurface.getScale();
@@ -577,6 +577,57 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertFalse(mySurface.canZoomOut());
   }
 
+  public void testCannotZoomToFit() {
+    final NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight())
+      .build();
+
+    final int surfaceWidth = 500;
+    final int surfaceHeight = 500;
+
+    // First use an empty surface to measure the zoom-to-fit scale.
+    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+      .build();
+    surface.addModel(model);
+    surface.setSize(surfaceWidth, surfaceHeight);
+    surface.doLayout();
+    surface.zoomToFit();
+    double fitScale = surface.getScale();
+    surface.removeModel(model);
+
+    // Create another surface which the minimum scale is larger than fitScale.
+    surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+      .setMinScale(fitScale * 2)
+      .build();
+    surface.addModel(model);
+    surface.setSize(surfaceWidth, surfaceHeight);
+    surface.doLayout();
+    // Cannot zoom lower than min scale.
+    surface.zoomToFit();
+    assertEquals(fitScale * 2, surface.getScale(), 0.01);
+    assertFalse(surface.canZoomToFit());
+    surface.removeModel(model);
+
+    // Create another surface which the maximum scale is lower than fitScale.
+    surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+      .setMaxScale(fitScale / 2)
+      .build();
+    surface.addModel(model);
+    surface.setSize(surfaceWidth, surfaceHeight);
+    surface.doLayout();
+    // Cannot zoom larger than max scale.
+    surface.zoomToFit();
+    assertEquals(fitScale / 2 , surface.getScale(), 0.01);
+    assertFalse(surface.canZoomToFit());
+    surface.removeModel(model);
+  }
+
   /**
    * Test that we don't have any negative scale in case the windows size becomes too small
    */
@@ -601,5 +652,22 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.getLayout().layoutContainer(surface);
     surface.zoomToFit();
     assertEquals(0.01, surface.getScale());
+  }
+
+  /**
+   * Regression test for b/144829328
+   */
+  public void testComposeScreenModeBlacklist() {
+    mySurface.setScreenMode(SceneMode.COMPOSE, true);
+
+    NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
+    assertNotSame(SceneMode.COMPOSE, otherSurface.getSceneMode());
+  }
+
+  public void testDefaultSurfaceState() {
+    assertEquals(DesignSurface.State.FULL, mySurface.getState()); // If nothing is explicitly set, we should default to FULL mode
+
+    mySurface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setDefaultSurfaceState(DesignSurface.State.SPLIT).build();
+    assertEquals(DesignSurface.State.SPLIT, mySurface.getState());
   }
 }

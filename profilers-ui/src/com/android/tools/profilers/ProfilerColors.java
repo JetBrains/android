@@ -265,5 +265,17 @@ public class ProfilerColors {
 
   public static final Color TOOLTIP_LOW_CONTRAST = new JBColor(0x888888, 0x838485);
 
+  public static final Color USER_COUNTER_EVENT_NOT_STARTED = new JBColor(0xF1EBDA, 0xF1EBDA);
+
+  public static final Color USER_COUNTER_EVENT_NONE = new JBColor(0XE6ecf0, 0xe6ecf0);
+
+  public static final Color USER_COUNTER_EVENT_LIGHT = new JBColor(0xc6d4dc, 0xc6d4dc);
+
+  public static final Color USER_COUNTER_EVENT_MED = new JBColor(0xa6bcc9, 0xa6bcc9);
+
+  public static final Color USER_COUNTER_EVENT_DARK = new JBColor(0x7699ac, 0x7699ac);
+
+  public static final Color USER_COUNTER_EVENT_USAGE = new JBColor(0xa6bcc9, 0xa6bcc9);
+
   public static final Color WARNING_BAR_COLOR = new JBColor(new Color(254, 248, 213), new Color(35, 56, 85));
 }

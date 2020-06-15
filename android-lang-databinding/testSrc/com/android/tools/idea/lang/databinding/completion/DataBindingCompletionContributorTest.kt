@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElement
@@ -91,7 +92,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::do<caret>}"/>
+            android:onClick="@{model::do${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -138,7 +139,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{Model::d<caret>}"/>
+            android:onClick="@{Model::d${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -184,7 +185,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{Model::d<caret>}"/>
+            android:onClick="@{Model::d${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -228,7 +229,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{Model::<caret>}"/>
+            android:onClick="@{Model::${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -264,7 +265,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{Model::d<caret>}"/>
+            android:onClick="@{Model::d${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -310,7 +311,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{Model::d<caret>}"/>
+            android:onClick="@{Model::d${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -357,7 +358,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::d<caret>}"/>
+            android:onClick="@{model::d${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -407,7 +408,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::d<caret>}"/>
+            android:onClick="@{model::d${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -440,7 +441,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> model.do<caret>}"/>
+            android:onClick="@{() -> model.do${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -459,7 +460,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> model.doSomething(<caret>)}"/>
+            android:onClick="@{() -> model.doSomething(${caret})}"/>
       </layout>
     """.trimIndent())
   }
@@ -488,7 +489,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.do<caret>}"/>
+            android:onClick="@{() -> member.do${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -507,7 +508,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.doSomethingNoParameters()<caret>}"/>
+            android:onClick="@{() -> member.doSomethingNoParameters()${caret}}"/>
       </layout>
     """.trimIndent())
   }
@@ -538,7 +539,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> model.fu<caret>}"/>
+            android:onClick="@{() -> model.fu${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -572,7 +573,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::do<caret>}"/>
+            android:onClick="@{model::do${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -629,7 +630,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::m<caret>}"/>
+            android:onClick="@{model::m${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -686,7 +687,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.fi<caret>}"/>
+            android:onClick="@{model.fi${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -736,7 +737,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::do<caret>}"/>
+            android:onClick="@{model::do${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -774,7 +775,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model::do<caret>}"/>
+            android:onClick="@{model::do${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -812,7 +813,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{model.fi<caret>}"/>
+            android:text="@{model.fi${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -824,7 +825,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_fieldsAreSuggestedWithType() {
-    val psiClass = fixture.addClass("""
+    fixture.addClass("""
       package test.langdb;
 
       import android.view.View;
@@ -847,7 +848,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{model.fi<caret>}"/>
+            android:text="@{model.fi${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -871,7 +872,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{st<caret>}"/>
+            android:text="@{st${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -919,7 +920,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{Model::st<caret>}"/>
+            android:text="@{Model::st${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -954,7 +955,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{By<caret>}"/>
+            android:text="@{By${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1000,7 +1001,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.<caret>}"/>
+            android:onClick="@{model.${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1036,7 +1037,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.<caret>}"/>
+            android:onClick="@{model.${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1075,7 +1076,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.<caret>}"/>
+            android:onClick="@{model.${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1112,7 +1113,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.<caret>}"/>
+            android:onClick="@{model.${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1146,7 +1147,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{Mod<caret>}"/>
+            android:onClick="@{Mod${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1198,7 +1199,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.data.<caret>}"/>
+            android:onClick="@{model.data.${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1221,7 +1222,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
-            android:onClick="@{list::clea<caret>}"/>
+            android:onClick="@{list::clea${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1268,7 +1269,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.data.<caret>}"/>
+            android:onClick="@{model.data.${caret}}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1277,6 +1278,76 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
     val lookupElement = fixture.lookupElements!!.first { it.lookupString == "data" }
     // The generic "X" type should have been substituted with the proper type
     assertThat(lookupElement.renderedText).startsWith("String")
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_innerClass() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Data {
+        public class InnerData {
+          public static int x = 1;
+        }
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Data"/>
+          <variable name="model" type="Data" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{Data.${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.completeBasic().any { it.lookupString == "InnerData" }).isTrue()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_methodFromInnerClass() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Data {
+        static public class Inner {
+          public static void doNothing() {}
+        }
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Data"/>
+          <variable name="model" type="Data" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{Data.Inner.${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.completeBasic().any { it.lookupString == "doNothing" }).isTrue()
   }
 
   /**

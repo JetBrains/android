@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
-import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
@@ -34,7 +33,6 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.geom.AffineTransform
-import java.awt.geom.Rectangle2D
 
 private const val UNAVAILABLE_TEXT_1 = "Preview"
 private const val UNAVAILABLE_TEXT_2 = "Unavailable"
@@ -48,20 +46,20 @@ private const val FONT_NAME = "Default"
 /**
  * [DrawCommand] that draws a screen in the navigation editor.
  */
-class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
+class DrawNavScreen(@VisibleForTesting val rectangle: SwingRectangle,
                     @VisibleForTesting val image: RefinableImage) : DrawCommandBase() {
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), RefinableImage())
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), RefinableImage())
 
   constructor(serialized: String) : this(parse(serialized, 1))
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, rect2DToString(rectangle))
+    return buildString(javaClass.simpleName, rectangle.toString())
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
-    g.clip(rectangle)
+    g.clip(rectangle.value)
     val lastCompleted = image.lastCompleted
     val image = lastCompleted.image
     if (image != null) {
@@ -84,18 +82,19 @@ class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle
 
   private fun drawText(text1: String, text2: String?, g: Graphics2D, sceneContext: SceneContext) {
     g.color = PLACEHOLDER_BACKGROUND
-    g.fill(rectangle)
+    val textRectangle = rectangle.value
+    g.fill(textRectangle)
 
     g.color = PLACEHOLDER_TEXT
     g.font = Font(FONT_NAME, Font.PLAIN, sceneContext.getSwingDimension(FONT_SIZE))
 
-    var x = rectangle.x + (rectangle.width - g.fontMetrics.stringWidth(text1)) / 2
+    var x = textRectangle.x + (textRectangle.width - g.fontMetrics.stringWidth(text1)) / 2
     val padding = sceneContext.getSwingDimension(TEXT_PADDING)
-    var y = rectangle.y + (rectangle.height - padding) / 2
+    var y = textRectangle.y + (textRectangle.height - padding) / 2
     g.drawString(text1, x, y)
 
     if (text2 != null) {
-      x = rectangle.x + (rectangle.width - g.fontMetrics.stringWidth(text2)) / 2
+      x = textRectangle.x + (textRectangle.width - g.fontMetrics.stringWidth(text2)) / 2
       y += g.fontMetrics.ascent + padding
       g.drawString(text2, x, y)
     }

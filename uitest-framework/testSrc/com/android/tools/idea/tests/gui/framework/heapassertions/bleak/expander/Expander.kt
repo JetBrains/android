@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DoNotTrace
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
+import java.lang.reflect.Field
 
 typealias Node = HeapGraph.Node
 
@@ -40,7 +41,7 @@ typealias Node = HeapGraph.Node
  * then getChildForLabel(n, e.label) == n1 to avoid inconsistency.
  *
  */
-abstract class Expander(val g: HeapGraph): DoNotTrace {
+abstract class Expander: DoNotTrace {
   abstract inner class Label {
     abstract fun signature(): String
   }
@@ -55,9 +56,20 @@ abstract class Expander(val g: HeapGraph): DoNotTrace {
     override fun hashCode(): Int = System.identityHashCode(obj)
   }
 
+  inner class FieldLabel(val field: Field): Label() {
+    override fun signature() = field.name
+    override fun equals(other: Any?) = other is FieldLabel && field == other.field
+    override fun hashCode(): Int = field.hashCode()
+  }
+
   abstract fun canExpand(obj: Any): Boolean
   abstract fun expand(n: Node)  // should use n.addEdgeTo() to add edges to the node
   open fun expandCorrespondingEdge(n: Node, e: Edge): Node? = n[e] ?: n.addEdgeTo(e.end.obj, e.label)
+
+  // this determines the initial value for whether a Node is growing (its corresponding Expander will
+  // be queried during the first HeapGraph expansion). Returning false will prevent the node from
+  // being considered a leak root.
+  open fun canPotentiallyGrowIndefinitely(n: Node) = false
 
   // subclasses are encouraged to override this method to improve lookup performance, e.g, an
   // index-based array expander should just look at the i'th child.

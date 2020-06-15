@@ -18,21 +18,21 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.StageView;
+import java.awt.*;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-
-class EnergyStageTooltipView extends ProfilerTooltipView {
+class EnergyStageTooltipView extends TooltipView {
   @NotNull private final EnergyStageTooltip myTooltip;
 
-  public EnergyStageTooltipView(@NotNull EnergyProfilerStageView stageView, @NotNull EnergyStageTooltip tooltip) {
-    super(stageView.getTimeline());
+  public EnergyStageTooltipView(@NotNull StageView stageView, @NotNull EnergyStageTooltip tooltip) {
+    super(stageView.getStage().getTimeline());
     myTooltip = tooltip;
   }
 
@@ -73,7 +73,7 @@ class EnergyStageTooltipView extends ProfilerTooltipView {
     eventLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     eventLabel.setFont(ProfilerFonts.STANDARD_FONT);
     Color color = eventLabel.getForeground();
-    eventLabel.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255*0.6)));
+    eventLabel.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255 * 0.6)));
     JPanel labelWithSeparator = new JPanel(new TabularLayout("Fit,8px,*", "Fit"));
     labelWithSeparator.add(eventLabel, new TabularLayout.Constraint(0, 0));
     labelWithSeparator.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(0, 2));

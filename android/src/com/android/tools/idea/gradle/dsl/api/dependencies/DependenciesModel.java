@@ -31,7 +31,7 @@ public interface DependenciesModel {
   @NotNull
   List<ArtifactDependencyModel> artifacts();
 
-  void addArtifact(@NotNull String configurationName, @NotNull String compactNoation);
+  void addArtifact(@NotNull String configurationName, @NotNull String compactNotation);
 
   boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 

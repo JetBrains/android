@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
@@ -35,7 +35,6 @@ import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
@@ -78,6 +77,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -172,7 +172,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public String getApplicationId() {
     List<String> applicationIds = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      AndroidModel androidModuleModel = AndroidModel.get(module);
       if (androidModuleModel != null) {
         applicationIds.add(androidModuleModel.getApplicationId());
       }
@@ -227,11 +227,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isAtraceEnabled() {
-        return StudioFlags.PROFILER_USE_ATRACE.get();
-      }
-
-      @Override
       public boolean isCpuApiTracingEnabled() {
         return StudioFlags.PROFILER_CPU_API_TRACING.get();
       }
@@ -250,16 +245,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isExportCpuTraceEnabled() {
-        return StudioFlags.PROFILER_EXPORT_CPU_TRACE.get();
-      }
-
-      @Override
-      public boolean isImportCpuTraceEnabled() {
-        return StudioFlags.PROFILER_IMPORT_CPU_TRACE.get();
-      }
-
-      @Override
       public boolean isJniReferenceTrackingEnabled() {
         return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
       }
@@ -272,11 +257,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       @Override
       public boolean isLiveAllocationsSamplingEnabled() {
         return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
-      }
-
-      @Override
-      public boolean isMemoryCaptureFilterEnabled() {
-        return StudioFlags.PROFILER_MEMORY_CAPTURE_FILTER.get();
       }
 
       @Override
@@ -294,21 +274,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
       @Override
       public boolean isAuditsEnabled() { return StudioFlags.PROFILER_AUDITS.get(); }
-
-      @Override
-      public boolean isSessionImportEnabled() {
-        return StudioFlags.PROFILER_IMPORT_SESSION.get();
-      }
-
-      @Override
-      public boolean isSimpleperfHostEnabled() {
-        return StudioFlags.PROFILER_SIMPLEPERF_HOST.get();
-      }
-
-      @Override
-      public boolean isFragmentsEnabled() {
-        return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
-      }
 
       @Override
       public boolean isStartupCpuProfilingEnabled() {
@@ -340,20 +305,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
-    int dialogResult = Messages.showYesNoDialog(myProject,
-                                                "The trace file generated is large, and Android Studio may become unresponsive while " +
-                                                "it parses the data. Do you want to continue?\n\n" +
-                                                "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
-                                                "to capture a new method trace.",
-                                                "Trace File Too Large",
-                                                Messages.getWarningIcon());
-    if (dialogResult == Messages.YES) {
-      yesCallback.run();
-    }
-    else {
-      noCallback.run();
-    }
+  public void openYesNoDialog(String message, String title, Runnable yesCallback, Runnable noCallback) {
+    int dialogResult = Messages.showYesNoDialog(myProject, message, title, Messages.getWarningIcon());
+    (dialogResult == Messages.YES ? yesCallback : noCallback).run();
   }
 
   @Override

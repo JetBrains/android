@@ -23,6 +23,7 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.PlatformTestCase
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
@@ -31,7 +32,7 @@ import org.mockito.MockitoAnnotations
 import java.io.File
 
 class BuildOutputParsersIntegrationTest: PlatformTestCase() {
-  private val myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, "testId")
+  private lateinit var myTaskId: ExternalSystemTaskId
 
   private lateinit var myBuildInvoker: GradleBuildInvoker
   private lateinit var scheduler: VirtualTimeScheduler
@@ -51,6 +52,8 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     scheduler = VirtualTimeScheduler()
     myTracker = TestUsageTracker(scheduler)
     UsageTracker.setWriterForTest(myTracker)
+
+    myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject)
 
     myBuildInvoker = GradleBuildInvoker(project, myFileDocumentManager,
                                         GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor), myDebugSessionFinder)
@@ -79,6 +82,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
   fun testAndroidGradlePluginErrors() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
     val file = createTempFile("styles.xml")
+    val absolutePath = StringUtil.escapeBackSlashes(file.absolutePath)
     val output = """Executing tasks: [clean, :app:assembleDebug]
                     > Task :clean UP-TO-DATE
                     > Task :app:clean
@@ -103,10 +107,10 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
                     > Task :app:mergeDebugResources
 
                     > Task :app:processDebugResources FAILED
-                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"${file.absolutePath}","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
-                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"${file.absolutePath}","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
-                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"${file.absolutePath}","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.\n    ","tool":"AAPT"}
-                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"${file.absolutePath}","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.\n    ","tool":"AAPT"}
+                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
+                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
+                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.\n    ","tool":"AAPT"}
+                    AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.\n    ","tool":"AAPT"}
 
                     FAILURE: Build failed with an exception.
 
@@ -114,13 +118,13 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
                     Execution failed for task ':app:processDebugResources'.
                     > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
                        > Android resource linking failed
-                         ${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
+                         $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
 
-                         ${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
+                         $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
 
-                         ${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
+                         $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
 
-                         ${file.absolutePath}:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
+                         $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
 
 
                     * Try:

@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom
 
+import com.android.AndroidProjectTypes
 import com.android.SdkConstants
-import com.android.builder.model.AndroidProject
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -135,7 +135,7 @@ abstract class XmlNamespaceCompletionTest : AndroidTestCase() {
         projectBuilder,
         modules,
         LIB_NAME,
-        AndroidProject.PROJECT_TYPE_LIBRARY
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
       )
     }
 

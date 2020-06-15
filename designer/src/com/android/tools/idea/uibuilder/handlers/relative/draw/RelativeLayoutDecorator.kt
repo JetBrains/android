@@ -52,7 +52,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle
+import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
@@ -587,7 +587,7 @@ private open class DrawDashedLineCommand(val swingX1: Int, val swingY1: Int, val
     val originalColor = g.color
 
     g.color = sceneContext.colorSet.constraints
-    g.stroke = NlDrawingStyle.PATTERN_STROKE
+    g.stroke = NlConstants.PATTERN_STROKE
     g.drawLine(swingX1, swingY1, swingX2, swingY2)
 
     g.stroke = originalStroke

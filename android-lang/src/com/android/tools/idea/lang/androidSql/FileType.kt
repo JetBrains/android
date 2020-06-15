@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.lang.androidSql
 
-import com.intellij.openapi.fileTypes.FileTypeConsumer
-import com.intellij.openapi.fileTypes.FileTypeFactory
 import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.AndroidIcons
 import javax.swing.Icon
 
 const val ANDROID_SQL_DESCRIPTION = "Android Room SQL"
 
-object ANDROID_SQL_FILE_TYPE : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
+class AndroidSqlFileType : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
+  companion object {
+    /** Static field used in XML to register the instance. */
+    @JvmStatic val INSTANCE = AndroidSqlFileType()
+  }
+
   override fun getName(): String = ANDROID_SQL_DESCRIPTION
   override fun getDescription(): String = ANDROID_SQL_DESCRIPTION
   override fun getDefaultExtension(): String = ""

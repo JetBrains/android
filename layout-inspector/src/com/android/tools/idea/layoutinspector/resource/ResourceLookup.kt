@@ -20,18 +20,20 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.Icon
 
@@ -43,7 +45,9 @@ import javax.swing.Icon
  */
 class ResourceLookup(private val project: Project) {
 
-  private var resolver: ResourceLookupResolver? = null
+  @VisibleForTesting
+  var resolver: ResourceLookupResolver? = null
+    private set
 
   /**
    * Update the configuration after a possible configuration change detected on the device.
@@ -79,6 +83,12 @@ class ResourceLookup(private val project: Project) {
     resolver?.findFileLocations(property, property.source, max) ?: emptyList()
 
   /**
+   * Find the location of the specified [view].
+   */
+  fun findFileLocation(view: ViewNode): SourceLocation? =
+    resolver?.findFileLocation(view)
+
+  /**
    * Find the attribute value from resource reference.
    */
   fun findAttributeValue(property: InspectorPropertyItem, location: ResourceReference): String? =
@@ -91,7 +101,8 @@ class ResourceLookup(private val project: Project) {
     resolver?.resolveAsIcon(property)?.let { return it }
     val value = property.value
     val color = value?.let { parseColor(value) } ?: return null
-    return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+    // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon
+    return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
   }
 
   /**

@@ -26,7 +26,9 @@ object PanSurfaceAction : ToggleAction("Pan screen (hold SPACE bar and drag)", "
                                        IconUtil.toSize(StudioIcons.LayoutEditor.Toolbar.PAN_TOOL, 16, 16)) {
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabledAndVisible = event.getData<Pannable>(PANNABLE_KEY) != null
+    val pannable = event.getData<Pannable>(PANNABLE_KEY)
+    event.presentation.isEnabledAndVisible = pannable != null
+    event.presentation.isEnabled = pannable?.isPannable == true
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {

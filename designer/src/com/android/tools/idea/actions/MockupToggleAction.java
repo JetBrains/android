@@ -46,7 +46,6 @@ public class MockupToggleAction extends ToggleAction {
     Presentation presentation = getTemplatePresentation();
     presentation.setIcon(getDesignIcon());
     presentation.setDescription(getDescription());
-    getTemplatePresentation().setEnabledAndVisible(StudioFlags.NELE_MOCKUP_EDITOR.get());
   }
 
 
@@ -87,6 +86,13 @@ public class MockupToggleAction extends ToggleAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     super.update(event);
+
+    Presentation presentation = event.getPresentation();
+    if (!StudioFlags.NELE_MOCKUP_EDITOR.get()) {
+      presentation.setEnabledAndVisible(false);
+      return;
+    }
+
     event.getPresentation().setIcon(getDesignIcon());
     event.getPresentation().setDescription(getDescription());
   }

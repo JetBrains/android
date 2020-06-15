@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -30,7 +31,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,7 +123,7 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
       }
 
       AndroidFacet facet = getAndroidFacet();
-      IdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(facet, psiFile);
+      NamedIdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(facet, psiFile);
       if (sourceProvider != null && FD_MAIN.equals(sourceProvider.getName())) {
         bestFile = file;
       }

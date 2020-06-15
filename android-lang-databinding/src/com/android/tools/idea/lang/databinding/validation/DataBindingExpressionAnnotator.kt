@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
@@ -28,14 +28,22 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
+import com.android.tools.idea.lang.databinding.reference.PsiFieldReference
 import com.android.tools.idea.lang.databinding.reference.PsiMethodReference
 import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
+import com.android.tools.idea.lang.databinding.reference.XmlVariableReference
+import com.android.tools.idea.lang.databinding.reference.getAllGetterTypes
+import com.android.tools.idea.lang.databinding.reference.getAllSetterTypes
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
@@ -46,6 +54,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 
@@ -63,13 +72,12 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     init {
       val facade = JavaPsiFacade.getInstance(facet.module.project)
       val mode = DataBindingUtil.getDataBindingMode(facet)
-      val bindingConversionAnnotation = facade.findClass(
-        mode.bindingConversion,
-        facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+      val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+      val bindingConversionAnnotation = facade.findClass(mode.bindingConversion, moduleScope)
       bindingConversionTypes = mutableListOf(PsiModelClass(dbExprType, mode).unwrapped)
       if (bindingConversionAnnotation != null) {
         AnnotatedElementsSearch.searchElements(
-          bindingConversionAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+          bindingConversionAnnotation, moduleScope, PsiMethod::class.java)
           .forEach { annotatedMethod ->
             val parameters = annotatedMethod.parameterList.parameters
             val returnType = annotatedMethod.returnType ?: return@forEach
@@ -87,10 +95,6 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   private var holder: AnnotationHolder? = null
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!StudioFlags.DATA_BINDING_INSPECTIONS_ENABLED.get()) {
-      return
-    }
-
     try {
       this.holder = holder
       element.accept(this)
@@ -131,12 +135,87 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
 
     val androidFacet = AndroidFacet.getInstance(rootExpression) ?: return
     val attributeMatcher = AttributeTypeMatcher(dbExprType.type, androidFacet)
-    val attributeTypes = attribute.references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }
-    if (attributeTypes.isNotEmpty() && attributeTypes.none { attributeMatcher.matches(it.unwrapped.erasure()) }) {
-      val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
-                    ?: "View"
+    val attributeSetterTypes = attribute.getAllSetterTypes()
+    val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
+                  ?: SdkConstants.VIEW_TAG
+    if (attributeSetterTypes.isNotEmpty() && attributeSetterTypes.none { attributeMatcher.matches(it.unwrapped.erasure()) }) {
       annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
     }
+
+    val attributeValue = attribute.value ?: return
+    if (DataBindingUtil.isTwoWayBindingExpression(attributeValue)) {
+      val assignableType = findAssignableTypeToBindingExpression(rootExpression, getInvertibleMethodNames(androidFacet))
+      if (assignableType == null) {
+        annotateError(rootExpression, EXPRESSION_NOT_INVERTIBLE, rootExpression.text)
+        return
+      }
+
+      val attributeGetterTypes = attribute.getAllGetterTypes()
+      if (attributeGetterTypes.isNotEmpty() &&
+          attributeGetterTypes.none { attributeType -> assignableType.erasure().unwrapped.isAssignableFrom(attributeType) }) {
+        annotateError(rootExpression, GETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
+      }
+    }
+  }
+
+  /**
+   * Returns a set of method names that can be inverted.
+   *
+   * e.g. "convertIntToString" can be inverted if there is a method with annotation @InverseMethod("convertIntToString")
+   */
+  private fun getInvertibleMethodNames(facet: AndroidFacet): Set<String> {
+    val facade = JavaPsiFacade.getInstance(facet.module.project)
+    val mode = DataBindingUtil.getDataBindingMode(facet)
+    val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+    val inverseMethodAnnotation = facade.findClass(mode.inverseMethod, moduleScope) ?: return setOf()
+    val nameSet = mutableSetOf<String>()
+    AnnotatedElementsSearch.searchElements(
+      inverseMethodAnnotation, moduleScope, PsiMethod::class.java)
+      .forEach { annotatedMethod ->
+        nameSet.addIfNotNull(annotatedMethod.name)
+        val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseMethod) ?: return@forEach
+        nameSet.addIfNotNull((annotation.findAttributeValue(null) as? PsiLiteralExpression)?.value as? String)
+      }
+    return nameSet
+  }
+
+  /**
+   * Returns the type that can be assigned to a two-way data binding expression.
+   */
+  private fun findAssignableTypeToBindingExpression(dbExpr: PsiElement, invertibleMethodNames: Set<String>): PsiModelClass? {
+    val type = dbExpr.references.firstNotNullResult { (it as? ModelClassResolvable)?.resolvedType } ?: return null
+    // Observable types can be assigned to its unwrapped directly.
+    if (type.isLiveData || type.isObservableField) {
+      return type.unwrapped
+    }
+    // Return dbExpr's resolved type when it can be resolved to setter, field or variable.
+    if (dbExpr is PsiDbRefExpr) {
+      val settable = dbExpr.references
+        .any {
+          (it as? PsiMethodReference)?.isSetterReferenceFrom(dbExpr.id.text) == true
+          || it is PsiFieldReference || it is XmlVariableReference
+        }
+      if (settable) {
+        // When dbExpr references a setter method without a resolved type, we will use the getter's instead.
+        return dbExpr.toModelClassResolvable()?.resolvedType
+      }
+    }
+    // Unwrap method with @InverseMethod annotations.
+    else if (dbExpr is PsiDbCallExpr) {
+      val parameters = dbExpr.expressionList?.exprList ?: return null
+      if (parameters.size != 1) {
+        return null
+      }
+      val parameter = parameters[0]
+      // Check if its only parameter has a valid type for setter.
+      findAssignableTypeToBindingExpression(parameter, invertibleMethodNames) ?: return null
+      // Return the returnType of the original method.
+      val reference = dbExpr.references.filterIsInstance<PsiMethodReference>().firstOrNull() ?: return null
+      if (invertibleMethodNames.contains((reference.resolve() as PsiMethod).name)) {
+        return reference.resolvedType
+      }
+    }
+    return null
   }
 
   /**
@@ -311,8 +390,12 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
 
     const val SETTER_NOT_FOUND = "Cannot find a setter for <%s %s> that accepts parameter type '%s'"
 
+    const val GETTER_NOT_FOUND = "Cannot find a getter for <%s %s> that accepts parameter type '%s'"
+
     const val ARGUMENT_COUNT_MISMATCH = "Unexpected parameter count. Expected %d, found %d."
 
     const val METHOD_SIGNATURE_MISMATCH = "Listener class '%s' with method '%s' did not match signature of any method '%s'"
+
+    const val EXPRESSION_NOT_INVERTIBLE = "The expression '%s' cannot be inverted, so it cannot be used in a two-way binding"
   }
 }

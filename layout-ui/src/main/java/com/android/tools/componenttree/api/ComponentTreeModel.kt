@@ -21,6 +21,13 @@ package com.android.tools.componenttree.api
 interface ComponentTreeModel {
   /**
    * The current tree root (if any).
+   * Setting this will fire [hierarchyChanged] on the root.
    */
   var treeRoot: Any?
+
+  /**
+   * Notify any listeners that [changedNode] or some child node beneath it has changed. If there is a structural change in the tree,
+   * this method should be called so that the underlying JTree can be updated appropriately.
+   */
+  fun hierarchyChanged(changedNode: Any?)
 }

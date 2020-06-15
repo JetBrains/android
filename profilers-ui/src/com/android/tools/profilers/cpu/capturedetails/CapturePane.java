@@ -69,6 +69,11 @@ abstract class CapturePane extends JPanel {
 
   @NotNull protected final CommonTabbedPane myTabsPanel;
 
+  /*
+   * When {@link FeatureConfig::isCpuCaptureStageEnabled} is true, we populate the recording panel instead of the tabs panel.
+   */
+  @NotNull private final JPanel myRecordingPanel;
+
   @NotNull protected final Toolbar myToolbar;
 
   protected CapturePane(@NotNull CpuProfilerStageView stageView) {
@@ -78,27 +83,41 @@ abstract class CapturePane extends JPanel {
     myStageView = stageView;
     myTabsPanel = new CommonTabbedPane();
 
+    // Only used when new capture stage is enabled.
+    myRecordingPanel = new JPanel(new BorderLayout());
+
     myToolbar = new Toolbar(stageView);
 
-    CpuCapture capture = myStageView.getStage().getCapture();
-    if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
-      myTabs.putAll(ATRACE_TAB_NAMES);
+    if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      add(myRecordingPanel, new TabularLayout.Constraint(0, 0, 2, 2));
+    }
+    else {
+      CpuCapture capture = myStageView.getStage().getCapture();
+      if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
+        myTabs.putAll(ATRACE_TAB_NAMES);
 
-      if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isAuditsEnabled()) {
-        myTabs.putAll(RENDER_AUDIT_TAB_NAMES);
+        if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isAuditsEnabled()) {
+          myTabs.putAll(RENDER_AUDIT_TAB_NAMES);
+        }
       }
-    }
 
-    for (String label : myTabs.values()) {
-      myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
+      for (String label : myTabs.values()) {
+        myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
+      }
+      myTabsPanel.setSelectedIndex(0);
+      add(myToolbar, new TabularLayout.Constraint(0, 1));
+      add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
     }
-    myTabsPanel.setSelectedIndex(0);
-
-    add(myToolbar, new TabularLayout.Constraint(0, 1));
-    add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
   }
 
   final void updateView() {
+    // If we are using the new capture stage we do not want to enable any of the tabs for the capture pane.
+    if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      // This needs to be done in update view (oppose to the constructor) due to dependencies between the CapturePane and the RecordingPane.
+      myRecordingPanel.removeAll();
+      populateContent(myRecordingPanel);
+      return;
+    }
     // Clear the content of all the tabs
     for (Component tab : myTabsPanel.getComponents()) {
       // In the constructor, we make sure to use JPanel as root components of the tabs.
@@ -134,6 +153,7 @@ abstract class CapturePane extends JPanel {
   void disableInteraction() {
     myTabsPanel.setEnabled(false);
     myToolbar.setEnabled(false);
+    myRecordingPanel.setEnabled(false);
   }
 
   /**

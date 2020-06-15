@@ -47,7 +47,10 @@ open class GridLayoutHandler : ViewGroupHandler() {
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_COLUMN_SPAN)
   }
 
-  override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView,
+                                 x: Int,
+                                 y: Int,
+                                 component: NlComponent) = SceneInteraction(screenView)
 
   override fun handlesPainting() = true
 

@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -32,19 +33,28 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class RunAndroidAvdManagerAction extends DumbAwareAction {
+  public static final String ID = "Android.RunAndroidAvdManager";
+
   @Nullable private AvdListDialog myDialog;
-
-  public RunAndroidAvdManagerAction() {
-    super(getName());
-  }
-
-  public RunAndroidAvdManagerAction(@Nullable String name) {
-    super(name);
-  }
 
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
+
+    switch (event.getPlace()) {
+      case ActionPlaces.TOOLBAR:
+        // Layout editor device menu
+        presentation.setText("Add Device Definition...");
+        presentation.setIcon(null);
+        break;
+      case ActionPlaces.UNKNOWN:
+        // run target menu
+        presentation.setText("Open AVD Manager");
+        break;
+      default:
+        presentation.setText("AVD Manager");
+        break;
+    }
 
     if (SystemInfo.isChromeOS) {
       presentation.setVisible(false);
@@ -79,10 +89,5 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   @Nullable
   public AvdInfo getSelected() {
     return myDialog == null ? null : myDialog.getSelected();
-  }
-
-  @NotNull
-  public static String getName() {
-    return AndroidBundle.message("android.run.avd.manager.action.text");
   }
 }

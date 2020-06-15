@@ -16,12 +16,13 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -36,8 +37,8 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
   public void testGetPackageForPath() throws Exception {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
-    File javaSrcDir = new File(getModuleDirPath(myAndroidFacet.getModule()), "src/main/java");
-    AndroidModuleTemplate androidModuleTemplate = Mockito.mock(AndroidModuleTemplate.class);
+    File javaSrcDir = new File(AndroidRootUtil.findModuleRootFolderPath(myAndroidFacet.getModule()), "src/main/java");
+    AndroidModulePaths androidModuleTemplate = Mockito.mock(AndroidModulePaths.class);
     Mockito.when(androidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 
     NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", androidModuleTemplate);

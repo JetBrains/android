@@ -15,24 +15,27 @@
  */
 package com.android.tools.profilers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
+import javax.swing.JPanel;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ProfilerScrollbarTest {
 
   public static final float EPSILON = 0.0001f;
-  private ProfilerTimeline myTimeline;
+  private StreamingTimeline myTimeline;
   private ProfilerScrollbar myScrollbar;
   private JPanel myPanel;
   private FakeUi myUi;
@@ -42,7 +45,7 @@ public class ProfilerScrollbarTest {
   public void setUp() {
     myTimer = new FakeTimer();
     Updater updater = new Updater(myTimer);
-    myTimeline = new ProfilerTimeline(updater);
+    myTimeline = new StreamingTimeline(updater);
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
     myScrollbar = new ProfilerScrollbar(myTimeline, myPanel);

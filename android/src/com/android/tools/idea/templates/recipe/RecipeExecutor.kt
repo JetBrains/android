@@ -75,6 +75,14 @@ interface RecipeExecutor {
   fun addDependency(configuration: String, mavenUrl: String)
 
   /**
+   * Record a module dependency.
+   *
+   * @param moduleName name of a module on which something depends. Should not start with ':'.
+   * @param toModule name of a module *directory* which depends on [moduleName].
+   */
+  fun addModuleDependency(configuration: String, moduleName: String, toModule: String)
+
+  /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
@@ -104,4 +112,27 @@ interface RecipeExecutor {
    * Set variable in ext block of global build.gradle.
    */
   fun setExtVar(name: String, value: String)
+
+  /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  fun addIncludeToSettings(moduleName: String?)
+
+  /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  fun setBuildFeature(name: String, value: String)
+
+  /**
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
+   */
+  fun requireJavaVersion(version: String, kotlinSupport: String = "false")
+
+  /**
+   * Adds dynamic feature [name] to [toModule]'s build.gradle[.kts].
+   *
+   * @param name name of a dynamic feature which should be added.
+   * @param toModule name of a base feature module *directory*.
+   */
+  fun addDynamicFeature(name: String, toModule: String)
 }

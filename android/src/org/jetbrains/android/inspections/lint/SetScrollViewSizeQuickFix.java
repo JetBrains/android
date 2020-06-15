@@ -1,6 +1,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -10,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-public class SetScrollViewSizeQuickFix implements AndroidLintQuickFix {
+public class SetScrollViewSizeQuickFix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
@@ -25,9 +27,9 @@ public class SetScrollViewSizeQuickFix implements AndroidLintQuickFix {
 
     final boolean isHorizontal = SdkConstants.HORIZONTAL_SCROLL_VIEW.equals(parentTag.getName());
     final String attributeName = isHorizontal
-                                 ? AndroidLintUtil.ATTR_LAYOUT_WIDTH
-                                 : AndroidLintUtil.ATTR_LAYOUT_HEIGHT;
-    tag.setAttribute(attributeName, SdkConstants.ANDROID_URI, AndroidLintUtil.ATTR_VALUE_WRAP_CONTENT);
+                                 ? SdkConstants.ATTR_LAYOUT_WIDTH
+                                 : SdkConstants.ATTR_LAYOUT_HEIGHT;
+    tag.setAttribute(attributeName, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT);
   }
 
   @Override

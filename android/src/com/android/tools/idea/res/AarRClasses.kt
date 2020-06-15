@@ -16,12 +16,12 @@
 package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.symbols.Symbol
 import com.android.ide.common.symbols.SymbolIo
 import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
-import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.diagnostic.Logger
@@ -34,6 +34,7 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
 import org.jetbrains.android.augment.InnerRClassBase.buildResourceFields
+import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.locks.ReentrantLock
@@ -64,7 +65,7 @@ class SmallAarRClass(
       .toTypedArray()
   }
 
-  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getInnerClassesDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -88,7 +89,7 @@ private class SmallAarInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -146,7 +147,7 @@ class TransitiveAarRClass(
     private val LOG: Logger = Logger.getInstance(TransitiveAarRClass::class.java)
   }
 
-  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getInnerClassesDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -160,38 +161,73 @@ private class TransitiveAarInnerRClass(
   symbolTable: SymbolTable
 ) : InnerRClassBase(parent, resourceType) {
 
-  private val intFields: ImmutableList<String>
-  private val intArrayFields: ImmutableList<String>
+  private val styleableFields: ImmutableList<String>
+  private val styleableAttrFields: ImmutableList<StyleableAttrFieldUrl>
+  private val otherFields: ImmutableList<String>
 
   init {
-    val intFieldsBuilder = ImmutableList.builder<String>()
-    val intArrayFieldsBuilder = ImmutableList.builder<String>()
+    val styleableFieldsBuilder = ImmutableList.builder<String>()
+    val styleableAttrFieldsBuilder = ImmutableList.builder<StyleableAttrFieldUrl>()
+    val otherFieldsBuilder = ImmutableList.builder<String>()
     for (symbol in symbolTable.getSymbolByResourceType(resourceType)) {
       when (symbol.javaType) {
-        SymbolJavaType.INT -> intFieldsBuilder.add(symbol.canonicalName)
+        SymbolJavaType.INT -> otherFieldsBuilder.add(symbol.canonicalName)
         SymbolJavaType.INT_LIST -> {
-          intArrayFieldsBuilder .add( symbol.canonicalName)
+          styleableFieldsBuilder .add(symbol.canonicalName)
           (symbol as? Symbol.StyleableSymbol)?.children?.forEach {
-            intFieldsBuilder.add(symbol.canonicalName + "_" + canonicalizeValueResourceName(it))
+            val (packageName, attrName) = getNameComponents(it)
+            val attrNamespace = if (packageName.isNullOrEmpty()) {
+              ResourceNamespace.RES_AUTO
+            } else {
+              ResourceNamespace.fromPackageName(packageName)
+            }
+            styleableAttrFieldsBuilder.add(StyleableAttrFieldUrl(
+              ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLEABLE, symbol.canonicalName),
+              ResourceReference.attr(attrNamespace, attrName))
+            )
           }
         }
         else -> error("Unknown symbol type ${symbol.javaType}")
       }
     }
 
-    intFields = intFieldsBuilder.build()
-    intArrayFields = intArrayFieldsBuilder.build()
+    otherFields = otherFieldsBuilder.build()
+    styleableFields = styleableFieldsBuilder.build()
+    styleableAttrFields = styleableAttrFieldsBuilder.build()
+  }
+
+  /**
+   * The R.txt for an Aar gets transformed into a [SymbolTable].
+   * Example R.txt:
+   *    int[] styleable NewView { 0x0101016e, 0x01010393}
+   *    int styleable NewView_android_drawableBottom 0
+   *    int styleable NewView_otherAttr 1
+   * The styleable attr in the symbol table are available as a list of attrs for each styleables, in the form:
+   *    ${package_name}:${attr_name} eg. android:drawableBottom
+   * or if there is no package name, just the attr_name eg. otherAttr
+   *
+   * Note that there is no way to know from the R.txt alone, whether a styleable attr is an overridden framework attr, or simply an attr
+   * with the android_ prefix.
+   */
+  private fun getNameComponents(name: String): Pair<String?, String> {
+    // This only work on non-namespaced aars, or where the only namespace used is "android".
+    val listOfComponents = name.split(':')
+    return when (listOfComponents.size) {
+      2 -> Pair(listOfComponents[0], listOfComponents[1])
+      else -> Pair(null, name)
+    }
   }
 
   override fun doGetFields(): Array<PsiField> {
     return buildResourceFields(
-      intFields,
-      intArrayFields,
+      otherFields,
+      styleableFields,
+      styleableAttrFields,
       resourceType,
       this,
       FieldModifier.NON_FINAL
     )
   }
 
-  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }

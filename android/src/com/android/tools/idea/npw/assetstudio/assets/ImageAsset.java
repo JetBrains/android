@@ -22,7 +22,8 @@ import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -50,12 +51,15 @@ import org.jetbrains.annotations.Nullable;
  * {@link #getXmlDrawable()} have to be called on the event dispatch thread.
  */
 public final class ImageAsset extends BaseAsset {
+  private static final String IMAGE_PATH_PROPERTY = "imagePath";
+
   @NotNull private final OptionalValueProperty<File> myImagePath;
   @NotNull private final ObservableBool myIsResizable;
   @NotNull private final BoolValueProperty myXmlDrawableIsResizable = new BoolValueProperty();
   @NotNull private final ObjectValueProperty<Validator.Result> myValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   @NotNull private String myRole = "image"; // The setRole method has to be called immediately after construction.
+  @Nullable private File myDefaultImagePath;
 
   private boolean isClipart;
 
@@ -108,6 +112,21 @@ public final class ImageAsset extends BaseAsset {
   @UiThread
   public void setRole(@NotNull String role) {
     myRole = role;
+  }
+
+  /**
+   * Sets the default image path. Also sets the current image path if it was the same as default.
+   * Has to be called immediately after construction of the object.
+   *
+   * @param file the default image path
+   */
+  @UiThread
+  public void setDefaultImagePath(@Nullable File file) {
+    boolean wasDefault = FileUtil.filesEqual(myImagePath.getValueOrNull(), myDefaultImagePath);
+    myDefaultImagePath = file;
+    if (wasDefault) {
+      myImagePath.setNullableValue(myDefaultImagePath);
+    }
   }
 
   /**
@@ -171,6 +190,25 @@ public final class ImageAsset extends BaseAsset {
         myImageFuture = FutureUtils.executeOnPooledThread(() -> loadImage(file));
       }
       return myImageFuture;
+    }
+  }
+
+  @UiThread
+  @Override
+  public PersistentState getState() {
+    PersistentState state = super.getState();
+    state.setEncoded(IMAGE_PATH_PROPERTY, myImagePath.getValueOrNull(),
+                     file -> FileUtil.filesEqual(file, myDefaultImagePath) ? null : file.getPath());
+    return state;
+  }
+
+  @UiThread
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    super.loadState(state);
+    File file = state.getDecoded(IMAGE_PATH_PROPERTY, path -> path == null ? myDefaultImagePath : new File(path));
+    if (file != null) {
+      myImagePath.setValue(file);
     }
   }
 

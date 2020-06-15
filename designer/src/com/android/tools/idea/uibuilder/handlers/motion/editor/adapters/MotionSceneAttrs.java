@@ -115,17 +115,17 @@ public class MotionSceneAttrs {
   public static final String LAYOUT_CONSTRAINT_GUIDE_PERCENT = "layout_constraintGuide_percent";
   public static final String LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT = "layout_constraintGuide_Percent";
   public static final String ATTR_LOCKED = "locked";
-  public static final String ATTR_CONSTRAINT_LAYOUT_DESCRIPTION = "layoutDescription";
+  public static final String ATTR_CONSTRAINT_LAYOUT_DESCRIPTION = SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION;
 
-  public static final String ATTR_CUSTOM_ATTRIBUTE_NAME = "attributeName";
-  public static final String ATTR_CUSTOM_COLOR_VALUE = "customColorValue";
-  public static final String ATTR_CUSTOM_COLOR_DRAWABLE_VALUE = "customColorDrawableValue";
-  public static final String ATTR_CUSTOM_INTEGER_VALUE = "customIntegerValue";
-  public static final String ATTR_CUSTOM_FLOAT_VALUE = "customFloatValue";
-  public static final String ATTR_CUSTOM_STRING_VALUE = "customStringValue";
-  public static final String ATTR_CUSTOM_DIMENSION_VALUE = "customDimension";
-  public static final String ATTR_CUSTOM_PIXEL_DIMENSION_VALUE = "customPixelDimension";
-  public static final String ATTR_CUSTOM_BOOLEAN_VALUE = "customBoolean";
+  public static final String ATTR_CUSTOM_ATTRIBUTE_NAME = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_ATTRIBUTE_NAME;
+  public static final String ATTR_CUSTOM_COLOR_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_COLOR_VALUE;
+  public static final String ATTR_CUSTOM_COLOR_DRAWABLE_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_COLOR_DRAWABLE_VALUE;
+  public static final String ATTR_CUSTOM_INTEGER_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_INTEGER_VALUE;
+  public static final String ATTR_CUSTOM_FLOAT_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_FLOAT_VALUE;
+  public static final String ATTR_CUSTOM_STRING_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_STRING_VALUE;
+  public static final String ATTR_CUSTOM_DIMENSION_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_DIMENSION_VALUE;
+  public static final String ATTR_CUSTOM_PIXEL_DIMENSION_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE;
+  public static final String ATTR_CUSTOM_BOOLEAN_VALUE = SdkConstants.MotionSceneAttributes.ATTR_CUSTOM_BOOLEAN_VALUE;
 
   public static final String MOTION_ANIMATE_RELATIVE_TO = "animate_relativeTo";
   public static final String MOTION_TRANSITION_EASING = "transitionEasing";
@@ -136,22 +136,22 @@ public class MotionSceneAttrs {
 
   ///////////////////////////////// PLATFORM INDEPENDENT ACCESS ////////////////////////////
   public static class Tags {
-    public static final String TRANSITION = "Transition";
-    public static final String CONSTRAINTSET = "ConstraintSet";
-    public static final String CONSTRAINT = "Constraint";
-    public static final String KEY_FRAME_SET = "KeyFrameSet";
-    public static final String KEY_ATTRIBUTE = "KeyAttribute";
-    public static final String KEY_CYCLE = "KeyCycle";
-    public static final String KEY_POSITION = "KeyPosition";
-    public static final String KEY_TRIGGER = "KeyTrigger";
-    public static final String KEY_TIME_CYCLE = "KeyTimeCycle";
-    public static final String ON_CLICK = "OnClick";
-    public static final String ON_SWIPE = "OnSwipe";
-    public static final String LAYOUT = "Layout";
-    public static final String MOTION = "Motion";
-    public static final String PROPERTY_SET = "PropertySet";
-    public static final String TRANSFORM = "Transform";
-    public static final String CUSTOM_ATTRIBUTE = "CustomAttribute";
+    public static final String TRANSITION = SdkConstants.MotionSceneTags.TRANSITION;
+    public static final String CONSTRAINTSET = SdkConstants.MotionSceneTags.CONSTRAINT_SET;
+    public static final String CONSTRAINT = SdkConstants.MotionSceneTags.CONSTRAINT;
+    public static final String KEY_FRAME_SET = SdkConstants.MotionSceneTags.KEY_FRAME_SET;
+    public static final String KEY_ATTRIBUTE = SdkConstants.MotionSceneTags.KEY_ATTRIBUTE;
+    public static final String KEY_CYCLE = SdkConstants.MotionSceneTags.KEY_CYCLE;
+    public static final String KEY_POSITION = SdkConstants.MotionSceneTags.KEY_POSITION;
+    public static final String KEY_TRIGGER = SdkConstants.MotionSceneTags.KEY_TRIGGER;
+    public static final String KEY_TIME_CYCLE = SdkConstants.MotionSceneTags.KEY_TIME_CYCLE;
+    public static final String ON_CLICK = SdkConstants.MotionSceneTags.ON_CLICK;
+    public static final String ON_SWIPE = SdkConstants.MotionSceneTags.ON_SWIPE;
+    public static final String LAYOUT = SdkConstants.MotionSceneTags.LAYOUT;
+    public static final String MOTION = SdkConstants.MotionSceneTags.MOTION;
+    public static final String PROPERTY_SET = SdkConstants.MotionSceneTags.PROPERTY_SET;
+    public static final String TRANSFORM = SdkConstants.MotionSceneTags.TRANSFORM;
+    public static final String CUSTOM_ATTRIBUTE = SdkConstants.MotionSceneTags.CUSTOM_ATTRIBUTE;
   }
 
   static HashSet<String> androidNameSpace = new HashSet<>(Arrays.asList(
@@ -214,6 +214,7 @@ public class MotionSceneAttrs {
   public static class KeyCycle {
     public static final String WAVE_PERIOD = "wavePeriod";
     public static final String WAVE_SHAPE = "waveShape";
+    public static final String WAVE_OFFSET = "waveOffset";
   }
 
   public static class KeyTrigger {
@@ -222,7 +223,6 @@ public class MotionSceneAttrs {
   }
 
   public static String[] KeyAttributeOptions = {
-
     "alpha",
     "elevation",
     "rotation",
@@ -234,6 +234,48 @@ public class MotionSceneAttrs {
     "translationY",
     "translationZ",
     "transitionPathRotate",
+  };
+  public static String[] KeyAttributeOptionsDefaultValue = {
+
+    "0.5",
+    "3dp",
+    "45",
+    "5",
+    "5",
+    "1.2",
+    "1.2",
+    "30dp",
+    "30dp",
+    "6dp",
+    "90",
+  };
+  public static String[] KeyCycleOptionsDefaultValue = {
+
+    "0.5",
+    "3dp",
+    "90",
+    "5",
+    "5",
+    "0.2",
+    "0.2",
+    "10dp",
+    "10dp",
+    "6dp",
+    "45",
+  };
+  public static String[] KeyCycleOptionsDefaultOffset = {
+
+    "0.5",
+    "3dp",
+    "0",
+    "0",
+    "0",
+    "1",
+    "1",
+    "0dp",
+    "0dp",
+    "3dp",
+    "90",
   };
 
   public static String[]  KeyAttributeOptionsNameSpace = {
@@ -252,7 +294,7 @@ public class MotionSceneAttrs {
 
   public static class OnClick {
     public static final String ATTR_TARGET_ID = "targetId";
-    public static final String ATTR_CLICK_ACTION = "targetId";
+    public static final String ATTR_CLICK_ACTION = "clickAction";
   }
 
   public static class OnSwipe {
@@ -431,8 +473,7 @@ public class MotionSceneAttrs {
     MOTION_PATH_MOTION_ARC
   ));
 
-
-  public static final String[] ourCustomAttribute = {
+public static final String[] ourCustomAttribute = {
     ATTR_CUSTOM_COLOR_VALUE,
     ATTR_CUSTOM_COLOR_DRAWABLE_VALUE,
     ATTR_CUSTOM_INTEGER_VALUE,
@@ -444,7 +485,10 @@ public class MotionSceneAttrs {
   };
 
   public static boolean copyToConstraint(MTag.Attribute attr) {
-    return layout_tags.contains(attr.mAttribute) || MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute);
+    return layout_tags.contains(attr.mAttribute) ||
+           MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute) ||
+           ourTransform_tags.contains(attr.mAttribute) ||
+           ourPropertySet_tags.contains(attr.mAttribute);
   }
 
   public static boolean isLayoutAttribute(MTag.Attribute attr) {

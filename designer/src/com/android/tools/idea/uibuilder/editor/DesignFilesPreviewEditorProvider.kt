@@ -40,5 +40,5 @@ class DesignFilesPreviewEditorProvider : DesignerEditorProvider(
   override fun getEditorTypeId() = DESIGN_FILES_PREVIEW_EDITOR_ID
 }
 
-fun acceptedTypes(): ImmutableList<DesignerEditorFileType> = ImmutableList.of(AdaptiveIconFileType, StateListFileType, AnimatedVectorFileType,
-                                                                              FontFileType, ZoomableDrawableFileType)
+fun acceptedTypes(): ImmutableList<DesignerEditorFileType> =
+  ImmutableList.of(AdaptiveIconFileType, StateListFileType, AnimatedVectorFileType, FontFileType, ZoomableDrawableFileType)

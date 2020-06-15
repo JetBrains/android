@@ -31,7 +31,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
+import com.android.tools.idea.testing.TestProjectPaths.UNIT_TESTING
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
@@ -40,8 +42,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
-  fun testExtractVariable() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  private fun doTestExtractVariable() {
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -78,12 +79,23 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                                                                                 DslText.Reference("otherName"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("otherName").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(28, DslText.Reference("compileSdkVersion"))))
+                 equalTo<ParsedValue<Any>>(
+                   ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, DslText.Reference("compileSdkVersion"))))
     }
   }
 
+  fun testExtractVariableGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestExtractVariable()
+  }
+
+  fun testExtractVariableKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestExtractVariable()
+  }
+
   fun testExtractVariable_projectLevel() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -114,7 +126,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractEmptyValue() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -132,7 +144,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractVariableWithBlankName() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -150,7 +162,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractAndroidModuleDependencyVersion() {
-    loadProject(TestProjectPaths.UNIT_TESTING)
+    loadProject(UNIT_TESTING)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -189,7 +201,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractJavaModuleDependencyVersion() {
-    loadProject(TestProjectPaths.UNIT_TESTING)
+    loadProject(UNIT_TESTING)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -228,7 +240,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testPreferredVariableNames() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -295,7 +307,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       // do not be fooled by the literal 9 in psdSample/app/build.gradle: it gets overwritten on project setup
       // (see AndroidGradleTests.updateMinSdkVersion)
       checkPreferredName(minSdkVersion, "defaultMinSdkVersion", SdkVersionInfo.LOWEST_ACTIVE_API.toString())
-      checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", "19")
+      checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
     }
     run {
       val paidProductFlavor = appModule.productFlavors.find { it.name == "paid" }!!

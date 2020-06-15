@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET;
@@ -71,6 +73,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, "otherSource.xml");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY_EXPECTED);
     verifySourceFile(buildModel, "otherSource.xml");
   }
 
@@ -101,6 +104,8 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, "mainSource.xml");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY_EXPECTED);
+
     verifySourceFile(buildModel, "mainSource.xml");
   }
 
@@ -131,6 +136,8 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     verifySourceFile(buildModel, null);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.

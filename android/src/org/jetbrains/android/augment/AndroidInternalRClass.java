@@ -118,8 +118,8 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
 
     @Override
     @NotNull
-    protected Object[] getFieldsDependencies() {
-      return new Object[]{ModificationTracker.NEVER_CHANGED};
+    protected ModificationTracker getFieldsDependencies() {
+      return ModificationTracker.NEVER_CHANGED;
     }
   }
 

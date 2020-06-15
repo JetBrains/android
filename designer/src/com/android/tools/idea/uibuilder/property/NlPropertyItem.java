@@ -285,8 +285,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   private static boolean isId(@NotNull String value) {
     return value.startsWith(SdkConstants.ID_PREFIX) ||
            value.startsWith(SdkConstants.NEW_ID_PREFIX) ||
-           value.startsWith(SdkConstants.ANDROID_ID_PREFIX) ||
-           value.startsWith(SdkConstants.ANDROID_NEW_ID_PREFIX);
+           value.startsWith(SdkConstants.ANDROID_ID_PREFIX);
   }
 
   @NotNull

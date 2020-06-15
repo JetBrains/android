@@ -17,6 +17,9 @@ package com.android.tools.idea.diagnostics;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.diagnostics.windows.VirusCheckerStatusProvider;
+import com.android.tools.idea.diagnostics.windows.WindowsDefenderPowerShellStatusProvider;
+import com.android.tools.idea.diagnostics.windows.WindowsDefenderRegistryStatusProvider;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
@@ -27,10 +30,6 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.ProcessOutput;
-import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.notification.Notification;
@@ -45,13 +44,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,6 +57,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class WindowsPerformanceHintsChecker {
   private static final Logger LOG = Logger.getInstance(WindowsPerformanceHintsChecker.class);
@@ -73,13 +70,16 @@ public class WindowsPerformanceHintsChecker {
   private static final Duration ANTIVIRUS_MIN_INTERVAL_BETWEEN_NOTIFICATIONS = Duration.ofDays(1);
   private static final Pattern WINDOWS_ENV_VAR_PATTERN = Pattern.compile("%([^%]+?)%");
   private static final Pattern WINDOWS_DEFENDER_WILDCARD_PATTERN = Pattern.compile("[?*]");
-  private static final int POWERSHELL_COMMAND_TIMEOUT_MS = 10000;
-  private static final int MAX_POWERSHELL_STDERR_LENGTH = 500;
 
   private AndroidStudioSystemHealthMonitor systemHealthMonitor;
 
+  private VirusCheckerStatusProvider myVirusCheckerStatusProvider;
+
   public WindowsPerformanceHintsChecker() {
     this.systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance();
+    this.myVirusCheckerStatusProvider =
+      StudioFlags.ANTIVIRUS_CHECK_USE_REGISTRY.get() ? new WindowsDefenderRegistryStatusProvider()
+                                                     : new WindowsDefenderPowerShellStatusProvider();
   }
 
   public void run() {
@@ -117,7 +117,17 @@ public class WindowsPerformanceHintsChecker {
 
   @Slow
   private void checkWindowsDefender(@NotNull Project project, boolean showNotification) {
-    switch (getRealtimeScanningEnabled()) {
+    VirusCheckerStatusProvider.RealtimeScanningStatus status;
+    try {
+      status = myVirusCheckerStatusProvider.getRealtimeScanningStatus();
+    }
+    catch (IOException exception) {
+      LOG.warn("Error retrieving status of virus checker", exception);
+      logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
+      return;
+    }
+
+    switch (status) {
       case SCANNING_ENABLED:
         List<Pattern> excludedPatterns = getExcludedPatterns();
         if (excludedPatterns == null) {
@@ -149,9 +159,6 @@ public class WindowsPerformanceHintsChecker {
         break;
       case SCANNING_DISABLED:
         logWindowsDefenderStatus(WindowsDefenderStatus.Status.SCANNING_DISABLED, true, project);
-        break;
-      case ERROR:
-        logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
         break;
     }
   }
@@ -226,7 +233,7 @@ public class WindowsPerformanceHintsChecker {
     }
   }
 
-  /** Runs a powershell command to list the paths that are excluded from realtime scanning by Windows Defender. These
+  /** Call {@link VirusCheckerStatusProvider} to list the paths that are excluded from realtime scanning by Windows Defender. These
    * paths can contain environment variable references, as well as wildcards ('?', which matches a single character, and
    * '*', which matches any sequence of characters (but cannot match multiple nested directories; i.e., "foo\*\bar" would
    * match foo\baz\bar but not foo\baz\quux\bar)). The behavior of wildcards with respect to case-sensitivity is undocumented.
@@ -234,46 +241,15 @@ public class WindowsPerformanceHintsChecker {
    */
   @Slow
   @Nullable
-  private static List<Pattern> getExcludedPatterns() {
+  private List<Pattern> getExcludedPatterns() {
     try {
-      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
-        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command", "Get-MpPreference | select -ExpandProperty \"ExclusionPath\""), POWERSHELL_COMMAND_TIMEOUT_MS);
-      if (output.getExitCode() == 0) {
-        return output.getStdoutLines(true).stream().map(path -> wildcardsToRegex(expandEnvVars(path))).collect(Collectors.toList());
-      } else {
-        LOG.warn("Windows Defender exclusion path check exited with status " + output.getExitCode() + ": " +
-                 StringUtil.first(output.getStderr(), MAX_POWERSHELL_STDERR_LENGTH, false));
-      }
-    } catch (ExecutionException e) {
-      LOG.warn("Windows Defender exclusion path check failed", e);
+      List<String> excludedPaths = myVirusCheckerStatusProvider.getExcludedPaths();
+      return excludedPaths.stream().map(path -> wildcardsToRegex(expandEnvVars(path))).collect(Collectors.toList());
     }
-    return null;
-  }
-
-  /** Runs a powershell command to determine whether realtime scanning is enabled or not. */
-  @Slow
-  @NotNull
-  private static RealtimeScanningStatus getRealtimeScanningEnabled() {
-    try {
-      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
-        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command", "Get-MpPreference | select -ExpandProperty \"DisableRealtimeMonitoring\""), POWERSHELL_COMMAND_TIMEOUT_MS);
-      if (output.getExitCode() == 0) {
-        if (output.getStdout().startsWith("False")) return RealtimeScanningStatus.SCANNING_ENABLED;
-        return RealtimeScanningStatus.SCANNING_DISABLED;
-      } else {
-        LOG.warn("Windows Defender realtime scanning status check exited with status " + output.getExitCode() + ": " +
-                 StringUtil.first(output.getStderr(), MAX_POWERSHELL_STDERR_LENGTH, false));
-      }
-    } catch (ExecutionException e) {
-      LOG.warn("Windows Defender realtime scanning status check failed", e);
+    catch (IOException exception) {
+      LOG.warn("Error retrieving list of excluded patterns", exception);
+      return null;
     }
-    return RealtimeScanningStatus.ERROR;
-  }
-
-  private enum RealtimeScanningStatus {
-    SCANNING_DISABLED,
-    SCANNING_ENABLED,
-    ERROR
   }
 
   /** Returns a list of paths that might impact build performance if Windows Defender were configured to scan them. */
@@ -325,7 +301,7 @@ public class WindowsPerformanceHintsChecker {
   }
 
   /**
-   * Produces a {@link Pattern} that approximates how Windows Defender interprets the exclusion path {@link path}.
+   * Produces a {@link Pattern} that approximates how Windows Defender interprets the exclusion path {@code path}.
    * The path is split around wildcards; the non-wildcard portions are quoted, and regex equivalents of
    * the wildcards are inserted between them. See
    * https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/configure-extension-file-exclusions-windows-defender-antivirus
@@ -351,7 +327,7 @@ public class WindowsPerformanceHintsChecker {
   }
 
   /**
-   * Checks whether each of the given paths in {@link paths} is matched by some pattern in {@link excludedPatterns},
+   * Checks whether each of the given paths in {@code paths} is matched by some pattern in {@code excludedPatterns},
    * returning a map of the results.
    */
   @NotNull
@@ -381,7 +357,7 @@ public class WindowsPerformanceHintsChecker {
   @NotNull
   private static String getNotificationTextForNonExcludedPaths(@NotNull Map<Path, Boolean> pathStatuses) {
     StringBuilder sb = new StringBuilder();
-    pathStatuses.entrySet().stream().filter(entry -> !entry.getValue()).forEach(entry -> sb.append("<br/>" + entry.getKey()));
+    pathStatuses.entrySet().stream().filter(entry -> !entry.getValue()).forEach(entry -> sb.append("<br/>").append(entry.getKey()));
     return sb.toString();
   }
 

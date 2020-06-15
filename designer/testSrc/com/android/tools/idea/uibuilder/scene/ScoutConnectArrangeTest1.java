@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutConnectArrange;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +65,24 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
                        .width("100dp")
                        .height("40dp").children(component(TAG).id("@+id/textview1"))
                    ));
+  }
+
+  public void testCannotConnectToComponentItself() {
+    myScreen.get("@+id/textview2")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@+id/textview2\"\n" +
+                 "    android:layout_width=\"200dp\"\n" +
+                 "    android:layout_height=\"30dp\"/>");
+    List<NlComponent> list = new ArrayList<>(); // testing passing in an empty selection does not crash
+    NlComponent textView2 = myScreen.get("@+id/textview2").getComponent();
+    list.add(textView2);
+    list.add(textView2);
+
+    // cannot connect to itself no matter which connection it is.
+    for (Scout.Connect connect : Scout.Connect.values()) {
+      assertFalse(ScoutConnectArrange.connectCheck(list, connect,false));
+      assertFalse(ScoutConnectArrange.connectCheck(list, connect,true));
+    }
   }
 
   public void testAlignHorizontallyRight2() {

@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -30,7 +33,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +45,21 @@ final class RunOnMultipleDevicesAction extends AnAction {
   @NotNull
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
+  @NotNull
+  private final Function<Project, Collection<Device>> myGetDevices;
+
   RunOnMultipleDevicesAction() {
-    this(project -> RunManager.getInstance(project).getSelectedConfiguration());
+    this(project -> RunManager.getInstance(project).getSelectedConfiguration(),
+         project -> ServiceManager.getService(project, AsyncDevicesGetter.class).get());
   }
 
   @VisibleForTesting
-  RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration) {
+  RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
+                             @NotNull Function<Project, Collection<Device>> getDevices) {
     super("Run on Multiple Devices", null, AllIcons.Actions.Execute);
+
     myGetSelectedConfiguration = getSelectedConfiguration;
+    myGetDevices = getDevices;
   }
 
   @Override
@@ -67,9 +79,12 @@ final class RunOnMultipleDevicesAction extends AnAction {
       return;
     }
 
-    Object configuration = settings.getConfiguration();
+    if (!isSupportedRunConfigurationType(settings.getType())) {
+      presentation.setEnabled(false);
+      return;
+    }
 
-    if (!(configuration instanceof AndroidRunConfiguration)) {
+    if (myGetDevices.apply(project).isEmpty()) {
       presentation.setEnabled(false);
       return;
     }
@@ -133,5 +148,15 @@ final class RunOnMultipleDevicesAction extends AnAction {
 
     builder.dataContext(context);
     return builder;
+  }
+
+  private static boolean isSupportedRunConfigurationType(@NotNull ConfigurationType type) {
+    if (type instanceof AndroidRunConfigurationType) {
+      return true;
+    }
+    if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get() && type instanceof AndroidTestRunConfigurationType) {
+      return true;
+    }
+    return false;
   }
 }

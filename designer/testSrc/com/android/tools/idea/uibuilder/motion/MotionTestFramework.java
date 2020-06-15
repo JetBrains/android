@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.motion;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
 import com.android.tools.idea.uibuilder.motion.adapters.MTagImp;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.layout_16_xml;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.motion_scene_16_xml;
 
+import com.android.tools.idea.uibuilder.motion.adapters.samples.simple_scene_xml;
 import java.io.InputStream;
 
 public class MotionTestFramework extends BaseMotionEditorTest {
@@ -45,5 +47,44 @@ public class MotionTestFramework extends BaseMotionEditorTest {
     MTag layout = MTagImp.parse(layoutStr);
     MTag motionScene = MTagImp.parse(msStr);
     assertTrue(true);
+  }
+
+  public void testDelete() {
+    InputStream scene_stream = simple_scene_xml.asStream();
+    assertNotNull(" unable to access scene", scene_stream);
+    String msStr = convert(scene_stream);
+    MTag motionScene = MTagImp.parse(msStr);
+    MotionSceneUtils.deleteRelatedConstraintSets(motionScene,"button29");
+    String str = "\n" +
+                 "<MotionScene\n" +
+                 "   xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "   xmlns:motion=\"http://schemas.android.com/apk/res-auto\" >\n" +
+                 "\n" +
+                 "  <Transition\n" +
+                 "     motion:constraintSetEnd=\"@+id/end\"\n" +
+                 "     motion:constraintSetStart=\"@id/start\"\n" +
+                 "     motion:duration=\"1000\" >\n" +
+                 "\n" +
+                 "    <KeyFrameSet />\n" +
+                 "  </Transition>\n" +
+                 "\n" +
+                 "  <ConstraintSet\n" +
+                 "     android:id=\"@+id/start\" />\n" +
+                 "\n" +
+                 "  <ConstraintSet\n" +
+                 "     android:id=\"@+id/end\" >\n" +
+                 "\n" +
+                 "    <Constraint\n" +
+                 "       android:id=\"@+id/move\"\n" +
+                 "       motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "       motion:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "       android:layout_height=\"wrap_content\"\n" +
+                 "       android:layout_marginLeft=\"216dp\"\n" +
+                 "       android:layout_marginStart=\"216dp\"\n" +
+                 "       android:layout_marginTop=\"76dp\"\n" +
+                 "       android:layout_width=\"wrap_content\" />\n" +
+                 "  </ConstraintSet>\n" +
+                 "</MotionScene>\n";
+    assertEquals(str, motionScene.toXmlString());
   }
 }

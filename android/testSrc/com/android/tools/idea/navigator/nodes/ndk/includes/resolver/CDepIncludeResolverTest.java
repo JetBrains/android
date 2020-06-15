@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import org.junit.Test;
 
+import com.android.utils.FileUtils;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class CDepIncludeResolverTest {
   // The main purpose of this test is to catch new package formats added to CDep.
@@ -31,9 +33,9 @@ public class CDepIncludeResolverTest {
   public void exerciseRealWorldExamples() {
     for (ResolverTests.ResolutionResult resolved : ResolverTests.resolveAllRealWorldExamples(new CDepIncludeResolver())) {
       if (resolved.myResolution == null) {
-        assertThat(resolved.myOriginalPath).doesNotContain(".zip/");
+        assertThat(FileUtils.toSystemIndependentPath(resolved.myOriginalPath)).doesNotContain(".zip/");
       } else {
-        assertThat(resolved.myOriginalPath).contains(".zip/");
+        assertThat(FileUtils.toSystemIndependentPath(resolved.myOriginalPath)).contains(".zip/");
       }
     }
   }
@@ -50,7 +52,7 @@ public class CDepIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("mathfu");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/com.github.jomof/mathfu/1.1.0-rev3/mathfu-headers.zip/include/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/jomof/.cdep/exploded");
   }
 
@@ -66,7 +68,7 @@ public class CDepIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("firebase/app");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/com.github.jomof/firebase/app/2.1.3-rev22/firebase-app-header.zip/include/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/jomof/.cdep/exploded");
   }
 }

@@ -16,12 +16,14 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Action;
 import javax.swing.GroupLayout;
@@ -54,9 +56,10 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
   }
 
   private void initTable() {
-    myTable = new SelectDeploymentTargetsDialogTable();
+    List<Device> devices = ServiceManager.getService(myProject, AsyncDevicesGetter.class).get();
 
-    myTable.setModel(new SelectDeploymentTargetsDialogTableModel(myProject, myTable));
+    myTable = new SelectDeploymentTargetsDialogTable();
+    myTable.setModel(new SelectDeploymentTargetsDialogTableModel(devices, myTable));
     myTable.getSelectionModel().addListSelectionListener(event -> getOKAction().setEnabled(myTable.getSelectedRowCount() != 0));
 
     String[] array = PropertiesComponent.getInstance(myProject).getValues(SELECTED_DEVICES);
@@ -108,6 +111,13 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
 
     myOKAction.setEnabled(false);
     myOKAction.putValue(Action.NAME, "Run");
+  }
+
+  @NotNull
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    assert myTable != null;
+    return myTable;
   }
 
   @Override

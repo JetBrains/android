@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
@@ -26,12 +25,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class JavaModelImpl extends BaseCompileOptionsModelImpl implements JavaModel {
   public JavaModelImpl(@NotNull JavaDslElement dslElement) {
-    super(dslElement, true);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  JavaDslElement getGradleDslElement() {
-    return (JavaDslElement)myDslElement;
+    super(dslElement);
   }
 }

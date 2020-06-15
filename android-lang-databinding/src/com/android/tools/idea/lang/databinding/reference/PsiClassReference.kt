@@ -24,7 +24,7 @@ import com.intellij.psi.util.PsiTypesUtil
 /**
  * Reference that refers to a [PsiClass]
  */
-internal class PsiClassReference(element: PsiElement, resolveTo: PsiClass, override val isStatic: Boolean)
+internal class PsiClassReference(element: PsiElement, resolveTo: PsiClass, override val memberAccess: PsiModelClass.MemberAccess)
   : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass
     get() = PsiModelClass(PsiTypesUtil.getClassType(resolve() as PsiClass), DataBindingMode.fromPsiElement(element))

@@ -19,6 +19,7 @@ import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -80,7 +81,7 @@ final class GuiPerfLogger extends TestWatcher {
       myMetric.addSamples(myTimeBenchmark, new MetricSample(Instant.now().toEpochMilli(), myElapsedTime));
 
       myMetric.commit();
-    });
+    }, ModalityState.any());
   }
 
   private void logHeapUsageSample() {

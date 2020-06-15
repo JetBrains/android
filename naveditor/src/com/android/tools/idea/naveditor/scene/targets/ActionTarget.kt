@@ -16,11 +16,13 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineDrawRect
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.ActionType
@@ -30,10 +32,7 @@ import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
 import com.android.tools.idea.naveditor.scene.selfActionPoints
-import java.awt.geom.Rectangle2D
-
-private val SOURCE_RECT = Rectangle2D.Float()
-private val DEST_RECT = Rectangle2D.Float()
+import org.intellij.lang.annotations.JdkConstants
 
 /**
  * An Action in the navigation editor
@@ -57,24 +56,26 @@ class ActionTarget(component: SceneComponent,
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {}
 
-  override fun addHit(transform: SceneContext, picker: ScenePicker) {
-    val source = Coordinates.getSwingRectDip(transform, sourceComponent.fillDrawRect2D(0, SOURCE_RECT))
+  override fun addHit(transform: SceneContext,
+                      picker: ScenePicker,
+                      @JdkConstants.InputEventMask modifiersEx: Int) {
+    val source = sourceComponent.inlineDrawRect(transform)
     val isPopAction = myComponent.nlComponent.popUpTo != null
-    var iconRect: Rectangle2D.Float? = null
+    var iconRect: SwingRectangle? = null
+    val scale = transform.inlineScale
 
     if (actionType === ActionType.SELF) {
-      @SwingCoordinate val points = selfActionPoints(source, transform.scale.toFloat())
+      @SwingCoordinate val points = selfActionPoints(source, scale)
       for (i in 1 until points.size) {
         picker.addLine(this, 0, points[i - 1].x.toInt(), points[i - 1].y.toInt(), points[i].x.toInt(), points[i].y.toInt(), 5)
       }
 
       if (isPopAction) {
-        iconRect = getSelfActionIconRect(points[0], transform.scale.toFloat())
+        iconRect = getSelfActionIconRect(points[0], scale)
       }
     }
     else {
-      val scale = transform.scale.toFloat()
-      val dest = Coordinates.getSwingRectDip(transform, destComponent.fillDrawRect2D(0, DEST_RECT))
+      val dest = destComponent.inlineDrawRect(transform)
       val (p1, p2, p3, p4) = getCurvePoints(source, dest, scale)
       picker.addCurveTo(this, 0, p1.x.toInt(), p1.y.toInt(), p2.x.toInt(), p2.y.toInt(), p3.x.toInt(), p3.y.toInt(),
                         p4.x.toInt(), p4.y.toInt(), 10)

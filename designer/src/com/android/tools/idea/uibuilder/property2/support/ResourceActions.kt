@@ -33,7 +33,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListene
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.actionSystem.AnAction
@@ -91,7 +91,6 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
   }
 
   private fun selectFromResourceDialog(property: NelePropertyItem): String? {
-    val module = property.model.facet.module
     val propertyName = property.name
     val tag = property.components.firstOrNull()?.backend?.tag ?: return null
     val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
@@ -99,16 +98,16 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val isImageViewDrawable = hasImageTag.isPresent &&
                               (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
     val showSampleData = SdkConstants.TOOLS_URI == property.namespace
-    val dialog: ResourcePickerDialog = createResourcePickerDialog(dialogTitle = PICK_A_RESOURCE,
-                                                                  currentValue = property.rawValue,
-                                                                  facet = property.model.facet,
-                                                                  resourceTypes = property.type.resourceTypes,
-                                                                  defaultResourceType = defaultResourceType,
-                                                                  showColorStateLists = !isImageViewDrawable,
-                                                                  showSampleData = showSampleData,
-                                                                  file = tag.containingFile.virtualFile,
-                                                                  xmlFile = null,
-                                                                  tag = tag)
+    val dialog: ResourcePickerDialog = createResourcePickerDialog(
+      dialogTitle = PICK_A_RESOURCE,
+      currentValue = property.rawValue,
+      facet = property.model.facet,
+      resourceTypes = property.type.resourceTypes,
+      defaultResourceType = defaultResourceType,
+      showColorStateLists = !isImageViewDrawable,
+      showSampleData = showSampleData,
+      file = tag.containingFile.virtualFile
+    )
     return if (dialog.showAndGet()) dialog.resourceName else null
   }
 
@@ -176,7 +175,7 @@ object ColorSelectionAction: AnAction("Select Color") {
       .build()
 
     val popupContent: JComponent
-    val configuration = property.model.surface?.configuration
+    val configuration = property.model.surface?.focusedSceneView?.configuration ?: property.model.surface?.configurations?.firstOrNull()
     if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && configuration != null) {
       // Use tabbed panel instead.
       val resourcePicker = ColorResourcePicker(configuration, resourceReference)

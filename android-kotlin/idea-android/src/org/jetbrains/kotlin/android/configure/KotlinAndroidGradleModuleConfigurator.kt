@@ -48,9 +48,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
-    fun getKotlinAndroidExtensionsExpression(forKotlinDsl: Boolean): String =
-        if (forKotlinDsl) "kotlin(\"android.extensions\")" else "id 'org.jetbrains.kotlin.android.extensions' "
-
     override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
         val manipulator = getManipulator(file, false)
         val module = ModuleUtil.findModuleForPsiElement(file)?: return false
@@ -73,14 +70,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
                     version,
                     jvmTarget
             )
-            manipulator.configureModuleBuildScript(
-              KOTLIN_ANDROID_EXTENSIONS,
-              getKotlinAndroidExtensionsExpression(file.isKtDsl()),
-              getStdlibArtifactName(sdk, version),
-              version,
-              null
-            )
-
         }
     }
 
@@ -131,8 +120,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         private const val NAME = "android-gradle"
 
         private const val KOTLIN_ANDROID = "kotlin-android"
-
-        private const val KOTLIN_ANDROID_EXTENSIONS = "kotlin-android-extensions"
 
         private const val ANDROIDX_CORE_GROUP = "androidx.core"
         private const val CORE_KTX = "core-ktx"

@@ -27,6 +27,7 @@ import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.ptable2.item.createModel
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.testing.RunWithTestFocusManager
 import com.android.tools.property.testing.SwingFocusRule
@@ -38,6 +39,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.AWTEvent
+import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
@@ -71,7 +73,8 @@ class PTableImplTest {
     UIManager.put("TextField.caretBlinkRate", 0)
 
     editorProvider = SimplePTableCellEditorProvider()
-    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")),
+    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"),
+                        Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
                         Item("new"))
     table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!)
   }
@@ -135,10 +138,11 @@ class PTableImplTest {
   fun testFilterWithExpandedParentMatch() {
     table!!.filter = "eis"
     table!!.model.expand(4)
-    assertThat(table!!.rowCount).isEqualTo(3)
+    assertThat(table!!.rowCount).isEqualTo(4)
     assertThat(table!!.item(0).name).isEqualTo("weiss")
     assertThat(table!!.item(1).name).isEqualTo("siphon")
     assertThat(table!!.item(2).name).isEqualTo("extra")
+    assertThat(table!!.item(3).name).isEqualTo("flower")
   }
 
   @Test
@@ -154,21 +158,21 @@ class PTableImplTest {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.END)
-    assertThat(table!!.selectedRow).isEqualTo(7)
+    assertThat(table!!.selectedRow).isEqualTo(8)
   }
 
   @Test
   fun testExpandAction() {
     table!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.RIGHT)
-    assertThat(table!!.rowCount).isEqualTo(8)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test
   fun testExpandActionWithNumericKeyboard() {
     table!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.NUM_RIGHT)
-    assertThat(table!!.rowCount).isEqualTo(8)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test
@@ -191,7 +195,7 @@ class PTableImplTest {
   fun enterExpandsClosedGroup() {
     table!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.rowCount).isEqualTo(8)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test
@@ -277,9 +281,9 @@ class PTableImplTest {
   @Test
   fun startNextEditorWhenAtEndOfTable() {
     table!!.model.expand(4)
-    table!!.setRowSelectionInterval(7, 7)
+    table!!.setRowSelectionInterval(8, 8)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(table!!.editingRow).isEqualTo(8)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
     assertThat(table!!.startNextEditor()).isFalse()
@@ -296,7 +300,9 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(6)
     assertThat(model!!.editedItem).isEqualTo((model!!.items[4] as PTableGroupItem).children[1])
     assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(table!!.startNextEditor()).isTrue()
+    assertThat(table!!.editingRow).isEqualTo(8)
+    assertThat(table!!.item(8).name).isEqualTo("new")
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
@@ -342,6 +348,16 @@ class PTableImplTest {
   }
 
   @Test
+  fun typingSpaceDoesNotStartEditing() {
+    table!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, ' ')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(model!!.editedItem).isNull()
+  }
+
+  @Test
   fun typingIsNoopIfNeitherNameNorValueIsEditable() {
     table!!.setRowSelectionInterval(2, 2)
     val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
@@ -360,6 +376,22 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+  }
+
+  @Test
+  fun resizeRowHeight() {
+    table!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(5)
+    val editor = table!!.editorComponent as SimpleEditorComponent
+    editor.preferredSize = Dimension(400, 400)
+    editor.updateRowHeight()
+    assertThat(table!!.getRowHeight(5)).isEqualTo(400)
+    editor.preferredSize = Dimension(400, 800)
+    editor.updateRowHeight()
+    assertThat(table!!.getRowHeight(5)).isEqualTo(800)
   }
 
   @Test
@@ -382,7 +414,7 @@ class PTableImplTest {
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
 
     table!!.tableChanged(TableModelEvent(table!!.model))
-    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(table!!.editingRow).isEqualTo(0)
   }
 
   @Test
@@ -435,6 +467,19 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(focusRule.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
+  }
+
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateForwardsIntoReadOnlyTable() {
+    model!!.readOnly = true
+    val panel = createPanel()
+    panel.components[0].transferFocus()
+    assertThat(table!!.isEditing).isFalse()
+    assertThat(table!!.selectedRow).isEqualTo(0)
+    assertThat(focusRule.focusOwner?.name).isEqualTo(TABLE_NAME)
+    focusRule.focusOwner?.transferFocus()
+    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
   @RunWithTestFocusManager
@@ -507,6 +552,39 @@ class PTableImplTest {
     assertThat(focusRule.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
   }
 
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateBackwardsIntoReadOnlyTable() {
+    model!!.readOnly = true
+    val panel = createPanel()
+    panel.components[2].transferFocusBackward()
+    assertThat(table!!.isEditing).isFalse()
+    assertThat(table!!.selectedRow).isEqualTo(5)
+    assertThat(focusRule.focusOwner?.name).isEqualTo(TABLE_NAME)
+    focusRule.focusOwner?.transferFocus()
+    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
+  }
+
+  @Test
+  fun testDepth() {
+    table!!.model.expand(4)
+    table!!.model.expand(7)
+    assertThat(table!!.rowCount).isEqualTo(10)
+    assertThat(table!!.depth(table!!.item(0))).isEqualTo(0)
+    assertThat(table!!.depth(table!!.item(5))).isEqualTo(1)
+    assertThat(table!!.depth(table!!.item(8))).isEqualTo(2)
+  }
+
+  @Test
+  fun testToggle() {
+    table!!.toggle(table!!.item(4) as PTableGroupItem)
+    assertThat(table!!.rowCount).isEqualTo(9)
+    table!!.toggle(table!!.item(7) as PTableGroupItem)
+    assertThat(table!!.rowCount).isEqualTo(10)
+    table!!.toggle(table!!.item(4) as PTableGroupItem)
+    assertThat(table!!.rowCount).isEqualTo(6)
+  }
+
   private fun createPanel(): JPanel {
     val panel = JPanel()
     panel.isFocusCycleRoot = true
@@ -539,7 +617,7 @@ class PTableImplTest {
     var cancelCount = 0
     var refreshCount = 0
 
-    override val editorComponent = JPanel()
+    override val editorComponent = SimpleEditorComponent()
     val textEditor = JTextField()
     val icon = JBLabel()
 
@@ -575,6 +653,11 @@ class PTableImplTest {
     override fun refresh() {
       refreshCount++
     }
+  }
+
+  private class SimpleEditorComponent: JPanel(), PTableVariableHeightCellEditor {
+    override var isCustomHeight = false
+    override var updateRowHeight = {}
   }
 
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {

@@ -15,37 +15,41 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingRoundRectangle
+import com.android.tools.adtui.common.SwingStroke
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
-import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
 import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
 
 class DrawNestedGraphTest : NavTestCase() {
   fun testDrawNestedGraph() {
-    val rect = Rectangle2D.Float(10f, 20f, 30f, 40f)
-    val scale = 1.5f
+    val rect = SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f))
+    val scale = Scale(1.5)
     val frameColor = Color.RED
-    val frameThickness = 1f
+    val frameThickness = SwingLength(1f)
     val text = "text"
     val textColor = Color.BLUE
 
     val drawNestedNavigation = DrawNestedGraph(rect, scale, frameColor, frameThickness, text, textColor)
 
-    val rectangle = Rectangle2D.Float(rect.x, rect.y, rect.width, rect.height)
+    val rectangle = SwingRectangle(rect.x, rect.y, rect.width, rect.height)
     val arcSize = NAVIGATION_ARC_SIZE * scale
-    val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
+    val roundRectangle = SwingRoundRectangle(rectangle, arcSize, arcSize)
     val font = regularFont(scale, Font.BOLD)
 
     assertEquals(3, drawNestedNavigation.commands.size)
-    assertDrawCommandsEqual(FillShape(roundRectangle, COMPONENT_BACKGROUND), drawNestedNavigation.commands[0])
-    assertDrawCommandsEqual(DrawShape(roundRectangle, frameColor, BasicStroke(frameThickness)), drawNestedNavigation.commands[1])
+    assertDrawCommandsEqual(FillShape(roundRectangle.value, COMPONENT_BACKGROUND), drawNestedNavigation.commands[0])
+    assertDrawCommandsEqual(DrawShape(roundRectangle.value, frameColor, SwingStroke(frameThickness)), drawNestedNavigation.commands[1])
     assertEquals(drawNestedNavigation.commands[2], DrawTruncatedText(2, text, rectangle, textColor, font, true))
   }
 }

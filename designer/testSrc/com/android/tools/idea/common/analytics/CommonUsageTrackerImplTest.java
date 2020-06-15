@@ -48,7 +48,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
 
     return new CommonUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override
-      boolean shouldLog() {
+      boolean shouldLog(int percentage) {
         // Log everything in tests
         return true;
       }
@@ -95,7 +95,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(result.getLogger()).thenReturn(logger);
     when(result.getModule()).thenReturn(new MockModule(getProject(), getTestRootDisposable()));
 
-    tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, 230);
+    tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, 230, false);
     AndroidStudioEvent studioEvent = getLastLogUsage();
     LayoutEditorRenderResult loggedResult = studioEvent.getLayoutEditorEvent().getRenderResult();
     assertThat(loggedResult.getResultCode()).isEqualTo(Result.Status.SUCCESS.ordinal());

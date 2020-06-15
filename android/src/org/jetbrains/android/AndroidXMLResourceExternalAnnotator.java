@@ -83,7 +83,12 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
 
   @Nullable
   private static FileAnnotationInfo.AnnotatableElement getAnnotatableElement(@NotNull String value, @NotNull XmlElement element) {
-    if (value.isEmpty() || (value.charAt(0) != '@' && value.charAt(0) != '#')) {
+    value = value.trim();
+    if (value.isEmpty()) {
+      return null;
+    }
+
+    if (value.charAt(0) != '@' && value.charAt(0) != '#') {
       return null;
     }
     ResourceUrl resourceUrl = ResourceUrl.parse(value);

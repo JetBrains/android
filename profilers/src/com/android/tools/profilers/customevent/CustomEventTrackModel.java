@@ -15,22 +15,70 @@
  */
 package com.android.tools.profilers.customevent;
 
+import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Track model for the Custom Event Visualization.
  */
 public class CustomEventTrackModel {
-  private final LineChartModel myLineChartModel;
+  @NotNull private final UserCounterModel myLineChartModel;
+  @NotNull private final AxisComponentModel myAxisComponentModel;
+  @NotNull private final Legends myLegends;
 
-  public CustomEventTrackModel() {
-    //currently an empty model
-    myLineChartModel = new LineChartModel();
+  public CustomEventTrackModel(UserCounterModel userCounterModel, Range dataRange) {
+    myLineChartModel = userCounterModel;
 
-    // TODO: add tooltip, legend, and axis models
+    // Resizable axis that will adjust to the range of the user's event.
+    myAxisComponentModel =
+      new ResizingAxisComponentModel.Builder(myLineChartModel.getUsageRange(), new SingleUnitAxisFormatter(1, 5, 5, ""))
+        .build();
+
+    myLegends = new Legends(myLineChartModel, dataRange);
+
+    // TODO: add tooltip (b/139199653) model
   }
 
   @NotNull
   public LineChartModel getLineChartModel() { return myLineChartModel; }
+
+  @NotNull
+  public AxisComponentModel getAxisComponentModel() {
+    return myAxisComponentModel;
+  }
+
+  @NotNull
+  public CustomEventTrackModel.Legends getLegends() {
+    return myLegends;
+  }
+
+  @NotNull
+  public String getName() {
+    return myLineChartModel.getEventName();
+  }
+
+  public static class Legends extends LegendComponentModel {
+
+    @NotNull
+    private final SeriesLegend myTrackLegend;
+
+    public Legends(@NotNull LineChartModel usage, @NotNull Range range) {
+      super(range);
+      myTrackLegend =
+        new SeriesLegend(usage.getSeries().get(0), new SingleUnitAxisFormatter(1, 5, 10, ""), range, Interpolatable.SegmentInterpolator);
+      add(myTrackLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getTrackLegend() {
+      return myTrackLegend;
+    }
+  }
 }

@@ -15,17 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.impl.ToolWindowImpl;
+import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.content.Content;
+import java.awt.Point;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.fest.swing.core.ComponentMatcher;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-
 public class BuildToolWindowFixture extends ToolWindowFixture {
+
   BuildToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
     super(ToolWindowId.BUILD, project, robot);
   }
@@ -37,6 +48,12 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   public ConsoleViewImpl getGradleSyncConsoleView() {
     Content syncContent = getContent("Sync");
     return myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
+  }
+
+  @NotNull
+  public ConsoleViewImpl getGradleBuildConsoleView() {
+    Content buildContent = getContent("Build Output");
+    return myRobot.finder().findByType(buildContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
   }
 
   /**
@@ -54,19 +71,82 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
     // Find click point in the middle of text area.
     int offsetOfHyperlink = content.indexOf(hyperlinkText) + hyperlinkText.length() / 2;
-    Point clickPoint = GuiQuery.getNonNull(() -> consoleView.getEditor().offsetToXY(offsetOfHyperlink));
-
+    Point clickPoint = GuiQuery.getNonNull(() -> {
+      Point point = consoleView.getEditor().offsetToXY(offsetOfHyperlink);
+      point.translate(0, -consoleView.getEditor().getScrollingModel().getVerticalScrollOffset());
+      return point;
+    });
     // Click the hyperlink.
     myRobot.click(consoleView, clickPoint);
   }
 
   /**
    * Get the text of content of the sync console view
+   *
    * @return
    */
   public String getSyncConsoleViewText() {
     Content syncContent = getContent("Sync");
     ConsoleViewImpl consoleView = myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
     return consoleView.getText();
+  }
+
+  private ToolWindowContentUi getContentUI() {
+    return ((ToolWindowImpl)myToolWindow).getContentUI();
+  }
+
+  public void waitTabExist(@NotNull String displayName) {
+    ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
+    GuiTests.waitUntilShowing(myRobot, getContentUI(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull BaseLabel component) {
+        return matcher.matches(component);
+      }
+    }, 10);
+  }
+
+  public void waitTabNotExist(@NotNull String displayName) {
+    ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
+    GuiTests.waitUntilGone(myRobot, getContentUI(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull BaseLabel component) {
+        return matcher.matches(component);
+      }
+    }, 10);
+  }
+
+  public BuildAttributionViewFixture waitTabOpened(@NotNull String displayName) {
+    JComponent contentComponent = getContent(displayName).getComponent();
+    Wait.seconds(10).expecting("Build tab '" + displayName + "' to be visible")
+      .until(contentComponent::isVisible);
+    return new BuildAttributionViewFixture(myRobot, (JPanel)contentComponent);
+  }
+
+  private void clickTab(@NotNull String name) {
+    ContentTabLabelFixture buildSpeedTab =
+      ContentTabLabelFixture.findByText(myRobot, getContentUI(), name, 3);
+    buildSpeedTab.click();
+  }
+
+  private void clickCloseTab(@NotNull String name) {
+    ContentTabLabelFixture buildSpeedTab =
+      ContentTabLabelFixture.findByText(myRobot, getContentUI(), name, 3);
+    buildSpeedTab.close();
+  }
+
+  public BuildAttributionViewFixture openBuildAttributionUsingTabHeaderClick() {
+    clickTab("Build Analyzer");
+    return waitTabOpened("Build Analyzer");
+  }
+
+  public BuildAttributionViewFixture openBuildAttributionUsingBuildOutputLink() {
+    findHyperlinkByTextAndClick(getGradleBuildConsoleView(), "Build Analyzer");
+    waitTabExist("Build Analyzer");
+    return waitTabOpened("Build Analyzer");
+  }
+
+  public void closeBuildAttributionTab() {
+    clickCloseTab("Build Analyzer");
+    waitTabNotExist("Build Analyzer");
   }
 }

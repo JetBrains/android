@@ -18,16 +18,29 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement {
-  @NonNls public static final String PRODUCT_FLAVORS_BLOCK_NAME = "productFlavors";
+public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
+  public static final PropertiesElementDescription<ProductFlavorsDslElement> PRODUCT_FLAVORS =
+    new PropertiesElementDescription<>("productFlavors", ProductFlavorsDslElement.class, ProductFlavorsDslElement::new);
 
-  public ProductFlavorsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, PRODUCT_FLAVORS_BLOCK_NAME);
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return ProductFlavorDslElement.PRODUCT_FLAVOR;
+  }
+
+  @Override
+  public boolean implicitlyExists(@NotNull String name) {
+    return false;
+  }
+
+  public ProductFlavorsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @NotNull

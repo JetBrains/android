@@ -15,15 +15,35 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.productFlavors;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
-
 public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement {
-  public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD_BLOCK_NAME));
+  public static final PropertiesElementDescription<ExternalNativeBuildOptionsDslElement> EXTERNAL_NATIVE_BUILD_OPTIONS =
+    new PropertiesElementDescription<>(
+      "externalNativeBuild", ExternalNativeBuildOptionsDslElement.class, ExternalNativeBuildOptionsDslElement::new);
+
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"cmake", CMakeOptionsDslElement.CMAKE_OPTIONS},
+    {"ndkBuild", NdkBuildOptionsDslElement.NDK_BUILD_OPTIONS},
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
+  public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

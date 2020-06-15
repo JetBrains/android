@@ -82,6 +82,18 @@ public final class ObjectPropertyTest {
     }
   }
 
+  @Test
+  public void testEnumerationPropertyWorksAsExpected() {
+    ObjectProperty<TestEnum> enumProperty1 = new EnumValueProperty<>(TestEnum.class);
+    ObjectProperty<TestEnum> enumProperty2 = new EnumValueProperty<>(TestEnum.SECOND_VALUE);
+
+    assertThat(enumProperty1.get()).isEqualTo(TestEnum.FIRST_VALUE);
+    assertThat(enumProperty2.get()).isEqualTo(TestEnum.SECOND_VALUE);
+
+    enumProperty1.set(enumProperty2);
+    assertThat(enumProperty1.get()).isEqualTo(TestEnum.SECOND_VALUE);
+  }
+
   private static class Person {
     private String myName;
     private int myAge;
@@ -103,6 +115,11 @@ public final class ObjectPropertyTest {
     public int hashCode() {
       return Objects.hashCode(myName, myAge);
     }
+  }
+
+  private enum TestEnum {
+    FIRST_VALUE,
+    SECOND_VALUE,
   }
 }
 

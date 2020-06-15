@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 @file:JvmName("DataBindingLangUtil")
+
 package com.android.tools.idea.lang.databinding
 
-import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.index.BindingXmlIndex
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 
 const val JAVA_LANG = "java.lang."
@@ -45,3 +47,14 @@ fun getBindingIndexEntry(element: PsiElement): BindingXmlIndex.Entry? {
   }
   return null
 }
+
+/**
+ * Return a search scope that includes this module's R resources, or null if that scope is not found given
+ * the calling [PsiElement]
+ *
+ * This method should only be called within a data binding expression,
+ * as its containing layout file is guaranteed to be two folders below
+ * its parent 'res/' folder.
+ */
+val PsiElement.resolveScopeWithResources: GlobalSearchScope?
+  get() = containingFile.context?.containingFile?.containingDirectory?.resolveScope

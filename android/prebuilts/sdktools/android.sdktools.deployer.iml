@@ -11,10 +11,10 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="deploy-java-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:26.6.0.3" />
+      <library name="deploy_java_proto" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/26.6.0.3/deploy_java_proto-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/27.0.0.0/deploy_java_proto-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -22,20 +22,20 @@
     </orderEntry>
     <orderEntry type="library" exported="" name="protobuf" level="project" />
     <orderEntry type="module-library">
-      <library name="r8-master" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:r8-master:26.6.0.3" />
+      <library name="r8" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:r8:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/r8-master/26.6.0.3/r8-master-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/r8/27.0.0.0/r8-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="deploy-java-version" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:26.6.0.3" />
+      <library name="libjava_version" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:27.0.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/26.6.0.3/libjava_version-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/27.0.0.1/libjava_version-27.0.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -47,12 +47,33 @@
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="fake_device_proto" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:fake_device_proto:27.0.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/fake_device_proto/27.0.0.0/fake_device_proto-27.0.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.zipflinger" scope="TEST" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-deployer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deployer:26.6.0.3" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deployer/26.6.0.3/deployer-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer/27.0.0.0/studio.android.sdktools.deployer-27.0.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="precompiled-deployer-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer_test:27.0.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer_test/27.0.0.0/studio.android.sdktools.deployer_test-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

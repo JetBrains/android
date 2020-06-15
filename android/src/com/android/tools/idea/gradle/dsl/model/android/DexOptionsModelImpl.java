@@ -23,14 +23,14 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DexOptionsModelImpl extends GradleDslBlockModel implements DexOptionsModel {
-  @NonNls private static final String ADDITIONAL_PARAMETERS = "additionalParameters";
-  @NonNls private static final String JAVA_MAX_HEAP_SIZE = "javaMaxHeapSize";
-  @NonNls private static final String JUMBO_MODE = "jumboMode";
-  @NonNls private static final String KEEP_RUNTIME_ANNOTATED_CLASSES = "keepRuntimeAnnotatedClasses";
-  @NonNls private static final String MAX_PROCESS_COUNT = "maxProcessCount";
-  @NonNls private static final String OPTIMIZE = "optimize";
-  @NonNls private static final String PRE_DEX_LIBRARIES = "preDexLibraries";
-  @NonNls private static final String THREAD_COUNT = "threadCount";
+  @NonNls public static final String ADDITIONAL_PARAMETERS = "mAdditionalParameters";
+  @NonNls public static final String JAVA_MAX_HEAP_SIZE = "mJavaMaxHeapSize";
+  @NonNls public static final String JUMBO_MODE = "mJumboMode";
+  @NonNls public static final String KEEP_RUNTIME_ANNOTATED_CLASSES = "mKeepRuntimeAnnotatedClasses";
+  @NonNls public static final String MAX_PROCESS_COUNT = "mMaxProcessCount";
+  @NonNls public static final String OPTIMIZE = "mOptimize";
+  @NonNls public static final String PRE_DEX_LIBRARIES = "mPreDexLibraries";
+  @NonNls public static final String THREAD_COUNT = "mThreadCount";
 
   public DexOptionsModelImpl(@NotNull DexOptionsDslElement dslElement) {
     super(dslElement);
@@ -39,48 +39,48 @@ public class DexOptionsModelImpl extends GradleDslBlockModel implements DexOptio
   @Override
   @NotNull
   public ResolvedPropertyModel additionalParameters() {
-    return getModelForProperty(ADDITIONAL_PARAMETERS, true);
+    return getModelForProperty(ADDITIONAL_PARAMETERS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel javaMaxHeapSize() {
-    return getModelForProperty(JAVA_MAX_HEAP_SIZE, true);
+    return getModelForProperty(JAVA_MAX_HEAP_SIZE);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel jumboMode() {
-    return getModelForProperty(JUMBO_MODE, true);
+    return getModelForProperty(JUMBO_MODE);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel keepRuntimeAnnotatedClasses() {
-    return getModelForProperty(KEEP_RUNTIME_ANNOTATED_CLASSES, true);
+    return getModelForProperty(KEEP_RUNTIME_ANNOTATED_CLASSES);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel maxProcessCount() {
-    return getModelForProperty(MAX_PROCESS_COUNT, true);
+    return getModelForProperty(MAX_PROCESS_COUNT);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel optimize() {
-    return getModelForProperty(OPTIMIZE, true);
+    return getModelForProperty(OPTIMIZE);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel preDexLibraries() {
-    return getModelForProperty(PRE_DEX_LIBRARIES, true);
+    return getModelForProperty(PRE_DEX_LIBRARIES);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel threadCount() {
-    return getModelForProperty(THREAD_COUNT, true);
+    return getModelForProperty(THREAD_COUNT);
   }
 }

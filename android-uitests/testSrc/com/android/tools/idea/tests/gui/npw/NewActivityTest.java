@@ -44,7 +44,6 @@ public class NewActivityTest {
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
   private static final String DEFAULT_LAYOUT_NAME = "activity_main";
-  private static final String DEFAULT_ACTIVITY_TITLE = "MainActivity";
 
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -68,7 +67,7 @@ public class NewActivityTest {
     );
 
     invokeNewActivityMenu();
-    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME);
     assertThat(getSavedKotlinSupport()).isFalse();
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
   }
@@ -119,8 +118,7 @@ public class NewActivityTest {
     myEditor
       .open("app/build.gradle")
       .moveBetween("apply plugin: 'kotlin-android'", "")
-      .moveBetween("apply plugin: 'kotlin-android-extensions'", "")
-      .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_", "version")
+      .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib:$kotlin_", "version")
       .enterText("my_")
       .open("build.gradle")
       .moveBetween("kotlin_", "version")
@@ -143,7 +141,7 @@ public class NewActivityTest {
   public void changeActivityName() {
     // Changing "Activity Name" causes "Title" and "Layout Name" to change
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest");
-    assertTextFieldValues("MainActivityTest", "activity_main_test", "MainActivityTest");
+    assertTextFieldValues("MainActivityTest", "activity_main_test");
 
     myDialog.clickFinish();
 
@@ -159,16 +157,7 @@ public class NewActivityTest {
   public void changeLayoutName() {
     // Changing "Layout Name" causes "Activity Name" and "Title" to change
     myConfigActivity.enterTextFieldValue(ActivityTextField.LAYOUT, "activity_main_test1");
-    assertTextFieldValues("MainTest1Activity", "activity_main_test1", "MainTest1Activity");
-
-    myDialog.clickCancel();
-  }
-
-  @Test
-  public void changeTitleName() {
-    // Changing "Title" does not change "Activity Name" or "Layout Name"
-    myConfigActivity.enterTextFieldValue(ActivityTextField.TITLE, "Main Activity Test3");
-    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, "Main Activity Test3");
+    assertTextFieldValues("MainTest1Activity", "activity_main_test1");
 
     myDialog.clickCancel();
   }
@@ -179,7 +168,7 @@ public class NewActivityTest {
     // "Activity Name" should be "locked", changing LAYOUT should not update any other field
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest1");
     myConfigActivity.enterTextFieldValue(ActivityTextField.LAYOUT, "main_activity2");
-    assertTextFieldValues("MainActivityTest1", "main_activity2", "MainActivityTest1");
+    assertTextFieldValues("MainActivityTest1", "main_activity2");
 
     myDialog.clickCancel();
   }
@@ -188,9 +177,8 @@ public class NewActivityTest {
   public void changeActivityThenTitleName() {
     // Changing "Activity Name", then "Title", then "Activity Name" again. "Title" should not update since it's been manually modified.
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest1");
-    myConfigActivity.enterTextFieldValue(ActivityTextField.TITLE, "Main Activity Test3");
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest123");
-    assertTextFieldValues("MainActivityTest123", "activity_main_test123", "Main Activity Test3");
+    assertTextFieldValues("MainActivityTest123", "activity_main_test123");
 
     myDialog.clickCancel();
   }
@@ -223,10 +211,9 @@ public class NewActivityTest {
     myConfigActivity = myDialog.getConfigureActivityStep();
   }
 
-  private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName, @NotNull String title) {
+  private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName) {
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.NAME)).isEqualTo(activityName);
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.LAYOUT)).isEqualTo(layoutName);
-    assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.TITLE)).isEqualTo(title);
   }
 
   private void verifyNewActivityProjectPane(boolean startWithAndroidPane, boolean finish) {

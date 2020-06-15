@@ -16,6 +16,8 @@
 package com.android.tools.adtui.model.trackgroup
 
 enum class TestTrackRendererType {
-  FOO,
-  BAR
+  BOOLEAN,
+  BOOLEAN_SELECTABLE,
+  STRING,
+  STRING_SELECTABLE
 }

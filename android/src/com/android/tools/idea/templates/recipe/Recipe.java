@@ -56,8 +56,13 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "apply", type = ApplyInstruction.class),
     @XmlElement(name = "classpath", type = ClasspathInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
+    @XmlElement(name = "moduleDependency", type = ModuleDependencyInstruction.class),
     @XmlElement(name = "sourceSet", type =  SourceSetInstruction.class),
     @XmlElement(name = "setExtVar", type = SetExtVarInstruction.class),
+    @XmlElement(name = "addIncludeToSettings", type = AddIncludeToSettingsInstruction.class),
+    @XmlElement(name = "setBuildFeature", type = SetBuildFeatureInstruction.class),
+    @XmlElement(name = "requireJavaVersion", type = RequireJavaVersionInstruction.class),
+    @XmlElement(name = "addDynamicFeature", type = AddDynamicFeatureInstruction.class),
   })
   private List<RecipeInstruction> instructions = new ArrayList<>();
 
@@ -221,6 +226,18 @@ public class Recipe implements RecipeInstruction {
     }
   }
 
+  @SuppressWarnings("unused")
+  private static final class AddIncludeToSettingsInstruction implements RecipeInstruction {
+    @XmlAttribute
+    @Nullable
+    private String moduleName;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.addIncludeToSettings(moduleName);
+    }
+  }
+
   @SuppressWarnings({"NullableProblems", "unused"})
   private static final class OpenInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
@@ -280,6 +297,38 @@ public class Recipe implements RecipeInstruction {
     }
   }
 
+  @SuppressWarnings({"NotNullFieldNotInitialized", "unused"})
+  private static final class SetBuildFeatureInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String name;
+
+    @XmlAttribute(required = true)
+    @NotNull
+    private String value;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.setBuildFeature(name, value);
+    }
+  }
+
+  @SuppressWarnings({"NotNullFieldNotInitialized", "unused"})
+  private static final class RequireJavaVersionInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String version;
+
+    @XmlAttribute
+    @Nullable
+    private String kotlinSupport;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.requireJavaVersion(version, kotlinSupport != null ? kotlinSupport : "false");
+    }
+  }
+
 
   @SuppressWarnings({"NullableProblems", "unused"})
   private static final class ClasspathInstruction implements RecipeInstruction {
@@ -306,6 +355,42 @@ public class Recipe implements RecipeInstruction {
     public void execute(@NotNull RecipeExecutor executor) {
       String configuration = MoreObjects.firstNonNull(this.gradleConfiguration, "compile");
       executor.addDependency(configuration, mavenUrl);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class ModuleDependencyInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String name;
+
+    @XmlAttribute(required = true)
+    @NotNull
+    private String to;
+
+    @XmlAttribute
+    private String gradleConfiguration;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      String configuration = MoreObjects.firstNonNull(this.gradleConfiguration, "compile");
+      executor.addModuleDependency(configuration, name, to);
+    }
+  }
+
+  @SuppressWarnings({"NotNullFieldNotInitialized", "unused"})
+  private static final class AddDynamicFeatureInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String name;
+
+    @XmlAttribute(required = true)
+    @NotNull
+    private String to;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.addDynamicFeature(name, to);
     }
   }
 

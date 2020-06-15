@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_NEW_FILE_PATH;
@@ -28,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUI
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
@@ -93,6 +96,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     buildModel.resetState();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     checkForValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_RESET);
   }
 
   @Test
@@ -112,6 +118,8 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class); // empty blocks removed
     checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
@@ -141,6 +149,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     buildModel.resetState();
     assertMissingProperty(cmake.path());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET);
   }
 
   @Test
@@ -158,6 +169,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", "foo/bar", cmake.path());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES_EXPECTED);
     assertEquals("path", "foo/bar", cmake.path());
 
     buildModel.reparse();
@@ -215,6 +227,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     buildModel.resetState();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     checkForValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_RESET);
   }
 
   @Test
@@ -234,6 +249,8 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
@@ -262,6 +279,9 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     buildModel.resetState();
     assertMissingProperty(ndkBuild.path());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET);
   }
 
   @Test
@@ -279,6 +299,8 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertEquals("path", "foo/Android.mk", ndkBuild.path());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED);
+
     assertEquals("path", "foo/Android.mk", ndkBuild.path());
 
     buildModel.reparse();
@@ -298,8 +320,11 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     NdkBuildModel ndkBuildModel = android.externalNativeBuild().ndkBuild();
+    assertEquals("path", "foo/Android.mk", ndkBuildModel.path());
+
     ndkBuildModel.path().setValue("foo/bar/file.txt");
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);

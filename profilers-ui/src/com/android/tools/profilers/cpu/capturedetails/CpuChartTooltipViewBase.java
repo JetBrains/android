@@ -38,18 +38,14 @@ abstract class CpuChartTooltipViewBase extends MouseAdapter {
   @NotNull
   private final JPanel myContent;
 
-  @NotNull
-  protected final CpuProfilerStageView myStageView;
-
-  protected CpuChartTooltipViewBase(@NotNull HTreeChart<CaptureNode> chart, @NotNull CpuProfilerStageView stageView) {
-    myStageView = stageView;
+  protected CpuChartTooltipViewBase(@NotNull HTreeChart<CaptureNode> chart, @NotNull JLayeredPane tooltipRoot) {
     myChart = chart;
 
     myContent = new JPanel(new TabularLayout("*", "*"));
     myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
     myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
 
-    myTooltipComponent = new TooltipComponent.Builder(myContent, chart, myStageView.getProfilersView().getComponent()).build();
+    myTooltipComponent = new TooltipComponent.Builder(myContent, chart, tooltipRoot).build();
     myTooltipComponent.registerListenersOn(chart);
   }
 

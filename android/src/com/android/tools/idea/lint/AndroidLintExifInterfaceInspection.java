@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -29,6 +35,7 @@ import com.android.tools.lint.checks.ExifInterfaceDetector;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,17 +45,18 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.concurrency.SameThreadExecutor;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 
 public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBase {
   private static final AndroidxName NEW_EXIT_INTERFACE = AndroidxName.of("android.support.media.", "ExifInterface");
@@ -59,14 +67,14 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return new AndroidLintQuickFix[]{
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return new LintIdeQuickFix[]{
       new ReplaceExifFix()
     };
   }
 
   private static class ReplaceExifFix extends DefaultLintQuickFix {
-    public ReplaceExifFix() {
+    ReplaceExifFix() {
       super("Update all references in this file");
     }
 
@@ -78,7 +86,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         Project project = module.getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIT_INTERFACE.newName(), GlobalSearchScope.allScope(project));
         if (cls == null) {
-           cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIT_INTERFACE.oldName(), GlobalSearchScope.allScope(project));
+          cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIT_INTERFACE.oldName(), GlobalSearchScope.allScope(project));
         }
         if (cls != null) {
           replaceReferences(getName(), startElement, cls, false);
@@ -86,7 +94,8 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         }
 
         String libraryCoordinate = getExifLibraryCoordinate();
-        boolean useAndroidx = libraryCoordinate != null && libraryCoordinate.startsWith(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE.getMavenGroupId());
+        boolean useAndroidx =
+          libraryCoordinate != null && libraryCoordinate.startsWith(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE.getMavenGroupId());
         // Add dependency first
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         try {
@@ -137,7 +146,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         public void onFailure(@Nullable Throwable t) {
           throw new RuntimeException(t);
         }
-      }, SameThreadExecutor.INSTANCE);
+      }, MoreExecutors.directExecutor());
     }
 
     private static String getExifLibraryCoordinate() {
@@ -164,12 +173,16 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
     /**
      * Replaces the references to the old ExifInterface with the new class name.
-     * @param actionName the name of the action to write the changes
-     * @param element the name of the element to start the search from
-     * @param cls the class to use to replace old instances of ExifInterface. If null, see {@code useAndroid}
+     *
+     * @param actionName  the name of the action to write the changes
+     * @param element     the name of the element to start the search from
+     * @param cls         the class to use to replace old instances of ExifInterface. If null, see {@code useAndroid}
      * @param useAndroidx when {@code cls} is null, this determines whether new references will use the androidx package name
      */
-    private static void replaceReferences(@NotNull String actionName, @NotNull PsiElement element, @Nullable PsiClass cls, boolean useAndroidx) {
+    private static void replaceReferences(@NotNull String actionName,
+                                          @NotNull PsiElement element,
+                                          @Nullable PsiClass cls,
+                                          boolean useAndroidx) {
       new WriteCommandAction(element.getProject(), actionName) {
         @Override
         protected void run(@NotNull Result result) {
@@ -188,8 +201,10 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                       expression.replace(replacement);
                       return;
                     }
-                  } else {
-                    expression.replace(factory.createReferenceFromText(useAndroidx ? NEW_EXIT_INTERFACE.newName() : NEW_EXIT_INTERFACE.oldName(), context));
+                  }
+                  else {
+                    expression.replace(
+                      factory.createReferenceFromText(useAndroidx ? NEW_EXIT_INTERFACE.newName() : NEW_EXIT_INTERFACE.oldName(), context));
                     return;
                   }
                 }

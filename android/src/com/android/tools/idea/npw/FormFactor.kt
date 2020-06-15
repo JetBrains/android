@@ -73,6 +73,15 @@ enum class FormFactor(@JvmField val id: String,
   // Currently all form factors have emulators, but we keep this method to ease introduction of new form factors
   fun hasEmulator(): Boolean = true
 
+  // TODO(qumeric): Probably two classes should be merged
+  fun toTemplateFormFactor() = when(this) {
+    MOBILE -> com.android.tools.idea.wizard.template.FormFactor.Mobile
+    WEAR -> com.android.tools.idea.wizard.template.FormFactor.Wear
+    TV -> com.android.tools.idea.wizard.template.FormFactor.Tv
+    AUTOMOTIVE -> com.android.tools.idea.wizard.template.FormFactor.Automotive
+    THINGS -> com.android.tools.idea.wizard.template.FormFactor.Things
+  }
+
   companion object {
     private val FORM_FACTORS = values().associateBy({ it.id }, { it })
 

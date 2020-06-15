@@ -68,6 +68,7 @@
               </grid>
             </constraints>
             <properties>
+              <name value="httpUser"/>
               <text value=""/>
             </properties>
           </component>
@@ -77,7 +78,9 @@
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpHost"/>
+            </properties>
           </component>
           <component id="302b9" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpProxyExceptions" custom-create="true">
             <constraints>
@@ -85,6 +88,7 @@
             </constraints>
             <properties>
               <dialogCaption value="Proxy exceptions"/>
+              <name value="httpExceptions"/>
             </properties>
           </component>
           <component id="8c286" class="javax.swing.JLabel">
@@ -101,7 +105,9 @@
             <constraints>
               <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpPort"/>
+            </properties>
           </component>
           <component id="c62ae" class="javax.swing.JLabel">
             <constraints>
@@ -176,6 +182,7 @@
               </grid>
             </constraints>
             <properties>
+              <name value="httpsUser"/>
               <text value=""/>
             </properties>
           </component>
@@ -185,7 +192,9 @@
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpsHost"/>
+            </properties>
           </component>
           <component id="7483b" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpsProxyExceptions" custom-create="true">
             <constraints>
@@ -193,6 +202,7 @@
             </constraints>
             <properties>
               <dialogCaption value="Proxy exceptions"/>
+              <name value="httpsExceptions"/>
             </properties>
           </component>
           <component id="add5e" class="javax.swing.JLabel">
@@ -209,7 +219,9 @@
             <constraints>
               <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpsPort"/>
+            </properties>
           </component>
           <component id="b6fbb" class="javax.swing.JLabel">
             <constraints>

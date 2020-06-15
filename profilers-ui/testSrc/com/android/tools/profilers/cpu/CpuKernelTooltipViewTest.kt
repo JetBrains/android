@@ -20,12 +20,12 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profiler.proto.Common
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -67,12 +67,12 @@ class CpuKernelTooltipViewTest {
     profilers.stage = myStage
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
-    myCpuKernelTooltip = CpuKernelTooltip(myStage)
+    myCpuKernelTooltip = CpuKernelTooltip(myStage.timeline, profilers.session.pid)
     myCpuKernelTooltipView = FakeCpuKernelTooltipView(stageView, myCpuKernelTooltip)
     myStage.tooltip = myCpuKernelTooltip
-    stageView.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
-    myRange = stageView.timeline.tooltipRange
-    stageView.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
+    stageView.stage.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
+    myRange = stageView.stage.timeline.tooltipRange
+    stageView.stage.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
   }
 
   @Test
@@ -106,7 +106,7 @@ class CpuKernelTooltipViewTest {
   private class FakeCpuKernelTooltipView(
     view: CpuProfilerStageView,
     tooltip: CpuKernelTooltip
-  ) : CpuKernelTooltipView(view, tooltip) {
+  ) : CpuKernelTooltipView(view.component, tooltip) {
     val tooltipPanel = createComponent()
   }
 }

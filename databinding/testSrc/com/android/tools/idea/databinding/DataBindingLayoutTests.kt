@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.psi.JavaPsiFacade
@@ -215,7 +216,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
       class Model {
         public static void doSomething(MainLayoutBinding binding) {
-          binding.includedLayout.<caret>
+          binding.includedLayout.${caret}
         }
       }
     """.trimIndent())

@@ -15,33 +15,50 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
-import com.intellij.openapi.module.Module;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.google.common.collect.ImmutableList;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.List;
+import javax.swing.JTable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
-
+@RunWith(Parameterized.class)
 public class DynamicFeaturesParametersTest {
-  @Mock Module myApp;
-  @Mock Module myFeature1;
-  @Mock Module myFeature2;
+  @Parameterized.Parameter(0)
+  public boolean featureOnFeatureFlagEnabled = true;
+
+  @Parameterized.Parameters(name = "SUPPORT_FEATURE_ON_FEATURE_DEPS = {0}")
+  public static List<Boolean> paramValues() {
+    return ImmutableList.of(false, true);
+  }
+
+  @Rule
+  public final AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
   @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    when(myApp.getName()).thenReturn("app");
-    when(myFeature1.getName()).thenReturn("feature1");
-    when(myFeature2.getName()).thenReturn("feature2");
+  public void setUp() throws Exception {
+    projectRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
+
+    StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.override(featureOnFeatureFlagEnabled);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+      StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.clearOverride();
   }
 
   @Test
@@ -52,37 +69,130 @@ public class DynamicFeaturesParametersTest {
 
     assertThat(fakeUi.getRoot().isVisible()).isFalse();
     assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();
+    assertThat(parameters.getUndoPanel().isVisible()).isFalse();
   }
 
   @Test
-  public void featureListWorks() {
-    DynamicFeaturesParameters parameters = new DynamicFeaturesParameters();
+  public void showsFeatureListWithEnableDisableCheckboxes() throws Exception {
+    DynamicFeaturesParameters parameters = loadParametersForDynamicApp();
+    FakeUi fakeUi = initializeUi(parameters);
     JTable table = parameters.getTableComponent();
-    table.setUI(new HeadlessTableUI());
 
-    // Initialize UI
+    assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();
+    assertThat(table.getRowCount()).isEqualTo(3); // base, feature1, dependsOnFeature1
+    assertThat(table.getColumnCount()).isEqualTo(3);
+
+    // These will always be sorted by name
+    assertThat(table.getValueAt(0, 1)).isEqualTo("app");
+    assertThat(table.getValueAt(1, 1)).isEqualTo("dependsOnFeature1");
+    assertThat(table.getValueAt(2, 1)).isEqualTo("feature1");
+
+    assertThat(parameters.getUndoPanel().isVisible()).isFalse();
+
+    // Click on first feature
+    clickCheckboxInRow(1, fakeUi, table);
+
+    // Check that the feature is now disabled
+    assertThat(parameters.getDisabledDynamicFeatures()).containsExactly("dependsOnFeature1");
+  }
+
+  @Test
+  public void showsFeatureOnFeatureDependenciesOnlyWhenFlagEnabled() {
+    DynamicFeaturesParameters parameters = loadParametersForDynamicApp();
+    initializeUi(parameters);
+    JTable table = parameters.getTableComponent();
+
+    assertThat(table.getModel().getValueAt(2, 1)).isEqualTo("feature1");
+    String depLabel = (String) table.getValueAt(2, 2);
+    if (featureOnFeatureFlagEnabled) {
+      assertThat(depLabel).isEqualTo("Required by dependsOnFeature1");
+    } else {
+      assertThat(depLabel).isNull();
+    }
+  }
+
+  @Test
+  public void disablesDependentFeaturesAutomaticallyWithUndoOnlyWhenFlagEnabled() {
+    DynamicFeaturesParameters parameters = loadParametersForDynamicApp();
+    FakeUi fakeUi = initializeUi(parameters);
+    JTable table = parameters.getTableComponent();
+
+    // Click on feature1 to uncheck it
+    clickCheckboxInRow(2, fakeUi, table);
+
+    if (featureOnFeatureFlagEnabled) {
+      // dependsOnFeature1 should have been unchecked
+      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly("feature1", "dependsOnFeature1");
+
+      // Check that undo works
+      assertThat(parameters.getUndoPanel().isVisible()).isTrue();
+      assertThat(parameters.getUndoLabel().getText()).isEqualTo("1 module requiring feature1 has been deselected");
+
+      parameters.getUndoLink().doClick();
+
+      assertThat(parameters.getUndoPanel().isVisible()).isFalse();
+      assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();
+
+    } else {
+      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly("feature1");
+      assertThat(parameters.getUndoPanel().isVisible()).isFalse();
+    }
+  }
+
+  @Test
+  public void enablesDependencyFeaturesAutomaticallyWithUndoOnlyWhenFlagEnabled() {
+    DynamicFeaturesParameters parameters = loadParametersForDynamicApp();
+    FakeUi fakeUi = initializeUi(parameters);
+    JTable table = parameters.getTableComponent();
+
+    // Remove all checked features
+    clickCheckboxInRow(1, fakeUi, table);  // Uncheck dependsOnFeature1
+    clickCheckboxInRow(2, fakeUi, table);  // Uncheck feature1
+
+    // Check dependsOnFeature1
+    clickCheckboxInRow(1, fakeUi, table);
+
+    if (featureOnFeatureFlagEnabled) {
+      // feature1 should have been checked
+      assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();
+
+      // Check that undo works
+      assertThat(parameters.getUndoPanel().isVisible()).isTrue();
+      assertThat(parameters.getUndoLabel().getText()).isEqualTo("1 module required by dependsOnFeature1 has been selected");
+      parameters.getUndoLink().doClick();
+
+      assertThat(parameters.getUndoPanel().isVisible()).isFalse();
+      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly("feature1", "dependsOnFeature1");
+    } else {
+      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly("feature1");
+      assertThat(parameters.getUndoPanel().isVisible()).isFalse();
+    }
+  }
+
+
+  private DynamicFeaturesParameters loadParametersForDynamicApp() {
+    projectRule.load(DYNAMIC_APP);
+
+    DynamicFeaturesParameters parameters = new DynamicFeaturesParameters();
+    parameters.setActiveModule(projectRule.getModules().getModule("app"), DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
+
+    return parameters;
+  }
+
+  private FakeUi initializeUi(DynamicFeaturesParameters parameters) {
+    parameters.getTableComponent().setUI(new HeadlessTableUI());
+
     parameters.getComponent().setSize(new Dimension(200, 200));
     FakeUi fakeUi = new FakeUi(parameters.getComponent());
     fakeUi.layout();
-    assertThat(fakeUi.getRoot().isVisible()).isFalse();
-
-    // Add list of features
-    List<Module> features = new ArrayList<>();
-    features.add(myFeature1);
-    features.add(myFeature2);
-    parameters.addFeatureList(features, DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
-
     assertThat(fakeUi.getRoot().isVisible()).isTrue();
-    assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();
-    assertThat(table.getRowCount()).isEqualTo(2);
-    assertThat(table.getColumnCount()).isEqualTo(2);
 
-    // Click on first feature
-    Rectangle checkbox = table.getCellRect(0, 0, true);
-    Point tableLocation = fakeUi.getPosition(table);
-    fakeUi.mouse.click(tableLocation.x + checkbox.width / 2, tableLocation.y + checkbox.height / 2);
+    return fakeUi;
+  }
 
-    // Check that the feature is now disabled
-    assertThat(parameters.getDisabledDynamicFeatures()).containsExactly("feature1");
+  private void clickCheckboxInRow(int row, FakeUi fakeUi, JTable featuresTable) {
+    Rectangle checkbox = featuresTable.getCellRect(row, 0, true);
+    Point tableLocation = fakeUi.getPosition(featuresTable);
+    fakeUi.mouse.click(tableLocation.x + checkbox.x + checkbox.width / 2, tableLocation.y + checkbox.y + checkbox.height / 2);
   }
 }

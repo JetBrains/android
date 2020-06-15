@@ -20,12 +20,10 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
-import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class AtraceParserTest {
 
@@ -110,13 +108,14 @@ class AtraceParserTest {
   @Test
   fun testGetCpuUtilizationDataSeries() {
     val dataSeries = myParser.cpuUtilizationSeries
-    val size = 100 / myParser.cpuThreadSliceInfoStates.size.toDouble()
+    var avg = 0.0
     // No values should exceed the bounds
     for (data in dataSeries) {
       assertThat(data.value).isAtLeast(0)
       assertThat(data.value).isAtMost(100)
-      assertThat(data.value % size).isEqualTo(0.0)
+      avg += data.value.toDouble()
     }
+    assertThat(avg/dataSeries.size).isWithin(.01).of(23.05)
   }
 
   @Test
@@ -139,23 +138,11 @@ class AtraceParserTest {
     try {
       val parser = AtraceParser(AtraceParser.INVALID_PROCESS)
       parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    } catch (e: IllegalArgumentException) {
+    }
+    catch (e: IllegalArgumentException) {
       expectedExceptionCaught = true
     }
     assertThat(expectedExceptionCaught).isTrue()
-  }
-
-  @Test
-  fun framesEndWithEmptyFrame() {
-    val frameFilter = AtraceFrameFilterConfig(APP_MAIN_THREAD_FRAME_ID_MPLUS, AtraceTestUtils.TEST_PID,
-                                              TimeUnit.MILLISECONDS.toMicros(30));
-    val frames = myParser.getFrames(frameFilter)
-    // Each frame has a empty frame after it for spacing.
-    assertThat(frames).hasSize(122 * 2)
-    for (i in 0 until frames.size step 2) {
-      assertThat(frames[i].value).isNotEqualTo(AtraceFrame.EMPTY)
-      assertThat(frames[i + 1].value).isEqualTo(AtraceFrame.EMPTY)
-    }
   }
 
   @Test
@@ -225,6 +212,18 @@ class AtraceParserTest {
   fun perfettoCaptureGetsProcessList() {
     val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
     assertThat(parser.getProcessList("")).isNotEmpty()
+  }
+
+  @Test
+  fun atraceCpuUtilizationBucketed() {
+    // Cpu utilization is computed at the same time cpu slices are generated, this makes it challenging to test in isolation.
+    // Here we take an already parsed capture and test it has utilization series, as well as the max value in the series.
+    val series = myParser.cpuUtilizationSeries
+    assertThat(series).hasSize(268)
+    // To test the bucketing we verify the delta of each point in the series is the bucket time.
+    for (i in 1 until series.size) {
+      assertThat(series[i].x - series[i - 1].x).isEqualTo(AtraceParser.UTILIZATION_BUCKET_LENGTH_US)
+    }
   }
 
   companion object {

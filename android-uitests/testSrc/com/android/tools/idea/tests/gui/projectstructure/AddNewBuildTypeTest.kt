@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.projectstructure
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -40,13 +39,11 @@ class AddNewBuildTypeTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
   }
 
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD // Restore the default.
   }
 
   /**
@@ -92,6 +89,6 @@ class AddNewBuildTypeTest {
       .open("/app/build.gradle")
       .currentFileContents
     assertThat(gradleFileContents)
-      .containsMatch("newBuildType \\{\\n[\\s]*debuggable = true\\n[\\s]*versionNameSuffix = 'suffix'\\n[\\s]*\\}")
+      .containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}")
   }
 }

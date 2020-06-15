@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_DIR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -27,15 +31,20 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
@@ -46,7 +55,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
-  public static final String INCLUDE = "include";
   private static final String INCLUDE_BUILD = "includeBuild";
 
   /**
@@ -59,12 +67,17 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     return file != null ? parseBuildFile(file, project, "settings") : null;
   }
 
-  /**
-   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
-   */
-  @Deprecated
   @NotNull
-  public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+  public static GradleSettingsModel get(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
+    return parseBuildFile(settingsFile, hostProject, "settings");
+  }
+
+  /**
+   * This method is left here to ensure that when needed we can construct a settings model with only the virtual file.
+   * In most cases {@link GradleSettingsModel}s should be obtained from the {@link ProjectBuildModel}.
+   */
+  @NotNull
+  private static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
     settingsFile.parse();
     return new GradleSettingsModelImpl(settingsFile);
@@ -86,12 +99,12 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     List<String> result = new ArrayList<>();
     result.add(":"); // Indicates the root module.
 
-    GradleDslExpressionList includePaths = myGradleDslFile.getPropertyElement(INCLUDE, GradleDslExpressionList.class);
+    IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE);
     if (includePaths == null) {
       return result;
     }
 
-    for (GradleDslSimpleExpression includePath : includePaths.getSimpleExpressions()) {
+    for (GradleDslSimpleExpression includePath : includePaths.getModules()) {
       String value = includePath.getValue(String.class);
       if (value != null) {
         result.add(standardiseModulePath(value));
@@ -103,28 +116,37 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public void addModulePath(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-    myGradleDslFile.addToNewLiteralList(INCLUDE, modulePath);
+    IncludeDslElement includeDslElement = myGradleDslFile.ensurePropertyElement(INCLUDE);
+    GradleDslLiteral literal = new GradleDslLiteral(includeDslElement, GradleNameElement.create(INCLUDE.name));
+    literal.setValue(modulePath);
+    includeDslElement.setNewElement(literal);
   }
 
   @Override
   public void removeModulePath(@NotNull String modulePath) {
-    // Try to remove the module path whether it has ":" prefix or not.
-    if (!modulePath.startsWith(":")) {
-      myGradleDslFile.removeFromExpressionList(INCLUDE, ":" + modulePath);
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE);
+    if (includeDslElement != null) {
+      // Try to remove the module path whether it has ":" prefix or not.
+      if (!modulePath.startsWith(":")) {
+        includeDslElement.removeModule(":" + modulePath);
+      }
+      includeDslElement.removeModule(modulePath);
     }
-    myGradleDslFile.removeFromExpressionList(INCLUDE, modulePath);
   }
 
   @Override
   public void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
-    // Try to replace the module path whether it has ":" prefix or not.
-    if (!newModulePath.startsWith(":")) {
-      newModulePath = ":" + newModulePath;
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE);
+    if (includeDslElement != null) {
+      // Try to replace the module path whether it has ":" prefix or not.
+      if (!newModulePath.startsWith(":")) {
+        newModulePath = ":" + newModulePath;
+      }
+      if (!oldModulePath.startsWith(":")) {
+        includeDslElement.replaceModulePath(":" + oldModulePath, newModulePath);
+      }
+      includeDslElement.replaceModulePath(oldModulePath, newModulePath);
     }
-    if (!oldModulePath.startsWith(":")) {
-      myGradleDslFile.replaceInExpressionList(INCLUDE, ":" + oldModulePath, newModulePath);
-    }
-    myGradleDslFile.replaceInExpressionList(INCLUDE, oldModulePath, newModulePath);
   }
 
   @Nullable
@@ -135,6 +157,54 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       return null;
     }
     return moduleDirectoryNoCheck(modulePath);
+  }
+
+  /**
+   * WARNING: This method does not write in the same format as it is read, this means that the changes from this method
+   * WON'T be visible until the file as been re-parsed.
+   *
+   * For example:
+   *   gradleSettingsModel.setModuleDirectory(":app", new File("/cool/file"))
+   *   File moduleDir = gradleSettingModel.moduleDirectory(":app") // returns projectDir/app not /cool/file
+   *
+   * TODO: FIX THIS
+   */
+  @Override
+  public void setModuleDirectory(@NotNull String modulePath, @NotNull File moduleDir) {
+    String projectKey = "project('" + modulePath + "')";
+    String projectDirPropertyName = projectKey + "." + PROJECT_DIR;
+    // If the property already exists on file then delete it and then re-create with a new value.
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
+    if (projectProperties != null) {
+      projectProperties.removeProperty(PROJECT_DIR);
+    }
+
+    // If the property has already been set by this method, remove it and recreate it.
+    myGradleDslFile.removeProperty(projectDirPropertyName);
+
+    // Create the GradleDslMethodCall that represents that method.
+    GradleNameElement gradleNameElement = GradleNameElement.create(projectDirPropertyName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(myGradleDslFile, gradleNameElement, FILE_METHOD_NAME);
+    methodCall.setUseAssignment(true);
+    myGradleDslFile.setNewElement(methodCall);
+
+    // Make the method call new File(rootDir, <PATH>) if possible.
+    String dirPath = moduleDir.getAbsolutePath();
+    File rootDir = virtualToIoFile(myGradleDslFile.getFile().getParent());
+    if (VfsUtilCore.isAncestor(rootDir, moduleDir, false)) {
+      GradleDslLiteral rootDirArg = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+      rootDirArg.setValue(new ReferenceTo("rootDir"));
+      methodCall.addNewArgument(rootDirArg);
+      methodCall.setMethodName(FILE_CONSTRUCTOR_NAME);
+      methodCall.setIsConstructor(true);
+      dirPath = rootDir.toURI().relativize(moduleDir.toURI()).getPath();
+    }
+
+    if (dirPath != null && !dirPath.isEmpty()) {
+      GradleDslLiteral extraArg = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+      extraArg.setValue(dirPath);
+      methodCall.addNewArgument(extraArg);
+    }
   }
 
   @Nullable
@@ -172,7 +242,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public String moduleWithDirectory(@NotNull File moduleDir) {
     for (String modulePath : modulePaths()) {
-      if (filesEqual(moduleDir, moduleDirectory(modulePath))) {
+      if (filesEqual(moduleDir, moduleDirectoryNoCheck(modulePath))) {
         return modulePath;
       }
     }
@@ -251,7 +321,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
     // If the BUILD_FILE_NAME property doesn't exist, look for the default build file in the module.
     if (buildFileName == null) {
-      return getGradleBuildFilePath(moduleDirectory);
+      return findGradleBuildFile(moduleDirectory);
     }
 
     return new File(moduleDirectory, buildFileName);

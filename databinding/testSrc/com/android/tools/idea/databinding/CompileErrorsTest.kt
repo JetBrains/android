@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.ide.common.blame.Message
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.JsonObject
@@ -29,6 +28,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 
 /**
  * This class compiles a real project with compile errors in it to verify the output.
@@ -50,9 +51,13 @@ class CompileErrorsTest {
   @Test
   fun compileErrorsContainExpectedValues() {
     val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    val errorMessage = assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n")
+    val errorMessage = with(StringWriter()) {
+      assembleDebug.buildError!!.printStackTrace(PrintWriter(this))
+      toString()
+    }
 
-    val errorJson = with(Regex("""\[databinding] (\{.+})""").find(errorMessage)!!.groupValues[1]) {
+    val result = Regex("""\[databinding] (\{.+})""").find(errorMessage) ?: error("Unexpected error message:\n\n$errorMessage")
+    val errorJson = with(result.groupValues[1]) {
       JsonParser().parse(this) as JsonObject
     }
 

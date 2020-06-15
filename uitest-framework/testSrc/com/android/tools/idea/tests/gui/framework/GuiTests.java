@@ -426,7 +426,8 @@ public final class GuiTests {
       }
 
       if (predicate.test(s)) {
-        new JListFixture(robot, list).clickItem(i);
+        // Some IJ menu items detect "mouse moves" to get the focus, but FEST clicks on a point without moving the mouse there first.
+        new JListFixture(robot, list).drag(i).clickItem(i);
         return;
       }
       items.add(s);

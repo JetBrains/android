@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>10.3.6</version>
+  <version>10.4.0</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java-capable</depends>
@@ -21,12 +21,12 @@
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-room.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/mlkit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/naveditor.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/game-tools-starter.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -34,4 +34,8 @@
        These modules are only included into AndroidStudio (see AndroidStudioPlugin.xml) -->
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/compose-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/app-inspection.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

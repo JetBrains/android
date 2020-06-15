@@ -33,6 +33,7 @@ import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchOptions;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchResult;
@@ -100,13 +101,19 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
+    ProfilerState profilerState = getProfilerStateFromCurrentRun(launchOptions, project);
+    if (profilerState == null) {
+      // Profiler settings not present
+      return "";
+    }
+
     TransportService transportService = TransportService.getInstance();
     if (transportService == null) {
       // Profiler cannot be run.
       return "";
     }
 
-    ProfilerClient client = new ProfilerClient(transportService.getChannelName());
+    ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
     Common.Device profilerDevice;
     try {
       profilerDevice = waitForDaemon(device, client);
@@ -120,7 +127,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
     pushStartupAgentConfig(fileManager, project);
     String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
-    String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, profilerDevice);
+    String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
@@ -154,7 +161,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    * or the selected CPU configuration is not an ART profiling.
    */
   @NotNull
-  private static String startStartupProfiling(@NotNull String appPackageName,
+  private static String startStartupProfiling(@NotNull ProfilerState profilerState,
+                                              @NotNull String appPackageName,
                                               @NotNull Project project,
                                               @NotNull ProfilerClient client,
                                               @NotNull IDevice device,
@@ -163,12 +171,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
-    if (runConfig == null || !runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
+    if (!profilerState.STARTUP_CPU_PROFILING_ENABLED) {
       return "";
     }
 
-    String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
+    String configName = profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
+    if (configName == null) {
+      return "";
+    }
+
     CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
     if (startupConfig == null) {
       return "";
@@ -245,6 +256,27 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   private static boolean isAtLeastO(@NotNull IDevice device) {
     return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+  }
+
+  /**
+   * Returns {@link ProfilerState} of the current run session.
+   * <p>
+   * Profiler state can come from two sources. For android gradle run configurations, {@link ProfilerState} is attached to the selected
+   * run configuration.  For non-gradle projects, {@link ProfilerState} can be passed using {@link LaunchOptions#getExtraOption(String)}.
+   * This method first checks if the configuration is an android gradle run configuration and falls back to extra launch options.
+   */
+  @Nullable
+  private static ProfilerState getProfilerStateFromCurrentRun(@NotNull LaunchOptions launchOptions, Project project) {
+    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
+    if (runConfig != null) {
+      return runConfig.getProfilerState();
+    }
+
+    Object stateFromExtraOptions = launchOptions.getExtraOption(ProfilerState.ANDROID_PROFILER_STATE_ID);
+    if (stateFromExtraOptions instanceof ProfilerState) {
+      return (ProfilerState)stateFromExtraOptions;
+    }
+    return null;
   }
 
   @Nullable
@@ -432,7 +464,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       if (transportService == null) {
         return startTimeNs;
       }
-      ProfilerClient client = new ProfilerClient(transportService.getChannelName());
+      ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
 
       // If we are launching from the "Profile" action, wait for daemon to start properly to get the time.
       // Note: daemon should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be

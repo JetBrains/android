@@ -22,8 +22,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -58,12 +58,14 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
 
   public void testRequiresAndroidModel() {
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
+    //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertTrue(myProjectInfo.requiresAndroidModel());
   }
 
   public void testRequiresAndroidModelWithUserConfigurableAndroidFacet() {
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
+    //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = true;
     assertFalse(myProjectInfo.requiresAndroidModel());
   }
@@ -72,10 +74,10 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
     assertFalse(myProjectInfo.requiresAndroidModel());
   }
 
-  public void testRequiresAndroidModelWithApkFacet() {
+  public void testDoesNotRequireAndroidModelWithApkFacet() {
+    //Note: ApkFacet modules are configured with ALLOW_USER_CONFIGURATION = true and do not require android model.
     Module module = getModule();
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     createAndAddApkFacet(module);
 

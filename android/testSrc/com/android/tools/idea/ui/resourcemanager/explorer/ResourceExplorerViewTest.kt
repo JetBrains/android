@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.res.addAndroidModule
@@ -60,6 +61,7 @@ class ResourceExplorerViewTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
   }
 
   @After
@@ -72,8 +74,10 @@ class ResourceExplorerViewTest {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
     val view = createResourceExplorerView(viewModel)
-
-    // 'Drawable' tab is selected by default.
+    // 'Drawable' tab should be selected by default.
+    assertThat(viewModel.supportedResourceTypes[viewModel.resourceTypeIndex]).isEqualTo(ResourceType.DRAWABLE)
+    waitAndAssert<AssetListView>(view) { list -> list != null && list.model.size > 0 }
+    // Select a Drawable.
     selectAndAssertAsset(view, "png")
     // Change to COLOR resources.
     runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.COLOR) }
@@ -84,10 +88,12 @@ class ResourceExplorerViewTest {
       }
       return@waitAndAssert false
     }
+    // Select a Color.
     selectAndAssertAsset(view, "colorPrimary")
+    // Call a selection for a resource not listed in Color.
     runInEdtAndWait { view.selectAsset("png", false) }
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
-    // Selection should not change if we try to select a resource not visible here.
+    // Selection should not change.
     assertThat(list.selectedValue).isNotNull()
     assertThat(list.selectedValue.name).isEqualTo("colorPrimary")
   }
@@ -113,7 +119,7 @@ class ResourceExplorerViewTest {
 
     // Setup
     runInEdtAndWait {
-      addAndroidModule(module2Name, projectRule.project) { resourceDir ->
+      addAndroidModule(module2Name, projectRule.project, "com.example.app2") { resourceDir ->
         FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
                       resourceDir.resolve("values/colors.xml"))
       }
@@ -168,7 +174,9 @@ class ResourceExplorerViewTest {
       false,
       { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
-        openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, (asset as DesignAsset).file.path, '/').orEmpty()
+        openedFile = FileUtil.getRelativePath(
+          FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+          FileUtil.toSystemIndependentName((asset as DesignAsset).file.path), '/').orEmpty()
       },
       {})
     Disposer.register(disposable, viewModel)

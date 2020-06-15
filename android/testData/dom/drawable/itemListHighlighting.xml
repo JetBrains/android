@@ -15,6 +15,6 @@
         <animated-rotate />
         <animation-list />
         <inset />
-        <<error descr="'src' attribute should be defined">bitmap</error> />
+        <bitmap />
     </item>
 </selector>

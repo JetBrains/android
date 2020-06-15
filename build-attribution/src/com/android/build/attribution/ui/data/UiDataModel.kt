@@ -1,0 +1,192 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.build.attribution.ui.data
+
+/*
+ * The set of interfaces in this file represents the build attribution report data model and is used for any data access from the UI.
+ * These interfaces correspond to the tree structure of UI info panels and contain all data required for presentation.
+ *
+ * All UI report implementations should get data from these interfaces and should never depend on any of the backend classes directly.
+ * This model should provide data in a state that can be directly presented on the UI without further processing
+ * (e.g. should be properly sorted).
+ */
+
+interface BuildAttributionReportUiData {
+  val buildSummary: BuildSummary
+  val criticalPathTasks: CriticalPathTasksUiData
+  val criticalPathPlugins: CriticalPathPluginsUiData
+  /**
+   * All detected issues grouped by issue type
+   */
+  val issues: List<TaskIssuesGroup>
+  val configurationTime: ConfigurationUiData
+  val annotationProcessors: AnnotationProcessorsReport
+  val totalIssuesCount: Int
+    get() = issues.sumBy { it.warningCount } + annotationProcessors.issueCount
+}
+
+interface BuildSummary {
+  val buildFinishedTimestamp: Long
+  val totalBuildDuration: TimeWithPercentage
+  val criticalPathDuration: TimeWithPercentage
+  val configurationDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+    get() = TimeWithPercentage(
+      totalBuildDuration.timeMs - configurationDuration.timeMs - criticalPathDuration.timeMs,
+      totalBuildDuration.totalMs
+    )
+}
+
+interface CriticalPathTasksUiData {
+  val criticalPathDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+  val tasks: List<TaskUiData>
+  val size: Int
+    get() = tasks.size
+  val warningCount: Int
+  val infoCount: Int
+}
+
+interface CriticalPathPluginsUiData {
+  val criticalPathDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+  val plugins: List<CriticalPathPluginUiData>
+  val warningCount: Int
+  val infoCount: Int
+}
+
+interface TaskUiData {
+  val module: String
+  val name: String
+  val taskPath: String
+  val taskType: String
+  val executionTime: TimeWithPercentage
+  val executedIncrementally: Boolean
+  val executionMode: String
+  /** True for tasks that belong to a critical path based on task dependencies analysis.*/
+  val onLogicalCriticalPath: Boolean
+  /** True for tasks that belong effective critical path based on execution times analysis.*/
+  val onExtendedCriticalPath: Boolean
+  val pluginName: String
+  val sourceType: PluginSourceType
+  val reasonsToRun: List<String>
+  val issues: List<TaskIssueUiData>
+  val hasWarning: Boolean
+    get() = issues.any { it.type.level == IssueLevel.WARNING }
+  val hasInfo: Boolean
+    get() = issues.any { it.type.level == IssueLevel.INFO }
+}
+
+enum class PluginSourceType {
+  ANDROID_PLUGIN, BUILD_SRC, THIRD_PARTY
+}
+
+interface CriticalPathPluginUiData {
+  val name: String
+  /** Total time of this plugin tasks on critical path. */
+  val criticalPathDuration: TimeWithPercentage
+  /** This plugin tasks on critical path. */
+  val criticalPathTasks: CriticalPathPluginTasksUiData
+  val issues: List<TaskIssuesGroup>
+  val warningCount: Int
+  val infoCount: Int
+}
+
+interface CriticalPathPluginTasksUiData {
+  val criticalPathDuration: TimeWithPercentage
+  val tasks: List<TaskUiData>
+  val size: Int
+    get() = tasks.size
+  val warningCount: Int
+  val infoCount: Int
+}
+
+/**
+ * Represents issues list of one type.
+ */
+interface TaskIssuesGroup {
+  val type: TaskIssueType
+  val issues: List<TaskIssueUiData>
+  val size: Int
+    get() = issues.size
+  val warningCount: Int
+    get() = if (type.level == IssueLevel.WARNING) size else 0
+  val infoCount: Int
+    get() = if (type.level == IssueLevel.INFO) size else 0
+  val timeContribution: TimeWithPercentage
+}
+
+enum class IssueLevel { WARNING, INFO }
+
+enum class TaskIssueType(
+  val uiName: String,
+  val level: IssueLevel
+) {
+  // Order is important and reflects sorting order on the UI.
+  ALWAYS_RUN_TASKS("Always-run Tasks", IssueLevel.WARNING),
+  TASK_SETUP_ISSUE("Task Setup Issues", IssueLevel.WARNING),
+
+}
+
+interface TaskIssueUiData {
+  val type: TaskIssueType
+  val task: TaskUiData
+  val bugReportTitle: String
+  val bugReportBriefDescription: String
+  val explanation: String
+  val helpLink: String
+  val buildSrcRecommendation: String
+}
+
+/**
+ * Represents an issue that has another task connected to it
+ * e.g. For tasks declaring same output we want to show the original task and another task that declares same output.
+ */
+interface InterTaskIssueUiData : TaskIssueUiData {
+  val connectedTask: TaskUiData
+}
+
+interface ConfigurationUiData {
+  val totalConfigurationTime: TimeWithPercentage
+  val projects: List<ProjectConfigurationUiData>
+  val totalIssueCount: Int
+}
+
+interface ProjectConfigurationUiData {
+  val project: String
+  val configurationTime: TimeWithPercentage
+  val plugins: List<PluginConfigurationUiData>
+  val issueCount: Int
+}
+
+interface PluginConfigurationUiData {
+  val pluginName: String
+  val configurationTime: TimeWithPercentage
+  val slowsConfiguration: Boolean
+  val nestedPlugins: List<PluginConfigurationUiData>
+  val nestedIssueCount: Int
+}
+
+interface AnnotationProcessorsReport {
+  val nonIncrementalProcessors: List<AnnotationProcessorUiData>
+  val issueCount: Int
+    get() = nonIncrementalProcessors.size
+}
+
+interface AnnotationProcessorUiData {
+  val className: String
+  val compilationTimeMs: Long
+}

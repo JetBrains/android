@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.flags.junit.RestoreFlagRule
-import com.android.tools.idea.databinding.BindingLayout
+import com.android.tools.idea.databinding.BindingLayoutFile
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -47,9 +45,6 @@ class ViewBindingNavigationTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
-
   /**
    * Expose the underlying project rule fixture directly.
    *
@@ -64,8 +59,6 @@ class ViewBindingNavigationTest {
 
   @Before
   fun setUp() {
-    StudioFlags.VIEW_BINDING_ENABLED.override(true)
-
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
 
@@ -93,7 +86,7 @@ class ViewBindingNavigationTest {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayout.BindingLayoutFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in
       // the header docs of BindingLayoutInfoFile.

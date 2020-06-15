@@ -16,13 +16,13 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +41,8 @@ public class CpuMonitor extends ProfilerMonitor {
     myThisProcessCpuUsage = new CpuUsage(profilers);
 
     myCpuUsageAxis = new ClampedAxisComponentModel.Builder(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER).build();
-    myLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange());
-    myTooltipLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getTooltipRange());
+    myLegends = new Legends(myThisProcessCpuUsage, getTimeline().getDataRange());
+    myTooltipLegends = new Legends(myThisProcessCpuUsage, getTimeline().getTooltipRange());
   }
 
   @Override
@@ -51,7 +51,7 @@ public class CpuMonitor extends ProfilerMonitor {
   }
 
   @Override
-  public ProfilerTooltip buildTooltip() {
+  public TooltipModel buildTooltip() {
     return new CpuMonitorTooltip(this);
   }
 

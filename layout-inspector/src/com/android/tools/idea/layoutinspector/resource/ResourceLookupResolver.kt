@@ -158,6 +158,14 @@ class ResourceLookupResolver(
   }
 
   /**
+   * Find the location of the specified [view].
+   */
+  fun findFileLocation(view: ViewNode): SourceLocation? {
+    val tag = findViewTagInFile(view, view.layout) ?: return null
+    return createFileLocation(tag)
+  }
+
+  /**
    * Resolve this drawable property as an icon.
    */
   fun resolveAsIcon(property: InspectorPropertyItem): Icon? {
@@ -169,8 +177,8 @@ class ResourceLookupResolver(
   }
 
   private fun findFileLocationsFromViewTag(property: InspectorPropertyItem, layout: ResourceReference, max: Int): List<SourceLocation> {
-    val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return emptyList()
-    val location = createFileLocation(xmlAttributeValue) ?: return emptyList()
+    val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return findApproximateLocation(layout)
+    val location = createFileLocation(xmlAttributeValue) ?: return findApproximateLocation(layout)
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue)
     if (max <= 1 || resValue == null) {
       return listOf(location)
@@ -179,6 +187,20 @@ class ResourceLookupResolver(
     result.add(location)
     addValueReference(resValue, result, max - 1)
     return result
+  }
+
+  private fun findApproximateLocation(layout: ResourceReference): List<SourceLocation> {
+    val reference = mapReference(layout) ?: return unknownLocation()
+    val layoutValue = resolver.getUnresolvedResource(reference)
+    val file = resolver.resolveLayout(layoutValue) ?: return unknownLocation()
+    val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return unknownLocation()
+    val element = xmlFile.rootTag ?: xmlFile
+    val navigatable = findNavigatable(element)
+    return listOf(SourceLocation("${file.name}:?", navigatable))
+  }
+
+  private fun unknownLocation(): List<SourceLocation> {
+    return listOf(SourceLocation("unknown:?", null))
   }
 
   private fun findFileLocationsFromStyle(property: InspectorPropertyItem, style: ResourceReference, max: Int): List<SourceLocation> {
@@ -400,23 +422,27 @@ class ResourceLookupResolver(
   }
 
   private fun findLayoutAttribute(property: InspectorPropertyItem, layout: ResourceReference): XmlAttribute? {
-    val reference = mapReference(layout) ?: return null
-    val tag = findViewTagInFile(property.view, reference)
+    val tag = findViewTagInFile(property.view, layout)
     return tag?.getAttribute(property.attrName, property.namespace)
   }
 
   private fun findViewTagInFile(view: ViewNode, layout: ResourceReference?): XmlTag? {
-    if (layout == null) {
-      return null
+    val isViewLayout = view.layout == layout
+    if (isViewLayout) {
+      view.tag?.let { return it }
     }
-    view.tag?.let { return it }
 
-    val layoutValue = resolver.getUnresolvedResource(layout)
+    val reference = mapReference(layout) ?: return null
+    val layoutValue = resolver.getUnresolvedResource(reference)
     val file = resolver.resolveLayout(layoutValue) ?: return null
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)
+    val rootTag = xmlFile.rootTag ?: return null
+    if (rootTag.isEmpty) {
+      return rootTag
+    }
     xmlFile.rootTag?.accept(locator)
-    return locator.found?.also { view.tag = it }
+    return locator.foundXmlTag?.also { if (isViewLayout) view.tag = it }
   }
 
   /**
@@ -431,27 +457,36 @@ class ResourceLookupResolver(
   private fun mapReference(reference: ResourceReference?): ResourceReference? = mapReference(appFacet, reference)
 
   /**
-   * A [PsiRecursiveElementVisitor] to find a [view] in an [XmlFile].
+   * A [PsiRecursiveElementVisitor] to find a view in an [XmlFile].
    */
-  private inner class ViewLocator(private val view: ViewNode) : PsiRecursiveElementVisitor() {
-    var found: XmlTag? = null
+  private inner class ViewLocator(view: ViewNode) : PsiRecursiveElementVisitor() {
+    private val viewId = view.viewId
+    private val parentId = view.parent?.viewId
+    private var found: XmlTag? = null
+    private var foundParent: XmlTag? = null
+
+    val foundXmlTag: XmlTag?
+      get() {
+        found?.let { return it }
+        return foundParent?.subTags?.singleOrNull()
+      }
 
     override fun visitElement(element: PsiElement) {
-      if (element !is XmlTag) return
-      if (sameId(element)) {
-        found = element
-        return
+      if (element is XmlTag) {
+        if (viewId != null && sameId(element, viewId)) {
+          found = element
+        }
+        if (parentId != null && sameId(element, parentId)) {
+          foundParent = element
+        }
       }
       super.visitElement(element)
     }
 
-    private fun sameId(tag: XmlTag): Boolean {
-      val attr = tag.getAttributeValue(ATTR_ID, ANDROID_URI)
-      if (view.viewId == null || attr == null) {
-        return false
-      }
-      val ref = ResourceUrl.parse(attr)?.resolve(tag)
-      return mapReference(view.viewId) == ref
+    private fun sameId(tag: XmlTag, id: ResourceReference): Boolean {
+      val attr = tag.getAttributeValue(ATTR_ID, ANDROID_URI) ?: return false
+      val url = ResourceUrl.parse(attr)
+      return url?.type == ResourceType.ID && url.name == id.name
     }
   }
 }

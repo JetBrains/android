@@ -21,15 +21,18 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBTextField
+import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.UIUtil
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
+import javax.swing.text.JTextComponent
 
 const val OUTLINE_PROPERTY = "JComponent.outline"
 const val ERROR_VALUE = "error"
 const val WARNING_VALUE = "warning"
+const val STATUS_VISIBLE_FUNCTION = "StatusVisibleFunction"
 
 /**
  * TextField controlled by an [editorModel].
@@ -49,6 +52,8 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       val myLookup = Lookup(this)
       registerActionKey({ enterInLookup() }, KeyStrokes.ENTER, "enter")
       registerActionKey({ escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
+      registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
+      registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
       registerActionKey({ myLookup.showLookup() }, KeyStrokes.CTRL_SPACE, "showCompletions")
       registerActionKey({ myLookup.selectNext() }, KeyStrokes.DOWN, "selectNext", { myLookup.enabled })
       registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.UP, "selectPrevious", { myLookup.enabled })
@@ -56,6 +61,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       registerActionKey({ myLookup.selectPreviousPage() }, KeyStrokes.PAGE_UP, "selectPreviousPage", { myLookup.enabled })
       registerActionKey({ myLookup.selectFirst() }, KeyStrokes.CMD_HOME, "selectFirst", { myLookup.enabled })
       registerActionKey({ myLookup.selectLast() }, KeyStrokes.CMD_END, "selectLast", { myLookup.enabled })
+      focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
       super.addFocusListener(object: FocusAdapter() {
         override fun focusLost(event: FocusEvent) {
           myLookup.close()
@@ -63,6 +69,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       })
       _lookup = myLookup
     }
+    putClientProperty(STATUS_VISIBLE_FUNCTION, BooleanFunction<JTextComponent> { text.isEmpty() })
     isFocusable = true
     setFromModel()
 
@@ -123,6 +130,16 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     }
   }
 
+  private fun tab() {
+    enterInLookup()
+    transferFocus()
+  }
+
+  private fun backTab() {
+    enterInLookup()
+    transferFocusBackward()
+  }
+
   // Update the outline property on component such that the Darcula border will
   // be able to indicate an error by painting a red border.
   private fun updateOutline() {
@@ -130,7 +147,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     // otherwise set the property on this text field.
     val component = getComponentWithErrorBorder() ?: return
     val current = component.getClientProperty(OUTLINE_PROPERTY)
-    val (code, _) = editorModel.editingSupport.validation(if (hasFocus()) editorModel.text else null)
+    val (code, _) = editorModel.editingSupport.validation(editorModel.text)
     val newOutline = code.outline
     if (current != newOutline) {
       component.putClientProperty(OUTLINE_PROPERTY, newOutline)

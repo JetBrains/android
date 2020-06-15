@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.intellij.icons.AllIcons;
 import icons.StudioIcons;
 import javax.swing.Icon;
@@ -33,8 +34,11 @@ public class MEIcons {
   public static final Icon PAUSE = StudioIcons.LayoutEditor.Motion.PAUSE;
   public static final Icon LIST_LAYOUT = StudioIcons.LayoutEditor.Motion.BASE_LAYOUT; // TODO fix
   public static final Icon LIST_STATE =  StudioIcons.Common.CHECKED;
+  public static final Icon LIST_STATE_DERIVED = Utils.computeLiteIcon(Utils.ICON_LIGHT, MEIcons.LIST_STATE);
+  public static final Icon LIST_STATE_DERIVED_SELECTED = Utils.computeLiteIcon(Utils.ICON_LIGHT_SELECTED, MEIcons.LIST_STATE);
+  public static final Icon LIST_STATE_SELECTED = Utils.computeLiteIcon(Utils.ICON_SELECTED, MEIcons.LIST_STATE);
   public static final Icon CONSTRAINT_SET = StudioIcons.LayoutEditor.Motion.CONSTRAINT_SET; // TODO fix
-  public static final Icon LIST_TRANSITION = StudioIcons.LayoutEditor.Toolbar.ARROW_RIGHT; // TODO fix
+  public static final Icon LIST_TRANSITION = StudioIcons.LayoutEditor.Motion.TRANSITION; // TODO fix
   public static final Icon LIST_GRAY_STATE = StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT; // TODO fix
   public static final Icon CREATE_MENU = StudioIcons.LayoutEditor.Toolbar.ADD_COMPONENT; // TODO fix
   public static final Icon CYCLE_LAYOUT =  AllIcons.Actions.SwapPanels; // TODO fix
@@ -49,4 +53,5 @@ public class MEIcons {
   public static final Icon CREATE_ON_CLICK = StudioIcons.LayoutEditor.Motion.ADD_GESTURE; // TODO fix
   public static final Icon CREATE_ON_SWIPE = StudioIcons.LayoutEditor.Motion.ADD_GESTURE; // TODO fix
 
+  public static final Icon SMALL_DOWN_ARROW = AllIcons.General.ArrowDownSmall;
 }

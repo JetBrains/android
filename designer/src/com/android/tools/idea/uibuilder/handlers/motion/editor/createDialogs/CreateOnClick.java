@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -50,35 +51,36 @@ public class CreateOnClick extends BaseCreatePanel {
     int y = 0;
     grid(gbc, 0, y++, 1, 1);
     gbc.weighty = 0;
-    gbc.insets = new Insets(2, 5, 1, 5);
+    gbc.ipadx = MEUI.scale(60);
+    gbc.insets = MEUI.dialogTitleInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel("CREATE ONCLICK"), gbc);
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("In Transition"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mTransitions, gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Vew To Click"), gbc);
+    add(new JLabel("View To Click"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(viewIds, gbc);
-
-    grid(gbc, 0, y++);
-    gbc.weighty = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Action"), gbc);
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
@@ -88,6 +90,7 @@ public class CreateOnClick extends BaseCreatePanel {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");
@@ -152,8 +155,8 @@ public class CreateOnClick extends BaseCreatePanel {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.OnClick.ATTR_TARGET_ID, addIdPrefix(str));
     }
 
-    writer.printFormal(" ", System.out);
     MTag ret = writer.commit("Create OnClick");
+    Track.createOnClick(mMotionEditor.myTrack);
     mMotionEditor.setMTag(model);
     super.create();
     return ret;

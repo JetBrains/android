@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.databinding.reference
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.index.ImportData
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
-import com.intellij.openapi.module.Module
+import com.android.tools.idea.lang.databinding.resolveScopeWithResources
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTypesUtil
@@ -29,16 +29,14 @@ import com.intellij.psi.xml.XmlTag
  */
 internal class XmlImportReference(element: PsiElement,
                                   resolveTo: XmlTag,
-                                  private val import: ImportData,
-                                  private val module: Module) : DbExprReference(element, resolveTo) {
+                                  private val import: ImportData) : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass?
     get() {
       val project = element.project
       return import.type
-        .let { type -> JavaPsiFacade.getInstance(project).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false)) }
+        .let { type -> JavaPsiFacade.getInstance(project).findClass(type, element.resolveScopeWithResources ?: element.resolveScope) }
         ?.let { psiType -> PsiModelClass(PsiTypesUtil.getClassType(psiType), DataBindingMode.fromPsiElement(element)) }
     }
 
-  override val isStatic: Boolean
-    get() = true
+  override val memberAccess = PsiModelClass.MemberAccess.STATICS_ONLY
 }

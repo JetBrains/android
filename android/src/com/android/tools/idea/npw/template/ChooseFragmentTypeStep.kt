@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.npw.template
 
-
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.templates.TemplateManager
+import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -27,17 +28,32 @@ import com.intellij.openapi.vfs.VirtualFile
  * Step for the gallery for Fragment templates.
  */
 class ChooseFragmentTypeStep(
-  moduleModel: NewModuleModel,
   renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   targetDirectory: VirtualFile
 ) : ChooseGalleryItemStep(
-  moduleModel, renderModel, formFactor, targetDirectory,
+  renderModel, formFactor, targetDirectory,
   messageKeys = fragmentGalleryStepMessageKeys,
   emptyItemLabel = "Blank Fragment"
 ) {
-  override val templateRenders = (if (isNewModule) listOf(TemplateRenderer(null)) else listOf()) +
-                                 TemplateManager.getInstance().getFragmentTemplateList(formFactor).map(::TemplateRenderer)
+  override val templateRenderers: List<TemplateRenderer>
+
+  init {
+    val oldTemplateRenderers = TemplateManager.getInstance().getFragmentTemplateList(formFactor)
+      .map(ChooseGalleryItemStep::OldTemplateRenderer)
+
+    templateRenderers = if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()) {
+      val newTemplateRenderers = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+        .filter { WizardUiContext.FragmentGallery in it.uiContexts }
+        .map(::NewTemplateRenderer)
+      val newTemplateNames = newTemplateRenderers.map { it.template.name }
+      val unsortedRenderers = (oldTemplateRenderers.filterNot { it.template?.metadata?.title in newTemplateNames } + newTemplateRenderers)
+      unsortedRenderers.sortedBy { it.label }
+    }
+    else {
+      oldTemplateRenderers
+    }
+  }
 }
 
 @VisibleForTesting
@@ -47,5 +63,6 @@ val fragmentGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
   "android.wizard.fragment.not.found",
   "android.wizard.fragment.invalid.min.sdk",
   "android.wizard.fragment.invalid.min.build",
-  "android.wizard.fragment.invalid.androidx"
+  "android.wizard.fragment.invalid.androidx",
+  "android.wizard.fragment.invalid.needs.kotlin"
 )

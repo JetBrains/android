@@ -17,19 +17,20 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_RESET_ALREADY_EXISTING_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_RESET_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_PLUGIN_TO_PLUGINS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGIN_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_AT_START;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_DELETE_PLUGIN_NAME;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_INSERT_PLUGIN_ORDER;
@@ -38,19 +39,25 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGIN
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_SET_PLUGIN_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_SET_PLUGIN_NAME_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -154,6 +161,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_EXPECTED);
+
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     buildModel.reparse();
@@ -170,6 +179,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN_EXPECTED);
+
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     buildModel.reparse();
@@ -186,6 +197,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_EXPECTED);
+
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     buildModel.reparse();
@@ -203,6 +216,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS_EXPECTED);
+
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     buildModel.reparse();
@@ -246,6 +261,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN_EXPECTED);
+
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     buildModel.reparse();
@@ -255,18 +272,20 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   @Test
   public void testAddAndApplyAlreadyExistingPlugin() throws Exception {
     writeToBuildFile(APPLY_PLUGIN_ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN);
-    String text = loadBuildFile();
+
     GradleBuildModel buildModel = getGradleBuildModel();
-    verifyAppliedPluginsAndText(buildModel, text);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     buildModel.applyPlugin("com.android.application");
-    verifyAppliedPluginsAndText(buildModel, text);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyAppliedPluginsAndText(buildModel, text);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN);
+
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     buildModel.reparse();
-    verifyAppliedPluginsAndText(buildModel, text);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
@@ -282,7 +301,9 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     pluginModel.name().setValue("com.google.application");
     otherPlugin.name().setValue("bar.com.foo");
+
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_SET_PLUGIN_NAME_EXPECTED);
 
     assertSize(2, buildModel.plugins());
     pluginModel = buildModel.plugins().get(0);
@@ -302,7 +323,9 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     pluginModel.name().delete();
     otherPlugin.name().delete();
+
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
 
     assertSize(0, buildModel.plugins());
   }
@@ -320,12 +343,11 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED);
 
     verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
-
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED);
   }
 
   @Test
@@ -341,19 +363,18 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED);
 
     verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
-
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED);
   }
 
   @Test
   public void testAppliedKotlinPlugin() throws Exception {
     writeToBuildFile(APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
-    verifyPlugins(ImmutableList.of("kotlin-android", "kotlin-plugin-extensions"), buildModel.plugins());
+    verifyPlugins(ImmutableList.of("org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin-extensions"), buildModel.plugins());
   }
 
   @Test
@@ -428,17 +449,11 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     GradleNotNullValue<String> first = plugins.get(0);
     assertEquals("com.android.application", first.value());
     assertEquals("plugin", first.getPropertyName());
+    // TODO(b/142539688): this is the only reference in the Android Studio project to getDslText().  However, the commit message associated
+    //  with this line indicates that this test was introduced along with a restoration of the functionality for the benefit of the
+    //  RenderCore asset plugin.  In a multilingual world, testing the raw DslText is unsound, and we shouldn't provide such a direct
+    //  access to it either.
     assertEquals("plugin: 'com.android.application'", first.getDslText());
     assertEquals(myBuildFile, first.getFile());
-  }
-
-  private static void verifyAppliedPluginsAndText(GradleBuildModel buildModel, String buildText) {
-    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
-    assertThat(buildModel).isInstanceOf(GradleBuildModelImpl.class);
-    GradleBuildModelImpl buildModelImpl = (GradleBuildModelImpl)buildModel;
-
-    PsiElement buildFilePsiElement = buildModelImpl.getPsiElement();
-    assertNotNull(buildFilePsiElement);
-    assertEquals("buildText", buildText, buildFilePsiElement.getText());
   }
 }

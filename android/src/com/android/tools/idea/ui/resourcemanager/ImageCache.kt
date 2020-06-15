@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager
 
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.AssetKey
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
@@ -24,7 +25,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.Async
-import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
@@ -35,14 +35,14 @@ private val SMALL_MAXIMUM_CACHE_WEIGHT_BYTES = (10 * 1024.0.pow(2)).toLong() // 
 private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
 
 /**
- * Helper class that caches the result of a computation of an [Image].
+ * Helper class that caches the result of a computation of [BufferedImage].
  *
  * The keys of the cache are strong references to let
  * @see Cache
  * @see CacheBuilder.softValues
  */
 class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
-                                     private val objectToImage: Cache<DesignAsset, Image>
+                                     private val objectToImage: Cache<AssetKey, BufferedImage>
 ) : Disposable {
   companion object {
     private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
@@ -98,72 +98,68 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
     }
   }
 
+  fun clear(designAsset: DesignAsset) {
+    objectToImage.invalidate(designAsset.key)
+  }
+
   fun clear() {
     objectToImage.invalidateAll()
   }
 
   /**
-   * Return the value identified by [key] in the cache if it exists, otherwise returns the [placeholder] image
+   * Return the value identified by [AssetKey] in the cache if it exists, otherwise returns the [placeholder] image
    * and gets the image from the [CompletableFuture] returned by [computationFutureProvider].
    *
    * If [forceComputation] is true, the [CompletableFuture] will be ran even if a value is present in the cache.
    *
-   * Note that if a value is present in the cache and [forceComputation] is true, the returned [Image] will be the value from
+   * Note that if a value is present in the cache and [forceComputation] is true, the returned [BufferedImage] will be the value from
    * the cache.
    *
    * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
-  fun computeAndGet(@Async.Schedule key: DesignAsset,
-                    placeholder: Image,
+  fun computeAndGet(@Async.Schedule asset: DesignAsset,
+                    placeholder: BufferedImage,
                     forceComputation: Boolean,
                     onImageCached: () -> Unit = {},
                     executor: Executor = EdtExecutorService.getInstance(),
-                    computationFutureProvider: (() -> CompletableFuture<out Image?>))
-    : Image {
-    val cachedImage = objectToImage.getIfPresent(key)
-    if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
+                    computationFutureProvider: (() -> CompletableFuture<out BufferedImage?>))
+    : BufferedImage {
+    val cachedImage = objectToImage.getIfPresent(asset.key)
+    if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(asset)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
-      runOrQueue(key, executeImmediately) {
-        startComputation(computationFutureProvider, key, onImageCached, executor)
+      runOrQueue(asset, executeImmediately) {
+        startComputation(computationFutureProvider, asset, onImageCached, executor)
       }
     }
     return cachedImage ?: placeholder
   }
 
-
-  private fun startComputation(computationFutureProvider: () -> CompletableFuture<out Image?>,
-                               @Async.Execute key: DesignAsset,
+  private fun startComputation(computationFutureProvider: () -> CompletableFuture<out BufferedImage?>,
+                               @Async.Execute asset: DesignAsset,
                                onImageCached: () -> Unit,
                                executor: Executor) {
     val future = computationFutureProvider()
-      .thenAccept { image: Image? ->
+      .thenAccept { image: BufferedImage? ->
         synchronized(pendingFutures) {
-          pendingFutures.remove(key)
+          pendingFutures.remove(asset)
         }
         if (image != null) {
-          objectToImage.put(key, image)
+          objectToImage.put(asset.key, image)
           executor.execute(onImageCached)
         }
       }
     synchronized(pendingFutures) {
       if (!future.isDone) {
-        pendingFutures[key] = future
+        pendingFutures[asset] = future
       }
     }
   }
 }
 
-private fun createObjectToImageCache(duration: Long, size: Long): Cache<DesignAsset, Image> =
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<AssetKey, BufferedImage> =
   CacheBuilder.newBuilder()
     .expireAfterAccess(duration, TimeUnit.MINUTES)
     .softValues()
-    .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
+    .weigher<AssetKey, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
     .maximumWeight(size)
-    .build<DesignAsset, Image>()
-
-private fun imageWeigher(image: Image): Int {
-  if (image is BufferedImage) {
-    return image.raster.dataBuffer.size * Integer.BYTES
-  }
-  return image.getWidth(null) * image.getHeight(null) * Integer.BYTES
-}
+    .build<AssetKey, BufferedImage>()

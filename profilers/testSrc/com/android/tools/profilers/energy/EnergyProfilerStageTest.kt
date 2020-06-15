@@ -124,7 +124,7 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
     }
     fakeData.forEach { event -> transportService.addEventToStream(1, event) }
     myStage = EnergyProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.name), services, timer))
-    myStage.studioProfilers.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(0).toDouble(), TimeUnit.SECONDS.toMicros(5).toDouble())
+    myStage.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(0).toDouble(), TimeUnit.SECONDS.toMicros(5).toDouble())
     myStage.studioProfilers.stage = myStage
     myStage.studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
   }
@@ -175,7 +175,7 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun getEventsModel() {
-    val range = myStage.studioProfilers.timeline.viewRange
+    val range = myStage.timeline.viewRange
     val eventSeries = myStage.eventModel.series
     assertThat(eventSeries).hasSize(3)
 

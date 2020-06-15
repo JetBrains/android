@@ -52,7 +52,6 @@ public class NewProjectThingsTest {
       .waitForGradleProjectSyncToFinish()
       .invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
 
-    String buildGradle = guiTest.ideFrame().getEditor().open("app/build.gradle").getCurrentFileContents();
-    assertThat(buildGradle).contains("lintOptions");
+    assertThat(guiTest.getProjectFileText("app/build.gradle")).contains("lintOptions");
   }
 }

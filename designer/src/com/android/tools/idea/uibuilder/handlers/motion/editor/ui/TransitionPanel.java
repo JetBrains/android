@@ -39,13 +39,8 @@ import javax.swing.SwingConstants;
  * The main transition Panel that shows the timeline
  */
 public class TransitionPanel extends JPanel {
-
-  private boolean mShowAll;
-
   TimeLinePanel mTimeLinePanel = new TimeLinePanel();
   MTag mTransitionTag;
-  MTag mMotionSceneTag;
-  MTag mLayoutTag;
   private MeModel mMeModel;
   MotionEditorSelector mMotionEditorSelector;
   CreateKeyPosition mCreateKeyPosition = new CreateKeyPosition();
@@ -120,5 +115,13 @@ public class TransitionPanel extends JPanel {
 
   public void clearSelection() {
     mTimeLinePanel.clearSelection();
+  }
+
+  public void setActionListener(MTagActionListener listener) {
+    mTimeLinePanel.setActionListener(listener);
+  }
+
+  public void stopAnimation() {
+    mTimeLinePanel.stopAnimation();
   }
 }

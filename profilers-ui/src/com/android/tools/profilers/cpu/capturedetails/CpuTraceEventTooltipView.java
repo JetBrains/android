@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT;
+
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
@@ -26,13 +28,10 @@ import com.android.tools.adtui.model.legend.EventLegend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import java.awt.Color;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 /**
  * Tooltip view for the Trace Event chart in Systrace.
@@ -43,10 +42,10 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
   @NotNull private final Color myIdleColor;
 
   protected CpuTraceEventTooltipView(@NotNull HTreeChart<CaptureNode> chart,
-                                     @NotNull CpuProfilerStageView stageView,
+                                     @NotNull JLayeredPane tooltipRoot,
                                      @NotNull Color runningColor,
                                      @NotNull Color idleColor) {
-    super(chart, stageView);
+    super(chart, tooltipRoot);
     myLegends = new TraceEventTooltipLegends();
     myRunningColor = runningColor;
     myIdleColor = idleColor;
@@ -83,7 +82,7 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
     @NotNull private final EventLegend<DefaultDurationData> myRunningDurationLegend;
     @NotNull private final EventLegend<DefaultDurationData> myIdleDurationLegend;
 
-    public TraceEventTooltipLegends() {
+    TraceEventTooltipLegends() {
       super();
       myRunningDurationLegend = new EventLegend<>("Running", e -> TimeFormatter.getSingleUnitDurationString(e.getDurationUs()));
       myIdleDurationLegend = new EventLegend<>("Idle", e -> TimeFormatter.getSingleUnitDurationString(e.getDurationUs()));

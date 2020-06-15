@@ -20,7 +20,9 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
+import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
+import com.android.testutils.diff.UnifiedDiff;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.TestApplicationManager;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -36,9 +39,17 @@ public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
-    VfsRootAccess.allowRootAccess(Disposer.newDisposable(IdeaTestSuiteBase.class.getName()), "/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
-    setProperties();
-    setupKotlinPlugin();
+    try {
+      String[] roots = Arrays.stream(File.listRoots()).map(file -> file.getPath()).toArray(String[]::new);
+      VfsRootAccess.allowRootAccess(Disposer.newDisposable(IdeaTestSuiteBase.class.getName()), roots);  // Bazel tests are sandboxed so we disable VfsRoot checks.
+      BazelRunfilesManifestProcessor.setUpRunfiles();
+      setProperties();
+      setupKotlinPlugin();
+    } catch(Throwable e) {
+      // See b/143359533 for why we are handling errors here
+      System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
+      e.printStackTrace();
+    }
   }
 
   private static void setProperties() {
@@ -136,9 +147,25 @@ public class IdeaTestSuiteBase {
           }
         }
         Path targetPath = file.toPath();
-        Path linkName = Paths.get(TMP_DIR, target);
-        Files.createDirectories(linkName.getParent());
-        Files.createSymbolicLink(linkName, targetPath);
+        Path linkPath = Paths.get(TMP_DIR, target);
+
+        // Note: On Windows, due to a known limitation with symbolic link in Docker environments,
+        //       we need to create a symbolic links with the target as a relative path. This works
+        //       on Linux too, so we apply the same logic to both platforms to avoid diverging
+        //       behavior between platforms.
+        Path targetRelativePath = linkPath.getParent().relativize(targetPath);
+        Files.createDirectories(linkPath.getParent());
+        Files.createSymbolicLink(linkPath, targetRelativePath);
+
+        // Ensure we have access to the link target, as a way to check we don't run into the issue
+        // mentioned above.
+        // Note: File may not exist if "ignoreMissing" is true
+        if (file.exists()) {
+          // For reference, the statement below throws an IOException with the message "The create operation
+          // failed because the name contained at least one mount point which resolves to a volume to which
+          // the specified device object is not attached." if there is a problem with the symlink target.
+          linkPath.getFileSystem().provider().checkAccess(linkPath);
+        }
       }
     }
     catch (IOException e) {
@@ -146,16 +173,70 @@ public class IdeaTestSuiteBase {
     }
   }
 
-  protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
-    File offlineRepoZip = new File(getWorkspaceRoot(), repoZip);
-    if (!offlineRepoZip.exists()) {
-      System.err.println("Warning: Repo: " + repoZip + " was not found and will not be available");
-      return;
+  /**
+   * Sets up a project with content of a zip file, optionally applying a collection of git diff files to the unzipped project source code.
+   */
+  protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
+    File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
+    File outDir = createTmpDir(outputPath).toFile();
+    unzip(sourceZipFile, outDir);
+    for (DiffSpec diffSpec : diffSpecs) {
+      try {
+        new UnifiedDiff(Paths.get(diffSpec.relativeDiffPath)).apply(
+          outDir,
+          // plus 1 since the UnifiedDiff implementation artificially includes the
+          // diff prefix "a/" and "b/" when counting path segments.
+          diffSpec.diffDistance + 1);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
+  }
+
+  /**
+   * Simple value wrapper describing a git diff file.
+   */
+  protected static class DiffSpec {
+
+    /**
+     * The relative path of the diff file from the workspace root.
+     */
+    public final String relativeDiffPath;
+
+    /**
+     * The distance from the source directory and the git root when the diff file
+     * was generated. For example, for diffs in benchmark projects, the source code is usually located
+     * at `$git-root/project_name.123/src`, hence the diff distance is 2.
+     */
+    public final int diffDistance;
+
+    public DiffSpec(String relativeDiffPath, int diffDistance) {
+      this.relativeDiffPath = relativeDiffPath;
+      this.diffDistance = diffDistance;
+    }
+  }
+
+  protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
+    File offlineRepoZip = getWorkspaceFileAndEnsureExistence(repoZip);
+    File outDir = createTmpDir(outputPath).toFile();
+    unzip(offlineRepoZip, outDir);
+  }
+
+  @NotNull
+  private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
+    File file = new File(getWorkspaceRoot(), relativePath);
+    if (!file.exists()) {
+      throw new IllegalArgumentException(relativePath + " does not exist");
+    }
+    return file;
+  }
+
+  private static void unzip(File offlineRepoZip, File outDir) {
     try {
       InstallerUtil.unzip(
         offlineRepoZip,
-        createTmpDir(outputPath).toFile(),
+        outDir,
         FileOpUtils.create(),
         offlineRepoZip.length(),
         new FakeProgressIndicator());

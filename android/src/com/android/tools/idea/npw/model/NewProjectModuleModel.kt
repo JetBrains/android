@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags.NPW_NEW_MODULE_TEMPLATES
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
@@ -33,6 +34,8 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.StringParameter
+import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import org.jetbrains.android.util.AndroidBundle.message
@@ -41,10 +44,18 @@ import java.util.Locale
 
 private val log: Logger get() = logger<NewProjectModuleModel>()
 
+/**
+ * Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and renders them in a proper order.
+ */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
   @JvmField
   val formFactor = ObjectValueProperty(FormFactor.MOBILE)
-  private val newModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate(), formFactor)
+  private val newModuleModel = NewAndroidModuleModel(
+    projectModel,
+    File("").takeUnless { NPW_NEW_MODULE_TEMPLATES.get() },
+    createDummyTemplate(),
+    formFactor
+  )
   /**
    * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
    */
@@ -53,16 +64,20 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   @JvmField
   val renderTemplateHandle = OptionalValueProperty<TemplateHandle>()
   @JvmField
+  val newRenderTemplate = OptionalValueProperty<Template>()
+  @JvmField
   val hasCompanionApp = BoolValueProperty()
 
   fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> = newModuleModel.androidSdkInfo
 
-  fun moduleTemplateFile(): OptionalProperty<File> = newModuleModel.templateFile
+  fun setModuleTemplateFile(templateFile: File?) {
+    newModuleModel.templateFile = templateFile
+  }
 
   override fun handleFinished() {
     initMainModule()
     val newRenderTemplateModel = createMainRenderModel()
-    if (hasCompanionApp.get() && newRenderTemplateModel.templateHandle != null) {
+    if (hasCompanionApp.get() && newRenderTemplateModel.hasActivity) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel)
 
@@ -78,7 +93,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
       return // Extra render is driven by the Wizard itself
     }
 
-    if (newRenderTemplateModel.templateHandle != null) {
+    if (newRenderTemplateModel.hasActivity) {
       addRenderDefaultTemplateValues(newRenderTemplateModel)
       newRenderTemplateModel.handleFinished()
     }
@@ -101,8 +116,13 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
     projectModel.enableCppSupport.get() -> createCompanionRenderModel(newModuleModel)
-    extraRenderTemplateModel.templateHandle == null ->
-      RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull)
+    !extraRenderTemplateModel.hasActivity ->  {
+      RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull).apply {
+        if (newRenderTemplate.isPresent.get()) {
+          newTemplate = newRenderTemplate.value
+        }
+      }
+    }
     else -> extraRenderTemplateModel // Extra Render is visible. Use it.
   }
 }
@@ -110,18 +130,18 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 private const val EMPTY_ACTIVITY = "Empty Activity"
 private const val ANDROID_MODULE = "Android Module"
 
-private fun createCompanionModuleModel(projectModel: NewProjectModel): NewModuleModel {
+private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
   val moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE)
   val moduleName = getModuleName(FormFactor.MOBILE)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewModuleModel(projectModel, moduleTemplateFile!!, namedModuleTemplate)
+  val companionModuleModel = NewAndroidModuleModel(projectModel, moduleTemplateFile!!, namedModuleTemplate)
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel
 }
 
-private fun createCompanionRenderModel(moduleModel: NewModuleModel): RenderTemplateModel {
+private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel): RenderTemplateModel {
   // Note: The companion Render is always a "Empty Activity"
   val renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY)
   val renderTemplateHandle = TemplateHandle(renderTemplateFile!!)
@@ -137,6 +157,14 @@ private fun getModuleName(formFactor: FormFactor): String =
   (formFactor.baseFormFactor ?: formFactor).id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
 
 private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateModel) {
+  if (renderTemplateModel.templateHandle == null) {
+    for (parameter in renderTemplateModel.newTemplate.parameters) {
+      if (parameter is StringParameter) {
+        parameter.value = parameter.suggest() ?: parameter.value
+      }
+    }
+    return
+  }
   val templateValues = renderTemplateModel.templateValues
   val templateMetadata = renderTemplateModel.templateHandle!!.metadata
   val userValues = hashMapOf<Parameter, Any>()

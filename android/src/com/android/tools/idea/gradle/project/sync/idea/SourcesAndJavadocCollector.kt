@@ -41,8 +41,8 @@ fun getSourcesAndJavadocArtifacts(
     // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
     // The first case indicates full-variants sync and the later single-variant sync.
     val variants = if (module.androidProject.variants.isNotEmpty()) module.androidProject.variants else module.variantGroup.variants
-    // Collect the library identifiers to download sources and javadoc for, and filter the cached ones.
-    val identifiers = collectIdentifiers(variants).filter { !cachedSourcesAndJavadoc.contains(idToString(it)) }
+    // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
+    val identifiers = collectIdentifiers(variants).filter { !cachedSourcesAndJavadoc.contains(idToString(it)) && it.version != "unspecified" }
 
     // Query for SourcesAndJavadocArtifacts model.
     if (identifiers.isNotEmpty()) {

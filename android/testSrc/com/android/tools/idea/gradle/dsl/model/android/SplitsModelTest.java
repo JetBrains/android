@@ -16,14 +16,19 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_RESET_STATEMENT_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_BLOCK_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_RESET_STATEMENT_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_AND_INITIALIZE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_NONE_EXISTING;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_SPLITS_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_SPLITS_TEXT;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -59,21 +64,23 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AbiModel abi = splits.abi();
     abi.enable().setValue(false);
     abi.exclude().getListValue("abi-exclude-2").setValue("abi-exclude-3");
-    abi.include().getListValue("abi-include-2").setValue("abi-include-3");
+    abi.include().getListValue("abi-include-1").setValue("abi-include-3");
     abi.universalApk().setValue(true);
 
     DensityModel density = splits.density();
     density.auto().setValue(true);
     density.compatibleScreens().getListValue("screen2").setValue("screen3");
     density.enable().setValue(false);
-    density.exclude().getListValue("density-exclude-2").setValue("density-exclude-3");
+    density.exclude().getListValue("density-exclude-1").setValue("density-exclude-3");
     density.include().getListValue("density-include-2").setValue("density-include-3");
 
     LanguageModel language = splits.language();
     language.enable().setValue(true);
-    language.include().getListValue("language-include-2").setValue("language-include-3");
+    language.include().getListValue("language-include-1").setValue("language-include-3");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SPLITS_MODEL_SPLITS_EDIT_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
@@ -81,19 +88,19 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     abi = splits.abi();
     assertEquals("enable", Boolean.FALSE, abi.enable());
     assertEquals("exclude", ImmutableList.of("abi-exclude-1", "abi-exclude-3"), abi.exclude());
-    assertEquals("include", ImmutableList.of("abi-include-1", "abi-include-3"), abi.include());
+    assertEquals("include", ImmutableList.of("abi-include-3", "abi-include-2"), abi.include());
     assertEquals("universalApk", Boolean.TRUE, abi.universalApk());
 
     density = splits.density();
     assertEquals("auto", Boolean.TRUE, density.auto());
     assertEquals("compatibleScreens", ImmutableList.of("screen1", "screen3"), density.compatibleScreens());
     assertEquals("enable", Boolean.FALSE, density.enable());
-    assertEquals("exclude", ImmutableList.of("density-exclude-1", "density-exclude-3"), density.exclude());
+    assertEquals("exclude", ImmutableList.of("density-exclude-3", "density-exclude-2"), density.exclude());
     assertEquals("include", ImmutableList.of("density-include-1", "density-include-3"), density.include());
 
     language = splits.language();
     assertEquals("enable", Boolean.TRUE, language.enable());
-    assertEquals("include", ImmutableList.of("language-include-1", "language-include-3"), language.include());
+    assertEquals("include", ImmutableList.of("language-include-3", "language-include-2"), language.include());
   }
 
   @Test
@@ -112,21 +119,22 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     abi.include().addListValue().setValue("abi-include");
     abi.universalApk().setValue(false);
 
-    abi.exclude().setValue("abi-exclude");
-
-
     DensityModel density = splits.density();
     density.auto().setValue(false);
     density.compatibleScreens().addListValue().setValue("screen");
     density.enable().setValue(true);
     density.exclude().addListValue().setValue("density-exclude");
     density.include().addListValue().setValue("density-include");
+    density.include().addListValue().setValue("density-include2");
 
     LanguageModel language = splits.language();
     language.enable().setValue(false);
     language.include().addListValue().setValue("language-include");
+    language.include().addListValue().setValue("language-include2");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SPLITS_MODEL_ADD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
@@ -142,11 +150,11 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("compatibleScreens", ImmutableList.of("screen"), density.compatibleScreens());
     assertEquals("enable", Boolean.TRUE, density.enable());
     assertEquals("exclude", ImmutableList.of("density-exclude"), density.exclude());
-    assertEquals("include", ImmutableList.of("density-include"), density.include());
+    assertEquals("include", ImmutableList.of("density-include", "density-include2"), density.include());
 
     language = splits.language();
     assertEquals("enable", Boolean.FALSE, language.enable());
-    assertEquals("include", ImmutableList.of("language-include"), language.include());
+    assertEquals("include", ImmutableList.of("language-include", "language-include2"), language.include());
   }
 
   @Test
@@ -181,6 +189,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     language.include().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     verifyNullSplitsValues();
     android = buildModel.android();
     assertNotNull(android);
@@ -255,6 +265,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     splits.removeLanguage();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
@@ -293,6 +305,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     language.include().getListValue("language-include-2").delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
@@ -343,6 +357,8 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     language.include().getListValue("language-include").delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
@@ -417,6 +433,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     splits.density().setReset(true);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SPLITS_MODEL_ADD_RESET_STATEMENT_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -442,6 +459,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     splits.density().setReset(false);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SPLITS_MODEL_REMOVE_RESET_STATEMENT_EXPECTED);
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();

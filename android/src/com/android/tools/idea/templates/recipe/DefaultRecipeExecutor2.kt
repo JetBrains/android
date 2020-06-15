@@ -1,0 +1,633 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.templates.recipe
+
+import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.GRADLE_API_CONFIGURATION
+import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
+import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.repository.GradleVersion
+import com.android.resources.ResourceFolderType
+import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
+import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
+import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.templates.RenderingContextAdapter
+import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
+import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
+import com.android.tools.idea.templates.TemplateUtils.hasExtension
+import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
+import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
+import com.android.tools.idea.templates.TemplateUtils.writeTextFile
+import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.SKIP_LINE
+import com.android.tools.idea.wizard.template.SourceSetType
+import com.android.tools.idea.wizard.template.findResource
+import com.android.utils.XmlUtils.XML_PROLOG
+import com.android.utils.findGradleBuildFile
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.diff.comparison.ComparisonManager
+import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.ReadonlyStatusHandler
+import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import com.intellij.openapi.vfs.VfsUtil.findFileByURL
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.XmlElementFactory
+import org.jetbrains.annotations.NonNls
+import java.io.File
+import java.io.IOException
+import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
+import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
+
+private val log: Logger get() = logger<DefaultRecipeExecutor2>()
+
+/**
+ * Executor support for recipe instructions.
+ *
+ * Note: it tries to use [GradleBuildModel] for merging of Gradle files, but falls back on simple merging if it is unavailable.
+ */
+class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
+  private val project: Project get() = context.project
+  private val referencesExecutor: FindReferencesRecipeExecutor2 = FindReferencesRecipeExecutor2(context)
+  private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
+  private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(project)
+
+  private val projectTemplateData: ProjectTemplateData get() = context.projectTemplateData
+  private val moduleTemplateData: ModuleTemplateData? get() = context.moduleTemplateData
+  private val repositoryUrlManager: RepositoryUrlManager by lazy { RepositoryUrlManager.get() }
+
+  private val projectBuildModel: ProjectBuildModel? by lazy { ProjectBuildModel.getOrLog(project) }
+  private val projectSettingsModel: GradleSettingsModel? by lazy { projectBuildModel?.projectSettingsModel }
+  private val projectGradleBuildModel: GradleBuildModel? by lazy { projectBuildModel?.projectBuildModel }
+  private val moduleGradleBuildModel: GradleBuildModel? by lazy {
+    when {
+      context.module != null -> projectBuildModel?.getModuleBuildModel(context.module)
+      context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
+      else -> null
+    }
+  }
+
+  override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
+    val buildModel =
+      if (moduleDir != null) {
+        projectBuildModel?.getModuleBuildModel(moduleDir)
+      } else {
+        moduleGradleBuildModel
+      } ?: return false
+
+    if (buildModel.getDependencyConfiguration(mavenCoordinate) != null) {
+      return true
+    }
+
+    val facet = context.module?.androidFacet ?: return false
+    val androidModel = AndroidModuleModel.get(facet) ?: return false
+
+    return dependsOn(androidModel, mavenCoordinate) ||
+           dependsOnJavaLibrary(androidModel, mavenCoordinate) ||
+           dependsOnAndroidTest(androidModel, mavenCoordinate)
+  }
+
+  private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
+    val configurationsToCheck = listOf(
+        ANDROID_TEST_API,
+        ANDROID_TEST_COMPILE,
+        ANDROID_TEST_IMPLEMENTATION,
+        API,
+        APK,
+        CLASSPATH,
+        COMPILE,
+        IMPLEMENTATION,
+        PROVIDED,
+        RUNTIME,
+        TEST_API,
+        TEST_COMPILE,
+        TEST_IMPLEMENTATION
+    )
+
+    fun checkForConfiguration(configuration: String?): Boolean {
+      val artifacts = dependencies().run { if (configuration == null) artifacts() else artifacts(configuration) }
+
+      val existingArtifacts = artifacts.map {
+        ArtifactDependencySpec.create(it.name().toString(), it.group().toString(), it.version().toString())
+      }
+
+      val artifactToAdd = ArtifactDependencySpec.create(mavenCoordinate)!!
+
+      return existingArtifacts.any { it.equalsIgnoreVersion(artifactToAdd) }
+    }
+
+    return configurationsToCheck.firstOrNull { checkForConfiguration(it) } ?: OTHER_CONFIGURATION.takeIf { checkForConfiguration(null) }
+  }
+
+  /**
+   * Merges the given XML file into the given destination file (or copies it over if  the destination file does not exist).
+   */
+  override fun mergeXml(source: String, to: File) {
+    val content = source.withoutSkipLines()
+    val targetFile = getTargetFile(to)
+    require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
+
+    val targetText = readTargetText(targetFile) ?: run {
+      save(content, to, true, true)
+      return
+    }
+
+    val contents = mergeXmlUtil(RenderingContextAdapter(context), content, targetText, targetFile)
+
+    writeTargetFile(this, contents, targetFile)
+  }
+
+  override fun open(file: File) {
+    context.filesToOpen.add(file)
+  }
+
+  override fun applyPlugin(plugin: String) {
+    referencesExecutor.applyPlugin(plugin)
+
+    val buildModel = moduleGradleBuildModel ?: return
+    if (buildModel.plugins().none { it.name().forceString() == plugin }) {
+      buildModel.applyPlugin(plugin)
+    }
+  }
+
+  override fun addClasspathDependency(mavenCoordinate: String) {
+    val resolvedCoordinate = resolveDependency(repositoryUrlManager, mavenCoordinate.trim())
+
+    referencesExecutor.addClasspathDependency(resolvedCoordinate)
+
+    val toBeAddedDependency = ArtifactDependencySpec.create(resolvedCoordinate)
+    check(toBeAddedDependency != null) { "$resolvedCoordinate is not a valid classpath dependency" }
+
+    val buildModel = projectGradleBuildModel ?: return
+
+    val buildscriptDependencies = buildModel.buildscript().dependencies()
+    val targetDependencyModel = buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
+      toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(it))
+    }
+    if (targetDependencyModel == null) {
+      buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
+    }
+    else {
+      val toBeAddedVersion = GradleVersion.parse(toBeAddedDependency.version ?: "")
+      val existingVersion = GradleVersion.parse(targetDependencyModel.version().toString())
+      if (toBeAddedVersion > existingVersion) {
+        targetDependencyModel.version().setValue(toBeAddedDependency.version ?: "")
+      }
+    }
+  }
+
+  /**
+   * Add a library dependency into the project.
+   */
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
+    // Translate from "compile" to "implementation" based on the parameter map context
+    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
+
+    val baseFeature = context.moduleTemplateData?.baseFeature
+
+    val buildModel = when {
+       moduleDir != null -> {
+         projectBuildModel?.getModuleBuildModel(moduleDir)
+       }
+       baseFeature == null || !toBase -> {
+         moduleGradleBuildModel
+       }
+       else -> {
+         projectBuildModel?.getModuleBuildModel(baseFeature.dir)
+       }
+     } ?: return
+
+    var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
+
+    // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
+    // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
+    if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
+      resolvedConfiguration = GRADLE_API_CONFIGURATION
+    } else if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) != null) {
+      return
+    }
+
+    buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+  }
+
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
+    require(moduleName.isNotEmpty() && moduleName.first() != ':') {
+      "incorrect module name (it should not be empty or include first ':')"
+    }
+    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+
+    val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
+    buildModel.dependencies().addModule(resolvedConfiguration, ":$moduleName")
+    io.applyChanges(buildModel)
+  }
+
+  /**
+   * Copies the given source file into the given destination file (where the source
+   * is allowed to be a directory, in which case the whole directory is copied recursively)
+   */
+  override fun copy(from: File, to: File) {
+    val sourceUrl = findResource(context.templateData.javaClass, from)
+    val target = getTargetFile(to)
+
+    val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
+    sourceFile.refresh(false, false)
+    val destPath = if (sourceFile.isDirectory) target else target.parentFile
+    when {
+      sourceFile.isDirectory -> copyDirectory(sourceFile, destPath)
+      target.exists() -> if (!sourceFile.contentEquals(target)) {
+        addFileAlreadyExistWarning(target)
+      }
+      else -> {
+        val document = FileDocumentManager.getInstance().getDocument(sourceFile)
+        if (document != null) {
+          io.writeFile(this, document.text, target)
+        }
+        else {
+          io.copyFile(this, sourceFile, destPath, target.name)
+        }
+        referencesExecutor.addTargetFile(target)
+      }
+    }
+  }
+
+  /**
+   * Instantiates the given template file into the given output file (running the Freemarker engine over it)
+   */
+  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
+    val targetFile = getTargetFile(to)
+    val untrimmedContent = extractFullyQualifiedNames(to, source.withoutSkipLines())
+    val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
+    val content = if (squishEmptyLines) trimmedUnsquishedContent.squishEmptyLines() else trimmedUnsquishedContent
+
+    if (targetFile.exists()) {
+      if (!targetFile.contentEquals(content)) {
+        addFileAlreadyExistWarning(targetFile)
+      }
+      return
+    }
+    io.writeFile(this, content, targetFile)
+    referencesExecutor.addTargetFile(targetFile)
+  }
+
+  override fun createDirectory(at: File) {
+    io.mkDir(getTargetFile(at))
+  }
+
+  override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
+    val buildModel = moduleGradleBuildModel ?: return
+    val sourceSet = buildModel.android().addSourceSet(name)
+
+    if (type == SourceSetType.MANIFEST) {
+      sourceSet.manifest().srcFile().setValue(dir)
+      return
+    }
+
+    val srcDirsModel = with(sourceSet) {
+      when (type) {
+        SourceSetType.AIDL -> aidl()
+        SourceSetType.ASSETS -> assets()
+        SourceSetType.JAVA -> java()
+        SourceSetType.JNI -> jni()
+        SourceSetType.RENDERSCRIPT -> renderscript()
+        SourceSetType.RES -> res()
+        SourceSetType.RESOURCES -> resources()
+        SourceSetType.MANIFEST -> throw RuntimeException("manifest should have been handled earlier")
+      }
+    }.srcDirs()
+
+    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == dir.path }
+
+    if (dirExists) {
+      return
+    }
+
+    srcDirsModel.addListValue().setValue(dir)
+  }
+
+  override fun setExtVar(name: String, value: Any) {
+    val buildModel = projectGradleBuildModel ?: return
+    val property = buildModel.buildscript().ext().findProperty(name)
+    if (property.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override property value if it exists. TODO(qumeric): ask user?
+    }
+    property.setValue(value)
+  }
+
+  /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  override fun addIncludeToSettings(moduleName: String) {
+    projectSettingsModel?.addModulePath(moduleName)
+  }
+
+  /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  override fun setBuildFeature(name: String, value: Boolean) {
+    val buildModel = moduleGradleBuildModel ?: return
+    val feature = when (name) {
+      "compose" -> buildModel.android().buildFeatures().compose()
+      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+    }
+    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override value if it exists. TODO(qumeric): ask user?
+    }
+    feature.setValue(value)
+  }
+
+  /**
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
+   */
+  override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
+    val languageLevel = LanguageLevel.parse(version)!!
+    val buildModel = moduleGradleBuildModel ?: return
+
+    fun updateCompatibility(current: LanguageLevelPropertyModel) {
+      if (current.valueType == GradlePropertyModel.ValueType.NONE ||
+          current.toLanguageLevel()!!.isLessThan(languageLevel)) {
+        current.setLanguageLevel(languageLevel)
+      }
+    }
+
+    buildModel.android().compileOptions().run {
+      updateCompatibility(sourceCompatibility())
+      updateCompatibility(targetCompatibility())
+    }
+    if (kotlinSupport && (context.moduleTemplateData)?.isDynamic != true) {
+      updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
+    }
+  }
+
+  override fun addDynamicFeature(name: String, toModule: File) {
+    require(name.isNotEmpty()) {
+      "Module name cannot be empty"
+    }
+    val gradleName = ':' + name.trimStart(':')
+    val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
+    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    io.applyChanges(buildModel)
+  }
+
+  fun applyChanges() {
+    if (!context.dryRun) {
+      projectBuildModel?.applyChanges()
+    }
+  }
+
+  private fun convertToAndroidX(mavenCoordinate: String): String =
+    if (projectTemplateData.androidXSupport)
+      AndroidxNameUtils.getVersionedCoordinateMapping(mavenCoordinate)
+    else
+      mavenCoordinate
+
+  /**
+   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists.
+   * This is an undo-friendly replacement.
+   */
+  private fun copyDirectory(src: VirtualFile, dest: File) =
+    VfsUtilCore.visitChildrenRecursively(src, object : VirtualFileVisitor<Any>() {
+      override fun visitFile(file: VirtualFile): Boolean {
+        try {
+          return copyFile(file, src, dest)
+        }
+        catch (e: IOException) {
+          throw VisitorException(e)
+        }
+      }
+    }, IOException::class.java)
+
+  private fun copyFile(file: VirtualFile, src: VirtualFile, destinationFile: File): Boolean {
+    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar)
+    check(relativePath != null) { "${file.path} is not a child of $src" }
+    if (file.isDirectory) {
+      io.mkDir(File(destinationFile, relativePath))
+      return true
+    }
+    val target = File(destinationFile, relativePath)
+    if (target.exists()) {
+      if (!file.contentEquals(target)) {
+        addFileAlreadyExistWarning(target)
+      }
+    }
+    else {
+      io.copyFile(this, file, target)
+      referencesExecutor.addTargetFile(target)
+    }
+    return true
+  }
+
+  /**
+   * Returns the absolute path to the file which will get written to.
+   */
+  private fun getTargetFile(file: File): File = if (file.isAbsolute)
+    file
+  else
+    File(context.outputRoot, file.path)
+
+  private fun readTextFile(file: File): String? =
+    if (moduleTemplateData?.isNew != false)
+      readTextFromDisk(file)
+    else
+      readTextFromDocument(project, file)
+
+  /**
+   * Shorten all fully qualified Layout names that belong to the same package as the manifest's package attribute value.
+   *
+   * @See [com.android.manifmerger.ManifestMerger2.extractFqcns]
+   */
+  private fun extractFullyQualifiedNames(to: File, content: String): String {
+    if (ResourceFolderType.getFolderType(to.parentFile.name) != ResourceFolderType.LAYOUT) {
+      return content
+    }
+
+    val packageName: String? = projectTemplateData.applicationPackage ?: moduleTemplateData?.packageName
+
+    val factory = XmlElementFactory.getInstance(project)
+    val root = factory.createTagFromText(content)
+
+    // Note: At the moment only root "context:tools" attribute needs to be shorten
+    val contextAttr = root.getAttribute(ATTR_CONTEXT, TOOLS_URI)
+    val context = contextAttr?.value
+    if (packageName == null || context == null || !context.startsWith("$packageName.")) {
+      return content
+    }
+
+    val newContext = context.substring(packageName.length)
+    root.setAttribute(ATTR_CONTEXT, TOOLS_URI, newContext)
+
+    return XML_PROLOG + root.text
+  }
+
+  private fun readTargetText(targetFile: File): String? {
+    if (!targetFile.exists()) {
+      return null
+    }
+    if (project.isInitialized) {
+      val toFile = findFileByIoFile(targetFile, true)
+      val status = readonlyStatusHandler.ensureFilesWritable(listOf(toFile!!))
+      check(!status.hasReadonlyFiles()) { "Attempt to update file that is readonly: ${targetFile.absolutePath}" }
+    }
+    return readTextFile(targetFile)
+  }
+
+  private fun writeTargetFile(requestor: Any, contents: String?, to: File) {
+    io.writeFile(requestor, contents, to)
+    referencesExecutor.addTargetFile(to)
+  }
+
+  private fun VirtualFile.contentEquals(targetFile: File): Boolean =
+    findFileByIoFile(targetFile, true)?.let { targetVFile ->
+      if (fileType.isBinary)
+        this.contentsToByteArray() contentEquals targetVFile.contentsToByteArray()
+      else
+        ComparisonManager.getInstance().isEquals(readTextFile(toIoFile())!!, readTextFile(targetVFile.toIoFile())!!, IGNORE_WHITESPACES)
+    } ?: false
+
+  private infix fun File.contentEquals(content: String): Boolean =
+    ComparisonManager.getInstance().isEquals(content, readTextFile(this)!!, IGNORE_WHITESPACES)
+
+  private fun addFileAlreadyExistWarning(targetFile: File) =
+    context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
+
+  // TODO(qumeric): make private
+  open class RecipeIO {
+    open fun writeFile(requestor: Any, contents: String?, to: File) {
+      checkedCreateDirectoryIfMissing(to.parentFile)
+      writeTextFile(this, contents, to)
+    }
+
+    open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
+      val toDir = checkedCreateDirectoryIfMissing(toFile.parentFile)
+      VfsUtilCore.copyFile(this, file, toDir)
+    }
+
+    open fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
+      val toDir = checkedCreateDirectoryIfMissing(toFileDir)
+      VfsUtilCore.copyFile(requestor, file, toDir, newName)
+    }
+
+    open fun mkDir(directory: File) {
+      checkedCreateDirectoryIfMissing(directory)
+    }
+
+    open fun applyChanges(gradleModel: GradleFileModel) {
+    }
+
+    open fun mergeBuildFiles(
+      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
+    ): String = project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
+  }
+
+  // TODO(qumeric): make private
+  class DryRunRecipeIO : RecipeIO() {
+    override fun writeFile(requestor: Any, contents: String?, to: File) {
+      checkDirectoryIsWriteable(to.parentFile)
+    }
+
+    override fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
+      checkDirectoryIsWriteable(toFile.parentFile)
+    }
+
+    override fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
+      checkDirectoryIsWriteable(toFileDir)
+    }
+
+    override fun mkDir(directory: File) {
+      checkDirectoryIsWriteable(directory)
+    }
+
+    override fun applyChanges(gradleModel: GradleFileModel) {}
+
+    override fun mergeBuildFiles(
+      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
+    ): String = destinationContents
+  }
+}
+
+// used when some configuration is found but it is not in configuration list.
+private const val OTHER_CONFIGURATION = "__other__"
+
+/**
+ * 'classpath' is the configuration name used to specify buildscript dependencies.
+ */
+// TODO(qumeric): make private
+const val CLASSPATH_CONFIGURATION_NAME = "classpath"
+
+private fun CharSequence.withoutSkipLines() = this.split("\n")
+  .filter { it.trim() != SKIP_LINE }
+  .joinToString("\n")
+  .replace(SKIP_LINE, "") // for some SKIP_LINEs which are not on their own line
+
+@VisibleForTesting
+fun CharSequence.squishEmptyLines(): String {
+  var isLastBlank = false
+  return this.split("\n").mapNotNull { line ->
+    when {
+      !line.isBlank() -> line
+      !isLastBlank -> "" // replace blank with empty
+      else -> null
+    }.also {
+      isLastBlank = line.isBlank()
+    }
+  }.joinToString("\n")
+}
+
+
+fun getBuildModel(buildFile: File, project: Project, projectBuildModel: ProjectBuildModel? = null): GradleBuildModel? {
+  if (project.isDisposed || !buildFile.exists()) {
+    return null
+  }
+  val virtualFile = findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
+
+  // TemplateUtils.writeTextFile saves Documents but doesn't commit them, since there might not be a Project to speak of yet.
+  // ProjectBuildModel uses PSI, so let's make sure the Document is committed, since it's illegal to modify PSI for a file with
+  // and uncommitted Document.
+  FileDocumentManager.getInstance()
+    .getCachedDocument(virtualFile)
+    ?.let(PsiDocumentManager.getInstance(project)::commitDocument)
+
+  val buildModel = projectBuildModel ?: ProjectBuildModel.getOrLog(project)
+
+  return buildModel?.getModuleBuildModel(virtualFile)
+}
+

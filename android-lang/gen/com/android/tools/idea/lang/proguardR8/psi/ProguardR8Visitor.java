@@ -32,6 +32,26 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitAnyNotPrimitiveType(@NotNull ProguardR8AnyNotPrimitiveType o) {
+    visitPsiElement(o);
+  }
+
+  public void visitAnyPrimitiveType(@NotNull ProguardR8AnyPrimitiveType o) {
+    visitPsiElement(o);
+  }
+
+  public void visitAnyType(@NotNull ProguardR8AnyType o) {
+    visitPsiElement(o);
+  }
+
+  public void visitArrayType(@NotNull ProguardR8ArrayType o) {
+    visitPsiElement(o);
+  }
+
+  public void visitClassMemberName(@NotNull ProguardR8ClassMemberName o) {
+    visitPsiElement(o);
+  }
+
   public void visitClassModifier(@NotNull ProguardR8ClassModifier o) {
     visitPsiElement(o);
   }
@@ -52,12 +72,12 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitFieldName(@NotNull ProguardR8FieldName o) {
-    visitPsiElement(o);
+  public void visitConstructorName(@NotNull ProguardR8ConstructorName o) {
+    visitClassMemberName(o);
   }
 
-  public void visitFieldsModifier(@NotNull ProguardR8FieldsModifier o) {
-    visitPsiElement(o);
+  public void visitField(@NotNull ProguardR8Field o) {
+    visitClassMember(o);
   }
 
   public void visitFieldsSpecification(@NotNull ProguardR8FieldsSpecification o) {
@@ -68,7 +88,19 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitFlag(@NotNull ProguardR8Flag o) {
+    visitPsiElement(o);
+  }
+
   public void visitFlagArgument(@NotNull ProguardR8FlagArgument o) {
+    visitPsiElement(o);
+  }
+
+  public void visitFullyQualifiedNameConstructor(@NotNull ProguardR8FullyQualifiedNameConstructor o) {
+    visitClassMember(o);
+  }
+
+  public void visitIncludeFile(@NotNull ProguardR8IncludeFile o) {
     visitPsiElement(o);
   }
 
@@ -84,15 +116,19 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitMethodModifier(@NotNull ProguardR8MethodModifier o) {
-    visitPsiElement(o);
-  }
-
-  public void visitMethodName(@NotNull ProguardR8MethodName o) {
-    visitPsiElement(o);
+  public void visitMethod(@NotNull ProguardR8Method o) {
+    visitClassMember(o);
   }
 
   public void visitMethodSpecification(@NotNull ProguardR8MethodSpecification o) {
+    visitPsiElement(o);
+  }
+
+  public void visitModifier(@NotNull ProguardR8Modifier o) {
+    visitPsiElement(o);
+  }
+
+  public void visitParameters(@NotNull ProguardR8Parameters o) {
     visitPsiElement(o);
   }
 
@@ -108,11 +144,19 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitSuperClassName(@NotNull ProguardR8SuperClassName o) {
+    visitPsiElement(o);
+  }
+
   public void visitType(@NotNull ProguardR8Type o) {
     visitPsiElement(o);
   }
 
   public void visitTypeList(@NotNull ProguardR8TypeList o) {
+    visitPsiElement(o);
+  }
+
+  public void visitClassMember(@NotNull ProguardR8ClassMember o) {
     visitPsiElement(o);
   }
 

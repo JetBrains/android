@@ -21,22 +21,6 @@ import java.awt.Rectangle
 import kotlin.math.max
 
 /**
- * We have to use scaled size to measure the (row, column) position for [SceneView]s.
- * The actual preview image size is too large for layout measuring, we use (image size)/RATIO
- * instead.
- * <p>
- * The [RATIO] here is a fine-tuned value as a temporarily solution. For better solution we may
- * want to handle the zoom-level in [SurfaceLayoutManager] instead of [NlDesignSurface].
- */
-private const val RATIO: Double = 4.5
-
-/**
- * Width used to fill the row when measuring the size and position of grid.
- */
-private val SceneView.gridWidth: Int
-  get() = (preferredSize.width / RATIO).toInt()
-
-/**
  * [SurfaceLayoutManager] that layouts [SceneView]s in grid style. It tries to fill the [SceneView]s horizontally then vertically.
  * When a row has no horizontal space for the next [SceneView], it fills the remaining [SceneView]s in the new row, and so on.
  *
@@ -58,8 +42,8 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
                                 dimension: Dimension?) =
     getSize(sceneViews, SceneView::getPreferredSize, availableWidth, availableHeight, dimension)
 
-  override fun getRequiredSize(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?) =
-    getSize(sceneViews, SceneView::getSize, availableWidth, availableHeight, dimension)
+  override fun getRequiredSize(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?)
+    = getSize(sceneViews, SceneView::getSize, availableWidth, availableHeight, dimension)
 
   private fun getSize(sceneViews: List<SceneView>,
                       sizeFunc: SceneView.() -> Dimension,
@@ -69,7 +53,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     : Dimension {
     val dim = dimension ?: Dimension()
 
-    val grid = convertToGrid(sceneViews, availableWidth, availableHeight)
+    val grid = convertToGrid(sceneViews, availableWidth) { sizeFunc().width }
     var requiredWidth = 0
     var requiredHeight = 0
 
@@ -81,7 +65,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
         rowX += view.sizeFunc().width + horizontalViewDelta
         currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.nameLabelHeight)
       }
-      requiredWidth = max(requiredWidth, rowX)
+      requiredWidth = max(requiredWidth, max(rowX - horizontalViewDelta, 0))
       requiredHeight = currentHeight
     }
 
@@ -90,9 +74,10 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
   }
 
   /**
-   * Arrange [SceneView]s into a 2-dimension list which represent a list of row of [SceneView]
+   * Arrange [SceneView]s into a 2-dimension list which represent a list of row of [SceneView].
+   * The [widthFunc] is for getting the preferred widths of [SceneView]s when filling the horizontal spaces.
    */
-  private fun convertToGrid(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int): List<List<SceneView>> {
+  private fun convertToGrid(sceneViews: List<SceneView>, availableWidth: Int, widthFunc: SceneView.() -> Int): List<List<SceneView>> {
     if (sceneViews.isEmpty()) {
       return listOf(emptyList())
     }
@@ -102,17 +87,17 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     val iterator = sceneViews.iterator()
 
     val firstView = iterator.next()
-    var nextX = startX + firstView.gridWidth + horizontalViewDelta
+    var nextX = startX + firstView.widthFunc() + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
     for (view in iterator) {
-      if (nextX + view.gridWidth > availableWidth) {
-        nextX = horizontalPadding + view.gridWidth + horizontalViewDelta
+      if (nextX + view.widthFunc() > availableWidth) {
+        nextX = horizontalPadding + view.widthFunc() + horizontalViewDelta
         gridList.add(columnList)
         columnList = mutableListOf(view)
       }
       else {
-        nextX += view.gridWidth + horizontalViewDelta
+        nextX += view.widthFunc() + horizontalViewDelta
         columnList.add(view)
       }
     }
@@ -141,7 +126,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       previousVerticalPadding = startY
     }
 
-    val grid = convertToGrid(sceneViews, availableWidth, availableHeight)
+    val grid = convertToGrid(sceneViews, availableWidth) { size.width }
 
     var nextX = startX
     var nextY = startY
@@ -174,7 +159,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     val index = sceneViews.indexOf(targetSceneView)
     assert(index != -1)
 
-    val grid = convertToGrid(sceneViews, availableWidth, availableHeight)
+    val grid = convertToGrid(sceneViews, availableWidth) { size.width }
 
     // Calculate which row/column the given SceneView located.
     var row = 0
@@ -225,9 +210,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       (rightSceneView.left + targetSceneView.right) / 2
     }
 
-    rectangle.setLocation(leftBound, topBound)
-    rectangle.setSize(rightBound - leftBound, bottomBound - topBound)
-    rectangle.setFrame(leftBound.toDouble(), topBound.toDouble(), rightBound.toDouble(), bottomBound.toDouble())
+    rectangle.setBounds(leftBound, topBound, rightBound - leftBound, bottomBound - topBound)
     return rectangle
   }
 }

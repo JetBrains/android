@@ -51,6 +51,15 @@ public class TimeLineTopPanel extends JPanel {
     });
   }
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (mTickMarkCalculator !=  null) {
+      setPreferredSize(new Dimension(MEUI.scale(100), MEUI.ourHeaderHeight));
+      resize();
+    }
+  }
+
   private void resize() {
     int w = getWidth();
     int h = getHeight();
@@ -88,7 +97,7 @@ public class TimeLineTopPanel extends JPanel {
       RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(getBackground());
     g.fillRect(0, 0, w, h);
-    g.setColor(getForeground());
+    g.setColor(MEUI.myGridColor);
     int n = mTickMarkCalculator.getCount();
     if (mTimelineStructure.myXTicksPixels.length > 0) {
       mXTickCount = mTickMarkCalculator.paint(g2d, w, h, mTimelineStructure.myXTicksPixels);

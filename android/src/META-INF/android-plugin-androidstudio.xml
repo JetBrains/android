@@ -44,14 +44,10 @@
     <!-- Unregister DefaultJdkConfigurator b/112481251 -->
     <applicationService serviceInterface="com.intellij.openapi.projectRoots.DefaultJdkConfigurator"
                         serviceImplementation="com.android.tools.idea.welcome.config.AndroidDefaultJdkConfiguratorImpl" overrides="true"/>
+    <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
+    <postStartupActivity implementation="com.android.tools.idea.stats.AndroidStudioUsageTracker$JetnewsUsageTracker" />
   </extensions>
 
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>
-      <headless-implementation-class/>
-    </component>
-  </application-components>
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
@@ -60,7 +56,7 @@
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidArtworkIcons.Icons.Android" popup="false" keep-content="true" overrides="true">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="false" keep-content="true" overrides="true">
       <add-to-group group-id="ToolsMenu" anchor="first"/>
     </group>
 
@@ -75,6 +71,16 @@
     <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedHeapDumpSnapshotAction" id="UserInvokedHeapDumpSnapshot"
             text="Analyze Memory Usage">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="CollectTroubleshootingInformation" />
+    </action>
+
+    <action class="com.android.tools.idea.diagnostics.hprof.action.InternalUserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
+            text="Create And Immediately Analyze Heap Dump" internal="true">
+      <add-to-group group-id="Internal.HeapAnalysis"/>
+    </action>
+
+    <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
+            text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true">
+      <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
@@ -130,6 +136,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <defaultProjectTypeProvider type="Android"/>
+    <targetElementEvaluator language="XML" implementationClass="org.jetbrains.android.dom.AndroidXmlTargetElementEvaluatorEx" order="first"/>
     <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
                         overrides="true"/>
@@ -146,6 +153,10 @@
     <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
     <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
+    <applicationConfigurable parentId="preferences.general"
+                             displayName="Memory Settings"
+                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
+                             id="memory.settings"/>
   </extensions>
 
 </idea-plugin>

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.common.scene
 
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.idea.common.model.Coordinates.getSwingRectDip
+import com.android.tools.idea.common.surface.SceneView
+
 /**
  * Helper function to check if another [SceneComponent] is sibling or not.
  */
@@ -24,3 +28,15 @@ fun SceneComponent.isSibling(other: SceneComponent): Boolean {
   }
   return this.parent == other.parent
 }
+
+/**
+ * Helper function to convert a SceneComponent's draw rectangle to a [SwingRectangle].
+ */
+fun SceneComponent.inlineDrawRect(context: SceneContext)
+  = SwingRectangle(getSwingRectDip(context, this.fillDrawRect2D(0, null)))
+
+/**
+ * Helper function to convert a SceneComponent's draw rectangle to a [SwingRectangle].
+ */
+fun SceneComponent.inlineDrawRect(view: SceneView)
+  = SwingRectangle(getSwingRectDip(view, this.fillDrawRect2D(0, null)))

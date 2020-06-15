@@ -16,38 +16,117 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginConfigurationData
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.ProjectConfigurationData
+import com.android.build.attribution.data.TaskContainer
 import com.google.common.truth.Truth.assertThat
+import org.gradle.tooling.events.BinaryPluginIdentifier
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.PluginIdentifier
 import org.junit.Test
-import java.time.Duration
 
 class ProjectConfigurationAnalyzerTest {
 
   private val warningsFilter = BuildAttributionWarningsFilter()
-  private val analyzer = ProjectConfigurationAnalyzer(warningsFilter)
+  private val analyzer = ProjectConfigurationAnalyzer(warningsFilter, TaskContainer(), PluginContainer())
 
-  private val androidGradlePlugin = createBinaryPluginIdentifierStub("com.android.application")
   private val pluginA = createBinaryPluginIdentifierStub("pluginA")
   private val pluginB = createBinaryPluginIdentifierStub("pluginB")
   private val pluginC = createBinaryPluginIdentifierStub("pluginC")
-  private val buildScript = createScriptPluginIdentifierStub("build.gradle")
+  private val pluginD = createBinaryPluginIdentifierStub("pluginD")
+  private val pluginE = createBinaryPluginIdentifierStub("pluginE")
+  private val buildScriptA = createScriptPluginIdentifierStub("buildA.gradle")
+  private val buildScriptB = createScriptPluginIdentifierStub("buildB.gradle")
+
+  private fun createApplyPluginFinishEvent(plugin: PluginIdentifier,
+                                           configurationTime: Long,
+                                           parentEvent: FinishEvent? = null): FinishEvent {
+    return createFinishEventStub(
+      "Apply ${if (plugin is BinaryPluginIdentifier) "plugin" else "script"} ${plugin.displayName} to project :app finished",
+      0,
+      configurationTime,
+      createOperationDescriptorStub("Apply ${if (plugin is BinaryPluginIdentifier) "plugin" else "script"} ${plugin.displayName}",
+                                    parent = parentEvent?.descriptor))
+  }
 
   private fun sendProjectConfigurationEventsToAnalyzer() {
     analyzer.onBuildStart()
 
-    analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":app", listOf(
-      Pair(androidGradlePlugin, Duration.ofMillis(300)),
-      Pair(pluginA, Duration.ofMillis(400)),
-      Pair(pluginB, Duration.ofMillis(40)),
-      Pair(pluginC, Duration.ofMillis(350)),
-      Pair(buildScript, Duration.ofMillis(200))), 0, 1290))
+    // The following events represent this tree
+    //
+    // plugin pluginA (0.5 sec)
+    //
+    // Compile script buildA.gradle (BODY) (0.5 sec)
+    // Compile script buildA.gradle (CLASSPATH) (0.5 sec)
+    //
+    // script :app:buildA.gradle (2.3 sec) {
+    //   Resolve dependencies of :classpath (0.7 sec)
+    //   Resolve files of :classpath (0.3 sec)
+    //   plugin pluginB (0.1 sec)
+    //   script :app:buildB.gradle (0.5 sec) {
+    //     Resolve files of :classpath (0.1 sec)
+    //     plugin pluginC (0.4 sec) {
+    //       plugin pluginD (0.2 sec)
+    //     }
+    //   }
+    //
+    //   allProjects (0.5 sec)
+    // }
+    //
+    // afterEvaluate (0.7 sec) {
+    //   apply pluginE (0.2 sec)
+    // }
 
-    analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":lib", listOf(
-      Pair(androidGradlePlugin, Duration.ofMillis(200)),
-      Pair(pluginA, Duration.ofMillis(150)),
-      Pair(pluginB, Duration.ofMillis(30)),
-      Pair(pluginC, Duration.ofMillis(300)),
-      Pair(buildScript, Duration.ofMillis(250))), 0, 830))
+    analyzer.receiveEvent(createProjectConfigurationStartEventStub(":app"))
+
+    analyzer.receiveEvent(createApplyPluginFinishEvent(pluginA, 500))
+
+    analyzer.receiveEvent(createFinishEventStub("Compile script buildA.gradle (BODY) finished", 0, 500,
+                                                createOperationDescriptorStub("Compile script buildA.gradle (BODY)")))
+
+    analyzer.receiveEvent(createFinishEventStub("Compile script buildA.gradle (CLASSPATH) finished", 0, 500,
+                                                createOperationDescriptorStub("Compile script buildA.gradle (CLASSPATH)")))
+
+    val buildScriptAFinishEvent = createApplyPluginFinishEvent(buildScriptA, 3000)
+
+    analyzer.receiveEvent(createFinishEventStub("Resolve dependencies of :classpath finished", 0, 700,
+                                                createOperationDescriptorStub("Resolve dependencies of :classpath",
+                                                                              parent = buildScriptAFinishEvent.descriptor)))
+
+    analyzer.receiveEvent(createFinishEventStub("Resolve files of :classpath finished", 0, 300,
+                                                createOperationDescriptorStub("Resolve files of :classpath",
+                                                                              parent = buildScriptAFinishEvent.descriptor)))
+
+    analyzer.receiveEvent(createApplyPluginFinishEvent(pluginB, 100))
+
+    val buildScriptBFinishEvent = createApplyPluginFinishEvent(buildScriptB, 500, buildScriptAFinishEvent)
+
+    analyzer.receiveEvent(createFinishEventStub("Resolve files of :classpath finished", 0, 100,
+                                                createOperationDescriptorStub("Resolve files of :classpath",
+                                                                              parent = buildScriptBFinishEvent.descriptor)))
+
+    val pluginCConfigurationFinishEvent = createApplyPluginFinishEvent(pluginC, 400, buildScriptBFinishEvent)
+
+    analyzer.receiveEvent(createApplyPluginFinishEvent(pluginD, 200, pluginCConfigurationFinishEvent))
+    analyzer.receiveEvent(pluginCConfigurationFinishEvent)
+    analyzer.receiveEvent(buildScriptBFinishEvent)
+
+    analyzer.receiveEvent(createFinishEventStub("Execute 'allProjects {}' action finished", 0, 500,
+                                                createOperationDescriptorStub("allProjects",
+                                                                              "Execute 'allProjects {}' action",
+                                                                              buildScriptAFinishEvent.descriptor)))
+
+    analyzer.receiveEvent(buildScriptAFinishEvent)
+
+    val afterEvaluateFinishEvent = createFinishEventStub("Notify afterEvaluate listeners of :app finished", 0, 700,
+                                                         createOperationDescriptorStub("Notify afterEvaluate listeners of :app"))
+
+    analyzer.receiveEvent(createApplyPluginFinishEvent(pluginE, 200, afterEvaluateFinishEvent))
+    analyzer.receiveEvent(afterEvaluateFinishEvent)
+
+    analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":app", 0, 4500))
 
     analyzer.onBuildSuccess()
   }
@@ -56,33 +135,45 @@ class ProjectConfigurationAnalyzerTest {
   fun testProjectConfigurationAnalyzer() {
     sendProjectConfigurationEventsToAnalyzer()
 
-    assertThat(analyzer.pluginsSlowingConfiguration).hasSize(2)
+    assertThat(analyzer.projectsConfigurationData).hasSize(1)
 
-    assertThat(analyzer.pluginsSlowingConfiguration[0].project).isEqualTo(":app")
-    assertThat(analyzer.pluginsSlowingConfiguration[0].pluginsConfigurationData).containsExactlyElementsIn(
-      listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(pluginA), Duration.ofMillis(400)),
-             ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(pluginC), Duration.ofMillis(350))))
+    val configurationData = analyzer.projectsConfigurationData[0]
 
-    assertThat(analyzer.pluginsSlowingConfiguration[1].project).isEqualTo(":lib")
-    assertThat(analyzer.pluginsSlowingConfiguration[1].pluginsConfigurationData).containsExactlyElementsIn(
-      listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(pluginC), Duration.ofMillis(300)),
-             ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(buildScript), Duration.ofMillis(250))))
-  }
+    assertThat(configurationData.projectPath).isEqualTo(":app")
 
-  @Test
-  fun testProjectConfigurationAnalyzerWithSuppressedWarnings() {
-    warningsFilter.suppressPluginSlowingConfigurationWarning(pluginC.displayName)
+    val expectedPluginsConfiguration = listOf(PluginConfigurationData(PluginData(pluginA, ""), 500),
+                                              PluginConfigurationData(PluginData(pluginB, ""), 100),
+                                              PluginConfigurationData(PluginData(pluginC, ""), 400),
+                                              PluginConfigurationData(PluginData(pluginE, ""), 200))
 
-    sendProjectConfigurationEventsToAnalyzer()
+    assertThat(
+      analyzer.pluginsConfigurationDataMap.map { (plugin, time) -> PluginConfigurationData(plugin, time) }).containsExactlyElementsIn(
+      expectedPluginsConfiguration)
 
-    assertThat(analyzer.pluginsSlowingConfiguration).hasSize(2)
+    assertThat(configurationData.pluginsConfigurationData).containsExactlyElementsIn(expectedPluginsConfiguration)
 
-    assertThat(analyzer.pluginsSlowingConfiguration[0].project).isEqualTo(":app")
-    assertThat(analyzer.pluginsSlowingConfiguration[0].pluginsConfigurationData).containsExactlyElementsIn(
-      listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(pluginA), Duration.ofMillis(400))))
+    assertThat(configurationData.totalConfigurationTimeMs).isEqualTo(4500)
 
-    assertThat(analyzer.pluginsSlowingConfiguration[1].project).isEqualTo(":lib")
-    assertThat(analyzer.pluginsSlowingConfiguration[1].pluginsConfigurationData).containsExactlyElementsIn(
-      listOf(ProjectConfigurationAnalyzer.PluginConfigurationData(PluginData(buildScript), Duration.ofMillis(250))))
+    assertThat(configurationData.configurationSteps).hasSize(5)
+
+    assertThat(configurationData.configurationSteps[0].type).isEquivalentAccordingToCompareTo(
+      ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS)
+    assertThat(configurationData.configurationSteps[0].configurationTimeMs).isEqualTo(500)
+
+    assertThat(configurationData.configurationSteps[1].type).isEquivalentAccordingToCompareTo(
+      ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES)
+    assertThat(configurationData.configurationSteps[1].configurationTimeMs).isEqualTo(1100)
+
+    assertThat(configurationData.configurationSteps[2].type).isEquivalentAccordingToCompareTo(
+      ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS)
+    assertThat(configurationData.configurationSteps[2].configurationTimeMs).isEqualTo(1000)
+
+    assertThat(configurationData.configurationSteps[3].type).isEquivalentAccordingToCompareTo(
+      ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS)
+    assertThat(configurationData.configurationSteps[3].configurationTimeMs).isEqualTo(500)
+
+    assertThat(configurationData.configurationSteps[4].type).isEquivalentAccordingToCompareTo(
+      ProjectConfigurationData.ConfigurationStep.Type.OTHER)
+    assertThat(configurationData.configurationSteps[4].configurationTimeMs).isEqualTo(200)
   }
 }

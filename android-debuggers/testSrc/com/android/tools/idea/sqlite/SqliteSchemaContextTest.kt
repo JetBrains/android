@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
+import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.CollectUniqueNamesProcessor
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -50,10 +50,13 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testConvertSqliteTableToAndroidSqlTable() {
-    val columns: List<SqliteColumn> = listOf(SqliteColumn("col1", JDBCType.VARCHAR), SqliteColumn("col2", JDBCType.INTEGER))
-    val table = SqliteTable("table", columns, false)
+    val columns: List<SqliteColumn> = listOf(
+      SqliteColumn("col1", JDBCType.VARCHAR, false),
+      SqliteColumn("col2", JDBCType.INTEGER, false)
+    )
+    val table = SqliteTable("table", columns, null, false)
 
-    val sqlFile = myFixture.configureByText(ANDROID_SQL_FILE_TYPE, "")
+    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "")
     val androidSqliteSchema = table.convertToSqlTable(sqlFile)
 
     val columnsProcessor = CollectUniqueNamesProcessor<AndroidSqlColumn>()
@@ -69,9 +72,9 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFile() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), null,false)))
 
-    val sqlFile = myFixture.configureByText(ANDROID_SQL_FILE_TYPE, "SELECT * FROM Us<caret>er").virtualFile
+    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT * FROM Us<caret>er").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
     myFixture.configureFromExistingVirtualFile(sqlFile)
 
@@ -80,8 +83,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFileDuringCompletion() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR)), false)))
-    val sqlFile = myFixture.configureByText(ANDROID_SQL_FILE_TYPE, "SELECT <caret> FROM User").virtualFile
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), null,false)))
+    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT <caret> FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     val lookupElements = myFixture.completeBasic()
@@ -91,8 +94,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testProvideCorrectDescription() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR)), false)))
-    val sqlFile = myFixture.configureByText(ANDROID_SQL_FILE_TYPE, "SELECT n<caret>ame FROM User").virtualFile
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), null,false)))
+    val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     val ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)

@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TestLocalResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
   @NotNull private final ResourceNamespace myNamespace;
@@ -38,22 +39,12 @@ public class TestLocalResourceRepository extends LocalResourceRepository impleme
     myNamespace = namespace;
   }
 
-  @Override
-  @NonNull
-  public ResourceTable getFullTable() {
-    return myResourceTable;
-  }
-
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> multimap = myResourceTable.get(namespace, type);
-    if (multimap == null && create) {
-      multimap = ArrayListMultimap.create();
-      myResourceTable.put(namespace, type, multimap);
-    }
-
-    return multimap;
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    return myResourceTable.get(namespace, type);
   }
 
   @Override
@@ -72,5 +63,24 @@ public class TestLocalResourceRepository extends LocalResourceRepository impleme
   @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
     return Collections.emptySet();
+  }
+
+  @Override
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
+    for (Map.Entry<ResourceNamespace, Map<ResourceType, ListMultimap<String, ResourceItem>>> entry : myResourceTable.rowMap().entrySet()) {
+      if (visitor.shouldVisitNamespace(entry.getKey())) {
+        if (acceptByResources(entry.getValue(), visitor) == ResourceVisitor.VisitResult.ABORT) {
+          return ResourceVisitor.VisitResult.ABORT;
+        }
+      }
+    }
+
+    return ResourceVisitor.VisitResult.CONTINUE;
+  }
+
+  public void addResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType,
+                           @NotNull ListMultimap<String, ResourceItem> resources) {
+    myResourceTable.put(namespace, resourceType, resources);
   }
 }

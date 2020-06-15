@@ -19,9 +19,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import javax.swing.Action;
-import java.awt.Dimension;
+import java.awt.*;
+import javax.swing.*;
 
 public class MECreatConstraintSetTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateConstraintSet {
@@ -40,19 +39,22 @@ public class MECreatConstraintSetTest extends BaseMotionEditorTest {
 
   public void testCreateConstraintSetLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,176,139\n" +
-                    "1,JLabel,5,2,166,15\n" +
-                    "1,JSeparator,5,20,166,2\n" +
-                    "1,JLabel,5,25,166,15\n" +
-                    "1,PromptedTextField,5,43,166,19\n" +
-                    "1,JLabel,5,65,166,15\n" +
-                    "1,MEComboBox,5,83,166,24\n" +
-                    "1,JButton,5,113,166,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+      "1,JLabel             ,5,4,88,8\n" +
+      "1,JSeparator         ,0,16,99,1\n" +
+      "1,JLabel             ,5,22,88,8\n" +
+      "1,PromptedTextField  ,6,32,87,10\n" +
+      "1,JLabel             ,5,47,88,8\n" +
+      "1,MEComboBox         ,6,57,87,13\n" +
+      "1,JButton            ,5,79,88,13\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,4)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateConstraintSetAction() {

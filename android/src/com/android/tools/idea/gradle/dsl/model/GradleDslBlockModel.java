@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
@@ -70,7 +71,7 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
 
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
-    return getModelForProperty(property, false);
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildResolved();
   }
 
   @NotNull
@@ -79,13 +80,17 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   }
 
   @NotNull
-  protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
-    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).buildResolved();
+  protected LanguageLevelPropertyModel getJvmTargetModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildJvmTarget();
   }
 
   @NotNull
-  protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property, boolean isMethod) {
-    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).addTransform(PropertyUtil.FILE_TRANSFORM)
-                                     .buildResolved();
+  protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(true).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
+  }
+
+  @NotNull
+  protected PasswordPropertyModel getPasswordModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(true).buildPassword();
   }
 }

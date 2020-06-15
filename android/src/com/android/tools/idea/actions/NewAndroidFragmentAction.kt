@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getModuleTemplates
@@ -32,7 +31,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import java.io.File
 
 /**
  * An action to launch the fragment wizard to create a fragment from a template.
@@ -52,7 +50,7 @@ class NewAndroidFragmentAction
     val dataContext = e.dataContext
     val module = LangDataKeys.MODULE.getData(dataContext) ?: return
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null || facet.model == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return
     }
 
@@ -76,13 +74,12 @@ class NewAndroidFragmentAction
       facet, null, initialPackageSuggestion, moduleTemplates[0],
       AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id), projectSyncInvoker, shouldOpenFiles)
 
-    val moduleModel = NewModuleModel(project, null, projectSyncInvoker, moduleTemplates[0])
-    val fragmentTypeStep = ChooseFragmentTypeStep(moduleModel, renderModel, FormFactor.MOBILE, directory)
+    val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
     val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()
 
     val dialog = StudioWizardDialogBuilder(wizard, dialogTitle).setProject(project).build()
     dialog.show()
-    val createdFiles = dataContext.getData(CREATED_FILES) as MutableList<File>?
+    val createdFiles = dataContext.getData(CREATED_FILES)
     createdFiles?.addAll(renderModel.createdFiles)
   }
 }

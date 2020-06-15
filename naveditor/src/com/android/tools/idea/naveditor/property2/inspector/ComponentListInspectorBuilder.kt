@@ -27,13 +27,13 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.DefaultListModel
 
 /**
  * Adds a ComponentList component to an [InspectorPanel] to display groups of subtags in a list format within an expandable title.
@@ -44,8 +44,7 @@ import java.awt.event.MouseEvent
  * [cellRenderer]: the cell renderer to be used for the list items
  */
 abstract class ComponentListInspectorBuilder(val tagName: String,
-                                             private val cellRenderer: ColoredListCellRenderer<NlComponent>,
-                                             private val comparator: Comparator<NlComponent> = compareBy { it.id })
+                                             private val cellRenderer: ColoredListCellRenderer<NlComponent>)
   : InspectorBuilder<NelePropertyItem> {
   abstract fun title(component: NlComponent): String
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
@@ -54,7 +53,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       return
     }
 
-    val model = SortedListModel(comparator)
+    val model = DefaultListModel<NlComponent>()
     refresh(component, model)
 
     val componentList = ComponentList(model, cellRenderer)
@@ -62,8 +61,9 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
 
     val addAction = AddAction(this, component, model)
     val deleteAction = DeleteAction(this, component, model, list)
+    val actions = listOf(addAction, deleteAction)
 
-    val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, addAction, deleteAction)
+    val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, actions)
     addAction.model = titleModel
     deleteAction.model = titleModel
 
@@ -102,14 +102,16 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
   protected open fun onSelectionChanged(list: JBList<NlComponent>) {}
   protected abstract fun isApplicable(component: NlComponent): Boolean
 
-  private fun refresh(component: NlComponent, model: SortedListModel<NlComponent>) {
+  private fun refresh(component: NlComponent, model: DefaultListModel<NlComponent>) {
     model.clear()
-    model.addAll(component.children.filter { it.tagName == tagName })
+    for (item in component.children.filter { it.tagName == tagName }) {
+      model.addElement(item)
+    }
   }
 
   private class AddAction(private val builder: ComponentListInspectorBuilder,
                           private val component: NlComponent,
-                          private val listModel: SortedListModel<NlComponent>)
+                          private val listModel: DefaultListModel<NlComponent>)
     : AnAction(null, "Add Component", AllIcons.General.Add) {
     var model: InspectorLineModel? = null
     override fun actionPerformed(e: AnActionEvent) {
@@ -122,7 +124,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
 
   private class DeleteAction(private val builder: ComponentListInspectorBuilder,
                              private val component: NlComponent,
-                             private val listModel: SortedListModel<NlComponent>,
+                             private val listModel: DefaultListModel<NlComponent>,
                              private val list: JBList<NlComponent>)
     : AnAction(null, "Delete Component", StudioIcons.Common.REMOVE) {
     var model: InspectorLineModel? = null

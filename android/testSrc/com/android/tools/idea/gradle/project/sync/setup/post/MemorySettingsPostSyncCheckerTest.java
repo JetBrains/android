@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
@@ -23,12 +26,9 @@ import com.intellij.notification.NotificationsManager;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   @Mock
-  private TimeBasedMemorySettingsCheckerReminder myReminder;
+  private TimeBasedReminder myReminder;
 
   @Override
   public void setUp() throws Exception {
@@ -51,14 +51,14 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   }
 
   public void testNoNotificationIfShouldNotCheck() {
-    when(myReminder.shouldCheck(getProject())).thenReturn(false);
-    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
+    when(myReminder.shouldAsk()).thenReturn(false);
+    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
   }
 
   public void testNotificationIfRecommended() {
-    when(myReminder.shouldCheck(getProject())).thenReturn(true);
+    when(myReminder.shouldAsk()).thenReturn(true);
     stubHostData(16 * 1024);
     MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
     MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);

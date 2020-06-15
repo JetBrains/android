@@ -34,8 +34,10 @@ import javax.swing.JComponent
 /**
  * A standard control for editing a text property.
  */
-class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel),
-                                                                     DataProvider {
+class PropertyTextField(
+  editorModel: TextFieldPropertyEditorModel
+) : CommonTextField<TextFieldPropertyEditorModel>(editorModel), DataProvider {
+
   init {
     background = secondaryPanelBackground
     registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
@@ -60,10 +62,27 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     }
   }
 
+  override fun requestFocus() {
+    requestFocusInWindow()
+  }
+
+  override fun requestFocusInWindow(): Boolean {
+    if (isFocusable) {
+      return super.requestFocusInWindow()
+    }
+    else {
+      var parent = parent ?: return false
+      while (!parent.isFocusable) {
+        parent = parent.parent ?: return false
+      }
+      return parent.requestFocusInWindow()
+    }
+  }
+
   override fun getToolTipText(event: MouseEvent): String? {
     // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
     val component = event.source as? JComponent ?: this
-    return PropertyTooltip.setToolTip(component, event, editorModel.property, forValue = true, text = text.orEmpty())
+    return PropertyTooltip.setToolTip(component, event, editorModel.property, editorModel.editingValue, text = text.orEmpty())
   }
 
   override fun getData(dataId: String): Any? {
@@ -76,6 +95,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   }
 
   private fun tab() {
+    enterInLookup()
     if (commit()) {
       transferFocus()
     }
@@ -83,6 +103,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   }
 
   private fun backTab() {
+    enterInLookup()
     if (commit()) {
       transferFocusBackward()
     }

@@ -22,6 +22,8 @@ import android.view.View;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -75,10 +77,16 @@ public class NlEditorTest {
     NlEditorFixture layout = editor.getLayoutEditor(true);
     DesignSurface surface = (DesignSurface)layout.getSurface().target();
     Dimension screenViewSize = surface.getFocusedSceneView().getSize();
-    // Drag components to [0, 0] and [width, height] to prevent them from overlapping each other and interfering with clicking.
+    // Drag components to areas that are safe to click (not out of bounds) and that not overlap to prevent them from overlapping each
+    // other and interfering with clicking.
+    // We use the middle point and put the components in midpoint +/- 25% of the screen view size.
+    int widthOffset = screenViewSize.width / 4;
+    int heightOffset = screenViewSize.height / 4;
     layout
-      .dragComponentToSurface("Buttons", "CheckBox", 0, 0)
-      .dragComponentToSurface("Buttons", "Button", screenViewSize.width, screenViewSize.height)
+      .dragComponentToSurface("Buttons", "CheckBox",
+                              screenViewSize.width / 2 - widthOffset, screenViewSize.height / 2 - heightOffset)
+      .dragComponentToSurface("Buttons", "Button",
+                              screenViewSize.width / 2 + widthOffset, screenViewSize.height / 2 + heightOffset)
       .waitForRenderToFinish();
 
     // Find and click the checkBox
@@ -348,6 +356,7 @@ public class NlEditorTest {
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/124109589
   @Test
   public void scrollWhileZoomed() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")

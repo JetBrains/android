@@ -36,6 +36,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -59,20 +60,18 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
 
 /**
  * Fixture for building up models for tests
@@ -86,6 +85,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
+  private final Function<DesignSurface, InteractionHandler> myInteractionProviderCreator;
   @NotNull private final Consumer<NlComponent> myComponentConsumer;
   private Device myDevice;
   private String myModelDisplayName;
@@ -98,6 +98,7 @@ public class ModelBuilder {
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
                       @NotNull Class<? extends DesignSurface> surfaceClass,
+                      @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
                       @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
@@ -108,6 +109,7 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
+    myInteractionProviderCreator = interactionProviderCreator;
     myComponentConsumer = componentRegistrar;
   }
 
@@ -187,27 +189,24 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(myFixture.getTestRootDisposable(), mySurfaceClass);
+      DesignSurface surface = createSurface(myFixture.getTestRootDisposable(), mySurfaceClass, myInteractionProviderCreator);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getTestRootDisposable(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
+      when(surface.getModels()).thenReturn(ImmutableList.of(model));
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
-      if (surface.getConfiguration() == null){
-        Mockito.doCallRealMethod().when(surface).getConfiguration();
-      }
-      when(surface.getSceneScalingFactor()).thenCallRealMethod();
 
       // TODO: NlDesignSurface should not be referenced from here.
       // TODO: Do we need a special version of ModelBuilder for Nele?
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
         when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
-        when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
+        when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT);
       }
 
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
-      when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
+      when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
@@ -215,9 +214,6 @@ public class ModelBuilder {
       sceneManager.update();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
-      when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
-      when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
-      when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       when(surface.getLayoutType()).thenCallRealMethod();
 
       return model;
@@ -234,7 +230,9 @@ public class ModelBuilder {
     return null;
   }
 
-  public static DesignSurface createSurface(Disposable disposableParent, Class<? extends DesignSurface> surfaceClass) {
+  public static DesignSurface createSurface(Disposable disposableParent,
+                                            Class<? extends DesignSurface> surfaceClass,
+                                            Function<DesignSurface, InteractionHandler> interactionProviderCreator) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
     Disposer.register(disposableParent, surface);
@@ -245,7 +243,7 @@ public class ModelBuilder {
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     when(surface.getSelectionAsTransferable()).thenCallRealMethod();
-    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface));
+    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface, interactionProviderCreator.apply(surface)));
     if (surface instanceof NlDesignSurface) {
       when(surface.getAnalyticsManager()).thenReturn(new NlAnalyticsManager(surface));
     }

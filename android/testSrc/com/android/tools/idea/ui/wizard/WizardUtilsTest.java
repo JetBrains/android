@@ -21,6 +21,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -93,7 +94,7 @@ public class WizardUtilsTest {
     setDefaultProjectDirectory(dpd);
 
     File actualLocation = getProjectLocationParent();
-    assertThat(actualLocation.toString()).isEqualTo(dpd);
+    assertThat(FileUtil.toSystemIndependentName(actualLocation.toString())).isEqualTo(dpd);
   }
 
   @Test
@@ -101,7 +102,7 @@ public class WizardUtilsTest {
     String rpl = "recent/project/location";
     setRecentProjectLocation(rpl);
     File actualLocation = getProjectLocationParent();
-    assertThat(actualLocation.toString()).isEqualTo(rpl);
+    assertThat(FileUtil.toSystemIndependentName(actualLocation.toString())).isEqualTo(rpl);
   }
 
   private void setRecentProjectLocation(@Nullable String recentProjectLocation) {

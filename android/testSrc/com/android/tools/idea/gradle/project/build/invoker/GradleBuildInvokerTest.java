@@ -32,24 +32,28 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.xdebugger.XDebugSession;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends PlatformTestCase {
+public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
@@ -216,15 +220,34 @@ public class GradleBuildInvokerTest extends PlatformTestCase {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
     when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
-    List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
-
-    myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs, null);
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL, null);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
-    assertThat(request.getCommandLineArguments()).containsExactlyElementsIn(commandLineArgs);
 
     verifyInteractionWithMocks(ASSEMBLE);
+  }
+
+  public void testExecuteTasksWaitForCompletionNoDispatch() throws InterruptedException {
+    GradleBuildInvoker.Request request = mock(GradleBuildInvoker.Request.class);
+    when(request.getBuildFilePath()).thenReturn(new File("some/very/cool/path"));
+    when(request.getGradleTasks()).thenReturn(Arrays.asList("task1", "test2"));
+    when(request.isWaitForCompletion()).thenReturn(true);
+
+
+    Semaphore sema = new Semaphore(0);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      myBuildInvoker.executeTasks(request);
+      sema.release();
+    });
+    // Block until execute tasks has been run.
+    do {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    }
+    while (!sema.tryAcquire());
+
+    verify(myFileDocumentManager).saveAllDocuments();
+    verify(myTasksExecutor).queueAndWaitForCompletion();
   }
 
   private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {

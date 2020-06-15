@@ -57,6 +57,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
       LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
       PlatformDataKeys.COPY_PROVIDER.name -> this
       UsageView.USAGE_TARGETS_KEY.name -> getUsageTargets(assetsToArrayPsiElements())
+      RESOURCE_DESIGN_ASSETS_KEY.name -> selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
       else -> null
     }
   }
@@ -115,8 +116,8 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   }
 }
 
-fun createTransferable(assetSet: Asset): Transferable {
-  val resourceUrl = assetSet.resourceItem.referenceToSelf.resourceUrl
+fun createTransferable(asset: Asset): Transferable {
+  val resourceUrl = asset.resourceUrl
 
   return object : Transferable {
     override fun getTransferData(flavor: DataFlavor?): Any? {

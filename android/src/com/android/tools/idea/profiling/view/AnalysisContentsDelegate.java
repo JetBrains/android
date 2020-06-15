@@ -31,19 +31,22 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.util.List;
-import java.util.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Responsible for creating tree nodes and rendering them for the capture analysis results light tool window.

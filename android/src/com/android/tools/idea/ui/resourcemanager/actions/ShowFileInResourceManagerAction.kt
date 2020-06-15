@@ -17,12 +17,10 @@ package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAwareAction
@@ -47,8 +45,6 @@ class ShowFileInResourceManagerAction
   : DumbAwareAction("Show In Resource Manager",
                     "Display selected file in the Resource Manager", null) {
 
-  private val showThumbnailAction: AnAction? = ActionManager.getInstance().getAction("Images.ShowThumbnails")
-
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.getData(CommonDataKeys.PROJECT)
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
@@ -58,26 +54,17 @@ class ShowFileInResourceManagerAction
       showResourceExplorer(project, file)
       return
     }
-    showThumbnailAction?.actionPerformed(e)
   }
 
   override fun update(e: AnActionEvent) {
     val project = e.getData(CommonDataKeys.PROJECT)
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
-    if (isSupportedInResManager(file, project)) {
-      if (ActionPlaces.isPopupPlace(e.place)) {
-        e.presentation.isEnabledAndVisible = true
-      }
-      else {
-        e.presentation.isEnabled = true
-      }
-      e.presentation.icon = StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
-      return
-    }
-    if (showThumbnailAction != null) {
-      e.presentation.icon = showThumbnailAction.templatePresentation.icon
-      showThumbnailAction.update(e)
-      e.presentation.text = showThumbnailAction.templatePresentation.text
+    val isSupported = isSupportedInResManager(file, project)
+    if (ActionPlaces.isPopupPlace(e.place)) {
+      // Popups should only show enabled actions.
+      e.presentation.isEnabledAndVisible = isSupported
+    } else {
+      e.presentation.isEnabled = isSupported
     }
   }
 

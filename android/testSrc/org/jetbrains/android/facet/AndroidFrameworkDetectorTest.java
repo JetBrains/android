@@ -59,7 +59,7 @@ public class AndroidFrameworkDetectorTest extends PlatformTestCase {
   public void testDetectWithProjectWithBuildFile() {
     ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myProjectInfo, getTestRootDisposable());
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
-    when(myProjectInfo.hasTopLevelGradleBuildFile()).thenReturn(true);
+    when(myProjectInfo.hasTopLevelGradleFile()).thenReturn(true);
 
     List<? extends DetectedFrameworkDescription> descriptions = myDetector.detect(Collections.emptyList(), myContext);
     assertThat(descriptions).isEmpty();

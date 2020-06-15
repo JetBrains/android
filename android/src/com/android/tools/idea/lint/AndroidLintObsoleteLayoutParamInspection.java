@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.ObsoleteLayoutParamsDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.RemoveAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ public class AndroidLintObsoleteLayoutParamInspection extends AndroidLintInspect
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new RemoveAttributeQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
+    return new LintIdeQuickFix[]{new RemoveAttributeQuickFix()};
   }
 }

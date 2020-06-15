@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
+import com.intellij.psi.PsiType;
 
 public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements ProguardR8Type {
 
@@ -45,6 +46,30 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
 
   @Override
   @Nullable
+  public ProguardR8AnyNotPrimitiveType getAnyNotPrimitiveType() {
+    return findChildByClass(ProguardR8AnyNotPrimitiveType.class);
+  }
+
+  @Override
+  @Nullable
+  public ProguardR8AnyPrimitiveType getAnyPrimitiveType() {
+    return findChildByClass(ProguardR8AnyPrimitiveType.class);
+  }
+
+  @Override
+  @Nullable
+  public ProguardR8AnyType getAnyType() {
+    return findChildByClass(ProguardR8AnyType.class);
+  }
+
+  @Override
+  @Nullable
+  public ProguardR8ArrayType getArrayType() {
+    return findChildByClass(ProguardR8ArrayType.class);
+  }
+
+  @Override
+  @Nullable
   public ProguardR8JavaPrimitive getJavaPrimitive() {
     return findChildByClass(ProguardR8JavaPrimitive.class);
   }
@@ -53,6 +78,11 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
   @Nullable
   public ProguardR8QualifiedName getQualifiedName() {
     return findChildByClass(ProguardR8QualifiedName.class);
+  }
+
+  @Override
+  public boolean matchesPsiType(@NotNull PsiType other) {
+    return ProguardR8PsiImplUtil.matchesPsiType(this, other);
   }
 
 }

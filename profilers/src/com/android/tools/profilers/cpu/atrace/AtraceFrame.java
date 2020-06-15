@@ -18,9 +18,9 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.event.EventAction;
-import com.intellij.util.Function;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.base.SliceGroup;
 
@@ -54,10 +54,30 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
     BAD,
   }
 
+  /**
+   * Events that occur on the main thread to define when a frame starts. These events changed in M, and System Tracing in profilers
+   * is only supporting O+ devices however to keep this class in sync with the systrace sibling keeping both here for reference.
+   */
+  private static final String APP_MAIN_THREAD_FRAME_ID_MPLUS = "Choreographer#doFrame";
+  private static final String APP_RENDER_THREAD_FRAME_ID_MPLUS = "(DrawFrame|doFrame|queueBuffer)";
+
   public enum FrameThread {
-    MAIN,
-    RENDER,
-    OTHER,
+    MAIN(APP_MAIN_THREAD_FRAME_ID_MPLUS),
+    RENDER(APP_RENDER_THREAD_FRAME_ID_MPLUS),
+    OTHER("");
+
+    private final String myIdentifierRegEx;
+
+    /**
+     * Returns a regular expression that matches the frames names for this thread type.
+     */
+    public String getIdentifierRegEx() {
+      return myIdentifierRegEx;
+    }
+
+    FrameThread(String identifierRegEx) {
+      myIdentifierRegEx = identifierRegEx;
+    }
   }
 
   /**
@@ -156,7 +176,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    */
   @Override
   public long getStartUs() {
-    return myBootClockSecondsToMonoUs.fun(myTotalRangeSeconds.getMin());
+    return myBootClockSecondsToMonoUs.apply(myTotalRangeSeconds.getMin());
   }
 
   /**
@@ -164,7 +184,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    */
   @Override
   public long getEndUs() {
-    return myBootClockSecondsToMonoUs.fun(myTotalRangeSeconds.getMax());
+    return myBootClockSecondsToMonoUs.apply(myTotalRangeSeconds.getMax());
   }
 
   /**

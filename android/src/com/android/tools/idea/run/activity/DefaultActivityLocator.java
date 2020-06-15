@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 import com.android.SdkConstants;
@@ -24,6 +25,8 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
+import com.android.tools.idea.model.AndroidManifestIndex;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.utils.concurrency.AsyncSupplier;
@@ -98,24 +101,25 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   /**
    * Retrieves the list of activities from the merged manifest of the Android module
-   * corresponding to the given facet. The strategy used to obtain this list is determined by
-   * {@link StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY}:
-   * <table>
-   *   <tr><td>"BLOCK":</td> <td>Unconditionally block on a fresh view of the merged manifest.</td></tr>
-   *   <tr><td>"STALE":</td> <td>Use a potentially stale view of the merged manifest if the caller is on the EDT.</td></tr>
-   * </table>
-   * For any unrecognized flag value, we use the "BLOCK" strategy.
+   * corresponding to the given facet.
+   *
+   * @see DefaultActivityLocatorStrategy
    */
   @VisibleForTesting
   static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
+    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
+    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
+      return DumbService.getInstance(facet.getModule().getProject())
+        .runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));
+    }
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
-    boolean usePotentiallyStaleManifest = onEdt && StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get().equals("STALE");
+    boolean usePotentiallyStaleManifest = onEdt && strategy == DefaultActivityLocatorStrategy.STALE;
     Stopwatch timer = Stopwatch.createStarted();
     MergedManifestSnapshot mergedManifest = getMergedManifest(facet, usePotentiallyStaleManifest);
     List<ActivityWrapper> activities = mergedManifest == null ?
                                        Collections.emptyList() :
                                        ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases());
-    logManifestLatency(onEdt, usePotentiallyStaleManifest, timer.elapsed(TimeUnit.MILLISECONDS));
+    logManifestLatency(onEdt, false, usePotentiallyStaleManifest, timer.elapsed(TimeUnit.MILLISECONDS));
     return activities;
   }
 
@@ -132,13 +136,27 @@ public class DefaultActivityLocator extends ActivityLocator {
     return MergedManifestManager.getFreshSnapshot(facet.getModule());
   }
 
-  private static void logManifestLatency(boolean blocksUiThread, boolean usedPotentiallyStaleManifest, long latencyMs) {
+  @NotNull
+  private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
+    boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
+    Stopwatch timer = Stopwatch.createStarted();
+    List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet);
+    logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
+    return activityWrappers;
+  }
+
+  private static void logManifestLatency(
+    boolean blocksUiThread,
+    boolean indexBased,
+    boolean usedPotentiallyStaleManifest,
+    long latencyMs
+  ) {
     AndroidStudioEvent.Builder proto = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.DEFAULT_ACTIVITY_LOCATOR_STATS)
       .setDefaultActivityLocatorStats(
         DefaultActivityLocatorStats.newBuilder()
           .setBlocksUiThread(blocksUiThread)
-          .setIndexBased(false)
+          .setIndexBased(indexBased)
           .setUsedPotentiallyStaleManifest(usedPotentiallyStaleManifest)
           .setLatencyMs(latencyMs)
       );
@@ -227,7 +245,9 @@ public class DefaultActivityLocator extends ActivityLocator {
     return launchableActivities.get(0).getQualifiedName();
   }
 
-  /** Returns a launchable activity specific to the given device. */
+  /**
+   * Returns a launchable activity specific to the given device.
+   */
   @Nullable
   @Slow
   @WorkerThread
@@ -293,18 +313,31 @@ public class DefaultActivityLocator extends ActivityLocator {
     return activityWrappers;
   }
 
-  /** {@link ActivityWrapper} is a simple wrapper class around an {@link Activity} or an {@link ActivityAlias}. */
+  /**
+   * {@link ActivityWrapper} is a simple wrapper class around an {@link Activity} or an {@link ActivityAlias}.
+   */
   public static abstract class ActivityWrapper {
     public abstract boolean hasCategory(@NotNull String name);
+
     public abstract boolean hasAction(@NotNull String name);
+
     public abstract boolean isEnabled();
 
     /**
      * @return the value of android:exported attribute for the activity, null if not specified.
+     *
      * Note that when the attribute is not explicitly set, it is considered exported if it has an intent filter.
+     * If you want to check whether activity is exported either explicitly or implicitly, use {{@link #isLogicallyExported()} instead.
      */
     @Nullable
     public abstract Boolean getExported();
+
+    /**
+     * @return whether the activity is exported, either explicitly, or by having an intent filter.
+     */
+    public boolean isLogicallyExported() {
+      return Boolean.TRUE.equals(getExported()) || hasIntentFilter();
+    }
 
     /**
      * @return whether there is at least 1 intent filter specified for this activity.
@@ -488,7 +521,7 @@ public class DefaultActivityLocator extends ActivityLocator {
       Node node = myActivity.getFirstChild();
       while (node != null) {
         if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
-          Element filter = (Element) node;
+          Element filter = (Element)node;
           if (ActivityLocatorUtils.containsCategory(filter, name)) {
             return true;
           }
@@ -504,7 +537,7 @@ public class DefaultActivityLocator extends ActivityLocator {
       Node node = myActivity.getFirstChild();
       while (node != null) {
         if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
-          Element filter = (Element) node;
+          Element filter = (Element)node;
           if (ActivityLocatorUtils.containsAction(filter, name)) {
             return true;
           }

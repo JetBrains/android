@@ -15,7 +15,19 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.*;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -25,16 +37,11 @@ import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profiler.proto.NetworkProfiler.*;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.*;
 
 public class NetworkMonitorTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
@@ -54,7 +61,7 @@ public class NetworkMonitorTest {
     myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     myMonitor = new NetworkMonitor(myProfilers);
-    myProfilers.getTimeline().getViewRange().set(0, TimeUnit.SECONDS.toMicros(10));
+    myMonitor.getTimeline().getViewRange().set(0, TimeUnit.SECONDS.toMicros(10));
     myMonitor.enter();
   }
 
@@ -119,9 +126,9 @@ public class NetworkMonitorTest {
     assertTrue(usageUpdated[0]);
     assertFalse(legendUpdated[0]);
     assertTrue(trafficAxisUpdated[0]);
-    myProfilers.getTimeline().getViewRange().set(1.0, 2.0);
+    myMonitor.getTimeline().getViewRange().set(1.0, 2.0);
     assertTrue(usageUpdated[0]);
-    myProfilers.getTimeline().getDataRange().set(1.0, 2.0);
+    myMonitor.getTimeline().getDataRange().set(1.0, 2.0);
     assertTrue(legendUpdated[0]);
   }
 

@@ -16,71 +16,121 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.PluginBuildData
+import com.android.build.attribution.data.PluginConfigurationData
+import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
+
+interface BuildEventsAnalysisResult {
+  fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
+  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
+  fun getTotalBuildTimeMs(): Long
+  fun getCriticalPathTasks(): List<TaskData>
+  fun getTasksDeterminingBuildDuration(): List<TaskData>
+  fun getPluginsDeterminingBuildDuration(): List<PluginBuildData>
+  /**
+   * Total configuration data summed over all subprojects.
+   */
+  fun getTotalConfigurationData(): ProjectConfigurationData
+
+  /**
+   * List of subprojects individual configuration data.
+   */
+  fun getProjectsConfigurationData(): List<ProjectConfigurationData>
+  fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
+  fun getNonCacheableTasks(): List<TaskData>
+  fun getTasksSharingOutput(): List<TasksSharingOutputData>
+}
 
 /**
  * A way of interaction between the build events analyzers and the build attribution manager.
  * Used to fetch the final data from the analyzers after the build is complete.
  */
-class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer) {
-  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer)
+class BuildEventsAnalyzersProxy(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BuildEventsAnalysisResult {
+  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
-  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer)
-  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer)
-  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter)
-  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer)
+  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer, pluginContainer)
 
-  fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
-                                                                    annotationProcessorsAnalyzer,
-                                                                    criticalPathAnalyzer,
-                                                                    projectConfigurationAnalyzer)
+  fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(
+    alwaysRunTasksAnalyzer,
+    annotationProcessorsAnalyzer,
+    criticalPathAnalyzer,
+    projectConfigurationAnalyzer
+  )
 
-  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(noncacheableTasksAnalyzer,
-                                                                                          tasksConfigurationIssuesAnalyzer)
+  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(
+    noncacheableTasksAnalyzer,
+    tasksConfigurationIssuesAnalyzer
+  )
 
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+  override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
   }
 
-  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+  override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 
-  fun getCriticalPathDuration(): Long {
-    return criticalPathAnalyzer.criticalPathDuration
+  override fun getTotalBuildTimeMs(): Long {
+    return criticalPathAnalyzer.buildFinishedTimestamp - criticalPathAnalyzer.buildStartedTimestamp
   }
 
-  fun getTotalBuildTime(): Long {
-    return criticalPathAnalyzer.totalBuildTime
+  fun getBuildFinishedTimestamp(): Long {
+    return criticalPathAnalyzer.buildFinishedTimestamp
   }
 
-  fun getTasksCriticalPath(): List<TaskData> {
-    return criticalPathAnalyzer.tasksCriticalPath
+  override fun getCriticalPathTasks(): List<TaskData> {
+    return criticalPathAnalyzer.tasksDeterminingBuildDuration.filter(TaskData::isOnTheCriticalPath)
   }
 
-  fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> {
-    return criticalPathAnalyzer.pluginsCriticalPath
+  override fun getTasksDeterminingBuildDuration(): List<TaskData> {
+    return criticalPathAnalyzer.tasksDeterminingBuildDuration
   }
 
-  fun getProjectsConfigurationData(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
+  override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
+    return criticalPathAnalyzer.pluginsDeterminingBuildDuration
+  }
+
+  override fun getTotalConfigurationData(): ProjectConfigurationData {
+    val totalConfigurationTime = projectConfigurationAnalyzer.projectsConfigurationData.sumByLong { it.totalConfigurationTimeMs }
+
+    val totalPluginConfiguration = projectConfigurationAnalyzer.pluginsConfigurationDataMap.map { entry ->
+      PluginConfigurationData(entry.key, entry.value)
+    }
+
+    val totalConfigurationSteps = projectConfigurationAnalyzer.projectsConfigurationData.flatMap { it.configurationSteps }.groupBy { it.type }.map { entry ->
+      ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumByLong { it.configurationTimeMs })
+    }
+
+    return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
+  }
+
+  override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzer.projectsConfigurationData
   }
 
-  fun getPluginsSlowingConfiguration(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
-    return projectConfigurationAnalyzer.pluginsSlowingConfiguration
-  }
-
-  fun getAlwaysRunTasks(): List<AlwaysRunTasksAnalyzer.AlwaysRunTaskData> {
+  override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
     return alwaysRunTasksAnalyzer.alwaysRunTasks
   }
 
-  fun getNoncacheableTasks(): List<TaskData> {
+  override fun getNonCacheableTasks(): List<TaskData> {
     return noncacheableTasksAnalyzer.noncacheableTasks
   }
 
-  fun getTasksSharingOutput(): List<TasksSharingOutputData> {
+  override fun getTasksSharingOutput(): List<TasksSharingOutputData> {
     return tasksConfigurationIssuesAnalyzer.tasksSharingOutput
   }
 }

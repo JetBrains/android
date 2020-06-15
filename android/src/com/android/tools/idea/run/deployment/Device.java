@@ -159,7 +159,7 @@ public abstract class Device {
     }
   }
 
-  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot);
+  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project);
 
   @NotNull
   @Override

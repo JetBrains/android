@@ -57,20 +57,14 @@ public class ProguardR8FieldsSpecificationImpl extends ASTWrapperPsiElement impl
 
   @Override
   @Nullable
-  public ProguardR8FieldName getFieldName() {
-    return findChildByClass(ProguardR8FieldName.class);
+  public ProguardR8Field getField() {
+    return findChildByClass(ProguardR8Field.class);
   }
 
   @Override
   @NotNull
-  public List<ProguardR8FieldsModifier> getFieldsModifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8FieldsModifier.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8Type getType() {
-    return findChildByClass(ProguardR8Type.class);
+  public List<ProguardR8Modifier> getModifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8Modifier.class);
   }
 
 }

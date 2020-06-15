@@ -39,6 +39,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDefaultPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -61,6 +62,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testImportStandaloneArchive() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive.set(myJarOutsideProject.getAbsolutePath());
 
@@ -72,6 +74,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testImportStandaloneArchiveWithCustomPath() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive.set(myJarOutsideProject.getAbsolutePath());
 
@@ -84,6 +87,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testImportStandaloneArchiveWithNestedPath() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     model.archive.set(myJarOutsideProject.getAbsolutePath());
 
@@ -96,6 +100,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testMoveStandaloneArchive() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
     // Have to copy the file so we don't delete test data!
     File archiveToImport = new File(createTempDirectory("archiveLocation", null), "library.jar");
     copyFileOrDir(myJarOutsideProject, archiveToImport);
@@ -211,7 +216,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertAbout(file()).that(buildGradle).isFile();
     VirtualFile vFile = findFileByIoFile(buildGradle, true);
     assertNotNull(vFile);
-    assertEquals(loadText(vFile), CreateModuleFromArchiveActionKt.getBuildGradleText(archiveToImport));
+    assertEquals(loadText(vFile), ArchiveToGradleModuleModelKt.getBuildGradleText(archiveToImport));
 
     GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
     assertNotNull(settingsModel);

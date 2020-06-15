@@ -15,83 +15,49 @@
  */
 package org.jetbrains.android.facet
 
-import com.android.builder.model.SourceProvider
-import com.android.utils.reflection.qualifiedName
+import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.NotNullLazyKey
 import com.intellij.openapi.vfs.VirtualFile
 
 interface SourceProviderManager {
   companion object {
-    private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(
-      ::KEY.qualifiedName,
-      ::SourceProviderManagerImpl
-    )
-
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) = KEY.getValue(facet)
+    fun getInstance(facet: AndroidFacet) = facet.sourceProviders
 
+    /**
+     * Replaces the instances of SourceProviderManager for the given [facet] with a test stub based on a single source set [sourceSet].
+     *
+     * NOTE: The test instance is automatically discarded on any relevant change to the [facet].
+     */
     @JvmStatic
-    fun replaceForTest(facet: AndroidFacet,
-                       disposable: Disposable,
-                       mock: SourceProviderManager) {
-      facet.putUserData(KEY, mock)
-      Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
-    }
-  }
+    fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) =
+      SourceProviders.replaceForTest(facet, disposable, sourceSet)
 
-  /**
-   * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
-   * [SourceProvider] wrapper which provides information about the old project.
-   */
-  val mainSourceProvider: SourceProvider
-
-  val mainIdeaSourceProvider: IdeaSourceProvider
-
-  val mainManifestFile: VirtualFile?
-}
-
-private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProviderManager {
-
-  private var mainSourceSet: SourceProvider? = null
-  private var mainIdeaSourceSet: IdeaSourceProvider? = null
-  private var mainIdeaSourceSetCreatedFor: SourceProvider? = null
-
-  /**
-   * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
-   * [SourceProvider] wrapper which provides information about the old project.
-   */
-  override val mainSourceProvider: SourceProvider
-    get() {
-      return facet.model?.defaultSourceProvider
-             ?: mainSourceSet
-             ?: LegacySourceProvider(facet).also { mainSourceSet = it }
-    }
-
-  override val mainIdeaSourceProvider: IdeaSourceProvider
-    get() {
-      if (!facet.requiresAndroidModel()) {
-        if (mainIdeaSourceSet == null) {
-          mainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(facet)
-          mainIdeaSourceSetCreatedFor = null
-        }
-      }
-      else {
-        val mainSourceSet = mainSourceProvider
-        if (mainIdeaSourceSet == null || mainIdeaSourceSetCreatedFor != mainSourceSet) {
-          mainIdeaSourceSet = IdeaSourceProvider.toIdeaProvider(mainSourceSet)
-          mainIdeaSourceSetCreatedFor = mainSourceSet
-        }
-      }
-
-      return mainIdeaSourceSet!!
-    }
-
-  override val mainManifestFile: VirtualFile? get() {
-    // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
-    // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
-    // general, but pretending there was no manifest terminates many code paths early.
-    return if (facet.isDisposed) null else return mainIdeaSourceProvider.manifestFile
+    /**
+     * Replaces the instances of SourceProviderManager for the given [facet] with a test stub based on a [manifestFile] only.
+     *
+     * NOTE: The test instance is automatically discarded on any relevant change to the [facet].
+     */
+    @JvmStatic
+    fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) =
+      SourceProviders.replaceForTest(facet, disposable, manifestFile)
   }
 }
+
+@Deprecated("Moved. Use com.android.tools.idea.projectsystem.SourceProvidersImpl")
+class SourceProvidersImpl(
+  override val mainIdeaSourceProvider: NamedIdeaSourceProvider,
+  override val currentSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val allSourceProviders: List<NamedIdeaSourceProvider>,
+
+  @Suppress("OverridingDeprecatedMember")
+  override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+) : SourceProviders {
+  override val sources: IdeaSourceProvider = createMergedSourceProvider(currentSourceProviders)
+  override val unitTestSources: IdeaSourceProvider = createMergedSourceProvider(currentUnitTestSourceProviders)
+  override val androidTestSources: IdeaSourceProvider = createMergedSourceProvider(currentAndroidTestSourceProviders)
+}
+

@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StopwatchTimer;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -113,7 +114,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @NotNull private final ProfilerClient myClient;
 
-  private final ProfilerTimeline myTimeline;
+  private final StreamingTimeline myTimeline;
 
   private final List<StudioProfiler> myProfilers;
 
@@ -178,7 +179,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   /**
    * The number of update count the profilers have waited for an agent status to become ATTACHED for a particular session id.
-   * If the agent status remains UNSPECIFIED after {@link AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to be without agent.
+   * If the agent status remains UNSPECIFIED after {@link StudioProfilers#AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to
+   * be without agent.
    */
   public final Map<Long, Integer> mySessionIdToAgentStatusRetryMap = new HashMap<>();
 
@@ -218,7 +220,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     myProfilers = profilersBuilder.build();
 
-    myTimeline = new ProfilerTimeline(myUpdater);
+    myTimeline = new StreamingTimeline(myUpdater);
 
     myProcesses = Maps.newHashMap();
     myDevice = null;
@@ -336,13 +338,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   /**
    * Enable/disable auto device+process selection, which looks for the preferred device + process combination and starts profiling. If no
-   * preference has been set (via {@link #setPreferredProcess(String, String)}, then we profiling any online device+process
-   * combo.
+   * preference has been set (via {@link #setProcess(Device, Common.Process)}, then we profiling any online device+process combo.
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
 
-    if (myAutoProfilingEnabled) {
+    if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      // Do nothing. Let update() take care of which process should be selected.
+      // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
+      // For example, if the user ends a session (which will set myProcess null), then click the Run button.
+      // setAutoProfilingEnabled(true) will be called when Run button is clicked. If the previous process's
+      // DEAD event is delayed, setProcess() may start a new session on it (which is already dead) because
+      // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
+    }
+    else if (myAutoProfilingEnabled) {
       setProcess(findPreferredDevice(), null);
     }
   }
@@ -819,7 +828,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  public ProfilerTimeline getTimeline() {
+  public StreamingTimeline getTimeline() {
     return myTimeline;
   }
 

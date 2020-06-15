@@ -19,7 +19,7 @@ import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
-import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.LanguageTextField
@@ -30,52 +30,63 @@ import javax.swing.JComponent
 /**
  * @see SqliteEvaluatorView
  */
-class SqliteEvaluatorViewImpl(override val project: Project, private val schemaProvider: SchemaProvider) : SqliteEvaluatorView {
+class SqliteEvaluatorViewImpl(
+  override val project: Project,
+  override val tableView: TableView,
+  private val schemaProvider: SchemaProvider
+) : SqliteEvaluatorView {
   private val evaluatorPanel = SqliteEvaluatorPanel()
   override val component: JComponent = evaluatorPanel.root
-  override val tableView = TableViewImpl()
 
   private val editorTextField = LanguageTextField(AndroidSqlLanguage.INSTANCE, project, "")
 
-  private val listeners = ArrayList<SqliteEvaluatorViewListener>()
+  private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
   init {
     evaluatorPanel.controlsContainer.add(editorTextField, BorderLayout.CENTER)
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked(evaluatorPanel.schemaComboBox.selectedItem as SqliteDatabase, editorTextField.text)
+        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
       }
     }
 
-    evaluatorPanel.schemaComboBox.addActionListener { setSchemaFromSelectedItem() }
+    evaluatorPanel.databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
   }
 
   private fun setSchemaFromSelectedItem() {
-    val database = (evaluatorPanel.schemaComboBox.selectedItem as ComboBoxItem).database
+    val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
     val schema = schemaProvider.getSchema(database)
     FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
   }
 
   override fun addDatabase(database: SqliteDatabase, index: Int) {
-    evaluatorPanel.schemaComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
-    if (evaluatorPanel.schemaComboBox.selectedIndex == -1) evaluatorPanel.schemaComboBox.selectedIndex = 0
+    evaluatorPanel.databaseComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
+    if (evaluatorPanel.databaseComboBox.selectedIndex == -1) evaluatorPanel.databaseComboBox.selectedIndex = 0
     setSchemaFromSelectedItem()
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.schemaComboBox.selectedItem = database
+    evaluatorPanel.databaseComboBox.selectedItem = database
   }
 
   override fun removeDatabase(index: Int) {
-    evaluatorPanel.schemaComboBox.removeItemAt(index)
+    evaluatorPanel.databaseComboBox.removeItemAt(index)
   }
 
-  override fun addListener(listener: SqliteEvaluatorViewListener) {
+  override fun getActiveDatabase(): SqliteDatabase {
+    return (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
+  }
+
+  override fun getSqliteStatement(): String {
+    return editorTextField.text
+  }
+
+  override fun addListener(listener: SqliteEvaluatorView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: SqliteEvaluatorViewListener) {
+  override fun removeListener(listener: SqliteEvaluatorView.Listener) {
     listeners.remove(listener)
   }
 

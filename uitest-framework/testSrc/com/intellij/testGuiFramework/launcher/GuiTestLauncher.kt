@@ -126,6 +126,7 @@ object GuiTestLauncher {
         .plus("-classpath")
         .plus(classpathJar.absolutePath)
         .plus(MAIN_CLASS_NAME)
+        .plus(GuiTestStarter.COMMAND_NAME)
 
   private fun createArgsByPath(path: String): List<String> = listOf(path)
 
@@ -137,7 +138,7 @@ object GuiTestLauncher {
     val options = mutableListOf(
       /* studio64.vmoptions */
       "-Xms256m",
-      "-Xmx1280m",
+      "-Xmx4096m",
       "-XX:ReservedCodeCacheSize=240m",
       "-XX:SoftRefLRUPolicyMSPerMB=50",
       "-Dsun.io.useCanonCaches=false",
@@ -174,13 +175,6 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       options += "-XX:+UseG1GC"
-      val instrumentationAgentJar = File(TestUtils.getWorkspaceRoot(),
-                                         "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/ObjectSizeInstrumentationAgent_deploy.jar")
-      if (instrumentationAgentJar.exists()) {
-        options += "-javaagent:${instrumentationAgentJar.absolutePath}"
-      } else {
-        println("Object size instrumentation agent not found - leak share reports will all be 0")
-      }
       val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
                             "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/libjnibleakhelper.so")
       if (jvmtiAgent.exists()) {
@@ -219,22 +213,26 @@ object GuiTestLauncher {
   }
 
   private fun getCurrentJavaExec(): String {
-    val homePath = System.getProperty("java.home")
-    val jreDir = File(homePath)
-    val homeDir = File(jreDir.parent)
-    val binDir = File(homeDir, "bin")
-    val javaName: String = if (System.getProperty("os.name").toLowerCase().contains("win")) "java.exe" else "java"
+    val homeDir = File(System.getProperty("java.home"))
+    val binDir = File(if (SystemInfo.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
+    val javaName = if (SystemInfo.isWindows) "java.exe" else "java"
     return File(binDir, javaName).path
   }
 
   private fun getTestClasspath(): List<File> {
     val classLoader = this.javaClass.classLoader
     val urlClassLoaderClass = classLoader.javaClass
-    val getUrlsMethod = urlClassLoaderClass.methods.firstOrNull { it.name.toLowerCase() == "geturls" }!!
-    @Suppress("UNCHECKED_CAST")
-    val urlsListOrArray = getUrlsMethod.invoke(classLoader)
-    var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)
-    return urls.map { Paths.get(it.toURI()).toFile() }
+    if (urlClassLoaderClass.name == "com.intellij.util.lang.UrlClassLoader") {
+      val getUrlsMethod = urlClassLoaderClass.methods.firstOrNull { it.name.toLowerCase() == "geturls" }!!
+      @Suppress("UNCHECKED_CAST")
+      val urlsListOrArray = getUrlsMethod.invoke(classLoader)
+      var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)
+      return urls.map { Paths.get(it.toURI()).toFile() }
+    } else {
+      // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
+      // Fortunately, under these circumstances, java.class.path has everything we need.
+      return System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
+    }
   }
 
 

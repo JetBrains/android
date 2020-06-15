@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -56,7 +57,7 @@ public final class ConflictResolution {
 
   private static boolean solveSelectionConflict(@NotNull Conflict conflict, boolean showConflictResolutionDialog) {
     AndroidFacet facet = AndroidFacet.getInstance(conflict.getSource());
-    if (facet == null || !facet.requiresAndroidModel()) {
+    if (facet == null || !AndroidModel.isRequired(facet)) {
       // project structure may have changed and the conflict is not longer applicable.
       return true;
     }

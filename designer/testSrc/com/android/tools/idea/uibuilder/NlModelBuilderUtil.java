@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ public class NlModelBuilderUtil {
         AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root), model),
       resourceFolder,
       NlDesignSurface.class,
+      NlInteractionHandler::new,
       (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component));
   }
 

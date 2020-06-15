@@ -28,7 +28,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.eclipse.ImportModule
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
-import com.android.tools.idea.lint.LintIdeClient
+import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -40,6 +40,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -48,10 +49,11 @@ import java.util.function.Predicate
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
-class RepositoryUrlManager @VisibleForTesting constructor(
+class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   private val googleMavenRepository: GoogleMavenRepository,
   private val cachedGoogleMavenRepository: GoogleMavenRepository,
-  private val forceRepositoryChecksInTests: Boolean) {
+  private val forceRepositoryChecksInTests: Boolean,
+  private val useEmbeddedStudioRepo: Boolean = true) {
   private val pendingNetworkRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
   internal constructor() : this(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, false)
@@ -98,12 +100,15 @@ class RepositoryUrlManager @VisibleForTesting constructor(
       return version
     }
 
-    // Try the repo embedded in AS.
-    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
-      .filter { it?.isDirectory == true }
-      .firstNotNullResult {
-        MavenRepositories.getHighestInstalledVersion(groupId, artifactId, it, filter, includePreviews, fileOp)
-      }?.version
+    if (useEmbeddedStudioRepo) {
+      // Try the repo embedded in AS.
+      return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+        .filter { it?.isDirectory == true }
+        .firstNotNullResult {
+          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, it, filter, includePreviews, fileOp)
+        }?.version
+    }
+    return null
   }
 
   fun findCompileDependencies(groupId: String,
@@ -242,7 +247,7 @@ class RepositoryUrlManager @VisibleForTesting constructor(
 
     // Perform network lookup to resolve current best version, if possible.
     project ?: return null
-    val client: LintClient = LintIdeClient(project)
+    val client: LintClient = LintIdeSupport.get().createClient(project)
     val latest = getLatestVersionFromRemoteRepo(client, coordinate, filter, coordinate.isPreview)?.toString() ?: return null
     if (latest.startsWith(versionPrefix)) {
       return latest

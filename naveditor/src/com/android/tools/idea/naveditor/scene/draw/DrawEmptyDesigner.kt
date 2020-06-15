@@ -16,25 +16,24 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingPoint
+import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.pointToString
-import com.android.tools.idea.common.scene.draw.stringToPoint
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import java.awt.Font
 import java.awt.Graphics2D
-import java.awt.Point
 
 private val text1 = "Click "
 private val text2 = " to add a destination"
 @SwingCoordinate private val FONT_SIZE = JBUI.scale(13)
 @SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
-class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommandBase() {
-  private constructor(tokens: Array<String>) : this(stringToPoint(tokens[0]))
+class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint())
 
   constructor(serialized: String) : this(parse(serialized, 1))
 
@@ -44,8 +43,8 @@ class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand
     g2.color = TEXT
     g2.font = Font("Default", 0, JBUI.scale(FONT_SIZE))
 
-    @SwingCoordinate var x = point.x
-    @SwingCoordinate val y = point.y
+    var x = point.x.toInt()
+    val y = point.y.toInt()
 
     g2.drawString(text1, x, y)
     x += g2.fontMetrics.stringWidth(text1)
@@ -57,6 +56,6 @@ class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand
   }
 
   override fun serialize(): String {
-    return com.android.tools.idea.common.scene.draw.buildString(javaClass.simpleName, pointToString(point))
+    return com.android.tools.idea.common.scene.draw.buildString(javaClass.simpleName, point.toString())
   }
 }

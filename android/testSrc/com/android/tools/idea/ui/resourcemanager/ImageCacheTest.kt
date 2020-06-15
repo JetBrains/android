@@ -21,17 +21,16 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Image
+import java.awt.image.BufferedImage
 import java.awt.image.ImageObserver
+import java.awt.image.IndexColorModel
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertTrue
 
-private class DebugFakeImage(private val identifier: String) : Image() {
-  override fun getHeight(observer: ImageObserver?) = 10
+private class DebugFakeImage(private val identifier: String) : BufferedImage(10, 10, IndexColorModel.OPAQUE) {
   override fun getSource() = throw NotImplementedError()
-  override fun getWidth(observer: ImageObserver?) = 10
   override fun getProperty(name: String?, observer: ImageObserver?) = throw NotImplementedError()
   override fun getGraphics() = throw NotImplementedError()
   override fun toString() = identifier
@@ -88,5 +87,46 @@ class ImageCacheTest {
       CompletableFuture.completedFuture(null)
     }
     assertThat(res3).isEqualTo(imageB)
+  }
+
+  @Test
+  fun assetsOnSameFileWithDifferentNameDoNotCollide() {
+    val asset1 = DesignAsset(MockVirtualFile("values/attrs.xml"), listOf(), ResourceType.DRAWABLE, "my_asset_1")
+    val asset2 = DesignAsset(MockVirtualFile("values/attrs.xml"), listOf(), ResourceType.DRAWABLE, "my_asset_2")
+    testNoCollision(asset1, asset2)
+  }
+
+  @Test
+  fun assetsWithSameNameOfDifferentTypeDoNotCollide() {
+    val asset1 = DesignAsset(MockVirtualFile("values.xml"), listOf(), ResourceType.COLOR, "my_asset")
+    val asset2 = DesignAsset(MockVirtualFile("values.xml"), listOf(), ResourceType.DRAWABLE, "my_asset")
+    testNoCollision(asset1, asset2)
+  }
+
+  private fun testNoCollision(asset1: DesignAsset, asset2:DesignAsset) {
+    val imageCache = imageCacheRule.imageCache
+    val latch1 = CountDownLatch(1)
+    val latch2 = CountDownLatch(1)
+
+    var result1 = placeholder
+    imageCache.computeAndGet(asset1, placeholder, false) {
+      CompletableFuture.completedFuture(imageA).whenComplete { image, _ ->
+        result1 = image
+        latch1.countDown()
+      }
+    }
+    assertTrue(latch1.await(1, TimeUnit.SECONDS))
+    assertThat(result1).isEqualTo(imageA)
+
+    var result2 = placeholder
+    imageCache.computeAndGet(asset2, placeholder, false) {
+      CompletableFuture.completedFuture(imageB).whenComplete { image, _ ->
+        result2 = image
+        latch2.countDown()
+      }
+    }
+
+    assertTrue(latch2.await(1, TimeUnit.SECONDS), "'asset2' should lead to a different key, the latch should countdown.")
+    assertThat(result2).isEqualTo(imageB)
   }
 }

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AbiModelImpl extends BaseSplitOptionsModelImpl implements AbiModel {
-  @NonNls private static final String UNIVERSAL_APK = "universalApk";
+  @NonNls public static final String UNIVERSAL_APK = "mUniversalApk";
 
   public AbiModelImpl(@NotNull AbiDslElement dslElement) {
     super(dslElement);
@@ -32,6 +32,6 @@ public class AbiModelImpl extends BaseSplitOptionsModelImpl implements AbiModel 
   @Override
   @NotNull
   public ResolvedPropertyModel universalApk() {
-    return GradlePropertyModelBuilder.create(myDslElement, UNIVERSAL_APK).asMethod(true).buildResolved();
+    return getModelForProperty(UNIVERSAL_APK);
   }
 }

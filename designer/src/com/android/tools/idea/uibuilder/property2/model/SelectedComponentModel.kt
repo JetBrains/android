@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.property2.model
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.util.text.nullize
 import icons.StudioIcons

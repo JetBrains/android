@@ -31,24 +31,24 @@ class MavenPomsTest : AndroidGradleTestCase() {
 
   @Test
   fun testPomDependencies() {
-    val lib1 = File(sampleRepo, "com/example/libs/lib1/1.0/lib1-1.0.aar")
-    assertThat(lib1.exists(), equalTo(true))
-    val dependencies1 = MavenPoms.findDependenciesInPomFile(lib1.absoluteFile).map { it.compactNotation()}
+    val lib1Pom = File(sampleRepo, "com/example/libs/lib1/1.0/lib1-1.0.pom")
+    assertThat(lib1Pom.exists(), equalTo(true))
+    val dependencies1 = MavenPoms.findDependenciesInPomFile(lib1Pom.absoluteFile).map { it.compactNotation() }
     assertThat(dependencies1, hasItems("com.android.support:appcompat-v7:[27.0.2,)", "com.example.libs:lib2:1.0"))
 
-    val lib2 = File(sampleRepo, "com/example/libs/lib2/1.0/lib2-1.0.aar")
-    assertThat(lib2.exists(), equalTo(true))
-    val dependencies2 = MavenPoms.findDependenciesInPomFile(lib2.absoluteFile).map { it.compactNotation()}
+    val lib2Pom = File(sampleRepo, "com/example/libs/lib2/1.0/lib2-1.0.pom")
+    assertThat(lib2Pom.exists(), equalTo(true))
+    val dependencies2 = MavenPoms.findDependenciesInPomFile(lib2Pom.absoluteFile).map { it.compactNotation() }
     assertThat(dependencies2, hasItems("com.android.support:appcompat-v7:[27.0.2,)", "com.example.jlib:lib3:1.0"))
 
-    val lib3 = File(sampleRepo, "com/example/jlib/lib3/1.0/lib3-1.0.jar")
-    assertThat(lib3.exists(), equalTo(true))
-    val dependencies3 = MavenPoms.findDependenciesInPomFile(lib3.absoluteFile).map { it.compactNotation()}
+    val lib3Pom = File(sampleRepo, "com/example/jlib/lib3/1.0/lib3-1.0.pom")
+    assertThat(lib3Pom.exists(), equalTo(true))
+    val dependencies3 = MavenPoms.findDependenciesInPomFile(lib3Pom.absoluteFile).map { it.compactNotation() }
     assertThat(dependencies3, hasItems("com.example.jlib:lib4:1.0"))
 
-    val lib4 = File(sampleRepo, "com/example/jlib/lib4/1.0/lib4-1.0.jar")
-    assertThat(lib4.exists(), equalTo(true))
-    val dependencies4 = MavenPoms.findDependenciesInPomFile(lib4.absoluteFile).map { it.compactNotation()}
+    val lib4Pom = File(sampleRepo, "com/example/jlib/lib4/1.0/lib4-1.0.pom")
+    assertThat(lib4Pom.exists(), equalTo(true))
+    val dependencies4 = MavenPoms.findDependenciesInPomFile(lib4Pom.absoluteFile).map { it.compactNotation() }
     assertThat(dependencies4.isEmpty(), equalTo(true))
   }
 }

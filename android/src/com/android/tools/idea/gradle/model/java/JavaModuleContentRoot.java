@@ -62,6 +62,7 @@ public class JavaModuleContentRoot implements Serializable {
     }
     catch (UnsupportedMethodException ignore) {
     }
+
     Collection<File> excludeDirPaths = Collections.emptySet();
     Set<File> exclude = original.getExcludeDirectories();
     if (exclude != null) {

@@ -1,8 +1,7 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.exportSignedPackage;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -16,8 +15,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -52,7 +52,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -113,7 +113,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     if (showBundle) {
       addStep(new ChooseBundleOrApkStep(this));
     }
-    boolean useGradleToSign = myFacet.requiresAndroidModel();
+    boolean useGradleToSign = AndroidModel.isRequired(myFacet);
 
     if (signed) {
       addStep(new KeystoreStep(this, useGradleToSign, facets));
@@ -140,7 +140,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.doOKAction();
 
     assert myFacet != null;
-    if (myFacet.requiresAndroidModel()) {
+    if (AndroidModel.isRequired(myFacet)) {
       buildAndSignGradleProject();
     }
     else {
@@ -239,8 +239,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         else {
           gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
         }
-        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties,
-                                        new OutputBuildAction(getModuleGradlePaths(myFacet.getModule())));
+        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties, OutputBuildActionUtil.create(modules));
 
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
@@ -252,16 +251,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return AndroidGradleSettings.createProjectProperty(name, value);
       }
     });
-  }
-
-  @NotNull
-  private static List<String> getModuleGradlePaths(@NotNull Module module) {
-    List<String> gradlePaths = new ArrayList<>();
-    String gradlePath = getGradlePath(module);
-    if (gradlePath != null) {
-      gradlePaths.add(gradlePath);
-    }
-    return gradlePaths;
   }
 
   @VisibleForTesting
@@ -443,7 +432,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   private void createAndAlignApk(final String apkPath) {
-    AndroidPlatform platform = getFacet().getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(getFacet().getModule());
     assert platform != null;
     BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
     String zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);

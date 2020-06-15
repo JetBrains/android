@@ -16,7 +16,9 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static com.android.utils.XmlUtils.formatFloatValue;
+import static java.lang.Math.min;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.res.ResourceHelper;
@@ -27,6 +29,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.LineSeparator;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Objects;
@@ -49,28 +52,50 @@ public class VectorDrawableTransformer {
   private VectorDrawableTransformer() {}
 
   /**
+   * Transforms a vector drawable to fit in a rectangle with the {@code targetSize} dimensions.
+   *
+   * @param originalDrawable the original drawable, preserved intact by the method
+   * @param targetSize the size of the target rectangle
+   * @return the transformed drawable; may be the same as the original if no transformation was
+   *     required, or if the drawable is not a vector one
+   */
+  @NotNull
+  public static String transform(@NotNull String originalDrawable, @NotNull Dimension targetSize) {
+    return transform(originalDrawable, targetSize, Gravity.CENTER, 1, null, null, null, 1);
+  }
+
+  /**
    * Transforms a vector drawable to fit in a rectangle with the {@code targetSize} dimensions and optionally
    * applies tint and opacity to it.
-   * Conceptually, the scaling transformation includes of the following steps:
+   * Conceptually, the geometric transformation includes of the following steps:
    * <ul>
    *   <li>The drawable is resized and centered in a rectangle of the target size</li>
    *   <li>If {@code clipRectangle} is not null, the drawable is clipped, resized and re-centered again</li>
    *   <li>The drawable is scaled according to {@code scaleFactor}</li>
    *   <li>The drawable is either padded or clipped to fit into the target rectangle</li>
+   *   <li>If {@code shift} is not null, the drawable is shifted</li>
    * </ul>
    *
    * @param originalDrawable the original drawable, preserved intact by the method
    * @param targetSize the size of the target rectangle
+   * @param gravity determines alignment of the original image in the target rectangle
    * @param scaleFactor a scale factor to apply
    * @param clipRectangle an optional clip rectangle in coordinates expressed as fraction of the {@code targetSize}
+   * @param shift an optional shift vector in coordinates expressed as fraction of the {@code targetSize}
    * @param tint an optional tint to apply to the drawable
    * @param opacity opacity to apply to the drawable
    * @return the transformed drawable; may be the same as the original if no transformation was
    *     required, or if the drawable is not a vector one
    */
   @NotNull
-  public static String transform(@NotNull String originalDrawable, @NotNull Dimension targetSize, double scaleFactor,
-                                 @Nullable Rectangle2D clipRectangle, @Nullable Color tint, double opacity) {
+  public static String transform(@NotNull String originalDrawable,
+                                 @NotNull Dimension targetSize,
+                                 @NotNull Gravity gravity,
+                                 double scaleFactor,
+                                 @Nullable Rectangle2D clipRectangle,
+                                 @Nullable Point2D shift,
+                                 @Nullable Color tint,
+                                 double opacity) {
     KXmlParser parser = new KXmlParser();
 
     try {
@@ -104,6 +129,8 @@ public class VectorDrawableTransformer {
       double targetHeight = targetSize.getHeight();
       double width = targetWidth;
       double height = targetHeight;
+      double originalViewportWidth = getDoubleAttributeValue(parser, ANDROID_URI, "viewportWidth", "");
+      double originalViewportHeight = getDoubleAttributeValue(parser, ANDROID_URI, "viewportHeight", "");
       String widthValue = parser.getAttributeValue(ANDROID_URI, "width");
       if (widthValue != null) {
         String suffix = getSuffix(widthValue);
@@ -111,53 +138,61 @@ public class VectorDrawableTransformer {
         height = getDoubleAttributeValue(parser, ANDROID_URI, "height", suffix);
 
         //noinspection FloatingPointEquality -- safe in this context since all integer values are representable as double.
-        if (suffix.equals("dp") && width == targetWidth && height == targetHeight && scaleFactor == 1 && clipRectangle == null &&
+        if (suffix.equals("dp") && width == targetWidth && height == targetHeight &&
+            originalViewportWidth == targetWidth && originalViewportHeight == targetHeight &&
+            scaleFactor == 1 && clipRectangle == null &&
             Objects.equals(tintValue, originalTintValue) && Objects.equals(alphaValue, originalAlphaValue)) {
           return originalDrawable; // No transformation is needed.
         }
-        if (Double.isNaN(width) || Double.isNaN(height)) {
+        if (Double.isNaN(width) || width == 0 || Double.isNaN(height) || height == 0) {
           width = targetWidth;
           height = targetHeight;
         }
       }
 
-      double originalViewportWidth = getDoubleAttributeValue(parser, ANDROID_URI, "viewportWidth", "");
-      double originalViewportHeight = getDoubleAttributeValue(parser, ANDROID_URI, "viewportHeight", "");
-      if (Double.isNaN(originalViewportWidth) || Double.isNaN(originalViewportHeight)) {
-        originalViewportWidth = width;
-        originalViewportHeight = height;
-      }
-      double viewportWidth = originalViewportWidth;
-      double viewportHeight = originalViewportHeight;
       // Components of the translation vector in viewport coordinates.
       double x = 0;
       double y = 0;
-      double ratio = targetWidth * height / (targetHeight * width);
-      // Adjust viewport to compensate for the difference between the original and the target aspect ratio.
+      if (clipRectangle != null) {
+        // Adjust scale.
+        scaleFactor /= Math.max(clipRectangle.getWidth(), clipRectangle.getHeight());
+        // Re-center the image relative to the clip rectangle.
+        x += (0.5 - clipRectangle.getCenterX()) * targetWidth * scaleFactor;
+        y += (0.5 - clipRectangle.getCenterY()) * targetHeight * scaleFactor;
+      }
+
+      if (Double.isNaN(originalViewportWidth) || originalViewportWidth == 0 ||
+          Double.isNaN(originalViewportHeight) || originalViewportHeight == 0) {
+        originalViewportWidth = width;
+        originalViewportHeight = height;
+      }
+
+      double ratio = width * originalViewportHeight / (height * originalViewportWidth);
       if (ratio > 1) {
-        viewportWidth *= ratio;
+        y += 0.5 * targetWidth * ratio;
       }
       else if (ratio < 1) {
-        viewportHeight /= ratio;
+        x += 0.5 * targetHeight / ratio;
+      }
+      x += 0.5 * targetWidth * (1 - scaleFactor);
+      y += 0.5 * targetHeight * (1 - scaleFactor);
+
+      ratio = targetWidth * originalViewportHeight / (targetHeight * originalViewportWidth);
+      if (ratio > 1) {
+        double alignmentScale = (gravity.getHorizontalAlignment() + 1) / 2.;
+        x += alignmentScale * targetWidth * (1 - 1 / ratio) * scaleFactor;
+      }
+      else if (ratio < 1) {
+        double alignmentScale = (gravity.getVerticalAlignment() + 1) / 2.;
+        y += alignmentScale * targetHeight * (1 - ratio) * scaleFactor;
       }
 
-      // Apply scaleFactor.
-      viewportWidth /= scaleFactor;
-      viewportHeight /= scaleFactor;
+      scaleFactor *= min(targetWidth / originalViewportWidth, targetHeight / originalViewportHeight);
 
-      if (clipRectangle != null) {
-        // Adjust viewport.
-        double s = Math.max(clipRectangle.getWidth(), clipRectangle.getHeight());
-        viewportWidth *= s;
-        viewportHeight *= s;
-        // Re-center the image relative to the clip rectangle.
-        x = (0.5 - clipRectangle.getCenterX()) * viewportWidth;
-        y = (0.5 - clipRectangle.getCenterY()) * viewportHeight;
+      if (shift != null) {
+        x += targetWidth * shift.getX();
+        y += targetHeight * shift.getY();
       }
-
-      // Compensate for the shift of the viewport center due to scaling.
-      x += (viewportWidth - originalViewportWidth) / 2;
-      y += (viewportHeight - originalViewportHeight) / 2;
 
       StringBuilder result = new StringBuilder(originalDrawable.length() + originalDrawable.length() / 8);
 
@@ -178,8 +213,8 @@ public class VectorDrawableTransformer {
 
       result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetWidth)));
       result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetHeight)));
-      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(viewportWidth)));
-      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(viewportHeight)));
+      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetWidth)));
+      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetHeight)));
       if (tintValue != null) {
         result.append(String.format("%s%sandroid:tint=\"%s\"", lineSeparator, DOUBLE_INDENT, tintValue));
       }
@@ -204,35 +239,31 @@ public class VectorDrawableTransformer {
       int copyDepth = 2;
       startLine = parser.getLineNumber();
       startColumn = parser.getColumnNumber();
-      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
-      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
-      if (translateX != null || translateY != null) {
-        double existingTranslateX = 0;
-        double existingTranslateY = 0;
-
-        x += existingTranslateX;
-        y += existingTranslateY;
-        translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
-        translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
-
-        if (translateX != null || translateY != null) {
-          // Wrap the contents of the drawable into a translation group.
-          result.append(lineSeparator).append(INDENT);
-          result.append("<group");
-          String delimiter = " ";
-          if (translateX != null) {
-            result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
-            delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
-          }
-          if (translateY != null) {
-            result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
-          }
-          result.append('>');
-          indent = INDENT;
+      String translateX = isSignificantlyDifferentFromZero(x / targetWidth) ? formatFloatValue(x) : null;
+      String translateY = isSignificantlyDifferentFromZero(y / targetHeight) ? formatFloatValue(y) : null;
+      String scale = formatFloatValue(scaleFactor);
+      if (!scale.equals("1") || translateX != null || translateY != null) {
+        // Wrap contents of the drawable into a translation group.
+        result.append(lineSeparator).append(INDENT);
+        result.append("<group");
+        String delimiter = " ";
+        if (!scale.equals("1")) {
+          result.append(String.format("%sandroid:scaleX=\"%s\"", delimiter, scale));
+          delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
+          result.append(String.format("%sandroid:scaleY=\"%s\"", delimiter, scale));
         }
+        if (translateX != null) {
+          result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
+          delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
+        }
+        if (translateY != null) {
+          result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
+        }
+        result.append('>');
+        indent = INDENT;
       }
 
-      // Copy the contents before the </vector> tag.
+      // Copy contents before the </vector> tag.
       while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG ||
              parser.getDepth() >= copyDepth) {
         int endLineNumber = parser.getLineNumber();
@@ -245,7 +276,7 @@ public class VectorDrawableTransformer {
         result.append(lineSeparator);
         startColumn = 1;
       }
-      if (translateX != null || translateY != null) {
+      if (!scale.equals("1") || translateX != null || translateY != null) {
         if (startColumn == 1) {
           result.append(INDENT);
         }
@@ -268,7 +299,140 @@ public class VectorDrawableTransformer {
     }
   }
 
-  private static String detectLineSeparator(CharSequence str) {
+  /**
+   * Merges two vector drawables. The drawables must have identical width, height, viewport width and viewport height.
+   *
+   * @param drawable1 the first drawable to merge
+   * @param drawable2 the second drawable to merge
+   * @return the merged drawable
+   */
+  public static String merge(@NotNull String drawable1, @NotNull String drawable2) {
+    KXmlParser parser = new KXmlParser();
+
+    try {
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(CharSequences.getReader(drawable1, true));
+      int token;
+      // Skip to the first tag.
+      //noinspection StatementWithEmptyBody
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.START_TAG) {
+      }
+      if (parser.getEventType() != XmlPullParser.START_TAG || !"vector".equals(parser.getName()) || parser.getPrefix() != null) {
+        return drawable1; // Not a vector drawable.
+      }
+
+      StringBuilder result = new StringBuilder(drawable1.length() + drawable2.length());
+
+      Indenter indenter = new Indenter(drawable1);
+      // Copy contents of the first drawable before the </vector> tag.
+      int startLine = 1;
+      int startColumn = 1;
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG ||
+             parser.getDepth() > 1) {
+        int endLineNumber = parser.getLineNumber();
+        int endColumnNumber = parser.getColumnNumber();
+        indenter.copy(startLine, startColumn, endLineNumber, endColumnNumber, "", result);
+        startLine = endLineNumber;
+        startColumn = endColumnNumber;
+      }
+
+      parser.setInput(CharSequences.getReader(drawable2, true));
+      //noinspection StatementWithEmptyBody
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.START_TAG) {
+      }
+      // Skip to the first tag.
+      if (parser.getEventType() != XmlPullParser.START_TAG || !"vector".equals(parser.getName()) || parser.getPrefix() != null) {
+        return drawable1; // Not a vector drawable.
+      }
+      startLine = parser.getLineNumber();
+      startColumn = parser.getColumnNumber();
+
+      indenter = new Indenter(drawable2);
+      // Copy contents of the second drawable after the opening <vector> tag.
+      while (parser.nextToken() != XmlPullParser.END_DOCUMENT) {
+        int endLineNumber = parser.getLineNumber();
+        int endColumnNumber = parser.getColumnNumber();
+        indenter.copy(startLine, startColumn, endLineNumber, endColumnNumber, "", result);
+        startLine = endLineNumber;
+        startColumn = endColumnNumber;
+      }
+
+      return result.toString();
+    }
+    catch (XmlPullParserException | IOException e) {
+      return drawable1;  // Ignore and return the original drawable.
+    }
+  }
+
+  /**
+   * Returns viewport size of the vector drawable, or null if the parameter is not a valid vector drawable.
+   *
+   * @param drawable XML text of a vector drawable
+   * @return the viewport size of the drawable or null
+   */
+  @Nullable
+  public static Point2D getViewportSize(@NotNull String drawable) {
+    KXmlParser parser = new KXmlParser();
+
+    try {
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(CharSequences.getReader(drawable, true));
+      // Skip to the first tag.
+      int token;
+      //noinspection StatementWithEmptyBody
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.START_TAG) {
+      }
+      if (parser.getEventType() != XmlPullParser.START_TAG || !"vector".equals(parser.getName()) || parser.getPrefix() != null) {
+        return null; // Not a vector drawable.
+      }
+      double viewportWidth = getDoubleAttributeValue(parser, ANDROID_URI, "viewportWidth", "");
+      double viewportHeight = getDoubleAttributeValue(parser, ANDROID_URI, "viewportHeight", "");
+      return new Point2D.Double(viewportWidth, viewportHeight);
+    }
+    catch (XmlPullParserException | IOException e) {
+      return null;  // Ignore and return null.
+    }
+  }
+
+  /**
+   * Returns size of the vector drawable in "dp", or null if the parameter is not a valid vector drawable,
+   * or the width and height are not specified in "dp".
+   *
+   * @param drawable XML text of a vector drawable
+   * @return the size of the drawable or null
+   */
+  @Nullable
+  public static Dimension getSizeDp(@NotNull String drawable) {
+    KXmlParser parser = new KXmlParser();
+
+    try {
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(CharSequences.getReader(drawable, true));
+      // Skip to the first tag.
+      int token;
+      //noinspection StatementWithEmptyBody
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.START_TAG) {
+      }
+      if (parser.getEventType() != XmlPullParser.START_TAG || !"vector".equals(parser.getName()) || parser.getPrefix() != null) {
+        return null; // Not a vector drawable.
+      }
+      String widthValue = parser.getAttributeValue(ANDROID_URI, "width");
+      if (widthValue != null) {
+        String suffix = getSuffix(widthValue);
+        if (suffix.equals("dp")) {
+          double width = getDoubleAttributeValue(parser, ANDROID_URI, "width", suffix);
+          double height = getDoubleAttributeValue(parser, ANDROID_URI, "height", suffix);
+          return new Dimension(roundToInt(width), roundToInt(height));
+        }
+      }
+      return null;
+    }
+    catch (XmlPullParserException | IOException e) {
+      return null;  // Ignore and return null.
+    }
+  }
+
+  private static String detectLineSeparator(@NotNull CharSequence str) {
     LineSeparator separator = StringUtil.detectSeparators(str);
     if (separator != null) {
       return separator.getSeparatorString();
@@ -314,15 +478,15 @@ public class VectorDrawableTransformer {
     private int myLine;
     private int myColumn;
     private int myOffset;
-    private final CharSequence myText;
+    private @NotNull final CharSequence myText;
 
-    Indenter(CharSequence text) {
+    Indenter(@NotNull CharSequence text) {
       myText = text;
       myLine = 1;
       myColumn = 1;
     }
 
-    void copy(int fromLine, int fromColumn, int toLine, int toColumn, String indent, StringBuilder out) {
+    void copy(int fromLine, int fromColumn, int toLine, int toColumn, @NotNull String indent, @NotNull StringBuilder out) {
       if (myLine != fromLine) {
         if (myLine > fromLine) {
           myLine = 1;

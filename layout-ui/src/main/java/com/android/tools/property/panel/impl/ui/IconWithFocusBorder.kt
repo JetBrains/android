@@ -22,6 +22,12 @@ import com.android.tools.property.panel.impl.support.ImageFocusListener
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
 import java.awt.Graphics
 import java.awt.Graphics2D

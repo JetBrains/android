@@ -28,6 +28,8 @@ import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.Alarm
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Component
@@ -38,14 +40,19 @@ import javax.swing.JPanel
 fun getPropertiesToolContent(component: Component?): NelePropertiesPanelToolContent? =
   ToolContent.getToolContent(component) as? NelePropertiesPanelToolContent
 
+private const val UPDATE_QUEUE_NAME = "propertysheet"
+private const val UPDATE_DELAY_MILLI_SECONDS = 250
+
 /**
  * Create the models and views for the properties tool content.
  */
 class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
   : JPanel(BorderLayout()), ToolContent<DesignSurface> {
-  private val componentModel = NelePropertiesModel(this, facet)
+  private val queue = MergingUpdateQueue(
+    UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
+  private val componentModel = NelePropertiesModel(this, facet, queue)
   private val componentView = NelePropertiesView(componentModel)
-  private val motionModel = MotionLayoutAttributesModel(this, facet)
+  private val motionModel = MotionLayoutAttributesModel(this, facet, queue)
   private val motionEditorView = MotionLayoutAttributesView(motionModel)
   private val properties = PropertiesPanel<NelePropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
@@ -86,6 +93,9 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     InspectorSection.values().map { it.action }
 
   fun firePropertiesGenerated() = componentModel.firePropertiesGenerated()
+
+  val isInspectorSectionsActive
+    get() = !componentModel.properties.isEmpty
 
   private fun createFilterKeyListener() = object : KeyAdapter() {
     override fun keyPressed(event: KeyEvent) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.createTreeModel
@@ -24,9 +25,11 @@ import com.android.tools.idea.gradle.structure.configurables.ui.mapPropertyEdito
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanel
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
+import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -45,7 +48,13 @@ class AndroidModuleRootConfigurable(
   override fun dispose() = Unit
 }
 
-fun androidModulePropertiesModel() =
+// TODO(b/142099752): this could be a general mechanism attached to the descriptors
+private fun dependenciesInfoPresent(context: PsContext, module: PsAndroidModule) =
+  module.projectType == PsModuleType.ANDROID_APP &&
+  context.project.androidGradlePluginVersion.maybeValue
+    ?.let { GradleVersion.tryParse(it) }?.isAtLeastIncludingPreviews(4, 0, 0) ?: false
+
+fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
   PropertiesUiModel(
     listOf(
       uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor,
@@ -55,7 +64,19 @@ fun androidModulePropertiesModel() =
       uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)))
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)
+      // TODO(b/142099752): Properly configure condition when it is available and enable.
+      /*,
+      uiProperty(AndroidModuleDescriptors.viewBindingEnabled, ::simplePropertyEditor,
+                 null)*/
+    ) + when (dependenciesInfoPresent(context, module)) {
+      true -> listOf(
+        uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInApk, ::simplePropertyEditor, null),
+        uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInBundle, ::simplePropertyEditor, null))
+      false -> listOf()
+    }
+  )
+
 
 fun defaultConfigPropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(

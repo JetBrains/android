@@ -31,9 +31,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_PROJECT_STATE;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -85,7 +83,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
@@ -99,7 +96,10 @@ public class Configuration implements Disposable, ModificationTracker {
   public static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
-  /** The associated file */
+  /**
+   * The associated file.
+   * TODO(b/141988340): consider to remove this field from Configuration class.
+   */
   @Nullable final VirtualFile myFile;
 
   /** The PSI File associated with myFile. */
@@ -254,7 +254,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public static Configuration create(@NotNull Configuration base, @NotNull VirtualFile file) {
     // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
-    Configuration configuration = base.clone();
+    Configuration configuration = copyWithNewFile(base, file);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -286,9 +286,22 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   public static Configuration copy(@NotNull Configuration original) {
+    return copyWithNewFile(original, original.myFile);
+  }
+
+  /**
+   * Creates a new {@linkplain Configuration} that is a copy from a different configuration and its associated file
+   * is the given one.
+   *
+   * @param original the original to copy from
+   * @param newFile  the file of returned {@link Configuration}.
+   * @return a new configuration copied from the original
+   */
+  @NotNull
+  private static Configuration copyWithNewFile(@NotNull Configuration original, @Nullable VirtualFile newFile) {
     FolderConfiguration copiedConfig = new FolderConfiguration();
     copiedConfig.set(original.getEditedConfig());
-    Configuration copy = new Configuration(original.myManager, original.myFile, copiedConfig);
+    Configuration copy = new Configuration(original.myManager, newFile, copiedConfig);
     copy.myFullConfig.set(original.myFullConfig);
     copy.myFolderConfigDirty = original.myFolderConfigDirty;
     copy.myProjectStateVersion = original.myProjectStateVersion;
@@ -442,22 +455,33 @@ public class Configuration implements Disposable, ModificationTracker {
   private static final String NO_ACTIVITY = new String();
 
   /**
-   * Returns the chosen device.
+   * Returns the chosen device, computing the best one if the currently cached value is null.
    *
-   * @return the chosen device
+   * Use {@link #getCachedDevice()} to get the current cached device regardless of its nullability.
    */
   @Slow
   @Nullable
   public Device getDevice() {
-    if (myDevice == null) {
-      if (mySpecificDevice != null) {
-        myDevice = mySpecificDevice;
-      }
-      else {
-        myDevice = computeBestDevice();
-      }
+    Device cached = getCachedDevice();
+    if (cached != null) {
+      return cached;
     }
 
+    if (mySpecificDevice != null) {
+      myDevice = mySpecificDevice;
+    }
+    else {
+      myDevice = computeBestDevice();
+    }
+    return myDevice;
+  }
+
+  /**
+   * Returns the current value of the effective device. Please note this will return the cached value of the field, which is actually
+   * computed in {@link #getDevice()}.
+   */
+  @Nullable
+  public Device getCachedDevice() {
     return myDevice;
   }
 
@@ -478,12 +502,6 @@ public class Configuration implements Disposable, ModificationTracker {
           }
         }
       }
-
-      // Don't match on target since we tend to use recent layout lib versions to render even default (older) layouts
-      // since more recent versions work a lot better fidelity wise
-      // if (target != null) {
-      //   currentConfig.setVersionQualifier(new VersionQualifier(target.getVersion().getApiLevel()));
-      // }
     }
 
     return currentConfig;
@@ -771,13 +789,6 @@ public class Configuration implements Disposable, ModificationTracker {
           myState = state;
           updateFlags |= CFG_DEVICE_STATE;
         }
-      }
-
-      // TODO: Is this redundant with the stuff above?
-      if (mySpecificDevice != null && myState == null) {
-        setDeviceStateName(mySpecificDevice.getDefaultState().getName());
-        myState = mySpecificDevice.getDefaultState();
-        updateFlags |= CFG_DEVICE_STATE;
       }
 
       updated(updateFlags);
@@ -1141,22 +1152,6 @@ public class Configuration implements Disposable, ModificationTracker {
     }
 
     return null;
-  }
-
-  /**
-   * Returns true if this configuration supports the given rendering
-   * capability
-   *
-   * @param capability the capability to check
-   * @return true if the capability is supported
-   */
-  public boolean supports(@MagicConstant(flagsFromClass = Features.class) int capability) {
-    IAndroidTarget target = getTarget();
-    if (target != null) {
-      return RenderService.supportsCapability(getModule(), target, capability);
-    }
-
-    return false;
   }
 
   /**

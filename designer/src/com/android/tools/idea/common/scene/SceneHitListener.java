@@ -53,13 +53,14 @@ class SceneHitListener {
   public void find(@NotNull SceneContext transform,
                    @NotNull SceneComponent root,
                    @AndroidDpCoordinate int x,
-                   @AndroidDpCoordinate int y) {
+                   @AndroidDpCoordinate int y,
+                   @JdkConstants.InputEventMask int modifiersEx) {
     myHitComponents.clear();
     myHitTargets.clear();
     myClosestComponentDistance = Double.MAX_VALUE;
     myClosestTargetDistance = Double.MAX_VALUE;
     myPicker.reset();
-    root.addHit(transform, myPicker);
+    root.addHit(transform, myPicker, modifiersEx);
     myPicker.find(transform.getSwingXDip(x), transform.getSwingYDip(y));
   }
 
@@ -203,6 +204,14 @@ class SceneHitListener {
       }
     }
     return candidate;
+  }
+
+  public SceneComponent getTopHitComponent() {
+    int count = myHitComponents.size();
+    if (count == 0) {
+      return null;
+    }
+    return myHitComponents.get(count - 1);
   }
 
   public ArrayList<SceneComponent> getHitComponents() {

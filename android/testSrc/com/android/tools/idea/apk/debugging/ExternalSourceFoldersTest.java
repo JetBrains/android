@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.debugging;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.ProjectFiles;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
@@ -58,7 +59,7 @@ public class ExternalSourceFoldersTest extends AndroidGradleTestCase {
     prepareProjectForImport(SIMPLE_APPLICATION);
 
     File appModulePath = new File(getBaseDirPath(getProject()), "app");
-    Module appModule = createModule(appModulePath, JavaModuleType.getModuleType());
+    Module appModule = ProjectFiles.createModule(getProject(), appModulePath, JavaModuleType.getModuleType());
 
     ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
     VirtualFile[] contentRoots = rootManager.getContentRoots();

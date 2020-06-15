@@ -20,6 +20,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -34,12 +35,13 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
 
   override val surfaceType
     get() = when (nlSurface.sceneMode) {
-      SceneMode.SCREEN_ONLY -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.BLUEPRINT_ONLY -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
-      SceneMode.BOTH -> LayoutEditorState.Surfaces.BOTH
-      SceneMode.SCREEN_COMPOSE_ONLY -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.RENDER -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
+      SceneMode.RENDER_AND_BLUEPRINT -> LayoutEditorState.Surfaces.BOTH
+      SceneMode.COMPOSE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE
     }
 
   override val surfaceMode
@@ -52,9 +54,11 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
   override
   val layoutType
     get() =
-      if (nlSurface.layoutType is LayoutEditorFileType) (nlSurface.layoutType as LayoutEditorFileType).getLayoutEditorStateType()
-      // TODO(b/120469076): track VECTOR type as well
-      else super.layoutType
+      when(val type = nlSurface.layoutType) {
+        is LayoutEditorFileType -> type.getLayoutEditorStateType()
+        is DrawableFileType -> LayoutEditorState.Type.DRAWABLE
+        else -> super.layoutType
+      }
 
   fun trackClearAllConstraints() = track(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS)
 

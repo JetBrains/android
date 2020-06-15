@@ -29,9 +29,12 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
+import com.android.tools.idea.io.FilePaths;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,20 +49,22 @@ public class DependenciesExtractor {
   /**
    * Get a {@link DependencySet} contains merged dependencies from main artifact and test artifacts.
    *
-   * @param variant             the variant to extract dependencies from.
+   * @param variant      the variant to extract dependencies from.
    * @param moduleFinder
    * @return Instance of {@link DependencySet} retrieved from given variant.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeVariant variant, @NotNull ModuleFinder moduleFinder) {
+  public DependencySet extractFrom(@NotNull File basePath,
+                                   @NotNull IdeVariant variant,
+                                   @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
 
     for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      populate(dependencies, testArtifact, moduleFinder, TEST);
+      populate(basePath, dependencies, testArtifact, moduleFinder, TEST);
     }
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    populate(dependencies, mainArtifact, moduleFinder, COMPILE);
+    populate(basePath, dependencies, mainArtifact, moduleFinder, COMPILE);
 
     return dependencies;
   }
@@ -70,28 +75,31 @@ public class DependenciesExtractor {
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeBaseArtifact artifact,
+  public DependencySet extractFrom(@NotNull File basePath,
+                                   @NotNull IdeBaseArtifact artifact,
                                    @NotNull DependencyScope scope,
                                    @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, moduleFinder, scope);
+    populate(basePath, dependencies, artifact, moduleFinder, scope);
     return dependencies;
   }
 
-  private static void populate(@NotNull DependencySet dependencies,
+  private static void populate(@NotNull File basePath,
+                               @NotNull DependencySet dependencies,
                                @NotNull IdeBaseArtifact artifact,
                                @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
     IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
-      LibraryDependency libraryDependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
-      libraryDependency.addBinaryPath(library.getArtifact());
+      LibraryDependency libraryDependency =
+        LibraryDependency
+          .create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, ImmutableList.of(library.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
     for (Library library : artifactDependencies.getAndroidLibraries()) {
-      dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
+      dependencies.add(createLibraryDependencyFromAndroidLibrary(basePath, library, scope));
     }
 
     for (Library library : artifactDependencies.getModuleDependencies()) {
@@ -115,23 +123,23 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull Library library,
+  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull File basePath,
+                                                                             @NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
-    LibraryDependency dependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
-    dependency.addBinaryPath(library.getCompileJarFile());
-    dependency.addBinaryPath(library.getResFolder());
-
+    ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
+    binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
+    binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
     for (String localJar : library.getLocalJars()) {
-      dependency.addBinaryPath(localJar);
+      binaryPaths.add(FilePaths.toSystemDependentPath(localJar));
     }
-    return dependency;
+    return LibraryDependency.create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, binaryPaths.build());
   }
 
   /**
    * Computes a library name intended for display purposes; names may not be unique
    * (and separator is always ":"). It will only show the artifact id, if that id contains slashes, otherwise
    * it will include the last component of the group id (unless identical to the artifact id).
-   *
+   * <p>
    * E.g.
    * com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1
    * android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1

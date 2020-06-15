@@ -10,7 +10,7 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
         release {
@@ -24,12 +24,12 @@ android {
     productFlavors {
         red {
             dimension "color"
-            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
         }
     }
 
     testOptions {
-        execution "ANDROIDX_TEST_ORCHESTRATOR"
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
     }
 }
 
@@ -47,5 +47,6 @@ dependencies {
     implementation testVariable
     implementation 'androidx.core:core-ktx:1.0.0-alpha1'
     implementation 'androidx.core:newer-core-ktx:2.0.0-alpha1'
+    implementation 'androidx.core:newer-version-ktx:1.2.0'
     implementation "androidx.core:variable-ktx:1.0.0-alpha1"
 }

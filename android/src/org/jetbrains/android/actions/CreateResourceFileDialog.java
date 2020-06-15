@@ -3,13 +3,13 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -22,20 +22,19 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
+import java.awt.*;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.*;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Dialog to decide where and how to create a resource file of a given type
@@ -278,7 +277,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       return myResDirectory;
     }
     Module module = getSelectedModule();
-    return CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module, true);
+    return CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module);
   }
 
   @NotNull
@@ -289,7 +288,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   }
 
   @Nullable
-  private SourceProvider getSourceProvider() {
+  private IdeaSourceProvider getSourceProvider() {
     return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 

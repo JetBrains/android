@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel.EMPTY_STRING_ARRAY;
+
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
@@ -38,6 +45,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -62,6 +71,10 @@ import javax.swing.table.DefaultTableModel;
  */
 public class MotionEditor extends JPanel {
   public final static boolean DEBUG = false;
+  private final JPanel mMainPanel;
+  private CardLayout mErrorSwitchCard;
+  public Track myTrack = new Track();
+  ErrorPanel myErrorPanel = new ErrorPanel();
   MeModel mMeModel;
   MotionEditorSelector mMotionEditorSelector = new MotionEditorSelector();
   JTabbedPane mTabbedTopPane = new METabbedPane();
@@ -74,9 +87,12 @@ public class MotionEditor extends JPanel {
   JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
-  private static String LAYOUT_PANEL = "Layout";
-  private static String TRANSITION_PANEL = "Transition";
-  private static String CONSTRAINTSET_PANEL = "ConstraintSet";
+  private static final String LAYOUT_PANEL = "Layout";
+  private static final String TRANSITION_PANEL = "Transition";
+  private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
+  private String mCurrentlyDisplaying = CONSTRAINTSET_PANEL;
+  private final List<Command> myCommandListeners = new ArrayList<>();
+
   CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
   CreateOnClick mCreateOnClick = new CreateOnClick();
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
@@ -84,11 +100,15 @@ public class MotionEditor extends JPanel {
   JSplitPane mTopPanel;
   boolean mUpdatingModel;
   JPopupMenu myPopupMenu = new JPopupMenu();
+  private static final String MAIN_PANEL = "main";
+  private static final String ERROR_PANEL = "error";
+  private int mFlags;
 
   @Override
   public void updateUI() {
     super.updateUI();
     if (mMotionSceneTabb != null) { // any are not null they have been initialized
+      myErrorPanel.updateUI();
       mMotionSceneTabb.updateUI();
       mTransitionPanel.updateUI();
       mConstraintSetPanel.updateUI();
@@ -107,9 +127,35 @@ public class MotionEditor extends JPanel {
     }
   }
 
-  public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
-    mSelectedTag = tag[0];
-    notifyListeners(type, tag);
+  /**
+   * This will selected the views or ConstraintSets based on the ids
+   *
+   * @param ids
+   */
+  public void selectById(String[] ids) {
+    switch (mCurrentlyDisplaying) {
+      case LAYOUT_PANEL:
+        mLayoutPanel.selectByIds(ids);
+        break;
+      case CONSTRAINTSET_PANEL:
+        mConstraintSetPanel.selectById(ids);
+        break;
+      case TRANSITION_PANEL:
+    }
+  }
+
+  public void addCommandListener(Command command) {
+    myCommandListeners.add(command);
+  }
+
+  private void fireCommand(Command.Action action, MTag[] tags) {
+    for (Command listener : myCommandListeners) {
+      listener.perform(action, tags);
+    }
+  }
+
+  public void stopAnimation() {
+    mTransitionPanel.mTimeLinePanel.stopAnimation();
   }
 
   enum LayoutMode {
@@ -120,6 +166,24 @@ public class MotionEditor extends JPanel {
 
   LayoutMode mLayoutMode = null;
 
+  /**
+   * The selected tag in the motion editor.
+   *
+   * This will be one of:
+   * <ul>
+   *   <li>ConstraintSet</li>
+   *   <li>Transition</li>
+   *   <li>MotionLayout</li>
+   * </ul>
+   *
+   * Constraints and KeyFrames are not stored as the selected tag here. Instead
+   * those selection is handles by sub selections:
+   * <ul>
+   *    <li>A constraint by the selected view id</li>
+   *    <li>A view by the selected view id</li>
+   *    <li>A key frame by the mSelectedKeyFrame in the TimeLine panel</li>
+   * </ul>
+   */
   private MTag mSelectedTag;
 
   public void dataChanged() {
@@ -127,7 +191,13 @@ public class MotionEditor extends JPanel {
   }
 
   public MotionEditor() {
-    super(new BorderLayout());
+    super(new CardLayout());
+    mErrorSwitchCard = (CardLayout)getLayout();
+    mMainPanel = new JPanel(new BorderLayout());
+    add(mMainPanel, MAIN_PANEL);
+    add(myErrorPanel, ERROR_PANEL);
+
+    mErrorSwitchCard.show(this, MAIN_PANEL);
     mOverviewScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
     JPanel ui = new JPanel(new GridLayout(2, 1));
@@ -137,7 +207,7 @@ public class MotionEditor extends JPanel {
     });
     mMotionEditorSelector.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         if (DEBUG) {
           Debug.log(" selectionChanged  " + selection);
           Debug.logStack(" selectionChanged  " + selection, 5);
@@ -148,7 +218,7 @@ public class MotionEditor extends JPanel {
     ui.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setPreferredSize(new Dimension(10, 100));
     mTopPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mCombinedListPanel, mOverviewScrollPane);
-    //  layoutTop(LayoutMode.HORIZONTAL_LAYOUT);
+    mTopPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, MEUI.ourBorder));
 
     ui.add(mTopPanel);
     ui.add(mCenterPanel, BorderLayout.CENTER);
@@ -164,23 +234,47 @@ public class MotionEditor extends JPanel {
     mConstraintSetPanel.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setBackground(MEUI.ourPrimaryPanelBackground);
     mOverviewPanel.setBorder(BorderFactory.createEmptyBorder());
-
-    mOverviewPanel.setSelectionListener(e -> {
-      selectTag(e);
+    mTransitionPanel.addTimeLineListener(new TimeLineListener() {
+      @Override
+      public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
+        switch (cmd) {
+          case MOTION_PROGRESS:
+            mOverviewPanel.setTransitionProgress(pos);
+            break;
+          case MOTION_SCRUB:
+          case MOTION_PLAY:
+            break;
+          case MOTION_STOP:
+            mOverviewPanel.setTransitionProgress(Float.NaN);
+            break;
+        }
+      }
     });
+    MTagActionListener mTagActionListener = new MTagActionListener() {
+      @Override
+      public void select(MTag selected, int flags) {
+        selectTag(selected, flags);
+      }
 
-    add(ui);
+      @Override
+      public void delete(MTag[] tags, int flags) {
+        fireCommand(Command.Action.DELETE, tags);
+      }
+    };
+    mOverviewPanel.setActionListener(mTagActionListener);
+    mTransitionPanel.setActionListener(mTagActionListener);
+    mMainPanel.add(ui);
     JPanel toolbarLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
     JPanel toolbarRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JPanel toolbar = new JPanel(new BorderLayout());
     toolbar.add(toolbarLeft, BorderLayout.WEST);
     toolbar.add(toolbarRight, BorderLayout.EAST);
 
-    JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create MotionScene Objects");
+    JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create ConstraintSet");
     toolbarLeft.add(create_constraintSet);
-    JButton create_transition = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, "Create MotionScene Objects");
+    JButton create_transition = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, "Create Transition between ConstraintSets");
     toolbarLeft.add(create_transition);
-    JButton create_touch = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, "Create MotionScene Objects");
+    JButton create_touch = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, "Create click or swipe handler");
     toolbarLeft.add(create_touch);
     create_constraintSet.setAction(mCreateConstraintSet.getAction(create_constraintSet, this));
     create_transition.setAction(mCreateTransition.getAction(create_transition, this));
@@ -196,7 +290,7 @@ public class MotionEditor extends JPanel {
       myPopupMenu.show(create_constraintSet, 0, 0);
     });
 
-    JButton cycle = MEUI.createToolBarButton(MEIcons.CYCLE_LAYOUT, "Vertical view");
+    JButton cycle = MEUI.createToolBarButton(MEIcons.CYCLE_LAYOUT, "Cycle between layouts");
 
     toolbarRight.add(cycle);
 
@@ -204,7 +298,7 @@ public class MotionEditor extends JPanel {
       layoutTop();
     });
 
-    add(toolbar, BorderLayout.NORTH);
+    mMainPanel.add(toolbar, BorderLayout.NORTH);
 
     layoutTop();
   }
@@ -213,8 +307,8 @@ public class MotionEditor extends JPanel {
     mMotionEditorSelector.addSelectionListener(listener);
   }
 
-  private void notifyListeners(MotionEditorSelector.Type type, MTag[] tags) {
-    mMotionEditorSelector.notifyListeners(type, tags);
+  private void notifyListeners(MotionEditorSelector.Type type, MTag[] tags, int flags) {
+    mMotionEditorSelector.notifyListeners(type, tags, flags);
   }
 
   public MeModel getMeModel() {
@@ -225,13 +319,15 @@ public class MotionEditor extends JPanel {
     return mSelectedTag;
   }
 
-  public void selectTag(MTag tag) {
-    if (tag != null && tag.equals(mSelectedTag)) {
+  public void selectTag(MTag tag, int flags) {
+    mFlags = flags;
+    String tagName = tag != null ? tag.getTagName() : null;
+    if (tag != null && tagName != null && tag.equals(mSelectedTag)) {
       mConstraintSetPanel.clearSelection();
+      mLayoutPanel.clearSelection();
       mTransitionPanel.clearSelection();
-      if ("Transition".equals(tag.getTagName())) {
-        notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag});
-      }
+      mMeModel.setSelectedViewIDs(new ArrayList<>()); // clear out selections because of double click
+      notifyListeners(findSelectionType(tagName), new MTag[]{tag}, flags);
     }
     mSelectedTag = tag;
     if (tag != null) {
@@ -239,17 +335,41 @@ public class MotionEditor extends JPanel {
     }
   }
 
+  @NotNull
+  private MotionEditorSelector.Type findSelectionType(@NotNull String tagName) {
+    switch (tagName) {
+      case Tags.CONSTRAINTSET:
+        return MotionEditorSelector.Type.CONSTRAINT_SET;
+      case Tags.TRANSITION:
+        return MotionEditorSelector.Type.TRANSITION;
+      default:
+        return MotionEditorSelector.Type.LAYOUT;
+    }
+  }
+
   public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
-                      @Nullable String motionSceneFileName) {
-    setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
+                      @Nullable String motionSceneFileName, String setupError) {
+    if (setupError == null && myErrorPanel.validateMotionScene(motionScene)) {
+      mErrorSwitchCard.show(this, MAIN_PANEL);
+      setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName, myTrack));
+    }
+    else {
+      if (setupError != null) {
+        myErrorPanel.myErrorLabel.setText("<HTML>MotionScene error:<ul>" + setupError + "</ul></HTML>");
+      }
+      mErrorSwitchCard.show(this, ERROR_PANEL);
+    }
   }
 
   @Nullable
   private MTag findSelectedTagInNewModel(MeModel newModel) {
-    if (mSelectedTag == null) {
-      return null;
+    if (mSelectedTag instanceof MotionSceneTag) {
+      return newModel.motionScene.getChildTagWithTreeId(mSelectedTag.getTagName(), mSelectedTag.getTreeId());
     }
-    return newModel.motionScene.getChildTagWithTreeId(mSelectedTag.getTagName(), mSelectedTag.getTreeId());
+    if (mSelectedTag instanceof NlComponentTag) {
+      return newModel.layout;
+    }
+    return null;
   }
 
   @Nullable
@@ -262,17 +382,29 @@ public class MotionEditor extends JPanel {
     return selection != null && selection.getTagName().equals(Tags.TRANSITION) ? selection : null;
   }
 
+  @Nullable
+  private static MTag asLayout(@Nullable MTag selection) {
+    return selection instanceof NlComponentTag ? selection : null;
+  }
+
+  public void clearSelectedTags() {
+    mSelectedTag = null;
+  }
+
   public void setMTag(MeModel model) {
     mUpdatingModel = true;
     try {
       MTag newSelection = findSelectedTagInNewModel(model);
-      selectTag(newSelection);
+      model.setSelectedViewIDs(mMeModel != null ? mMeModel.getSelectedViewIDs() : EMPTY_STRING_ARRAY);
+      mSelectedTag = newSelection;
       mMeModel = model;
       mMotionSceneTabb.setMTag(mMeModel.motionScene);
       mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
       mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
+      mLayoutPanel.setMTag(asLayout(newSelection), mMeModel);
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
+      mSelectedTag = newSelection;
     }
     finally {
       mUpdatingModel = false;
@@ -290,6 +422,7 @@ public class MotionEditor extends JPanel {
     else {
       mLayoutMode = LayoutMode.values()[(mLayoutMode.ordinal() + 1) % LayoutMode.values().length];
     }
+    Track.changeLayout(myTrack);
     switch (mLayoutMode) {
       case VERTICAL_LAYOUT:
         mCombinedListPanel.setSplitView(true);
@@ -341,35 +474,39 @@ public class MotionEditor extends JPanel {
   }
 
   void constraintSetSelection() {
-
     int index = mCombinedListPanel.getSelectedConstraintSet();
     mOverviewPanel.setConstraintSetIndex(index);
-
+    mTransitionPanel.stopAnimation();
     if (index >= 0) {
+      Track.showConstraintSetTable(myTrack);
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {
-        mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
+        mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
-                        new MTag[]{selectedConstraintSet});
+                        new MTag[]{selectedConstraintSet}, 0);
         mSelectedTag = selectedConstraintSet;
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
       else {
-        mCardLayout.show(mCenterPanel, LAYOUT_PANEL);
+        Track.showLayoutTable(myTrack);
+        mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
+          notifyListeners(MotionEditorSelector.Type.LAYOUT,
+                          (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
+                          new MTag[]{mCombinedListPanel.mMotionLayout}, 0);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
-        notifyListeners(MotionEditorSelector.Type.LAYOUT,
-                        (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
-                        new MTag[]{mCombinedListPanel.mMotionLayout});
+
         mSelectedTag = mCombinedListPanel.mMotionLayout;
       }
     }
   }
 
+
   void transitionSelection() {
+    Track.transitionSelection(myTrack);
     int index = mCombinedListPanel.getSelectedTransition();
     mOverviewPanel.setTransitionSetIndex(index);
-    mCardLayout.show(mCenterPanel, TRANSITION_PANEL);
+    mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = TRANSITION_PANEL);
     MTag[] transitions = mCombinedListPanel.mMotionScene.getChildTags("Transition");
     if (transitions.length == 0) {
       constraintSetSelection();
@@ -377,7 +514,7 @@ public class MotionEditor extends JPanel {
     }
     MTag selectedTransition = transitions[index];
     mTransitionPanel.setMTag(selectedTransition, mMeModel);
-    notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{selectedTransition});
+    notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{selectedTransition}, mFlags);
     mSelectedTag = selectedTransition;
   }
 
@@ -615,8 +752,8 @@ public class MotionEditor extends JPanel {
   class ConstraintSetListPanel extends BaseListPanel {
 
     boolean building = false;
-    JList<String> mConstraintSetList = new JList<>();
-    JScrollPane mTListPane = new JScrollPane(mConstraintSetList);
+    JList<String> mConstraintSetList = new MEList<>();
+    JScrollPane mTListPane = new MEScrollPane(mConstraintSetList);
 
     ConstraintSetListPanel() {
       add(mTListPane, BorderLayout.CENTER);
@@ -672,5 +809,14 @@ public class MotionEditor extends JPanel {
     public int getSelected() {
       return mConstraintSetList.getSelectedIndex();
     }
+  }
+
+  public interface Command {
+    enum Action {
+      DELETE,
+      COPY,
+    }
+
+    void perform(Action action, MTag[] tag);
   }
 }

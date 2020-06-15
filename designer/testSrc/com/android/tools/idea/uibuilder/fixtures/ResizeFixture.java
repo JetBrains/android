@@ -158,12 +158,12 @@ public class ResizeFixture {
   }
 
   public ComponentFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, myModifiers, false);
+    myInteraction.end(myCurrentX, myCurrentY, myModifiers);
     return myComponentFixture;
   }
 
   public ComponentFixture cancel() {
-    myInteraction.end(myCurrentX, myCurrentY, myModifiers, true);
+    myInteraction.cancel(myCurrentX, myCurrentY, myModifiers);
     return myComponentFixture;
   }
 }

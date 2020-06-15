@@ -45,9 +45,7 @@ class PickSampleListDataViewAction(private val namespace: String?, private val a
       defaultResourceType = null,
       showColorStateLists = true,
       showSampleData = true,
-      file = tag.containingFile.virtualFile,
-      xmlFile = null,
-      tag = tag
+      file = tag.containingFile.virtualFile
     )
 
     if (dialog.showAndGet()) {

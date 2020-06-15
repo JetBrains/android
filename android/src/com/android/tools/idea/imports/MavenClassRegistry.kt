@@ -29,97 +29,154 @@ object MavenClassRegistry {
    * using it. (The reason for this is practical: we have an artifact map to map forwards, not backwards.)
    */
   fun findArtifact(className: String): String? {
-    return when (className) {
+    return findArtifactData(className)?.artifact
+  }
+
+  fun findImport(className: String): String? {
+    val data = findArtifactData(className) ?: return null
+    return "${data.import}.$className"
+  }
+
+  private data class Library(val artifact: String, val import: String)
+
+  private fun findArtifactData(className: String): Library? {
+    val index = className.lastIndexOf('.')
+    val symbol = if (index == -1) {
+      className
+    } else {
+      className.substring(index + 1)
+    }
+
+    return when (symbol) {
       "Nullable",
       "NonNull" ->
-        "com.android.support:support-annotations"
-
-      // AndroidX libraries
+        // In AndroidX this is androidx.annotation
+        Library(artifact = "com.android.support:support-annotations", import = "android.support.annotation")
 
       "RecyclerView",
-      "LinearLayoutManager",
+      "LinearLayoutManager" ->
+        // In AndroidX this is androidx.recyclerview.widget
+        Library(artifact = "com.android.support:recyclerview-v7", import = "android.support.v7.widget")
       "DiffUtil" ->
-        "com.android.support:recyclerview-v7"
+        // In AndroidX this is androidx.recyclerview.widget
+        Library(artifact = "com.android.support:recyclerview-v7", import = "android.support.v7.util")
 
       "NavHost",
       "NavController" ->
-        "android.arch.navigation:navigation-runtime"
+        // Not available prior to AndroidX
+        Library(artifact = "android.arch.navigation:navigation-runtime", import = "androidx.navigation")
 
       "NavHostFragment" ->
-        "android.arch.navigation:navigation-fragment"
+        // Not available prior to AndroidX
+        Library(artifact = "android.arch.navigation:navigation-fragment", import = "androidx.navigation.fragment")
 
       "TextClassifier" ->
-        "com.android.support:textclassifier"
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:textclassifier", import = "androidx.textclassifier")
 
       "PrintHelper" ->
-        "com.android.support:print"
+        // In AndroidX this is androidx.print
+        Library(artifact = "com.android.support:print", import = "android.support.v4.print")
 
       "CoordinatorLayout" ->
-        "com.android.support:coordinatorlayout"
+        // In AndroidX this is androidx.coordinatorlayout.widget
+        Library(artifact = "com.android.support:coordinatorlayout", import = "android.support.design.widget")
 
       "MediaPlayer" ->
-        "com.android.support:media2"
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:media2", import = "androidx.media2.player")
 
       "ExoPlayer",
       "ExoPlayerFactory" ->
-        "com.android.support:media2-exoplayer"
+        Library(artifact = "com.android.support:media2-exoplayer", import = "com.google.android.exoplayer2")
 
       "Loader",
       "CursorLoader",
       "AsyncTaskLoader" ->
-        "com.android.support:loader"
+        // In AndroidX this is androidx.loader.content
+        Library(artifact = "com.android.support:loader", import = "android.support.v4.content")
 
       "DrawerLayout" ->
-        "com.android.support:drawerlayout"
+        // In AndroidX this is androidx.drawerlayout.widget
+        Library(artifact = "com.android.support:drawerlayout", import = "android.support.v4.widget")
 
       "SupportSQLiteQuery",
       "SupportSQLiteQueryBuilder",
       "SupportSQLiteOpenHelper",
       "SupportSQLiteDatabase" ->
-        "android.arch.persistence:db"
+        // In AndroidX this is androidx.sqlite.db
+        Library(artifact = "android.arch.persistence:db", import = "android.arch.persistence.db")
 
       "Palette" ->
-        "com.android.support:palette-v7"
+        // In AndroidX this is androidx.palette.graphics
+        Library(artifact = "com.android.support:palette-v7", import = "android.support.v7.graphics")
 
       "WebViewCompat" ->
-        "com.android.support:webkit"
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:webkit", import = "androidx.webkit")
 
       "Transition" ->
-        "com.android.support:transition"
+        // In AndroidX this is androidx.transition
+        Library(artifact = "com.android.support:transition", import = "android.support.transition")
 
       "VersionedParcel",
       "VersionedParcelable" ->
-        "com.android.support:versionedparcelable"
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:versionedparcelable", import = "androidx.versionedparcelable")
 
-      "ViewPager" -> "com.android.support:viewpager"
+      "ViewPager" ->
+        // In AndroidX this is androidx.viewpager.widget
+        Library(artifact = "com.android.support:viewpager", import = "android.support.v4.view")
 
-      "SwipeRefreshLayout" -> "com.android.support:swiperefreshlayout"
+      "ViewPager2" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.viewpager2:viewpager2", import = "androidx.viewpager2.widget")
 
-      "MediaRouter",
+      "SwipeRefreshLayout" ->
+        // In AndroidX this is androidx.swiperefreshlayout.widget
+        Library(artifact = "com.android.support:swiperefreshlayout", import = "android.support.v4.widget")
+
+      "MediaRouter" ->
+        // In AndroidX this is "androidx.mediarouter.media
+        Library(artifact = "com.android.support:mediarouter-v7", import = "android.support.v7.media")
+
       "MediaRouteButton",
       "MediaRouteActionProvider" ->
-        "com.android.support:mediarouter-v7"
+        // In AndroidX this is androidx.mediarouter.app
+        Library(artifact = "com.android.support:mediarouter-v7", import = "android.support.v7.app")
 
       "FingerprintDialogFragment",
       "BiometricPrompt",
       "BiometricFragment" ->
-        "androidx.biometric:biometric"
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.biometric:biometric", import = "androidx.biometric")
 
-      "HeifWriter", "HeifEncoder" ->
-        "com.android.support:heifwriter"
+      "HeifWriter",
+      "HeifEncoder" ->
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:heifwriter", import = "androidx.heifwriter")
 
       "ExifInterface" ->
-        "com.android.support:exifinterface"
+        // In AndroidX this is androidx.exifinterface.media
+        Library(artifact = "com.android.support:exifinterface", import = "android.support.media")
 
       "PagedList",
       "PagedListBuilder",
-      "PagedListAdapter" -> "android.arch.paging:runtime"
+      "PagedListAdapter" ->
+        // In AndroidX this is androidx.paging
+        Library(artifact = "android.arch.paging:runtime", import = "android.arch.paging")
 
-      "VectorDrawableCompat", "PathInterpolatorCompat" ->
-        "com.android.support:support-vector-drawable"
+      "VectorDrawableCompat" ->
+        // In AndroidX this is androidx.vectordrawable.graphics.drawable
+        Library(artifact = "com.android.support:support-vector-drawable", import = "android.support.graphics.drawable")
+
+      "PathInterpolatorCompat" ->
+        // In AndroidX this is androidx.core.view.animation
+        Library(artifact = "com.android.support:support-vector-drawable", import = "android.support.v4.view.animation")
 
       "AnimatedVectorDrawableCompat" ->
-        "com.android.support:animated-vector-drawable"
+        // In AndroidX this is androidx.vectordrawable.graphics.drawable
+        Library(artifact = "com.android.support:animated-vector-drawable", import = "android.support.graphics.drawable")
 
       "ItemKeyProvider",
       "ItemDetailsLookup",
@@ -127,31 +184,48 @@ object MavenClassRegistry {
       "Selection",
       "SelectionTracker",
       "StorageStrategy" ->
-        "com.android.support:recyclerview-selection"
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:recyclerview-selection", import = "androidx.recyclerview.selection")
 
       "LiveData",
       "MutableLiveData",
       "Observer",
       "ComputableLiveData" ->
-        "android.arch.lifecycle:livedata"
+        // In AndroidX this is androidx.lifecycle
+        Library(artifact = "android.arch.lifecycle:livedata", import = "android.arch.lifecycle")
 
       "ViewModelProviders" ->
-        "android.arch.lifecycle:extensions"
+        // In AndroidX this is androidx.lifecycle
+        Library(artifact = "android.arch.lifecycle:extensions", import = "android.arch.lifecycle")
 
       "ViewModel",
       "ViewModelProvider" ->
-        "android.arch.lifecycle:viewmodel"
+        // In AndroidX this is androidx.lifecycle
+        Library(artifact = "android.arch.lifecycle:viewmodel", import = "android.arch.lifecycle")
 
-      "ProcessLifecycleOwner." ->
-        "androidx.lifecycle:lifecycle-process"
+      "Lifecycle" ->
+        // In AndroidX this is androidx.lifecycle
+        Library(artifact = "android.arch.lifecycle:common", import = "android.arch.lifecycle")
 
-      "ConstraintLayout" -> "com.android.support.constraint:constraint-layout"
+      "ProcessLifecycleOwner" ->
+        // In AndroidX this is androidx.lifecycle
+        Library(artifact = "androidx.lifecycle:lifecycle-process", import = "android.arch.lifecycle")
 
-      "LocalBroadcastManager" -> "com.android.support:localbroadcastmanager"
+      "ConstraintLayout" ->
+        // In AndroidX this is androidx.constraintlayout.widget
+        Library(artifact = "com.android.support.constraint:constraint-layout", import = "android.support.constraint")
 
-      "Lifecycle" -> "android.arch.lifecycle:common"
+      "MotionLayout" ->
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support.constraint:constraint-layout", import = "androidx.constraintlayout.motion.widget.MotionLayout")
 
-      "ContentRecommendation" -> "com.android.support:recommendation"
+      "LocalBroadcastManager" ->
+        // In AndroidX this is androidx.localbroadcastmanager.content
+        Library(artifact = "com.android.support:localbroadcastmanager", import = "android.support.v4.content")
+
+      "ContentRecommendation" ->
+        // In AndroidX this is androidx.recommendation.app
+        Library(artifact = "com.android.support:recommendation", import = "android.support.app.recommendation")
 
       "Preference",
       "ListPreference",
@@ -159,11 +233,16 @@ object MavenClassRegistry {
       "PreferenceGroupAdapter",
       "PreferenceScreen",
       "PreferenceViewHolder" ->
-        "com.android.support:preference-v7"
+        // In AndroidX this is androidx.preference
+        Library(artifact = "com.android.support:preference-v7", import = "android.support.v14.preference")
 
-      "AppCompatActivity",
+      "AppCompatActivity" ->
+        // In AndroidX this is androidx.appcompat.app
+        Library(artifact = "com.android.support:appcompat-v7", import = "android.support.v7.app")
+
       "Toolbar" ->
-        "com.android.support:appcompat-v7"
+        // In AndroidX this is androidx.appcompat.widget
+        Library(artifact = "com.android.support:appcompat-v7", import = "android.support.v7.widget")
 
       "Data",
       "ListenableWorker",
@@ -171,45 +250,68 @@ object MavenClassRegistry {
       "PeriodicWorkRequest",
       "Worker",
       "WorkManager",
-      "WorkRequest" -> "android.arch.work:work-runtime"
+      "WorkRequest" ->
+        // Not available prior to AndroidX
+        Library(artifact = "android.arch.work:work-runtime", import = "androidx.work")
 
-      "RxWorker" -> "android.arch.work:work-rxjava2"
+      "RxWorker" ->
+        // Not available prior to AndroidX
+        Library(artifact = "android.arch.work:work-rxjava2", import = "androidx.work")
 
-      "CoroutineWorker" -> "android.arch.work.work-runtime-ktx"
+      "CoroutineWorker" ->
+        // Not available prior to AndroidX
+        Library(artifact = "android.arch.work.work-runtime-ktx", import = "androidx.work")
 
-      "CardView" -> "com.android.support:cardview-v7"
+      "CardView" ->
+        // In AndroidX this is androidx.cardview.widget
+        Library(artifact = "com.android.support:cardview-v7", import = "android.support.v7.widget")
 
-      "ContentPager" -> "com.android.support:support-content"
+      "ContentPager" ->
+        // In AndroidX this is androidx.contentpager.content
+        Library(artifact = "com.android.support:support-content", import = "android.support.content")
 
-      "CursorAdapter", "SimpleCursorAdapter", "CursorFilter" ->
-        "com.android.support:cursoradapter"
+      "CursorAdapter",
+      "SimpleCursorAdapter",
+      "CursorFilter" ->
+        // In AndroidX this is androidx.cursoradapter.widget
+        Library(artifact = "com.android.support:cursoradapter", import = "android.support.v4.widget")
 
       "DocumentFile",
       "RawDocumentFile",
       "SingleDocumentFile",
       "TreeDocumentFile" ->
-        "com.android.support:documentfile"
+        // In AndroidX this is androidx.documentfile.provider
+        Library(artifact = "com.android.support:documentfile", import = "android.support.v4.provider")
 
       "EmojiCompat",
-      "EmojiButton",
-      "EmojiTextView",
       "FontRequestEmojiCompatConfig" ->
-        "com.android.support:support-emoji"
+        // In AndroidX this is androidx.emoji.text
+        Library(artifact = "com.android.support:support-emoji", import = "android.support.text.emoji")
+
+      "EmojiButton",
+      "EmojiTextView" ->
+        // In AndroidX this is androidx.emoji.widget
+        Library(artifact = "com.android.support:support-emoji", import = "android.support.text.emoji.widget")
 
       "DialogFragment",
       "Fragment",
       "ListFragment",
       "FragmentManager",
       "FragmentActivity",
-      "FragmentTransaction" -> "androidx.fragment:fragment"
+      "FragmentTransaction" ->
+        // In AndroidX this is androidx.fragment.app
+        Library(artifact = "androidx.fragment:fragment", import = "android.support.v4.app")
 
-      "GridLayout" -> "com.android.support:gridlayout-v7"
+      "GridLayout" ->
+        // In AndroidX this is androidx.gridlayout.widget
+        Library(artifact = "com.android.support:gridlayout-v7", import = "android.support.v7.widget")
 
       "FastOutLinearInInterpolator",
       "FastOutSlowInInterpolator",
       "LinearOutSlowInInterpolator",
       "LookupTableInterpolator" ->
-        "com.android.support:interpolator"
+        // In AndroidX this is androidx.interpolator.view.animation
+        Library(artifact = "com.android.support:interpolator", import = "android.support.v4.view.animation")
 
       "Query",
       "Entity",
@@ -219,38 +321,130 @@ object MavenClassRegistry {
       "Database",
       "Room",
       "RoomDatabase" ->
-        "android.arch.persistence.room:runtime"
+        // In AndroidX this is androidx.room
+        Library(artifact = "android.arch.persistence.room:runtime", import = "android.arch.persistence.room")
 
       "SliceAction",
       "ListBuilder",
-      "GridRowBuilder",
-      "MessagingBuilder" ->
-        "com.android.support:slices-builders"
+      "GridRowBuilder" ->
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:slices-builders", import = "androidx.slice.builders")
 
-      "SliceManager" -> "com.android.support:slices-core"
+      "SliceManager" ->
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:slices-core", import = "androidx.slice")
 
-      "SliceView",
+      "SliceView" ->
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:slices-view", import = "androidx.slice.widget")
+
       "SliceUtils" ->
-        "com.android.support:slices-view"
+        // Not available prior to AndroidX
+        Library(artifact = "com.android.support:slices-view", import = "androidx.slice")
 
       "SlidingPaneLayout" ->
-        "com.android.support:slidingpanelayout"
+        // In AndroidX this is androidx.slidingpanelayout.widget
+        Library(artifact = "com.android.support:slidingpanelayout", import = "android.support.v4.widget")
 
-      "CustomTabsIntent" -> "com.android.support:customtabs"
+      "CustomTabsIntent" ->
+        // In AndroidX this is androidx.browser.customtabs
+        Library(artifact = "com.android.support:customtabs", import = "android.support.customtabs")
 
+      // com.android.support:support-compat: Most compat classes are here
       "MenuCompat",
       "MenuItemCompat",
-      "DrawableCompat",
-      "ContextCompat",
-      "GravityCompat",
-      "ServiceCompat",
-      "BitmapCompat",
+      "GravityCompat" ->
+        // In AndroidX this is androidx.core.view
+        Library(artifact = "com.android.support:support-compat", import = "android.support.v4.view")
+
       "NotificationCompat",
       "NotificationManagerCompat",
-      "FileProvider",
+      "ServiceCompat",
       "JobIntentService" ->
-        // Most compat classes are here
-        "com.android.support:support-compat"
+        // In AndroidX this is androidx.core.app
+        Library(artifact = "com.android.support:support-compat", import = "android.support.v4.app")
+
+      "FileProvider",
+      "ContextCompat" ->
+        // In AndroidX this is androidx.core.content
+        Library(artifact = "com.android.support:support-compat", import = "android.support.v4.content")
+
+      "DrawableCompat" ->
+        // In AndroidX this is androidx.core.graphics.drawable
+        Library(artifact = "com.android.support:support-compat", import = "android.support.v4.graphics.drawable")
+
+      "BitmapCompat" ->
+        // In AndroidX this is androidx.core.graphics
+        Library(artifact = "com.android.support:support-compat", import = "android.support.v4.graphics")
+
+      "AdvertisingIdClient",
+      "AdvertisingIdInfo" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.ads:ads-identifier", import = "androidx.ads.identifier")
+
+      "AsyncLayoutInflater" ->
+        // In AndroidX this is androidx.asynclayoutinflater.view
+        Library(artifact = "androidx.asynclayoutinflater:asynclayoutinflater", import = "android.support.v4.view")
+
+      "HintConstants" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.autofill:autofill", import = "androidx.autofill")
+
+      "BenchmarkRule" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.benchmark:benchmark-junit4", import = "androidx.benchmark.junit4")
+
+      "CameraX",
+      "ImageAnalysis",
+      "ImageAnalysisConfig",
+      "Preview",
+      "PreviewConfig",
+      "ImageCapture",
+      "ImageCaptureConfig" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.camera:camera-camera2", import = "androidx.camera.core")
+
+      "AbsSavedState",
+      "ExploreByTouchHelper",
+      "FocusStrategy",
+      "ViewDragHelper" ->
+        // In AndroidX this is androidx.customview.widget
+        Library(artifact = "androidx.customview:customview", import = "android.support.v4.view")
+
+      "KeyedAppState",
+      "KeyedAppStatesReporter",
+      "KeyedAppStatesService",
+      "ReceivedKeyedAppState" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.enterprise:enterprise-feedback", import = "androidx.enterprise.feedback")
+
+      "RemoteCallback",
+      "CallbackReceiver",
+      "BroadcastReceiverWithCallbacks",
+      "AppWidgetProviderWithCallbacks",
+      "ContentProviderWithCallbacks",
+      "ExternalInput" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.remotecallback:remotecallback", import = "androidx.remotecallback")
+
+      "SavedStateRegistryOwner",
+      "SavedStateRegistry",
+      "SavedStateProvider",
+      "SavedStateRegistryController" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.savedstate:savedstate", import = "androidx.savedstate")
+
+      "EncryptedFile",
+      "EncryptedSharedPreferences",
+      "MasterKeys" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.security:security-crypto", import = "androidx.security.crypto")
+
+      "CallbackToFutureAdapter" ->
+        Library(artifact = "androidx.concurrent:concurrent-listenablefuture-callback", import = "androidx.concurrent.futures")
+
+      "Composable" ->
+        Library(artifact = "androidx.compose:compose-runtime", import = "androidx.compose")
 
       // Material Design library
       "Snackbar",
@@ -260,68 +454,107 @@ object MavenClassRegistry {
       "AppBarLayout",
       "BottomNavigationView",
       "CheckableImageButton" ->
-        "com.android.support:design"
+        // In AndroidX this has a number of different package names based on each widget
+        Library(artifact = "com.android.support:design", import = "android.support.design.widget")
 
       // Firebase Libraries
 
-      "AppInviteInvitation" -> "com.google.firebase:firebase-invites"
-      "AdView", "AdRequest" -> "com.google.firebase:firebase-ads"
-      "FirebaseAnalytics" -> "com.google.firebase:firebase-core"
-      "FirebaseMessagingService" -> "com.google.firebase:firebase-messaging"
-      "FirebaseAuth" -> "com.google.firebase:firebase-auth"
-      "FirebaseDatabase" -> "com.google.firebase:firebase-database"
-      "FirebaseStorage", "StorageReference" -> "com.google.firebase:firebase-storage:16.0.3"
-      "FirebaseRemoteConfig" -> "com.google.firebase:firebase-config"
-      "FirebaseCrash" -> "com.google.firebase:firebase-crash"
-      "FirebaseDynamicLinks" -> "com.google.firebase:firebase-invites"
-      "FirebaseFirestore" -> "com.google.firebase:firebase-firestore"
-      "FirebaseVisionFaceDetectorOptions" -> "com.google.firebase:firebase-ml-vision-face-model"
-      "FirebaseVisionLabelDetector" -> "com.google.firebase:firebase-ml-vision-image-label-model"
+      "AppInviteInvitation" ->
+        Library(artifact = "com.google.firebase:firebase-invites", import = "com.google.android.gms.appinvite")
+      "AdView",
+      "AdRequest" ->
+        Library(artifact = "com.google.firebase:firebase-ads", import = "com.google.android.gms.ads")
+      "FirebaseAnalytics" ->
+        Library(artifact = "com.google.firebase:firebase-core", import = "com.google.firebase.analytics")
+      "FirebaseMessagingService" ->
+        Library(artifact = "com.google.firebase:firebase-messaging", import = "com.google.firebase.messaging")
+      "FirebaseAuth" ->
+        Library(artifact = "com.google.firebase:firebase-auth", import = "com.google.firebase.auth")
+      "FirebaseDatabase" ->
+        Library(artifact = "com.google.firebase:firebase-database", import = "com.google.firebase.database")
+      "FirebaseStorage",
+      "StorageReference" ->
+        Library(artifact = "com.google.firebase:firebase-storage", import = "com.google.firebase.storage")
+      "FirebaseRemoteConfig" ->
+        Library(artifact = "com.google.firebase:firebase-config", import = "com.google.firebase.remoteconfig")
+      "FirebaseCrash" ->
+        Library(artifact = "com.google.firebase:firebase-crash", import = "com.google.firebase.crash")
+      "FirebaseDynamicLinks" ->
+        Library(artifact = "com.google.firebase:firebase-invites", import = "com.google.firebase.dynamiclinks")
+      "FirebaseFirestore" ->
+        Library(artifact = "com.google.firebase:firebase-firestore", import = "com.google.firebase.firestore")
 
-      "FirebaseVisionImage",
-      "FirebaseVisionText",
-      "FirebaseVisionBarcode",
-      "FirebaseVision",
-      "FirebaseVisionCloudDetectorOptions",
-      "FirebaseVisionBarcodeDetectorOptions" ->
-        "com.google.firebase:firebase-ml-vision"
+      // ML
+
+      "FirebaseVisionFace",
+      "FirebaseVisionFaceDetectorOptions" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision.face")
+      "FirebaseVisionLabelDetector" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision.label")
+      "FirebaseVisionImage" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision.common")
+      "FirebaseVisionText" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision.text")
+      "FirebaseVisionBarcode" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision.barcode")
+      "FirebaseVision" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision")
+      "FirebaseVisionCloudDetectorOptions" ->
+        Library(artifact = "com.google.firebase:firebase-ml-vision", import = "com.google.firebase.ml.vision.cloud")
 
       // Play Services Libraries
 
-      "SignInButton",
+      "SignInButton" ->
+        Library(artifact = "com.google.android.gms:play-services-auth", import = "com.google.android.gms.common")
+
       "GoogleSignIn",
       "GoogleSignInAccount",
-      "GoogleSignInOptions" -> "com.google.android.gms:play-services-auth"
+      "GoogleSignInOptions" ->
+        Library(artifact = "com.google.android.gms:play-services-auth", import = "com.google.android.gms.auth.api.signin")
 
-      "Awareness" -> "com.google.android.gms:play-services-awareness"
+      "Awareness" ->
+        Library(artifact = "com.google.android.gms:play-services-awareness", import = "com.google.android.gms.awareness")
 
       "CastOptions",
       "CastContext" ->
-        "com.google.android.gms:play-services-cast"
+        Library(artifact = "com.google.android.gms:play-services-cast", import = "com.google.android.gms.cast.framework")
 
       "Fitness",
       "FitnessOptions" ->
-        "com.google.android.gms:play-services-fitness"
+        Library(artifact = "com.google.android.gms:play-services-fitness", import = "com.google.android.gms.fitness")
 
       "LocationRequest",
       "LocationServices" ->
-        "com.google.android.gms:play-services-location"
+        Library(artifact = "com.google.android.gms:play-services-location", import = "com.google.android.gms.location")
 
+      // https://developers.google.com.android.reference.com.google.android.gms.maps.OnMapReadyCallback
       "GoogleMap",
       "CameraUpdateFactory",
       "OnMapReadyCallback",
-      "SupportMapFragment",
+      "SupportMapFragment" ->
+        Library(artifact = "com.google.android.gms:play-services-maps", import = "com.google.android.gms.maps")
+
       "LatLng",
       "MarkerOptions" ->
-        "com.google.android.gms:play-services-maps"
+        Library(artifact = "com.google.android.gms:play-services-maps", import = "com.google.android.gms.maps.model")
 
-      "Nearby" -> "com.google.android.gms:play-services-nearby"
+      "Nearby" ->
+        Library(artifact = "com.google.android.gms:play-services-nearby", import = "com.google.android.gms.nearby")
 
-      "Games" -> "com.google.android.gms:play-services-games"
+      "Games" ->
+        Library(artifact = "com.google.android.gms:play-services-games", import = "com.google.android.gms.games")
 
-      "PaymentsClient", "Wallet" -> "com.google.android.gms:play-services-wallet"
+      "PaymentsClient",
+      "Wallet" ->
+        Library(artifact = "com.google.android.gms:play-services-wallet", import = "com.google.android.gms.wallet")
 
-      "BillingClient" -> "com.android.billingclient:billing"
+      "BillingClient" ->
+        Library(artifact = "com.android.billingclient:billing", import = "com.android.billingclient.api")
+
+      "AppUpdateInfo",
+      "AppUpdateManager",
+      "AppUpdateManagerFactory" ->
+        Library(artifact = "com.google.android.play:core", import = "com.google.android.play.core.appupdate")
 
       else -> null
     }
@@ -332,6 +565,7 @@ object MavenClassRegistry {
     return when (artifact) {
       "androidx.room:room-runtime",
       "android.arch.persistence.room:runtime" -> "android.arch.persistence.room:compiler"
+      "androidx.remotecallback:remotecallback" -> "androidx.remotecallback:remotecallback-processor"
       else -> null
     }
   }
@@ -359,6 +593,13 @@ object MavenClassRegistry {
       "androidx.lifecycle:lifecycle-livedata" -> "androidx.lifecycle:lifecycle-livedata-ktx"
       "androidx.lifecycle:lifecycle-livedata-core" -> "androidx.lifecycle:lifecycle-livedata-core-ktx"
       "androidx.slice:slice-builders" -> "androidx.slice:slice-builders-ktx"
+      "com.google.android.play:core" -> "com.google.android.play:core-ktx"
+      "com.google.firebase:firebase-common" -> "com.google.firebase:firebase-common-ktx"
+      "com.google.firebase:firebase-config" -> "com.google.firebase:firebase-config-ktx"
+      "com.google.firebase:firebase-database" -> "com.google.firebase:firebase-database-ktx"
+      "com.google.firebase:firebase-firestore" -> "com.google.firebase:firebase-firestore-ktx"
+      "com.google.firebase:firebase-functions" -> "com.google.firebase:firebase-functions-ktx"
+      "com.google.firebase:firebase-storage" -> "com.google.firebase:firebase-storage-ktx"
       else -> null
     }
   }

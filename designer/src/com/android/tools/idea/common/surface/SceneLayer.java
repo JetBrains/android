@@ -18,7 +18,7 @@ package com.android.tools.idea.common.surface;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -61,10 +61,13 @@ public class SceneLayer extends Layer {
     if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
-    sceneContext.setShowOnlySelection(!myTemporaryShow &&
-                                      !myShowOnHover &&
-                                      myAlwaysShowSelection &&
-                                      StudioFlags.NELE_SHOW_ONLY_SELECTION.get());
+    if (!myShowAlways && getSceneView().getSurface() instanceof NlDesignSurface) {
+      NlDesignSurface designSurface = (NlDesignSurface) getSceneView().getSurface();
+      if (designSurface.isRenderingSynchronously() && !designSurface.isInAnimationScrubbing()) {
+        return;
+      }
+    }
+    sceneContext.setShowOnlySelection(!myTemporaryShow && !myShowOnHover && myAlwaysShowSelection);
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -123,7 +126,7 @@ public class SceneLayer extends Layer {
   }
 
   @Override
-  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean show = false;
     if (getSceneView() == myDesignSurface.getHoverSceneView(x, y)) {
       show = true;

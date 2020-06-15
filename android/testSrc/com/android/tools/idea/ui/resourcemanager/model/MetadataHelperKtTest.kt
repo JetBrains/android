@@ -36,7 +36,20 @@ class MetadataHelperKtTest {
   fun getMetadata() {
     rule.fixture.testDataPath = getTestDataDirectory()
     val png = rule.fixture.copyFileToProject("res/drawable/png.png", "src/res/drawable-hdpi/png.png")
-    val vector = rule.fixture.copyFileToProject("res/drawable/vector_drawable.xml", "src/res/drawable-anydpi/vector_drawable.xml")
+    // Adding Xml file to test project with a String to avoid a file size inconsistency caused by different line endings when running the
+    // test in Windows & Windows continuous build.
+    val vector = rule.fixture.addFileToProject(
+      "src/res/drawable-anydpi/vector_drawable.xml",
+      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "        android:width=\"24dp\"\n" +
+      "        android:height=\"24dp\"\n" +
+      "        android:viewportWidth=\"24.0\"\n" +
+      "        android:viewportHeight=\"24.0\"\n" +
+      "        android:tint=\"?attr/colorControlNormal\">\n" +
+      "    <path\n" +
+      "        android:fillColor=\"@android:color/white\"\n" +
+      "        android:pathData=\"M9,16.2L4.8,12l-1.4,1.4L9,19 21,7l-1.4,-1.4L9,16.2z\"/>\n" +
+      "</vector>").virtualFile
 
     Truth.assertThat(png.getMetadata()).containsExactly(FILE_NAME, "png.png",
                                                         FILE_TYPE, "PNG",
@@ -48,6 +61,6 @@ class MetadataHelperKtTest {
     Truth.assertThat(vector.getMetadata()).containsExactly(FILE_NAME, "vector_drawable.xml",
                                                            FILE_TYPE, "Vector drawable",
                                                            DENSITY, "Any Density",
-                                                           FILE_SIZE, "4.34 kB")
+                                                           FILE_SIZE, "399 B")
   }
 }

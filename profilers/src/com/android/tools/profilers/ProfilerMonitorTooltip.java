@@ -15,13 +15,14 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for tooltip used in a {@link ProfilerMonitor}.
  * @param <M> the profiler monitor where the tooltip is used in.
  */
-public abstract class ProfilerMonitorTooltip<M extends ProfilerMonitor> implements ProfilerTooltip {
+public abstract class ProfilerMonitorTooltip<M extends ProfilerMonitor> implements TooltipModel {
   @NotNull
   private final M myMonitor;
 

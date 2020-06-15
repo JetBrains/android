@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipLabel
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
@@ -50,29 +49,32 @@ import com.android.tools.idea.templates.Parameter
 import com.android.tools.idea.templates.ParameterValueResolver
 import com.android.tools.idea.templates.StringEvaluator
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.template.Constraint
 import com.google.common.base.Joiner
-import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTHWEST
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
 import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.JBUI
 import java.awt.Dimension
@@ -81,6 +83,7 @@ import java.awt.Font
 import java.io.File
 import java.util.Optional
 import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -97,7 +100,7 @@ private val log get() = logger<ConfigureTemplateParametersStep>()
  * Far from being generic data, the template edited by this step is very Android specific, and  needs to be aware of things like
  * the current project/module, package name, min supported API, previously configured values, etc.
  */
-class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String, private val myTemplates: List<NamedModuleTemplate>)
+class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String, private val templates: List<NamedModuleTemplate>)
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
@@ -115,13 +118,15 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private val invalidParameterMessage = StringValueProperty()
 
   private val templateDescriptionLabel = JLabel().apply {
-    font = Font("Default", Font.BOLD, 18)
+    font = Font("Default", Font.PLAIN, 11)
   }
   private val templateThumbLabel = JLabel().apply {
     horizontalTextPosition = SwingConstants.CENTER
     verticalAlignment = SwingConstants.TOP
+    verticalTextPosition = SwingConstants.BOTTOM
+    font = Font("Default", Font.PLAIN, 16)
   }
-  private val parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
+  private val parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(14))
   private val footerSeparator = JSeparator()
   private val parameterDescriptionLabel = TooltipLabel().apply {
     setScope(parametersPanel)
@@ -129,13 +134,16 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     border = JBUI.Borders.emptyBottom(templateDescriptionLabel.font.size)
   }
 
-  private val rootPanel = JPanel(GridLayoutManager(4, 3)).apply {
+  private val project: Project? get() = if (model.isNewProject) null else model.project
+
+  // TODO(b/142107543) Replace it with TabularLayout for more readability
+  private val rootPanel = JPanel(GridLayoutManager(2, 2)).apply {
     val anySize = Dimension(-1, -1)
-    add(templateDescriptionLabel, GridConstraints(0, 1, 1, 1, ANCHOR_WEST, FILL_BOTH, 3, 0, anySize, anySize, anySize))
-    add(templateThumbLabel, GridConstraints(1, 0, 1, 1, ANCHOR_NORTHWEST, FILL_NONE, 0, 0, anySize, anySize, anySize))
-    add(parametersPanel, GridConstraints(1, 1, 1, 2, ANCHOR_CENTER, FILL_BOTH, 3, 7, anySize, anySize, anySize))
-    add(footerSeparator, GridConstraints(2, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, 3, 0, anySize, anySize, anySize))
-    add(parameterDescriptionLabel, GridConstraints(3, 1, 1, 1, ANCHOR_WEST, FILL_NONE, 1, 2, anySize, anySize, anySize))
+    val defaultSizePolicy = SIZEPOLICY_CAN_GROW or SIZEPOLICY_CAN_SHRINK
+    add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
+    add(parametersPanel, GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or SIZEPOLICY_WANT_GROW, anySize, anySize, anySize))
+    add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+    add(footerSeparator, GridConstraints(1, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, defaultSizePolicy, 0, anySize, anySize, anySize))
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
@@ -162,19 +170,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    */
   private fun getRecentsKeyForParameter(parameter: Parameter) = "android.template.${parameter.id!!}"
 
-  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    val template = model.templateHandle
-    return if (template != null && template.metadata.iconType == AndroidIconType.NOTIFICATION) {
-      checkNotNull(model.androidFacet) {
-        "Android Facet is null only for a not-yet-created project but it's impossible to create new project with notification activity"
-      }
-      listOf(GenerateIconsStep(model.androidFacet!!, model))
-    }
-    else {
-      super.createDependentSteps()
-    }
-  }
-
   override fun shouldShow(): Boolean = model.templateHandle != null
 
   @Suppress("UNCHECKED_CAST")
@@ -189,11 +184,12 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val thumb = IconProperty(templateThumbLabel)
       val thumbVisibility = VisibleProperty(templateThumbLabel)
       bindings.bind(thumb, object : Expression<Optional<Icon>>(thumbPath) {
-        override fun get() = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()))
+        override fun get() = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()).toURI().toURL())
       })
       bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
         override fun get() = thumb.get().isPresent
       })
+      templateThumbLabel.text = templateHandle.metadata.title
       thumbPath.set(defaultThumbnailPath)
     }
 
@@ -225,20 +221,27 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
         return
       }
 
-      val row = RowEntry("Source Language", LanguageComboProvider())
-      row.addToPanel(parametersPanel)
+      val row = RowEntry("Source Language", LanguageComboProvider()).apply {
+        addToPanel(parametersPanel)
+
+        if (templateMetadata.constraints.contains(KOTLIN)) {
+          model.language.value = Language.KOTLIN
+          setEnabled(false)
+        }
+      }
+
       val language = (row.property as SelectedItemProperty<Language>)
-      // LanguageComboProvider always sets this
-      bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
+      bindings.bindTwoWay(language, model.language)
     }
 
     fun displaySourceSetChoiceIfNeeded() {
-      if (myTemplates.size <= 1) {
+      if (templates.size <= 1) {
         return
       }
-      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(myTemplates))
-      row.setEnabled(myTemplates.size > 1)
-      row.addToPanel(parametersPanel)
+      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(templates)).apply {
+        setEnabled(templates.size > 1)
+        addToPanel(parametersPanel)
+      }
 
       val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
       // ModuleTemplateComboProvider always sets this
@@ -300,8 +303,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
     return when (parameter.type) {
       Parameter.Type.STRING -> RowEntry(name, TextFieldProvider(parameter))
-      Parameter.Type.BOOLEAN -> RowEntry(CheckboxProvider(parameter), false)
-      Parameter.Type.SEPARATOR -> RowEntry(SeparatorProvider(), true)
+      Parameter.Type.BOOLEAN -> RowEntry(CheckboxProvider(parameter))
+      Parameter.Type.SEPARATOR -> RowEntry(SeparatorProvider())
       Parameter.Type.ENUM -> RowEntry(name, EnumComboProvider(parameter))
     }
   }
@@ -336,7 +339,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     evaluationState = EvaluationState.EVALUATING
 
     val parameters = model.templateHandle!!.metadata.parameters
-    val excludedParameters = hashSetOf<String>()
+    val excludedParameters = mutableSetOf<String>()
 
     try {
       val additionalValues = mutableMapOf<String, Any>()
@@ -393,7 +396,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private fun validateAllParametersExcept(excludedParameters: Set<String>): String? {
     val parameters = model.templateHandle!!.metadata.parameters
-    val project = model.project.valueOrNull
     val sourceProvider = model.template.get().getSourceProvider()
 
     return parameters.mapNotNull { parameter ->
@@ -466,48 +468,46 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    * A template is broken down into separate fields, each which is given a row with optional header.
    * This class wraps all UI elements in the row, providing methods for managing them.
    */
-  private class RowEntry<T : JComponent> {
+  // TODO(qumeric) make it private later
+  class RowEntry<T : JComponent> {
     val component: T
     val property: AbstractProperty<*>?
 
     private val header: JPanel?
     private val componentProvider: ComponentProvider<T>
-    /** A row is usually broken into two columns, but the item can optionally grow into both columns if it doesn't have a header. */
-    private val wantGrow: Boolean
+    private val container: JPanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    }
 
     constructor(headerText: String, componentProvider: ComponentProvider<T>) {
-      val headerLabel = JBLabel("$headerText:")
+      val headerLabel = JBLabel(headerText)
       header = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
         add(headerLabel)
         add(Box.createHorizontalStrut(20))
       }
-      wantGrow = false
       this.componentProvider = componentProvider
       component = componentProvider.createComponent()
       property = componentProvider.createProperty(component)
 
       headerLabel.labelFor = component
+      container.apply {
+        add(header)
+        add(component)
+      }
     }
 
-    constructor(componentProvider: ComponentProvider<T>, stretch: Boolean) {
+    constructor(componentProvider: ComponentProvider<T>) {
       header = null
-      wantGrow = stretch
       this.componentProvider = componentProvider
       component = componentProvider.createComponent()
       property = componentProvider.createProperty(component)
+      container.add(component)
     }
 
     fun addToPanel(panel: JPanel) {
       require(panel.layout is TabularLayout)
       val row = panel.componentCount
-
-      if (header != null) {
-        panel.add(header, TabularLayout.Constraint(row, 0))
-        assert(!wantGrow)
-      }
-
-      val colSpan = if (wantGrow) 2 else 1
-      panel.add(component, TabularLayout.Constraint(row, 1, colSpan))
+      panel.add(container, TabularLayout.Constraint(row, 1, 1))
     }
 
     fun setEnabled(enabled: Boolean) {
@@ -533,12 +533,12 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private inner class ParameterDeduplicator : ParameterValueResolver.Deduplicator {
     override fun deduplicate(parameter: Parameter, value: String?): String? {
-      if (Strings.isNullOrEmpty(value) || !parameter.constraints.contains(Parameter.Constraint.UNIQUE)) {
+      if (value.isNullOrEmpty() || !parameter.constraints.contains(Constraint.UNIQUE)) {
         return value
       }
 
-      var suggested: String? = value
-      val extPart = Files.getFileExtension(value!!)
+      var suggested = value
+      val extPart = Files.getFileExtension(value)
 
       // First remove file extension. Then remove all trailing digits, because we probably were the ones that put them there.
       // For example, if two parameters affect each other, say "Name" and "Layout", you get this:
@@ -550,11 +550,10 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val filenameJoiner = Joiner.on('.').skipNulls()
 
       var suffix = 2
-      val project = model.project.valueOrNull
       val relatedValues = getRelatedValues(parameter)
       val sourceProvider = model.template.get().getSourceProvider()
       while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
-        suggested = filenameJoiner.join(namePart + suffix, Strings.emptyToNull(extPart))
+        suggested = filenameJoiner.join(namePart + suffix, extPart.ifEmpty { null })
         suffix++
       }
       return suggested

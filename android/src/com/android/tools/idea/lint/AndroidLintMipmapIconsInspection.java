@@ -16,12 +16,12 @@
 package com.android.tools.idea.lint;
 
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,10 +33,10 @@ public class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase 
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     PsiElement parent = startElement.getParent();
     if (parent instanceof XmlAttribute) {
       XmlAttribute attribute = (XmlAttribute)parent;
@@ -44,7 +44,7 @@ public class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase 
       if (value != null) {
         ResourceUrl url = ResourceUrl.parse(value);
         if (url != null && !url.isFramework()) {
-          return new AndroidLintQuickFix[]{new MigrateDrawableToMipmapFix(url)};
+          return new LintIdeQuickFix[]{new MigrateDrawableToMipmapFix(url)};
         }
       }
     }

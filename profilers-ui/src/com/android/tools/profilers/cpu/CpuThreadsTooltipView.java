@@ -16,30 +16,28 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.intellij.util.ui.JBUI;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-
-public class CpuThreadsTooltipView extends ProfilerTooltipView {
+public class CpuThreadsTooltipView extends TooltipView {
   @NotNull private final CpuThreadsTooltip myTooltip;
-  @NotNull private final ProfilerTimeline myTimeline;
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myLabel;
   @NotNull private final JLabel myState;
   @NotNull private final JLabel myDuration;
   @NotNull private final JPanel myUnavailableDetails;
 
-  protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
-    super(view.getTimeline());
-    myTimeline = view.getTimeline();
+  protected CpuThreadsTooltipView(@NotNull JComponent parent, @NotNull CpuThreadsTooltip tooltip) {
+    super(tooltip.getTimeline());
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
     myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
@@ -57,13 +55,13 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  private void addRow(JPanel parent, JComponent c) {
+  private static void addRow(JPanel parent, JComponent c) {
     int nextRow = parent.getComponentCount();
     parent.add(c, new TabularLayout.Constraint(nextRow, 0));
   }
 
   private void stateChanged() {
-    Range range = myTimeline.getTooltipRange();
+    Range range = getTimeline().getTooltipRange();
     myContent.removeAll();
     if (range.isEmpty()) {
       addRow(myContent, myUnavailableDetails);

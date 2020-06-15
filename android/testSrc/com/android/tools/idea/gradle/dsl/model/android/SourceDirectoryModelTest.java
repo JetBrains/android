@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_ADD_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -89,6 +92,8 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2, 3);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_ADD_AND_APPLY_EXPECTED);
+
     verifySourceDirectoryEntries(buildModel, 1, 2, 3);
   }
 
@@ -143,6 +148,8 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED);
+
     verifySourceDirectoryEntries(buildModel, 1);
   }
 
@@ -197,6 +204,8 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
@@ -254,6 +263,8 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 3);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED);
+
     verifySourceDirectoryEntries(buildModel, 1, 3);
   }
 

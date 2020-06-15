@@ -35,6 +35,9 @@ import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.StudioIcons;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.*;
 import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -44,10 +47,6 @@ import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = ContainerUtil.createSoftMap();
@@ -111,6 +110,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     }
     else if (domElement instanceof XmlResourceElement) {
       AndroidFacet facet = AndroidFacet.getInstance(domElement);
+      if (facet == null) return null;
       AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
       className = preferenceSource.getQualifiedBaseClass();
     }

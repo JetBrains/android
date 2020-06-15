@@ -16,22 +16,30 @@
 package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
 import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
+import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.SearchTextField
 import org.fest.swing.core.Robot
 import org.fest.swing.core.TypeMatcher
 import org.fest.swing.exception.LocationUnavailableException
 import org.fest.swing.fixture.JListFixture
+import org.fest.swing.fixture.JListItemFixture
 import org.fest.swing.fixture.JPanelFixture
 import org.fest.swing.fixture.JTabbedPaneFixture
 import org.fest.swing.fixture.JTextComponentFixture
+import org.fest.swing.timing.Wait
 import java.util.regex.Pattern
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
+/**
+ * Test Fixture for the ResourceExplorer. The main panel of the Resource Manager and the Resource Picker.
+ */
 class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
 
   companion object {
@@ -42,29 +50,98 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
     }
   }
 
+  /**
+   * Returns the search field Fixture in the Resource Explorer. Used to filter resources by name.
+   */
   val searchField: JTextComponentFixture
     get() {
       val component = robot().finder().find(target(), TypeMatcher(SearchTextField::class.java)) as SearchTextField
       return JTextComponentFixture(robot(), component.textEditor)
     }
 
+  /**
+   * Clicks the add button in the Resource Explorer. Displays a popup-menu with options to create/add resources. Its contents depends on the
+   * currently selected tab.
+   */
   fun clickAddButton(): ResourceExplorerFixture {
     ActionButtonFixture.findByIcon(AllIcons.General.Add, robot(), target()).click()
     return this
   }
 
-  fun selectTab(resourceTypeName: String) {
-    val component = robot().finder().find(target(), TypeMatcher(JTabbedPane::class.java)) as JTabbedPane
-    JTabbedPaneFixture(robot(), component).selectTab(resourceTypeName)
+  /**
+   * Selects the Resource Type tab by the given name. If the desired Resource Type is not visible in the tabs, it will also look for it in
+   * the pop-up menu from the overflow button.
+   *
+   * @param resourceTypeDisplayName The resource type tab name. Has to match the displayed name exactly.
+   */
+  fun selectTab(resourceTypeDisplayName: String): ResourceExplorerFixture {
+    val tabsWrapper = findByType<OverflowingTabbedPaneWrapper>(OverflowingTabbedPaneWrapper::class.java)
+    val tabsPanel = finder().find(tabsWrapper, TypeMatcher(JTabbedPane::class.java)) as JTabbedPane
+    val tabIsVisible = (0..tabsPanel.tabCount).any { index ->
+      // Check if the desired tab is visible.
+      ((tabsPanel.getBoundsAt(index))?.let { it.width > 0 } ?: false) && tabsPanel.getTitleAt(index) == resourceTypeDisplayName
+    }
+    if (tabIsVisible) {
+      JTabbedPaneFixture(robot(), tabsPanel).selectTab(resourceTypeDisplayName)
+    }
+    else {
+      // If the desired tab is not visible, click the overflow button and look it over in the pop-up menu.
+      val overflowButton = finder().findByType(tabsWrapper, ActionButton::class.java)
+      robot().click(overflowButton)
+      IdeFrameFixture.find(robot()).invokeMenuPath(resourceTypeDisplayName)
+    }
+    return this
   }
 
-  fun selectResource(resourceName: String) {
+  /**
+   * Selects (by simulating a single click) the desired resource in the list of visible resources. Has to match the exact resource name.
+   *
+   * It's recommended to filter the resources by name using the [searchField], to make sure the desired resource will be visible.
+   */
+  fun selectResource(resourceName: String): ResourceExplorerFixture {
+    findResource(resourceName).select()
+    return this
+  }
+
+  /**
+   * Drags the desired resource in to the Layout Editor's Design Surface.
+   *
+   * Note that the Layout Editor should be open with the Design view visible before calling this method.
+   */
+  fun dragResourceToLayoutEditor(resourceName: String): ResourceExplorerFixture {
+    val layoutEditor = IdeFrameFixture.find(robot()).editor.getLayoutEditor(false)
+    val surface = layoutEditor.surface
+    val componentsCountBeforeDrop = surface.allComponents.size
+    val rootComponent = surface.allComponents[0] as NlComponentFixture
+
+    findResource(resourceName).drag()
+    surface.drop(rootComponent.midPoint) // Drop in the middle of the surface.
+    layoutEditor.waitForRenderToFinish()
+    Wait.seconds(10L).expecting("Dragged resource in Layout Editor").until {
+      surface.allComponents.size == componentsCountBeforeDrop + 1
+    }
+    return this
+  }
+
+  /**
+   * Drags the desired resource in to the Text Editor, in the caret position defined by the [before] and [after] Strings.
+   *
+   * @see EditorFixture.moveBetween
+   */
+  fun dragResourceToXmlEditor(resourceName: String, before: String, after: String): ResourceExplorerFixture {
+    findResource(resourceName).drag()
+
+    IdeFrameFixture.find(robot()).editor.moveBetween(before, after)
+    robot().releaseMouseButtons()
+    return this
+  }
+
+  private fun findResource(resourceName: String): JListItemFixture {
     @Suppress("UNCHECKED_CAST")
     val listViews = robot().finder().findAll(target(), TypeMatcher(AssetListView::class.java)) as Collection<AssetListView>
     listViews.forEach {
       try {
-        JListFixture(robot(), it).selectItem(Pattern.compile(".*(name=${resourceName},).*"))
-        return
+        return JListFixture(robot(), it).item(Pattern.compile(".*(name=${resourceName},).*"))
       }
       catch (e: LocationUnavailableException) {
         // Do nothing.

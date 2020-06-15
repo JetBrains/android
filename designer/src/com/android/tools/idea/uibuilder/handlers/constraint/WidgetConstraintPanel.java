@@ -77,7 +77,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private final AdtSecondaryPanel myCustomPanel = new AdtSecondaryPanel(new BorderLayout());
 
   @NotNull private final SingleWidgetView mMain;
-  private final JLabel mTitle;
+  protected JLabel mTitle;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   @NotNull final private WidgetSection myConstraintSection;
@@ -89,7 +89,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   public final static String VERTICAL_BIAS_SLIDER = "verticalBiasSlider";
   public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
 
-  private final WidgetConstraintModel myWidgetModel = new WidgetConstraintModel(() -> configureUI());
+  private final WidgetConstraintModel myWidgetModel = getWidgetModel(() -> configureUI());
 
   private boolean myInitialized;
 
@@ -104,13 +104,15 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
     }
   }
+  protected WidgetConstraintModel getWidgetModel(Runnable modelUpdate) {
+    return new WidgetConstraintModel(modelUpdate);
+  }
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(null);
     mMain = new SingleWidgetView(mColorSet, myWidgetModel);
     mMain.setOpaque(false);
-    myConstraintSection = StudioFlags.NELE_CONSTRAINT_SECTION.get() ? new WidgetConstraintSection(myWidgetModel)
-                                                                    : new WidgetEmptySection();
+    myConstraintSection = new WidgetConstraintSection(myWidgetModel);
     myConstraintSection.setOpaque(false);
 
     setPreferredSize(JBUI.size(PANEL_WIDTH, PANEL_HEIGHT));

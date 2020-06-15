@@ -63,6 +63,8 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
+    myFixture.copyFileToProject("annotator/layout.xml", "res/layout/layout1.xml");
+    myFixture.copyFileToProject("annotator/layout.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject("annotator/ColorTest.java", "src/p1/p2/ColorTest.java");
     myFixture.copyFileToProject("annotator/EmptyActivity.java", "src/p1/p2/EmptyActivity.java");
     myFixture.copyFileToProject("annotator/ic_tick.xml", "res/drawable/ic_tick.xml");
@@ -126,6 +128,22 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     // Color definition in a values file
     HighlightInfo highlightInfo = findHighlightInfo("res/values/colors2.xml", "303F9F", XmlTag.class);
     checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    // Inline color have a color picker click action
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
+  }
+
+  public void testColorInLayout1() {
+    // Color definition in a layout file
+    HighlightInfo highlightInfo = findHighlightInfo("res/layout/layout1.xml", "FAFAFA", XmlTag.class);
+    checkHighlightInfoColor(highlightInfo, new Color(0xFAFAFA));
+    // Inline color have a color picker click action
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
+  }
+
+  public void testColorInLayout2() {
+    // Color definition in a layout file
+    HighlightInfo highlightInfo = findHighlightInfo("res/layout/layout2.xml", "FBFBFB", XmlTag.class);
+    checkHighlightInfoColor(highlightInfo, new Color(0xFBFBFB));
     // Inline color have a color picker click action
     assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }

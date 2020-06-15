@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -25,12 +26,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.IOException;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,16 +39,6 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void before() {
-    SdkReplacer.replaceSdkLocationAndActivate("TestValue", true);
-  }
-
-  @After
-  public void after() {
-    SdkReplacer.putBack();
-  }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
   private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String activityName) {
@@ -63,9 +51,9 @@ public class NewInstantAppTest {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage("Java")
+      .setSourceLanguage(JAVA)
       .enterName(projectName)
-      .selectMinimumSdkApi("23")
+      .selectMinimumSdkApi(23)
       .wizard()
       .clickFinish();
 

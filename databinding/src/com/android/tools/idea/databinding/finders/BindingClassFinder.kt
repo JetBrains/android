@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -24,7 +25,9 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 
 /**
  * Finder for classes generated from data binding or view binding layout xml files.
@@ -34,31 +37,39 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  * See [LightBindingClass]
  */
-class BindingClassFinder(private val project: Project) : PsiElementFinder() {
-  companion object {
-    fun findAllBindingClasses(project: Project): List<LightBindingClass> {
-      val bindingComponent = project.getService(LayoutBindingProjectComponent::class.java)
-      return bindingComponent.getAllBindingEnabledFacets()
-        .flatMap { facet -> findAllBindingClassesSkipEnabledCheck(facet) }
+class BindingClassFinder(project: Project) : PsiElementFinder() {
+  private val lightBindingsCache: CachedValue<List<LightBindingClass>>
+  private val fqcnBindingsCache: CachedValue<Map<String, LightBindingClass>>
+  private val packageBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
+
+  init {
+    val component = LayoutBindingProjectComponent.getInstance(project)
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
+    val cachedValuesManager = CachedValuesManager.getManager(project)
+
+    lightBindingsCache = cachedValuesManager.createCachedValue {
+      val lightBindings = component.getAllBindingEnabledFacets()
+        .flatMap { facet ->
+          val moduleDataBinding = ModuleDataBinding.getInstance(facet)
+          moduleDataBinding.bindingLayoutGroups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
+        }
+      CachedValueProvider.Result.create(lightBindings, component, resourcesModifiedTracker)
     }
 
-    fun findAllBindingClasses(facet: AndroidFacet): List<LightBindingClass> {
-      val bindingComponent = LayoutBindingProjectComponent.getInstance(facet.module.project)
-      if (bindingComponent.getAllBindingEnabledFacets().isEmpty()) return emptyList()
-      return findAllBindingClassesSkipEnabledCheck(facet)
+    fqcnBindingsCache = cachedValuesManager.createCachedValue {
+      val fqcnBindings = lightBindingsCache.value.associateBy { bindingClass -> bindingClass.qualifiedName }
+      CachedValueProvider.Result.create(fqcnBindings, component, resourcesModifiedTracker)
     }
 
-    private fun findAllBindingClassesSkipEnabledCheck(facet: AndroidFacet): List<LightBindingClass> {
-      val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-      val groups = moduleDataBinding.bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return emptyList()
-      return groups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
+    packageBindingsCache = cachedValuesManager.createCachedValue {
+      val packageBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName.substringBeforeLast('.') }
+      CachedValueProvider.Result.create(packageBindings, component, resourcesModifiedTracker)
     }
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    return findAllBindingClasses(project)
-      .firstOrNull {
-        bindingClass -> qualifiedName == bindingClass.qualifiedName && PsiSearchScopeUtil.isInScope(scope, bindingClass) }
+    return fqcnBindingsCache.value[qualifiedName]
+      ?.takeIf { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
@@ -67,15 +78,9 @@ class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
-    if (psiPackage.project != scope.project) {
-      return PsiClass.EMPTY_ARRAY
-    }
-
-    return findAllBindingClasses(psiPackage.project)
-      .filter { bindingClass ->
-        psiPackage.qualifiedName == bindingClass.qualifiedName.substringBeforeLast('.')
-        && PsiSearchScopeUtil.isInScope(scope, bindingClass)
-      }
+    val bindingClasses = packageBindingsCache.value[psiPackage.qualifiedName] ?: return PsiClass.EMPTY_ARRAY
+    return bindingClasses
+      .filter { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
       .toTypedArray()
   }
 

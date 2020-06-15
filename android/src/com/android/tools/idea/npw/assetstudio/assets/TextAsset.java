@@ -7,7 +7,7 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicaOble law or agreed to in writing, software
+ * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -16,8 +16,10 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.annotations.concurrency.AnyThread;
-import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
+import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
@@ -38,13 +40,19 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseJBColor")
 public final class TextAsset extends BaseAsset {
-  public static final String DEFAULT_TEXT = "Aa";
-  private static final String PREFERRED_FONT = "Roboto";
+  private static final String TEXT_PROPERTY = "text";
+  private static final String FONT_FAMILY_PROPERTY = "fontFamily";
+
+  private static final String DEFAULT_TEXT = "Aa";
+  private static final String PREFERRED_FONT_FAMILY = "Roboto";
   private static final int FONT_SIZE = 144;  // Large value for crisp icons.
 
   private final StringProperty myText = new StringValueProperty(DEFAULT_TEXT);
   private final StringProperty myFontFamily = new StringValueProperty();
   private final List<String> myAllFontFamilies;
+
+  @NotNull private String myDefaultText = DEFAULT_TEXT;
+  @NotNull private String myDefaultFontFamily;
 
   @NotNull private final Object myLock = new Object();
   @GuardedBy("myLock")
@@ -52,7 +60,10 @@ public final class TextAsset extends BaseAsset {
 
   public TextAsset() {
     myAllFontFamilies = ImmutableList.copyOf(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
-    selectFontFamily(PREFERRED_FONT);
+    myDefaultFontFamily = normalizeFontFamily(PREFERRED_FONT_FAMILY);
+    if (!myDefaultFontFamily.isEmpty()) {
+      myFontFamily.set(myDefaultFontFamily);
+    }
     InvalidationListener listener = () -> {
       synchronized (myLock) {
         myXmlDrawableFuture = null;
@@ -60,15 +71,54 @@ public final class TextAsset extends BaseAsset {
     };
     myText.addListener(listener);
     myFontFamily.addListener(listener);
+    color().setValue(Color.BLACK);
+    color().addListener(listener);
+  }
+
+  /**
+   * Sets the default text. Also sets the current text if it was the same as default.
+   * Has to be called immediately after construction of the object.
+   *
+   * @param text the default text
+   */
+  @UiThread
+  public void setDefaultText(@NotNull String text) {
+    boolean wasDefault = myText.get().equals(myDefaultText);
+    myDefaultText = text;
+    if (wasDefault) {
+      myText.set(myDefaultText);
+    }
+  }
+
+  /**
+   * Sets the default font family. Also sets the selected font family if it was the same as default.
+   * Has to be called immediately after construction of the object.
+   *
+   * @param fontFamily the default font family
+   */
+  @UiThread
+  public void setDefaultFontFamily(@NotNull String fontFamily) {
+    boolean wasDefault = myFontFamily.get().equals(myDefaultFontFamily);
+    myDefaultFontFamily = normalizeFontFamily(fontFamily);
+    if (wasDefault) {
+      selectFontFamily(myDefaultFontFamily);
+    }
   }
 
   private void selectFontFamily(@NotNull String fontFamily) {
-    if (myAllFontFamilies.contains(fontFamily)) {
-      myFontFamily.set(fontFamily);
+    String family = normalizeFontFamily(fontFamily);
+    if (!family.isEmpty()) {
+      myFontFamily.set(family);
     }
-    else if (!myAllFontFamilies.isEmpty()) {
-      myFontFamily.set(myAllFontFamilies.get(0));
-    }
+  }
+
+  @NotNull
+  private String normalizeFontFamily(@NotNull String fontFamily) {
+    return myAllFontFamilies.contains(fontFamily) ?
+           fontFamily :
+           myAllFontFamilies.isEmpty() ?
+           "" :
+           myAllFontFamilies.get(0);
   }
 
   /**
@@ -101,8 +151,8 @@ public final class TextAsset extends BaseAsset {
    */
   @NotNull
   public String defaultFontFamily() {
-    if (myAllFontFamilies.contains(PREFERRED_FONT)) {
-      return PREFERRED_FONT;
+    if (myAllFontFamilies.contains(PREFERRED_FONT_FAMILY)) {
+      return PREFERRED_FONT_FAMILY;
     }
     return myAllFontFamilies.isEmpty() ? "" : myAllFontFamilies.get(0);
   }
@@ -133,5 +183,27 @@ public final class TextAsset extends BaseAsset {
     options.font = Font.decode(myFontFamily + " " + FONT_SIZE);
     options.foregroundColor = color().getValueOr(Color.BLACK).getRGB();
     return Futures.immediateFuture(TextRenderUtil.renderTextImage(myText.get(), 1, options));
+  }
+
+
+  @UiThread
+  @Override
+  public PersistentState getState() {
+    PersistentState state = super.getState();
+    state.set(TEXT_PROPERTY, myText.get(), myDefaultText);
+    state.set(FONT_FAMILY_PROPERTY, myFontFamily.get(), myDefaultFontFamily);
+    return state;
+  }
+
+  @UiThread
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    super.loadState(state);
+    String text = state.get(TEXT_PROPERTY, myDefaultText);
+    if (!text.isEmpty()) {
+      myText.set(text);
+    }
+    String fontFamily = state.get(FONT_FAMILY_PROPERTY, myDefaultFontFamily);
+    selectFontFamily(fontFamily);
   }
 }

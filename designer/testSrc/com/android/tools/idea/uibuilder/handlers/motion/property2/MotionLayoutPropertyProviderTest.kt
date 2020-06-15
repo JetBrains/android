@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,42 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property2
 
 import com.android.SdkConstants
-import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 
-class MotionLayoutPropertyProviderTest : LayoutTestCase() {
+@RunsInEdt
+class MotionLayoutPropertyProviderTest {
+
+  @JvmField
+  @Rule
+  val projectRule = AndroidProjectRule.withSdk()
+
+  @JvmField
+  @Rule
+  val motionRule = MotionAttributeRule(projectRule)
+
+  @JvmField
+  @Rule
+  val edtRule = EdtRule()
 
   @Test
   fun testTransition() {
-    val properties = getProperties(MotionSceneAttrs.Tags.TRANSITION).getValue(MotionSceneAttrs.Tags.TRANSITION)
+    motionRule.selectTransition("start", "end")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.TRANSITION)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+      "autoTransition",
       "duration",
-      "interpolator",
+      "motionInterpolator",
       "constraintSetStart",
       "constraintSetEnd",
-      "staggered")
+      "staggered",
+      "transitionDisable")
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "id")
     assertThat(properties[SdkConstants.AUTO_URI, "duration"].value).isEqualTo("2000")
@@ -46,14 +59,15 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testConstraint() {
-    val properties = getProperties(MotionSceneAttrs.Tags.CONSTRAINT)
-    assertThat(properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT).getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+    motionRule.selectConstraint("start", "widget")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
       "constraint_referenced_ids",
       "barrierDirection",
       "barrierAllowsGoneWidgets",
       "layout_constraintLeft_toLeftOf",
       "layout_constraintLeft_toRightOf")
-    assertThat(properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT).getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "id",
       "alpha",
       "elevation",
@@ -83,21 +97,118 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
       "translationY",
       "translationZ",
       "visibility")
-    assertThat(properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
+    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
       .isEqualTo("64dp")
+
+    val customProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
+    assertThat(customProperties.getByNamespace("").keys).containsExactly("textSize")
+  }
+
+  @Test
+  fun testEmptyConstraint() {
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    assertThat(motionRule.properties.keys).containsExactly(MotionSceneAttrs.Tags.CONSTRAINT)
+
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+      "constraint_referenced_ids",
+      "barrierDirection",
+      "barrierAllowsGoneWidgets",
+      "layout_constraintLeft_toLeftOf",
+      "layout_constraintLeft_toRightOf")
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+      "id",
+      "alpha",
+      "elevation",
+      "layout_width",
+      "layout_marginBottom",
+      "layout_marginEnd",
+      "layout_marginLeft",
+      "layout_marginRight",
+      "layout_marginStart",
+      "layout_marginTop",
+      "layout_height",
+      "maxHeight",
+      "maxWidth",
+      "minHeight",
+      "minWidth",
+      "orientation",
+      "pivotX",
+      "pivotY",
+      "rotation",
+      "rotationX",
+      "rotationY",
+      "scaleX",
+      "scaleY",
+      "transformPivotX",
+      "transformPivotY",
+      "translationX",
+      "translationY",
+      "translationZ",
+      "visibility")
+    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID].value)
+      .isEqualTo("buttonEmptyConstraint")
+    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
+      .isNull()
+  }
+
+  @Test
+  fun testSectionedConstraint() {
+    motionRule.selectConstraint("start", "button")
+    val layoutProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.LAYOUT)
+    assertThat(layoutProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+      "constraint_referenced_ids",
+      "barrierDirection",
+      "barrierAllowsGoneWidgets",
+      "layout_constraintLeft_toLeftOf",
+      "layout_constraintLeft_toRightOf")
+    assertThat(layoutProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsAllOf(
+      "layout_width",
+      "layout_marginBottom",
+      "layout_marginEnd",
+      "layout_marginLeft",
+      "layout_marginRight",
+      "layout_marginStart",
+      "layout_marginTop",
+      "layout_height")
+
+    val motionProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.MOTION)
+    assertThat(motionProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+      "animate_relativeTo",
+      "transitionEasing",
+      "pathMotionArc",
+      "motionPathRotate",
+      "motionStagger",
+      "drawPath")
+    assertThat(motionProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
+
+    val propertySetProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.PROPERTY_SET)
+    assertThat(propertySetProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+      "visibilityMode",
+      "motionProgress",
+      "layout_constraintTag")
+    assertThat(propertySetProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsAllOf(
+      "alpha",
+      "visibility")
+
+    val customProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
+    assertThat(customProperties.getByNamespace("").keys).containsExactly("textSize")
   }
 
   @Test
   fun testKeyPosition() {
-    val properties = getProperties(MotionSceneAttrs.Tags.KEY_POSITION).getValue(MotionSceneAttrs.Tags.KEY_POSITION)
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_POSITION, 51, "widget")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_POSITION)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "keyPositionType",
       "transitionEasing",
       "pathMotionArc",
       "percentX",
       "percentY",
+      "percentHeight",
+      "percentWidth",
       "curveFit",
       "drawPath",
       "sizePercent")
@@ -108,13 +219,14 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testKeyAttribute() {
-    val properties = getProperties(MotionSceneAttrs.Tags.KEY_ATTRIBUTE).getValue(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_ATTRIBUTE, 99, "widget")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "transitionEasing",
       "curveFit",
-      "progress",
+      "motionProgress",
       "transitionPathRotate")
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "visibility",
@@ -128,19 +240,20 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
       "translationX",
       "translationY",
       "translationZ")
-    assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("0")
-    assertThat(properties[SdkConstants.ANDROID_URI, "rotation"].value).isEqualTo("0")
+    assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("99")
+    assertThat(properties[SdkConstants.ANDROID_URI, "rotation"].value).isEqualTo("1")
   }
 
   @Test
   fun testKeyCycle() {
-    val properties = getProperties(MotionSceneAttrs.Tags.KEY_CYCLE).getValue(MotionSceneAttrs.Tags.KEY_CYCLE)
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_CYCLE, 15, "widget")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_CYCLE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "transitionEasing",
       "curveFit",
-      "progress",
+      "motionProgress",
       "transitionPathRotate",
       "waveOffset",
       "wavePeriod",
@@ -163,15 +276,17 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
   @Test
   fun testKeyTimeCycle() {
-    val properties = getProperties(MotionSceneAttrs.Tags.KEY_TIME_CYCLE).getValue(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_TIME_CYCLE, 25, "widget")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "transitionEasing",
       "curveFit",
-      "progress",
+      "motionProgress",
       "transitionPathRotate",
       "waveOffset",
+      "waveDecay",
       "wavePeriod",
       "waveShape")
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
@@ -187,46 +302,5 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
       "translationZ")
     assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("25")
     assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")
-  }
-
-  private fun extractTag(tag: XmlTag, tagName: String): XmlTag? {
-    if (tag.name == tagName) {
-      return tag
-    }
-    return tag.subTags.mapNotNull { extractTag(it, tagName) }.firstOrNull()
-  }
-
-  private fun getProperties(tagName: String): Map<String, PropertiesTable<NelePropertyItem>> {
-    // TODO: Pickup attrs.xml from the ConstraintLayout library
-    myFixture.copyFileToProject("motion/attrs.xml", "res/values/attrs.xml")
-    val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
-    val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
-    val tag = extractTag(xmlFile.rootTag!!, tagName)!!
-    val motionTag = MotionSceneTag(tag, null)
-    val nlModel = createNlModel()
-    val textView = nlModel.components[0].getChild(0)!!
-    val provider = MotionLayoutPropertyProvider(myFacet)
-    val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    return provider.getAllProperties(model, motionTag, listOf(textView))
-  }
-
-  private fun createNlModel(): SyncNlModel {
-    val builder = model(
-      "motion.xml",
-      component(SdkConstants.MOTION_LAYOUT.newName())
-        .withBounds(0, 0, 1000, 1500)
-        .id("@id/motion")
-        .matchParentWidth()
-        .matchParentHeight()
-        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
-        .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(100, 100, 100, 100)
-            .id("@+id/widget")
-            .width("wrap_content")
-            .height("wrap_content")
-        )
-    )
-    return builder.build()
   }
 }

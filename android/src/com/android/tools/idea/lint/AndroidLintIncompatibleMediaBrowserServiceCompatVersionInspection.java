@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.MediaBrowserServiceCompatVersionDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintIncompatibleMediaBrowserServiceCompatVersionInspection extends AndroidLintInspectionBase {
   public AndroidLintIncompatibleMediaBrowserServiceCompatVersionInspection() {
-    super(AndroidBundle.message("android.lint.inspections.incompatible.media.browser.service.compat.version"), MediaBrowserServiceCompatVersionDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.incompatible.media.browser.service.compat.version"),
+          MediaBrowserServiceCompatVersionDetector.ISSUE);
   }
 }

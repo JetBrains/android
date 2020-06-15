@@ -16,96 +16,16 @@
 package com.android.tools.idea.run;
 
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTests;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.idea.Bombed;
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.ExtensionTestUtil;
-import java.io.File;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
-public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
-  private AndroidRunConfiguration myRunConfiguration;
-
-  @Override
-  public void setUp() throws Exception {
-    // Flag has to be overridden as early as possible, since the run configuration type is initialized
-    // during test setup (see org.jetbrains.android.AndroidPlugin).
-    StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.override(true);
-
-    super.setUp();
-
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
-
-    // We override the default extension point to prevent the "Gradle Update" UI to show during the test
-    ExtensionTestUtil.maskExtensions(RecommendedPluginVersionUpgradeStep.EXTENSION_POINT_NAME,
-                                     Collections.singletonList(new MyPluginVersionUpgradeStep()),
-                                     getTestRootDisposable());
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.clearOverride();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
+public class AndroidRunConfigurationGradleTest extends AndroidRunConfigurationGradleTestCase {
   public void testNoErrorIfGradlePluginVersionIsUpToDate() throws Exception {
     loadProject(DYNAMIC_APP);
     myRunConfiguration.DEPLOY = true;
     myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true;
     List<ValidationError> errors = myRunConfiguration.checkConfiguration(myAndroidFacet);
     assertThat(errors).isEmpty();
-  }
-
-  @Bombed(year = 2020, month= Calendar.DECEMBER, day = 30, user = "Andrei.Kuznetsov", description = "This test does not work on Java 11")
-  public void testErrorIfGradlePluginVersionIsOutdated() throws Exception {
-    File projectSourceRoot = resolveTestDataPath(SIMPLE_APPLICATION_PRE30);
-    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-
-    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, root -> {
-      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
-      AndroidGradleTests.createGradleWrapper(projectRoot, "4.5");
-      AndroidGradleTests.updateGradleVersions(root, "3.0.0");
-    });
-    importProject();
-    prepareProjectForTest(getProject(), "app");
-
-    // Verifies there is a validation error (since bundle tasks are not available)
-    myRunConfiguration.DEPLOY = true;
-    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true;
-    List<ValidationError> errors = myRunConfiguration.checkConfiguration(myAndroidFacet);
-    assertThat(errors).hasSize(1);
-    assertThat(errors.get(0).getMessage()).isEqualTo("This option requires a newer version of the Android Gradle Plugin");
-  }
-
-  private static class MyPluginVersionUpgradeStep extends RecommendedPluginVersionUpgradeStep {
-
-    @Override
-    public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
-      // Returning {@code false} means "project is all good, no update needed".
-      return false;
-    }
-
-    @Override
-    public boolean performUpgradeAndSync(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
-      // Returning {@code false} means "project is all good, no update needed or performed".
-      return false;
-    }
   }
 }

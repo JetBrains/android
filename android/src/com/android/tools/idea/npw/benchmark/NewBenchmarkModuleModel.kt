@@ -15,46 +15,34 @@
  */
 package com.android.tools.idea.npw.benchmark
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
+import com.intellij.util.lang.JavaVersion
 
 class NewBenchmarkModuleModel(
-  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker, "benchmark") {
-  @JvmField val packageName = StringValueProperty()
-  @JvmField val language = OptionalValueProperty(getInitialSourceLanguage(project))
-  @JvmField val minSdk = OptionalValueProperty<VersionItem>()
-
+  project: Project, projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel(null, "benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   override val renderer = object : ModuleTemplateRenderer() {
+    override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
+
     override fun init() {
       super.init()
-      val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
 
-      val newValues = mutableMapOf<String, Any>(
-          ATTR_APP_TITLE to moduleName.get(),
-          ATTR_IS_NEW_MODULE to true,
-          ATTR_IS_LIBRARY_MODULE to true
-      )
-
-      TemplateValueInjector(newValues)
-        .setBuildVersion(minSdk.value, project, false)
-        .setProjectDefaults(project, false)
-        .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
-        .setJavaVersion(project)
-        .setLanguage(language.value)
-
-      templateValues.putAll(newValues)
+      moduleTemplateDataBuilder.apply {
+        projectTemplateDataBuilder.apply {
+          javaVersion = JavaVersion.parse("1.8")
+        }
+      }
     }
   }
 }

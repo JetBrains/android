@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -130,7 +127,6 @@ public interface FlavorTypeModel extends GradleDslModel {
 
     void remove();
 
-    @VisibleForTesting
     GradlePropertyModel getModel();
   }
 

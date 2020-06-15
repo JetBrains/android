@@ -15,25 +15,35 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel.EMPTY_STRING_ARRAY;
+
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
-
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Vector;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Shows list of views used when some one clicks on the layout in the overview.
@@ -55,6 +65,7 @@ class LayoutPanel extends JPanel {
   private MeModel mMeModel;
   private JLabel mTitle;
   private MotionEditorSelector mMotionEditorSelector;
+  private boolean mBuildingTable;
 
   LayoutPanel() {
     super(new BorderLayout());
@@ -70,8 +81,21 @@ class LayoutPanel extends JPanel {
     transitionProperties.setBorder(BorderFactory.createEmptyBorder());
     add(transitionProperties, BorderLayout.CENTER);
     add(top, BorderLayout.NORTH);
+    mConstraintSetTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        setBorder(noFocusBorder);
+        return this;
+      }
+    });
     mConstraintSetTable.getSelectionModel().addListSelectionListener(e -> {
-      if (!e.getValueIsAdjusting()) {
+      if (!e.getValueIsAdjusting()  && !mBuildingTable) {
         tableSelection();
       }
     });
@@ -79,9 +103,15 @@ class LayoutPanel extends JPanel {
 
   private void tableSelection() {
     int index = mConstraintSetTable.getSelectedRow();
-
+    Track.layoutTableSelect(mMeModel.myTrack);
     MTag[] tag = (index == -1 || mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mDisplayedRows.get(index)};
-    mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag);
+    if (tag.length != 0) {
+      mMeModel.setSelectedViewIDs(Arrays.asList(Utils.stripID(tag[0].getAttributeValue("id"))));
+    }
+    else {
+      mMeModel.setSelectedViewIDs(EMPTY_STRING_ARRAY);
+    }
+    mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag, 0);
   }
 
   String buildListString(MTag tag) {
@@ -89,7 +119,7 @@ class LayoutPanel extends JPanel {
     int noc = tag.getChildTags().length;
     String end = tag.getAttributeValue("constraintSetEnd");
     return "<html> <b> " + cid + " </b><br>" + noc + " Constraint" + ((noc == 1) ? "" : "s")
-      + "</html>";
+           + "</html>";
   }
 
   static String[] ourLayoutDir = {"Left_", "Right_", "Start_", "End_", "Top_", "Bottom_",
@@ -102,25 +132,25 @@ class LayoutPanel extends JPanel {
     for (int i = 0; i < ourLayoutDir.length; i++) {
       labelType.put(ourLayoutDir[i], ourConstraintLabel[i]);
     }
-
   }
 
   public void buildTable() {
+    mBuildingTable = true;
     HashSet<String> found = new HashSet<>();
     mConstraintSetModel.setNumRows(0);
     mDisplayedRows.clear();
     if (mMotionLayout == null) {
       return;
-    } else {
+    }
+    else {
       MTag[] sets = mMotionLayout.getChildTags();
       for (int i = 0; i < sets.length; i++) {
-        MTag constraint = sets[i];
+        MTag view = sets[i];
         String[] row = new String[3];
-        String id = Utils.stripID(constraint.getAttributeValue("id"));
-
-        row[0] = constraint.getTagName();
-        ArrayList<MTag> children = constraint.getChildren();
-        HashMap<String, Attribute> attrs = constraint.getAttrList();
+        String id = Utils.stripID(view.getAttributeValue("id"));
+        row[0] = view.getTagName();
+        ArrayList<MTag> children = view.getChildren();
+        HashMap<String, Attribute> attrs = view.getAttrList();
         row[1] = id;
         HashSet<String> constrained_sides = new HashSet<>();
         Set<String> alist = attrs.keySet();
@@ -131,45 +161,37 @@ class LayoutPanel extends JPanel {
                 constrained_sides.add(labelType.get(s));
               }
             }
-
           }
         }
         row[2] = Arrays.toString(constrained_sides.toArray(new String[0]));
-        mDisplayedRows.add(constraint);
+        mDisplayedRows.add(view);
         mConstraintSetModel.addRow(row);
       }
-      if (showAll) {
-        MTag[] allViews = mMeModel.layout.getChildTags();
-        for (int j = 0; j < allViews.length; j++) {
-          String[] row = new String[3];
-          MTag view = allViews[j];
-          String layoutId = view.getAttributeValue("id");
-          if (layoutId == null) {
-            row[0] = view.getTagName().substring(1 + view.getTagName().lastIndexOf("/"));
-            continue;
-          }
-
-          layoutId = Utils.stripID(layoutId);
-          if (found.contains(layoutId)) {
-            continue;
-          }
-
-          row[0] = "(" + layoutId + ")";
-          row[1] = "";
-          row[2] = getDerived(layoutId, row);
-          mDisplayedRows.add(view);
-          mConstraintSetModel.addRow(row);
-
-        }
-
-      }
-
     }
+    mBuildingTable = false;
 
     mConstraintSetModel.fireTableDataChanged();
   }
 
+  private void updateModelIfNecessary() {
+    Set<String> ids = Arrays.stream(mMotionLayout.getChildTags())
+      .map(view -> Utils.stripID(view.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID)))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+
+    //noinspection unchecked
+    Set<String> found = (Set<String>)mConstraintSetModel.getDataVector().stream()
+      .map(row -> ((Vector)row).get(1))
+      .collect(Collectors.toSet());
+
+    if (!ids.equals(found)) {
+      buildTable();
+    }
+  }
+
   private String getDerived(String viewId, String[] row) {
+    if (DEBUG) Debug.log(". getDerived");
+
     if (mDerived != null && mParent != null && mParent.size() > 0) {
       for (MTag cSet : mParent) {
         for (MTag child : cSet.getChildren()) {
@@ -189,40 +211,50 @@ class LayoutPanel extends JPanel {
   private String getMask(ArrayList<MTag> children, HashMap<String, Attribute> attrs, String id) {
     if (children.size() == 0 || attrs.size() > 1 && id != null) {
       return "all";
-    } else {
+    }
+    else {
       String mask = "";
       for (MTag child : children) {
         mask += (mask.equals("") ? "" : "|") + child.getTagName();
       }
       return mask;
     }
-
   }
 
-  public void setMTag(MTag layout, MeModel meModel) {
-    if (DEBUG) {
-      System.out.println("constraintSet = " + layout);
-      System.out.println("motionScene = " + meModel.motionScene);
-      System.out.println("layout = " + meModel.layout);
-    }
+  public void setMTag(@Nullable MTag layout, MeModel meModel) {
     mMeModel = meModel;
     mMotionLayout = layout;
     mDerived = null;
-    if (mMotionLayout != null) {
-
-      MTag[] constraintSets = meModel.motionScene.getChildTags();
-
-    }
     String label = "Layout " + (meModel.layoutFileName);
     if (layout != null) {
       label += " (" + Utils.stripID(layout.getAttributeValue("id")) + ")";
     }
     mTitle.setText(label);
 
+    String[] selected = mMeModel != null ? mMeModel.getSelectedViewIDs() : EMPTY_STRING_ARRAY;
     buildTable();
+    if (layout != null) {
+      selectByIds(selected);
+    }
   }
 
   public void setListeners(MotionEditorSelector listeners) {
     mMotionEditorSelector = listeners;
+  }
+
+  public void selectByIds(String[] ids) {
+    updateModelIfNecessary();
+    HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
+    mConstraintSetTable.clearSelection();
+    for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+      String id = (String)mConstraintSetModel.getValueAt(i, 1);
+      if (selectedSet.contains(id)) {
+        mConstraintSetTable.addRowSelectionInterval(i, i);
+      }
+    }
+  }
+
+  public void clearSelection() {
+    mConstraintSetTable.clearSelection();
   }
 }

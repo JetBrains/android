@@ -64,15 +64,6 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
     myWriteBackName = methodName;
   }
 
-  public SingleArgumentMethodTransform(@NotNull String methodName, @NotNull GradleDslElement object) {
-    myWriteBackName = methodName;
-    List<String> splitName = Lists.newArrayList(Splitter.on(".").split(object.getQualifiedName()));
-    splitName.add(methodName);
-    for (int i = 0; i < splitName.size(); i++) {
-      myRecognizedNames.add(Strings.join(splitName.subList(i, splitName.size()), "."));
-    }
-  }
-
   @Override
   public boolean test(@Nullable GradleDslElement e) {
     // We can deal with a null element, we will just create one.

@@ -16,38 +16,60 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
  */
-public class CpuThreadTrackModel {
-  private final DataSeries<CpuProfilerStage.ThreadState> myThreadStateDataSeries;
+public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   private final StateChartModel<CpuProfilerStage.ThreadState> myThreadStateChartModel;
   private final CaptureDetails.CallChart myCallChartModel;
-  private final Range myCaptureRange;
+  private final CpuCapture myCapture;
+  private final Range mySelectionRange;
+  private final CpuThreadInfo myThreadInfo;
+  @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
+  @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
+  @NotNull private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel;
 
-  public CpuThreadTrackModel(@NotNull StudioProfilers profilers, @NotNull Range range, @NotNull CpuCapture capture, int threadId) {
-    myThreadStateDataSeries = new CpuThreadStateDataSeries(profilers.getClient().getTransportClient(),
-                                                           profilers.getSession().getStreamId(),
-                                                           profilers.getSession().getPid(),
-                                                           threadId,
-                                                           capture);
+  public CpuThreadTrackModel(@NotNull Range range,
+                             @NotNull CpuCapture capture,
+                             @NotNull CpuThreadInfo threadInfo,
+                             @NotNull Timeline timeline,
+                             @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
     myThreadStateChartModel = new StateChartModel<>();
-    myThreadStateChartModel.addSeries(new RangedSeries<>(range, myThreadStateDataSeries));
+    myThreadStateTooltip = new CpuThreadsTooltip(timeline);
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
+      DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
+        new AtraceDataSeries<>((AtraceCpuCapture)capture, atraceCapture -> atraceCapture.getThreadStatesForThread(threadInfo.getId()));
+      myThreadStateChartModel.addSeries(new RangedSeries<>(range, threadStateDataSeries));
+      myThreadStateTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
+    }
 
-    myCallChartModel = new CaptureDetails.CallChart(range, capture.getCaptureNode(threadId), capture);
-    myCaptureRange = capture.getRange();
-  }
+    myCallChartModel = new CaptureDetails.CallChart(range, Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
+    myCapture = capture;
+    mySelectionRange = range;
+    myThreadInfo = threadInfo;
 
-  @NotNull
-  public DataSeries<CpuProfilerStage.ThreadState> getThreadStateDataSeries() {
-    return myThreadStateDataSeries;
+    myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
+
+    myMultiSelectionModel = multiSelectionModel;
   }
 
   @NotNull
@@ -61,7 +83,58 @@ public class CpuThreadTrackModel {
   }
 
   @NotNull
-  public Range getCaptureRange() {
-    return myCaptureRange;
+  public CpuCapture getCapture() {
+    return myCapture;
+  }
+
+  @NotNull
+  @Override
+  public CpuAnalysisModel<CpuThreadTrackModel> getAnalysisModel() {
+    CpuAnalysisChartModel<CpuThreadTrackModel> flameChart =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, mySelectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    CpuAnalysisChartModel<CpuThreadTrackModel> topDown =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, mySelectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    CpuAnalysisChartModel<CpuThreadTrackModel> bottomUp =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, mySelectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    flameChart.getDataSeries().add(this);
+    topDown.getDataSeries().add(this);
+    bottomUp.getDataSeries().add(this);
+
+    CpuAnalysisModel<CpuThreadTrackModel> model = new CpuAnalysisModel<>(myThreadInfo.getName(), "%d threads");
+    model.addTabModel(flameChart);
+    model.addTabModel(topDown);
+    model.addTabModel(bottomUp);
+    return model;
+  }
+
+  @Override
+  public boolean isCompatibleWith(@NotNull SelectableTrackModel otherObj) {
+    return otherObj instanceof CpuThreadTrackModel;
+  }
+
+  /**
+   * @return a tooltip model for thread states.
+   */
+  @NotNull
+  public CpuThreadsTooltip getThreadStateTooltip() {
+    return myThreadStateTooltip;
+  }
+
+  /**
+   * @return a function that produces a tooltip model for trace events.
+   */
+  @NotNull
+  public Function<CaptureNode, CpuCaptureNodeTooltip> getTraceEventTooltipBuilder() {
+    return myTraceEventTooltipBuilder;
+  }
+
+  @NotNull
+  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+    return myMultiSelectionModel;
+  }
+
+  private Collection<CaptureNode> getCaptureNode() {
+    assert myCapture.containsThread(myThreadInfo.getId());
+    return Collections.singleton(myCapture.getCaptureNode(myThreadInfo.getId()));
   }
 }

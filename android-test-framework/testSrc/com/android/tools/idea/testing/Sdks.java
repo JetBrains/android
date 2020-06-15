@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.junit.Assert.assertNotNull;
 
@@ -76,7 +77,7 @@ public final class Sdks {
     }
 
     SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.setHomePath(sdkPath);
+    sdkModificator.setHomePath(toSystemIndependentName(sdkPath));
 
     VirtualFile androidJar = JarFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar!/");
     sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);

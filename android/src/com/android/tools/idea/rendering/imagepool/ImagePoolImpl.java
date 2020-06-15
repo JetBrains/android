@@ -21,26 +21,32 @@ import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.ForwardingQueue;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import com.intellij.openapi.diagnostic.Logger;
+import java.awt.AlphaComposite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.WritableRaster;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class that offers a pool of {@link BufferedImage}s. The returned {@link Image} do not offer a direct access
@@ -49,10 +55,12 @@ import java.util.function.Function;
  */
 @SuppressWarnings("ALL")
 class ImagePoolImpl implements ImagePool {
-  private static final boolean DEBUG = false;
+  private static final Logger LOG = Logger.getInstance(ImagePoolImpl.class);
+
   private static final Bucket NULL_BUCKET = new Bucket(0, 0, 0);
   private final int[] myBucketSizes;
   private final HashMap<String, Bucket> myPool = new HashMap<>();
+  private final IdentityHashMap<Bucket, BucketStatsImpl> myBucketStats = new IdentityHashMap<>();
   private final BiFunction<Integer, Integer, Function<Integer, Integer>> myBucketSizingPolicy;
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private final FinalizableReferenceQueue myFinalizableReferenceQueue = new FinalizableReferenceQueue();
@@ -71,6 +79,12 @@ class ImagePoolImpl implements ImagePool {
     public long totalBytesInUse() {
       return myTotalInUseBytes.sum();
     }
+
+    @Override
+    public BucketStats[] getBucketStats() {
+      return myBucketStats.values().stream()
+        .toArray(BucketStats[]::new);
+    }
   };
 
   /**
@@ -86,8 +100,8 @@ class ImagePoolImpl implements ImagePool {
    *                           type. If the returned size is 0, no pooling will be done for that bucket size.
    */
   ImagePoolImpl(@NotNull int[] bucketSizes, @NotNull BiFunction<Integer, Integer, Function<Integer, Integer>> bucketSizingPolicy) {
-    if (DEBUG) {
-      System.out.println("New ImagePool");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("New ImagePool " + Arrays.toString(bucketSizes));
     }
     myBucketSizes = bucketSizes;
     Arrays.sort(myBucketSizes);
@@ -159,7 +173,10 @@ class ImagePoolImpl implements ImagePool {
         return NULL_BUCKET;
       }
 
-      return new Bucket(finalWidthBucket, finalHeightBucket, size);
+      Bucket newBucket = new Bucket(finalWidthBucket, finalHeightBucket, size);
+      myBucketStats.put(newBucket, new BucketStatsImpl(newBucket));
+
+      return newBucket;
     });
   }
 
@@ -170,8 +187,10 @@ class ImagePoolImpl implements ImagePool {
 
     // To avoid creating a large number of EvictingQueues, we distribute the images in buckets and use that
     Bucket bucket = getTypeBucket(w, h, type);
-    if (DEBUG) {
-      System.out.printf("create(%dx%d-%d) in bucket (%dx%d)\n", w, h, type, bucket.myMinWidth, bucket.myMinHeight);
+    BucketStatsImpl bucketStats = myBucketStats.get(bucket);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("create(%dx%d-%d) in bucket (%dx%d) hasStats=%b\n", w, h, type, bucket.myMinWidth, bucket.myMinHeight,
+                              bucketStats != null));
     }
 
     BufferedImage image;
@@ -183,12 +202,15 @@ class ImagePoolImpl implements ImagePool {
       }
 
       long totalSize = image.getWidth() * image.getHeight();
-      if (DEBUG) {
+      if (bucketStats != null) {
+        bucketStats.bucketHit();
+      }
+      if (LOG.isDebugEnabled()) {
         double wasted = (totalSize - w * h);
-        System.out.printf("  Re-used image %dx%d - %d\n  pool buffer %dx%d\n  wasted %d%%\n",
-                          w, h, type,
-                          image.getWidth(), image.getHeight(),
-                          (int)((wasted / totalSize) * 100));
+        LOG.debug(String.format("  Re-used image %dx%d - %d\n  pool buffer %dx%d\n  wasted %d%%\n",
+                                w, h, type,
+                                image.getWidth(), image.getHeight(),
+                                (int)((wasted / totalSize) * 100)));
       }
       myTotalInUseBytes.add(totalSize * 4);
       // Clear the image
@@ -203,8 +225,11 @@ class ImagePoolImpl implements ImagePool {
       }
     }
     catch (NoSuchElementException e) {
-      if (DEBUG) {
-        System.out.printf("  New image %dx%d - %d\n", w, h, type);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("  New image %dx%d - %d\n", w, h, type));
+      }
+      if (bucketStats != null) {
+        bucketStats.bucketMiss();
       }
       int newImageWidth = Math.max(bucket.myMinWidth, w);
       int newImageHeight = Math.max(bucket.myMinHeight, h);
@@ -227,12 +252,19 @@ class ImagePoolImpl implements ImagePool {
       public void finalizeReferent() {
         // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
         if (myReferences.remove(this)) {
-
           boolean accepted = bucket.offer(new SoftReference<>(imagePointer));
-          if (DEBUG) {
-            System.out.printf("%s image (%dx%d-%d) in bucket (%dx%d)\n",
-                              accepted ? "Released" : "Rejected",
-                              w, h, type, bucket.myMinWidth, bucket.myMinHeight);
+          if (bucketStats != null) {
+            if (accepted) {
+              bucketStats.returnedImageAccepted();
+            }
+            else {
+              bucketStats.returnedImageRejected();
+            }
+          }
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("%s image (%dx%d-%d) in bucket (%dx%d)\n",
+                                    accepted ? "Released" : "Rejected",
+                                    w, h, type, bucket.myMinWidth, bucket.myMinHeight));
           }
 
           long estimatedSize = imagePointer.getWidth() * imagePointer.getHeight() * 4;
@@ -254,15 +286,91 @@ class ImagePoolImpl implements ImagePool {
     return pooledImage;
   }
 
+  private static final class BucketStatsImpl implements BucketStats {
+    private final Bucket myBucket;
+    private final AtomicLong myLastAccessMs = new AtomicLong(System.currentTimeMillis());
+    private final AtomicLong myBucketMiss = new AtomicLong(0);
+    private final AtomicLong myBucketHit = new AtomicLong(0);
+    private final AtomicLong myBucketFull = new AtomicLong(0);
+    private final AtomicLong myBucketHadSpace = new AtomicLong(0);
+
+    BucketStatsImpl(@NotNull Bucket bucket) {
+      myBucket = bucket;
+    }
+
+    @Override
+    public int getMinWidth() {
+      return myBucket.myMinWidth;
+    }
+
+    @Override
+    public int getMinHeight() {
+      return myBucket.myMinHeight;
+    }
+
+    @Override
+    public int maxSize() {
+      return myBucket.getMaxSize();
+    }
+
+    @Override
+    public long getLastAccessTimeMs() {
+      return myLastAccessMs.get();
+    }
+
+    @Override
+    public long bucketHits() {
+      return myBucketHit.get();
+    }
+
+    @Override
+    public long bucketMisses() {
+      return myBucketMiss.get();
+    }
+
+    @Override
+    public long bucketWasFull() {
+      return myBucketFull.get();
+    }
+
+    @Override
+    public long imageWasReturned() {
+      return myBucketHadSpace.get();
+    }
+
+    public void bucketHit() {
+      myLastAccessMs.set(System.currentTimeMillis());
+      myBucketHit.incrementAndGet();
+    }
+
+    public void bucketMiss() {
+      myLastAccessMs.set(System.currentTimeMillis());
+      myBucketMiss.incrementAndGet();
+    }
+
+    public void returnedImageAccepted() {
+      myBucketHadSpace.incrementAndGet();
+    }
+
+    public void returnedImageRejected() {
+      myBucketFull.incrementAndGet();
+    }
+  }
+
   private static class Bucket extends ForwardingQueue<SoftReference<BufferedImage>> {
     private final Queue<SoftReference<BufferedImage>> myDelegate;
-    private final AtomicLong myLastAccess = new AtomicLong(System.currentTimeMillis());
     private final int myMinWidth;
     private final int myMinHeight;
+    private final int myMaxSize;
 
     public Bucket(int minWidth, int minHeight, int maxSize) {
+      if (maxSize == 0) {
+        LOG.warn("0 maxSize for Bucket. This Bucket will not be used.");
+      }
+
       myMinWidth = minWidth;
       myMinHeight = minHeight;
+      myMaxSize = maxSize;
       myDelegate = maxSize == 0 ?
                    EvictingQueue.create(0)
                                 : new ArrayBlockingQueue<SoftReference<BufferedImage>>(maxSize);
@@ -270,8 +378,11 @@ class ImagePoolImpl implements ImagePool {
 
     @Override
     protected Queue<SoftReference<BufferedImage>> delegate() {
-      myLastAccess.set(System.currentTimeMillis());
       return myDelegate;
+    }
+
+    public int getMaxSize() {
+      return myMaxSize;
     }
   }
 

@@ -17,15 +17,13 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.profilers.cpu.CaptureNode.FilterType.MATCH;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CaptureNode implements HNode<CaptureNode> {
 
@@ -50,7 +48,7 @@ public class CaptureNode implements HNode<CaptureNode> {
   private long myEndThread;
 
   @NotNull
-  private final List<CaptureNode> myChildren;
+  protected final List<CaptureNode> myChildren;
 
   @NotNull
   private ClockType myClockType;
@@ -77,7 +75,7 @@ public class CaptureNode implements HNode<CaptureNode> {
   public CaptureNode(@NotNull CaptureNodeModel model) {
     myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
-    myFilterType = MATCH;
+    myFilterType = FilterType.MATCH;
     myDepth = 0;
     myData = model;
   }
@@ -184,11 +182,51 @@ public class CaptureNode implements HNode<CaptureNode> {
   }
 
   /**
-   * @return true if this node matches to the {@param filter}.
-   * Note: this node matches to the empty {@param filter}.
+   * Apply a filter to this node and its children.
+   *
+   * @param filter filter to apply. An empty matches all nodes.
+   * @return filter result, e.g. number of matches.
    */
-  public boolean matchesToFilter(@NotNull Filter filter) {
-    return filter.matches(getData().getFullName());
+  @NotNull
+  public FilterResult applyFilter(@NotNull Filter filter) {
+    return applyFilter(filter, false);
+  }
+
+
+  /**
+   * Recursively applies filter to this node and its children.
+   */
+  @NotNull
+  private FilterResult applyFilter(@NotNull Filter filter, boolean matches) {
+    int matchCount = 0;
+    int totalCount = 0;
+    boolean nodeExactMatch = filter.matches(getData().getFullName());
+    matches = matches || nodeExactMatch;
+    if (nodeExactMatch) {
+      ++matchCount;
+    }
+    ++totalCount;
+
+    boolean allChildrenUnmatch = true;
+    for (CaptureNode child : getChildren()) {
+      FilterResult result = child.applyFilter(filter, matches);
+      matchCount += result.getMatchCount();
+      totalCount += result.getTotalCount();
+      if (!child.isUnmatched()) {
+        allChildrenUnmatch = false;
+      }
+    }
+
+    if (!matches && allChildrenUnmatch) {
+      setFilterType(FilterType.UNMATCH);
+    }
+    else if (nodeExactMatch && !filter.isEmpty()) {
+      setFilterType(FilterType.EXACT_MATCH);
+    }
+    else {
+      setFilterType(FilterType.MATCH);
+    }
+    return new FilterResult(matchCount, totalCount, !filter.isEmpty());
   }
 
   @NotNull
@@ -206,7 +244,7 @@ public class CaptureNode implements HNode<CaptureNode> {
 
   public enum FilterType {
     /**
-     * This {@link CaptureNode} matches to the filter, i.e {@link #matchesToFilter(Filter)} is true.
+     * This {@link CaptureNode} matches to the filter.
      */
     EXACT_MATCH,
 

@@ -9,7 +9,18 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="freemarker" level="project" />
+    <orderEntry type="module-library">
+      <library name="freemarker" type="repository">
+        <properties maven-id="org.freemarker:freemarker:2.3.20" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.20/freemarker-2.3.20.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.20/freemarker-2.3.20-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
@@ -37,6 +48,7 @@
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
     <orderEntry type="module" module-name="intellij.eclipse" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="library" name="gson" level="project" />
@@ -166,13 +178,11 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.debuggers" />
-    <orderEntry type="module" module-name="intellij.android.build-attribution" />
     <orderEntry type="module-library">
       <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:26.6.0.3" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-jre11/26.6.0.3/layoutlib-jre11-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-jre11/27.0.0.0/layoutlib-jre11-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -186,6 +196,7 @@
     <orderEntry type="module" module-name="intellij.platform.statistics" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="intellij.webp" />
   </component>
 </module>

@@ -2,10 +2,12 @@ PROJECT             : testTransitiveDependencies
     MODULE              : app
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,14 @@ PROJECT             : testTransitiveDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -102,12 +110,12 @@ PROJECT             : testTransitiveDependencies
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar
+        LIBRARY             : Gradle: ./library2/libs/fakelib.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar [=]
+            Name                : Gradle: ./library2/libs/fakelib.jar [=]
             *CLASSES            : jar://<PROJECT>/library2/libs/fakelib.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -408,10 +416,12 @@ PROJECT             : testTransitiveDependencies
     MODULE              : javalib1
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : javalib1
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :javalib1
         LinkedProjectPath   : <PROJECT>/javalib1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/javalib1/javalib1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/javalib1/javalib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -469,10 +479,12 @@ PROJECT             : testTransitiveDependencies
     MODULE              : javalib2
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : javalib2
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :javalib2
         LinkedProjectPath   : <PROJECT>/javalib2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/javalib2/javalib2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/javalib2/javalib2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -494,10 +506,12 @@ PROJECT             : testTransitiveDependencies
     MODULE              : library1
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : library1
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :library1
         LinkedProjectPath   : <PROJECT>/library1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/library1/library1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/library1/library1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -510,8 +524,14 @@ PROJECT             : testTransitiveDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/library1/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library1/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/library1/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library1/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -935,10 +955,12 @@ PROJECT             : testTransitiveDependencies
     MODULE              : library2
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : library2
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :library2
         LinkedProjectPath   : <PROJECT>/library2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/library2/library2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/library2/library2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -951,8 +973,14 @@ PROJECT             : testTransitiveDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/library2/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library2/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/library2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library2/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1035,12 +1063,12 @@ PROJECT             : testTransitiveDependencies
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar
+        LIBRARY             : Gradle: ./library2/libs/fakelib.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./library2/libs/fakelib.jar:unspecified@jar [=]
+            Name                : Gradle: ./library2/libs/fakelib.jar [=]
             *CLASSES            : jar://<PROJECT>/library2/libs/fakelib.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -1316,10 +1344,12 @@ PROJECT             : testTransitiveDependencies
         ORDER_ENTRY         : library1
     MODULE              : testTransitiveDependencies
         - ModuleGroupPath   : testTransitiveDependencies
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testTransitiveDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testTransitiveDependencies.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testTransitiveDependencies.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

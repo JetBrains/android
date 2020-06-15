@@ -1,0 +1,69 @@
+<android.support.constraint.motion.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                               xmlns:app="http://schemas.android.com/apk/res-auto"
+                                               xmlns:tools="http://schemas.android.com/tools"
+  tools:layout_editor_absoluteX="0dp"
+  tools:layout_editor_absoluteY="0dp"
+  tools:layout_editor_width="600dp"
+  tools:layout_editor_height="800dp">
+
+  <TextView
+    android:id="@+id/widget"
+    android:layout_width="32dp"
+    android:layout_height="32dp"
+    android:background="#FF9999"
+    android:text="1"
+    app:layout_constraintEnd_toStartOf="parent"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTag="hop"
+    app:layout_constraintTop_toTopOf="parent"
+    tools:layout_editor_absoluteX="10dp"
+    tools:layout_editor_absoluteY="10dp"
+    tools:layout_editor_width="10dp"
+    tools:layout_editor_height="10dp"/>
+
+  <ImageView
+    android:id="@+id/image"
+    android:layout_width="32dp"
+    android:layout_height="10dp"
+    android:src="@android:drawable/btn_minus"
+    app:layout_constraintEnd_toStartOf="parent"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTag="hop"
+    app:layout_constraintTop_toTopOf="@id/widget"
+    tools:layout_editor_absoluteX="10dp"
+    tools:layout_editor_absoluteY="20dp"
+    tools:layout_editor_width="10dp"
+    tools:layout_editor_height="10dp"/>
+
+  <Button
+    android:id="@+id/button"
+    android:layout_width="32dp"
+    android:layout_height="10dp"
+    android:text="push"
+    android:alpha="0.7"
+    app:layout_constraintEnd_toStartOf="parent"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTag="hop"
+    app:layout_constraintTop_toTopOf="@id/image"
+    tools:layout_editor_absoluteX="10dp"
+    tools:layout_editor_absoluteY="30dp"
+    tools:layout_editor_width="10dp"
+    tools:layout_editor_height="10dp"/>
+
+  <Button
+      android:id="@+id/buttonEmptyConstraint"
+      android:layout_width="32dp"
+      android:layout_height="10dp"
+      android:text="button1"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="@id/button"
+      tools:layout_editor_absoluteX="10dp"
+      tools:layout_editor_absoluteY="40dp"
+      tools:layout_editor_width="10dp"
+      tools:layout_editor_height="10dp"/>
+
+</android.support.constraint.motion.MotionLayout>

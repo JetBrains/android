@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.lang.rs;
 
-import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
-import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import icons.AndroidIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class AndroidRenderscriptFileType extends LanguageFileType {
   public static final AndroidRenderscriptFileType INSTANCE = new AndroidRenderscriptFileType();
@@ -55,13 +52,5 @@ public class AndroidRenderscriptFileType extends LanguageFileType {
   @Override
   public Icon getIcon() {
     return AndroidIcons.Renderscript;
-  }
-
-  public static FileNameMatcher[] fileNameMatchers() {
-    return new FileNameMatcher[] {
-      new ExtensionFileNameMatcher(CODE_EXTENSION),
-      new ExtensionFileNameMatcher(FS_CODE_EXTENSION),
-      new ExtensionFileNameMatcher(HEADER_EXTENSION),
-    };
   }
 }

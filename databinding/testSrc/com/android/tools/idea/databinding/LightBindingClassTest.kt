@@ -28,11 +28,16 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiParameter
+import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElement
@@ -575,6 +580,62 @@ class LightBindingClassTest {
   }
 
   @Test
+  fun methodsAreAnnotatedNonNullAndNullableCorrectly() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+
+    binding.methods.filter { it.name == "inflate" }.let { inflateMethods ->
+      assertThat(inflateMethods).hasSize(4)
+      inflateMethods.first { it.parameters.size == 4 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "root", isNullable = true)
+        (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
+        (inflateMethod.parameters[3] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+
+      inflateMethods.first { it.parameters.size == 3 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "root", isNullable = true)
+        (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+
+      inflateMethods.first { it.parameters.size == 2 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        (inflateMethod.parameters[1] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+
+      inflateMethods.first { it.parameters.size == 1 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+    }
+
+    binding.methods.filter { it.name == "bind" }.let { bindMethods ->
+      assertThat(bindMethods).hasSize(2)
+      bindMethods.first { it.parameters.size == 2 }.let { bindMethod ->
+        (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
+        (bindMethod.parameters[1] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
+        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+
+      bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
+        (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
+        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+    }
+  }
+
+  @Test
   fun viewProxyClassGeneratedForViewStubs() {
     fixture.addFileToProject("res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
@@ -612,5 +673,99 @@ class LightBindingClassTest {
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields.map { field -> field.name }).containsExactly("testButton", "testText")
+  }
+
+  @Test
+  fun bindingCacheReturnsConsistentValuesIfResourcesDontChange() {
+    val bindingCache = ModuleDataBinding.getInstance(facet)
+
+    // We want to initialize resources but NOT add a data binding layout file yet. This will ensure
+    // we test the case where there are no layout resource files in the project yet.
+    fixture.addFileToProject(
+      "res/values/strings.xml",
+      // language=XML
+      """
+        <resources>
+          <string name="app_name">DummyAppName</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    // language=XML
+    val dummyXml = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+      """.trimIndent()
+
+    val noResourcesGroups = bindingCache.bindingLayoutGroups
+    assertThat(noResourcesGroups.size).isEqualTo(0)
+    assertThat(noResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
+
+    fixture.addFileToProject("res/layout/activity_first.xml", dummyXml)
+
+    val oneResourceGroups = bindingCache.bindingLayoutGroups
+    assertThat(oneResourceGroups.size).isEqualTo(1)
+    assertThat(oneResourceGroups).isNotSameAs(noResourcesGroups)
+    assertThat(oneResourceGroups).isSameAs(bindingCache.bindingLayoutGroups)
+
+    fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
+    val twoResourcesGroups = bindingCache.bindingLayoutGroups
+    assertThat(twoResourcesGroups.size).isEqualTo(2)
+    assertThat(twoResourcesGroups).isNotSameAs(noResourcesGroups)
+    assertThat(twoResourcesGroups).isNotSameAs(oneResourceGroups)
+    assertThat(twoResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
+  }
+
+  @Test
+  fun bindingCacheRecoversAfterExitingDumbMode() {
+    // language=XML
+    val dummyXml = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+      """.trimIndent()
+
+    fixture.addFileToProject("res/layout/activity_first.xml", dummyXml)
+
+    // initialize app resources
+    ResourceRepositoryManager.getAppResources(facet)
+
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding")
+
+    val dumbService = DumbService.getInstance(project) as DumbServiceImpl
+    dumbService.isDumb = true
+
+    // First, verify that dumb mode doesn't prevent us from accessing the previous cache
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding")
+
+    // XML updates are ignored in dumb mode
+    fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding")
+
+    // XML updates should catch up after dumb mode is exited (in other words, we didn't save a snapshot of the stale
+    // cache from before)
+    dumbService.isDumb = false
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
+  }
+
+  private fun PsiType.assertExpected(typeName: String, isNullable: Boolean = false) {
+    assertThat(presentableText).isEqualTo(typeName)
+    if (this !is PsiPrimitiveType) {
+      val nullabilityManager = NullableNotNullManager.getInstance(fixture.project)
+      val nullabilityAnnotation = if (isNullable) nullabilityManager.defaultNullable else nullabilityManager.defaultNotNull
+      assertThat(annotations.map { it.text }).contains("@$nullabilityAnnotation")
+    }
+  }
+
+  private fun PsiParameter.assertExpected(typeName: String, name: String, isNullable: Boolean = false) {
+    type.assertExpected(typeName, isNullable)
+    assertThat(name).isEqualTo(name)
   }
 }

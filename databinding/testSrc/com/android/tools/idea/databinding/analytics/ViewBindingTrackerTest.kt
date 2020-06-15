@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.databinding.analytics
 
-import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -42,9 +40,6 @@ class ViewBindingTrackerTest {
   val projectRule =
     AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
 
-  @get:Rule
-  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
-
   /**
    * Expose the underlying project rule fixture directly.
    *
@@ -59,7 +54,6 @@ class ViewBindingTrackerTest {
 
   @Before
   fun setUp() {
-    StudioFlags.VIEW_BINDING_ENABLED.override(true)
     assertThat(facet.isViewBindingEnabled()).isTrue()
     fixture.addFileToProject("src/main/AndroidManifest.xml", """
       <?xml version="1.0" encoding="utf-8"?>
@@ -93,40 +87,6 @@ class ViewBindingTrackerTest {
 
         assertThat(viewBindingPollMetadata!!.viewBindingEnabled).isTrue()
         assertThat(viewBindingPollMetadata.layoutXmlCount).isEqualTo(1)
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
-    }
-  }
-
-  @Test
-  fun trackNonViewBindingEnabledProject() {
-    StudioFlags.VIEW_BINDING_ENABLED.override(false)
-    assertThat(facet.isViewBindingEnabled()).isFalse()
-
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
-            <TextView android:id="@+id/testId"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
-
-    val tracker = TestUsageTracker(VirtualTimeScheduler())
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
-        syncState.syncSucceeded()
-        val viewBindingPollMetadata = tracker.usages
-          .map { it.studioEvent }
-          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-          .map { it.dataBindingEvent.viewBindingMetadata }
-          .lastOrNull()
-
-        assertThat(viewBindingPollMetadata).isNull()
       }
       finally {
         tracker.close()

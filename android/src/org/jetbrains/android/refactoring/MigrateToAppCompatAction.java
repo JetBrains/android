@@ -27,8 +27,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.flags.StudioFlags.MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED;
-
 public class MigrateToAppCompatAction extends BaseRefactoringAction {
   public MigrateToAppCompatAction() {
   }
@@ -66,7 +64,7 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
   }
 
   private static boolean isEnabled(@Nullable Project project) {
-    if (project == null || !MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED.get()) return false;
+    if (project == null) return false;
     return AndroidUtils.hasAndroidFacets(project);
   }
 }

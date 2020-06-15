@@ -36,7 +36,7 @@ class PsProjectImplTest : DependencyTestCase() {
   private val changedModules = mutableSetOf<String>()
 
   fun testModuleOrder() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val project = PsProjectImpl(myFixture.project)
 
@@ -61,7 +61,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testRemoveModule() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
     assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
@@ -77,7 +77,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testRemoveDynamicFeatureModule() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
     assumeThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, equalTo(true))
@@ -113,7 +113,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testRemoveMiddleModule() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
     assumeThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(true))
@@ -135,7 +135,7 @@ class PsProjectImplTest : DependencyTestCase() {
   fun testApplyRunAndReparse() {
     val newSuffix = "testApplyRunAndReparse"
     val newSuffix2 = "testApplyRunAndReparse2"
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     // First remove :nested2:deep from the test project so that it can abe re-added later.
     run {
@@ -190,7 +190,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testApplyRunAndReparse_cancel() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
 
@@ -213,7 +213,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testAgpVersion() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     var project = PsProjectImpl(myFixture.project)
 
     assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
@@ -226,7 +226,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testAgpVersion_missing() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     var project = PsProjectImpl(myFixture.project)
 
     assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
@@ -249,7 +249,7 @@ class PsProjectImplTest : DependencyTestCase() {
   }
 
   fun testGradleVersion() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     var project = PsProjectImpl(myFixture.project)
 
     run {

@@ -20,12 +20,16 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Provides guidance for setting up Intel® HAXM on Linux platform.
+ *
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.LinuxHaxmInfoStep}
  */
 public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
@@ -40,7 +44,6 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
 
   @Override
   public void init() {
-
   }
 
   @Nullable
@@ -63,12 +66,11 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
     myUrlPane = SwingHelper.createHtmlViewer(true, null, null, null);
     myUrlPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
     HtmlBuilder description = new HtmlBuilder();
-    description.addHtml("Search for install instructions for your particular Linux configuration (");
-    description.addLink("Android KVM Linux Installation", KVM_DOCUMENTATION_URL);
-    description.addHtml(") that KVM is enabled for faster Android emulator performance.");
+    description.addHtml("Follow ");
+    description.addLink("Configure hardware acceleration for the Android Emulator", KVM_DOCUMENTATION_URL);
+    description.addHtml(" to enable KVM and achieve better performance.");
     myUrlPane.setText(description.getHtml());
     SwingHelper.setHtml(myUrlPane, description.getHtml(), UIUtil.getLabelForeground());
     myUrlPane.setBackground(UIUtil.getLabelBackground());
-
   }
 }

@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@file:JvmName("GlobalInstallerData")
+
 package com.android.tools.idea.welcome.config
 
 import com.google.common.annotations.VisibleForTesting
 import com.android.prefs.AndroidLocation
-import com.android.tools.idea.npw.PathValidationResult
-import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.Charsets
 import com.google.common.base.MoreObjects
 import com.google.common.io.Files
@@ -55,42 +58,9 @@ class InstallerData(
     .toString()
 
   fun hasValidSdkLocation(): Boolean {
-    val location = androidDest ?: return false
-    val path = location.absolutePath
-    val validationResult = PathValidationResult.validateLocation(path, SdkComponentsStep.FIELD_SDK_LOCATION, false)
-    return !validationResult.isError
-  }
-
-  // TODO(qumeric): turn this object into a static field
-  private object Holder {
-    var INSTALLER_DATA = parse()
-  }
-
-  companion object {
-    @JvmField
-    val EMPTY = InstallerData(null, null, true, null, null)
-
-    private fun parse(): InstallerData? {
-      val properties = readProperties() ?: return null
-      val androidSdkPath = properties[PROPERTY_SDK]
-      val androidDest = if (androidSdkPath.isNullOrBlank()) null else File(androidSdkPath)
-      return InstallerData(getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
-                           properties[PROPERTY_AVD]?.toBoolean() ?: true,
-                           properties[PROPERTY_TIMESTAMP], properties[PROPERTY_VERSION])
-    }
-
-    @VisibleForTesting
-    @Synchronized
-    @JvmStatic
-    fun set(data: InstallerData?) {
-      Holder.INSTALLER_DATA = data
-    }
-
-    fun exists(): Boolean = Holder.INSTALLER_DATA != null
-
-    @Synchronized
-    @JvmStatic
-    fun get(): InstallerData = Holder.INSTALLER_DATA!!
+    androidDest ?: return false
+    val severity = PathValidator.forAndroidSdkLocation().validate(androidDest).severity
+    return severity != Validator.Severity.ERROR
   }
 }
 
@@ -121,6 +91,22 @@ private fun readProperties(): Map<String, String>? {
     log.error(e)
   }
   return null
+}
+
+var installerData = parse()
+  @Synchronized @JvmName("get") get
+  @Synchronized @JvmName("set") @VisibleForTesting set
+
+@JvmField
+val EMPTY_INSTALLER_DATA = InstallerData(null, null, true, null, null)
+
+private fun parse(): InstallerData? {
+  val properties = readProperties() ?: return null
+  val androidSdkPath = properties[PROPERTY_SDK]
+  val androidDest = if (androidSdkPath.isNullOrBlank()) null else File(androidSdkPath)
+  return InstallerData(getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
+                       properties[PROPERTY_AVD]?.toBoolean() ?: true,
+                       properties[PROPERTY_TIMESTAMP], properties[PROPERTY_VERSION])
 }
 
 private fun getIfPathExists(properties: Map<String, String>, propertyName: String): File? {

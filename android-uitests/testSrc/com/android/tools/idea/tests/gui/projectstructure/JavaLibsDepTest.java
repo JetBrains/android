@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -75,14 +79,14 @@ public class JavaLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void multiJavaLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "API");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, JAVA_MODULE_1, DependenciesTestUtil.CLASS_NAME_1);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib2
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "API");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, JAVA_MODULE_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, JAVA_MODULE_1, JAVA_MODULE_2);

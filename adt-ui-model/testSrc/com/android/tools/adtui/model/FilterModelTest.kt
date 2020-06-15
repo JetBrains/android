@@ -19,9 +19,9 @@ import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.adtui.model.filter.FilterHandler
 import com.android.tools.adtui.model.filter.FilterModel
 import com.android.tools.adtui.model.filter.FilterResult
-import org.junit.Test
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Test
 
 class FilterModelTest {
   private lateinit var myFilter: Filter
@@ -37,7 +37,7 @@ class FilterModelTest {
       override fun applyFilter(filter: Filter): FilterResult {
         myFilter = filter
         myFilterHandled = true
-        return FilterResult(0, false)
+        return FilterResult()
       }
     })
   }

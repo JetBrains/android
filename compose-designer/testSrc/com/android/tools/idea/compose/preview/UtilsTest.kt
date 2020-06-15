@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class UtilsTest {

@@ -29,7 +29,7 @@ class ColorFieldPropertyEditorModel(property: PropertyItem): TextFieldWithLeftBu
    * The [property] defines the icon used on the left button.
    */
   override val leftButtonIcon: Icon?
-    get() = property.colorButton?.actionIcon ?: StudioIcons.LayoutEditor.Extras.PIPETTE
+    get() = property.colorButton?.actionIcon ?: if (readOnly) null else StudioIcons.LayoutEditor.Extras.PIPETTE
 
   /**
    * The [property] defines the action used for the left button.

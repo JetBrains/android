@@ -40,7 +40,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
    */
   @NotNull private String myMethodName;
   @NotNull private GradleDslExpressionList myArguments;
-  private final boolean myIsConstructor;
+  private boolean myIsConstructor;
 
   /**
    * Create a new method call.
@@ -99,6 +99,10 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
   public boolean isConstructor() {
     return myIsConstructor;
+  }
+
+  public void setIsConstructor(boolean isConstructor) {
+    myIsConstructor = isConstructor;
   }
 
   @Nullable
@@ -233,7 +237,6 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
    * property/dependency. It has to be called before changing the name of the property/dependency.
    */
   public void setMethodName(@NotNull String newMethodName) {
-    assert getNameElement().name().equals(getMethodName());
     myMethodName = newMethodName;
   }
 

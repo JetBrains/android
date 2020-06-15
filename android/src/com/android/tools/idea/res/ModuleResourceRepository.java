@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +66,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
-    if (!facet.requiresAndroidModel()) {
+    if (!AndroidModel.isRequired(facet)) {
       // Always just a single resource folder: simple.
       VirtualFile primaryResourceDir = ContainerUtil.getFirstItem(folderManager.getFolders(), null);
       if (primaryResourceDir == null) {
@@ -113,7 +113,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
-    if (!facet.requiresAndroidModel()) {
+    if (!AndroidModel.isRequired(facet)) {
       // No test resources in legacy projects.
       return new EmptyRepository(namespace);
     }
@@ -129,7 +129,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    * Inserts repositories for the given {@code resourceDirectories} into {@code childRepositories}, in the right order.
    *
    * <p>{@code resourceDirectories} is assumed to be in the order returned from
-   * {@link IdeaSourceProvider#getCurrentSourceProviders(AndroidFacet)}, which is the inverse of what we need. The code in
+   * {@link SourceProviderManager#getCurrentSourceProviders()}, which is the inverse of what we need. The code in
    * {@link MultiResourceRepository#getMap(ResourceNamespace, ResourceType, boolean)} gives priority to child repositories which are earlier
    * in the list, so after creating repositories for every folder, we add them in reverse to the list.
    *

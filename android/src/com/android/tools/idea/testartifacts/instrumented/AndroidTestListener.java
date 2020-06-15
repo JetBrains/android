@@ -20,10 +20,11 @@ import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.testframework.sm.ServiceMessageBuilder;
 import java.util.Map;
 import java.util.Objects;
+import com.intellij.openapi.util.Comparing;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,21 +34,19 @@ public class AndroidTestListener implements ITestRunListener {
 
   private static final String DISPLAY_PREFIX = "android.studio.display.";
 
-  @NotNull private final LaunchStatus myLaunchStatus;
   @NotNull private final ConsolePrinter myPrinter;
 
   private long myTestStartingTime;
   private long myTestSuiteStartingTime;
   private String myTestClassName = null;
 
-  public AndroidTestListener(@NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    myLaunchStatus = launchStatus;
+  public AndroidTestListener(@NotNull ConsolePrinter printer) {
     myPrinter = printer;
   }
 
   @Override
   public void testRunStopped(long elapsedTime) {
-    myLaunchStatus.terminateLaunch("Test run stopped.\n", true);
+    myPrinter.stderr("Test run stopped.\n");
   }
 
   @Override
@@ -56,12 +55,11 @@ public class AndroidTestListener implements ITestRunListener {
       testSuiteFinished();
     }
     myPrinter.stdout("Tests ran to completion.\n");
-    myLaunchStatus.terminateLaunch("", true);
   }
 
   @Override
   public void testRunFailed(String errorMessage) {
-    myLaunchStatus.terminateLaunch("Test running failed: " + errorMessage, true);
+    myPrinter.stderr("Test running failed: " + errorMessage);
   }
 
   @Override

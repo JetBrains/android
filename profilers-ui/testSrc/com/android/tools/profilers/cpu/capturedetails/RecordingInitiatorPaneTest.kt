@@ -96,6 +96,31 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   }
 
   @Test
+  fun noTabsWithCaptureStage() {
+    cpuProfiler.ideServices.enableCpuCaptureStage(true)
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+    val pane = RecordingInitiatorPane(stageView)
+    // Verify we have no tabs.
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<CapturePane.Toolbar>()).isEmpty()
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<CommonTabbedPane>()).isEmpty()
+    // Verify we can find a record button.
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<JButton>().any { it.text == CpuProfilerToolbar.RECORD_TEXT }).isTrue()
+  }
+
+  @Test
+  fun changingCaptureUpdatesPanelProperly() {
+    cpuProfiler.ideServices.enableCpuCaptureStage(true)
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+    val pane = RecordingInitiatorPane(stageView)
+    // Verify we have no tabs.
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<CapturePane.Toolbar>()).isEmpty()
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<CommonTabbedPane>()).isEmpty()
+    pane.updateView()
+    // Verify we find only 1 record button.
+    assertThat(TreeWalker(pane).descendants().filterIsInstance<JButton>().filter { button -> button.text == "Record" }).hasSize(1)
+  }
+
+  @Test
   fun recordButtonIsPresentWhenNewRecordingWorkflowFlagIsEnabled() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
     val pane = RecordingInitiatorPane(stageView)

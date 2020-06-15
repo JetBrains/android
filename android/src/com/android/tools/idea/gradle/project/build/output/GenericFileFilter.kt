@@ -82,7 +82,12 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
             if (pathEndIndex - pathStartIndex < PATH_MIN) return false
 
             val path = line.substring(pathStartIndex, pathEndIndex)
-            val file = localFileSystem.findFileByPathIfCached(path)
+            val file = try {
+              localFileSystem.findFileByPathIfCached(path)
+            } catch (t: Throwable) {
+              // We interpret any exception to mean the file is not found.
+              null
+            }
             if (file != null) {
               items += Filter.ResultItem(
                 indexOffset + pathStartIndex,

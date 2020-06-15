@@ -102,7 +102,7 @@ public class AndroidPrecompileTask implements CompileTask {
         clearResCache(facet, context);
       }
 
-      final AndroidPlatform platform = facet.getAndroidPlatform();
+      final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
       final int platformToolsRevision = platform != null ? platform.getSdkData().getPlatformToolsRevision() : -1;
 
       LOG.debug("Platform-tools revision for module " + module.getName() + " is " + platformToolsRevision);
@@ -318,6 +318,7 @@ public class AndroidPrecompileTask implements CompileTask {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private static void unexcludeAllSourceRoots(AndroidFacet facet,
                                               ExcludesConfiguration configuration) {
     final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(facet.getModule()).getSourceRoots();

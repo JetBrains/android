@@ -37,6 +37,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -71,6 +72,7 @@ class ExecutionEnvironmentExtTest {
     `when`(mockEnv.runProfile).thenReturn(mockRunProfile)
     `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
 
+    `when`(mockProject.getService(eq(ExecutionManager::class.java), ArgumentMatchers.anyBoolean())).thenReturn(mockExecutionManager)
     `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf())
 
     `when`(mockProject.getService(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)

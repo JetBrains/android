@@ -16,6 +16,8 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -40,6 +42,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -86,10 +90,11 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Make sure that new/unique strings from flavors are available
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
-    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res1
+    assertStringIs(resources, "another_unique_string", "Another Unique", res -> res.getConfiguration().isDefault()); // Overridden in res1
 
     // Check that an overridden key (overridden in multiple flavors) picks the last one.
-    assertStringIs(resources, "app_name", "Very Different App Name", false); // res1 (not unique because we have a values-no item too)
+    // res1 (not unique because we have a values-no item too)
+    assertStringIs(resources, "app_name", "Very Different App Name", item -> item.getConfiguration().isDefault());
 
     // Layouts: Should only be offered id's from the overriding layout (plus those defined in values.xml).
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next")); // from values.xml
@@ -114,14 +119,14 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     resources.updateRoots(ImmutableList.of(res2, res1, res3));
 
     // Should now be picking app_name from res2 rather than res1 since it's now first.
-    assertStringIs(resources, "app_name", "Different App Name", false); // res2
+    assertStringIs(resources, "app_name", "Different App Name", res -> res.getConfiguration().isDefault()); // res2
 
     // Sanity check other merging
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
     assertStringIs(resources, "title_crossfade", "Complex Crossfade"); // Overridden in res2
     assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res1
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
-    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res1
+    assertStringIs(resources, "another_unique_string", "Another Unique", res -> res.getConfiguration().isDefault()); // Overridden in res1
 
     // Hide a resource root (res2)
     resources.updateRoots(ImmutableList.of(res1, res3));
@@ -252,18 +257,18 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "title_crossfade", "Complex Crossfade"); // Overridden in res2
     assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res1
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
-    assertStringIs(resources, "another_unique_string", "Another Unique", false); // Overridden in res1
-    assertStringIs(resources, "app_name", "Very Different App Name", false); // res1 (not unique because we have a values-no item too)
+    assertStringIs(resources, "another_unique_string", "Another Unique", res -> res.getConfiguration().isDefault()); // Overridden in res1
+    assertStringIs(resources, "app_name", "Very Different App Name", res -> res.getConfiguration().isDefault()); // res1 (not unique because we have a values-no item too)
 
     // Value resource check:
     // Verify that an edit in a value file, both in a non-overridden and an overridden
     // value, is observed; and that an override in an overridden value is not observed.
 
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_layout_changes"));
-    ResourceItem appName = getFirstItem(resources, ResourceType.STRING, "app_name");
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "title_layout_changes")).hasSize(1);
+    ResourceItem appName = getSingleItem(resources, ResourceType.STRING, "app_name", item -> item.getConfiguration().isDefault());
     assertItemIsInDir(res1, appName);
-    assertStringIs(resources, "app_name", "Very Different App Name", false); // res1 (not unique because we have a values-no item too)
+    assertThat(appName.getResourceValue().getValue()).isEqualTo("Very Different App Name");
 
     long generation = resources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -274,7 +279,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       document.insertString(offset, "Not ");
       documentManager.commitDocument(document);
     });
-    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
     assertTrue(resources.isScanPending(psiValues1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
@@ -282,9 +287,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     // Should still be defined in res1 but have new value.
     // The order of items may have swapped if a full rescan is done.
     List<ResourceItem> list = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name");
-    assertNotNull(list);
-    assertSize(2, list);
-    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getConfiguration().getQualifierString().isEmpty());
+    assertThat(list).hasSize(2);
+    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getConfiguration().isDefault());
     assertNotNull(appName);
     assertItemIsInDir(res1, appName);
     ResourceValue appNameResourceValue = appName.getResourceValue();
@@ -299,12 +303,13 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     assertTrue(resources.getModificationCount() > generation);
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "rapp_name"));
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "rapp_name")).hasSize(1);
 
-    appName = getFirstItem(resources, ResourceType.STRING, "app_name");
-    // The item is still under res1, but now it's in the Norwegian translation
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
+    appName = getSingleItem(resources, ResourceType.STRING, "app_name", new DefinedInOrUnder(res1));
+    // The item is still under res1, but now it's in the Norwegian translation.
     assertEquals("no", appName.getConfiguration().getQualifierString());
-    assertStringIs(resources, "app_name", "Forskjellig Navn", false);
+    assertStringIs(resources, "app_name", "Forskjellig Navn", new DefinedInOrUnder(res1));
 
     // Delete that file:
     generation = resources.getModificationCount();
@@ -321,10 +326,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.getModificationCount() > generation);
 
-    // Now the item is no longer available in res1; should fallback to res 2
-    appName = getFirstItem(resources, ResourceType.STRING, "app_name");
+    // Now the item is no longer available in res1; should fallback to res2.
+    appName = getSingleItem(resources, ResourceType.STRING, "app_name");
     assertItemIsInDir(res2, appName);
-    assertStringIs(resources, "app_name", "Different App Name", false);
+    assertStringIs(resources, "app_name", "Different App Name");
 
     // Check that editing an overridden attribute does not count as a change
     Document document2 = documentManager.getDocument(psiValues3);
@@ -334,11 +339,11 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       document2.insertString(offset, "Cool ");
       documentManager.commitDocument(document2);
     });
-    // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
     assertTrue(resources.isScanPending(psiValues3));
     UIUtil.dispatchAllInvocationEvents();
     // Unaffected by above change
-    assertStringIs(resources, "app_name", "Different App Name", false);
+    assertStringIs(resources, "app_name", "Different App Name");
 
     // Finally check that editing an non-overridden attribute also gets picked up as a change
     generation = resources.getModificationCount();
@@ -350,7 +355,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document2);
     });
     assertTrue(resources.getModificationCount() > generation);
-    assertStringIs(resources, "title_layout_changes", "New Layout Changes", false);
+    assertStringIs(resources, "title_layout_changes", "New Layout Changes");
   }
 
   public void testHasResourcesOfType() {
@@ -360,8 +365,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     assertNotSame(res1, res2);
     ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
-    EnumSet<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
-                                                        ResourceType.STRING, ResourceType.STYLE);
+    Set<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
+                                                    ResourceType.STRING, ResourceType.STYLE);
 
     assertHasExactResourceTypes(resources, typesWithoutRes3);
     // Now update the repo with additional files, to test that merging picks up the new types.
@@ -435,48 +440,18 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertEquals(dir, source.getParent().getParent());
   }
 
-  static void assertStringIs(LocalResourceRepository repository, String key, String expected) {
-    assertStringIs(repository, key, expected, true);
+  private static void assertStringIs(LocalResourceRepository repository, String key, String expected) {
+    ResourceItem item = getSingleItem(repository, ResourceType.STRING, key);
+    assertThat(item.getResourceValue().getValue()).isEqualTo(expected);
   }
 
-  @NotNull
-  private static ResourceItem getSingleItem(LocalResourceRepository repository, ResourceType type, String key) {
-    List<ResourceItem> list = repository.getResources(RES_AUTO, type, key);
-    assertNotNull(list);
-    assertSize(1, list);
-    ResourceItem item = list.get(0);
-    assertNotNull(item);
-    return item;
+  private static void assertStringIs(@NotNull LocalResourceRepository repository, @NotNull String key, @NotNull String expected,
+                                     @NotNull Predicate<ResourceItem> filter) {
+    ResourceItem item = getSingleItem(repository, ResourceType.STRING, key, filter);
+    assertThat(item.getResourceValue().getValue()).isEqualTo(expected);
   }
 
-  @NotNull
-  static ResourceItem getFirstItem(LocalResourceRepository repository, ResourceType type, String key) {
-    List<ResourceItem> list = repository.getResources(RES_AUTO, type, key);
-    assertNotNull(list);
-    ResourceItem item = list.get(0);
-    assertNotNull(item);
-    return item;
-  }
-
-  static void assertStringIs(LocalResourceRepository repository, String key, String expected, boolean mustBeUnique) {
-    assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, key));
-    List<ResourceItem> list = repository.getResources(RES_AUTO, ResourceType.STRING, key);
-    assertNotNull(list);
-
-    // Generally we expect just one item (e.g. overlays should not visible, which is why we assert a single item, but for items
-    // that for example have translations there could be multiple items, and we test this, so allow assertion to specify whether it's
-    // expected).
-    if (mustBeUnique) {
-      assertSize(1, list);
-    }
-
-    ResourceItem item = list.get(0);
-    ResourceValue resourceValue = item.getResourceValue();
-    assertNotNull(resourceValue);
-    assertEquals(expected, resourceValue.getValue());
-  }
-
-  static void assertHasExactResourceTypes(LocalResourceRepository resources, EnumSet<ResourceType> types) {
+  static void assertHasExactResourceTypes(@NotNull LocalResourceRepository resources, @NotNull Set<ResourceType> types) {
     for (ResourceType type : ResourceType.values()) {
       if (types.contains(type)) {
         assertTrue(type.getName(), resources.hasResources(RES_AUTO, type));
@@ -490,7 +465,6 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   public void testAllowEmpty() {
     assertTrue(Lint.assertionsEnabled()); // This test should be run with assertions enabled!
     LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO, null);
-    assertNotNull(repository);
     repository.getModificationCount();
     assertEmpty(repository.getResources(RES_AUTO, ResourceType.ID).keySet());
   }

@@ -54,13 +54,13 @@ public class MemorySettingsPostSyncChecker {
    */
   public static void checkSettings(
     Project project,
-    TimeBasedMemorySettingsCheckerReminder reminder) {
+    TimeBasedReminder reminder) {
     LOG.info(String.format(Locale.US, "64bits? : %b, current: %d, available RAM: %d",
                            SystemInfo.is64Bit,
                            MemorySettingsUtil.getCurrentXmx(),
                            MemorySettingsUtil.getMachineMem()));
     if (!MemorySettingsUtil.memorySettingsEnabled()
-        || !reminder.shouldCheck(project)
+        || !reminder.shouldAsk()
         || hasNotification(project)) {
       LOG.info("Skipped checking memory settings");
       return;
@@ -84,9 +84,9 @@ public class MemorySettingsPostSyncChecker {
     Project project,
     int currentXmx,
     int recommended,
-    TimeBasedMemorySettingsCheckerReminder reminder) {
+    TimeBasedReminder reminder) {
     log(EventKind.SHOW_RECOMMENDATION, currentXmx, recommended);
-    reminder.storeLastCheckTimestamp();
+    reminder.updateLastTimestamp();
 
     Notification notification = new MemorySettingsNotification(
       AndroidBundle.message("memory.settings.postsync.message",
@@ -109,7 +109,7 @@ public class MemorySettingsPostSyncChecker {
         ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
         notification.expire();
         // Do not show the notification again for the project
-        reminder.setDoNotAsk(project);
+        reminder.setDoNotAskForProject(true);
       });
 
     notification.addAction(saveRestartAction);
@@ -120,7 +120,7 @@ public class MemorySettingsPostSyncChecker {
         public void actionPerformed(AnActionEvent e, Notification n) {
           log(EventKind.DO_NOT_ASK, currentXmx, recommended);
           n.expire();
-          reminder.setDoNotAsk(project);
+          reminder.setDoNotAskForProject(true);
         }
       });
     notification.addAction(
@@ -129,7 +129,7 @@ public class MemorySettingsPostSyncChecker {
         public void actionPerformed(AnActionEvent e, Notification n) {
           log(EventKind.DO_NOT_ASK, currentXmx, recommended);
           n.expire();
-          reminder.setDoNotAskForApplication();
+          reminder.setDoNotAskForApplication(true);
         }
       });
 

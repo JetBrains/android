@@ -164,7 +164,7 @@ public class AndroidTargetData {
     }
   }
 
-  @Nullable
+  @NotNull
   public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
@@ -271,7 +271,11 @@ public class AndroidTargetData {
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar, languages);
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
+                                                                                  // FIXME-ank3: false should be replaced with isLayoutLibStandard
+                                                                                  false &&
+                                                                                  myTarget instanceof CompatibilityRenderTarget,
+                                                                                  languages);
   }
 
   /**

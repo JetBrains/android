@@ -2,8 +2,10 @@ package org.jetbrains.jps.android.model.impl;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.JpsAndroidApplicationArtifactProperties;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -14,9 +16,6 @@ import org.jetbrains.jps.model.ex.JpsElementBase;
 import org.jetbrains.jps.model.ex.JpsElementChildRoleBase;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -163,7 +162,7 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
     final List<String> result = new ArrayList<String>(urls.size());
 
     for (String url : urls) {
-      result.add(StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomePath));
+      result.add(StringUtil.replace(url, AndroidFacetProperties.SDK_HOME_MACRO, sdkHomePath));
     }
     return result;
   }

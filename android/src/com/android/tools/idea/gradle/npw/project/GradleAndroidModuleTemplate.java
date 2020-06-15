@@ -21,10 +21,13 @@ import static com.android.SdkConstants.FD_MAIN;
 import static com.android.SdkConstants.FD_RESOURCES;
 import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
+import static com.android.SdkConstants.FD_UNIT_TEST;
+import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourceProvidersForFile;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -37,8 +40,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,10 +66,11 @@ import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
  *      `-com/google/foo/bar/... (test directory of package com.google.foo.bar)
  * </pre>
  */
-public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
+public class GradleAndroidModuleTemplate implements AndroidModulePaths {
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcRoot;
   @Nullable private File myTestRoot;
+  @Nullable private File myUnitTestRoot;
   @NotNull private List<File> myResDirectories = Collections.emptyList();
   @Nullable private File myAidlRoot;
   @Nullable private File myManifestDirectory;
@@ -96,6 +100,12 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
   @Nullable
   public File getTestDirectory(@Nullable String packageName) {
     return appendPackageToRoot(myTestRoot, packageName);
+  }
+
+  @Override
+  @Nullable
+  public File getUnitTestDirectory(@Nullable String packageName) {
+    return appendPackageToRoot(myUnitTestRoot, packageName);
   }
 
   @Override
@@ -134,6 +144,7 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
     paths.myModuleRoot = moduleRoot;
     paths.mySrcRoot = new File(baseFlavorDir, FD_JAVA);
     paths.myTestRoot = new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA);
+    paths.myUnitTestRoot = new File(baseSrcDir.getPath(), FD_UNIT_TEST + File.separatorChar + FD_JAVA);
     paths.myResDirectories = ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES));
     paths.myAidlRoot = new File(baseFlavorDir, FD_AIDL);
     paths.myManifestDirectory = baseFlavorDir;
@@ -145,14 +156,16 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
    * to instantiate an instance of this class.
    */
   @NotNull
-  private static Collection<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+  private static Collection<NamedIdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
+                                                                   @Nullable VirtualFile targetDirectory) {
+    List<NamedIdeaSourceProvider> providersForFile = null;
     if (targetDirectory != null) {
-      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory,
-                                                          SourceProviderManager.getInstance(androidFacet).getMainSourceProvider());
+      providersForFile = getSourceProvidersForFile(androidFacet, targetDirectory);
     }
-    else {
-      return IdeaSourceProvider.getAllSourceProviders(androidFacet);
+    if (providersForFile == null) {
+      providersForFile = SourceProviderManager.getInstance(androidFacet).getAllSourceProviders();
     }
+    return providersForFile;
   }
 
   /**
@@ -168,20 +181,27 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
       return Collections.emptyList();
     }
     List<NamedModuleTemplate> templates = new ArrayList<>();
-    for (SourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
+    for (NamedIdeaSourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
       GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
       if (roots.length > 0) {
         paths.myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
       }
-      paths.mySrcRoot = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
+      paths.mySrcRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getJavaDirectoryUrls(), null)));
       List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
-      if (!testsRoot.isEmpty()) {
-        paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+      if (testsRoot.size() == 1) {
+        paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
       }
-      paths.myResDirectories = ImmutableList.copyOf(sourceProvider.getResDirectories());
-      paths.myAidlRoot = Iterables.getFirst(sourceProvider.getAidlDirectories(), null);
-      paths.myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
+      else if (!testsRoot.isEmpty()) {
+        paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+        paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(1));
+      }
+      paths.myResDirectories =
+        ImmutableList.copyOf(
+          sourceProvider.getResDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).collect(Collectors.toList()));
+      paths.myAidlRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getAidlDirectoryUrls(), null)));
+      paths.myManifestDirectory =
+        sourceProvider.getManifestDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).findFirst().get();
       templates.add(new NamedModuleTemplate(sourceProvider.getName(), paths));
     }
     return templates;

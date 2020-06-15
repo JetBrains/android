@@ -15,28 +15,28 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.builder.model.AndroidProject
+import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.structure.model.meta.asString
 
 enum class PsModuleType(val androidModuleType: Int? = null) {
   UNKNOWN,
-  ANDROID_APP(AndroidProject.PROJECT_TYPE_APP),
-  ANDROID_LIBRARY(AndroidProject.PROJECT_TYPE_LIBRARY),
-  ANDROID_INSTANTAPP(AndroidProject.PROJECT_TYPE_INSTANTAPP),
-  ANDROID_FEATURE(AndroidProject.PROJECT_TYPE_FEATURE),
-  ANDROID_DYNAMIC_FEATURE(AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE),
-  ANDROID_TEST(AndroidProject.PROJECT_TYPE_TEST),
+  ANDROID_APP(AndroidProjectTypes.PROJECT_TYPE_APP),
+  ANDROID_LIBRARY(AndroidProjectTypes.PROJECT_TYPE_LIBRARY),
+  ANDROID_INSTANTAPP(AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP),
+  ANDROID_FEATURE(AndroidProjectTypes.PROJECT_TYPE_FEATURE),
+  ANDROID_DYNAMIC_FEATURE(AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE),
+  ANDROID_TEST(AndroidProjectTypes.PROJECT_TYPE_TEST),
   JAVA,
 }
 
 fun moduleTypeFromAndroidModuleType(androidModuleType: Int?): PsModuleType = when (androidModuleType) {
-  AndroidProject.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
-  AndroidProject.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
-  AndroidProject.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
-  AndroidProject.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
-  AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
-  AndroidProject.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
+  AndroidProjectTypes.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
+  AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
+  AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
+  AndroidProjectTypes.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
+  AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
+  AndroidProjectTypes.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
   else -> PsModuleType.UNKNOWN
 }
 

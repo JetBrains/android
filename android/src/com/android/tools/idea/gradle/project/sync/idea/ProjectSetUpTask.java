@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
@@ -111,13 +110,14 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       }
     });
 
-    String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
+    String exceptionMessage =
+      (errorDetails == null || errorMessage.contains(errorDetails)) ? errorMessage : errorMessage + "\n" + errorDetails;
+    String messageWithGuide = ExternalSystemBundle.message("error.resolve.with.reason", exceptionMessage);
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
     // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
     // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
     ProjectBuildFileChecksums.removeFrom(myProject);
     // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
-    GradleSyncState.getInstance(myProject).syncFailed(newMessage, new RuntimeException(errorDetails), mySyncListener);
-    finishFailedSync(externalTaskId, myProject);
+    GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null, mySyncListener);
   }
 }

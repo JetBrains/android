@@ -126,5 +126,9 @@
                      key="android.inspections.element.not.allowed.name" groupKey="android.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection"/>
 
+    <localInspection language="XML" shortName="AndroidUnresolvableTag" bundle="messages.AndroidBundle"
+                     key="android.inspections.unresolvable.tag" groupKey="android.inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection"/>
+
   </extensions>
 </idea-plugin>

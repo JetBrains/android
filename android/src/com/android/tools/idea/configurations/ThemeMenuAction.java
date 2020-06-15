@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -100,7 +101,7 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
     addThemeActions();
     add(new MoreThemesAction());

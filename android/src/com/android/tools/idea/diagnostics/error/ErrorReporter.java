@@ -46,6 +46,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
+import java.util.Optional;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -167,19 +168,6 @@ public class ErrorReporter extends ErrorReportSubmitter {
       // FIXME-ank: in AOSP com.intellij.internal.statistic.analytics.StudioCrashDetails is declared here:
       //  /tools/idea/platform/bootstrap/src/com/intellij/internal/statistic/analytics/StudioCrashDetails.java
       //  In IC/IU this type does not exist
-      ////noinspection unchecked
-      //List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
-      //List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
-      //// If at least one report was JVM crash, submit the batch as a JVM crash
-      //boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
-      //// As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
-      //// a single crash anyway).
-      //long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
-      //
-      //StudioCrashReport report =
-      //  new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
-      //// Crash reports are not limited by a rate limiter.
-      //StudioCrashReporter.getInstance().submit(report, true);
     }
     return true;
   }

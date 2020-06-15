@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.idea.common.scene.AnimatedValue
 import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.SceneContext
@@ -23,20 +24,19 @@ import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Shape
-import java.awt.Stroke
 
 class DrawShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
                 @VisibleForTesting val color: Color,
-                @VisibleForTesting val stroke: Stroke,
+                @VisibleForTesting val stroke: SwingStroke,
                 level: Int = 0) : DrawCommandBase(level) {
-  constructor(shape: Shape, color: Color, stroke: Stroke, level: Int = 0) : this(ConstantValue<Shape>(shape), color, stroke, level)
+  constructor(shape: Shape, color: Color, stroke: SwingStroke, level: Int = 0) : this(ConstantValue<Shape>(shape), color, stroke, level)
 
   override fun serialize() = ""
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.color = color
-    g.stroke = stroke
+    g.stroke = stroke.value
 
     val time = sceneContext.time
     g.draw(shape.getValue(time))

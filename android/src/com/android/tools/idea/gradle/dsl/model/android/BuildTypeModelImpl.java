@@ -22,16 +22,20 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildTypeModel {
-  @NonNls private static final String DEBUGGABLE = "debuggable";
-  @NonNls private static final String EMBED_MICRO_APP = "embedMicroApp";
-  @NonNls private static final String JNI_DEBUGGABLE = "jniDebuggable";
-  @NonNls private static final String MINIFY_ENABLED = "minifyEnabled";
-  @NonNls private static final String PSEUDO_LOCALES_ENABLED = "pseudoLocalesEnabled";
-  @NonNls private static final String RENDERSCRIPT_DEBUGGABLE = "renderscriptDebuggable";
-  @NonNls private static final String RENDERSCRIPT_OPTIM_LEVEL = "renderscriptOptimLevel";
-  @NonNls private static final String SHRINK_RESOURCES = "shrinkResources";
-  @NonNls private static final String TEST_COVERAGE_ENABLED = "testCoverageEnabled";
-  @NonNls private static final String ZIP_ALIGN_ENABLED = "zipAlignEnabled";
+  /**
+   * these names are used within the implementation below, and also in the construction of Dsl elements
+   * representing the state of {@link BuildTypeDslElement}s.
+   */
+  @NonNls public static final String DEBUGGABLE = "mDebuggable";
+  @NonNls public static final String EMBED_MICRO_APP = "mEmbedMicroApp";
+  @NonNls public static final String JNI_DEBUGGABLE = "mJniDebuggable";
+  @NonNls public static final String MINIFY_ENABLED = "mMinifyEnabled";
+  @NonNls public static final String PSEUDO_LOCALES_ENABLED = "mPseudoLocalesEnabled";
+  @NonNls public static final String RENDERSCRIPT_DEBUGGABLE = "mRenderscriptDebuggable";
+  @NonNls public static final String RENDERSCRIPT_OPTIM_LEVEL = "mRenderscriptOptimLevel";
+  @NonNls public static final String SHRINK_RESOURCES = "mShrinkResources";
+  @NonNls public static final String TEST_COVERAGE_ENABLED = "mTestCoverageEnabled";
+  @NonNls public static final String ZIP_ALIGN_ENABLED = "mZipAlignEnabled";
 
   public BuildTypeModelImpl(@NotNull BuildTypeDslElement dslElement) {
     super(dslElement);

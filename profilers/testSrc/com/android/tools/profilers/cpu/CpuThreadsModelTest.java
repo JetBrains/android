@@ -163,7 +163,6 @@ public class CpuThreadsModelTest {
     Assume.assumeFalse(myIsUnifiedPipeline);
 
     // Create a threads model from an imported session
-    myServices.enableImportTrace(true);
     CpuProfilerStage stage = new CpuProfilerStage(myProfilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"));
     stage.enter();
     myThreadsModel = stage.getThreadStates();

@@ -109,7 +109,7 @@ public class ConstraintSetPanelCommands {
    * @param ConstraintSet the constraintset it is under
    */
   public static void clearConstraint(MTag selected, MTag ConstraintSet) {
-    selected.deleteTag();
+    selected.getTagWriter().deleteTag().commit("clear Constraint");
   }
 
   /**
@@ -136,7 +136,7 @@ public class ConstraintSetPanelCommands {
       for (MTag.Attribute value : attrs.values()) {
         writer.setAttribute(value.mNamespace,value.mAttribute,value.mValue);
       }
-      mTag.deleteTag();
+      selected.getTagWriter().deleteTag().commit("convert");
     }
     writer.commit("Convert Constraint");
   }

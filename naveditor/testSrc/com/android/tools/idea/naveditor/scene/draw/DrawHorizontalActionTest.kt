@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
+import com.android.tools.adtui.common.scaledSwingLength
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.NavTestCase
-import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.geom.Line2D
@@ -26,14 +29,14 @@ import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 
 private val ARROW_LINE = Line2D.Float(50f, 106f, 340f, 106f)
-private val ICON_RECT = Rectangle2D.Float(52f, 87f, 14f, 14f)
-private const val SCALE = 1f
+private val ICON_RECT = SwingRectangle(Rectangle2D.Float(52f, 87f, 14f, 14f))
+private val SCALE = Scale(1.0)
 private val COLOR = Color.BLUE
-private val STROKE = BasicStroke(JBUI.scale(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+private val STROKE = SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
 class DrawHorizontalActionTest : NavTestCase() {
   fun testDrawHorizontalAction() {
-    val rectangle = Rectangle2D.Float(50f, 100f, 300f, 12f)
+    val rectangle = SwingRectangle(Rectangle2D.Float(50f, 100f, 300f, 12f))
 
     val arrowPath = Path2D.Float()
     arrowPath.moveTo(340f, 100f)

@@ -33,6 +33,11 @@ import org.jetbrains.annotations.NotNull;
 public class ToolWindowDefinition<T> {
   public static final int DEFAULT_SIDE_WIDTH = JBUIScale.scale(225);
   public static final Dimension DEFAULT_BUTTON_SIZE = DEFAULT_MINIMUM_BUTTON_SIZE;
+  public static final int ALLOW_BASICS = 0x0;
+  public static final int ALLOW_FLOATING = 0x01;
+  public static final int ALLOW_AUTO_HIDE = 0x02;
+  public static final int ALLOW_SPLIT_MODE = 0x04;
+  public static final int ALLOW_ALL = ALLOW_BASICS | ALLOW_FLOATING | ALLOW_AUTO_HIDE | ALLOW_SPLIT_MODE;
 
   private final String myTitle;
   private final Icon myIcon;
@@ -42,6 +47,7 @@ public class ToolWindowDefinition<T> {
   private final AutoHide myAutoHide;
   private final int myMinimumSize;
   private final Dimension myButtonSize;
+  private final int myFeatures;
   private final Function<Disposable, ToolContent<T>> myFactory;
 
   public ToolWindowDefinition(@NotNull String title,
@@ -51,7 +57,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull Split split,
                               @NotNull AutoHide autoHide,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
-    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, factory);
+    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE, factory);
   }
 
   public ToolWindowDefinition(@NotNull String title,
@@ -62,6 +68,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull AutoHide autoHide,
                               int minimumSize,
                               @NotNull Dimension buttonSize,
+                              int features,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
     myTitle = title;
     myIcon = icon;
@@ -71,6 +78,7 @@ public class ToolWindowDefinition<T> {
     myAutoHide = autoHide;
     myMinimumSize = minimumSize;
     myButtonSize = buttonSize;
+    myFeatures = features;
     myFactory = factory;
   }
 
@@ -159,5 +167,26 @@ public class ToolWindowDefinition<T> {
    */
   public AutoHide getAutoHide() {
     return myAutoHide;
+  }
+
+  /**
+   * Specifies if a tool window will offer the option of being floating outside the {@link WorkBench}.
+   */
+  public boolean isFloatingAllowed() {
+    return (myFeatures & ALLOW_FLOATING) != 0;
+  }
+
+  /**
+   * Specifies if a tool window will offer the option of auto hide {@link WorkBench}.
+   */
+  public boolean isAutoHideAllowed() {
+    return (myFeatures & ALLOW_AUTO_HIDE) != 0;
+  }
+
+  /**
+   * Specifies if a tool window will offer the option of to change the split mode.
+   */
+  public boolean isSplitModeChangesAllowed() {
+    return (myFeatures & ALLOW_SPLIT_MODE) != 0;
   }
 }

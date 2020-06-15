@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.lang.databinding.completion
 
-import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.findImportTag
+import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.getBindingIndexEntry
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.databinding.util.findImportTag
-import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE
@@ -49,6 +49,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightModifierList
@@ -113,6 +114,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
               autoCompleteVariablesAndUnqualifiedFunctions(getFile(dataBindingExpression), result)
               return
             }
+            result.addAllElements(populateInnerClassReferenceCompletions(ownerExpr, onlyValidCompletions))
             result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions))
             result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions))
             tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_LAMBDA)
@@ -124,6 +126,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
         }
         else {
           //TODO(b/129497876): improve completion experience for variables and static functions
+          result.addAllElements(populateInnerClassReferenceCompletions(parent, onlyValidCompletions))
           result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions))
           result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions))
           tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, UNKNOWN_CONTEXT)
@@ -155,7 +158,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     val indexEntry = getBindingIndexEntry(file) ?: return
 
     val project = file.project
-    val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file)!!
+    val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file) ?: return
     val variableTagNamePairs = indexEntry.data.variables.map { variable ->
       variable.name to xmlFile.findVariableTag(variable.name)
     }
@@ -181,8 +184,32 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   }
 
   /**
+   * Given a data binding expression, return a list of [LookupElement] which are the inner class references of the given expression,
+   * which is particularly useful for resource ids, e.g. `R.string`, `R.drawable`, etc.
+   * If [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
+   */
+  private fun populateInnerClassReferenceCompletions(referenceExpression: PsiElement, onlyValidCompletions: Boolean): List<LookupElement> {
+    val completionSuggestionsList = mutableListOf<LookupElement>()
+    val childReferences = referenceExpression.references
+    for (reference in childReferences) {
+      val ref = reference as? ModelClassResolvable ?: continue
+      val resolvedType = ref.resolvedType?.unwrapped ?: continue
+      val allInnerClasses = resolvedType.psiClass?.allInnerClasses ?: continue
+      for (innerClass in allInnerClasses) {
+        if (onlyValidCompletions && !innerClass.hasModifierProperty(PsiModifier.PUBLIC)) {
+          continue
+        }
+        completionSuggestionsList.add(JavaLookupElementBuilder
+                                        .forClass(innerClass, innerClass.name, true)
+                                        .withInsertHandler(onCompletionHandler))
+      }
+    }
+    return completionSuggestionsList
+  }
+
+  /**
    * Given a data binding expression, return a list of [LookupElement] which are the field references of the given expression.
-   * If onlyValidCompletions is false, private and mismatched context fields are also suggested.
+   * If [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
    */
   private fun populateFieldReferenceCompletions(referenceExpression: PsiElement, onlyValidCompletions: Boolean): List<LookupElement> {
     val completionSuggestionsList = mutableListOf<LookupElement>()
@@ -192,7 +219,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
       val resolvedType = ref.resolvedType?.unwrapped ?: continue
       for (psiModelField in resolvedType.allFields) {
         if (onlyValidCompletions) {
-          if (!psiModelField.isPublic || ref.isStatic != psiModelField.isStatic) {
+          if (!psiModelField.isPublic || !ref.memberAccess.accept(psiModelField)) {
             continue
           }
         }
@@ -204,7 +231,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
   /**
    * Given a data binding expression, return a list of [LookupElement] which are method references of the given expression.
-   * If onlyValidCompletions is false, private and mismatched context fields are also suggested.
+   * If [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
    */
   private fun populateMethodReferenceCompletions(referenceExpression: PsiElement,
                                                  onlyValidCompletions: Boolean): List<LookupElement> {
@@ -220,7 +247,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
             continue
           }
           else if (onlyValidCompletions) {
-            if (ref.isStatic != psiModelMethod.isStatic || !psiModelMethod.isPublic) {
+            if (!psiModelMethod.isPublic || !ref.memberAccess.accept(psiModelMethod)) {
               continue
             }
           }

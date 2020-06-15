@@ -17,12 +17,10 @@ package com.android.tools.idea.uibuilder.handlers.frame
 
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.*
-import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 
@@ -40,7 +38,10 @@ open class FrameLayoutHandler : ViewGroupHandler() {
 
   override fun handlesPainting() = true
 
-  override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView,
+                                 x: Int,
+                                 y: Int,
+                                 component: NlComponent) = SceneInteraction(screenView)
 
   override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
     val list = mutableListOf<Target>()

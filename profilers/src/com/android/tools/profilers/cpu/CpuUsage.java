@@ -24,11 +24,13 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CpuUsage extends LineChartModel {
   // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
@@ -39,13 +41,15 @@ public class CpuUsage extends LineChartModel {
    * Instantiates CPU usage model using profiler timeline ranges.
    */
   public CpuUsage(@NotNull StudioProfilers profilers) {
-    this(profilers, profilers.getTimeline().getViewRange(), profilers.getTimeline().getDataRange());
+    this(profilers, profilers.getTimeline().getViewRange(), profilers.getTimeline().getDataRange(), null);
   }
 
   /**
-   * Instantiates CPU usage model using the provided view and data ranges.
+   * Instantiates CPU usage model using the provided view and data ranges. If a capture is provided the cpu usage data is merged with the
+   * data from the capture. Only {@link AtraceCpuCapture}'s currently support getting cpu usage data. If the capture is null or not a
+   * {@link AtraceCpuCapture} cpu usage data is only queried from the datastore.
    */
-  public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange) {
+  public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange, @Nullable CpuCapture cpuCapture) {
     myCpuRange = new Range(0, 100);
     DataSeries<Long> series;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
@@ -56,6 +60,11 @@ public class CpuUsage extends LineChartModel {
         Common.Event.Kind.CPU_USAGE,
         profilers.getSession().getPid(),
         events -> extractData(events, false));
+      if (cpuCapture != null && cpuCapture.getType() == Cpu.CpuTraceType.ATRACE) {
+        AtraceCpuCapture atraceCapture = (AtraceCpuCapture)cpuCapture;
+        series = new MergeCaptureDataSeries<>(cpuCapture, series,
+                                              new AtraceDataSeries<>(atraceCapture, AtraceCpuCapture::getCpuUtilizationSeries));
+      }
     }
     else {
       series = new LegacyCpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);

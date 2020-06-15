@@ -20,12 +20,16 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import java.awt.event.ActionEvent
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.*
+import java.awt.KeyboardFocusManager
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -49,10 +53,25 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
-    val component = object : JComponent(){}
-
+    val editor = mock(Editor::class.java)
+    `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
+    `when`(textEditor.editor).thenReturn(editor)
+    val component = mock(JComponent::class.java)
+    `when`(component.getActionForKeyStroke(ArgumentMatchers.any(KeyStroke::class.java))).thenCallRealMethod()
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
-      override fun getComponent() = component
+      // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
+      // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
+      // TextEditorWithPreview which fails with a NullPointerException in testing environment. This test, however, has a value
+      // because we test that registerModeNavigationShortcuts does the right thing.
+      // TODO(b/146150328)
+      private var registeredShortcuts = false
+      override fun getComponent(): JComponent {
+        if (!registeredShortcuts) {
+          registeredShortcuts = true
+          registerModeNavigationShortcuts(component)
+        }
+        return component
+      }
     }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
   }
@@ -95,23 +114,32 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   }
 
   fun testKeyboardShortcuts() {
-    splitEditor.selectSplitMode(true)
-    val leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ACTION_SHORTCUT_MODIFIERS)
-    val navigateLeftAction = splitEditor.component.getActionForKeyStroke(leftKey)
-    val navigateLeftActionEvent = ActionEvent(splitEditor.component, 0, leftKey.keyChar.toString(), leftKey.modifiers)
+    val modifiers = (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or InputEvent.SHIFT_DOWN_MASK
+    val focusManager = mock(KeyboardFocusManager::class.java)
+    val component = splitEditor.component
+    `when`(focusManager.focusOwner).thenReturn(component)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
+    val dispatcher = IdeKeyEventDispatcher(null)
 
-    assertThat(splitEditor.isSplitMode()).isTrue()
-    navigateLeftAction.actionPerformed(navigateLeftActionEvent)
+    splitEditor.selectSplitMode(true)
+    // The circular sequence is ... Code <-> Split <-> Design <-> Code <-> Split <-> Design <-> Code ...
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    splitEditor.selectSplitMode(true)
-    val rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ACTION_SHORTCUT_MODIFIERS)
-    val navigateRightAction = splitEditor.component.getActionForKeyStroke(rightKey)
-    val navigateRightActionEvent = ActionEvent(splitEditor.component, 0, rightKey.keyChar.toString(), rightKey.modifiers)
-
-    assertThat(splitEditor.isSplitMode()).isTrue()
-    navigateRightAction.actionPerformed(navigateRightActionEvent)
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
     assertThat(splitEditor.isDesignMode()).isTrue()
+
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    assertThat(splitEditor.isSplitMode()).isTrue()
+
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    assertThat(splitEditor.isDesignMode()).isTrue()
+
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    assertThat(splitEditor.isTextMode()).isTrue()
+
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    assertThat(splitEditor.isSplitMode()).isTrue()
   }
 
   override fun tearDown() {

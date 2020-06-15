@@ -45,22 +45,27 @@ public class EnergyProfiler extends StudioProfiler {
 
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       // Issue GetCpuCoreConfig command once so we can calculate CPU energy usage.
-      assert myProfilers.getDevice() != null;
-      try {
-        myProfilers.getClient().getTransportClient().execute(
-          Transport.ExecuteRequest.newBuilder()
-            .setCommand(
-              Commands.Command.newBuilder()
-                .setStreamId(session.getStreamId())
-                .setPid(session.getPid())
-                .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
-                .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())))
-            .build());
-      }
-      catch (StatusRuntimeException e) {
-        // CPU frequency files may not always be available (e.g. emulator), in which case we still have a fallback model to use from
-        // DefaultPowerProfile.
-        getLogger().warn("Unable to parse CPU frequency files.");
+      // We need the device ID to run the command, but there has been a report (b/146037091) that 'myProfilers.getDevice()' may
+      // be null in release build. Therefore we use if to guard the use of the device to avoid NPE, instead of assert.
+      if (myProfilers.getDevice() != null) {
+        try {
+          myProfilers.getClient().getTransportClient().execute(
+            Transport.ExecuteRequest.newBuilder()
+              .setCommand(
+                Commands.Command.newBuilder()
+                  .setStreamId(session.getStreamId())
+                  .setPid(session.getPid())
+                  .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
+                  .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())))
+              .build());
+        }
+        catch (StatusRuntimeException e) {
+          // CPU frequency files may not always be available (e.g. emulator), in which case we still have a fallback model to use from
+          // DefaultPowerProfile.
+          getLogger().warn("Unable to parse CPU frequency files.");
+        }
+      } else {
+        getLogger().warn("Unable to retrieve CPU frequency files; device ID unknown.");
       }
     }
   }

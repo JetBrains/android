@@ -31,16 +31,12 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
-import java.awt.CardLayout;
-import java.awt.Component;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -173,7 +169,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * which may depend on those changed values.
    * @param modified map of the keys of the changed objects in the state store to their scopes.
    */
-  public void deriveValues(Set<Key> modified) {
+  public void deriveValues(Set<? extends Key> modified) {
 
   }
 

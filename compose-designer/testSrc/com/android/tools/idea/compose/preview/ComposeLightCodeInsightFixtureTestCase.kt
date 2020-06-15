@@ -17,50 +17,19 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import org.intellij.lang.annotations.Language
+import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.stubPreviewAnnotation
 
 open class ComposeLightJavaCodeInsightFixtureTestCase : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
-
     StudioFlags.COMPOSE_PREVIEW.override(true)
-
-    @Language("kotlin")
-    val previewAnnotation = myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", """
-      package com.android.tools.preview
-
-      data class Configuration(private val apiLevel: Int? = null,
-                               private val theme: String? = null,
-                               private val width: Int? = null,
-                               private val height: Int? = null,
-                               private val fontScale: Float = 1f)
-
-      annotation class Preview(val name: String = "",
-                               val apiLevel: Int = -1,
-                               val theme: String = "",
-                               val width: Int = -1,
-                               val height: Int = -1,
-                               val fontScale: Float = 1f)
-
-      fun Preview(name: String? = null,
-                  apiLevel: Int = -1,
-                  configuration: Configuration? = null,
-                  children: () -> Unit) {
-          children()
-      }
-    """.trimIndent())
-
-    @Language("kotlin")
-    val composeAnnotation = myFixture.addFileToProject("src/android/compose/Composable.kt", """
-      package androidx.compose
-
-      annotation class Composable()
-    """.trimIndent())
+    myFixture.stubComposableAnnotation()
+    myFixture.stubPreviewAnnotation()
   }
 
   override fun tearDown() {
     super.tearDown()
-
     StudioFlags.COMPOSE_PREVIEW.clearOverride()
   }
 }

@@ -23,11 +23,9 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.FilePosition
-import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
-import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -41,7 +39,6 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import java.util.function.Consumer
 
 class BuildOutputParserWrapperTest {
 
@@ -56,17 +53,17 @@ class BuildOutputParserWrapperTest {
 
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
+  private lateinit var outputParserManager: BuildOutputParserManager
 
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
-    val parser = object : BuildOutputParser {
-      override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
-        messageConsumer?.accept(messageEvent)
-        return true
-      }
+    val parser = BuildOutputParser { _, _, messageConsumer ->
+      messageConsumer?.accept(messageEvent)
+      true
     }
     myParserWrapper = BuildOutputParserWrapper(parser)
+    outputParserManager = BuildOutputParserManager(myProject, listOf(myParserWrapper))
     UsageTracker.setWriterForTest(tracker)
 
     `when`(myProject.basePath).thenReturn("test")
@@ -116,9 +113,9 @@ class BuildOutputParserWrapperTest {
     messageEvent = MessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Unknown error", "error message", "error message")
     myParserWrapper.parse(null, null) {}
 
-    sendBuildFailureMetrics(listOf(myParserWrapper), myProject)
+    outputParserManager.sendBuildFailureMetrics()
 
-    val buildOutputEvents = tracker.usages.filter{ use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    val buildOutputEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
     assertThat(buildOutputEvents).hasSize(1)
 
     val buildOutputEvent = buildOutputEvents[0]
@@ -139,9 +136,9 @@ class BuildOutputParserWrapperTest {
 
   @Test
   fun testNoErrorFoundMetricsReporting() {
-    sendBuildFailureMetrics(listOf(myParserWrapper), myProject)
+    outputParserManager.sendBuildFailureMetrics()
 
-    val buildOutputEvents = tracker.usages.filter{ use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    val buildOutputEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
     assertThat(buildOutputEvents).hasSize(1)
 
     val buildOutputEvent = buildOutputEvents[0]

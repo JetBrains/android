@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder
@@ -24,6 +24,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testing.IdeComponents
@@ -36,11 +37,9 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
+import org.mockito.Mockito.*
 import java.io.File
-import java.util.Collections
+import java.util.*
 
 /**
  * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see
@@ -65,7 +64,10 @@ class GradleModuleSystemTest : AndroidTestCase() {
     override fun error(throwable: Throwable, message: String?) {}
   }
 
-  private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, false)
+  private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, forceRepositoryChecksInTests = false,
+                                                    useEmbeddedStudioRepo = false)
+
+  private val moduleHierarchyProviderStub = object: ModuleHierarchyProvider {}
 
   private val library1ModuleName = "library1"
   private val library1Path = AndroidTestCase.getAdditionalModulePath(library1ModuleName)
@@ -78,7 +80,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
-    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), repoUrlManager)
+    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), moduleHierarchyProviderStub, repoUrlManager)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
 
@@ -169,7 +171,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
     // Check that the version is picked up from the parent module:
     val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), repoUrlManager)
+    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), moduleHierarchyProviderStub, repoUrlManager)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
       listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))
@@ -363,7 +365,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     `when`(model.androidProject).thenReturn(project)
     `when`(model.selectedMainCompileLevel2Dependencies).thenReturn(ideDependencies)
     val facet = AndroidFacet.getInstance(module)!!
-    facet.model = model
+    AndroidModel.set(facet, model)
     return model
   }
 

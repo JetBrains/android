@@ -21,8 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import java.awt.Dimension;
+import java.awt.*;
 
 public class MECreateKeyPositionTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateKeyPosition {
@@ -43,28 +42,31 @@ public class MECreateKeyPositionTest extends BaseMotionEditorTest {
 
   public void testCreateKeyPositionLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,159,272\n" +
-                    "1,JLabel,5,2,149,15\n" +
-                    "1,JSeparator,5,20,149,2\n" +
-                    "1,JRadioButton,5,25,52,23\n" +
-                    "1,JRadioButton,67,25,87,23\n" +
-                    "1,JPanel,5,51,149,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,78,149,15\n" +
-                    "1,PromptedTextField,5,96,149,19\n" +
-                    "1,JLabel,5,118,149,15\n" +
-                    "1,MEComboBox,5,136,149,24\n" +
-                    "1,JLabel,5,163,149,15\n" +
-                    "1,PromptedTextField,5,181,149,19\n" +
-                    "1,JLabel,5,203,149,15\n" +
-                    "1,PromptedTextField,5,221,149,19\n" +
-                    "1,JButton,5,246,149,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,4,2,90,4\n" +
+                    "1,JSeparator         ,0,9,99,0\n" +
+                    "1,JRadioButton       ,4,12,42,6\n" +
+                    "1,JRadioButton       ,57,11,37,6\n" +
+                    "1,JPanel             ,5,20,89,7\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JLabel             ,4,29,90,4\n" +
+                    "1,PromptedTextField  ,5,35,89,5\n" +
+                    "1,JLabel             ,4,43,90,4\n" +
+                    "1,MEComboBox         ,5,49,89,7\n" +
+                    "1,JLabel             ,4,58,90,4\n" +
+                    "1,PromptedTextField  ,5,64,89,5\n" +
+                    "1,JLabel             ,4,72,90,4\n" +
+                    "1,PromptedTextField  ,5,78,89,5\n" +
+                    "1,JButton            ,4,88,90,7\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,5)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateKeyPositionAction() {

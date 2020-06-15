@@ -15,33 +15,66 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.AbiModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
-public class AbiDslElement extends GradleDslBlockElement {
-  @NonNls public static final String ABI_BLOCK_NAME = "abi";
+public class AbiDslElement extends BaseSplitOptionsDslElement {
+  public static final PropertiesElementDescription<AbiDslElement> ABI =
+    new PropertiesElementDescription<>("abi", AbiDslElement.class, AbiDslElement::new);
 
-  public AbiDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ABI_BLOCK_NAME));
-  }
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap =
+    Stream.concat(
+      BaseSplitOptionsDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"isUniversalApk", property, UNIVERSAL_APK, VAR},
+      })).collect(toModelMap());
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
+    Stream.concat(
+      BaseSplitOptionsDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"universalApk", property, UNIVERSAL_APK, VAR},
+        {"universalApk", exactly(1), UNIVERSAL_APK, SET},
+      })).collect(toModelMap());
 
   @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("include") || property.equals("exclude")) {
-      addToParsedExpressionList(property, element);
-      return;
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
     }
-
-    if (property.equals("reset") && element instanceof GradleDslMethodCall) {
-      addParsedResettingElement(element, "include");
-      return;
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
     }
-
-    super.addParsedElement(element);
+    else {
+      return super.getExternalToModelMap(converter);
+    }
   }
+
+  public AbiDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
+  }
+
 }

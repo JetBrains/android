@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.ChromeOsDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintUnsupportedChromeOsHardwareInspection extends AndroidLintInspectionBase {
   public AndroidLintUnsupportedChromeOsHardwareInspection() {
-    super(AndroidBundle.message("android.lint.inspections.unsupported.chrome.os.hardware"), ChromeOsDetector.UNSUPPORTED_CHROME_OS_HARDWARE);
+    super(AndroidBundle.message("android.lint.inspections.unsupported.chrome.os.hardware"),
+          ChromeOsDetector.UNSUPPORTED_CHROME_OS_HARDWARE);
   }
 }

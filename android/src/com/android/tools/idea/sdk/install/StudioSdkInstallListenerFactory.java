@@ -21,10 +21,11 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.installer.SdkInstallListenerFactory;
+import com.android.tools.idea.welcome.install.Gvm;
 import com.android.tools.idea.welcome.install.Haxm;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.idea.welcome.install.VmType;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link InstallerFactory.StatusChangeListenerFactory} that creates appropriate {@link PackageOperation.StatusChangeListener}s for
@@ -40,8 +41,11 @@ public class StudioSdkInstallListenerFactory extends SdkInstallListenerFactory {
   public List<PackageOperation.StatusChangeListener> createListeners(@NotNull RepoPackage p) {
     List<PackageOperation.StatusChangeListener> result = super.createListeners(p);
     result.add(new VfsInstallListener());
-    if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {
-      result.add(new HaxmInstallListener());
+    if (p.getPath().equals(Haxm.InstallerInfo.getRepoPackagePath())) {
+      result.add(new VmInstallListener(VmType.HAXM));
+    }
+    if (p.getPath().equals(Gvm.InstallerInfo.getRepoPackagePath())) {
+      result.add(new VmInstallListener(VmType.GVM));
     }
     if (p.getPath().equals(SdkConstants.FD_PLATFORM_TOOLS)) {
       result.add(new PlatformToolsInstallListener(getSdkHandler()));

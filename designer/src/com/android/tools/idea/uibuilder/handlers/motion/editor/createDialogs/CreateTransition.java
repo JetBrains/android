@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -42,8 +43,7 @@ public class CreateTransition extends BaseCreatePanel {
   JComboBox<String> mEndId = MEUI.makeComboBox(new String[]{});
   private final JTextField mTransitionId;
   private final String DURATION_PROMPT = "Duration in ms";
-  private final JTextField mDuration;
-
+  private final String ENTER_TID = "Enter Transition's id";
   String[] options = {"Do Nothing",
     "Jump to Start",
     "Jump to End",
@@ -67,51 +67,54 @@ public class CreateTransition extends BaseCreatePanel {
     int y = 0;
     grid(gbc, 0, y++, 1, 1);
     gbc.weighty = 0;
-    gbc.insets = new Insets(2, 5, 1, 5);
+    gbc.ipadx = MEUI.scale(60);
+    gbc.insets = MEUI.dialogLabelInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel("CREATE TRANSITION"), gbc);
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("ID"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
-    add(mTransitionId = newTextField("Enter Transition's id", 15), gbc);
+    add(mTransitionId = newTextField(ENTER_TID, 15), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Start"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mStartId, gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("End"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mEndId, gbc);
 
-    grid(gbc, 0, y++);
-    gbc.weighty = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Duration"), gbc);
-    grid(gbc, 0, y++);
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(mDuration = newTextField(DURATION_PROMPT, 15), gbc);
 
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Automatically"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(comboBox, gbc);
     gbc.weighty = 1;
@@ -120,6 +123,7 @@ public class CreateTransition extends BaseCreatePanel {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.insets(8, 12, 12, 12);
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");
@@ -159,7 +163,16 @@ public class CreateTransition extends BaseCreatePanel {
     String tid = mTransitionId.getText().trim();
     String sid = (String) mStartId.getSelectedItem();
     String eid = (String) mEndId.getSelectedItem();
-    String duration = mDuration.getText();
+
+    if (tid.equals(ENTER_TID)){
+      tid = "";
+    }
+    if (tid.length() > 0) {
+      if (Character.isDigit(tid.charAt(0))) {
+        showErrorDialog("Transition ID cannot start with a number");
+        return null;
+      }
+    }
     if (sid.length() == 0 && eid.length() == 0) {
       showErrorDialog("Transition must have a start and end id");
       return null;
@@ -172,35 +185,22 @@ public class CreateTransition extends BaseCreatePanel {
       showErrorDialog("Transition must have an end id");
       return null;
     }
-    if (duration.equals(DURATION_PROMPT)) {
-      duration = "";
-    } else {
-      try {
-
-        int time = Integer.parseInt(duration);
-        if (time < 30) {
-          showErrorDialog("Duration should be more than 30ms");
-          return null;
-        }
-      } catch (NumberFormatException e) {
-        showErrorDialog("unable to understand \"" + duration + "\"");
-        return null;
-      }
-    }
 
     // TODO error checking
     MeModel model = mMotionEditor.getMeModel();
     MTag.TagWriter writer = model.motionScene.getChildTagWriter(MotionSceneAttrs.Tags.TRANSITION);
+    if (tid.length() > 0) {
+      writer.setAttribute(MotionSceneAttrs.ANDROID, MotionSceneAttrs.Transition.ATTR_ID, addIdPrefix(tid));
+    }
     writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START, addIdPrefix(sid));
     writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END, addIdPrefix(eid));
-    if (duration.length() > 0) {
-      writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_DURATION, duration);
-    }
+
     int index = comboBox.getSelectedIndex();
     if (index > 0) {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_AUTO_TRANSITION, ourValues[index]);
     }
     MTag ret = writer.commit("Create Transition");
+    Track.createTransition(mMotionEditor.myTrack);
     mMotionEditor.setMTag(model);
     super.create();
     return ret;

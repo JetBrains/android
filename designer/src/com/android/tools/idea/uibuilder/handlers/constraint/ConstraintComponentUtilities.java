@@ -107,6 +107,7 @@ public final class ConstraintComponentUtilities {
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_TOP_TO_BOTTOM_OF));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE));
@@ -129,8 +130,8 @@ public final class ConstraintComponentUtilities {
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MAX_WIDTH));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MAX_HEIGHT));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MIN_WIDTH));
-    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
-    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
+    ourLayoutAttributes.add(Pair.of(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
+    ourLayoutAttributes.add(Pair.of(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_END));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_PERCENT));
@@ -205,7 +206,7 @@ public final class ConstraintComponentUtilities {
     ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_END_OF, AnchorTarget.Type.LEFT);
   }
 
-  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialAttributes = new HashMap<>();
+  public static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialAttributes = new HashMap<>();
 
   static {
     ourPotentialAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF));
@@ -214,14 +215,14 @@ public final class ConstraintComponentUtilities {
     ourPotentialAttributes.put(AnchorTarget.Type.BOTTOM, Pair.of(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF));
   }
 
-  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialLTRAttributes = new HashMap<>();
+  public static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialLTRAttributes = new HashMap<>();
 
   static {
     ourPotentialLTRAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF));
     ourPotentialLTRAttributes.put(AnchorTarget.Type.RIGHT, Pair.of(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF));
   }
 
-  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialRTLAttributes = new HashMap<>();
+  public static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialRTLAttributes = new HashMap<>();
 
   static {
     ourPotentialRTLAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_END_TO_START_OF));
@@ -739,7 +740,7 @@ public final class ConstraintComponentUtilities {
       if (component == null) {
         return false;
       }
-      ConstraintAnchorTarget selectedTarget = (ConstraintAnchorTarget)AnchorTarget.findAnchorTarget(component, type);
+      AnchorTarget selectedTarget = AnchorTarget.findAnchorTarget(component, type);
       if (selectedTarget != null) {
         NlComponent nlComponent = component.getNlComponent();
         ComponentModification modification = new ComponentModification(nlComponent, "Constraint Disconnected");
@@ -863,7 +864,9 @@ public final class ConstraintComponentUtilities {
     GradleVersion v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,
-                               (version.length > 1) ? version[1] : -1, 0, 0));
+                               (version.length > 1) ? version[1] : -1,
+                               (version.length > 2) ? version[2] : -1,
+                               (version.length > 3) ? version[3] : -1 ));
   }
 
   /**
@@ -1204,32 +1207,6 @@ public final class ConstraintComponentUtilities {
       }
     }
     return false;
-  }
-
-  public static void cycleChainStyle(@NotNull SceneComponent chainHeadComponent,
-                                     @NotNull String orientationStyle,
-                                     @NotNull SceneComponent component) {
-    NlComponent chainHead = chainHeadComponent.getAuthoritativeNlComponent();
-    String chainStyle = chainHead.getLiveAttribute(SHERPA_URI, orientationStyle);
-    if (chainStyle != null) {
-      if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD)) {
-        chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
-      }
-      else if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD_INSIDE)) {
-        chainStyle = ATTR_LAYOUT_CHAIN_PACKED;
-      }
-      else if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_PACKED)) {
-        chainStyle = ATTR_LAYOUT_CHAIN_SPREAD;
-      }
-    }
-    else {
-      chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
-    }
-    ComponentModification modification = new ComponentModification(chainHead, "Cycle Chain Style");
-    modification.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
-    modification.commit();
-
-    component.getScene().needsRebuildList();
   }
 
   @AndroidDpCoordinate
@@ -1845,26 +1822,5 @@ public final class ConstraintComponentUtilities {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This remaps the margin start and end strings when setting dimensions
-   *
-   * @param component
-   * @param attr
-   * @return
-   */
-  public static String mapStartEndStrings(NlComponent component, String attr) {
-    if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
-      if (useLeftRight(component)) {
-        return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
-      }
-    }
-    else if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
-      if (useLeftRight(component)) {
-        return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
-      }
-    }
-    return attr;
   }
 }

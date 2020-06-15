@@ -23,13 +23,13 @@ import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiType
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 
 object LayoutBindingTypeUtil {
   private val VIEW_PACKAGE_ELEMENTS = listOf(
@@ -58,6 +58,16 @@ object LayoutBindingTypeUtil {
   fun resolveViewPsiType(viewIdData: ViewIdData, context: PsiElement): PsiType? {
     val androidFacet = context.androidFacet ?: return null
     val viewClassName = getViewClassName(viewIdData, androidFacet) ?: return null
+    return if (viewClassName.isNotEmpty()) PsiType.getTypeByName(viewClassName, context.project, context.resolveScope) else null
+  }
+
+  /**
+   * Convert a view name (e.g. "TextView") to its PSI type, if possible, or return `null` otherwise.
+   */
+  @JvmStatic
+  fun resolveViewPsiType(viewTag: String, context: PsiElement): PsiType? {
+    val androidFacet = context.androidFacet ?: return null
+    val viewClassName = getViewClassName(viewTag, null, androidFacet) ?: return null
     return if (viewClassName.isNotEmpty()) PsiType.getTypeByName(viewClassName, context.project, context.resolveScope) else null
   }
 
@@ -106,18 +116,23 @@ object LayoutBindingTypeUtil {
     if (layoutName == null) {
       return null
     }
-    // The following line must be called to make sure the underlying repositories are initialized
-    ResourceRepositoryManager.getInstance(facet).existingAppResources ?: return null
+
     val resourceUrl = ResourceUrl.parse(layoutName)
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null
     }
     val indexEntry = BindingXmlIndex.getEntriesForLayout(facet.module.project, resourceUrl.name).firstOrNull() ?: return null
-    if (indexEntry.data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled()) {
+    // Note: The resource might exist in a different module than the one passed into this method;
+    // e.g. if "activity_main.xml" includes a layout from a library, `facet` will be tied to "app"
+    // while `resourceFacet` would be tied to the library.
+    val resourceFacet =
+      indexEntry.file.getModule(facet.module.project)?.let { AndroidFacet.getInstance(it) } ?: return null
+
+    if (indexEntry.data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !resourceFacet.isViewBindingEnabled()) {
       // If including a non-binding layout, we just use its root tag as the type for this tag (e.g. FrameLayout, TextView)
-      return getViewClassName(indexEntry.data.rootTag, null, facet)
+      return getViewClassName(indexEntry.data.rootTag, null, resourceFacet)
     }
-    return getQualifiedBindingName(facet, indexEntry)
+    return getQualifiedBindingName(resourceFacet, indexEntry)
   }
 
 }

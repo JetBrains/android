@@ -23,9 +23,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DataBindingModelImpl extends GradleDslBlockModel implements DataBindingModel {
-  @NonNls private static final String ADD_DEFAULT_ADAPTERS = "addDefaultAdapters";
-  @NonNls private static final String ENABLED = "enabled";
-  @NonNls private static final String VERSION = "version";
+  // TODO(xof): support enabledForTests?
+  @NonNls public static final String ADD_DEFAULT_ADAPTERS = "mAddDefaultAdapters";
+  @NonNls public static final String ENABLED = "mEnabled";
+  @NonNls public static final String VERSION = "mVersion";
 
   public DataBindingModelImpl(@NotNull DataBindingDslElement dslElement) {
     super(dslElement);
@@ -34,18 +35,18 @@ public class DataBindingModelImpl extends GradleDslBlockModel implements DataBin
   @Override
   @NotNull
   public ResolvedPropertyModel addDefaultAdapters() {
-    return getModelForProperty(ADD_DEFAULT_ADAPTERS, true);
+    return getModelForProperty(ADD_DEFAULT_ADAPTERS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel enabled() {
-    return getModelForProperty(ENABLED, true);
+    return getModelForProperty(ENABLED);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel version() {
-    return getModelForProperty(VERSION, true);
+    return getModelForProperty(VERSION);
   }
 }

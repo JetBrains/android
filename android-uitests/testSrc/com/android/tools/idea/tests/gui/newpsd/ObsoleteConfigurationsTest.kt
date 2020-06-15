@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -39,7 +38,6 @@ import org.junit.runner.RunWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class ObsoleteConfigurationsTest {
   data class IssueAndFixes (
@@ -58,6 +56,12 @@ class ObsoleteConfigurationsTest {
                   "Obsolete dependency configuration found: testCompile", arrayOf(Pair("testCompile", "testImplementation"))),
     IssueAndFixes("app", "mylibrary", "project(path: ':mylibrary')",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
+    IssueAndFixes("myjlibrary", "runtime/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+                  "Obsolete dependency configuration found: runtime",
+                  arrayOf(Pair("runtime", "runtimeOnly"), Pair("runtime", "implementation"))),
+    IssueAndFixes("myjlibrary", "junit:junit:4.11", "'junit:junit:4.11'",
+                  "Obsolete dependency configuration found: testRuntime",
+                  arrayOf(Pair("testRuntime", "testRuntimeOnly"), Pair("testRuntime", "testImplementation"))),
     IssueAndFixes("mylibrary", "com.android.support:appcompat-v7:26.0.1", "'com.android.support:appcompat-v7:26.0.1'",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "api"), Pair("compile", "implementation"))),
     IssueAndFixes("mylibrary", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
@@ -72,13 +76,11 @@ class ObsoleteConfigurationsTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
   }
 
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD
   }
 
   @Test
@@ -145,6 +147,7 @@ class ObsoleteConfigurationsTest {
     psd.clickCancel()
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testQuickFixEffect() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")

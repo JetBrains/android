@@ -44,6 +44,10 @@ public enum ProfilerTrackRendererType {
    */
   CPU_THREAD,
   /**
+   * For CPU per-core usage and events.
+   */
+  CPU_CORE,
+  /**
    * For Custom Event Visualization user events.
    */
   CUSTOM_EVENTS

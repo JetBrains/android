@@ -18,17 +18,26 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_MULTIPLE_SIGNING_CONFIGS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_APPLICATION_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_ASSIGNMENT_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS;
@@ -172,6 +181,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.keyPassword().setValue(PLAIN_TEXT, "debugKeyPassword");
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG_EXPECTED);
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
@@ -223,6 +233,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().delete();
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
@@ -266,6 +278,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.keyPassword().setValue(PLAIN_TEXT, "releaseKeyPassword");
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
@@ -318,8 +332,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(), "\nKeystore password: ", CONSOLE_READ);
-    verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
+    // TODO(karimai) : verify behaviour with escape characters.
+    verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
   }
 
   @Test
@@ -339,6 +354,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().setValue(ENVIRONMENT_VARIABLE, "KSTOREPWD1");
     signingConfig.keyPassword().setValue(ENVIRONMENT_VARIABLE, "KEYPWD1");
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -361,13 +378,15 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(), "\nKeystore password: ", CONSOLE_READ);
-    verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
 
     signingConfig.storePassword().setValue(CONSOLE_READ, "Another Keystore Password: ");
     signingConfig.keyPassword().setValue(CONSOLE_READ, "Another Key Password: ");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -396,6 +415,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().setValue(ENVIRONMENT_VARIABLE, "KSTOREPWD");
     signingConfig.keyPassword().setValue(ENVIRONMENT_VARIABLE, "KEYPWD");
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -425,6 +446,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.keyPassword().setValue(CONSOLE_READ, /*"\n*/"Key password: ");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -454,6 +477,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().setValue(CONSOLE_READ, /*"\n*/"Keystore password: ");
     signingConfig.keyPassword().setValue(CONSOLE_READ, /*"\n*/"Key password: ");
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -476,13 +501,15 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(), "\nKeystore password: ", CONSOLE_READ);
-    verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
 
     signingConfig.storePassword().setValue(PLAIN_TEXT, "store_password");
     signingConfig.keyPassword().setValue(PLAIN_TEXT, "key_password");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -510,6 +537,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfigs.get(0).rename(expectedName);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED);
 
     androidModel = buildModel.android();
     assertNotNull(androidModel);
@@ -539,7 +567,6 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     buildType.signingConfig().setValue(new ReferenceTo(signingConfig));
 
     applyChangesAndReparse(buildModel);
-
     verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED);
   }
 }

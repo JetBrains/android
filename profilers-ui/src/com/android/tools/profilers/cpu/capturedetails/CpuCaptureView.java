@@ -62,9 +62,8 @@ public class CpuCaptureView {
   }
 
   private void onCaptureStateChanged() {
-    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.STARTING
-        || myStage.getCaptureState() == CpuProfilerStage.CaptureState.STOPPING) {
-      // STARTING and STOPPING shouldn't change the panel displayed, so we return early.
+    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.STARTING) {
+      // STARTING shouldn't change the panel displayed, so we return early.
       return;
     }
 
@@ -83,7 +82,9 @@ public class CpuCaptureView {
     if (myStage.getCaptureParser().isParsing()) {
       return new ParsingPane(myStageView);
     }
-
+    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.STOPPING) {
+      return new StoppingPane(myStageView);
+    }
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       return new RecordingPane(myStageView);
     }
@@ -106,17 +107,41 @@ public class CpuCaptureView {
    */
   @VisibleForTesting
   static class RecordingPane extends CapturePane {
-
     private final StatusPanel myPanel;
     private final AspectObserver myObserver = new AspectObserver();
 
     RecordingPane(@NotNull CpuProfilerStageView stageView) {
       super(stageView);
-      myPanel = new StatusPanel(new CpuCaptureViewStatusModel(stageView.getStage()), "Recording", CpuProfilerToolbar.STOP_TEXT);
+      myPanel =
+        new StatusPanel(new CpuCaptureViewStatusModel(stageView.getStage(), stageView.getStage().getCaptureStartTimeNs()), "Recording",
+                        CpuProfilerToolbar.STOP_TEXT);
       myPanel.setAbortButtonEnabled(!stageView.getStage().isApiInitiatedTracingInProgress());
       // Disable the stop recording button on state transition.
       stageView.getStage().getAspect().addDependency(myObserver)
         .onChange(CpuProfilerAspect.CAPTURE_STATE, () -> myPanel.setAbortButtonEnabled(false));
+      disableInteraction();
+      updateView();
+    }
+
+    @Override
+    void populateContent(@NotNull JPanel panel) {
+      panel.add(myPanel, BorderLayout.CENTER);
+    }
+  }
+
+  /**
+   * A {@link StatusPane} representing the {@link CpuProfilerStage.CaptureState#STOPPING} state.
+   */
+  @VisibleForTesting
+  static class StoppingPane extends CapturePane {
+    static final String STATUS_TEXT = "Waiting for the recording to stop";
+    private final StatusPanel myPanel;
+
+    StoppingPane(@NotNull CpuProfilerStageView stageView) {
+      super(stageView);
+      myPanel =
+        new StatusPanel(new CpuCaptureViewStatusModel(stageView.getStage(), stageView.getStage().getCaptureStopTimeNs()), STATUS_TEXT,
+                        null /* not showing a button */);
       disableInteraction();
       updateView();
     }
@@ -148,7 +173,7 @@ public class CpuCaptureView {
 
   static class CpuParsingViewStatusModel extends CpuCaptureViewStatusModel {
     CpuParsingViewStatusModel(CpuProfilerStage stage) {
-      super(stage);
+      super(stage, -1 /* myStartTimeNs not used in this class */);
     }
 
     @Override
@@ -167,9 +192,11 @@ public class CpuCaptureView {
     protected Range myRange = new Range(0, 0);
     protected CpuProfilerStage myStage;
     private AspectObserver myObserver = new AspectObserver();
+    private long myStartTimeNs;
 
-    CpuCaptureViewStatusModel(CpuProfilerStage stage) {
+    CpuCaptureViewStatusModel(CpuProfilerStage stage, long durationStartTimeNs) {
       myStage = stage;
+      myStartTimeNs = durationStartTimeNs;
       myStage.getAspect().addDependency(myObserver)
         .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateDuration);
     }
@@ -192,7 +219,7 @@ public class CpuCaptureView {
     }
 
     protected void updateDuration() {
-      myRange.setMax(TimeUnit.MICROSECONDS.toNanos(myStage.getCaptureElapsedTimeUs()));
+      myRange.setMax(myStage.currentTimeNs() - myStartTimeNs);
     }
   }
 }

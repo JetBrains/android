@@ -16,13 +16,16 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.CommonElementSelectability
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
+import javax.swing.DefaultListSelectionModel
 import javax.swing.JComponent
 import javax.swing.JTextField
+import javax.swing.ListModel
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
@@ -38,10 +41,10 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
     textField = editor.editorComponent as CommonTextField<*>
-    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext")
-    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { isPopupVisible })
-    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { isPopupVisible })
-    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { isPopupVisible })
+    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext", { consumeKeyNavigation })
+    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { consumeKeyNavigation })
+    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { consumeKeyNavigation })
+    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { consumeKeyNavigation })
     textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
     registerActionKey({}, KeyStrokes.PAGE_DOWN, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerActionKey({}, KeyStrokes.PAGE_UP, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -64,6 +67,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
       super.setEditable(model.editable)
     }
   }
+  private val consumeKeyNavigation: Boolean
+    get() = isPopupVisible || (textField?.lookup?.isVisible == true)
 
   private fun togglePopup() {
     if (textField?.lookup?.isVisible == true) {
@@ -126,6 +131,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
 
   override fun updateUI() {
     super.updateUI()
+    popup?.list?.selectionModel = MyPopupListSelectionModel(model)
     installDefaultRenderer()
   }
 
@@ -163,6 +169,34 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
 
     override fun getToolTipText(event: MouseEvent?): String? {
       return comboBox.getToolTipText(event)
+    }
+  }
+
+  /**
+   * A list selection model that prevent the selection of non selectable elements.
+   */
+  private class MyPopupListSelectionModel<E>(private val model: ListModel<E>) : DefaultListSelectionModel() {
+
+    override fun setSelectionInterval(index0: Int, index1: Int) {
+      val index = findFirstSelectableIndex(index0)
+      super.setSelectionInterval(index, index)
+    }
+
+    private fun findFirstSelectableIndex(start: Int): Int {
+      var index = start
+      if (index < 0) {
+        return -1
+      }
+
+      while (index < model.size) {
+        val element = model.getElementAt(index)
+        val selectable = element as? CommonElementSelectability ?: return index
+        if (selectable.isSelectable) {
+          return index
+        }
+        index++
+      }
+      return -1
     }
   }
 }

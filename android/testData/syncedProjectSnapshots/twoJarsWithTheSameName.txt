@@ -1,10 +1,12 @@
 PROJECT             : My Application
-    MODULE              : My Application
-        - ModuleGroupPath   : My Application
+    MODULE              : My_Application
+        - ModuleGroupPath   : My_Application
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : My Application
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/My Application.iml
+        ModuleFile          : <PROJECT>/.idea/modules/My_Application.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -17,8 +19,14 @@ PROJECT             : My Application
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -101,28 +109,30 @@ PROJECT             : My Application
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:./lib1/liba.jar:unspecified@jar
+        LIBRARY             : Gradle: ./lib1/liba.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./lib1/liba.jar:unspecified@jar [=]
+            Name                : Gradle: ./lib1/liba.jar [=]
             *CLASSES            : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY             : Gradle: __local_aars__:./lib2/liba.jar:unspecified@jar
+        LIBRARY             : Gradle: ./lib2/liba.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./lib2/liba.jar:unspecified@jar [=]
+            Name                : Gradle: ./lib2/liba.jar [=]
             *CLASSES            : jar://<PROJECT>/lib2/liba.jar!/
         ORDER_ENTRY         : lib
     MODULE              : lib
         - ModuleGroupPath   : My Application
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : My Application
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

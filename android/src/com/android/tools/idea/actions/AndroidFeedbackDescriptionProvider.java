@@ -41,6 +41,9 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.ide.FeedbackDescriptionProvider;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -126,7 +129,7 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
 
   private static String getKotlinPluginDetails() {
     PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
-    IdeaPluginDescriptor kotlinPlugin = PluginManager.getPlugin(kotlinPluginId);
+    IdeaPluginDescriptor kotlinPlugin = PluginManagerCore.getPlugin(kotlinPluginId);
     if (kotlinPlugin != null) {
       return kotlinPlugin.getVersion();
     }

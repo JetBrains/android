@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.model
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONSTRAINT_SET_START
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_GRAVITY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
@@ -33,14 +34,14 @@ import com.android.SdkConstants.VALUE_MATCH_PARENT
 import com.android.SdkConstants.VALUE_TOP
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.property.panel.api.FilteredPTableModel
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.impl.model.util.FakeNewPropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePTableModelUpdateListener
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePropertyModel
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -63,6 +64,8 @@ class FilteredPTableModelImplTest {
   private var propMarginTop: FakePropertyItem? = null
   private var propMargin: FakePropertyItem? = null
   private var alternateSortOrder: Comparator<PTableItem>? = null
+  private val itemFilter: (FakePropertyItem) -> Boolean = { !it.value.isNullOrEmpty() }
+  private val deleteOp: (FakePropertyItem) -> Unit = { it.value = null }
 
   @Before
   fun init() {
@@ -135,7 +138,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAddExistingPropertyAlternateOrder() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = FakePTableModelUpdateListener()
     val property = FakePropertyItem(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
     tableModel.addListener(listener)
@@ -147,7 +150,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAddNonExistingProperty() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = FakePTableModelUpdateListener()
     val property = FakePropertyItem(ANDROID_URI, ATTR_FONT_FAMILY, "Sans")
     tableModel.editedItem = propHeight
@@ -161,7 +164,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAddNewProperty() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = FakePTableModelUpdateListener()
     val property = FakeNewPropertyItem()
     tableModel.editedItem = propHeight
@@ -174,11 +177,44 @@ class FilteredPTableModelImplTest {
   }
 
   @Test
+  fun testAddNonExistingPropertyToModelWithNewProperty() {
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    tableModel.addNewItem(FakeNewPropertyItem())
+    val listener = FakePTableModelUpdateListener()
+    val property = FakePropertyItem(ANDROID_URI, ATTR_FONT_FAMILY, "Sans")
+    tableModel.editedItem = propHeight
+    tableModel.addListener(listener)
+    tableModel.addNewItem(property)
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_FONT_FAMILY, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, "").inOrder()
+    assertThat(listener.updateCount).isEqualTo(1)
+    assertThat(listener.nextEditedItem).isEqualTo(propHeight)
+  }
+
+  @Test
+  fun testAddNonExistingPropertyTEndOfModelWithNewProperty() {
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    tableModel.addNewItem(FakeNewPropertyItem())
+    val listener = FakePTableModelUpdateListener()
+    val property = FakePropertyItem(ANDROID_URI, ATTR_CONSTRAINT_SET_START, "@id/btn")
+    tableModel.editedItem = propHeight
+    tableModel.addListener(listener)
+    tableModel.addNewItem(property)
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONSTRAINT_SET_START, "").inOrder()
+    assertThat(listener.updateCount).isEqualTo(1)
+    assertThat(listener.nextEditedItem).isEqualTo(propHeight)
+  }
+
+  @Test
   fun testIsCellEditable() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { true }, deleteOp, alternateSortOrder!!, listOf(MarginGroup()))
     val property = FakeNewPropertyItem()
+    val group = tableModel.items[1]
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.NAME)).isFalse()
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.VALUE)).isTrue()
+    assertThat(tableModel.isCellEditable(group, PTableColumn.NAME)).isTrue()
+    assertThat(tableModel.isCellEditable(group, PTableColumn.VALUE)).isTrue()
     assertThat(tableModel.isCellEditable(property, PTableColumn.NAME)).isTrue()
     assertThat(tableModel.isCellEditable(property, PTableColumn.VALUE)).isFalse()
     property.delegate = propGravity
@@ -188,7 +224,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAcceptMoveToNextEditor() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val property = FakeNewPropertyItem()
     assertThat(tableModel.acceptMoveToNextEditor(propWidth!!, PTableColumn.NAME)).isTrue()
     assertThat(tableModel.acceptMoveToNextEditor(propWidth!!, PTableColumn.VALUE)).isTrue()
@@ -201,7 +237,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenHeightIsRemoved() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = FakePTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propWidth
@@ -216,7 +252,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenWidthIsEditedAndRemoved() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = FakePTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propWidth
@@ -231,7 +267,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenGravityIsAssigned() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = FakePTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propText
@@ -246,7 +282,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testSortedGroup() {
-    val tableModel = FilteredPTableModel.create(model!!, { true }, alternateSortOrder!!, listOf(MarginGroup()), false)
+    val tableModel = FilteredPTableModel.create(model!!, { true }, deleteOp, alternateSortOrder!!, listOf(MarginGroup()), false)
     val items = tableModel.items
     assertThat(items.map { it.name })
       .containsExactly(ATTR_TEXT, MARGIN_GROUP_NAME, ATTR_VISIBLE, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_GRAVITY)

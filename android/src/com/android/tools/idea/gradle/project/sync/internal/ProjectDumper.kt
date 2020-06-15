@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.SdkConstants
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.utils.FileUtils
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,22 +33,13 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ContentEntry
-import com.intellij.openapi.roots.ExcludeFolder
-import com.intellij.openapi.roots.InheritedJdkOrderEntry
-import com.intellij.openapi.roots.JavadocOrderRootType
-import com.intellij.openapi.roots.JdkOrderEntry
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ModuleRootModel
-import com.intellij.openapi.roots.OrderEntry
-import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.SourceFolder
+import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
+import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
@@ -59,7 +52,8 @@ import java.lang.Math.max
  */
 class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
-  private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
+  private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
+  private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val devBuildHome: File = getStudioSourcesLocation()
   private val adtHome: File = getAdtLocation()
@@ -82,21 +76,31 @@ class ProjectDumper(
   private var currentRootDirectoryName = "/"
   private var currentNestingPrefix: String = ""
 
+  private val gradleDistStub = "x".repeat(25)
   private val gradleHashStub = "x".repeat(32)
   private val gradleLongHashStub = "x".repeat(40)
+  private val gradleDistPattern = Regex("/[0-9a-z]{${gradleDistStub.length}}/")
   private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
+  private val gradleVersionPattern = Regex("gradle-.*${SdkConstants.GRADLE_LATEST_VERSION}")
+  private val kotlinVersionPattern =
+    // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
+    // kotlin-something-1.3.1-eap-23
+    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
+
+  fun String.toPrintablePaths(): Collection<String> =
+    split(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
 
   /**
    * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.
    */
   fun String.toPrintablePath(): String {
     fun String.splitPathAndSuffix(): Pair<String, String> =
-        when {
-          this.endsWith("!") -> this.substring(0, this.length - 1) to "!"
-          this.endsWith("!/") -> this.substring(0, this.length - 2) to "!/"
-          else -> this to ""
-        }
+      when {
+        this.endsWith("!") -> this.substring(0, this.length - 1) to "!"
+        this.endsWith("!/") -> this.substring(0, this.length - 2) to "!/"
+        else -> this to ""
+      }
 
     return when {
       this.startsWith("file://") -> "file://" + this.substring("file://".length).toPrintablePath()
@@ -111,16 +115,29 @@ class ProjectDumper(
   }
 
   fun String.replaceKnownPaths(): String =
-      offlineRepos
-          .fold(initial = this) { text, repo -> text.replace(repo.absolutePath, "<M2>", ignoreCase = false) }
-          .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
-          .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
-          .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
-          .replace(adtHome.absolutePath, "<DEV_ADT>", ignoreCase = false)
-          .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
-          .replace(gradleLongHashPattern, gradleLongHashStub)
-          .replace(gradleHashPattern, gradleHashStub)
-          .removeAndroidVersionsFromPath()
+    this
+      .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
+      .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
+      .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(adtHome.absolutePath), "<DEV_ADT>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+      .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+        }
+        else it
+      }
+      .replace(gradleLongHashPattern, gradleLongHashStub)
+      .replace(gradleHashPattern, gradleHashStub)
+      .replace(gradleDistPattern, "/$gradleDistStub/")
+      .let {
+        kotlinVersionPattern.find(it)?.let { match ->
+          it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
+        } ?: it
+      }
+      .removeAndroidVersionsFromPath()
 
   fun appendln(data: String) {
     output.append(currentNestingPrefix)
@@ -147,6 +164,7 @@ class ProjectDumper(
   fun dump(project: Project) {
     currentRootDirectory = File(project.basePath!!)
     currentRootDirectoryName = "PROJECT"
+    println("<PROJECT>     <== ${currentRootDirectory}")
     head("PROJECT") { project.name }
     nest {
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
@@ -309,13 +327,16 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
     prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
     AFTER_SYNC_TASK_NAMES.sorted().forEach { prop("- AfterSyncTask") { it } }
-    prop("AllowUserConfiguration") { ALLOW_USER_CONFIGURATION.toString() }
+    prop("AllowUserConfiguration") {
+      @Suppress("DEPRECATION")
+      ALLOW_USER_CONFIGURATION.toString()
+    }
     prop("GenFolderRelativePathApt") { GEN_FOLDER_RELATIVE_PATH_APT.nullize() }
     prop("GenFolderRelativePathAidl") { GEN_FOLDER_RELATIVE_PATH_AIDL.nullize() }
     prop("ManifestFileRelativePath") { MANIFEST_FILE_RELATIVE_PATH.nullize() }
     prop("ResFolderRelativePath") { RES_FOLDER_RELATIVE_PATH.nullize() }
-    prop("ResFoldersRelativePath") { RES_FOLDERS_RELATIVE_PATH?.toPrintablePath()?.nullize() }
-    prop("TestResFoldersRelativePath") { TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePath()?.nullize() }
+    RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- ResFoldersRelativePath") { it } }
+    TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- TestResFoldersRelativePath") { it } }
     prop("AssetsFolderRelativePath") { ASSETS_FOLDER_RELATIVE_PATH.nullize() }
     prop("LibsFolderRelativePath") { LIBS_FOLDER_RELATIVE_PATH.nullize() }
     prop("UseCustomApkResourceFolder") { USE_CUSTOM_APK_RESOURCE_FOLDER.toString() }

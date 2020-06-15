@@ -20,7 +20,10 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.patterns.PlatformPatterns
@@ -70,6 +73,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         if (attributeType != null && DataBindingUtil.isTwoWayBindingExpression(attributeValue)) {
           referenceList.addAll(model.getReferencesFromInverseBindingAdapter())
           referenceList.addAll(model.getReferencesFromInverseBindingMethods(attributeType))
+          referenceList.addAll(model.getReferencesFromViewGetter())
         }
 
         return referenceList.toTypedArray()
@@ -97,21 +101,12 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
     }
 
-    private val bindingAdapterAnnotation = facade.findClass(
-      mode.bindingAdapter,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+    private val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
 
-    private val bindingMethodsAnnotation = facade.findClass(
-      mode.bindingMethods,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
-
-    private val inverseBindingAdapterAnnotation = facade.findClass(
-      mode.inverseBindingAdapter,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
-
-    private val inverseBindingMethodsAnnotation = facade.findClass(
-      mode.inverseBindingMethods,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+    private val bindingAdapterAnnotation = facade.findClass(mode.bindingAdapter, moduleScope)
+    private val bindingMethodsAnnotation = facade.findClass(mode.bindingMethods, moduleScope)
+    private val inverseBindingAdapterAnnotation = facade.findClass(mode.inverseBindingAdapter, moduleScope)
+    private val inverseBindingMethodsAnnotation = facade.findClass(mode.inverseBindingMethods, moduleScope)
 
     fun isAttributeNameMatched(name: String): Boolean {
       // local name should be matched
@@ -136,7 +131,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        bindingAdapterAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+        bindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.bindingAdapter) ?: return@forEach
           val annotationValue = annotation.findAttributeValue("value") ?: return@forEach
@@ -152,8 +147,11 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
             if (index != -1) {
               referenceList.add(PsiParameterReference(attribute, parameters[index + 1]))
               val adapterContainingClass = annotatedMethod.containingClass ?: return@forEach
-              referenceList.add(PsiMethodReference(attribute, PsiModelMethod(
-                PsiModelClass(PsiTypesUtil.getClassType(adapterContainingClass), mode), annotatedMethod)))
+              referenceList.add(PsiMethodReference(
+                attribute,
+                PsiModelMethod(PsiModelClass(PsiTypesUtil.getClassType(adapterContainingClass), mode), annotatedMethod),
+                PsiMethodReference.Kind.METHOD_REFERENCE
+              ))
             }
           }
         }
@@ -172,7 +170,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        bindingMethodsAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiClass::class.java)
+        bindingMethodsAnnotation, moduleScope, PsiClass::class.java)
         .forEach { bindingMethodsAnnotatedElements ->
           val bindingMethodsAnnotation = AnnotationUtil.findAnnotation(bindingMethodsAnnotatedElements, mode.bindingMethods)
                                          ?: return@forEach
@@ -189,11 +187,11 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
             if (type.isAssignableFrom(viewType)) {
               val methodValue = bindingMethodAnnotation.findAttributeValue("method") as? PsiLiteralExpression ?: return@forEach
               val methodName = methodValue.value as? String ?: return@forEach
-              for (method in PsiModelClass(type, mode).findMethods(methodName, false)) {
+              for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
                 val parameters = method.psiMethod.parameterList.parameters
                 if (parameters.size == 1) {
                   referenceList.add(PsiParameterReference(attribute, parameters[0]))
-                  referenceList.add(PsiMethodReference(attribute, method))
+                  referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_REFERENCE))
                 }
               }
             }
@@ -210,11 +208,11 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
     fun getReferencesFromViewSetter(): List<PsiReference> {
       val setterName = "set" + attribute.name.substringAfter(":").usLocaleCapitalize()
       val referenceList = mutableListOf<PsiReference>()
-      for (method in PsiModelClass(viewType, mode).findMethods(setterName, false)) {
+      for (method in PsiModelClass(viewType, mode).findMethods(setterName, MemberAccess.NON_STATICS_ONLY)) {
         val parameters = method.psiMethod.parameterList.parameters
         if (parameters.size == 1) {
           referenceList.add(PsiParameterReference(attribute, parameters[0]))
-          referenceList.add(PsiMethodReference(attribute, method))
+          referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_REFERENCE))
         }
       }
       return referenceList
@@ -232,7 +230,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        inverseBindingAdapterAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+        inverseBindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseBindingAdapter) ?: return@forEach
           val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteralExpression)
@@ -244,8 +242,11 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               return@forEach
             }
             val annotationContainingClass = annotatedMethod.containingClass ?: return@forEach
-            referenceList.add(PsiMethodReference(attribute, PsiModelMethod(
-              PsiModelClass(PsiTypesUtil.getClassType(annotationContainingClass), mode), annotatedMethod)))
+            referenceList.add(PsiMethodReference(
+              attribute,
+              PsiModelMethod(PsiModelClass(PsiTypesUtil.getClassType(annotationContainingClass), mode), annotatedMethod),
+              PsiMethodReference.Kind.METHOD_CALL
+            ))
           }
         }
       return referenceList
@@ -263,7 +264,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        inverseBindingMethodsAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiClass::class.java)
+        inverseBindingMethodsAnnotation, moduleScope, PsiClass::class.java)
         .forEach { inverseBindingMethodsAnnotatedElements ->
           val inverseBindingMethodsAnnotation = AnnotationUtil.findAnnotation(inverseBindingMethodsAnnotatedElements,
                                                                               mode.inverseBindingMethods)
@@ -287,9 +288,9 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                 val methodPrefix = if (attributeType.isAssignableFrom(PsiPrimitiveType.BOOLEAN)) "is" else "get"
                 methodName = methodPrefix + attribute.name.substringAfter(":").usLocaleCapitalize()
               }
-              for (method in PsiModelClass(type, mode).findMethods(methodName, false)) {
+              for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
                 if (method.parameterTypes.isEmpty()) {
-                  referenceList.add(PsiMethodReference(attribute, method))
+                  referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL))
                   break
                 }
               }
@@ -298,5 +299,37 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         }
       return referenceList
     }
+
+    /**
+     * Provides references from View's getter.
+     *
+     * Example: `String getText()` for attribute app:text in its containing view.
+     */
+    fun getReferencesFromViewGetter(): List<PsiReference> {
+      val getterName = "get" + attribute.name.substringAfter(":").usLocaleCapitalize()
+      return PsiModelClass(viewType, mode)
+               .findMethods(getterName, MemberAccess.NON_STATICS_ONLY)
+               .firstOrNull { method -> method.psiMethod.parameterList.isEmpty }
+               ?.let { method -> listOf(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL)) }
+             ?: listOf()
+    }
   }
+}
+
+/**
+ * Return all possible types that can be set to the attribute.
+ *
+ * The implementation of this method assumes that each valid setter has a correspondent [PsiParameterReference].
+ */
+fun XmlAttribute.getAllSetterTypes(): List<PsiModelClass> {
+  return references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }
+}
+
+/**
+ * Return all possible types that can be get from the attribute.
+ *
+ * The implementation of this method assumes that each valid getter has a [PsiMethodReference] with non-void return type.
+ */
+fun XmlAttribute.getAllGetterTypes(): List<PsiModelClass> {
+  return references.filterIsInstance<PsiMethodReference>().mapNotNull { it.resolvedType }
 }

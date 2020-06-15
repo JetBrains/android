@@ -19,11 +19,14 @@ import com.android.tools.idea.run.applychanges.ApplyChangesUtilsKt;
 import com.android.tools.idea.run.applychanges.ExistingSession;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.stats.RunStats;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
+import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.HyperlinkInfo;
@@ -35,6 +38,7 @@ import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import java.util.function.BiConsumer;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +76,7 @@ public class AndroidRunState implements RunProfileState {
 
     if (processHandler == null) {
       processHandler = new AndroidProcessHandler(
-        myEnv.getProject(), getApplicationId(), shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()));
+        myEnv.getProject(), getMasterAndroidProcessId(myEnv.getRunProfile()), shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()));
     }
     if (console == null) {
       console = myConsoleProvider.createAndAttach(myModule.getProject(), processHandler, executor);
@@ -123,5 +127,22 @@ public class AndroidRunState implements RunProfileState {
     catch (ApkProvisionException e) {
       throw new ExecutionException("Unable to obtain application id", e);
     }
+  }
+
+  /**
+   * Returns a target Android process ID to be monitored by {@link AndroidProcessHandler}.
+   *
+   * If this run is a standard Android application or instrumentation test without test orchestration, the target Android process ID
+   * is simply the application name. Otherwise we should monitor the test orchestration process because the orchestrator starts and
+   * kills the target application process per test case which confuses AndroidProcessHandler (b/150320657).
+   */
+  private String getMasterAndroidProcessId(@NotNull RunProfile runProfile) throws ExecutionException {
+    if (!(runProfile instanceof AndroidTestRunConfiguration)) {
+      return getApplicationId();
+    }
+    AndroidTestRunConfiguration testRunConfiguration = (AndroidTestRunConfiguration) runProfile;
+    return OrchestratorUtilsKt.getMAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME().getOrDefault(
+      testRunConfiguration.getTestExecution(AndroidFacet.getInstance(myModule)),
+      getApplicationId());
   }
 }

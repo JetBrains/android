@@ -383,7 +383,8 @@ object AndroidAttributeFact {
       "textEditSideNoPasteWindowLayout" -> return NelePropertyType.LAYOUT
       "textEditSidePasteWindowLayout" -> return NelePropertyType.LAYOUT
       "textEditSuggestionItemLayout" -> return NelePropertyType.LAYOUT
-      "textFontWeight" -> return NelePropertyType.STRING
+      "textFontWeight" -> return NelePropertyType.INTEGER
+      "textLocale" -> return NelePropertyType.STRING
       "textSelectHandle" -> return NelePropertyType.DRAWABLE
       "textSelectHandleLeft" -> return NelePropertyType.DRAWABLE
       "textSelectHandleRight" -> return NelePropertyType.DRAWABLE
@@ -650,6 +651,7 @@ object AndroidAttributeFact {
       "fontVariationSettings" -> return NelePropertyType.STRING
       "fontWeight" -> return NelePropertyType.INTEGER
       "footerDividersEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "forceDarkAllowed" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "forceHasOverlappingRendering" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "foreground" -> return NelePropertyType.DRAWABLE
       "foregroundInsidePadding" -> return NelePropertyType.THREE_STATE_BOOLEAN

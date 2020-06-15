@@ -16,15 +16,18 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.TooltipModel;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * One of the stages the profiler tool goes through. It models a "state" in the profiler tool itself.
+ *
+ * @param <T> timeline type for this stage
  */
-public abstract class Stage extends AspectObserver {
+public abstract class Stage<T extends Timeline> extends AspectObserver {
 
   protected static final long PROFILING_INSTRUCTIONS_EASE_OUT_NS = TimeUnit.SECONDS.toNanos(3);
 
@@ -36,15 +39,22 @@ public abstract class Stage extends AspectObserver {
    * The active tooltip for stages that contain more than one tooltips.
    */
   @Nullable
-  private ProfilerTooltip myTooltip;
+  private TooltipModel myTooltip;
 
   public Stage(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
   }
 
+  @NotNull
   public StudioProfilers getStudioProfilers() {
     return myProfilers;
   }
+
+  /**
+   * @return the {@link Timeline} that this stage is based on.
+   */
+  @NotNull
+  public abstract T getTimeline();
 
   abstract public void enter();
 
@@ -54,7 +64,7 @@ public abstract class Stage extends AspectObserver {
   public final ProfilerMode getProfilerMode() { return myProfilerMode; }
 
   @Nullable
-  public ProfilerTooltip getTooltip() {
+  public TooltipModel getTooltip() {
     return myTooltip;
   }
 
@@ -78,7 +88,7 @@ public abstract class Stage extends AspectObserver {
    * Changes the active tooltip to the given type.
    * @param tooltip
    */
-  public void setTooltip(ProfilerTooltip tooltip) {
+  public void setTooltip(TooltipModel tooltip) {
     if (tooltip != null && myTooltip != null && tooltip.getClass().equals(myTooltip.getClass())) {
       return;
     }

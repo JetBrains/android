@@ -42,6 +42,7 @@ import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
 import com.google.wireless.android.sdk.stats.TransportDaemonStartedInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.net.NetUtils;
@@ -93,7 +94,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
    */
   private final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
 
-  public TransportDeviceManager(@NotNull DataStoreService dataStoreService, @NotNull MessageBus messageBus) {
+  public TransportDeviceManager(@NotNull DataStoreService dataStoreService, @NotNull MessageBus messageBus,
+                                @NotNull Disposable disposableParent) {
+    Disposer.register(disposableParent, this);
     myDataStoreService = dataStoreService;
     myMessageBus = messageBus;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
@@ -253,16 +256,16 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         fileManager.copyFilesToDevice();
         // Keep starting the daemon in case it's killed, as long as this thread is running (which should be the case
         // as long as the device is connected). The execution may exit this loop only via exceptions.
-        long previousTimeMs = System.currentTimeMillis();
+        long lastDaemonStartTime = System.currentTimeMillis();  // initialized as current time
         for (boolean reconnectAgents = false; ; reconnectAgents = true) {
           long currentTimeMs = System.currentTimeMillis();
-          reportTransportDaemonStarted(reconnectAgents, currentTimeMs - previousTimeMs);
+          reportTransportDaemonStarted(reconnectAgents, currentTimeMs - lastDaemonStartTime);
           // Start transport daemon and block until it is terminated or an exception is thrown.
           startTransportDaemon(transportDevice, reconnectAgents);
           getLogger().info("Daemon stopped running; will try to restart it");
           // Disconnect the proxy and datastore before attempting to reconnect to agents.
           disconnect(mySerialToDeviceContextMap.get(myDevice.getSerialNumber()), myDataStore);
-          previousTimeMs = currentTimeMs;
+          lastDaemonStartTime = currentTimeMs;
         }
       }
       catch (ShellCommandUnresponsiveException | SyncException e) {
@@ -344,7 +347,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
          * Reconnect to the agents that were last known connected.
          */
         private void reconnectAgents() {
-          TransportClient client = new TransportClient(TransportService.getInstance().getChannelName());
+          TransportClient client = new TransportClient(TransportService.CHANNEL_NAME);
           DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
           assert context != null;
           for (Long pid : context.myConnectedAgents) {

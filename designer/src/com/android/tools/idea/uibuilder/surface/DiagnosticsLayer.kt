@@ -28,6 +28,7 @@ import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.text.DecimalFormat
+import java.util.concurrent.TimeUnit
 
 val FONT = JBUI.Fonts.create(Font.MONOSPACED, 9)
 val PCT_FORMAT = DecimalFormat("###.##")
@@ -65,6 +66,12 @@ class DiagnosticsLayer(val surface: DesignSurface) : Layer() {
     val lastRenderMs = diagnostics.lastRenders().takeLast(1).firstOrNull() ?: -1
     val poolStats = RenderService.getInstance(surface.project).sharedImagePool.stats
 
+    val bucketStats = poolStats?.bucketStats?.joinToString("\n") {
+      " (${it.minWidth}x${it.minHeight} s=${it.maxSize()}) " +
+      "lastAccess=${TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - it.lastAccessTimeMs)}s ago " +
+      "hits=${it.bucketHits()} misses=${it.bucketMisses()} wasFull=${it.bucketWasFull()} hadSpace=${it.imageWasReturned()}"
+    } ?: ""
+
     return """
       |General
       | Mem avail     ${runtime.freeMemory() / MB}MB ${PCT_FORMAT.format(freeMemPct)}%
@@ -75,6 +82,9 @@ class DiagnosticsLayer(val surface: DesignSurface) : Layer() {
       | Allocated     ${(poolStats?.totalBytesAllocated() ?: -1) / MB}MB
       | In use        ${(poolStats?.totalBytesInUse() ?: -1)  / MB}MB
       | Free          ${((poolStats?.totalBytesAllocated() ?: -1) - (poolStats?.totalBytesInUse() ?: 0)) / MB}MB
+      |
+      |Buckets
+      |${bucketStats}
     """.trimMargin()
   }
 

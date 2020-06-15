@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.intellij.openapi.diagnostic.Logger
+
 /**
  * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
  * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
@@ -40,6 +42,7 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
 // Whitelist for known issues: don't report leak roots for which this method returns true
 fun Signature.isWhitelisted(): Boolean =
+  size == 2 || // Root + com.intellij.util.lang.UrlClassLoader#?
   anyTypeContains("com.intellij.testGuiFramework") ||
   entry(2) == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
   anyTypeContains("org.fest.swing") ||
@@ -47,15 +50,20 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
   entry(-4) == "java.io.DeleteOnExitHook#files" ||
 
-  // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
-  entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
-  entry(-3) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
+  // don't report growing weak or soft collections. Nodes whose weak or soft referents have been GC'd will be removed from the map during
+  // some future map operation.
+  entry(-2) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
   entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentSoftHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentSoftValueHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap#myMap" ||
+  entry(-2) == "java.lang.invoke.MethodType\$ConcurrentWeakInternSet#map" ||
 
   entry(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" ||
   entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
   entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
-  entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
+  entry(-3) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
   entry(-4) == "com.intellij.util.indexing.impl.storage.VfsAwareMapIndexStorage#myCache" ||
   entry(-3) == "com.intellij.util.indexing.IndexingStamp#myTimestampsCache" ||
   entry(-3) == "com.intellij.util.indexing.IndexingStamp#ourFinishedFiles" ||
@@ -65,11 +73,25 @@ fun Signature.isWhitelisted(): Boolean =
   entry(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
   entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" || // b/126447315
   entry(-3) == "sun.font.XRGlyphCache#cacheMap" ||
-  lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
-  entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers"
+  // this accounts for both myObject2NodeMap and myRootObjects
+  lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||
+  entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers" ||
+  entry(-3) == "org.jdom.JDOMInterner#myElements" ||
+  entry(-4) == "org.jdom.JDOMInterner#myStrings" ||
+  // coroutine scheduler thread pool: b/140457368
+  entry(-2) == "kotlinx.coroutines.scheduling.CoroutineScheduler#workers" ||
+  entry(-2) == "com.intellij.ide.plugins.MainRunner$1#threads" ||
+  entry(-2) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myGlobalStack" ||
+  entry(-4) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myDocumentStacks" ||
+  entry(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces" ||
+  entry(-2) == "com.intellij.openapi.editor.impl.RangeMarkerTree\$RMNode#intervals"
 
-class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
-  val success = leakInfos.filterNot { it.whitelisted }.isEmpty() && disposerInfo.isEmpty()
+class BleakResult(leakInfos: List<LeakInfo> = listOf(), private val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
+  private val leaksAndKnownIssues = leakInfos.filterNot { it.whitelisted }.partition { it.isKnownIssue() } // [known issues] + [leaks]
+  private val actualLeaks = leaksAndKnownIssues.second
+
+  val knownIssues = leaksAndKnownIssues.first
+  val success = actualLeaks.isEmpty() && disposerInfo.isEmpty()
   val errorMessage = mangleSunReflect(
     buildString {
       if (disposerInfo.isNotEmpty()) {
@@ -79,9 +101,25 @@ class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Ma
         }
         append("\n------------------------------\n")
       }
-      append(leakInfos.filterNot { it.whitelisted }.joinToString(separator = "\n------------------------------\n"))
+      append(actualLeaks.joinToString(separator = "\n------------------------------\n"))
     }
   )
+}
+
+/**
+ * Known issues must have a corresponding tracking bug and should be removed as soon it's fixed.
+ */
+private fun LeakInfo.isKnownIssue(): Boolean {
+  // b/144418512: Compose Preview leaking ModuleClassLoader
+  if (leaktrace.signature().size == 1 // Only ROOT
+      // 2 new instances of ModuleClassLoader are added
+      && addedChildren.size == 2
+      && addedChildren[0].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader"
+      && addedChildren[1].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader") {
+    return true
+  }
+
+  return false
 }
 
 fun runWithBleak(scenario: Runnable) {
@@ -93,6 +131,10 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   if (!result.success) {
     throw MemoryLeakDetectedError(result.errorMessage)
   }
+
+  result.knownIssues.takeUnless { it.isEmpty() }?.let {
+    Logger.getInstance(BleakResult::class.java).warn("${it.size} known issue(s) found when running the test with BLeak.")
+  }
 }
 
 private val USE_INCREMENTAL_PROPAGATION = System.getProperty("bleak.incremental.propagation") == "true"
@@ -101,7 +143,7 @@ fun findLeaks(runs: Int = 3, scenario: () -> Unit): BleakResult {
   scenario()  // warm up
   if (System.getProperty("enable.bleak") != "true") return BleakResult() // if BLeak isn't enabled, the test will run normally.
 
-  var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph(initialRun = true)
+  var g1 = HeapGraph().expandWholeGraph(initialRun = true)
   scenario()
   var g2 = HeapGraph().expandWholeGraph()
   g1.propagateGrowing(g2)

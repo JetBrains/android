@@ -33,5 +33,5 @@ internal class PsiLiteralReference(element: PsiElement, private val type: PsiTyp
   override val resolvedType: PsiModelClass
     get() = PsiModelClass(type, DataBindingMode.fromPsiElement(element))
 
-  override val isStatic = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 }

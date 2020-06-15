@@ -19,10 +19,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class CpuTreeNode<T extends CpuTreeNode> {
   /**
@@ -100,14 +99,9 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
   }
 
   protected static double getIntersection(@NotNull Range range, @NotNull CaptureNode node, @NotNull ClockType type) {
-    Range intersection;
-    if (type == ClockType.GLOBAL) {
-      intersection = range.getIntersection(new Range(node.getStartGlobal(), node.getEndGlobal()));
-    }
-    else {
-      intersection = range.getIntersection(new Range(node.getStartThread(), node.getEndThread()));
-    }
-    return intersection.isEmpty() ? 0.0 : intersection.getLength();
+    return type == ClockType.GLOBAL
+           ? range.getIntersectionLength(node.getStartGlobal(), node.getEndGlobal())
+           : range.getIntersectionLength(node.getStartThread(), node.getEndThread());
   }
 
   public boolean inRange(Range range) {

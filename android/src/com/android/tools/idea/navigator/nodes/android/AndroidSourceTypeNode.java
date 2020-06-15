@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -31,21 +36,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import javax.swing.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidSourceType;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link AndroidSourceTypeNode} is a virtual node in the package view of an Android module under which all sources
@@ -114,11 +115,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @Nullable
-  private IdeaSourceProvider findSourceProvider(@NotNull VirtualFile virtualFile) {
+  private NamedIdeaSourceProvider findSourceProvider(@NotNull VirtualFile virtualFile) {
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
-    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
-      if (provider.containsFile(virtualFile)) {
+    for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
+      if (IdeaSourceProviderUtil.containsFile(provider, virtualFile)) {
         return provider;
       }
     }
@@ -213,12 +214,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @Override
   public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + mySourceType.hashCode();
-    for (VirtualFile root : mySourceRoots) {
-      result = 31 * result + root.hashCode();
-    }
-    return result;
+    return Objects.hash(super.hashCode(), mySourceType, mySourceRoots);
   }
 
   @Override

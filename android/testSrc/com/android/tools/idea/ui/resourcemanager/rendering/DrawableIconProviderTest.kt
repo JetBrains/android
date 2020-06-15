@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.rendering
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.resources.ResourceMergerItem
@@ -26,6 +27,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.ImageCacheRule
+import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRenderer
 import com.android.tools.idea.util.androidFacet
@@ -34,6 +36,7 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -55,6 +58,12 @@ class DrawableIconProviderTest {
   var androidProjectRule = AndroidProjectRule.inMemory()
 
   val facet get() = androidProjectRule.fixture.module.androidFacet!!
+
+  @Before
+  fun setup() {
+    androidProjectRule.fixture.testDataPath = getTestDataDirectory()
+    androidProjectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
+  }
 
   @Test
   fun get0SizedListCellRendererComponent() {
@@ -132,7 +141,7 @@ private fun createTestImage(): BufferedImage =
 
 private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
-  val manifest = MergedManifestManager.getSnapshot(androidFacet)
+  val manifest = MergedManifestManager.getMergedManifestSupplier(androidFacet.module).get().get()
   val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
   return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault())
 }

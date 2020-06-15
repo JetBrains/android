@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.actions;
 
+import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -29,6 +30,8 @@ import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -84,7 +87,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     if (button == null) {
       return;
     }
-    updateActions();
+    updateActions(eve.getDataContext());
     JPanel componentPopup = createCustomComponentPopup();
     if (componentPopup == null) {
       showPopupMenu(eve, button);
@@ -119,7 +122,22 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
       return new ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
     }
     else {
-      return new ActionButton(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+      return new ActionButton(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
+        @Override
+        protected void updateToolTipText() {
+          // Copied from ActionButtonWithText to get the same tooltip behaviour for both types of buttons
+          String description = myPresentation.getDescription();
+          if (Registry.is("ide.helptooltip.enabled")) {
+            HelpTooltip.dispose(this);
+            if (StringUtil.isNotEmpty(description)) {
+              new HelpTooltip().setDescription(description).installOn(this);
+            }
+          }
+          else {
+            setToolTipText(description);
+          }
+        }
+      };
     }
   }
 
@@ -147,7 +165,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
    * @return true id the actions were updated, false otherwise.
    * <p>Returning false allows the popup previous popup instance to be reused
    */
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     return false;
   }
 

@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -496,7 +497,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
           }
           String version = myModel.version().toString();
           String newVersion;
-          if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+          if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
             // For version upgrades get the highest of the existing one and the old one
             newVersion = getHighestVersion(version, mapEntry.getNewBaseVersion());
           }
@@ -551,7 +552,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         }
         if (version.getReference() != null) {
           String newVersion;
-          if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+          if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
             // For version upgrades get the highest of the existing one and the old one
             newVersion = getHighestVersion(version.getText(), mapEntry.getNewBaseVersion());
 
@@ -569,7 +570,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       }
       else if (element.getReference() != null) {
         String newVersion;
-        if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+        if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
           GradleCoordinate existingCoordinate = GradleCoordinate.parseCoordinateString(element.getReference().getCanonicalText());
           // For version upgrades get the highest of the existing one and the old one
           newVersion = getHighestVersion(existingCoordinate, mapEntry.getNewBaseVersion());
@@ -601,7 +602,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         }
       } else if (element instanceof GrString) {
         String newVersion;
-        if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+        if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
           GradleCoordinate existingCoordinate = GradleCoordinate.parseCoordinateString(GrStringUtil.removeQuotes(element.getText()));
 
           // For version upgrades get the highest of the existing one and the old one
@@ -680,15 +681,22 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class GradleStringUsageInfo extends GradleUsageInfo {
 
     @NotNull private final String myNewValue;
+    private final GradleBuildModel myBuildModel;
 
-    public GradleStringUsageInfo(@NotNull GrLiteral element, @NotNull String newValue) {
+    public GradleStringUsageInfo(@NotNull PsiElement element, @NotNull String newValue, @NotNull GradleBuildModel buildModel) {
       super(element);
       myNewValue = newValue;
+      myBuildModel = buildModel;
     }
 
     @Nullable
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
+      if (myBuildModel.isModified()) {
+        myBuildModel.applyChanges();
+        return getElement();
+      }
+
       PsiElement element = getElement();
       if (element == null) {
         return null;

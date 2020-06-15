@@ -239,7 +239,7 @@ public class WidgetConstraintModel implements SelectionListener {
   public static final int CONNECTION_BOTTOM = 3;
   public static final int CONNECTION_BASELINE = 4;
 
-  private final static int DELAY_BEFORE_COMMIT = 400; // ms
+  protected final static int DELAY_BEFORE_COMMIT = 400; // ms
 
   private boolean myIsInCallback = false;
   private Runnable myUpdateCallback;
@@ -278,6 +278,10 @@ public class WidgetConstraintModel implements SelectionListener {
   @Nullable private ComponentModification myModification;
 
   @NotNull private final Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
+    commit();
+  });
+
+  protected void commit() {
     if (myModification != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
@@ -287,8 +291,7 @@ public class WidgetConstraintModel implements SelectionListener {
         }
       });
     }
-  });
-
+  }
   public WidgetConstraintModel(@NotNull Runnable modelUpdateCallback) {
     myUpdateCallback = modelUpdateCallback;
   }
@@ -312,9 +315,9 @@ public class WidgetConstraintModel implements SelectionListener {
     boolean rtl = ConstraintUtilities.isInRTL(myComponent);
 
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
-    String marginString = myComponent.getLiveAttribute(ANDROID_URI, marginsAttr[type][0]);
+    String marginString =getValue(myComponent, ANDROID_URI, marginsAttr[type][0]);
     for (int i = 1; marginString == null && marginsAttr[type].length > i; i++) {
-      marginString = myComponent.getLiveAttribute(ANDROID_URI, marginsAttr[type][i]);
+      marginString =getValue(myComponent, ANDROID_URI, marginsAttr[type][i]);
     }
 
     int margin = 0;
@@ -322,9 +325,9 @@ public class WidgetConstraintModel implements SelectionListener {
       margin = ConstraintUtilities.getDpValue(myComponent, marginString);
     }
     String[][] ourConstraintString = rtl ? ourConstraintString_rtl : ourConstraintString_ltr;
-    String connection = myComponent.getLiveAttribute(SHERPA_URI, ourConstraintString[type][0]);
+    String connection =getValue(myComponent, SHERPA_URI, ourConstraintString[type][0]);
     for (int i = 1; connection == null && i < ourConstraintString[type].length; i++) {
-      connection = myComponent.getLiveAttribute(SHERPA_URI, ourConstraintString[type][i]);
+      connection =getValue(myComponent, SHERPA_URI, ourConstraintString[type][i]);
     }
     if (connection == null) {
       margin = -1;
@@ -355,8 +358,7 @@ public class WidgetConstraintModel implements SelectionListener {
    * Returns true if the current component has a baseline constraint
    */
   public boolean hasBaseline() {
-    return myComponent != null &&
-           myComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+    return myComponent != null &&getValue(           myComponent, SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
   public void setSurface(@Nullable DesignSurface surface) {
@@ -416,7 +418,7 @@ public class WidgetConstraintModel implements SelectionListener {
 
   @Nullable
   public String getRatioString() {
-    return myComponent == null ? null : myComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_DIMENSION_RATIO);
+    return myComponent == null ? null : getValue(myComponent, SHERPA_URI, ATTR_LAYOUT_DIMENSION_RATIO);
   }
 
   private static boolean isApplicable(@Nullable NlComponent component) {
@@ -431,7 +433,13 @@ public class WidgetConstraintModel implements SelectionListener {
    * Remove the attribute from NlComponent
    */
   public void removeAttributes(@NotNull String namespace, @NotNull String attribute) {
-    final NlComponent component = myComponent;
+    removeAttributes(myComponent, namespace, attribute);
+  }
+
+  /**
+   * Remove the attribute from NlComponent
+   */
+  protected void removeAttributes(final NlComponent component, @NotNull String namespace, @NotNull String attribute) {
     if (component == null || myIsInCallback) {
       return;
     }
@@ -549,7 +557,7 @@ public class WidgetConstraintModel implements SelectionListener {
     if (source == null) {
       source = myComponent;
     }
-    return source.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS);
+    return getValue(source, SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS);
   }
 
   /**
@@ -564,10 +572,10 @@ public class WidgetConstraintModel implements SelectionListener {
     if (source == null) {
       source = myComponent;
     }
-    return source.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS);
+    return getValue(source, SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS);
   }
 
-  private static float parseBiasStringFloat(@Nullable String string) {
+  protected static float parseBiasStringFloat(@Nullable String string) {
     if (string != null && !string.isEmpty()) {
       try {
         return Float.parseFloat(string);
@@ -582,7 +590,7 @@ public class WidgetConstraintModel implements SelectionListener {
     if (myComponent == null) {
       return 0;
     }
-    String v = myComponent.getLiveAttribute(ANDROID_URI, attribute);
+    String v = getValue(myComponent, ANDROID_URI, attribute);
     if (VALUE_WRAP_CONTENT.equalsIgnoreCase(v)) {
       return -1;
     }
@@ -594,7 +602,6 @@ public class WidgetConstraintModel implements SelectionListener {
       return;
     }
 
-    attribute = ConstraintComponentUtilities.mapStartEndStrings(myComponent, attribute);
     boolean isCurrentValueReference = currentValue.startsWith("@");
     if (isCurrentValueReference) {
       setAttribute(ANDROID_URI, attribute, currentValue);
@@ -611,10 +618,10 @@ public class WidgetConstraintModel implements SelectionListener {
     } catch (NumberFormatException nfe) {
     }
 
-    String marginString = myComponent.getLiveAttribute(ANDROID_URI, attribute);
+    String marginString = getValue(myComponent, ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
-      marginValue = ConstraintComponentUtilities.getDpValue(myComponent, myComponent.getLiveAttribute(ANDROID_URI, attribute));
+      marginValue = ConstraintComponentUtilities.getDpValue(myComponent, getValue(myComponent, ANDROID_URI, attribute));
     }
     if (marginValue != -1 && marginValue == currentValueInInt) {
       setAttribute(ANDROID_URI, attribute, marginString);
@@ -648,7 +655,8 @@ public class WidgetConstraintModel implements SelectionListener {
   /**
    * Set the live attribute
    */
-  private void setAttribute(@NotNull NlComponent component, @NotNull String nameSpace, @NotNull String attribute, @Nullable String value) {
+  protected void
+  setAttribute(@NotNull NlComponent component, @NotNull String nameSpace, @NotNull String attribute, @Nullable String value) {
     NlModel model = component.getModel();
 
     if (myModification == null || myModification.getComponent() != component) {
@@ -728,7 +736,7 @@ public class WidgetConstraintModel implements SelectionListener {
     if (myComponent == null || myIsInCallback) {
       return;
     }
-    String width = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
+    String width = getValue(myComponent,ANDROID_URI, ATTR_LAYOUT_WIDTH);
     if (width == null) {
       width = SdkConstants.VALUE_WRAP_CONTENT;
     }
@@ -757,7 +765,7 @@ public class WidgetConstraintModel implements SelectionListener {
     if (myComponent == null || myIsInCallback) {
       return;
     }
-    String height = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
+    String height = getValue(myComponent,ANDROID_URI, ATTR_LAYOUT_HEIGHT);
     if (height == null) {
       height = SdkConstants.VALUE_WRAP_CONTENT;
     }
@@ -817,5 +825,9 @@ public class WidgetConstraintModel implements SelectionListener {
       }
     }
     return false;
+  }
+
+  protected String getValue(NlComponent component, String namespace, @NotNull String attribute) {
+    return  component.getLiveAttribute(namespace,attribute);
   }
 }

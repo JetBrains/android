@@ -22,18 +22,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class RecyclerViewHandlerTest extends LayoutTestCase {
-  private int selectionUpdateCount;
 
   public void testXmlForDragPreview() {
     RecyclerViewHandler handler = new RecyclerViewHandler();
@@ -58,7 +53,6 @@ public class RecyclerViewHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/myView\"\n" +
                  "        android:layout_width=\"980dp\"\n" +
                  "        android:layout_height=\"980dp\" />");
-    assertThat(selectionUpdateCount).isAtLeast(1);
   }
 
   public void testDragIntoRecyclerView() {
@@ -79,25 +73,6 @@ public class RecyclerViewHandlerTest extends LayoutTestCase {
     if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
       // Should not able to drag into RecyclerView
       assertEmpty(screen.get("@id/myView").getSceneComponent().getChildren());
-
-      List<NlComponent> selection= screen.getScreen().getSelectionModel().getSelection();
-      assertEquals(1, selection.size());
-
-      // After dragging failed, the selection should keep on button.
-      assertEquals(screen.get("@id/myButton").getComponent(), selection.get(0));
-      assertThat(selectionUpdateCount).isAtLeast(1);
-    }
-    else {
-      // TODO: remove this part after removing flag. Keep the original part in case we need to turn off the flag.
-
-      // RecyclerViewHandler.createDragHandler() returns null i.e. the RecyclerView does not accept
-      // views being dragged from the palette.
-      // [Notice: this test does not drag components from the palette, but underlying the drag logic
-      //  is currently used for dragging components from the palette.]
-
-      // It is an error if the selection model reported a new selection after dropping this component
-      // on the RecyclerView.
-      assertEquals(0, selectionUpdateCount);
     }
   }
 
@@ -120,14 +95,6 @@ public class RecyclerViewHandlerTest extends LayoutTestCase {
                                        .width("50dp")
                                        .height("50dp")
                                    ));
-    SyncNlModel model = builder.build();
-    SelectionModel selectionModel = model.getSurface().getSelectionModel();
-    selectionModel.addListener(new SelectionListener() {
-      @Override
-      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-        selectionUpdateCount++;
-      }
-    });
-    return model;
+    return builder.build();
   }
 }

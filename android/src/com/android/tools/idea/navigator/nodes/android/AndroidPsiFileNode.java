@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,12 +30,12 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class AndroidPsiFileNode extends PsiFileNode {
-  @Nullable private final IdeaSourceProvider mySourceProvider;
+  @Nullable private final NamedIdeaSourceProvider mySourceProvider;
 
   AndroidPsiFileNode(@NotNull Project project,
                      @NotNull PsiFile file,
                      @NotNull ViewSettings settings,
-                     @Nullable IdeaSourceProvider sourceProvider) {
+                     @Nullable NamedIdeaSourceProvider sourceProvider) {
     super(project, file, settings);
     mySourceProvider = sourceProvider;
   }

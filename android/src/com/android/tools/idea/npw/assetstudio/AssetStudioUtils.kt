@@ -1,0 +1,170 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Utility methods helpful for working with and generating Android assets.
+ */
+@file:JvmName("AssetStudioUtils")
+
+package com.android.tools.idea.npw.assetstudio
+
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
+
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.util.AssetUtil
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
+import com.android.tools.adtui.ImageUtils
+import com.android.tools.idea.projectsystem.AndroidModulePaths
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.google.common.base.CaseFormat
+import com.google.common.collect.Iterables
+import com.intellij.openapi.util.io.FileUtil
+import java.awt.Dimension
+import java.awt.Rectangle
+import java.awt.image.BufferedImage
+import org.jetbrains.android.facet.AndroidFacet
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+
+/**
+ * Scales the given rectangle by the given scale factor.
+ *
+ * @param rect the rectangle to scale
+ * @param scaleFactor the factor to scale by
+ * @return the scaled rectangle
+ */
+fun scaleRectangle(rect: Rectangle, scaleFactor: Double): Rectangle = Rectangle(
+  (rect.x * scaleFactor).roundToInt(),
+  (rect.y * scaleFactor).roundToInt(),
+  (rect.width * scaleFactor).roundToInt(),
+  (rect.height * scaleFactor).roundToInt())
+
+/**
+ * Scales the given rectangle by the given scale factor preserving the location of its center.
+ *
+ * @param rect the rectangle to scale
+ * @param scaleFactor the factor to scale by
+ * @return the scaled rectangle
+ */
+fun scaleRectangleAroundCenter(rect: Rectangle, scaleFactor: Double): Rectangle {
+  val width = (rect.width * scaleFactor).roundToInt()
+  val height = (rect.height * scaleFactor).roundToInt()
+  return Rectangle(
+    (rect.x * scaleFactor - (width - rect.width) / 2.0).roundToInt(),
+    (rect.y * scaleFactor - (height - rect.height) / 2.0).roundToInt(),
+    width,
+    height)
+}
+
+/**
+ * Scales the given [Dimension] vector by the given scale factor.
+ *
+ * @param dim the vector to scale
+ * @param scaleFactor the factor to scale by
+ * @return the scaled vector
+ */
+fun scaleDimension(dim: Dimension, scaleFactor: Double) =
+  Dimension((dim.width * scaleFactor).roundToInt(), (dim.height * scaleFactor).roundToInt())
+
+/**
+ * Exposes Kotlin's roundToInt to Java.
+ *
+ * @deprecated
+ */
+fun Double.roundToInt(): Int = roundToInt()
+
+/**
+ * Create a tiny dummy image, so that we can always return a not null result if an image we were looking for isn't found.
+ *
+ */
+@Suppress("UndesirableClassUsage") // we intentionally avoid UiUtil.createImage (for retina) because we just want a small image
+fun createDummyImage(): BufferedImage = BufferedImage(1, 1, TYPE_INT_ARGB)
+
+/**
+ * Remove any surrounding padding from the image.
+ */
+fun trim(image: BufferedImage): BufferedImage = ImageUtils.cropBlank(image, null, TYPE_INT_ARGB) ?: image
+
+/**
+ * Pad the image with extra space. The padding percent works by taking the largest side of the current image,
+ * multiplying that with the percent value, and adding that portion to each side of the image.
+ *
+ * So for example, an image that's 100x100, with 50% padding percent, ends up resized to
+ * (50+100+50)x(50+100+50), or 200x200. The 100x100 portion is then centered, taking up what
+ * looks like 50% of the final image. The same 100x100 image, with 100% padding, ends up at
+ * 300x300, looking in the final image like it takes up ~33% of the space.
+ *
+ * Padding can also be negative, which eats into the space of the original asset, causing a zoom in effect.
+ */
+fun pad(image: BufferedImage, paddingPercent: Int): BufferedImage {
+  if (image.width <= 1 || image.height <= 1) {
+    // If we're handling a dummy image, just abort now before AssetUtil.paddedImage throws an exception.
+    return image
+  }
+
+  val largerSide = max(image.width, image.height)
+  val smallerSide = min(image.width, image.height)
+  // Don't let padding get so negative that it would totally wipe out one of the dimensions.
+  // And  since padding is added to all sides, negative padding should be at most half of the smallest side.
+  // Example: if the smaller side is 100px, min padding is -49px
+  val padding = (largerSide * paddingPercent.coerceAtMost(100) / 100).coerceAtLeast(-(smallerSide / 2 - 1))
+
+  return AssetUtil.paddedImage(image, padding)
+}
+
+/**
+ * Returns true if a resource with the same name is already found at a location implied by the input parameters.
+ */
+fun resourceExists(paths: AndroidModulePaths, resourceType: ResourceFolderType, name: String): Boolean {
+  val resDir = Iterables.getFirst(paths.resDirectories, null) ?: return false
+  val resTypes = resDir.listFiles() ?: return false
+
+  // The path of a resource looks something like:
+  //
+  // path/to/res/
+  //   drawable/name
+  //   drawable-hdpi-v9/name
+  //   drawable-hdpi-v11/name
+  //   drawable-mdpi-v9/name
+  //   ...
+  //
+  // We don't really care about the "drawable" directory here; we just want to search all folders
+  // in res/ and look for the first match in any of them.
+  return resTypes
+    .filter { it.isDirectory && resourceType == ResourceFolderType.getFolderType(it.name) }
+    .flatMap { it.listFiles().orEmpty().toList()  }
+    .any { FileUtil.getNameWithoutExtension(it).equals(name, ignoreCase = true) }
+}
+
+/**
+ * Like [resourceExists] but a useful fallback if information about the current paths is not known.
+ */
+fun resourceExists(facet: AndroidFacet, resourceType: ResourceType, name: String): Boolean {
+  val repository = ResourceRepositoryManager.getAppResources(facet)
+  return repository.hasResources(ResourceNamespace.TODO(), resourceType, name)
+}
+
+/**
+ * Returns the name of an enum value as a lower camel case string.
+ */
+fun toLowerCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, enumValue.name)
+
+/**
+ * Returns the name of an enum value as an upper camel case string.
+ */
+fun toUpperCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name)

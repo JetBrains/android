@@ -26,9 +26,4 @@ public class GradleSyncExecutorWithFullVariantsTest extends GradleSyncExecutorTe
   protected boolean useSingleVariantSyncInfrastructure() {
     return false;
   }
-
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
-    return false;
-  }
 }

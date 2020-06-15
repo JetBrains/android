@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates
 
 import com.android.tools.idea.templates.ParameterValueResolver.Companion.resolve
+import com.android.tools.idea.wizard.template.Constraint
 import com.android.utils.XmlUtils
 import org.junit.Test
 import org.junit.Assert.assertEquals
@@ -34,7 +35,7 @@ class ParameterValueResolverTest {
     assertEquals("Hello", defaultValuesMap1[getParameterObject(template, "p2")])
 
     // Making "p2" unique, will now force it to de-duplicate (even if it doesn't have a suggest value)
-    getParameterObject(template, "p2").constraints.add(Parameter.Constraint.UNIQUE)
+    getParameterObject(template, "p2").constraints.add(Constraint.UNIQUE)
     val defaultValuesMap2 = resolve(template.parameters, mapOf(), mapOf(), deduplicator)
     assertEquals("HelloNew", defaultValuesMap2[getParameterObject(template, "p2")])
   }

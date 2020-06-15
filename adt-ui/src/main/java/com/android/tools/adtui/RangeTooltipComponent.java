@@ -15,8 +15,10 @@
  */
 package com.android.tools.adtui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.model.Timeline;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -49,13 +51,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   private float myOldHighlightX = INVALID_HIGHLIGHT_X;
 
   @NotNull
-  private final Range myHighlightRange;
-
-  @NotNull
-  private final Range myViewRange;
-
-  @NotNull
-  private final Range myDataRange;
+  private final Timeline myTimeline;
 
   @NotNull
   private final TooltipComponent myTooltipComponent;
@@ -70,22 +66,25 @@ public final class RangeTooltipComponent extends AnimatedComponent {
   @Nullable
   private Point myLastPoint;
 
-  public RangeTooltipComponent(@NotNull Range highlight, @NotNull Range view, @NotNull Range data, @NotNull JComponent component,
-                               @NotNull JLayeredPane parent, @NotNull Supplier<Boolean> showSeekComponent) {
-    myHighlightRange = highlight;
-    myViewRange = view;
-    myDataRange = data;
+  public RangeTooltipComponent(@NotNull Timeline timeline,
+                               @NotNull JComponent component,
+                               @NotNull JLayeredPane parent,
+                               @NotNull Supplier<Boolean> showSeekComponent) {
+    myTimeline = timeline;
     myShowSeekComponent = showSeekComponent;
-
     myTooltipComponent =
-      new TooltipComponent.Builder(component, this, parent).setDefaultVisibilityOverride(() -> isHighlightRangeVisible()).build();
-    myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::refreshRanges);
-    myHighlightRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::highlightRangeChanged);
+      new TooltipComponent.Builder(component, this, parent)
+        .setDefaultVisibilityOverride(() -> isHighlightRangeVisible())
+        // Flapping usually happens when the timeline is constantly changing.
+        .setEnableAntiFlap(timeline instanceof StreamingTimeline)
+        .build();
+    myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::refreshRanges);
+    myTimeline.getTooltipRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::tooltipRangeChanged);
   }
 
   @VisibleForTesting
-  public RangeTooltipComponent(@NotNull Range hightlight, @NotNull Range view, @NotNull Range data, @NotNull JComponent component) {
-    this(hightlight, view, data, component, new JLayeredPane(), () -> true);
+  public RangeTooltipComponent(Timeline timeline, @NotNull JComponent component) {
+    this(timeline, component, new JLayeredPane(), () -> true);
   }
 
   public void registerListenersOn(@NotNull JComponent component) {
@@ -103,7 +102,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
       @Override
       public void mouseExited(MouseEvent e) {
         myLastPoint = null;
-        myHighlightRange.clear();
+        myTimeline.getTooltipRange().clear();
       }
 
       @Override
@@ -132,17 +131,17 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     if (isShowing()) {
       if (myLastPoint != null) {
         double current = xToRange(myLastPoint.x);
-        myHighlightRange.set(current, current);
+        myTimeline.getTooltipRange().set(current, current);
       }
       else {
-        myHighlightRange.clear();
+        myTimeline.getTooltipRange().clear();
       }
     }
   }
 
   @SuppressWarnings("FloatingPointEquality")
-  private void highlightRangeChanged() {
-    if (myHighlightRange.isEmpty() && myOldHighlightX == INVALID_HIGHLIGHT_X) {
+  private void tooltipRangeChanged() {
+    if (myTimeline.getTooltipRange().isEmpty() && myOldHighlightX == INVALID_HIGHLIGHT_X) {
       return;
     }
 
@@ -155,7 +154,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
 
     // Repaint the area where the highlight/seek line will be only when the range is not empty and the highlight/seek line is turned on.
     if (isHighlightRangeVisible() && myShowSeekComponent.get()) {
-      float x = rangeToX(myHighlightRange.getMin());
+      float x = rangeToX(myTimeline.getTooltipRange().getMin());
       int minX = (int)Math.floor(x - HIGHLIGHT_WIDTH / 2.0);
       int width = (int)Math.ceil(x + HIGHLIGHT_WIDTH / 2.0) - minX;
       opaqueRepaint(minX, 0, width, getHeight());
@@ -166,16 +165,19 @@ public final class RangeTooltipComponent extends AnimatedComponent {
 
   @VisibleForTesting
   double xToRange(int x) {
-    return x / (double)getWidth() * myViewRange.getLength() + myViewRange.getMin();
+    return x / (double)getWidth() * myTimeline.getViewRange().getLength() + myTimeline.getViewRange().getMin();
   }
 
   @VisibleForTesting
   float rangeToX(double value) {
-    return (float)(getWidth() * (value - myViewRange.getMin()) / (myViewRange.getMax() - myViewRange.getMin()));
+    return (float)(getWidth() * (value - myTimeline.getViewRange().getMin()) /
+                   (myTimeline.getViewRange().getMax() - myTimeline.getViewRange().getMin()));
   }
 
   private boolean isHighlightRangeVisible() {
-    return myLastPoint != null && !myHighlightRange.isEmpty() && myHighlightRange.getMin() >= myDataRange.getMin();
+    return myLastPoint != null &&
+           !myTimeline.getTooltipRange().isEmpty() &&
+           myTimeline.getTooltipRange().getMin() >= myTimeline.getDataRange().getMin();
   }
 
   @Override
@@ -185,7 +187,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     }
 
     if (myShowSeekComponent.get()) {
-      float x = rangeToX(myHighlightRange.getMin());
+      float x = rangeToX(myTimeline.getTooltipRange().getMin());
       myOldHighlightX = x;
 
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

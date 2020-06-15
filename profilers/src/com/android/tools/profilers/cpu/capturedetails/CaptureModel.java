@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CaptureNode;
@@ -27,9 +28,13 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages states of the selected capture, such as current select thread, capture details (i.e top down tree, bottom up true, chart).
@@ -72,12 +77,11 @@ public class CaptureModel {
   @NotNull
   private Filter myFilter = Filter.EMPTY_FILTER;
 
+  @NotNull
+  private FilterResult myFilterResult = new FilterResult();
+
   @Nullable
   private CaptureDetails myDetails;
-
-  private int myTotalNodeCount;
-
-  private int myFilterNodeCount;
 
   /**
    * Reference to a selection range converted to ClockType.THREAD.
@@ -89,7 +93,7 @@ public class CaptureModel {
     myCaptureConvertedRange = new Range();
     myThread = NO_THREAD;
 
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     selection.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
     myCaptureConvertedRange.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
   }
@@ -158,12 +162,14 @@ public class CaptureModel {
     return myClockType;
   }
 
-  public void setFilter(@NotNull Filter filter) {
+  @NotNull
+  public FilterResult applyFilter(@NotNull Filter filter) {
     if (Objects.equals(filter, myFilter)) {
-      return;
+      return myFilterResult;
     }
     myFilter = filter;
     rebuildDetails();
+    return myFilterResult;
   }
 
   @NotNull
@@ -180,7 +186,7 @@ public class CaptureModel {
     if (type != null) {
       DETAILS_TRACKERS.get(type).accept(tracker);
     }
-    buildDetails(type);
+    rebuildDetails(type);
   }
 
   @Nullable
@@ -188,77 +194,43 @@ public class CaptureModel {
     return myDetails;
   }
 
-  private void rebuildDetails() {
-    if (myCapture == null) {
-      buildDetails(null);
-    }
-    else {
-      buildDetails(myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType());
-    }
-  }
-
-  private void buildDetails(@Nullable CaptureDetails.Type type) {
+  /**
+   * Helper function to change the {@link CaptureDetails}.
+   *
+   * @param suggestedType The {@link CaptureDetails.Type} to change to. If suggestedType is not null the new type will be that type.
+   *                      If suggestedType is null the last capture details type is used.
+   *                      If no last details type is set the {@link CaptureDetails.Type#CALL_CHART} is used by default.
+   */
+  private void rebuildDetails(@Nullable CaptureDetails.Type suggestedType) {
     updateCaptureConvertedRange();
-    myTotalNodeCount = 0;
-    myFilterNodeCount = 0;
-    if (type != null) {
+    if (myCapture != null) {
+      // Grab the currently selected thread and apply any filters the user set.
       CaptureNode node = getNode();
       if (node != null) {
-        applyFilter(node, false);
+        myFilterResult = node.applyFilter(myFilter);
       }
-      myDetails = type.build(myCaptureConvertedRange, node, myCapture);
+      if (suggestedType == null) {
+        suggestedType = myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType();
+      }
+      List<CaptureNode> nodes = node == null ? Collections.emptyList() : Collections.singletonList(node);
+      myDetails = suggestedType.build(myCaptureConvertedRange, nodes, myCapture);
     }
     else {
+      // If we don't have a capture clear the filter state and the details.
       myFilter = Filter.EMPTY_FILTER;
       myDetails = null;
     }
-
+    // Let everyone know the state of details has changed. This needs to be done after we set myDetails.
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_DETAILS);
+  }
+
+  private void rebuildDetails() {
+    rebuildDetails(null);
   }
 
   @Nullable
   private CaptureNode getNode() {
     return myCapture != null ? myCapture.getCaptureNode(myThread) : null;
-  }
-
-  public int getNodeCount() {
-    return myTotalNodeCount;
-  }
-
-  public int getFilterNodeCount() {
-    return myFilterNodeCount;
-  }
-
-  /**
-   * Applies the current filter {@link #myFilter} to the {@param node}.
-   *
-   * @param node    - a node to apply the current filter
-   * @param matches - whether there is a match to the filter in one of its ancestors.
-   */
-  private void applyFilter(@NotNull CaptureNode node, boolean matches) {
-    boolean nodeExactMatch = node.matchesToFilter(myFilter);
-    matches = matches || nodeExactMatch;
-    boolean allChildrenUnmatch = true;
-    myTotalNodeCount++;
-    if (nodeExactMatch) {
-      myFilterNodeCount++;
-    }
-    for (CaptureNode child : node.getChildren()) {
-      applyFilter(child, matches);
-      if (!child.isUnmatched()) {
-        allChildrenUnmatch = false;
-      }
-    }
-
-    if (!matches && allChildrenUnmatch) {
-      node.setFilterType(CaptureNode.FilterType.UNMATCH);
-    }
-    else if (nodeExactMatch && !myFilter.isEmpty()) {
-      node.setFilterType(CaptureNode.FilterType.EXACT_MATCH);
-    }
-    else {
-      node.setFilterType(CaptureNode.FilterType.MATCH);
-    }
   }
 
   /**
@@ -270,7 +242,7 @@ public class CaptureModel {
    */
   private void updateCaptureConvertedRange() {
     // TODO: improve performance of select range conversion.
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     ClockType clockType = getClockType();
     CpuCapture capture = getCapture();
     CaptureNode node;
@@ -310,7 +282,7 @@ public class CaptureModel {
    * This prevents from updating each other in a loop.
    */
   private void setSelectionRange(double min, double max) {
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     if (Math.abs(selection.getMin() - min) > EPSILON || Math.abs(selection.getMax() - max) > EPSILON) {
       selection.set(min, max);
     }

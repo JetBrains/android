@@ -27,6 +27,7 @@ import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.ContainerFixture
+import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import sun.awt.PeerEvent
@@ -94,7 +95,9 @@ fun waitForIdle() {
 }
 
 internal fun ContainerFixture<*>.clickToolButton(titlePrefix: String) {
-  fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false
+  fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false ||
+                               accessibleContext.accessibleName?.startsWith(titlePrefix) ?: false
+
   // Find the topmost tool button. (List/Map editors may contains similar buttons)
   val button =
     ActionButtonFixture(
@@ -157,7 +160,7 @@ private fun oneFullSync() {
     var done = false
     fun postTryIdleMessage(expectNumber: Int) {
       if (IdeEventQueue.getInstance().eventCount == expectNumber) {
-        lock.withLock { done = true ; condition.signalAll() }
+        lock.withLock { done = true; condition.signalAll() }
       }
       else {
         val expectEventCount = IdeEventQueue.getInstance().eventCount + 1
@@ -177,4 +180,14 @@ private fun oneFullSync() {
 
   xQueueSync()
   eventQueueSync()
+}
+
+fun JListFixture.dragAndClickItem(text: String) {
+  drag(text)
+  clickItem(text)
+}
+
+fun JListFixture.dragAndClickItem(index: Int) {
+  drag(index)
+  clickItem(index)
 }

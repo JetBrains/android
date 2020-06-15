@@ -1,8 +1,8 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 import com.android.SdkConstants;
 import com.intellij.facet.ui.FacetEditorContext;
@@ -56,11 +56,11 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 
 /**
  * @author yole
  */
+@SuppressWarnings("deprecation")
 public class AndroidFacetEditorTab extends FacetEditorTab {
   private final AndroidFacetConfiguration myConfiguration;
   private final FacetEditorContext myContext;
@@ -113,6 +113,14 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
 
+  public static final class Provider implements AndroidFacetConfiguration.EditorTabProvider {
+    @Override
+    public FacetEditorTab createFacetEditorTab(@NotNull FacetEditorContext editorContext,
+                                               @NotNull AndroidFacetConfiguration configuration) {
+      return new AndroidFacetEditorTab(editorContext, configuration);
+    }
+  }
+
   public AndroidFacetEditorTab(FacetEditorContext context, AndroidFacetConfiguration androidFacetConfiguration) {
     final Project project = context.getProject();
     myConfiguration = androidFacetConfiguration;
@@ -136,7 +144,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     Module module = myContext.getModule();
 
     myManifestFileField.getButton().addActionListener(
-      new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getManifestFile(facet), true, new MyManifestFilter()));
+      new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), true, new MyManifestFilter()));
 
     myResFolderField.getButton().addActionListener(new MyFolderFieldListener(myResFolderField,
                                                                              AndroidRootUtil.getResourceDir(facet), false, null));
@@ -162,11 +170,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       @Override
       public void actionPerformed(ActionEvent e) {
         AndroidFacetConfiguration configuration = new AndroidFacetConfiguration();
-        configuration.setProject(myContext.getProject());
         Module module = myContext.getModule();
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
         if (contentRoots.length == 1) {
-          configuration.init(module, contentRoots[0]);
+          AndroidUtils.setUpAndroidFacetConfiguration(module, configuration, contentRoots[0].getPath());
         }
         if (AndroidMavenUtil.isMavenizedModule(module)) {
           AndroidMavenProvider mavenProvider = AndroidMavenUtil.getMavenProvider();

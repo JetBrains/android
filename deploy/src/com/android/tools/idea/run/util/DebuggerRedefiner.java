@@ -69,34 +69,25 @@ public class DebuggerRedefiner implements ClassRedefiner {
   }
 
   @Override
-  public RedefineClassSupportState canRedefineClass() {
+  public RedefineClassSupportState canRedefineClass() throws DeployerException{
     if (supportState != null) {
       return supportState;
     }
-
     MultiProcessCommand commands = new MultiProcessCommand();
-    Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
-    List<DebuggerTask> tasks = new ArrayList<>(debuggerSessions.size());
+    DebuggerSession debuggerSession = getDebuggerSession(project, debuggerPort);
+    if (debuggerSession == null) {
+      throw DeployerException.noDebuggerSession(debuggerPort);
+    }
     final AtomicReference<RedefineClassSupportState> result = new AtomicReference<>();
-
-    for (DebuggerSession debuggerSession : debuggerSessions) {
-      RemoteConnection s = debuggerSession.getProcess().getConnection();
-      String address = s.getAddress();
-      int projectDebuggerPort = Integer.parseInt(address);
-      if (debuggerPort == projectDebuggerPort) {
-        DebuggerCommandImpl command = new DebuggerCommandImpl() {
+    DebuggerCommandImpl task = new DebuggerCommandImpl() {
           @Override
           protected void action() {
             result.set(canRedefineClassInternal(debuggerSession));
           }
         };
-        commands.addCommand(debuggerSession.getProcess(), command);
-        tasks.add(command);
-      }
-
-    }
+    commands.addCommand(debuggerSession.getProcess(), task);
     commands.run();
-    tasks.forEach(cmd -> cmd.waitFor());
+    task.waitFor();
     supportState = result.get();
     return supportState;
   }
@@ -137,42 +128,38 @@ public class DebuggerRedefiner implements ClassRedefiner {
   @Override
   public Deploy.SwapResponse redefine(Deploy.SwapRequest request) throws DeployerException {
     MultiProcessCommand commands = new MultiProcessCommand();
-    Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
-    List<DebuggerTask> tasks = new ArrayList<>(debuggerSessions.size());
-
-    if (debuggerSessions.isEmpty()) {
-      return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.NO_DEBUGGER_SESSIONS).build();
+    DebuggerSession debuggerSession = getDebuggerSession(project, debuggerPort);
+    if (debuggerSession == null) {
+      throw DeployerException.noDebuggerSession(debuggerPort);
     }
 
     // A bit of a hack. Exceptions posted to background tasks ends up on the log only. We are going to gather
     // as much of these as possible and present it to the user.
-    final List<DeployerException> exceptions = Collections.synchronizedList(new LinkedList<>());
-    for (DebuggerSession debuggerSession : debuggerSessions) {
-      DebuggerCommandImpl command = new DebuggerCommandImpl() {
-        @Override
-        protected void action() {
-          try {
-            redefine(project, debuggerSession, request);
-          }
-          catch (DeployerException e) {
-            exceptions.add(e);
-          }
+    final AtomicReference<DeployerException> exception = new AtomicReference<>();
+    DebuggerCommandImpl task = new DebuggerCommandImpl() {
+      @Override
+      protected void action() {
+        try {
+          redefine(project, debuggerSession, request);
         }
+        catch (DeployerException e) {
+          exception.set(e);
+        }
+      }
 
-        @Override
-        protected void commandCancelled() {
-          debuggerSession.setModifiedClassesScanRequired(true);
-        }
-      };
-      commands.addCommand(debuggerSession.getProcess(), command);
-      tasks.add(command);
-    }
+      @Override
+      protected void commandCancelled() {
+        debuggerSession.setModifiedClassesScanRequired(true);
+      }
+    };
+    commands.addCommand(debuggerSession.getProcess(), task);
     commands.run();
-    tasks.forEach(cmd -> cmd.waitFor());
+    task.waitFor();
 
-    if (!exceptions.isEmpty()) {
-      throw exceptions.get(0);
+    if (exception.get() != null) {
+      throw exception.get();
     }
+
     return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.OK).build();
   }
 
@@ -184,6 +171,23 @@ public class DebuggerRedefiner implements ClassRedefiner {
     } finally {
       enableBreakPoints(project, session);
     }
+  }
+
+  /**
+   * Give a project return the DebugggerSession object associated with it at the port should a debugger is connected there. Otherwise,
+   * return null.
+   */
+  public static DebuggerSession getDebuggerSession(Project project, int port) {
+    Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
+    for (DebuggerSession debuggerSession : debuggerSessions) {
+      RemoteConnection s = debuggerSession.getProcess().getConnection();
+      String address = s.getAddress();
+      int projectDebuggerPort = Integer.parseInt(address);
+      if (port == projectDebuggerPort) {
+        return debuggerSession;
+      }
+    }
+    return null;
   }
 
   /**

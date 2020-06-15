@@ -26,6 +26,7 @@ import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogViewModel
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.TypeFiltersModel
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
 import com.intellij.icons.AllIcons
@@ -185,6 +186,8 @@ class ResourceExplorerToolbarViewModel(
     set(value) {
       filterOptions.isShowThemeAttributes = value
     }
+
+  var typeFiltersModel: TypeFiltersModel = filterOptions.typeFiltersModel
 
   var searchString: String by Delegates.observable("") { _, old, new ->
     if (new != old) {

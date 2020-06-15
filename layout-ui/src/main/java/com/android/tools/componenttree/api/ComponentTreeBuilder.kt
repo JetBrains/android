@@ -15,6 +15,7 @@
  */
 package com.android.tools.componenttree.api
 
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.componenttree.impl.ComponentTreeModelImpl
 import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
@@ -22,6 +23,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
@@ -31,6 +33,7 @@ import javax.swing.tree.TreeSelectionModel
  * A Handler which will display a context popup menu.
  */
 typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
+typealias DoubleClickHandler = () -> Unit
 
 /**
  * A component tree builder creates a tree that can hold multiple types of nodes.
@@ -41,10 +44,13 @@ typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
+  private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
   private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
+  private val keyStrokes = mutableMapOf<KeyStroke, Pair<String, () -> Unit>>()
   private var installTreeSearch = true
+  private var isRootVisible = true
 
   /**
    * Register a [NodeType].
@@ -62,6 +68,16 @@ class ComponentTreeBuilder {
   fun withContextMenu(treeContextMenu: ContextPopupHandler) = apply { contextPopup = treeContextMenu }
 
   /**
+   * Add a double click handler on the tree node item.
+   */
+  fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply { doubleClick = doubleClickHandler }
+
+  /**
+   * Add key strokes on the tree.
+   */
+  fun withKeyActionKey(name: String, keyStroke: KeyStroke, action: () -> Unit) = apply { keyStrokes[keyStroke] = Pair(name, action) }
+
+  /**
    * Specify specific invokeLater implementation to use.
    */
   fun withInvokeLaterOption(invokeLaterImpl: (Runnable) -> Unit) = apply { invokeLater = invokeLaterImpl }
@@ -77,17 +93,27 @@ class ComponentTreeBuilder {
   fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
 
   /**
+   * Don't show the root node
+   */
+  fun withHiddenRoot() = apply { isRootVisible = false }
+
+  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, badges)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges)
+    tree.isRootVisible = isRootVisible
+    tree.showsRootHandles = !isRootVisible
     if (installTreeSearch) {
       TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
     }
     selectionModel.selectionMode = selectionMode
     tree.selectionModel = selectionModel
+    keyStrokes.forEach {
+      tree.registerActionKey(it.value.second, it.key, it.value.first, { true }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    }
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER)
     scrollPane.border = JBUI.Borders.empty()
     return Triple(scrollPane, model, selectionModel)

@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;

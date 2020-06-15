@@ -16,31 +16,35 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.property.panel.api.ControlTypeProvider
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
+import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.create
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.TableUIProvider
+import com.android.tools.property.ptable2.PTableItem
 
 class InspectorTableBuilder(
   private val title: String,
   private val filter: (InspectorPropertyItem) -> Boolean,
   private val model: InspectorPropertiesModel,
+  enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
   controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>,
-  editorProvider: EditorProvider<InspectorPropertyItem>
+  private val itemComparator: Comparator<PTableItem> = FilteredPTableModel.alphabeticalSortOrder,
+  private val searchable: Boolean = false
 ) : InspectorBuilder<InspectorPropertyItem> {
 
+  private val editorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
   // TODO: Check if a reified type parameter can be used instead of the explicit class
   private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val tableModel = create(model, filter)
+    val tableModel = create(model, filter, {}, itemComparator, valueEditable = { editorProvider.isValueEditable(it) })
     if (tableModel.items.isEmpty()) {
       return
     }
     val titleModel = inspector.addExpandableTitle(title, true)
-    inspector.addTable(tableModel, true, uiProvider, titleModel)
+    inspector.addTable(tableModel, searchable, uiProvider, emptyList(), titleModel)
   }
 }

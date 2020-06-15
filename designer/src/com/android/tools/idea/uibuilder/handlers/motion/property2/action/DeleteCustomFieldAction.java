@@ -15,23 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.property.panel.api.FilteredPTableModel;
-import com.android.tools.property.panel.api.TableLineModel;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE;
+
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.property.panel.api.TableLineModel;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.psi.xml.XmlTag;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class DeleteCustomFieldAction extends AnAction {
-  private final FilteredPTableModel<NelePropertyItem> myTableModel;
   private TableLineModel myLineModel;
 
-  public DeleteCustomFieldAction(@NotNull FilteredPTableModel<NelePropertyItem> tableModel) {
-    super(null, "Remove Selected Property", StudioIcons.Common.REMOVE);
-    myTableModel = tableModel;
+  public DeleteCustomFieldAction() {
+    super(null, "Remove selected attribute", StudioIcons.Common.REMOVE);
+    ActionManager manager = ActionManager.getInstance();
+    setShortcutSet(manager.getAction(ACTION_DELETE).getShortcutSet());
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {
@@ -39,21 +43,34 @@ public class DeleteCustomFieldAction extends AnAction {
   }
 
   @Override
+  public void update(@NotNull AnActionEvent event) {
+    boolean enabled = myLineModel != null && !myLineModel.getTableModel().getItems().isEmpty();
+    event.getPresentation().setEnabled(enabled);
+
+    // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
+    getTemplatePresentation().setEnabled(enabled);
+  }
+
+  @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    if (myLineModel == null) {
-      return;
-    }
-    NelePropertyItem property = (NelePropertyItem)myLineModel.getSelectedItem();
+    NelePropertyItem property = DeleteMotionFieldAction.getSelectedOrFirstItem(myLineModel);
     if (property == null) {
       return;
     }
-    XmlTag tag = MotionLayoutAttributesModel.getTag(property);
+    MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(property);
+    if (selection == null) {
+      return;
+    }
+    MotionSceneTag tag = selection.getMotionSceneTag();
     if (tag == null) {
       return;
     }
-    Runnable applyToModel = () -> myTableModel.deleteItem(property);
-
-    MotionLayoutAttributesModel model = (MotionLayoutAttributesModel)property.getModel();
-    model.deleteTag(tag, applyToModel);
+    MTag customTag = MotionLayoutAttributesModel.findCustomTag(tag, property.getName());
+    if (customTag == null) {
+      return;
+    }
+    MTag.TagWriter tagWriter = customTag.getTagWriter();
+    tagWriter.deleteTag();
+    tagWriter.commit("Delete " + property.getName());
   }
 }

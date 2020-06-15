@@ -30,15 +30,20 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.*;
+import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
@@ -48,6 +53,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
+import java.beans.PropertyChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -67,7 +73,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.List;
 
-public class DexFileViewer implements ApkFileEditorComponent {
+public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorComponent, FileEditor {
   private final Disposable myDisposable;
   private final JBLoadingPanel myLoadingPanel;
 
@@ -76,7 +82,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
   @NotNull private final Path[] myDexFiles;
   @NotNull private final Project myProject;
-  @NotNull private final VirtualFile myApkFolder;
+  @Nullable private final VirtualFile myApkFolder;
   @NotNull private final DexViewFilters myDexFilters;
   private final DexTreeNodeRenderer myDexTreeRenderer;
 
@@ -87,7 +93,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @NotNull public static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("APK Analyzer (Info)");
   @NotNull public static final NotificationGroup BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("APK Analyzer (Important)");
 
-  public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @NotNull VirtualFile apkFolder) {
+  public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @Nullable VirtualFile apkFolder) {
     myDexFiles = dexFiles;
     myProject = project;
     myApkFolder = apkFolder;
@@ -382,6 +388,70 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @Override
   public JComponent getComponent() {
     return myLoadingPanel;
+  }
+
+  @Nullable
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myLoadingPanel;
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return "Dex Viewer";
+  }
+
+  @Override
+  public void setState(@NotNull FileEditorState state) {
+
+  }
+
+  @Override
+  public boolean isModified() {
+    return false;
+  }
+
+  @Override
+  public boolean isValid() {
+    for (Path file : myDexFiles) {
+      if (!Files.isRegularFile(file)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public void selectNotify() {
+
+  }
+
+  @Override
+  public void deselectNotify() {
+
+  }
+
+  @Override
+  public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
+
+  }
+
+  @Override
+  public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
+
+  }
+
+  @Nullable
+  @Override
+  public BackgroundEditorHighlighter getBackgroundHighlighter() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public FileEditorLocation getCurrentLocation() {
+    return null;
   }
 
   @Override

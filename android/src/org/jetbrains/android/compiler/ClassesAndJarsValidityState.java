@@ -7,16 +7,15 @@ import com.intellij.openapi.compiler.ValidityState;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.HashSet;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
 * @author Eugene.Kudelevsky

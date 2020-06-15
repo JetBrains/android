@@ -184,7 +184,7 @@ public abstract class SceneView implements Disposable {
   }
 
   public float getSceneScalingFactor() {
-    return getSurface().getSceneScalingFactor();
+    return getSceneManager().getSceneScalingFactor();
   }
 
   public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
@@ -237,6 +237,12 @@ public abstract class SceneView implements Disposable {
       myLayersCache.forEach(Disposer::dispose);
       myLayersCache = null;
     }
+  }
+
+  /**
+   * Called when {@link DesignSurface#updateUI()} is called.
+   */
+  public void updateUI() {
   }
 
   /**

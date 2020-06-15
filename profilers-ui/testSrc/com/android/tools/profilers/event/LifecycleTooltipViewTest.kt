@@ -46,7 +46,7 @@ class LifecycleTooltipViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
-    myActivityTooltipView = FakeLifecycleTooltipView(view.stageView, LifecycleTooltip(myMonitor))
+    myActivityTooltipView = FakeLifecycleTooltipView(view.stageView, LifecycleTooltip(myMonitor.timeline, myMonitor.lifecycleEvents))
     view.stageView.component.setBounds(0, 0, 1024, 256)
     profilers.timeline.viewRange.min = 0.0
     profilers.timeline.viewRange.max = TimeUnit.SECONDS.toMicros(10).toDouble()
@@ -58,8 +58,6 @@ class LifecycleTooltipViewTest {
 
   @Test
   fun tooltipActivityAndFragmentLabelsHaveExpectedText() {
-    myIdeProfilerServices.enableFragments(true)
-
     val activityEndTimeNs = TimeUnit.SECONDS.toNanos(4)
     val fragmentEndTimeNs = TimeUnit.SECONDS.toNanos(5)
 
@@ -103,30 +101,6 @@ class LifecycleTooltipViewTest {
     fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf("TestFragment1 - paused", "TestFragment2 - paused"))
     assertThat(myActivityTooltipView.durationText).isEqualTo("")
   }
-
-  @Test
-  fun tooltipFragmentLabelShouldBeEmptyWhenDisabled() {
-    myIdeProfilerServices.enableFragments(false)
-    myEventService.addActivityEvent(
-      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(Interaction.ViewData.State.CREATED,
-                                                                  TEST_START_TIME_NS),
-                                                ActivityStateData(Interaction.ViewData.State.RESUMED,
-                                                                  TEST_START_TIME_NS),
-                                                ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS)),
-                         0))
-    for (fragmentName in FRAGMENT_NAMES) {
-      myEventService.addActivityEvent(
-        buildActivityEvent(fragmentName,
-                           arrayOf(ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS)),
-                           fragmentName.hashCode().toLong()))
-    }
-    myTimer.tick(TimeUnit.SECONDS.toNanos(2))
-    assertThat(myActivityTooltipView.headingText).matches("00:01.001")
-    assertThat(myActivityTooltipView.activityNameText).matches(ACTIVITY_NAME)
-    fragmentPanelContainsExpectedText(myActivityTooltipView.fragmentsPanel, arrayOf())
-    assertThat(myActivityTooltipView.durationText).matches("00:01.000 - 00:03.000")
-  }
-
 
   private fun fragmentPanelContainsExpectedText(fragmentPanel: JPanel, expectedTextArray: Array<String>) {
     assertThat(fragmentPanel.componentCount).isEqualTo(expectedTextArray.size)
@@ -205,7 +179,7 @@ class LifecycleTooltipViewTest {
   }
 
   private class FakeLifecycleTooltipView(parent: StageView<*>, tooltip: LifecycleTooltip) :
-    LifecycleTooltipView(parent, tooltip) {
+    LifecycleTooltipView(parent.component, tooltip) {
 
     init {
       createComponent()

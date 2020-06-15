@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.device.fs
 
+import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Persistent identifier of a file on a given device.
@@ -24,7 +26,15 @@ import com.intellij.openapi.util.Key
  */
 data class DeviceFileId(val deviceId: String, val devicePath: String) {
   companion object {
-    @JvmField val UNKNOWN = DeviceFileId("", "")
-    @JvmField val KEY = Key.create<DeviceFileId>("DEVICE-ENTRY-INFO-KEY")
+    private val KEY: Key<DeviceFileId> = Key.create<DeviceFileId>(::KEY.qualifiedName)
+    @JvmStatic fun fromVirtualFile(virtualFile: VirtualFile): DeviceFileId? = virtualFile.getUserData(KEY)
+
+    @JvmStatic fun removeFromVirtualFile(virtualFile: VirtualFile) {
+      virtualFile.putUserData(KEY, null)
+    }
+  }
+
+  fun storeInVirtualFile(virtualFile: VirtualFile) {
+    virtualFile.putUserData(KEY, this)
   }
 }

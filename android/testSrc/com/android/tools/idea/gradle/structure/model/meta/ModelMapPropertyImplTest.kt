@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -57,19 +59,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyValues() {
-    // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
-    Assume.assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC = "3"
-                 propRef = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propMap = [one: "1", "B": propB, "propC1": propC, propRef1: propRef, interpolated: propInterpolated]
-                 propMapRef = propMap
-               }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES)
     val extModel = gradleBuildModel.ext()
 
     val propMap = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
@@ -105,18 +95,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testWritePropertyValues() {
-    // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
-    Assume.assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC1 = "3"
-                 propRef1 = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propMap = [one: "1", "B": propB, "propC": propC1, propRef: propRef1, interpolated: propInterpolated]
-               }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES)
     val extModel = gradleBuildModel.ext()
 
     val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
@@ -126,9 +105,9 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     assertThat(map.isModified, equalTo(true))
     assertThat(editableValues["one"]?.isModified, equalTo(true))
     assertThat(editableValues["B"]?.isModified, equalTo(false))  // Other entries remain unmodified.
-    editableValues["B"]?.testSetReference("propC1")
-    editableValues["propC"]?.testSetInterpolatedString("${'$'}{propC1}rd")
-    editableValues["propRef"]?.testSetValue("D")
+    editableValues["B"]?.testSetReference("propC")
+    editableValues["propC1"]?.testSetInterpolatedString("${'$'}{propC}rd")
+    editableValues["propRef1"]?.testSetValue("D")
     editableValues["interpolated"]?.testSetValue("E")
     assertThat(modifiedCount, equalTo(5))
     assertThat(prepareForModificationCount, equalTo(5))
@@ -136,8 +115,8 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     editableValues = map.getEditableValues()
     val propA = editableValues["one"]
     val prop3 = editableValues["B"]
-    val prop3rd = editableValues["propC"]
-    val propD = editableValues["propRef"]
+    val prop3rd = editableValues["propC1"]
+    val propD = editableValues["propRef1"]
     val propE = editableValues["interpolated"]
 
     assertThat(propA?.testValue(), equalTo("A"))
@@ -149,17 +128,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditMapKeys() {
-    // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
-    Assume.assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propB = "2"
-                 propC1 = "3"
-                 propRef1 = propB
-                 propInterpolated = "${'$'}{propB}nd"
-                 propMap = [one: "1", "B": propB, "propC": propC1, propRef: propRef1, interpolated: propInterpolated]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES)
 
     val extModel = gradleBuildModel.ext()
 
@@ -171,16 +140,16 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val newInterpolated = map.changeEntryKey("interpolated", "newInterpolated")
     assertThat(map.getEditableValues()["newInterpolated"]?.isModified, equalTo(true))
     // Changing the key of an entry does not make other entries modified.
-    assertThat(map.getEditableValues()["propC"]?.isModified, equalTo(false))
-    val newPropC = map.changeEntryKey("propC", "newPropC")
-    val newPropRef = map.changeEntryKey("propRef", "newPropRef")
+    assertThat(map.getEditableValues()["propC1"]?.isModified, equalTo(false))
+    val newPropC = map.changeEntryKey("propC1", "newPropC")
+    val newPropRef = map.changeEntryKey("propRef1", "newPropRef")
     val newOne = map.changeEntryKey("one", "newOne")
     // Add new.
     val newNew = map.addEntry("new")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     newNew.testSetValue("new")
     // Add new and change it.
     val new2 = map.addEntry("new2")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
-    new2.testSetReference("propC1")
+    new2.testSetReference("propC")
     val newChanged = map.changeEntryKey("new2", "newChanged")
     assertThat(modifiedCount, equalTo(10))
     assertThat(prepareForModificationCount, equalTo(10))

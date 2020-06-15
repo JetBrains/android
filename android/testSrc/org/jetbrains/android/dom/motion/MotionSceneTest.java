@@ -15,6 +15,11 @@
  */
 package org.jetbrains.android.dom.motion;
 
+import static com.android.SdkConstants.DOT_XML;
+
+import com.android.tools.idea.lint.AndroidLintMotionSceneFileValidationErrorInspection;
+import com.android.tools.idea.lint.common.LintExternalAnnotator;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.AndroidDomTestCase;
 
 public class MotionSceneTest extends AndroidDomTestCase {
@@ -66,6 +71,18 @@ public class MotionSceneTest extends AndroidDomTestCase {
 
   public void testStateSubTags() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "Variant");
+  }
+
+  public void testCustomTagWithoutName() throws Throwable {
+    myFixture.enableInspections(new AndroidLintMotionSceneFileValidationErrorInspection());
+    VirtualFile file = copyFileToProject(getTestName(true) + DOT_XML);
+    doTestOnClickQuickfix(file, LintExternalAnnotator.MyFixingIntention.class, getTestName(true) + "_after" + DOT_XML);
+  }
+
+  public void testCustomTagWithDuplicateName() throws Throwable {
+    myFixture.enableInspections(new AndroidLintMotionSceneFileValidationErrorInspection());
+    VirtualFile file = copyFileToProject(getTestName(true) + DOT_XML);
+    doTestOnClickQuickfix(file, LintExternalAnnotator.MyFixingIntention.class, getTestName(true) + "_after" + DOT_XML);
   }
 
   // TODO: Add attribute completion tests after ConstraintLayout 2.0 are available in prebuilts

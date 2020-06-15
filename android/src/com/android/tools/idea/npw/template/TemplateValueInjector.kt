@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.template
 
 import com.android.SdkConstants
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE
+import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.sdklib.AndroidVersion.VersionCodes.P
@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommen
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
@@ -37,62 +36,62 @@ import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.observable.core.ObjectProperty
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate
+import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.templates.KeystoreUtils
 import com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore
 import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_AIDL_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_AIDL_OUT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_APP_BAR_OVERLAY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_EXISTS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NO_ACTION_BAR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_POPUP_OVERLAY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_RES_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_REVISION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_COMPANY_DOMAIN
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_DEBUG_KEYSTORE_SHA1
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_EXPLICIT_BUILD_TOOLS_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_OUT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_OUT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_SDK_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_SRC_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_SRC_OUT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_OUT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_AIDL_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_AIDL_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_APP_BAR_OVERLAY
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_EXISTS
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_NO_ACTION_BAR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_POPUP_OVERLAY
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_RES_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_REVISION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_COMPANY_DOMAIN
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_DEBUG_KEYSTORE_SHA1
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_EXPLICIT_BUILD_TOOLS_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATURE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LOW_MEMORY
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_JAVA_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_EAP_REPO
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MANIFEST_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MANIFEST_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PROJECT_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_SDK_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_SRC_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_SRC_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TEST_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TEST_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Iterables
@@ -102,17 +101,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
-import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
-import org.jetbrains.jps.model.java.JpsJavaSdkType
-import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 import java.util.HashMap
 
@@ -133,7 +130,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     addDebugKeyStore(myTemplateValues, facet)
     addApplicationTheme(myTemplateValues, facet)
 
-    myTemplateValues[ATTR_IS_NEW_MODULE] = false // Android Modules are called Gradle Projects
+    myTemplateValues[ATTR_IS_NEW_MODULE] = false
     myTemplateValues[ATTR_IS_LIBRARY_MODULE] = facet.configuration.isLibraryProject
 
     val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now?.manifestTheme
@@ -177,7 +174,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   /**
-   * Same as [setFacet], but uses a {link AndroidVersionsInfo.VersionItem}. This version is used when the Module is not created yet.
+   * Same as [setFacet], but uses a [AndroidVersionsInfo.VersionItem]. This version is used when the Module is not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
    * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
@@ -228,10 +225,17 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val min = ApplicationManager.getApplication().runReadAction<LanguageLevel> {
       ModuleManager.getInstance(project).modules
         .mapNotNull { LanguageLevelModuleExtensionImpl.getInstance(it)?.languageLevel }
-        .min() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
+        .min() ?: LanguageLevel.JDK_1_7
     }
 
-    myTemplateValues[ATTR_JAVA_VERSION] = JpsJavaSdkType.complianceOption(min.toJavaVersion())
+    /** Returns the enumerated name of [org.gradle.api.JavaVersion] */
+    fun LanguageLevel.toGradleJavaVersionString() : String {
+      // See enum names in org.gradle.api.JavaVersion
+      val javaMajorVersion = toJavaVersion().feature
+      return if (javaMajorVersion <= 10) "1.$javaMajorVersion" else javaMajorVersion.toString()
+    }
+
+    myTemplateValues[ATTR_JAVA_VERSION] = min.toGradleJavaVersionString()
     return this
   }
 
@@ -242,8 +246,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  fun setModuleRoots(paths: AndroidModuleTemplate, projectPath: String,
-                     moduleName: String, packageName: String): TemplateValueInjector {
+  fun setModuleRoots(paths: AndroidModulePaths, projectPath: String, moduleName: String, packageName: String): TemplateValueInjector {
     val moduleRoot = paths.moduleRoot!!
 
     // Register the resource directories associated with the active source provider
@@ -287,9 +290,8 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
   /**
    * Adds, to the specified `templateValues`, common render template values like
-   * [com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE],
-   * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION],
-   * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION], etc.
+   * [com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION],
+   * [com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_VERSION], etc.
    */
   fun setProjectDefaults(project: Project?, isNewProject: Boolean): TemplateValueInjector {
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
@@ -330,16 +332,18 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
-    val androidFacet = AndroidFacet.getInstance(baseFeature)!!
-    val gradleFacet = GradleFacet.getInstance(baseFeature)!!
-    val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
-    val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
-    assert(!resDirectories.isEmpty())
-    val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
 
-    myTemplateValues[ATTR_BASE_FEATURE_NAME] = gradleFacet.gradleModuleModel?.moduleName.orEmpty()
+    fun String.toPath() = VfsUtilCore.urlToPath(this)
+
+    val androidFacet = AndroidFacet.getInstance(baseFeature)!!
+    val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
+    val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
+    val baseModuleResourceRootPath = mainSourceProvider.resDirectories.firstOrNull()?.path
+                                     ?: mainSourceProvider.resDirectoryUrls.first().toPath()
+
+    myTemplateValues[ATTR_BASE_FEATURE_NAME] = GradleUtil.getGradlePath(baseFeature).orEmpty()
     myTemplateValues[ATTR_BASE_FEATURE_DIR] = rootFolder?.path.orEmpty()
-    myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRoot.path
+    myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRootPath
     return this
   }
 
@@ -357,7 +361,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addKotlinVersion() {
-    val kotlinVersion = bundledRuntimeVersion()
+    val kotlinVersion = KotlinVersionProvider.getInstance().kotlinVersionForGradle
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     myTemplateValues[ATTR_KOTLIN_VERSION] = kotlinVersion
     myTemplateValues[ATTR_KOTLIN_EAP_REPO] = setOf("rc", "eap", "-M").any { it in kotlinVersion }
@@ -373,9 +377,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project.hasAndroidxSupport(isNewProject)
   }
 
-  // Note: New projects are always created with androidx dependencies
-  private fun Project?.hasAndroidxSupport(isNewProject: Boolean) : Boolean =
-    this == null || isNewProject || this.isAndroidx()
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
     try {
@@ -429,12 +430,14 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val map = HashMap<String, Any>()
     map[ATTR_APP_THEME_NAME] = themeName
     map[ATTR_APP_THEME_EXISTS] = true
-    val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
-    addDerivedTheme(map, themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false, helper, configuration)
-    addDerivedTheme(map, themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false, helper, configuration)
-    addDerivedTheme(map, themeName, ATTR_APP_THEME_POPUP_OVERLAY, false, helper, configuration)
 
-    templateValues[ATTR_APP_THEME] = map
+    ApplicationManager.getApplication().runReadAction {
+      val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
+      addDerivedTheme(map, themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false, helper, configuration)
+      addDerivedTheme(map, themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false, helper, configuration)
+      addDerivedTheme(map, themeName, ATTR_APP_THEME_POPUP_OVERLAY, false, helper, configuration)
+      templateValues[ATTR_APP_THEME] = map
+    }
   }
 
   private fun addDerivedTheme(map: MutableMap<String, Any>,
@@ -453,3 +456,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     map[ATTR_APP_THEME_EXISTS + derivedThemeName] = exists
   }
 }
+
+// Note: New projects are always created with androidx dependencies
+fun Project?.hasAndroidxSupport(isNewProject: Boolean) = this == null || isNewProject || this.isAndroidx()

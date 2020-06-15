@@ -22,8 +22,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,9 +72,12 @@ public class GradlePropertyModelBuilder {
   private final String myName;
   @Nullable
   private final GradleDslElement myElement;
+  @Nullable
+  private GradleDslElement myDefault;
   @NotNull
   private PropertyType myType = REGULAR;
   private boolean myIsMethod = false;
+  private boolean myIsSet = false;
   @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
@@ -86,6 +92,9 @@ public class GradlePropertyModelBuilder {
     myName = element.getName();
     myElement = element;
     myIsMethod = !myElement.shouldUseAssignment();
+    if (element instanceof GradleDslExpressionList) {
+      myIsSet = ((GradleDslExpressionList) element).isSet();
+    }
   }
 
   /**
@@ -108,6 +117,11 @@ public class GradlePropertyModelBuilder {
     return this;
   }
 
+  public GradlePropertyModelBuilder asSet(boolean bool) {
+    myIsSet = bool;
+    return this;
+  }
+
   /**
    * Sets the type of this model, defaults to {@link PropertyType#REGULAR}
    *
@@ -116,6 +130,18 @@ public class GradlePropertyModelBuilder {
    */
   public GradlePropertyModelBuilder withType(@NotNull PropertyType type) {
     myType = type;
+    return this;
+  }
+
+  /**
+   * Arranges that the model will provide a default value if there is no Dsl element, for cases where there is a known default (and
+   * it is useful for the model to be able to provide it).
+   *
+   * @param value
+   * @return this model builder
+   */
+  public GradlePropertyModelBuilder withDefault(Object value) {
+    myDefault = new GradleDslGlobalValue(getParentElement(), value, myName);
     return this;
   }
 
@@ -198,10 +224,27 @@ public class GradlePropertyModelBuilder {
     return new LanguageLevelPropertyModelImpl(build());
   }
 
+  /**
+   * Builds a {@link JvmTargetPropertyModel} with the properties defined by this builder.
+   *
+   * @return the built model
+   */
+  public LanguageLevelPropertyModel buildJvmTarget() {
+    return new JvmTargetPropertyModelImpl(build());
+  }
+
   @NotNull
   private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
     if (myIsMethod) {
       model.markAsMethodCall();
+    }
+
+    if (myIsSet) {
+      model.markAsSet();
+    }
+
+    if (myDefault != null) {
+      model.setDefaultElement(myDefault);
     }
 
     for (PropertyTransform t : myTransforms) {

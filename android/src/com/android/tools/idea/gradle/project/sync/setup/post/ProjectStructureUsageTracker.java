@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
@@ -63,11 +63,11 @@ public class ProjectStructureUsageTracker {
 
   @NotNull private final Project myProject;
 
-  ProjectStructureUsageTracker(@NotNull Project project) {
+  public ProjectStructureUsageTracker(@NotNull Project project) {
     myProject = project;
   }
 
-  void trackProjectStructure() {
+  public void trackProjectStructure() {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       ModuleManager moduleManager = ModuleManager.getInstance(myProject);
       try {
@@ -101,9 +101,7 @@ public class ProjectStructureUsageTracker {
         appModel = androidModel;
         appCount++;
         GradleLibrary gradleLibrary = trackExternalDependenciesInAndroidApp(androidModel);
-        if (gradleLibrary != null) {
-          gradleLibraries.add(gradleLibrary);
-        }
+        gradleLibraries.add(gradleLibrary);
       }
     }
 

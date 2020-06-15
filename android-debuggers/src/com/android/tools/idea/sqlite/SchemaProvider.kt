@@ -19,9 +19,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 
 /**
- * Returns [SqliteSchema] for given [SqliteDatabase].
- *
- * Used in [SqliteEvaluatorViewImpl] to get [SqliteSchema] for further SQL language support in [SqliteSchemaContext]
+ * Returns a [SqliteSchema] for a given [SqliteDatabase].
  */
 interface SchemaProvider {
   fun getSchema(database: SqliteDatabase): SqliteSchema?

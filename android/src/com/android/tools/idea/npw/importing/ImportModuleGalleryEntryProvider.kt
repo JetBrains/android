@@ -15,46 +15,42 @@
  */
 package com.android.tools.idea.npw.importing
 
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
-import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
-import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
 class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry?> = listOf(
-    SourceImportModuleGalleryEntry(message("android.wizard.module.import.eclipse.title")),
-    SourceImportModuleGalleryEntry(message("android.wizard.module.import.gradle.title")),
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
+    EclipseImportModuleGalleryEntry(),
+    GradleImportModuleGalleryEntry(),
     ArchiveImportModuleGalleryEntry()
   )
+  private class EclipseImportModuleGalleryEntry : ModuleGalleryEntry {
+    override val icon: Icon = AndroidIcons.Wizards.EclipseModule
+    override val name: String = message("android.wizard.module.import.eclipse.title")
+    override val description: String = message("android.wizard.module.import.eclipse.description")
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
+      SourceToGradleModuleStep(SourceToGradleModuleModel(project, projectSyncInvoker))
+  }
 
-  private class SourceImportModuleGalleryEntry(templateName: String) : ModuleGalleryEntry {
-    private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, templateName)!!)
-
-    override val icon: Icon? = getTemplateIcon(templateHandle, false)
-    override val name: String = templateHandle.metadata.title!!
-    override val description: String? = templateHandle.metadata.description
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      SourceToGradleModuleStep(SourceToGradleModuleModel(model.project.value, model.projectSyncInvoker))
+  private class GradleImportModuleGalleryEntry : ModuleGalleryEntry {
+    override val icon: Icon = AndroidIcons.Wizards.GradleModule
+    override val name: String = message("android.wizard.module.import.gradle.title")
+    override val description: String = message("android.wizard.module.import.gradle.description")
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
+      SourceToGradleModuleStep(SourceToGradleModuleModel(project, projectSyncInvoker))
   }
 
   private class ArchiveImportModuleGalleryEntry : ModuleGalleryEntry {
-    override val icon: Icon?
-      get() {
-        val androidModuleTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)
-        return getTemplateIcon(TemplateHandle(androidModuleTemplate!!), false)
-      }
-
-    override val name: String = message("android.wizard.module.import.title")
-    override val description: String = message("android.wizard.module.import.description")
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(model.project.value, model.projectSyncInvoker))
+    override val icon: Icon = AndroidIcons.Wizards.AndroidModule
+    override val name: String = message("android.wizard.module.import.archive.title")
+    override val description: String = message("android.wizard.module.import.archive.description")
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
+      ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(project, projectSyncInvoker))
   }
 }

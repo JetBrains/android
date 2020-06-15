@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.config.GlobalInstallerData;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep;
@@ -32,6 +33,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
+import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.android.AndroidTestBase;
@@ -48,11 +50,13 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   private void assertPagesVisible(@Nullable InstallerData data, boolean isComponentsStepVisible, boolean hasAndroidSdkPath) {
-    InstallerData.set(data);
+    GlobalInstallerData.set(data);
     FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
     assertVisible(
-      new SdkComponentsStep(new ComponentCategory("test", "test"), KEY_TRUE, createKey(String.class), mode, getTestRootDisposable()),
-      data, isComponentsStepVisible);
+      new SdkComponentsStep(
+        new ComponentCategory("test", "test", Collections.emptyList()),
+        KEY_TRUE, createKey(String.class), mode, getTestRootDisposable()), data, isComponentsStepVisible
+    );
 
     if (data != null) {
       assertEquals(data.toString(), hasAndroidSdkPath, data.hasValidSdkLocation());

@@ -1,16 +1,21 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package com.android.tools.idea.run;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
@@ -56,6 +61,7 @@ import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,6 +98,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     myProfilerState = new ProfilerState();
     myAndroidTests = androidTests;
+
+    if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
+      getOptions().setAllowRunningInParallel(true);
+    } else {
+      getOptions().setAllowRunningInParallel(!androidTests);
+    }
   }
 
   @Override
@@ -142,18 +154,31 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (!facet.getConfiguration().isAppProject() && facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST) {
-      if (facet.getConfiguration().isLibraryProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
+
+    switch (facet.getConfiguration().getProjectType()) {
+      // Supported project types.
+      case PROJECT_TYPE_APP:
+      case PROJECT_TYPE_INSTANTAPP:
+      case PROJECT_TYPE_TEST:
+        break;
+
+      // Project types that need further check for the eligibility.
+      case PROJECT_TYPE_LIBRARY:
+      case PROJECT_TYPE_FEATURE:
+      case PROJECT_TYPE_DYNAMIC_FEATURE:
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));
         }
-      }
-      else {
+        break;
+
+      // Unsupported types.
+      default:
         errors.add(ValidationError.fatal(AndroidBundle.message("run.error.apk.not.valid")));
-      }
+        return errors;
     }
-    if (facet.getAndroidPlatform() == null) {
+
+    if (AndroidPlatform.getInstance(facet.getModule()) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     if (Manifest.getMainManifest(facet) == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
@@ -247,8 +272,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     updateExtraRunStats(stats);
 
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
-    boolean userSelectedDeployTarget = getDeployTargetContext().getCurrentDeployTargetProvider().requiresRuntimePrompt();
-    stats.setUserSelectedTarget(userSelectedDeployTarget);
+    DeployTargetContext context = getDeployTargetContext();
+    stats.setUserSelectedTarget(context.getCurrentDeployTargetProvider().requiresRuntimePrompt(facet.getModule().getProject()));
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
     DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
@@ -256,7 +281,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    DeployTargetState deployTargetState = getDeployTargetContext().getCurrentDeployTargetState();
+    DeployTargetState deployTargetState = context.getCurrentDeployTargetState();
     if (deployTarget.hasCustomRunProfileState(executor)) {
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
@@ -329,9 +354,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                        boolean debug,
                                        @NotNull AndroidFacet facet) {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
+    Project project = getProject();
 
     DeployTarget deployTarget;
-    if (currentTargetProvider.requiresRuntimePrompt()) {
+
+    if (currentTargetProvider.requiresRuntimePrompt(project)) {
       deployTarget =
         currentTargetProvider.showPrompt(
           executor,
@@ -348,7 +375,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     else {
-      deployTarget = currentTargetProvider.getDeployTarget(getProject());
+      deployTarget = currentTargetProvider.getDeployTarget(project);
     }
 
     return deployTarget;
@@ -381,7 +408,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    if (facet.getModel() != null && facet.getModel() instanceof AndroidModuleModel) {
+    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
       return new GradleApplicationIdProvider(facet, myOutputProvider);
     }
     return new NonGradleApplicationIdProvider(facet);

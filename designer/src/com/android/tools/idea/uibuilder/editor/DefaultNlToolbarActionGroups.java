@@ -36,12 +36,13 @@ import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantActionKt;
+import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -59,12 +60,15 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @NotNull
   @Override
   protected ActionGroup getEastGroup() {
-    if (StudioFlags.NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED.get()) {
-      DefaultActionGroup group = new DefaultActionGroup();
-      group.add(ActionManager.getInstance().getAction(LayoutEditorHelpAssistantActionKt.getBUNDLE_ID()));
-      return group;
+    DefaultActionGroup group = new DefaultActionGroup();
+    AnAction assistantAction =
+      ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID);
+    // FIXME-ank3: add assistant to IDEA?
+    if (assistantAction != null) {
+      group.add(assistantAction);
     }
-    return ActionGroup.EMPTY_GROUP;
+
+    return group;
   }
 
   @NotNull

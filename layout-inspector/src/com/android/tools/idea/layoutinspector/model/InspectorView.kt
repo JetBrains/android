@@ -15,15 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.intellij.util.ui.UIUtil
 import java.awt.Image
-import java.awt.Point
-import java.awt.image.BufferedImage
-import java.awt.image.DataBuffer
-import java.awt.image.DataBufferInt
-import java.awt.image.DirectColorModel
-import java.awt.image.Raster
-import java.awt.image.SinglePixelPackedSampleModel
 
 /**
  * A view as seen in a Skia image.
@@ -43,7 +35,8 @@ class InspectorView(
   var y: Int,
   var width: Int,
   var height: Int,
-  var image: Image? = null
+  var image: Image? = null,
+  children: List<InspectorView> = listOf()
 ) {
   var imageGenerationTime: Long? = null
 
@@ -51,6 +44,10 @@ class InspectorView(
    * Map of View IDs to views.
    */
   val children: MutableMap<String, InspectorView> = mutableMapOf()
+
+  init {
+    children.forEach { addChild(it) }
+  }
 
   @Suppress("unused") // invoked via reflection
   fun addChild(child: InspectorView) {

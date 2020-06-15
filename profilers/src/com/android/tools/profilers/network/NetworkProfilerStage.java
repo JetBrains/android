@@ -34,8 +34,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -46,7 +45,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
+public class NetworkProfilerStage extends StreamingStage implements CodeNavigator.Listener {
   private static final String HAS_USED_NETWORK_SELECTION = "network.used.selection";
 
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
@@ -76,22 +75,20 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
-    ProfilerTimeline timeline = profilers.getTimeline();
-
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
     myTrafficAxis = new ClampedAxisComponentModel.Builder(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER).build();
     myConnectionsAxis =
       new ClampedAxisComponentModel.Builder(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER).build();
 
-    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange(), false);
-    myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getTooltipRange(), true);
+    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, getTimeline().getDataRange(), false);
+    myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, getTimeline().getTooltipRange(), true);
 
     myEventMonitor = new EventMonitor(profilers);
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
 
-    myRangeSelectionModel = new RangeSelectionModel(timeline.getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
@@ -117,7 +114,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
                                            profilers.getClient().getNetworkClient(),
                                            profilers.getSession());
 
-    myHttpDataFetcher = new HttpDataFetcher(myConnectionsModel, timeline.getSelectionRange());
+    myHttpDataFetcher = new HttpDataFetcher(myConnectionsModel, getTimeline().getSelectionRange());
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
   }
 

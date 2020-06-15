@@ -167,7 +167,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     mySurface = designSurface;
     if (mySurface != null) {
       mySurface.getSelectionModel().addListener(this);
-      mySurface.getActionManager().registerActionsShortcuts(this, null);
+      mySurface.getActionManager().registerActionsShortcuts(this);
       mySurface.addListener(this);
       overrideCtrlClick();
     }
@@ -480,7 +480,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented SelectionListener ----
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    UIUtil.invokeLaterIfNeeded(this::updateSelection);
+    UIUtil.invokeLaterIfNeeded(() -> {
+      updateSelection();
+      scrollPathToVisible(getSelectionPath());
+    });
   }
 
   // ---- Implemented ModelListener ----

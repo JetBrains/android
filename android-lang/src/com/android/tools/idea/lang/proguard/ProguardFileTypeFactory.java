@@ -40,8 +40,7 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
       return !StudioFlags.R8_SUPPORT_ENABLED.get() && (StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
                                                        StringUtil.startsWith(fileName, "proguard-") &&
                                                        StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) ||
-                                                       StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE))
-        ;
+                                                       StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE));
     }
 
     @NotNull
@@ -56,8 +55,7 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
       return StudioFlags.R8_SUPPORT_ENABLED.get() && (StringUtil.endsWith(fileName, ProguardR8FileType.DOT_PRO) ||
              StringUtil.startsWith(fileName, "proguard-") && StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) ||
-                                                      StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE))
-        ;
+                                                      StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE));
     }
 
     @NotNull

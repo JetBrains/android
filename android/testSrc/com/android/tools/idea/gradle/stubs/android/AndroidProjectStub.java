@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
@@ -59,7 +60,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
-  private int myProjectType = PROJECT_TYPE_APP;
+  private int myProjectType = AndroidProjectTypes.PROJECT_TYPE_APP;
   private int myPluginGeneration;
 
   public AndroidProjectStub(@NotNull String name) {
@@ -128,7 +129,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   public boolean isLibrary() {
-    return myProjectType == PROJECT_TYPE_LIBRARY;
+    return myProjectType == AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
   }
 
   public void setProjectType(int projectType) {
@@ -381,6 +382,12 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   public ViewBindingOptions getViewBindingOptions() {
     return myViewBindingOptions;
+  }
+
+  @Nullable
+  @Override
+  public DependenciesInfo getDependenciesInfo() {
+    return null;
   }
 
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {

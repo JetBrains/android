@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
 import org.mockito.Mockito.mock
@@ -29,11 +28,11 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
   override val component: JComponent = mock(JComponent::class.java)
   override val tableView: TableView = mock(TableView::class.java)
 
-  val listeners = ArrayList<SqliteEvaluatorViewListener>()
+  val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
-  override fun addListener(listener: SqliteEvaluatorViewListener) { listeners.add(listener) }
+  override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
 
-  override fun removeListener(listener: SqliteEvaluatorViewListener) { listeners.remove(listener) }
+  override fun removeListener(listener: SqliteEvaluatorView.Listener) { listeners.remove(listener) }
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
@@ -42,4 +41,8 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
   override fun removeDatabase(index: Int) { }
 
   override fun selectDatabase(database: SqliteDatabase) { }
+
+  override fun getActiveDatabase(): SqliteDatabase { TODO("not implemented") }
+
+  override fun getSqliteStatement(): String { TODO("not implemented") }
 }

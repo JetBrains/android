@@ -109,6 +109,14 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     doTest(getTestName(false), "strings.xml", null, true, "strings15_after.xml");
   }
 
+  public void testPreferencesFile() throws IOException {
+    // Regression test for http://b/136596952
+    createManifest();
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "preferences.xml", "res/xml/preferences.xml");
+    doExtractAndCheckStringsXml("strings.xml", null, true, "strings_after.xml", file);
+    myFixture.checkResultByFile(BASE_PATH + "preferences_after.xml");
+  }
+
   public void testFragment() throws IOException {
     doTest();
   }

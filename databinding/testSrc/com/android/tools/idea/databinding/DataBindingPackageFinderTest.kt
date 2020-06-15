@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -42,9 +40,6 @@ class DataBindingPackageFinderTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
-
   /**
    * Expose the underlying project rule fixture directly.
    *
@@ -61,8 +56,6 @@ class DataBindingPackageFinderTest {
 
   @Test
   fun dataBindingPackagePathCanBeFoundWhenViewBindingEnabled() {
-    StudioFlags.VIEW_BINDING_ENABLED.override(true)
-
     projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()

@@ -43,11 +43,12 @@ public class DebugFriendlyTimeout extends Timeout {
     if (Boolean.getBoolean("idea.debug.mode")) {
       return base;
     } else if (dumpThreadsOnTimeout) {
-      Statement dumpThreads = new Statement() {
+      Statement timeout = super.apply(base, description);
+      return new Statement () {
         @Override
         public void evaluate() throws Throwable {
           try {
-            base.evaluate();
+            timeout.evaluate();
           } catch (TestTimedOutException e) {
             String fileName = description.getTestClass().getSimpleName() + "." + description.getMethodName() + "-TimeoutThreadDump";
             FileUtils.writeToFile(new File(PathManager.getLogPath(), fileName), ThreadDumper.dumpThreadsToString());
@@ -55,7 +56,6 @@ public class DebugFriendlyTimeout extends Timeout {
           }
         }
       };
-      return super.apply(dumpThreads, description);
     } else {
       return super.apply(base, description);
     }

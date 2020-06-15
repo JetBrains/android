@@ -21,6 +21,7 @@ import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Toggleable;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
@@ -64,11 +65,11 @@ public class OrientationMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
-      Device device = configuration.getDevice();
+      Device device = configuration.getCachedDevice();
       if (device != null) {
         State currentDeviceState = configuration.getDeviceState();
 

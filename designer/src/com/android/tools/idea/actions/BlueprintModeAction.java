@@ -34,11 +34,11 @@ public class BlueprintModeAction extends ToggleAction {
 
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
-    return mySurface.getSceneMode() == SceneMode.BLUEPRINT_ONLY;
+    return mySurface.getSceneMode() == SceneMode.BLUEPRINT;
   }
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, true);
+    mySurface.setScreenMode(SceneMode.BLUEPRINT, true);
   }
 }

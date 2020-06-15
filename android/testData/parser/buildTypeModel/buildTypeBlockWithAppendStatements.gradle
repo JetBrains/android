@@ -13,6 +13,6 @@ android.buildTypes.xyz {
   proguardFile 'pro-3.txt'
   resValue "opqr", "stuv", "wxyz"
 }
-android.buildTypes.xyz.manifestPlaceholders.activityLabel3 "defaultName3"
+android.buildTypes.xyz.manifestPlaceholders['activityLabel3'] = "defaultName3"
 android.buildTypes.xyz.manifestPlaceholders.activityLabel4 = "defaultName4"
 android.buildTypes.xyz.proguardFiles 'pro-4.txt', 'pro-5.txt'

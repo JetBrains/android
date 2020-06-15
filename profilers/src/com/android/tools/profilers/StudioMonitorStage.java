@@ -15,13 +15,13 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.profiler.proto.Common;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.LinkedList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-public class StudioMonitorStage extends Stage {
+public class StudioMonitorStage extends StreamingStage {
 
   @NotNull
   private final List<ProfilerMonitor> myMonitors;
@@ -34,7 +34,7 @@ public class StudioMonitorStage extends Stage {
   @Override
   public void enter() {
     // Clear the selection
-    getStudioProfilers().getTimeline().getSelectionRange().clear();
+    getTimeline().getSelectionRange().clear();
 
     Common.Session session = getStudioProfilers().getSession();
     if (session != Common.Session.getDefaultInstance()) {
@@ -59,7 +59,7 @@ public class StudioMonitorStage extends Stage {
   }
 
   @Override
-  public void setTooltip(ProfilerTooltip tooltip) {
+  public void setTooltip(TooltipModel tooltip) {
     super.setTooltip(tooltip);
     myMonitors.forEach(monitor -> monitor
       .setFocus(getTooltip() instanceof ProfilerMonitorTooltip && ((ProfilerMonitorTooltip)getTooltip()).getMonitor() == monitor));

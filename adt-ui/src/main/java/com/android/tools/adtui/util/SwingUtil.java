@@ -164,4 +164,20 @@ public class SwingUtil {
                           event.getClickCount(), event.isPopupTrigger(),
                           event.getButton());
   }
+
+  /**
+   * @return a new {@link MouseEvent} similar to the given event except that its point will be the given point.
+   */
+  @NotNull
+  public static MouseEvent convertMouseEventPoint(@NotNull MouseEvent event, @NotNull Point newPoint) {
+    return new MouseEvent(
+      event.getComponent(),
+      event.getID(),
+      event.getWhen(),
+      event.getModifiers(),
+      newPoint.x,
+      newPoint.y,
+      event.getClickCount(),
+      event.isPopupTrigger());
+  }
 }

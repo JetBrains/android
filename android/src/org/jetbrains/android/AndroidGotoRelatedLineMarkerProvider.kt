@@ -236,7 +236,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
           JavaLanguage.INSTANCE -> checkJavaReference(element)
           else -> null
         }
-      }.toList()
+      }.toList().ifEmpty { null }
     }
 
     /**

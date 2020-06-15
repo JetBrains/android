@@ -15,22 +15,27 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import static com.android.tools.adtui.workbench.PalettePanelToolContent.MIN_TOOL_WIDTH;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.EventDispatcher;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -40,12 +45,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.util.List;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
-import static com.android.tools.adtui.workbench.PalettePanelToolContent.MIN_TOOL_WIDTH;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 public class WorkBenchTest extends WorkBenchTestCase {
   @Mock
@@ -74,27 +76,27 @@ public class WorkBenchTest extends WorkBenchTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), WorkBenchManager.class, myWorkBenchManager);
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, new PropertiesComponentMock(), getTestRootDisposable());
-    registerProjectComponentImplementation(FileEditorManager.class, myFileEditorManager);
+    registerApplicationService(WorkBenchManager.class, myWorkBenchManager);
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    registerProjectComponent(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
     mySplitter = new ThreeComponentsSplitter(getTestRootDisposable());
     myPropertiesComponent = PropertiesComponent.getInstance();
-    myModel = new SideModel<>(myProject);
+    myModel = new SideModel<>(getProject());
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
     myLeftMinimizePanel.setLayout(new BoxLayout(myLeftMinimizePanel, BoxLayout.Y_AXIS));
     myRightMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
     myRightMinimizePanel.setLayout(new BoxLayout(myRightMinimizePanel, BoxLayout.Y_AXIS));
     WorkBench.InitParams<String> initParams = new WorkBench.InitParams<>(myModel, mySplitter, myLeftMinimizePanel, myRightMinimizePanel);
     mySplitter.setSize(1000, 600);
-    myWorkBench = new WorkBench<>(myProject, "BENCH", myFileEditor, initParams, myFloatingToolWindowManager);
+    myWorkBench = new WorkBench<>(getProject(), "BENCH", myFileEditor, initParams, myFloatingToolWindowManager);
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
                                                                       PalettePanelToolContent.getOtherDefinition(),
                                                                       PalettePanelToolContent.getThirdDefinition());
-    myWorkBench.init(myContent, "CONTEXT", definitions);
+    myWorkBench.init(myContent, "CONTEXT", definitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
     myToolWindow3 = myModel.getAllTools().get(2);

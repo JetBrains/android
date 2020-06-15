@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindowManager;
 import org.fest.swing.core.Robot;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -46,9 +42,8 @@ public class VisualizationFixture extends ToolWindowFixture {
     return this;
   }
 
-  @Nullable
-  public VirtualFile getCurrentFile() {
-    NlModel model = myDesignSurfaceFixture.target().getModel();
-    return model != null ? model.getVirtualFile() : null;
+  @NotNull
+  public String getCurrentFileName() {
+    return myDesignSurfaceFixture.target().getModel().getVirtualFile().getName();
   }
 }

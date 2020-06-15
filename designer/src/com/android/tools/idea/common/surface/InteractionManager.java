@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
-import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
-import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -31,23 +26,15 @@ import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
-import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -57,8 +44,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
@@ -75,8 +60,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.EventObject;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -103,6 +87,12 @@ public class InteractionManager implements Disposable {
    */
   @NotNull
   private final DesignSurface mySurface;
+
+  /**
+   * The {@linkplain InteractionHandler} which provides the {@linkplain Interaction} during interacting.
+   */
+  @NotNull
+  private final InteractionHandler myInteractionHandler;
 
   /**
    * The currently executing {@link Interaction}, or null.
@@ -187,8 +177,9 @@ public class InteractionManager implements Disposable {
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
-  public InteractionManager(@NotNull DesignSurface surface) {
+  public InteractionManager(@NotNull DesignSurface surface, @NotNull InteractionHandler provider) {
     mySurface = surface;
+    myInteractionHandler = provider;
     Disposer.register(surface, this);
 
     myListener = new Listener();
@@ -203,7 +194,12 @@ public class InteractionManager implements Disposable {
       @Override
       public void actionPerformed(ActionEvent e) {
         myScrollEndTimer.removeActionListener(this);
-        finishInteraction(0, 0, 0, false);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          finishInteraction(e, false);
+        }
+        else {
+          finishInteraction(0, 0, 0, false);
+        }
       }
     };
   }
@@ -226,6 +222,9 @@ public class InteractionManager implements Disposable {
   }
 
   public boolean isPanning() {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      return myCurrentInteraction instanceof PanInteraction;
+    }
     return myIsPanning;
   }
 
@@ -275,6 +274,25 @@ public class InteractionManager implements Disposable {
 
   /**
    * Starts the given interaction.
+   *
+   * @param event       The event makes the interaction start.
+   * @param interaction The given interaction to start
+   */
+  private void startInteraction(@Nullable EventObject event, @Nullable Interaction interaction) {
+    if (myCurrentInteraction != null) {
+      finishInteraction(event, true);
+      assert myCurrentInteraction == null;
+    }
+
+    if (interaction != null) {
+      myCurrentInteraction = interaction;
+      myCurrentInteraction.begin(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      myLayers = interaction.createOverlays();
+    }
+  }
+
+  /**
+   * Starts the given interaction.
    */
   private void startInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @Nullable Interaction interaction,
                                 @InputEventMask int modifiersEx) {
@@ -317,9 +335,51 @@ public class InteractionManager implements Disposable {
   /**
    * Updates the current interaction, if any, for the given event.
    */
-  private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
+  private void updateMouseMoved(@NotNull MouseEvent event, @SwingCoordinate int x, @SwingCoordinate int y) {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      if (myCurrentInteraction != null) {
+        myCurrentInteraction.update(event, new InteractionInformation(x, y, myLastModifiersEx));
+      }
+      else {
+        myInteractionHandler.hoverWhenNoInteraction(x, y, myLastModifiersEx);
+      }
+    }
+    else {
+      // TODO: Remove below code when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+      if (myCurrentInteraction != null) {
+        myCurrentInteraction.update(x, y, myLastModifiersEx);
+      }
+    }
+  }
+
+  /**
+   * Finish the given interaction, either from successful completion or from
+   * cancellation.
+   *
+   * @param event    The event which makes the current interaction end.
+   * @param canceled True if and only if the interaction was canceled.
+   */
+  private void finishInteraction(@Nullable EventObject event, boolean canceled) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(x, y, myLastModifiersEx);
+      if (canceled) {
+        myCurrentInteraction.cancel(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      }
+      else {
+        myCurrentInteraction.commit(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      }
+      if (myLayers != null) {
+        for (Layer layer : myLayers) {
+          //noinspection SSBasedInspection
+          layer.dispose();
+        }
+        myLayers = null;
+      }
+      myCurrentInteraction = null;
+      myLastModifiersEx = 0;
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        myInteractionHandler.hoverWhenNoInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      }
+      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       mySurface.repaint();
     }
   }
@@ -337,7 +397,12 @@ public class InteractionManager implements Disposable {
    */
   private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.end(x, y, modifiersEx, canceled);
+      if (!canceled) {
+        myCurrentInteraction.end(x, y, modifiersEx);
+      }
+      else {
+        myCurrentInteraction.cancel(x, y, modifiersEx);
+      }
       if (myLayers != null) {
         for (Layer layer : myLayers) {
           //noinspection SSBasedInspection
@@ -360,27 +425,22 @@ public class InteractionManager implements Disposable {
    * <li>Otherwise, show the default arrow cursor.
    * </ul>
    */
-  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
-    Cursor cursor = null;
-    SceneView sceneView = mySurface.getSceneView(x, y);
-    if (sceneView != null) {
-      Dimension sceneViewSize = sceneView.getSize();
-      // Check if the mouse position is at the bottom-right corner of sceneView.
-      Rectangle resizeZone = new Rectangle(sceneView.getX() + sceneViewSize.width,
-                                           sceneView.getY() + sceneViewSize.height,
-                                           NlConstants.RESIZING_HOVERING_SIZE,
-                                           NlConstants.RESIZING_HOVERING_SIZE);
-      if (resizeZone.contains(x, y) && sceneView.getSurface().isResizeAvailable()) {
-        cursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      Cursor cursor;
+      if (myCurrentInteraction == null) {
+        cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
       }
       else {
-        SceneContext context = SceneContext.get(sceneView);
-        context.setMouseLocation(x, y);
-        sceneView.getScene().mouseHover(context, getAndroidXDip(sceneView, x), getAndroidYDip(sceneView, y), modifier);
-        cursor = sceneView.getScene().getMouseCursor();
+        cursor = myCurrentInteraction.getCursor();
       }
+      mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
     }
-    mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
+    else {
+      // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+      Cursor cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
+      mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
+    }
   }
 
   public boolean isInteractionInProgress() {
@@ -403,18 +463,17 @@ public class InteractionManager implements Disposable {
       int clickCount = event.getClickCount();
 
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        mySurface.onDoubleClick(x, y);
+        myInteractionHandler.doubleClick(x, y, myLastModifiersEx);
         return;
       }
 
       // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !AdtUiUtils.isActionKeyDown(event)) {
-        mySurface.onSingleClick(x, y);
+        myInteractionHandler.singleClick(x, y, myLastModifiersEx);
       }
 
       if (event.isPopupTrigger()) {
-        NlComponent component = selectComponentAt(x, y, false, true);
-        mySurface.getActionManager().showPopup(event, component);
+        myInteractionHandler.popupMenuTrigger(event);
       }
     }
 
@@ -431,35 +490,71 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
-        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
-        mySurface.getActionManager().showPopup(event, selected);
+        myInteractionHandler.popupMenuTrigger(event);
         event.consume();
         return;
       }
-
-      if (interceptPanInteraction(event)) {
+      if (SwingUtilities.isRightMouseButton(event)) {
+        // On Windows the convention is that the mouse up event triggers the popup.
+        // If the user is starting a right click, return and handle the popup in mouseReleased.
+        return;
+      }
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        // TODO: move this logic into InteractionHandler.createInteractionOnPressed()
+        if (myCurrentInteraction instanceof PanInteraction) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          return;
+        }
+        else if (SwingUtilities.isMiddleMouseButton(event)) {
+          startInteraction(event, new PanInteraction(mySurface));
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          return;
+        }
+      }
+      else if (interceptPanInteraction(event)) {
         handlePanInteraction(myLastMouseX, myLastMouseY);
         return;
       }
 
-      Interaction interaction = getSurface().createInteractionOnClick(myLastMouseX, myLastMouseY);
+      Interaction interaction = myInteractionHandler.createInteractionOnPressed(myLastMouseX, myLastMouseY, myLastModifiersEx);
       if (interaction != null) {
-        startInteraction(myLastMouseX, myLastMouseY, interaction, myLastModifiersEx);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          startInteraction(event, interaction);
+        }
+        else {
+          startInteraction(myLastMouseX, myLastMouseY, interaction, myLastModifiersEx);
+        }
       }
     }
 
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
+      // TODO: Should we update the last mouse position and modifiers here?
       if (myIsInteractionCanceled) {
         return;
       }
       if (event.isPopupTrigger()) {
-        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
-        mySurface.repaint();
-        mySurface.getActionManager().showPopup(event, selected);
+        // On Windows the convention is that the mouse up event triggers the popup.
+        // Handle popup triggers here for Windows.
+        myInteractionHandler.popupMenuTrigger(event);
         return;
       }
-      else if (interceptPanInteraction(event)) {
+
+      if (myCurrentInteraction instanceof PanInteraction) {
+        // This never be true because PanInteraction never be created when NELE_NEW_INTERACTION_INTERFACE is disable.
+        // Consume event, but only stop panning if the middle mouse button was released.
+        if (SwingUtilities.isMiddleMouseButton(event)) {
+          finishInteraction(event, true);
+        }
+        else {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        }
+        return;
+      }
+
+      if (interceptPanInteraction(event)) {
         if (SwingUtilities.isMiddleMouseButton(event)) {
           // Consume event, but only disable panning if the middle mouse button was released.
           setPanning(false);
@@ -477,92 +572,19 @@ public class InteractionManager implements Disposable {
       int modifiersEx = event.getModifiersEx();
 
       if (myCurrentInteraction == null) {
-        boolean allowToggle = (modifiersEx & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
-        selectComponentAt(x, y, allowToggle, false);
-        mySurface.repaint();
-      }
-      if (myCurrentInteraction == null) {
+        myInteractionHandler.mouseReleaseWhenNoInteraction(x, y, modifiersEx);
         updateCursor(x, y, modifiersEx);
       }
       else {
-        finishInteraction(x, y, modifiersEx, false);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          finishInteraction(event, false);
+        }
+        else {
+          finishInteraction(x, y, modifiersEx, false);
+        }
         myCurrentInteraction = null;
       }
       mySurface.repaint();
-    }
-
-    /**
-     * Selects the component under the given x,y coordinate, optionally
-     * toggling or replacing the selection.
-     *
-     * @param x                       The mouse click x coordinate, in Swing coordinates.
-     * @param y                       The mouse click y coordinate, in Swing coordinates.
-     * @param allowToggle             If true, clicking an unselected component adds it to the selection,
-     *                                and clicking a selected component removes it from the selection. If not,
-     *                                the selection is replaced.
-     * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
-     *                                selection (including possibly other selected components) alone
-     */
-    @Nullable
-    private NlComponent selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
-                                          boolean ignoreIfAlreadySelected) {
-      // Just a click, select
-      SceneView sceneView = mySurface.getSceneView(x, y);
-      if (sceneView == null) {
-        return null;
-      }
-
-      SceneContext context = SceneContext.get(sceneView);
-      int xDip = getAndroidXDip(sceneView, x);
-      int yDip = getAndroidYDip(sceneView, y);
-      Scene scene = sceneView.getScene();
-      Target clickedTarget = scene.findTarget(context, xDip, yDip, myLastModifiersEx);
-      SceneComponent clicked;
-      if (clickedTarget != null) {
-        clicked = clickedTarget.getComponent();
-      }
-      else {
-        clicked = scene.findComponent(context, xDip, yDip);
-      }
-      NlComponent component = null;
-      if (clicked != null) {
-        component = clicked.getNlComponent();
-      }
-
-      SecondarySelector secondarySelector = Scene.getSecondarySelector(context, xDip, yDip);
-      boolean useSecondarySelector = component != null && secondarySelector != null;
-      if (useSecondarySelector) {
-        // Change clicked component to the secondary selection.
-        component = secondarySelector.getComponent();
-      }
-
-      SelectionModel selectionModel = sceneView.getSelectionModel();
-      if (ignoreIfAlreadySelected && secondarySelector == null && component != null && selectionModel.isSelected(component)) {
-        return component;
-      }
-
-      if (component == null) {
-        selectionModel.clear();
-      }
-      else if (allowToggle) {
-        selectionModel.toggle(component);
-      }
-      else if (useSecondarySelector) {
-        selectionModel.setSecondarySelection(component, secondarySelector.getConstraint());
-      }
-      else {
-        selectionModel.setSelection(Collections.singletonList(component));
-      }
-      return component;
-    }
-
-    @Nullable
-    private NlComponent getComponentAt(@SwingCoordinate int x, @SwingCoordinate int y) {
-      SceneView sceneView = mySurface.getSceneView(x, y);
-      if (sceneView == null) {
-        return null;
-      }
-      return Coordinates.findComponent(sceneView, x, y);
     }
 
     @Override
@@ -585,7 +607,14 @@ public class InteractionManager implements Disposable {
       int x = event.getX();
       int y = event.getY();
 
-      if (interceptPanInteraction(event)) {
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        if (myCurrentInteraction instanceof PanInteraction) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          return;
+        }
+      }
+      else if (interceptPanInteraction(event)) {
         handlePanInteraction(x, y);
         return;
       }
@@ -601,7 +630,12 @@ public class InteractionManager implements Disposable {
         myLastMouseX = x;
         myLastMouseY = y;
         myLastModifiersEx = modifiersEx;
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        }
+        else {
+          myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        }
         updateCursor(x, y, modifiersEx);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
@@ -612,78 +646,60 @@ public class InteractionManager implements Disposable {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
         myLastModifiersEx = modifiersEx;
-        SceneView sceneView = mySurface.getSceneView(x, y);
-        if (sceneView == null) {
-          return;
-        }
-        Scene scene = sceneView.getScene();
-        SelectionModel selectionModel = sceneView.getSelectionModel();
 
-        int xDp = getAndroidXDip(sceneView, x);
-        int yDp = getAndroidYDip(sceneView, y);
-
-        Interaction interaction;
-        NlModel model = sceneView.getModel();
-        SceneComponent component = null;
-
-        // Make sure we start from root if we don't have anything selected
-        if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
-          selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
-        }
-
-        // See if you're dragging inside a selected parent; if so, drag the selection instead of any
-        // leaf nodes inside it
-        NlComponent primaryNlComponent = selectionModel.getPrimary();
-        SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
-        if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
-          component = primary;
-        }
-        if (component == null) {
-          component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
-        }
-
-        if (component == null || component.getParent() == null) {
-          // Dragging on the background/root view: start a marquee selection
-          interaction = new MarqueeInteraction(sceneView);
-        }
-        else {
-          interaction = getSurface().createInteractionOnDrag(component, primary);
-        }
+        Interaction interaction = myInteractionHandler.createInteractionOnDrag(x, y, myLastModifiersEx);
 
         if (interaction != null) {
-          startInteraction(x, y, interaction, modifiersEx);
+          if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+            startInteraction(event, interaction);
+          }
+          else {
+            startInteraction(x, y, interaction, modifiersEx);
+          }
         }
         updateCursor(x, y, modifiersEx);
       }
-
       myHoverTimer.restart();
     }
 
     @Override
-    public void mouseMoved(MouseEvent event) {
+    public void mouseMoved(@NotNull MouseEvent event) {
       int x = event.getX();
       int y = event.getY();
+      int modifiersEx = event.getModifiersEx();
       myLastMouseX = x;
       myLastMouseY = y;
+      myLastModifiersEx = modifiersEx;
 
-      if (interceptPanInteraction(event)) {
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        if (myCurrentInteraction instanceof PanInteraction) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          updateCursor(x, y, modifiersEx);
+          return;
+        }
+      }
+      else if (interceptPanInteraction(event)) {
         handlePanInteraction(x, y);
         return;
       }
-      int modifier = event.getModifiersEx();
-      myLastModifiersEx = modifier;
 
-      mySurface.hover(x, y);
-      if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
-        if (myCurrentInteraction != null) {
-          updateMouse(x, y);
-          mySurface.repaint();
-        }
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        updateMouseMoved(event, x, y);
+        updateCursor(x, y, modifiersEx);
       }
       else {
-        updateCursor(x, y, modifier);
+        myInteractionHandler.hoverWhenNoInteraction(x, y, modifiersEx);
+        if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+          if (myCurrentInteraction != null) {
+            updateMouseMoved(event, x, y);
+          }
+        }
+        else {
+          updateCursor(x, y, modifiersEx);
+        }
       }
 
+      mySurface.repaint();
       myHoverTimer.restart();
     }
 
@@ -713,7 +729,12 @@ public class InteractionManager implements Disposable {
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true);
+          if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+            finishInteraction(event, true);
+          }
+          else {
+            finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true);
+          }
           myIsInteractionCanceled = true;
           return;
         }
@@ -759,7 +780,12 @@ public class InteractionManager implements Disposable {
         scene.repaint();
       }
       if (myCurrentInteraction != null) {
-        myCurrentInteraction.keyReleased(event);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        }
+        else {
+          myCurrentInteraction.keyReleased(event);
+        }
       }
 
       if (isPanningKeyboardKey(event)) {
@@ -771,85 +797,58 @@ public class InteractionManager implements Disposable {
     // ---- Implements DropTargetListener ----
 
     @Override
-    public void dragEnter(DropTargetDragEvent dragEvent) {
+    public void dragEnter(@NotNull DropTargetDragEvent dragEvent) {
       if (myCurrentInteraction == null) {
-        NlDropEvent event = new NlDropEvent(dragEvent);
-        Point location = event.getLocation();
+        Point location = dragEvent.getLocation();
         myLastMouseX = location.x;
         myLastMouseY = location.y;
-
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView == null) {
-          event.reject();
-          return;
-        }
-        NlModel model = sceneView.getModel();
-        DnDTransferItem item = DnDTransferItem.getTransferItem(event.getTransferable(), true /* allow placeholders */);
-        if (item == null) {
-          event.reject();
-          return;
-        }
-        DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-        InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
-
-        List<NlComponent> dragged;
-        if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette()) {
-          // When dragging from ComponentTree, it should reuse the existing NlComponents rather than creating the new ones.
-          // This impacts some Handlers, using StudioFlag to protect for now.
-          // Most of Handlers should be removed once this flag is removed.
-          dragged = new ArrayList<>(mySurface.getSelectionModel().getSelection());
+        Interaction interaction = myInteractionHandler.createInteractionOnDragEnter(dragEvent);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          startInteraction(dragEvent, interaction);
         }
         else {
-          if (item.isFromPalette()) {
-            // remove selection when dragging from Palette.
-            mySurface.getSelectionModel().clear();
-          }
-          dragged = model.createComponents(item, insertType, mySurface);
+          startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
         }
-
-        if (dragged.isEmpty()) {
-          event.reject();
-          return;
-        }
-
-        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
-        interaction.setType(dragType);
-        interaction.setTransferItem(item);
-        startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
-
-        // This determines the icon presented to the user while dragging.
-        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
-        // that reflects the users choice i.e. controlled by the modifier key.
-        event.accept(insertType);
       }
     }
 
     @Override
     public void dragOver(DropTargetDragEvent dragEvent) {
-      NlDropEvent event = new NlDropEvent(dragEvent);
-      Point location = event.getLocation();
+      Point location = dragEvent.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
-      SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-      if (sceneView != null && myCurrentInteraction instanceof DragDropInteraction) {
-        DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-        interaction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
-        if (interaction.acceptsDrop()) {
-          DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-          interaction.setType(dragType);
-          NlModel model = sceneView.getModel();
-          InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
+      NlDropEvent event = new NlDropEvent(dragEvent);
+      if (myCurrentInteraction == null) {
+        event.reject();
+        return;
+      }
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        myCurrentInteraction.update(dragEvent, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      }
+      else if (myCurrentInteraction instanceof DragDropInteraction) {
+        // TODO: removed below codes after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+        if (sceneView != null) {
+          DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
+          interaction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          if (interaction.acceptsDrop()) {
+            DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+            interaction.setType(dragType);
+            NlModel model = sceneView.getModel();
+            InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
 
-          // This determines the icon presented to the user while dragging.
-          // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
-          // that reflects the users choice i.e. controlled by the modifier key.
-          event.accept(insertType);
-        } else {
+            // This determines the icon presented to the user while dragging.
+            // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+            // that reflects the users choice i.e. controlled by the modifier key.
+            event.accept(insertType);
+          }
+          else {
+            event.reject();
+          }
+        }
+        else {
           event.reject();
         }
-      }
-      else {
-        event.reject();
       }
     }
 
@@ -860,109 +859,46 @@ public class InteractionManager implements Disposable {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true /* cancel interaction */);
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          finishInteraction(event, true);
+        }
+        else {
+          finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true /* cancel interaction */);
+        }
       }
     }
 
     @Override
-    public void drop(final DropTargetDropEvent dropEvent) {
-      NlDropEvent event = new NlDropEvent(dropEvent);
-      Point location = event.getLocation();
+    public void drop(@NotNull final DropTargetDropEvent dropEvent) {
+      Point location = dropEvent.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
-      InsertType insertType = performDrop(event.getDropAction(), event.getTransferable());
-      if (insertType != null) {
-        // This determines how the DnD source acts to a completed drop.
-        event.accept(insertType);
-        event.complete();
-      }
-      else {
-        event.reject();
-      }
-    }
 
-    @Nullable
-    private InsertType performDrop(int dropAction, @Nullable Transferable transferable) {
+      NlDropEvent event = new NlDropEvent(dropEvent);
       if (!(myCurrentInteraction instanceof DragDropInteraction)) {
-        return null;
-      }
-      InsertType insertType = finishDropInteraction(dropAction, transferable);
-      finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, (insertType == null));
-      return insertType;
-    }
-
-    @Nullable
-    private InsertType finishDropInteraction(int dropAction, @Nullable Transferable transferable) {
-      if (transferable == null) {
-        return null;
-      }
-      DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false /* no placeholders */);
-      if (item == null) {
-        return null;
-      }
-      SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-      if (sceneView == null) {
-        return null;
-      }
-
-      NlModel model = sceneView.getModel();
-      DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-      InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */);
-
-      DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-      assert interaction != null;
-      interaction.setType(dragType);
-      interaction.setTransferItem(item);
-
-      List<NlComponent> dragged = interaction.getDraggedComponents();
-      List<NlComponent> components;
-      if (insertType.isMove()) {
-        components = mySurface.getSelectionModel().getSelection();
-      }
-      else {
-        components = model.createComponents(item, insertType, mySurface);
-
-        if (components.isEmpty()) {
-          return null;  // User cancelled
-        }
-      }
-      if (dragged.size() != components.size()) {
-        throw new AssertionError(
-          String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
-      }
-      for (int index = 0; index < dragged.size(); index++) {
-        if (!NlComponentHelperKt.getHasNlComponentInfo(components.get(index)) ||
-            !NlComponentHelperKt.getHasNlComponentInfo(dragged.get(index))) {
-          continue;
-        }
-        NlComponentHelperKt.setX(components.get(index), NlComponentHelperKt.getX(dragged.get(index)));
-        NlComponentHelperKt.setY(components.get(index), NlComponentHelperKt.getY(dragged.get(index)));
-      }
-
-      logFinishDropInteraction(components);
-
-      dragged.clear();
-      dragged.addAll(components);
-      return insertType;
-    }
-
-    private void logFinishDropInteraction(@NotNull List<NlComponent> components) {
-      DesignSurface surface = getSurface();
-      if (!(surface instanceof NlDesignSurface)) {
+        event.reject();
         return;
       }
-
-      NlAnalyticsManager manager = (NlAnalyticsManager)surface.getAnalyticsManager();
-      components.forEach( component -> {
-        if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
-          if (ConstraintLayoutGuidelineHandler.isVertical(component)) {
-            manager.trackAddVerticalGuideline();
-          }
-          else {
-            manager.trackAddHorizontalGuideline();
-          }
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        finishInteraction(dropEvent, false);
+      }
+      else {
+        // TODO: remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        DragDropInteraction interaction = (DragDropInteraction) myCurrentInteraction;
+        InsertType insertType = interaction.finishDropInteraction(myLastMouseX,
+                                                                  myLastMouseY,
+                                                                  event.getDropAction(),
+                                                                  event.getTransferable());
+        finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, (insertType == null));
+        if (insertType != null) {
+          // This determines how the DnD source acts to a completed drop.
+          event.accept(insertType);
+          event.complete();
         }
-      });
+        else {
+          event.reject();
+        }
+      }
     }
 
     // --- Implements ActionListener ----
@@ -977,7 +913,11 @@ public class InteractionManager implements Disposable {
       int y = myLastMouseY;
 
       // TODO: find the correct tooltip? to show
-      mySurface.hover(x, y);
+
+      // TODO (b/142953949): Should layer be hovered when action performed?
+      for (Layer layer : mySurface.getLayers()) {
+        layer.onHover(x, y);
+      }
     }
 
     // --- Implements MouseWheelListener ----
@@ -986,7 +926,6 @@ public class InteractionManager implements Disposable {
     public void mouseWheelMoved(MouseWheelEvent e) {
       int x = e.getX();
       int y = e.getY();
-
       int scrollAmount;
       if (e.getScrollType() == WHEEL_UNIT_SCROLL) {
         scrollAmount = e.getUnitsToScroll();
@@ -999,9 +938,7 @@ public class InteractionManager implements Disposable {
       // interpreted as a mouseWheel Event with Shift down.
       // If some scrolling imprecision happens for other scroll interaction, it might be good
       // to do the filtering at a higher level
-      if (!e.isShiftDown()
-          && (SystemInfo.isMac && e.isMetaDown()
-              || e.isControlDown())) {
+      if (!e.isShiftDown() && (SystemInfo.isMac && e.isMetaDown() || e.isControlDown())) {
         if (scrollAmount < 0) {
           mySurface.zoom(ZoomType.IN, x, y);
         }
@@ -1011,22 +948,9 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      SceneView sceneView = mySurface.getSceneView(x, y);
-      if (sceneView == null) {
-        e.getComponent().getParent().dispatchEvent(e);
-        return;
-      }
-
-      final NlComponent component = Coordinates.findComponent(sceneView, x, y);
-      if (component == null) {
-        // There is no component consuming the scroll
-        e.getComponent().getParent().dispatchEvent(e);
-        return;
-      }
-
-      boolean isScrollInteraction;
       if (myCurrentInteraction == null) {
-        ScrollInteraction scrollInteraction = ScrollInteraction.createScrollInteraction(sceneView, component);
+        Interaction scrollInteraction = myInteractionHandler.createInteractionOnMouseWheelMoved(e);
+
         if (scrollInteraction == null) {
           // There is no component consuming the scroll
           e.getComponent().getParent().dispatchEvent(e);
@@ -1034,26 +958,48 @@ public class InteractionManager implements Disposable {
         }
 
         // Start a scroll interaction and a timer to bundle all the scroll events
-        startInteraction(x, y, scrollInteraction, 0);
-        isScrollInteraction = true;
+        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+          startInteraction(e, scrollInteraction);
+        }
+        else {
+          startInteraction(x, y, scrollInteraction, 0);
+        }
         myScrollEndTimer.addActionListener(myScrollEndListener);
       }
       else {
-        isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
-      }
+        // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        SceneView sceneView = mySurface.getSceneView(x, y);
+        if (sceneView == null) {
+          e.getComponent().getParent().dispatchEvent(e);
+          return;
+        }
 
-      if (isScrollInteraction && !((ScrollInteraction)myCurrentInteraction).canScroll(scrollAmount)) {
-        JScrollPane scrollPane = mySurface.getScrollPane();
-        JViewport viewport = scrollPane.getViewport();
-        Dimension extentSize = viewport.getExtentSize();
-        Dimension viewSize = viewport.getViewSize();
-        if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+        final NlComponent component = Coordinates.findComponent(sceneView, x, y);
+        if (component == null) {
+          // There is no component consuming the scroll
           e.getComponent().getParent().dispatchEvent(e);
           return;
         }
       }
-      myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
 
+      boolean isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        myCurrentInteraction.update(e, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      }
+      else {
+        // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        if (isScrollInteraction && !((ScrollInteraction)myCurrentInteraction).canScroll(scrollAmount)) {
+          JScrollPane scrollPane = mySurface.getScrollPane();
+          JViewport viewport = scrollPane.getViewport();
+          Dimension extentSize = viewport.getExtentSize();
+          Dimension viewSize = viewport.getViewSize();
+          if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+            e.getComponent().getParent().dispatchEvent(e);
+            return;
+          }
+        }
+        myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
+      }
       if (isScrollInteraction) {
         myScrollEndTimer.restart();
       }
@@ -1061,10 +1007,22 @@ public class InteractionManager implements Disposable {
   }
 
   void setPanning(boolean panning) {
-    if (panning != myIsPanning) {
-      myIsPanning = panning;
-      mySurface.setCursor(panning ? AdtUiCursors.GRAB
-                                  : Cursor.getDefaultCursor());
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
+        startInteraction(null, new PanInteraction(mySurface));
+        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      }
+      else if (!panning && myCurrentInteraction instanceof PanInteraction) {
+        finishInteraction(null, false);
+        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      }
+    }
+    else {
+      if (panning != myIsPanning) {
+        myIsPanning = panning;
+        mySurface.setCursor(panning ? AdtUiCursors.GRAB
+                                    : Cursor.getDefaultCursor());
+      }
     }
   }
 
@@ -1076,7 +1034,7 @@ public class InteractionManager implements Disposable {
    */
   public boolean interceptPanInteraction(@NotNull MouseEvent event) {
     boolean wheelClickDown = SwingUtilities.isMiddleMouseButton(event);
-    if (myIsPanning || wheelClickDown) {
+    if (isPanning() || wheelClickDown) {
       boolean leftClickDown = SwingUtilities.isLeftMouseButton(event);
       mySurface.setCursor((leftClickDown || wheelClickDown) ? AdtUiCursors.GRABBING : AdtUiCursors.GRAB);
       return true;
@@ -1090,26 +1048,26 @@ public class InteractionManager implements Disposable {
 
   /**
    * Scroll the {@link DesignSurface} by the same amount as the drag distance.
+   * TODO: remove this function after {@link StudioFlags#NELE_NEW_INTERACTION_INTERFACE} is removed.
    *
    * @param x     x position of the cursor for the passed event
    * @param y     y position of the cursor for the passed event
    */
-  void handlePanInteraction(@SwingCoordinate int x, @SwingCoordinate int y) {
-    DesignSurface surface = getSurface();
-    Point position = surface.getScrollPosition();
+  private void handlePanInteraction(@SwingCoordinate int x, @SwingCoordinate int y) {
     setPanning(true);
-    // position can be null in tests
-    if (position != null) {
-      position.translate(myLastMouseX - x, myLastMouseY - y);
-      surface.setScrollPosition(position);
-    }
+    PanInteraction.handlePanInteraction(mySurface, x, y, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
   }
 
   /**
    * Cancels the current running interaction
    */
   public void cancelInteraction() {
-    finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true);
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      finishInteraction(null, true);
+    }
+    else {
+      finishInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx, true);
+    }
   }
 
   @VisibleForTesting

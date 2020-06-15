@@ -7,7 +7,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFrameworkDetector;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
@@ -15,10 +18,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.eclipse.importWizard.EclipseNatureImporter;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky

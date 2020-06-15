@@ -281,4 +281,18 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();
   }
+
+  public void testGeneratedTestSourcesIncluded() throws Exception {
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
+
+    // Simulate generated source files. These should be correctly identified as unit or android test.
+    VirtualFile unitTestSource = createFileIfNotExists("module1/build/generated/ap_generated_sources/debugUnitTest/out/Test.java");
+    VirtualFile androidTestSource = createFileIfNotExists("module1/build/generated/ap_generated_sources/debugAndroidTest/out/Test.java");
+
+    assertTrue(scopes.isUnitTestSource(unitTestSource));
+    assertFalse(scopes.isUnitTestSource(androidTestSource));
+
+    assertTrue(scopes.isAndroidTestSource(androidTestSource));
+    assertFalse(scopes.isAndroidTestSource(unitTestSource));
+  }
 }

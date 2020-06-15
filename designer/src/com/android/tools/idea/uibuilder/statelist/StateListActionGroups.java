@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.statelist;
 
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import java.util.Arrays;
@@ -31,6 +32,8 @@ public final class StateListActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
+    // TODO(b/136258816): Update to support multi-model
+    group.add(new ThemeMenuAction(mySurface::getConfiguration));
     Arrays.asList(State.values()).forEach(state -> group.add(new ToggleStateAction(state, mySurface)));
 
     return group;

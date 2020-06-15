@@ -33,6 +33,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.concurrency.BoundedTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -117,14 +118,9 @@ public class RenderTestUtil {
   public static void waitForRenderTaskDisposeToFinish() {
     // Make sure there is no RenderTask disposing event in the event queue.
     UIUtil.dispatchAllInvocationEvents();
-    assert RenderTask.ourDisposeService instanceof ThreadPoolExecutor &&
-           ((ThreadPoolExecutor)RenderTask.ourDisposeService).getMaximumPoolSize() == 1:
+    assert RenderTask.ourDisposeService.toString().startsWith("BoundedExecutor(1)"):
       "The 'waiting' code below assumes that tasks are executed sequentially, in one thread, in order"
     ;
-
-    if (((ThreadPoolExecutor)RenderTask.ourDisposeService).getPoolSize() == 0){
-      return;
-    }
 
     String complete = "complete";
     Future<?> lastTaskInDisposeQueue = RenderTask.ourDisposeService.submit(complete::toString);

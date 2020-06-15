@@ -57,8 +57,9 @@ final public class ProcessHandlerLaunchStatus implements LaunchStatus {
   }
 
   /**
-   * Returns the current master process handler.
+   * Returns the process handler associated with this launch status.
    */
+  @Override
   @NotNull
   public ProcessHandler getProcessHandler() {
     return myProcessHandler;

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LayoutTreeDefinition extends ToolWindowDefinition<LayoutInspectorContext> {
   public LayoutTreeDefinition(@NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
-    super("View Tree", AllIcons.Toolwindows.WebToolWindow, "LI_VIEW_TREE", side, split, autoHide, LayoutTreePanel::new);
+    super("View Tree", AllIcons.Toolwindows.WebToolWindow, "LI_VIEW_TREE", side, split, autoHide, DEFAULT_SIDE_WIDTH,
+          DEFAULT_BUTTON_SIZE, ALLOW_SPLIT_MODE, LayoutTreePanel::new);
   }
 }

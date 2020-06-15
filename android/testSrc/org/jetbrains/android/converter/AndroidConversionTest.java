@@ -9,10 +9,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.android.AndroidTestBase;
-
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.android.AndroidTestBase;
 
 /**
  * @author Eugene.Kudelevsky

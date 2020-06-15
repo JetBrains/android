@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceNamespace.ANDROID
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceUrl
 import com.android.tools.property.panel.api.EnumSupport
@@ -84,11 +83,12 @@ open class StyleEnumSupport(val property: NelePropertyItem) : CachedEnumSupport 
       }
       else {
         val header = when(style.namespace) {
-          ANDROID -> ANDROID_HEADER
+          ResourceNamespace.ANDROID -> ANDROID_HEADER
           ResourceNamespace.TODO() -> determineHeaderFromLibraryName(style.libraryName)
           else -> StringUtil.getShortName(style.namespace.packageName ?: OTHER_HEADER, '.')
         }
-        result.add(value.withHeader(header))
+        result.add(EnumValue.header(header))
+        result.add(value)
       }
       prev = style
     }

@@ -68,24 +68,21 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     return Logger.getInstance(ForcedPluginPreviewVersionUpgradeDialog.class);
   }
 
-  public ForcedPluginPreviewVersionUpgradeDialog(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+  public ForcedPluginPreviewVersionUpgradeDialog(@NotNull Project project, @Nullable GradleVersion currentPluginVersion) {
     super(project);
     myProject = project;
 
-    boolean experimental = pluginInfo.isExperimental();
-    String pluginType = experimental ? "Experimental " : "";
-    setTitle("Android Gradle " + pluginType + "Plugin Update Required");
+    setTitle("Android Gradle Plugin Update Required");
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    String pluginVersion = pluginInfo.getLatestKnownPluginVersionProvider().get();
+    String pluginVersion = LatestKnownPluginVersionProvider.INSTANCE.get();
     myRecommendedPluginVersion = pluginVersion;
-    GradleVersion currentVersion = pluginInfo.getPluginVersion();
-    myCurrentPluginVersion = (currentVersion != null) ? pluginInfo.getPluginVersion().toString() : null;
+    myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
     myMessage = "<b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/><br/>" +
                 "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
                 "You can learn more about this version of the plugin from the " +
-                "<a href='https://developer.android.com/studio/" + (experimental ? "build/experimental-plugin.html" : "releases/gradle-plugin.html") +
+                "<a href='https://developer.android.com/studio/releases/gradle-plugin.html" +
                 "'>release notes</a>.<br/><br/>";
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {

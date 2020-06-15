@@ -19,12 +19,12 @@ import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -42,6 +42,12 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.ValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypesAndPredicate
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
  * Extension [PasteProvider] to handle paste of [java.awt.datatransfer.Transferable] providing [RESOURCE_URL_FLAVOR] in
@@ -58,7 +64,39 @@ class ResourcePasteProvider : PasteProvider {
 
     when (psiFile.fileType) {
       XmlFileType.INSTANCE -> performForXml(psiElement, dataContext, caret)
+      JavaFileType.INSTANCE -> performForJavaCode(dataContext, caret)
+      KotlinFileType.INSTANCE -> performForKotlinCode(psiElement, dataContext, caret)
     }
+  }
+
+  private fun performForKotlinCode(psiElement: PsiElement?,
+                                   dataContext: DataContext,
+                                   caret: Caret) {
+    val resourceUrl = getResourceUrl(dataContext) ?: return
+    if (psiElement == null) return
+    val resourceCodeReference = resourceUrl.resourceCodeReference
+    val argumentParent = psiElement.getParentOfTypesAndPredicate(false, PsiElement::class.java) { it is ValueArgument }
+    if (argumentParent != null) {
+      processForMethodValue(argumentParent, caret, resourceCodeReference)
+      // TODO(143899540): Update tracking, to differentiate when pasting on code files.
+      ResourceManagerTracking.logPasteUrlText(resourceUrl.type)
+      return
+    }
+    val methodCallParent = psiElement.getParentOfTypesAndPredicate(false, PsiElement::class.java) { it is KtCallExpression }
+    if (methodCallParent != null) {
+      processForMethodCall(methodCallParent, caret, resourceCodeReference)
+      // TODO(143899540): Update tracking, to differentiate when pasting on code files.
+      ResourceManagerTracking.logPasteUrlText(resourceUrl.type)
+      return
+    }
+    pasteAtCaret(caret, resourceCodeReference, resourceUrl.type)
+  }
+
+  private fun performForJavaCode(dataContext: DataContext, caret: Caret) {
+    val resourceUrl = getResourceUrl(dataContext) ?: return
+    val resourceCodeReference = resourceUrl.resourceCodeReference
+    // TODO: Add proper support for Java files
+    pasteAtCaret(caret, resourceCodeReference, resourceUrl.type)
   }
 
   /**
@@ -173,6 +211,25 @@ class ResourcePasteProvider : PasteProvider {
     return true
   }
 
+  private fun processForMethodCall(value: PsiElement, caret: Caret, resourceReference: String) {
+    val methodCallElement = value as KtCallExpression
+    val resourceReferenceArgument = KtPsiFactory(value.project).createArgument(resourceReference)
+    val resultingArgument = runWriteAction {
+      methodCallElement.valueArgumentList?.addArgument(resourceReferenceArgument)
+    }
+    (resultingArgument as? PsiElement)?.let {
+      caret.selectStringFromOffset(resourceReference, it.startOffset)
+    }
+  }
+
+  private fun processForMethodValue(value: PsiElement, caret: Caret, resourceReference: String) {
+    val rangeOffset = value.textRange
+    runWriteAction {
+      caret.editor.document.replaceString(rangeOffset.startOffset, rangeOffset.endOffset, resourceReference)
+    }
+    caret.selectStringFromOffset(resourceReference, rangeOffset.startOffset)
+  }
+
   private fun processForValue(xmlAttributeValue: XmlAttributeValue?,
                               caret: Caret,
                               resourceReference: String): Boolean {
@@ -191,11 +248,12 @@ class ResourcePasteProvider : PasteProvider {
     ResourceManagerTracking.logPasteUrlText(type)
   }
 
-  private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String) {
+  private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String, type: ResourceType? = null) {
     runWriteAction {
       caret.editor.document.replaceString(psiElement.textRange.startOffset, psiElement.textRange.endOffset, resourceReference)
     }
     caret.selectStringFromOffset(resourceReference, psiElement.textRange.startOffset)
+    ResourceManagerTracking.logPasteUrlText(type)
   }
 
   private fun Caret.selectStringFromOffset(resourceReference: String, offset: Int) {
@@ -239,11 +297,13 @@ class ResourcePasteProvider : PasteProvider {
       ?.getTransferData(RESOURCE_URL_FLAVOR) as ResourceUrl?
 
   override fun isPastePossible(dataContext: DataContext): Boolean {
-    if (!StudioFlags.RESOURCE_MANAGER_ENABLED.get()) return false
     return PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
              ?.produce()
              ?.isDataFlavorSupported(RESOURCE_URL_FLAVOR) ?: false
   }
 
   override fun isPasteEnabled(dataContext: DataContext) = isPastePossible(dataContext)
+
+  /** The most common use case to use resources on code: 'namespace.R.type.name' or just 'R.type.name' for app resources. */
+  private val ResourceUrl.resourceCodeReference get() = "${this.namespace?.let { "$it." } ?: ""}R.${this.type}.${this.name}"
 }

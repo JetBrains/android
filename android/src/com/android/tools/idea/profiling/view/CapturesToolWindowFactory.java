@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.view;
 
+import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -39,5 +40,11 @@ final class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
   public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setStripeTitle(WINDOW_TITLE);
     // toolWindow.setSplitMode(true, null); FIXME-ank2: use plugin.xml to put the window to the bottom-left corner
+  }
+
+  @Override
+  public boolean shouldBeAvailable(@NotNull Project project) {
+    // Don't show if the live layout inspector is enabled.
+    return !LayoutInspectorSettingsKt.getEnableLiveLayoutInspector();
   }
 }

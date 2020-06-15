@@ -44,7 +44,9 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.rules.ProjectModelRule;
 import java.io.File;
 import java.io.IOException;
@@ -52,12 +54,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Assume;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModuleDependenciesSetup}.
  */
-public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
+public class AndroidModuleDependenciesSetupTest extends HeavyPlatformTestCase {
   @Mock private LibraryFilePaths myLibraryFilePaths;
 
   private AndroidModuleDependenciesSetup myDependenciesSetup;
@@ -122,7 +126,7 @@ public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
   }
 
   @NotNull
-  private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
+  private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @Nullable File javadocPath) {
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
     Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
@@ -133,8 +137,9 @@ public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
     Library.ModifiableModel libraryModel = library.getModifiableModel();
     libraryModel.addRoot(pathToIdeaUrl(binaryPath), CLASSES);
     libraryModel.addRoot(pathToIdeaUrl(sourcePath), SOURCES);
-    libraryModel.addRoot(pathToIdeaUrl(javadocPath), JavadocOrderRootType.getInstance());
-
+    if (javadocPath != null) {
+      libraryModel.addRoot(pathToIdeaUrl(javadocPath), JavadocOrderRootType.getInstance());
+    }
     application.runWriteAction(libraryModel::commit);
 
     return library;
@@ -288,5 +293,70 @@ public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
     Library library = libraryOrderEntries.get(0).getLibrary();
     // Verify that the classpath is the same with the first library.
     assertThat(library.getUrls(CLASSES)).asList().containsExactly(pathToIdeaUrl(path1));
+  }
+
+  public void testSetUpLibraryWithNewJavadoc() throws IOException {
+    File cachedBinaryPath = createTempFile("cachedFakeLibrary.jar", "");
+    File cachedSourcePath = createTempFile("cachedFakeLibrary-sources.jar", "");
+    Library cachedLibrary = createLibrary(cachedBinaryPath, cachedSourcePath, null);
+
+    File updatedJavadocPath = createTempFile("updatedFakeLibrary-javadoc.jar", "");
+
+    String libraryName = "Gradle: " + cachedBinaryPath.getName();
+    Module module = getModule();
+
+    when(myLibraryFilePaths.findSourceJarPath(libraryName, cachedBinaryPath)).thenReturn(cachedSourcePath);
+    when(myLibraryFilePaths.findJavadocJarPath(libraryName, cachedBinaryPath)).thenReturn(updatedJavadocPath);
+
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths = {cachedBinaryPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, cachedBinaryPath, binaryPaths, false);
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
+    LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
+
+    // Verify that a new library is created.
+    assertNotSame(cachedLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been changed.
+    // Verify the javadoc is created.
+    VirtualFile[] javaDoc = libraryOrderEntry.getLibrary().getFiles(JavadocOrderRootType.getInstance());
+    assertEquals(1, javaDoc.length);
+    assertThat(javaDoc[0].getName()).isEqualTo("updatedFakeLibrary-javadoc.jar");
+  }
+
+  public void testSetUpLibraryWithUpdatedJavadoc() throws IOException {
+    File cachedBinaryPath = createTempFile("cachedFakeLibrary.jar", "");
+    File cachedSourcePath = createTempFile("cachedFakeLibrary-sources.jar", "");
+    File cachedJavadocPath = createTempFile("cachedFakeLibrary-javadoc.jar", "");
+    Library cachedLibrary = createLibrary(cachedBinaryPath, cachedSourcePath, cachedJavadocPath);
+
+    File updatedJavadocPath = createTempFile("updatedFakeLibrary-javadoc.jar", "");
+
+    String libraryName = "Gradle: " + cachedBinaryPath.getName();
+    Module module = getModule();
+
+    when(myLibraryFilePaths.findSourceJarPath(libraryName, cachedBinaryPath)).thenReturn(cachedSourcePath);
+    when(myLibraryFilePaths.findJavadocJarPath(libraryName, cachedBinaryPath)).thenReturn(updatedJavadocPath);
+
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths = {cachedBinaryPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, cachedBinaryPath, binaryPaths, false);
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
+    LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
+
+    // Verify that a new library is created.
+    assertNotSame(cachedLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been changed.
+    // Verify the javadoc is updated.
+    VirtualFile[] javaDoc = libraryOrderEntry.getLibrary().getFiles(JavadocOrderRootType.getInstance());
+    assertEquals(1, javaDoc.length);
+    assertThat(javaDoc[0].getName()).isEqualTo("updatedFakeLibrary-javadoc.jar");
+  }
+
+  private static void ignoreTestUnderWorkspaceModel() {
+    Assume.assumeFalse("Not applicable to workspace model", Registry.is("ide.new.project.model"));
   }
 }

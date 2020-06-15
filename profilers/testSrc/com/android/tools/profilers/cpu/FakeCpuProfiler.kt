@@ -83,12 +83,6 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
    * Selects a configuration from [CpuProfilerStage] with the given profiler type.
    */
   private fun selectConfig(traceType: CpuTraceType) {
-    when (traceType) {
-      CpuTraceType.ATRACE -> ideServices.enableAtrace(true)
-      else -> {
-      }
-    }
-
     stage.profilerConfigModel.apply {
       // We are manually updating configurations, as enabling a feature flag could introduce additional configs.
       updateProfilingConfigurations()

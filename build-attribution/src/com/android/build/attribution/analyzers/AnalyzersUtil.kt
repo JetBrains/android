@@ -29,3 +29,13 @@ fun isAndroidPlugin(plugin: PluginData): Boolean {
          plugin.displayName == "com.android.dynamic-feature" ||
          plugin.displayName == "com.android.test"
 }
+
+fun isKotlinPlugin(plugin: PluginData): Boolean {
+  return plugin.displayName == "kotlin-android" ||
+         plugin.displayName == "kotlin-android-extensions" ||
+         plugin.displayName == "kotlin-multiplatform" ||
+         plugin.displayName == "kotlin-kapt" ||
+         plugin.displayName.startsWith("org.jetbrains.kotlin")
+}
+
+fun isGradlePlugin(plugin: PluginData) = plugin.displayName.startsWith("org.gradle.")

@@ -6,7 +6,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher" >
         <activity
-            <warning>android:name=".MyActiv<caret>ity.Inner"</warning>
+            android:name="<warning>.MyActiv<caret>ity.Inner</warning>"
             android:label="@string/app_name" >
         </activity>
     </application>

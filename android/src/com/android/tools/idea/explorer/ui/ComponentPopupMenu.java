@@ -28,7 +28,7 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.PopupHandler;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,7 +72,7 @@ public class ComponentPopupMenu {
 
   public void addItem(@NotNull PopupMenuItem popupMenuItem) {
 
-    AnAction action = new AnAction(Presentation.NULL_STRING, Presentation.NULL_STRING, popupMenuItem.getIcon()) {
+    AnAction action = new AnAction(popupMenuItem.getIcon()) {
       @Override
       public void update(@NotNull AnActionEvent e) {
 

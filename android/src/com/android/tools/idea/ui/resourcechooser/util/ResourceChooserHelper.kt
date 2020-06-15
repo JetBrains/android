@@ -16,18 +16,12 @@
 package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
-import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * TODO: Remove unused arguments after removing [StudioFlags.RESOURCE_EXPLORER_PICKER] flag.
  * Returns a [ResourcePickerDialog], may list sample data, project, library, android and theme attributes resources for the given
  * [resourceTypes].
  *
@@ -41,39 +35,19 @@ import org.jetbrains.android.facet.AndroidFacet
  * @param defaultResourceType Preferred [ResourceType] when there are multiple [ResourceType]s supported
  * @param showColorStateLists If true, include state lists in Color resources
  * @param showSampleData If true, include SampleData
- * @param file The context file with a Configuration, used for theme attributes, should be present if [tag] or [xmlFile] are present
- * @param xmlFile The context [XmlFile] with a Configuration, used for theme attributes, can use [tag] as a fallback
- * @param tag The context [XmlTag] in a file with a Configuration, used for theme attributes, can use [xmlFile] as a fallback
+ * @param file The context file with a Configuration, used for theme attributes
  */
-fun createResourcePickerDialog(dialogTitle: @NlsContexts.DialogTitle String,
-                               currentValue: String?,
-                               facet: AndroidFacet,
-                               resourceTypes: Set<ResourceType>,
-                               defaultResourceType: ResourceType?,
-                               showColorStateLists: Boolean,
-                               showSampleData: Boolean,
-                               file: VirtualFile?,
-                               xmlFile: XmlFile?,
-                               tag: XmlTag?)
+fun createResourcePickerDialog(
+  dialogTitle: @NlsContexts.DialogTitle String,
+  currentValue: String?,
+  facet: AndroidFacet,
+  resourceTypes: Set<ResourceType>,
+  defaultResourceType: ResourceType?,
+  showColorStateLists: Boolean,
+  showSampleData: Boolean,
+  file: VirtualFile?
+)
   : ResourcePickerDialog {
-  val dialog: ResourcePickerDialog =
-    if (StudioFlags.RESOURCE_EXPLORER_PICKER.get())
-      ResourceExplorerDialog(facet,
-                             currentValue,
-                             resourceTypes,
-                             defaultResourceType,
-                             showSampleData,
-                             file)
-    else ChooseResourceDialog.builder()
-      .setModule(facet.module)
-      .setTypes(resourceTypes)
-      .setCurrentValue(currentValue)
-      .setFile(xmlFile)
-      .setTag(tag)
-      .setDefaultType(defaultResourceType)
-      .setFilterColorStateLists(!showColorStateLists)
-      .setShowSampleDataPicker(showSampleData)
-      .build()
-  dialog.title = dialogTitle
-  return dialog
+  // TODO: Implement showColorStateLists
+  return  ResourcePickerDialog(facet, currentValue, resourceTypes, defaultResourceType, showSampleData, file).apply { title = dialogTitle }
 }

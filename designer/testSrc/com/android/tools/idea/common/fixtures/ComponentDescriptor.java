@@ -29,6 +29,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.XMLNS;
+import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -47,12 +48,15 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -378,16 +382,20 @@ public class ComponentDescriptor {
     }
     sb.append('<');
     sb.append(myTagName);
+    Set<String> knownNamespaces = Collections.emptySet();
     if (depth == 0) {
-      appendReferencedNamespaces(sb);
+      knownNamespaces = appendReferencedNamespaces(sb);
     }
     for (Pair<String, String> attribute : myAttributes) {
+      String name = attribute.getFirst();
+      String value = attribute.getSecond();
+      if (name.startsWith(XMLNS_PREFIX) && knownNamespaces.contains(value)) {
+        continue;
+      }
       sb.append("\n");
       for (int i = 0; i < depth + 1; i++) {
         sb.append("  ");
       }
-      String name = attribute.getFirst();
-      String value = attribute.getSecond();
       sb.append(name).append("=\"").append(XmlUtils.toXmlAttributeValue(value)).append("\"");
     }
 
@@ -404,14 +412,14 @@ public class ComponentDescriptor {
     }
   }
 
-  private void appendReferencedNamespaces(@NotNull StringBuilder sb) {
+  private Set<String> appendReferencedNamespaces(@NotNull StringBuilder sb) {
     Map<String, String> namespaces = new HashMap<>();
     findUsedNamespaces(namespaces);
     List<String> prefixes = new ArrayList<>(namespaces.keySet());
     prefixes.sort(String::compareTo);
     int indent = 1;
     if (namespaces.isEmpty()) {
-      return;
+      return Collections.emptySet();
     }
     for (String prefix : prefixes) {
       for (int i = 0; i < indent; i++) {
@@ -422,6 +430,7 @@ public class ComponentDescriptor {
     }
     // Remove the last \n
     sb.setLength(sb.length() - 1);
+    return new HashSet<>(namespaces.values());
   }
 
   private void findUsedNamespaces(@NotNull Map<String, String> namespaces) {

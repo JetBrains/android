@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_AND_REMOVE_INCLUDE_WITHOUT_APPLY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_ONLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_ONLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_MIXED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST;
@@ -28,14 +32,21 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENC
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_FILE_TREE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_ONLY_POSSIBLE_IN_MAP_FORM;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_FROM_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_MULTIPLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_INCLUDES_IN_METHOD_CALL_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_INCLUDES_IN_METHOD_CALL_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_REFERENCE_DIR_IN_METHOD_CALL_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_REFERENCE_DIR_IN_METHOD_CALL_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
@@ -68,7 +79,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     verifyPropertyModel(dependency.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(dependency.includes(), "dependencies.compile.include", ImmutableList.of("*.jar"));
+    verifyListProperty(dependency.includes(), ImmutableList.of("*.jar"));
     assertMissingProperty(dependency.excludes());
   }
 
@@ -98,8 +109,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel fileTree = dependencies.get(0);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.include", ImmutableList.of("*.jar"));
-    verifyListProperty(fileTree.excludes(), "dependencies.compile.exclude", ImmutableList.of("*.aar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.excludes(), ImmutableList.of("*.aar"));
   }
 
   @Test
@@ -129,18 +140,16 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel fileTree = dependencies.get(1);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include",
-                       ImmutableList.of("*.jar"));
-    verifyListProperty(fileTree.excludes(), "dependencies.compile.fileTree.exclude", ImmutableList.of("*.aar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.excludes(), ImmutableList.of("*.aar"));
 
     FileTreeDependencyModel dependency3 = dependencies.get(2);
     assertEquals("libz", dependency3.dir().toString());
 
     FileTreeDependencyModel fileTree4 = dependencies.get(3);
     verifyPropertyModel(fileTree4.dir(), STRING_TYPE, "libz2", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree4.includes(), "dependencies.implementation.fileTree.include",
-                       ImmutableList.of("*.jar"));
-    verifyListProperty(fileTree4.excludes(), "dependencies.implementation.fileTree.exclude", ImmutableList.of("*.aar"));
+    verifyListProperty(fileTree4.includes(), ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree4.excludes(), ImmutableList.of("*.aar"));
   }
 
   @Test
@@ -159,6 +168,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED_EXPECTED);
 
     dependencies = buildModel.dependencies().fileTrees();
     assertThat(dependencies).hasSize(1);
@@ -198,6 +208,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertThat(fileTrees.get(3).includes().getValueType()).isEqualTo(GradlePropertyModel.ValueType.LIST);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE_EXPECTED);
 
     fileTrees = buildModel.dependencies().fileTrees();
 
@@ -316,6 +327,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_DIR_EXPECTED);
 
     dependencies = buildModel.dependencies().fileTrees();
     assertThat(dependencies).hasSize(1);
@@ -336,6 +348,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     dependencies.addFileTree("compile", "libs");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_ONLY_EXPECTED);
 
     dependencies = buildModel.dependencies();
     fileTrees = dependencies.fileTrees();
@@ -355,13 +368,16 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     dependencies.addFileTree("compile", "libs", ImmutableList.of("*.jar"), null);
     assertTrue(buildModel.isModified());
+
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN_EXPECTED);
+
     dependencies = buildModel.dependencies();
     fileTrees = dependencies.fileTrees();
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.include", ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.jar"));
     assertMissingProperty(fileTree.excludes());
   }
 
@@ -378,6 +394,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST_EXPECTED);
 
     dependencies = buildModel.dependencies();
     fileTrees = dependencies.fileTrees();
@@ -399,14 +416,17 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     dependencies.addFileTree("compile", "libs", ImmutableList.of("*.jar"), ImmutableList.of("*.aar"));
     assertTrue(buildModel.isModified());
+
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST_EXPECTED);
+
     dependencies = buildModel.dependencies();
     fileTrees = dependencies.fileTrees();
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.include", ImmutableList.of("*.jar"));
-    verifyListProperty(fileTree.excludes(), "dependencies.compile.exclude", ImmutableList.of("*.aar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.excludes(), ImmutableList.of("*.aar"));
   }
 
   @Test
@@ -420,12 +440,14 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.include", ImmutableList.of("*.jar"));
-    verifyListProperty(fileTree.excludes(), "dependencies.compile.exclude", ImmutableList.of("*.aar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.excludes(), ImmutableList.of("*.aar"));
 
     dependencies.remove(fileTree);
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     assertThat(buildModel.dependencies().fileTrees()).isEmpty();
   }
 
@@ -460,14 +482,15 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     includesList.addListValue().setValue("*.jar");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_DIR_WHEN_MULTIPLE_EXPECTED);
+    
     assertThat(fileTrees).hasSize(2);
 
     dependenciesModel = buildModel.dependencies();
     fileTrees = dependenciesModel.fileTrees();
     assertEquals("hello", fileTrees.get(0).dir().toString());
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "hello", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include" /* is it the right name? */,
-                       ImmutableList.of("*.aar", "*.jar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.aar", "*.jar"));
     assertMissingProperty(fileTree.excludes());
 
     fileTrees = dependenciesModel.fileTrees();
@@ -489,6 +512,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     // Set the value to a new one
     fileTree.dir().setValue(new ReferenceTo("libName"));
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_REFERENCE_DIR_IN_METHOD_CALL_NOTATION_EXPECTED);
 
     dependenciesModel = buildModel.dependencies();
     fileTrees = dependenciesModel.fileTrees();
@@ -512,12 +536,13 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     fileTree.includes().addListValue().setValue("*.aar");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_INCLUDES_IN_METHOD_CALL_NOTATION_EXPECTED);
 
     dependenciesModel = buildModel.dependencies();
     fileTrees = dependenciesModel.fileTrees();
     assertEquals("hello", fileTrees.get(0).dir().toString());
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "hello", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.include", ImmutableList.of("*.aar"));
+    verifyListProperty(fileTree.includes(), ImmutableList.of("*.aar"));
     assertMissingProperty(fileTree.excludes());
   }
 
@@ -614,6 +639,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     dependenciesModel.remove(fileTrees.get(0));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE_EXPECTED);
 
     dependenciesModel = buildModel.dependencies();
     fileTrees = dependenciesModel.fileTrees();

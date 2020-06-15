@@ -35,6 +35,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -48,15 +49,15 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
-import com.intellij.util.ui.TwoColorsIcon;
-import java.awt.Color;
+import com.intellij.util.ui.ColorsIcon;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -253,7 +254,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
     Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject(), myFacet);
-    assertEquals(new TwoColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
+    assertEquals(new ColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
   }
 
   public void testResolveAsIconFromDrawable() throws IOException {
@@ -361,7 +362,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   private void setProjectNamespace(ResourceNamespace appNs) {
     CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      myFacet.setModel(TestAndroidModel.namespaced(myFacet));
+      AndroidModel.set(myFacet, TestAndroidModel.namespaced(myFacet));
       Manifest.getMainManifest(myFacet).getPackage().setValue(appNs.getPackageName());
     }));
   }

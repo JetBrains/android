@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import com.google.common.collect.ImmutableList;
 import com.intellij.build.output.BuildOutputParser;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider;
+import com.intellij.openapi.project.Project;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.util.List;
 
 public class GradleOutputParserProvider implements ExternalSystemOutputParserProvider {
   @Override
@@ -33,6 +34,10 @@ public class GradleOutputParserProvider implements ExternalSystemOutputParserPro
 
   @Override
   public List<BuildOutputParser> getBuildOutputParsers(@NotNull ExternalSystemTaskId taskId) {
-    return ImmutableList.of(new AndroidGradlePluginOutputParser(), new GradleBuildOutputParser());
+    Project project = taskId.findProject();
+    if (project != null) {
+      return ServiceManager.getService(project, BuildOutputParserManager.class).getBuildOutputParsers();
+    }
+    return Collections.emptyList();
   }
 }

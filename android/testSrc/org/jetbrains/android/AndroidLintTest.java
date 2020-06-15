@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
@@ -38,7 +38,6 @@ import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection;
 import com.android.tools.idea.lint.AndroidLintAuthLeakInspection;
 import com.android.tools.idea.lint.AndroidLintButtonOrderInspection;
 import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection;
-import com.android.tools.idea.lint.AndroidLintCheckResultInspection;
 import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection;
 import com.android.tools.idea.lint.AndroidLintDeprecatedInspection;
 import com.android.tools.idea.lint.AndroidLintDisableBaselineAlignmentInspection;
@@ -49,11 +48,10 @@ import com.android.tools.idea.lint.AndroidLintExportedContentProviderInspection;
 import com.android.tools.idea.lint.AndroidLintExportedReceiverInspection;
 import com.android.tools.idea.lint.AndroidLintExportedServiceInspection;
 import com.android.tools.idea.lint.AndroidLintGradleDeprecatedInspection;
-import com.android.tools.idea.lint.AndroidLintGradleDynamicVersionInspection;
-import com.android.tools.idea.lint.AndroidLintGradlePathInspection;
 import com.android.tools.idea.lint.AndroidLintGridLayoutInspection;
 import com.android.tools.idea.lint.AndroidLintHardcodedTextInspection;
 import com.android.tools.idea.lint.AndroidLintIconDuplicatesInspection;
+import com.android.tools.idea.lint.AndroidLintIdeClient;
 import com.android.tools.idea.lint.AndroidLintImpliedTouchscreenHardwareInspection;
 import com.android.tools.idea.lint.AndroidLintIncludeLayoutParamInspection;
 import com.android.tools.idea.lint.AndroidLintInefficientWeightInspection;
@@ -72,12 +70,10 @@ import com.android.tools.idea.lint.AndroidLintMissingIdInspection;
 import com.android.tools.idea.lint.AndroidLintMissingLeanbackSupportInspection;
 import com.android.tools.idea.lint.AndroidLintMissingPermissionInspection;
 import com.android.tools.idea.lint.AndroidLintMissingPrefixInspection;
-import com.android.tools.idea.lint.AndroidLintMissingSuperCallInspection;
 import com.android.tools.idea.lint.AndroidLintMissingTvBannerInspection;
 import com.android.tools.idea.lint.AndroidLintNetworkSecurityConfigInspection;
 import com.android.tools.idea.lint.AndroidLintNewApiInspection;
 import com.android.tools.idea.lint.AndroidLintNonResizeableActivityInspection;
-import com.android.tools.idea.lint.AndroidLintNotInterpolatedInspection;
 import com.android.tools.idea.lint.AndroidLintObsoleteLayoutParamInspection;
 import com.android.tools.idea.lint.AndroidLintObsoleteSdkIntInspection;
 import com.android.tools.idea.lint.AndroidLintOldTargetApiInspection;
@@ -87,7 +83,6 @@ import com.android.tools.idea.lint.AndroidLintParcelCreatorInspection;
 import com.android.tools.idea.lint.AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection;
 import com.android.tools.idea.lint.AndroidLintPermissionImpliesUnsupportedHardwareInspection;
 import com.android.tools.idea.lint.AndroidLintProguardInspection;
-import com.android.tools.idea.lint.AndroidLintPropertyEscapeInspection;
 import com.android.tools.idea.lint.AndroidLintPxUsageInspection;
 import com.android.tools.idea.lint.AndroidLintReferenceTypeInspection;
 import com.android.tools.idea.lint.AndroidLintRegisteredInspection;
@@ -100,7 +95,6 @@ import com.android.tools.idea.lint.AndroidLintSelectableTextInspection;
 import com.android.tools.idea.lint.AndroidLintSignatureOrSystemPermissionsInspection;
 import com.android.tools.idea.lint.AndroidLintSourceLockedOrientationActivityInspection;
 import com.android.tools.idea.lint.AndroidLintSpUsageInspection;
-import com.android.tools.idea.lint.AndroidLintStopShipInspection;
 import com.android.tools.idea.lint.AndroidLintStringEscapingInspection;
 import com.android.tools.idea.lint.AndroidLintStringShouldBeIntInspection;
 import com.android.tools.idea.lint.AndroidLintSwitchIntDefInspection;
@@ -114,7 +108,6 @@ import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsHardwareInspect
 import com.android.tools.idea.lint.AndroidLintUnusedAttributeInspection;
 import com.android.tools.idea.lint.AndroidLintUnusedResourcesInspection;
 import com.android.tools.idea.lint.AndroidLintUseCheckPermissionInspection;
-import com.android.tools.idea.lint.AndroidLintUseValueOfInspection;
 import com.android.tools.idea.lint.AndroidLintUselessLeafInspection;
 import com.android.tools.idea.lint.AndroidLintUselessParentInspection;
 import com.android.tools.idea.lint.AndroidLintValidActionsXmlInspection;
@@ -124,15 +117,16 @@ import com.android.tools.idea.lint.AndroidLintWifiManagerLeakInspection;
 import com.android.tools.idea.lint.AndroidLintWrongCallInspection;
 import com.android.tools.idea.lint.AndroidLintWrongCaseInspection;
 import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.SuppressLintIntentionAction;
+import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintExternalAnnotator;
+import com.android.tools.idea.lint.common.LintIgnoredResult;
+import com.android.tools.idea.lint.common.SuppressLintIntentionAction;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.android.utils.CharSequences;
@@ -164,7 +158,6 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.IOException;
@@ -179,8 +172,6 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -266,12 +257,9 @@ public class AndroidLintTest extends AndroidTestCase {
     assertNotNull(action);
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
-    new WriteCommandAction(myFixture.getProject(), "") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        action.invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello");
-      }
-    }.execute();
+    WriteCommandAction.runWriteCommandAction(myFixture.getProject(),
+       () -> action.invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello")
+    );
 
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
@@ -587,18 +575,12 @@ public class AndroidLintTest extends AndroidTestCase {
       }
     }
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
+    testProjectSystem.useInTests();
     testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
-                                       testProjectSystem, getTestRootDisposable());
     myFixture.copyFileToProject(getGlobalTestDir() + "/ActionBarActivity.java.txt", "src/android/support/v7/app/ActionBarActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java");
     doTestWithFix(new AndroidLintAppCompatMethodInspection(),
                   "Replace with getSupportActionBar()", "/src/test/pkg/AppCompatTest.java", "java");
-  }
-
-  public void testUseValueOf() throws Exception {
-    doTestWithFix(new AndroidLintUseValueOfInspection(),
-                  "Replace with valueOf()", "/src/test/pkg/UseValueOf.java", "java");
   }
 
   public void testEditEncoding() throws Exception {
@@ -633,7 +615,7 @@ public class AndroidLintTest extends AndroidTestCase {
     Disposable disposable = Disposer.newDisposable();
     new IdeComponents(null, disposable).replaceApplicationService(
       RepositoryUrlManager.class,
-      new RepositoryUrlManager(repository, repository, true)
+      new RepositoryUrlManager(repository, repository, true, false)
     );
     doTestWithFix(new AndroidLintGradleDynamicVersionInspection(),
                   "Replace with specific version", "build.gradle", "gradle");
@@ -644,11 +626,6 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testGradleDeprecation() throws Exception {
     doTestWithFix(new AndroidLintGradleDeprecatedInspection(),
                   "Replace with com.android.library", "build.gradle", "gradle");
-  }
-
-  public void testWrongQuote() throws Exception {
-    doTestWithFix(new AndroidLintNotInterpolatedInspection(),
-                  "Replace single quotes with double quotes", "build.gradle", "gradle");
   }
 
   public void testMissingAppIcon() throws Exception {
@@ -791,24 +768,6 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Add Missing @IntDef Constants", "/src/p1/p2/MissingIntDefSwitch.kt", "kt");
   }
 
-  public void testAddSuperCallJava() throws Exception {
-    addCallSuper();
-    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "/src/p1/p2/SuperTestJava.java", "java");
-  }
-
-  public void testAddSuperCall() throws Exception {
-    addCallSuper();
-    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "/src/p1/p2/SuperTest.kt", "kt");
-  }
-
-  public void testAddSuperCallExpression() throws Exception {
-    addCallSuper();
-    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "/src/p1/p2/SuperTest.kt", "kt");
-  }
-
   public void testAddKeepJava() throws Exception {
     addKeep();
     doTestWithFix(new AndroidLintAnimatorKeepInspection(),
@@ -821,22 +780,10 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Annotate with @Keep", "/src/p1/p2/AnimatorTest.kt", "kt");
   }
 
-  public void testJavaCheckResultTest1() throws Exception {
-    addCheckResult();
-    doTestWithFix(new AndroidLintCheckResultInspection(),
-                  "Call replace instead", "/src/p1/p2/JavaCheckResultTest1.java", "java");
-  }
-
   public void testJavaCheckResultTest2() throws Exception {
     addCheckResult();
     doTestWithFix(new AndroidLintUseCheckPermissionInspection(),
                   "Call enforceFooPermission instead", "/src/p1/p2/JavaCheckResultTest2.java", "java");
-  }
-
-  public void testKotlinCheckResultTest1() throws Exception {
-    addCheckResult();
-    doTestWithFix(new AndroidLintCheckResultInspection(),
-                  "Call replace instead", "/src/p1/p2/KotlinCheckResultTest1.kt", "kt");
   }
 
   public void testKotlinCheckResultTest2() throws Exception {
@@ -878,6 +825,14 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testInnerclassSeparator() throws Exception {
     deleteManifest();
+    myFixture.addFileToProject("/src/test/pkg/MyActivity.java",
+                               "" +
+                               "package test.pkg;\n" +
+                               "public class MyActivity {\n" +
+                               "    public static class Inner extends android.app.Activity {\n" +
+                               "    };\n" +
+                               "}");
+
     doTestWithFix(new AndroidLintInnerclassSeparatorInspection(),
                   "Replace with .MyActivity$Inner", "AndroidManifest.xml", "xml");
   }
@@ -897,7 +852,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testOldTargetApi() throws Exception {
     deleteManifest();
-    String expectedTarget = Integer.toString(new LintIdeClient(getProject()).getHighestKnownApiLevel());
+    String expectedTarget = Integer.toString(new AndroidLintIdeClient(getProject(), new LintIgnoredResult()).getHighestKnownApiLevel());
     doTestWithFix(new AndroidLintOldTargetApiInspection(),
                   "Update targetSdkVersion to " + expectedTarget, "AndroidManifest.xml", "xml");
   }
@@ -910,11 +865,6 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Change to 17.0.0", "build.gradle", "gradle");
   }
   */
-
-  public void testPropertyFiles() throws Exception {
-    doTestWithFix(new AndroidLintPropertyEscapeInspection(),
-                  "Escape", "local.properties", "properties");
-  }
 
   public void testReferenceTypes() throws Exception {
     doTestWithFix(new AndroidLintReferenceTypeInspection(),
@@ -940,12 +890,6 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testSp() throws Exception {
     doTestWithFix(new AndroidLintSpUsageInspection(),
                   "Replace with sp", "/res/values/styles.xml", "xml");
-  }
-
-  public void testStopShip() throws Exception {
-    CommentDetector.STOP_SHIP.setEnabledByDefault(true);
-    doTestWithFix(new AndroidLintStopShipInspection(), "Remove STOPSHIP", "/src/test/pkg/StopShip.java",
-                  "java");
   }
 
   public void testStringToInt() throws Exception {
@@ -1040,18 +984,6 @@ public class AndroidLintTest extends AndroidTestCase {
       "</lint>\n");
   }
 
-  public void testCallSuper() throws Exception {
-    addCallSuper();
-    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "src/p1/p2/CallSuperTest.java", "java");
-  }
-
-  public void testCallSuper2() throws Exception {
-    addCallSuper();
-    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "src/p1/p2/FooImpl.java", "java");
-  }
-
   public void testSuppressingInXml1() throws Exception {
     doTestNoFix(new AndroidLintHardcodedTextInspection(),
                 "/res/layout/layout.xml", "xml");
@@ -1066,18 +998,6 @@ public class AndroidLintTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/layout.xml", "res/layout/layout.xml");
     doGlobalInspectionTest(new AndroidLintHardcodedTextInspection());
-  }
-
-  public void testSuppressingInJava() throws Exception {
-    createManifest();
-    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
-    doGlobalInspectionTest(new AndroidLintUseValueOfInspection());
-  }
-
-  public void testLintInJavaFile() throws Exception {
-    createManifest();
-    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
-    doGlobalInspectionTest(new AndroidLintUseValueOfInspection());
   }
 
   public void testApiCheck1() throws Exception {
@@ -1140,13 +1060,6 @@ public class AndroidLintTest extends AndroidTestCase {
     final String testDir = BASE_PATH_GLOBAL + "apiCheck1";
     myFixture.copyFileToProject(testDir + "/MyActivity.java", "additionalModules/module1/src/p1/p2/MyActivity.java");
     doGlobalInspectionTest(new AndroidLintNewApiInspection(), testDir, new AnalysisScope(getProject()));
-  }
-
-  public void testDisabledTestsEnabledOnTheFly() throws Exception {
-    // If this changes test no longer applies; pick different disabled issue
-    assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse();
-    myFixture.copyFileToProject(getGlobalTestDir() + "/Stopship.java", "src/p1/p2/Stopship.java");
-    doGlobalInspectionTest(new AndroidLintStopShipInspection());
   }
 
   public void testUnusedResource() throws Exception {
@@ -1317,12 +1230,6 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/src/p1/p2/ResourceTypes.java", "java");
   }
 
-  public void testMissingSuperCall() throws Exception {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=222249
-    doTestNoFix(new AndroidLintMissingSuperCallInspection(),
-                "/src/p1/p2/SuperCallTest.java", "java");
-  }
-
   public void testStringEscapes() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=224150
     doTestWithFix(new AndroidLintStringEscapingInspection(),
@@ -1343,9 +1250,8 @@ public class AndroidLintTest extends AndroidTestCase {
     }
 
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
+    testProjectSystem.useInTests();
     testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
-                                       testProjectSystem, getTestRootDisposable());
 
     doTestWithFix(new AndroidLintAppCompatCustomViewInspection(),
                   "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java");
@@ -1403,11 +1309,6 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/src/test/pkg/WifiManagerLeak.java", "java");
   }
 
-  public void testGradleWindows() throws Exception {
-    doTestWithFix(new AndroidLintGradlePathInspection(),
-                  "Replace with my/libs/http.jar", "build.gradle", "gradle");
-  }
-
   public void testInvalidImeActionId() throws Exception {
     doTestNoFix(new AndroidLintInvalidImeActionIdInspection(),
                 "/res/layout/layout.xml", "xml");
@@ -1455,7 +1356,7 @@ public class AndroidLintTest extends AndroidTestCase {
     IntentionAction action = null;
 
     for (IntentionAction a : myFixture.getAvailableIntentions()) {
-      if (a instanceof AndroidLintExternalAnnotator.MyFixingIntention) {
+      if (a instanceof LintExternalAnnotator.MyFixingIntention) {
         action = a;
       }
     }
@@ -1653,20 +1554,6 @@ public class AndroidLintTest extends AndroidTestCase {
                                "}\n");
   }
 
-  private void addCallSuper() {
-    myFixture.addFileToProject("/src/android/support/annotation/CallSuper.java",
-                               "package android.support.annotation;\n" +
-                               "import static java.lang.annotation.ElementType.METHOD;\n" +
-                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
-                               "import java.lang.annotation.Documented;\n" +
-                               "import java.lang.annotation.Retention;\n" +
-                               "import java.lang.annotation.Target;\n" +
-                               "@Documented\n" +
-                               "@Retention(CLASS)\n" +
-                               "@Target({METHOD})\n" +
-                               "public @interface CallSuper {\n" +
-                               "}");
-  }
 
   private void addKeep() {
     myFixture.addFileToProject("/src/android/support/annotation/Keep.java",

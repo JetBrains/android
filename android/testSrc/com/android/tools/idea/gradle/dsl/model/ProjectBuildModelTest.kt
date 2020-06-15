@@ -238,7 +238,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     var pbm = ProjectBuildModel.get(myProject)
     var buildModel = pbm.getModuleBuildModel(mySubModule)
     var optionsModel = buildModel!!.android().defaultConfig().externalNativeBuild().cmake()
-    optionsModel.arguments().setValue("-DCMAKE_MAKE_PROGRAM=////")
+    optionsModel.arguments().addListValue().setValue("-DCMAKE_MAKE_PROGRAM=////")
+    verifyListProperty(optionsModel.arguments(), listOf("-DCMAKE_MAKE_PROGRAM=////"))
 
     applyChangesAndReparse(pbm)
 

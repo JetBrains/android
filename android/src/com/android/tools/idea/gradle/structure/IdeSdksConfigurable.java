@@ -69,28 +69,32 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.KeyStrokeAdapter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
-import java.awt.CardLayout;
-import java.awt.Component;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
@@ -334,6 +338,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         }
       }
     });
+    addTootlTipListener(comboBox);
   }
 
   private void createJdkLocationComboBox() {
@@ -400,6 +405,44 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         }
       }
     });
+    addTootlTipListener(comboBox);
+  }
+
+  private static void addTootlTipListener(@NotNull JComboBox comboBox) {
+    Component component = comboBox.getEditor().getEditorComponent();
+
+    component.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        super.mouseMoved(e);
+        copyItemToToolTip(comboBox);
+      }
+    });
+
+    component.addKeyListener(new KeyStrokeAdapter() {
+      @Override
+      public void keyTyped(KeyEvent event) {
+        super.keyTyped(event);
+        copyItemToToolTip(comboBox);
+      }
+    });
+
+    comboBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        copyItemToToolTip(comboBox);
+      }
+    });
+  }
+
+  private static void copyItemToToolTip(@NotNull JComboBox comboBox) {
+    Object item = comboBox.getEditor().getItem();
+    if (item != null) {
+      comboBox.setToolTipText(item.toString());
+    }
+    else {
+      comboBox.setToolTipText("");
+    }
   }
 
   private static void setComboBoxFile(@NotNull JComboBox comboBox, @NotNull File file) {
@@ -434,6 +477,26 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       if (chosen != null) {
         File f = virtualToIoFile(chosen);
         textField.setText(toSystemDependentName(f.getPath()));
+      }
+    });
+    textField.getDocument().addDocumentListener(new DocumentListener() {
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        updateToolTip();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        updateToolTip();
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+        updateToolTip();
+      }
+
+      private void updateToolTip() {
+        textField.setToolTipText(textField.getText());
       }
     });
   }
@@ -649,8 +712,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    */
   @Nullable
   private String validateAndroidSdkPath() {
-    Validator<File> validator = new PathValidator.Builder().withCommonRules().build("Android SDK location");
-    Validator.Result result = validator.validate(getSdkLocation());
+    Validator.Result result = PathValidator.forAndroidSdkLocation().validate(getSdkLocation());
     Validator.Severity severity = result.getSeverity();
     if (severity == ERROR) {
       return result.getMessage();
@@ -841,5 +903,4 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       return myLabel + ": " + myPath;
     }
   }
-
 }

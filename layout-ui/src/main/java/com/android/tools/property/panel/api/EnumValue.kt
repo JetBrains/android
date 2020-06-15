@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.api
 
+import com.android.tools.adtui.model.stdui.CommonElementSelectability
 import com.android.tools.property.panel.impl.support.*
 import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
@@ -24,10 +25,8 @@ import javax.swing.ListCellRenderer
  * Representation of values for the builtin [EnumSupport].
  *
  * This interface supports groups and separators in a popup.
- * Group headers and separators will be specified as a
- * property of an item. The idea is to ease the implementation
- * for skipping the headers and separators while navigating
- * the elements in the popup.
+ * Headers and separators will implement [CommonElementSelectability] which
+ * enables certain lists to skip the selection of these elements.
  *
  * Example:
  *
@@ -45,6 +44,7 @@ interface EnumValue {
    * The actual value to read/write to a [PropertyItem].
    */
   val value: String?
+    get() = null
 
   /**
    * The value to display in a ComboBox popup control.
@@ -56,22 +56,10 @@ interface EnumValue {
     get() = value ?: "none"
 
   /**
-   * If true, display a separator above this value in the ComboBox popup.
-   */
-  val separator: Boolean
-    get() = false
-
-  /**
    * If true, indent this value in the ComboBox popup.
    */
   val indented: Boolean
     get() = false
-
-  /**
-   * If specified, display a header before this item in the ComboBox popup.
-   */
-  val header: String
-    get() = ""
 
   /**
    * Specifies the operation done when this value is selected.
@@ -90,19 +78,9 @@ interface EnumValue {
   }
 
   /**
-   * Convenience method for creating a variant [EnumValue] with a header.
-   */
-  fun withHeader(header: String): EnumValue
-
-  /**
-   * Convenience method for creating a variant [EnumValue] with a separator.
-   */
-  fun withSeparator(): EnumValue
-
-  /**
    * Convenience method for creating a variant [EnumValue] with indentation.
    */
-  fun withIndentation(): EnumValue
+  fun withIndentation(): EnumValue = this
 
   /** Default implementations of [EnumValue]s */
   companion object {
@@ -110,8 +88,28 @@ interface EnumValue {
     fun item(value: String, display: String): EnumValue = ItemWithDisplayEnumValue(value, display)
     fun indented(value: String): EnumValue = IndentedItemEnumValue(value)
     fun indented(value: String, display: String): EnumValue = IndentedItemWithDisplayEnumValue(value, display)
-    fun action(action: AnAction): BaseActionEnumValue = ActionEnumValue(action)
+    fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
+    fun header(header: String): EnumValue = HeaderEnumValue(header)
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
+    val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}
   }
 }
+
+/**
+ * Representation of an enum value an action value.
+ */
+interface ActionEnumValue : EnumValue {
+
+  /**
+   * The action represented with this enum value.
+   */
+  val action: AnAction
+}
+
+/**
+ * A header to be displayed in the ComboBox popup.
+ *
+ * This element is not selectable.
+ */
+class HeaderEnumValue(val header: String) : EnumValue, CommonElementSelectability

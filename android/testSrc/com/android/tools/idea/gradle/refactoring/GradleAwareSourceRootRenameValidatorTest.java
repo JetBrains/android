@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.refactoring;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
@@ -35,14 +33,12 @@ import java.io.File;
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
   private boolean myUseSingleVariantSync;
-  private boolean myBuildAfterSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myValidator = new GradleAwareSourceRootRenameValidator();
     myUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
-    myBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
   }
 
   @Override
@@ -50,7 +46,6 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     try {
       // back to default value.
       GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myUseSingleVariantSync;
-      StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(myBuildAfterSync);
     }
     finally {
       super.tearDown();

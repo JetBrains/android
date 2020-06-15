@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.clickNo
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
@@ -38,13 +37,11 @@ class VariablesTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
   }
 
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD // Restore the default.
   }
 
   @Test
@@ -67,7 +64,7 @@ class VariablesTest {
         enterText("referenceVariable")
         tab()
         selectValue("\$simpleVariableInt : 123")
-        selectCell("mylibrary")
+        selectCell(":mylibrary")
         expandWithPlus()
         down()
         editWithF2()
@@ -103,7 +100,7 @@ class VariablesTest {
     }
     ide.openPsd().run {
       selectVariablesConfigurable().run {
-        selectCell("mylibrary")
+        selectCell(":mylibrary")
         expandAllWithStar()
         selectCell("2")
         right()
@@ -119,7 +116,7 @@ class VariablesTest {
     }
     ide.openPsd().run {
       selectVariablesConfigurable().run {
-        selectCell("mylibrary")
+        selectCell(":mylibrary")
         expandAllWithStar()
         assertThat(contents()).containsExactly(
           "PsdSimple (build script)" to "",
@@ -128,8 +125,8 @@ class VariablesTest {
           "simpleVariableInt" to "123",
           "referenceVariable" to "\$simpleVariableInt : 123",
           "" to "", // +New Variable
-          "app" to "",
-          "mylibrary" to "",
+          ":app" to "",
+          ":mylibrary" to "",
           "listVariable" to "",
           "0" to "one",
           "1" to "two",
@@ -212,8 +209,8 @@ class VariablesTest {
           "1" to "two",
           "" to "", // +New Map Entry
           "" to "", // +New Variable
-          "app" to "",
-          "mylibrary" to ""
+          ":app" to "",
+          ":mylibrary" to ""
         )
       }
       clickOk()
@@ -228,8 +225,8 @@ class VariablesTest {
           "1" to "two",
           "" to "", // +New Map Entry
           "" to "", // +New Variable
-          "app" to "",
-          "mylibrary" to ""
+          ":app" to "",
+          ":mylibrary" to ""
         )
       }
       clickCancel()
@@ -267,8 +264,8 @@ class VariablesTest {
           "" to "", // +New Map Entry
           "" to "", // +New Variable
           "PsdSimple (project)" to "",
-          "app" to "",
-          "mylibrary" to ""
+          ":app" to "",
+          ":mylibrary" to ""
         )
       }
       clickOk()
@@ -281,8 +278,8 @@ class VariablesTest {
           "listVariable" to "[one, two]",
           "" to "", // +New Variable
           "PsdSimple (project)" to "",
-          "app" to "",
-          "mylibrary" to ""
+          ":app" to "",
+          ":mylibrary" to ""
         )
       }
       clickCancel()

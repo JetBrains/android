@@ -23,12 +23,12 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.TimelineTable;
 import com.intellij.ui.table.JBTable;
@@ -124,7 +124,7 @@ public final class EnergyEventsView {
     // Add a listener on model to update selection before construct table because otherwise it flickers. The table also adds a listener
     // on model that if the selection is set later then there is a clear and re-selection time gap on the view.
     myTableModel.addTableModelListener(e -> updateTableSelection());
-    myEventsTable = TimelineTable.create(myTableModel, myStage.getStudioProfilers().getTimeline(), Column.TIMELINE.ordinal());
+    myEventsTable = TimelineTable.create(myTableModel, myStage.getTimeline(), Column.TIMELINE.ordinal());
     buildEventsTable(stageView);
     myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
            .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
@@ -136,7 +136,7 @@ public final class EnergyEventsView {
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer());
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline()));
+      new TimelineRenderer(myEventsTable, myStage.getTimeline()));
 
     myEventsTable.getEmptyText().setText("No system events for the selected range or filter.");
     myEventsTable.getEmptyText().setShowAboveCenter(false).setFont(H2_FONT);
@@ -199,8 +199,7 @@ public final class EnergyEventsView {
   }
 
   private void createTooltip(@NotNull StageView stageView) {
-    EnergyEventsTableTooltipInfoModel tooltipModel =
-      new EnergyEventsTableTooltipInfoModel(myStage.getStudioProfilers().getTimeline().getDataRange());
+    EnergyEventsTableTooltipInfoModel tooltipModel = new EnergyEventsTableTooltipInfoModel(myStage.getTimeline().getDataRange());
     EnergyEventsTableTooltipInfoComponent tooltipInfoComponent = new EnergyEventsTableTooltipInfoComponent(tooltipModel);
     tooltipInfoComponent.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipInfoComponent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
@@ -225,7 +224,7 @@ public final class EnergyEventsView {
             position -= columnModel.getColumn(c).getWidth();
           }
           int width = columnModel.getColumn(Column.TIMELINE.ordinal()).getWidth();
-          Range range = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+          Range range = myStage.getTimeline().getSelectionRange();
           long timestampUs = (long)(range.getMin() + range.getLength() * position / width);
 
           // Calculate the tooltip range base on timestamp and event highlight width.
@@ -323,7 +322,7 @@ public final class EnergyEventsView {
     @NotNull private final List<EnergyEventComponent> myEventComponents = new ArrayList<>();
     @NotNull private final JTable myTable;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+    TimelineRenderer(@NotNull JTable table, @NotNull StreamingTimeline timeline) {
       super(timeline);
       myTable = table;
       myTable.getModel().addTableModelListener(this);

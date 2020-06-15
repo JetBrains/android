@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.google.common.truth.Truth
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
@@ -35,7 +36,7 @@ class IntermediateAssetTest {
     with(intermediateAssetFile) {
       Truth.assertThat(source).isEqualTo(file)
       Truth.assertThat(target).isEqualTo(File("res/dir/path.png"))
-      Truth.assertThat(path).isEqualTo("res/dir/path.png")
+      Truth.assertThat(FileUtil.toSystemIndependentName(path)).isEqualTo("res/dir/path.png")
       Truth.assertThat(String(contentsToByteArray())).isEqualTo(String(file.contentsToByteArray()))
       Truth.assertThat(parent).isEqualTo(null) // The parent does not exist on disk so null is returned
       Truth.assertThat(inputStream.read()).isEqualTo(file.inputStream.read()) // The parent does not exist on disk so null is returned

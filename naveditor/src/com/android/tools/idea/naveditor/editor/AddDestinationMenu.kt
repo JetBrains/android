@@ -15,7 +15,9 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.idea.actions.CREATED_FILES
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
@@ -31,6 +33,12 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.rendering.DrawableIconProvider
+import com.android.tools.idea.util.addDependencies
+import com.android.tools.idea.util.dependsOn
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -41,6 +49,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -48,6 +57,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.util.PsiUtil
@@ -65,10 +75,13 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.dynamicModules
+import org.jetbrains.android.dom.navigation.getClassesForTag
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
 import java.awt.BorderLayout
+import java.awt.Dimension
 import java.awt.event.HierarchyEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -87,6 +100,8 @@ import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
+private val DYNAMIC_DEPENDENCIES
+  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+"))
 
 /**
  * "Add" popup menu in the navigation editor.
@@ -99,6 +114,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private lateinit var button: JComponent
   private var creatingInProgress = false
   private val createdFiles: MutableList<File> = mutableListOf()
+  private val iconProvider: DrawableIconProvider by lazy {
+    val model = surface.model!!
+    DrawableIconProvider(model.facet, model.configuration.resourceResolver, ImageCache.createSmallImageCache(model.project))
+  }
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -107,9 +126,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val module = model.module
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
-      val layoutFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-        .filterIsInstance<XmlFile>()
-        .associateBy { AndroidUtils.getContextClass(module, it) }
+      val layoutFiles = getAllLayoutFiles()
 
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema
@@ -118,12 +135,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
-        for (psiClass in schema.getProjectClassesForTag(tag).filter { !existingClasses.contains(it.qualifiedName) }) {
+        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys { !existingClasses.contains(it.qualifiedName) }) {
           val layoutFile = layoutFiles[psiClass]
           if (layoutFile !in hosts) {
             val inProject = psiClass.isInProject()
             val destination = Destination.RegularDestination(
-              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile)
+              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile,
+              dynamicModuleName = dynamicModule)
             classToDestination[psiClass] = destination
           }
         }
@@ -161,7 +179,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
 
   @VisibleForTesting
-  lateinit var blankDestinationButton: ActionButtonWithText
+  lateinit var createNewDestinationButton: ActionButtonWithText
 
   private var neverShown = true
 
@@ -169,7 +187,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     destinationsList = JBList()
     val result = object : AdtSecondaryPanel(VerticalLayout(8)), DataProvider {
       override fun getData(dataId: String): Any? {
-        return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
+        return if (CREATED_FILES.`is`(dataId)) {
           createdFiles
         }
         else {
@@ -193,10 +211,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         createNewDestination(e)
       }
     }
-    blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
+    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
     buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
-    buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
+    buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)
     buttonPanel.background = BACKGROUND_COLOR
     val scrollable = AdtSecondaryPanel(BorderLayout(0, 8))
     scrollable.add(buttonPanel, BorderLayout.NORTH)
@@ -220,8 +238,16 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     destinationsList.emptyText.text = "Loading..."
     destinationsList.setPaintBusy(true)
-    destinationsList.setCellRenderer { _, value, _, selected, _ ->
-      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail)
+    destinationsList.setCellRenderer { list, value, index, selected, _ ->
+      val iconCallback = { file: VirtualFile, dimension: Dimension ->
+        iconProvider.getIcon(DesignAsset(file, listOf(), ResourceType.LAYOUT),
+                             dimension.width,
+                             dimension.height,
+                             { list.getCellBounds(index, index)?.let(list::repaint) },
+                             { index in list.firstVisibleIndex..list.lastVisibleIndex })
+      }
+
+      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail(iconCallback))
       THUMBNAIL_RENDERER.iconTextGap = (maxIconWidth - THUMBNAIL_RENDERER.icon.iconWidth).coerceAtLeast(0)
       PRIMARY_TEXT_RENDERER.text = value.label
       SECONDARY_TEXT_RENDERER.text = value.typeLabel
@@ -271,7 +297,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.map { it.thumbnail.getWidth(null) }.max() ?: 0
+          maxIconWidth = dests.map { it.iconWidth }.max() ?: 0
           val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(
@@ -309,7 +335,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
     } else {
       NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7).apply {
-        setShouldOpenFiles(false)
+        shouldOpenFiles = false
       }
     }
     createNewDestination(e, action)
@@ -376,6 +402,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       // explicitly update so the new SceneComponent is created
       surface.sceneManager!!.update()
     }, surface.model?.file)
+
+    addDynamicDependency(destination)
+
     surface.selectionModel.setSelection(ImmutableList.of(component))
   }
 
@@ -392,6 +421,36 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   override fun update(e: AnActionEvent) {
     e.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
+  }
+
+  private fun addDynamicDependency(destination: Destination) {
+    (destination as? Destination.RegularDestination)?.dynamicModuleName ?: return
+
+    val module = surface.model?.module ?: return
+    if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT)) {
+      return
+    }
+
+    module.addDependencies(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
+  }
+
+  private fun getAllLayoutFiles() : Map<PsiClass?, XmlFile> {
+    val module = surface.models.firstOrNull()?.module ?: return mapOf()
+    val result = getLayoutFilesForModule(module).toMutableMap()
+
+    for(dynamicModule in dynamicModules(module)) {
+      result.putAll(getLayoutFilesForModule(dynamicModule))
+    }
+
+    return result
+  }
+
+  private fun getLayoutFilesForModule(module: Module): Map<PsiClass?, XmlFile> {
+    val resourceManager = LocalResourceManager.getInstance(module) ?: return mapOf()
+
+    return resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+      .filterIsInstance<XmlFile>()
+      .associateBy { AndroidUtils.getContextClass(module, it) }
   }
 
   companion object {

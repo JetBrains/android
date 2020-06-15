@@ -16,25 +16,41 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.checks.ApiMember;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.ConvertContext;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.CustomReferenceConverter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericDomValue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import org.jetbrains.android.dom.RemovedApiField;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * Provides completion for app permission values.
@@ -75,7 +91,7 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidModel model = facet.getModel();
+        AndroidModel model = AndroidModel.get(facet);
         if (model != null) {
           AndroidVersion version = model.getMinSdkVersion();
           if (version != null) {

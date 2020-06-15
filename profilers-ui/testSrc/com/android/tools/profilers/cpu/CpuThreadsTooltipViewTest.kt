@@ -72,12 +72,12 @@ class CpuThreadsTooltipViewTest {
 
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
-    cpuThreadsTooltip = CpuThreadsTooltip(cpuStage)
+    cpuThreadsTooltip = CpuThreadsTooltip(cpuStage.timeline)
     cpuThreadsTooltipView = FakeCpuThreadsTooltipView(stageView, cpuThreadsTooltip)
     cpuStage.tooltip = cpuThreadsTooltip
 
-    stageView.timeline.dataRange.set(0.0, selectedCapture.range.max)
-    stageView.timeline.viewRange.set(0.0, selectedCapture.range.max)
+    stageView.stage.timeline.dataRange.set(0.0, selectedCapture.range.max)
+    stageView.stage.timeline.viewRange.set(0.0, selectedCapture.range.max)
 
     capturedThreadStateTimeUs = selectedCapture.range.max.toLong() - TimeUnit.SECONDS.toMicros(1)
     val capturedThread = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
@@ -90,7 +90,7 @@ class CpuThreadsTooltipViewTest {
   @Test
   fun textUpdateOnThreadChange() {
     var tooltipTime = TimeUnit.SECONDS.toMicros(1)
-    cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
+    cpuStage.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     var threadSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, selectedCapture)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
@@ -103,7 +103,7 @@ class CpuThreadsTooltipViewTest {
     assertThat(labels[4].text).isEqualTo("Details Unavailable")
 
     tooltipTime = TimeUnit.SECONDS.toMicros(9) // Should be the last state. Duration is unavailable.
-    cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
+    cpuStage.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(4) // time, name, state, details unavailable
     assertThat(labels[0].text).isEqualTo("00:09.000")
@@ -115,7 +115,7 @@ class CpuThreadsTooltipViewTest {
                                                   ProfilersTestData.SESSION_DATA,
                                                   selectedCapture.mainThreadId,
                                                   selectedCapture)
-    cpuStage.studioProfilers.timeline.tooltipRange.set(capturedThreadStateTimeUs.toDouble(), capturedThreadStateTimeUs.toDouble())
+    cpuStage.timeline.tooltipRange.set(capturedThreadStateTimeUs.toDouble(), capturedThreadStateTimeUs.toDouble())
     cpuThreadsTooltip.setThread("newThread", threadSeries)
     labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(4) // time, name, state, duration
@@ -128,7 +128,7 @@ class CpuThreadsTooltipViewTest {
   private class FakeCpuThreadsTooltipView(
     parent: CpuProfilerStageView,
     tooltip: CpuThreadsTooltip)
-    : CpuThreadsTooltipView(parent, tooltip) {
+    : CpuThreadsTooltipView(parent.component, tooltip) {
     val tooltipPanel: JComponent = createComponent()
   }
 }

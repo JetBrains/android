@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lint;
 
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.util.AndroidBundle;
-
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
+
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintValidFragmentInspection extends AndroidLintInspectionBase {
   public AndroidLintValidFragmentInspection() {

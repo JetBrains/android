@@ -17,255 +17,425 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.common.actions.IssueNotificationAction
-import com.android.tools.idea.common.editor.*
+import com.android.tools.idea.common.editor.ActionsToolbar
+import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
-import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.common.util.BuildListener
+import com.android.tools.idea.common.util.setupBuildListener
+import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
+import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
+import com.android.tools.idea.concurrency.AndroidCoroutinesAware
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.BuildContext
-import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
+import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.utils.concurrency.EvictingExecutor
+import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorPolicy
-import com.intellij.openapi.fileEditor.FileEditorProvider
-import com.intellij.openapi.fileEditor.TextEditor
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
-import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.pom.Navigatable
+import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.testFramework.LightVirtualFile
+import com.intellij.psi.SmartPointerManager
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.Update
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
+import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 import java.util.function.Supplier
+import javax.swing.JComponent
 import javax.swing.JPanel
-
-/** Preview element name */
-const val PREVIEW_NAME = "Preview"
-
-/** Package containing the preview definitions */
-const val PREVIEW_PACKAGE = "com.android.tools.preview"
-
-/** Only composables with this annotation will be rendered to the surface */
-const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
-
-const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
-
-/** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
-const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
-
-/** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
-const val COMPOSABLE_NAME_ATTR = "tools:composableName"
-
-const val BUILDING_MESSAGE = "Waiting for build to finish..."
+import javax.swing.OverlayLayout
+import kotlin.properties.Delegates
 
 /**
- * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
- * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
+ * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
  */
-private fun dimensionToString(dimension: Int) = if (dimension == UNDEFINED_DIMENSION) {
-  "wrap_content"
-}
-else {
-  "${dimension}dp"
-}
+private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = false,
+                                                             hasSyntaxErrors = false,
+                                                             isOutOfDate = false,
+                                                             isRefreshing = true)
 
 /**
- * Generates the XML string wrapper for one [PreviewElement]
+ * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
+ * will configure if the preview elements will be displayed with "full device size" or simply containing the
+ * previewed components (shrink mode).
+ * @param fullDeviceSize when true, the rendered content will be shown with the full device size specified in
+ * the device configuration.
  */
-private fun PreviewElement.toPreviewXmlString() =
-  """
-      <$COMPOSE_VIEW_ADAPTER xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="${dimensionToString(configuration.width)}"
-        android:layout_height="${dimensionToString(configuration.height)}"
-        android:padding="5dp"
-        $COMPOSABLE_NAME_ATTR="$composableMethodFqn"/>
-  """.trimIndent()
-
-val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
+private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, fullDeviceSize: Boolean): LayoutlibSceneManager =
+  sceneManager.apply {
+    setTransparentRendering(!fullDeviceSize)
+    setShrinkRendering(!fullDeviceSize)
+    forceReinflate()
+  }
 
 /**
- * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
- * to be able to preview composable methods.
- * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
+ * Sets up the given [existingModel] with the right values to be used in the preview.
  */
-private class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
-  override fun getParent() = FAKE_LAYOUT_RES_DIR
+private fun configureExistingModel(existingModel: NlModel,
+                                   displayName: String,
+                                   fileContents: String,
+                                   surface: NlDesignSurface): NlModel {
+  existingModel.updateFileContentBlocking(fileContents)
+  // Reconfigure the model by setting the new display name and applying the configuration values
+  existingModel.modelDisplayName = displayName
+  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
+                                 RenderSettings.getProjectSettings(existingModel.project).showDecorations)
+
+  return existingModel
 }
 
 /**
- * Interface that provides access to the Compose Preview logic.
- */
-interface ComposePreviewManager {
-  /**
-   * Returns whether the preview needs a re-build to work. We detect this by looking into the rendering errors
-   * and checking if there are any classes missing.
-   */
-  fun needsBuild(): Boolean
-
-  /**
-   * Requests a preview refresh
-   */
-  fun refresh()
-}
-
-/**
- * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
+ * A [PreviewRepresentation] that provides a compose elements preview representation of the given [psiFile].
  *
- * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
- * annotation.
- * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` method.
+ * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
+ * [PREVIEW_ANNOTATION_FQN]) annotation.
+ * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param previewProvider call to obtain the [PreviewElement]s from the file.
+ * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
-private class PreviewEditor(private val psiFile: PsiFile,
-                    private val previewProvider: () -> List<PreviewElement>) : ComposePreviewManager, SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
-    private val LOG = Logger.getInstance(PreviewEditor::class.java)
+class ComposePreviewRepresentation(psiFile: PsiFile,
+                                   previewProvider: PreviewElementProvider) :
+  PreviewRepresentation, ComposePreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
+  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
+  private val previewProvider = GroupNameFilteredPreviewProvider(previewProvider)
+
+  private val refreshDispatcher = AppExecutorUtil.createBoundedApplicationPoolExecutor("Compose Preview refresh thread", 1)
+    .asCoroutineDispatcher()
+
+  override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      this.previewProvider.groupName = newValue
+      refresh()
+    }
+  }
+  override val availableGroups: Set<String> get() = previewProvider.availableGroups
+
+  private val refreshExecutor = EvictingExecutor(
+    AppExecutorUtil.createBoundedApplicationPoolExecutor(
+      "Compose Preview thread", AppExecutorUtil.getAppExecutorService(), 1, this), 1)
+
+  private val navigationHandler = PreviewNavigationHandler()
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
     .showModelNames()
+    .setNavigationHandler(navigationHandler)
+    .setDefaultSurfaceState(DesignSurface.State.SPLIT)
     .setSceneManagerProvider { surface, model ->
+      val currentRenderSettings = RenderSettings.getProjectSettings(project)
+
       val settingsProvider = Supplier {
         // For the compose preview we always use live rendering enabled to make use of the image pool. Also
         // we customize the quality setting and set it to the minimum for now to optimize for rendering speed.
         // For now we just render at 70% quality to get a good balance of speed/memory vs rendering quality.
-        RenderSettings.getProjectSettings(project)
+        currentRenderSettings
           .copy(quality = 0.7f, useLiveRendering = true)
       }
-      LayoutlibSceneManager(model, surface, settingsProvider).apply {
-        enableTransparentRendering()
-        enableShrinkRendering()
-      }
+      // When showing decorations, show the full device size
+      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
+                                     fullDeviceSize = currentRenderSettings.showDecorations)
     }
+    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
+    .setEditable(true)
     .build()
     .apply {
-      setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
+      setScreenMode(SceneMode.COMPOSE, false)
+      setMaxFitIntoScale(2f) // Set fit into limit to 200%
     }
+
+  private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+  private var savedIsShowingDecorations: Boolean by Delegates.observable(
+    RenderSettings.getProjectSettings(project).showDecorations) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      // If the state changes, [DesignSurface.zoomToFit] will be called  to re-adjust the preview to the new content since the render sizes
+      // will be significantly different. This way, the user will see all the content when this changes.
+      launch(uiThread) {
+        surface.zoomToFit()
+      }
+    }
+  }
 
   /**
    * List of [PreviewElement] being rendered by this editor
    */
   var previewElements: List<PreviewElement> = emptyList()
 
+  private var isContentBeingRendered = false
+
+  /**
+   * This field will be false until the preview has rendered at least once. If the preview has not rendered once
+   * we do not have enough information about errors and the rendering to show the preview. Once it has rendered,
+   * even with errors, we can display additional information about the state of the preview.
+   */
+  private var hasRenderedAtLeastOnce = false
+
   /**
    * Callback called after refresh has happened
    */
   var onRefresh: (() -> Unit)? = null
 
+  private val notificationsPanel = NotificationPanel(
+    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
+      "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
+
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  override val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this, this).apply {
-    isOpaque = true
+  private val workbench = WorkBench<DesignSurface>(project, "Compose Preview", null, this).apply {
 
-    val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
-    val surfacePanel = JPanel(BorderLayout()).apply {
+    val actionsToolbar = ActionsToolbar(this@ComposePreviewRepresentation, surface)
+    val contentPanel = JPanel(BorderLayout()).apply {
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-      add(surface, BorderLayout.CENTER)
-    }
-    val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
 
-    init(issueErrorSplitter, surface, listOf())
-    showLoading(BUILDING_MESSAGE)
+      val overlayPanel = object : JPanel() {
+        // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
+        override fun isOptimizedDrawingEnabled(): Boolean = false
+      }
+
+      overlayPanel.apply {
+        layout = OverlayLayout(this)
+
+        add(notificationsPanel)
+        add(surface)
+      }
+
+      add(overlayPanel, BorderLayout.CENTER)
+    }
+
+    val issueErrorSplitter = IssuePanelSplitter(surface, contentPanel)
+
+    init(issueErrorSplitter, surface, listOf(), false)
+    showLoading(message("panel.building"))
+  }
+
+  init {
+    setupBuildListener(project, object : BuildListener {
+      override fun buildSucceeded() {
+        val file = psiFilePointer.element
+        if (file == null) {
+          LOG.debug("invalid PsiFile")
+          return
+        }
+
+        // Clean-up the class loading cache for all the possibly affected modules.
+        val module = ModuleUtil.findModuleForFile(file)!!
+        val modules = mutableSetOf<Module>()
+        ModuleUtil.collectModulesDependsOn(module, modules)
+        modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
+        EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
+        refresh()
+      }
+
+      override fun buildFailed() {
+        LOG.debug("buildFailed")
+        updateSurfaceVisibilityAndNotifications()
+      }
+
+      override fun buildStarted() {
+        if (workbench.isMessageVisible) {
+          workbench.showLoading(message("panel.building"))
+          workbench.hideContent()
+        }
+        EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+      }
+    }, this)
+
+    setupChangeListener(
+      project,
+      psiFile,
+      { if (isAutoBuildEnabled) requestBuildForSurface(surface) else ApplicationManager.getApplication().invokeLater { refresh() } },
+      this)
+
+    // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
+    project.runWhenSmartAndSyncedOnEdt(this, Consumer {
+      refresh()
+    })
+  }
+
+  override val component = workbench
+
+  override fun dispose() { }
+
+  override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
+    get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
+
+  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
+      .mapNotNull { surface.getSceneManager(it) }
+      .filterIsInstance<LayoutlibSceneManager>()
+      .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
+      .flatten()
+      .any {
+        it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+      }
+
+  private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
+
+  private fun isOutOfDate(): Boolean {
+    val isModified = FileDocumentManager.getInstance().isFileModified(psiFilePointer.virtualFile)
+    if (isModified) {
+      return true
+    }
+
+    // The file was saved, check the compilation time
+    val modificationStamp = psiFilePointer.virtualFile.timeStamp
+    val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
+    if (LOG.isDebugEnabled) {
+      LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
+    }
+
+    return lastBuildTimestamp in 1 until modificationStamp
+  }
+
+  override fun status(): ComposePreviewManager.Status = if (isContentBeingRendered ||
+                                                            DumbService.isDumb(project) ||
+                                                            GradleBuildState.getInstance(project).isBuildInProgress)
+    REFRESHING_STATUS
+  else
+    ComposePreviewManager.Status(hasErrorsAndNeedsBuild(), hasSyntaxErrors(), isOutOfDate(), false)
+
+  /**
+   * Returns true if the surface has at least one correctly rendered preview.
+   */
+  private fun hasAtLeastOneValidPreview() = surface.models.asSequence()
+    .mapNotNull { surface.getSceneManager(it) }
+    .filterIsInstance<LayoutlibSceneManager>()
+    .mapNotNull { it.renderResult }
+    .any { it.renderResult.isSuccess && it.logger.brokenClasses.values.isEmpty() }
+
+  /**
+   * Hides the preview content and shows an error message on the surface.
+   */
+  private fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {
+    LOG.debug("showModelErrorMessage: $message")
+    workbench.loadingStopped(message)
   }
 
   /**
-   * Calls refresh method on the the successful gradle build
+   * Method called when the notifications of the [PreviewEditor] need to be updated. This is called by the
+   * [ComposePreviewEditorNotificationAdapter] when the editor needs to refresh the notifications.
    */
-  private val refresher = SmartAutoRefresher(psiFile, this, workbench)
+  override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
+    if (!parentEditor.isValid) return@invokeLaterIfNeeded
 
-  init {
-    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      override fun buildStarted(context: BuildContext) {
-        if (workbench.isMessageVisible) {
-          workbench.setLoadingText(BUILDING_MESSAGE)
-        }
-      }
-    }, this)
+    notificationsPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
 
-  override fun needsBuild(): Boolean = surface.models.asSequence()
-    .mapNotNull { surface.getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()
-    .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
-    .flatten()
-    .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+  /**
+   * Updates the surface visibility and displays the content or an error message depending on the build state. This method is called after
+   * certain updates like a build or a preview refresh has happened.
+   * Calling this method will also update the FileEditor notifications.
+   */
+  private fun updateSurfaceVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
+    if (workbench.isMessageVisible && !hasAtLeastOneValidPreview()) {
+      LOG.debug("No valid previews available")
+      showModalErrorMessage(message("panel.needs.build"))
     }
+    else {
+      LOG.debug("Show content")
+      workbench.hideLoading()
+      workbench.showContent()
+    }
+
+    // Make sure all notifications are cleared-up
+    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
+  }
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
+   * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  override fun refresh() {
-    val filePreviewElements = previewProvider()
-
-    if (filePreviewElements == previewElements) {
-      // There are not elements, skip model creation
-      clearCacheAndRefreshSurface(surface)
-      return
-    }
-
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) = withContext(refreshDispatcher) {
+    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
-    val newModels = filePreviewElements
-      .onEach {
+    val psiFile = psiFilePointer.element
+    if (psiFile == null || !psiFile.isValid) {
+      LOG.warn("doRefresh with invalid PsiFile")
+      return@withContext
+    }
+    val facet = AndroidFacet.getInstance(psiFile)!!
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+
+    // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
+    val existingModels = surface.models.reverse().toMutableList()
+    val showDecorations = RenderSettings.getProjectSettings(project).showDecorations
+
+    // Now we generate all the models (or reuse) for the PreviewElements.
+    val models = filePreviewElements
+      .asSequence()
+      .map { Pair(it, it.toPreviewXmlString(matchParent = showDecorations)) }
+      .map {
+        val (previewElement, fileContents) = it
+
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
+              displayName=${previewElement.displayName}
+              methodName=${previewElement.composableMethodFqn}
 
-              ${it.toPreviewXmlString()}
+              ${fileContents}
           """.trimIndent())
         }
-      }
-      .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString())) }
-      .map {
-        val (previewElement, file) = it
-        val facet = AndroidFacet.getInstance(psiFile)!!
-        val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-        val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        val model = NlModel.create(this@PreviewEditor,
-                                   previewElement.displayName,
-                                   facet,
-                                   file,
-                                   configuration,
-                                   surface.componentRegistrar)
 
-        Pair(previewElement, model)
-      }
-      .map {
-        val (previewElement, model) = it
+        val model = if (existingModels.isNotEmpty()) {
+          LOG.debug("Re-using model")
+          configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface)
+        }
+        else {
+          LOG.debug("No models to reuse were found. New model.")
+          val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
+          val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
+          NlModel.create(this@ComposePreviewRepresentation,
+                         previewElement.displayName,
+                         facet,
+                         file,
+                         configuration,
+                         surface.componentRegistrar,
+                         modelUpdater)
+        }
+
+        val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
+          project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
+        navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
 
         previewElement.configuration.applyTo(model.configuration)
 
@@ -273,205 +443,118 @@ private class PreviewEditor(private val psiFile: PsiFile,
       }
       .toList()
 
-    if (newModels.isEmpty()) {
-      workbench.loadingStopped(message("panel.no.previews.defined"))
-    }
+    // Remove and dispose pre-existing models that were not used.
+    // This will happen if the user removes one or more previews.
+    if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
+    existingModels.forEach { surface.removeModel(it) }
+    models
+      .onEach {
+        // We call addModel even though the model might not be new. If we try to add an existing model,
+        // this will trigger a new render which is exactly what we want.
+        surface.addModel(it).await()
+      }.ifEmpty {
+        showModalErrorMessage(message("panel.no.previews.defined"))
+      }
 
-    // All models are now ready, remove the old ones and add the new ones
-    surface.models.forEach { surface.removeModel(it) }
-    val renders = newModels.map { surface.addModel(it) }
+    if (LOG.isDebugEnabled) {
+      LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
 
-    CompletableFuture.allOf(*(renders.toTypedArray()))
-      .whenComplete { _, ex ->
-        if (LOG.isDebugEnabled) {
-          LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
-
-          // Log any rendering errors
-          surface.models.asSequence()
-            .mapNotNull { surface.getSceneManager(it) }
-            .filterIsInstance<LayoutlibSceneManager>()
-            .forEach {
-              val modelName = it.model.modelDisplayName
-              it.renderResult?.let { result ->
-                val logger = result.logger
-                LOG.debug("""modelName="$modelName" result
+      // Log any rendering errors
+      surface.models.asSequence()
+        .mapNotNull { surface.getSceneManager(it) }
+        .filterIsInstance<LayoutlibSceneManager>()
+        .forEach {
+          val modelName = it.model.modelDisplayName
+          it.renderResult?.let { result ->
+            val logger = result.logger
+            LOG.debug("""modelName="$modelName" result
                   | ${result}
                   | hasErrors=${logger.hasErrors()}
                   | missingClasses=${logger.missingClasses}
                   | messages=${logger.messages}
                   | exceptions=${logger.brokenClasses.values + logger.classesWithIncorrectFormat.values}
                 """.trimMargin())
-              }
+          }
+        }
+    }
+
+    previewElements = filePreviewElements
+    hasRenderedAtLeastOnce = true
+    savedIsShowingDecorations = showDecorations
+
+    withContext(uiThread) {
+      surface.zoomToFit()
+    }
+
+    onRefresh?.invoke()
+  }
+
+  /**
+   * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
+   * The refresh will only happen if the Preview elements have changed from the last render.
+   */
+  override fun refresh() {
+    refreshDispatcher.cancel()
+    launch(uiThread) {
+      isContentBeingRendered = true
+      val filePreviewElements = previewProvider.previewElements
+
+      if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(
+          project).showDecorations) {
+        LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
+        // In this case, there are no new previews. We need to make sure that the surface is still correctly
+        // configured and that we are showing the right size for components. For example, if the user switches on/off
+        // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
+        val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
+        withContext(refreshDispatcher) {
+          surface.models
+            .mapNotNull { surface.getSceneManager(it) }
+            .filterIsInstance<LayoutlibSceneManager>()
+            .forEach {
+              // When showing decorations, show the full device size
+              configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
             }
+          surface.requestRender().await()
         }
-
-        if (needsBuild()) {
-          LOG.debug("needsBuild")
-          workbench.loadingStopped("Some classes could not be found")
-        }
-        else {
-          previewElements = filePreviewElements
-          LOG.debug("hideLoading")
-          workbench.hideLoading()
-        }
-        if (ex != null) {
-          LOG.warn(ex)
-        }
-
-        // Make sure all notifications are cleared-up
-        EditorNotifications.getInstance(project).updateNotifications(file)
-
-        onRefresh?.invoke()
+      }
+      else {
+        doRefreshSync(filePreviewElements)
       }
 
+      isContentBeingRendered = false
+      updateSurfaceVisibilityAndNotifications()
+    }
+  }
+
+  override fun registerShortcuts(applicableTo: JComponent) {
+    ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+  }
+}
+
+/**
+ * A thin [FileEditor] wrapper around [ComposePreviewRepresentation].
+ *
+ * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
+ * @param representation a compose PreviewRepresentation of the [psiFile].
+ */
+internal class PreviewEditor(psiFile: PsiFile, val representation: ComposePreviewRepresentation) :
+  ComposePreviewManager by representation, DesignFileEditor(
+  psiFile.virtualFile!!) {
+
+  var onRefresh: (() -> Unit)? = null
+    set(value) {
+      field = value
+      representation.onRefresh = value
+    }
+
+  init {
+    Disposer.register(this, representation)
+    component.add(representation.component, BorderLayout.CENTER)
   }
 
   override fun getName(): String = "Compose Preview"
-}
 
-/**
- * Extension method that returns if the file is a Kotlin file. This method first checks for the extension to fail fast without having to
- * actually trigger the potentially costly [VirtualFile#fileType] call.
- */
-private fun VirtualFile.isKotlinFileType(): Boolean =
-  extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE
+  fun registerShortcuts(applicableTo: JComponent) { representation.registerShortcuts(applicableTo) }
 
-/**
- * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
- */
-private class ComposePreviewToolbar(private val surface: DesignSurface) : ToolbarActionGroups(surface) {
-  /**
-   * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
-   * of the surface.
-   */
-  private inner class ForceCompileAndRefreshAction :
-    AnAction(message("notification.action.build.and.refresh"), null, AllIcons.Actions.ForceRefresh) {
-    override fun actionPerformed(e: AnActionEvent) {
-      val module = surface.model?.module ?: return
-      requestBuild(surface.project, module)
-    }
-  }
-
-  override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ForceCompileAndRefreshAction()
-  ))
-
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    addAll(getZoomActionsWithShortcuts(surface, this@ComposePreviewToolbar))
-    add(IssueNotificationAction(surface))
-  }
-}
-
-private class ComposeTextEditorWithPreview constructor(editor: TextEditor, val preview: PreviewEditor) :
-  SeamlessTextEditorWithPreview(editor, preview, "Compose Editor")
-
-/**
- * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
- */
-fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? ComposeTextEditorWithPreview)?.preview
-
-/**
- * Provider for Compose Preview editors.
- */
-class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
-  private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
-  private val previewElemementProvider = MultiPreviewElementFinder(listOf(AnnotationPreviewElementFinder, MethodPreviewElementFinder))
-
-  init {
-    if (StudioFlags.COMPOSE_PREVIEW.get()) {
-      DesignerTypeRegistrar.register(object : DesignerEditorFileType {
-        override fun isResourceTypeOf(file: PsiFile): Boolean =
-          file.virtualFile is ComposeAdapterLightVirtualFile
-
-        override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
-          ComposePreviewToolbar(surface)
-      })
-    }
-  }
-
-  override fun accept(project: Project, file: VirtualFile): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW.get() || !file.isKotlinFileType()) {
-      return false
-    }
-
-    val hasPreviewMethods = previewElemementProvider.hasPreviewMethods(project, file)
-    if (LOG.isDebugEnabled) {
-      LOG.debug("${file.path} hasPreviewMethods=${hasPreviewMethods}")
-    }
-
-    return hasPreviewMethods
-  }
-
-  override fun createEditor(project: Project, file: VirtualFile): FileEditor {
-    if (LOG.isDebugEnabled) {
-      LOG.debug("createEditor file=${file.path}")
-    }
-    val psiFile = PsiManager.getInstance(project).findFile(file)!!
-    val textEditor = getInstance().createEditor(project, file) as TextEditor
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = { previewElemementProvider.findPreviewMethods(project, file) })
-    val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
-
-    // Queue to avoid refreshing notifications on every key stroke
-    val modificationQueue = MergingUpdateQueue("Notifications Update queue",
-                                               TimeUnit.SECONDS.toMillis(1).toInt(),
-                                               true,
-                                               null,
-                                               composeEditorWithPreview)
-      .apply {
-        setRestartTimerOnAdd(true)
-      }
-
-    // Update that triggers a preview refresh. It does not trigger a recompile.
-    val refreshPreview = object : Update("refreshPreview") {
-      override fun run() {
-        LOG.debug("refreshPreview requested")
-        previewEditor.refresh()
-      }
-    }
-
-    val updateNotifications = object : Update("updateNotifications") {
-      override fun run() {
-        LOG.debug("updateNotifications requested")
-        if (composeEditorWithPreview.isModified) {
-          EditorNotifications.getInstance(project).updateNotifications(file)
-        }
-      }
-    }
-
-    previewEditor.onRefresh = {
-      composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
-    }
-
-    PsiDocumentManager.getInstance(project).getDocument(psiFile)!!.addDocumentListener(object: DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        if (event.isWholeTextReplaced) {
-          modificationQueue.queue(refreshPreview)
-          return
-        }
-
-        val currentPreviewElements = previewEditor.previewElements
-        // Check if the change was done to the code block
-        val isCodeChange = currentPreviewElements.mapNotNull {
-          TextRange.create(it.previewBodyPsi?.range ?: return@mapNotNull null)
-        }.any {
-          it.contains(event.offset)
-        }
-
-        if (isCodeChange) {
-          // Source code was changed, trigger notification update
-          modificationQueue.queue(updateNotifications)
-        }
-        else {
-          // The code has not changed so check if the preview definitions have changed
-          modificationQueue.queue(refreshPreview)
-        }
-      }
-    }, composeEditorWithPreview)
-
-    return composeEditorWithPreview
-  }
-
-  override fun getEditorTypeId() = "ComposeEditor"
-
-  override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
+  fun updateNotifications() { representation.updateNotifications(this@PreviewEditor) }
 }

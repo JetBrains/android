@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_MODEL_UTILS_TEST_AS_FILE
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assume
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -32,19 +32,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsString() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-                 propInterpolated = "${'$'}{prop25}"
-                 propUnresolved = unresolvedReference
-                 propOtherExpression1 = z(1)
-                 propOtherExpression2 = 1 + 2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_MODEL_UTILS_TEST_DSL_TEXT)
 
     val extModel = gradleBuildModel.ext()
 
@@ -69,19 +57,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsAny() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-                 propInterpolated = "${'$'}{prop25}"
-                 propUnresolved = unresolvedReference
-                 propOtherExpression1 = z(1)
-                 propOtherExpression2 = 1 + 2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_MODEL_UTILS_TEST_DSL_TEXT)
 
     val extModel = gradleBuildModel.ext()
 
@@ -106,18 +82,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsInt() {
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-                 propInterpolated = "${'$'}{prop25}"
-                 propUnresolved = unresolvedReference
-                 propOtherExpression1 = z(1)
-                 propOtherExpression2 = 1 + 2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_MODEL_UTILS_TEST_DSL_TEXT)
 
     val extModel = gradleBuildModel.ext()
 
@@ -142,18 +107,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsBoolean() {
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-                 propInterpolated = "${'$'}{prop25}"
-                 propUnresolved = unresolvedReference
-                 propOtherExpression1 = z(1)
-                 propOtherExpression2 = 1 + 2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_MODEL_UTILS_TEST_DSL_TEXT)
 
     val extModel = gradleBuildModel.ext()
 
@@ -178,11 +132,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testAsFile() {
-    val text = """
-               ext {
-                 propFile = 'tmp1'
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_MODEL_UTILS_TEST_AS_FILE)
 
     val extModel = gradleBuildModel.ext()
 
@@ -193,19 +143,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testDslText() {
-    assumeTrue(isGroovy())
-    val text = """
-               ext {
-                 propValue = 'value'
-                 prop25 = 25
-                 propTrue = true
-                 propRef = propValue
-                 propInterpolated = "${'$'}{prop25}"
-                 propUnresolved = unresolvedReference
-                 propOtherExpression1 = z(1)
-                 propOtherExpression2 = 1 + 2
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(PROPERTY_MODEL_UTILS_TEST_DSL_TEXT)
 
     val extModel = gradleBuildModel.ext()
 

@@ -13,10 +13,10 @@ android {
     proguardFiles 'proguard-android-3.txt', 'proguard-rules-3.txt'
   }
   productFlavors.flavor2 {
-    testInstrumentationRunnerArguments.key6 "value6"
+    testInstrumentationRunnerArguments.key6 = "value6"
   }
   productFlavors {
     flavor2.proguardFile 'proguard-android-4.txt'
   }
 }
-android.productFlavors.flavor1.testInstrumentationRunnerArguments.key5 = "value5"
+android.productFlavors.flavor1.testInstrumentationRunnerArguments['key5'] = "value5"

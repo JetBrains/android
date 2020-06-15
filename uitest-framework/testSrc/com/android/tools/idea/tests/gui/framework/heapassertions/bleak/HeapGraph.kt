@@ -24,6 +24,9 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartFMapExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartListExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
@@ -43,14 +46,17 @@ typealias Node = HeapGraph.Node
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
  */
-class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTrace {
+class HeapGraph: DoNotTrace {
 
   private val expanderChooser: ExpanderChooser = ExpanderChooser(listOf(
-    RootExpander(this),
-    ArrayObjectIdentityExpander(this),
-    ClassLoaderExpander(this, jniHelper),
-    ClassStaticsExpander(this),
-    DefaultObjectExpander(this)))
+    RootExpander(),
+    ArrayObjectIdentityExpander(),
+    ClassLoaderExpander(jniHelper),
+    ClassStaticsExpander(),
+    SmartListExpander(),
+    SmartFMapExpander()) +
+    ElidingExpander.getExpanders() +
+    listOf(DefaultObjectExpander()))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
   private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true)) //traversalRoots.map{Node(it, true)}
@@ -60,7 +66,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
   lateinit var disposerInfo: DisposerInfo
 
   inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
-    private val expander = expanderChooser.expanderFor(obj)
+    val expander = expanderChooser.expanderFor(obj)
     val edges = mutableListOf<Edge>()
     val type: Class<*> = obj.javaClass
     var incomingEdge: Edge? = if (isRootNode) Edge(this, this, expander.RootLoopbackLabel()) else null
@@ -73,8 +79,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     var mark = 0
     var growing = false
       private set
-    var leakShareDivisor = 0
-    private var approximateSize = -1
+    private var approximateSize = -1L
 
     init {
       objToNode[obj] = this
@@ -92,12 +97,11 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
       return e.end
     }
 
-    // uses an instrumentation agent to compute the (shallow) size of the object represented by this node.
     // This is done lazily, as it is only of interest on the final iteration, and the computation would be
     // wasteful on previous iterations.
-    fun getApproximateSize(): Int {
-      if (approximateSize == -1) {
-        approximateSize = obj.approxSize()
+    fun getApproximateSize(): Long {
+      if (approximateSize == -1L) {
+        approximateSize = ReflectionUtil.estimateSize(obj)
       }
       return approximateSize
     }
@@ -158,7 +162,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     // trashes marks
     fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) = dominatedNodes(setOf(this), roots)
 
-    fun retainedSize() = dominatedNodes().fold(0) { acc, node -> acc + node.approximateSize }
+    fun retainedSize() = dominatedNodes().fold(0L) { acc, node -> acc + node.approximateSize }
   }
 
   fun forEachNode(action: Node.() -> Unit) = nodes.forEach { it.action() }
@@ -168,7 +172,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
   fun expandWholeGraph(initialRun: Boolean = false): HeapGraph {
     withThreadsPaused {
         time("Expanding graph") {
-          bfs { expand(); if (isInitiallyGrowing()) markAsGrowing() }
+          bfs { expand(); if (initialRun && expander.canPotentiallyGrowIndefinitely(this)) markAsGrowing() }
           if (initialRun) disposerInfo = DisposerInfo.createBaseline()
         }
     }
@@ -316,18 +320,6 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
   companion object {
     val jniHelper: BleakHelper = if (System.getProperty("bleak.jvmti.enabled") == "true") JniBleakHelper() else JavaBleakHelper()
 
-    private val objSizeMethod: Method? = try {
-      Class.forName(
-        "com.android.tools.idea.tests.gui.framework.heapassertions.bleak.agents.ObjectSizeInstrumentationAgent", true,
-        ClassLoader.getSystemClassLoader()).getMethod("getObjectSize", Any::class.java)
-    } catch (e: ClassNotFoundException) {
-      null
-    }
-
-    fun Any?.approxSize(): Int {
-      return (objSizeMethod?.invoke(null, this) as? Long)?.toInt() ?: 0
-    }
-
     fun withThreadsPaused(action: () -> Unit) {
       jniHelper.pauseThreads()
       action()
@@ -344,7 +336,7 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   fun signature(): String =
     if (start.isRootNode) {
       "ROOT#" + if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName
-    } else if (label is DefaultObjectExpander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
+    } else if (label is Expander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
       label.field.declaringClass.name + "#" + label.signature()
     } else {
       start.type.name + "#" + label.signature()

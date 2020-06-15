@@ -53,7 +53,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
@@ -103,8 +102,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");
 
     String alreadyExistsError = WizardUtils.toHtmlString(
-        "Some existing files will be overwritten by this operation.<br>" +
-        "Files which replace existing files are marked red in the preview above.");
+        "Some existing files (shown in red) will be overwritten by this operation.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
   }
 

@@ -5,6 +5,7 @@ package org.jetbrains.android;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -181,9 +182,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       // Finish dispatching any remaining events before shutting down everything
       UIUtil.dispatchAllInvocationEvents();
 
-      myApplicationComponentStack.restoreComponents();
+      myApplicationComponentStack.restore();
       myApplicationComponentStack = null;
-      myProjectComponentStack.restoreComponents();
+      myProjectComponentStack.restore();
       myProjectComponentStack = null;
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;
@@ -382,7 +383,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * Enables namespacing in the given module and sets the app namespace according to the given package name.
    */
   protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
-    facet.setModel(TestAndroidModel.namespaced(facet));
+    AndroidModel.set(facet, TestAndroidModel.namespaced(facet));
     runWriteCommandAction(getProject(), () -> Manifest.getMainManifest(facet).getPackage().setValue(appPackageName));
     LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
   }
@@ -401,8 +402,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        String manifestRelativePath = facet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
-        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(module, manifestRelativePath, true);
+        VirtualFile manifest = AndroidRootUtil.getPrimaryManifestFile(facet);
         if (manifest != null) {
           try {
             manifest.delete(this);
@@ -445,16 +445,16 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myApplicationComponentStack.registerComponentInstance(key, instance);
   }
 
-  public <T> void registerApplicationComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
-    myApplicationComponentStack.registerComponentImplementation(key, instance);
+  public <T> void registerApplicationService(@NotNull Class<T> key, @NotNull T instance) {
+    myApplicationComponentStack.registerServiceInstance(key, instance);
   }
 
   public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerComponentInstance(key, instance);
   }
 
-  public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
-    myProjectComponentStack.registerComponentImplementation(key, instance);
+  public <T> void registerProjectService(@NotNull Class<T> key, @NotNull T instance) {
+    myProjectComponentStack.registerServiceInstance(key, instance);
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {

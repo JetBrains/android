@@ -25,7 +25,7 @@ import java.lang.Integer.min
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelMethod] from db-compiler.
  */
-class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMethod) {
+class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod: PsiMethod) : PsiModelMember {
 
   val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
     psiMethod.parameterList.parameters.map { PsiModelClass(it.type, containingClass.mode) }.toTypedArray()
@@ -43,7 +43,7 @@ class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMetho
 
   val isProtected = psiMethod.hasModifierProperty(PsiModifier.PROTECTED)
 
-  val isStatic = psiMethod.hasModifierProperty(PsiModifier.STATIC)
+  override val isStatic = psiMethod.hasModifierProperty(PsiModifier.STATIC)
 
   val isAbstract = psiMethod.hasModifierProperty(PsiModifier.ABSTRACT)
 
@@ -68,7 +68,7 @@ class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMetho
       // it means we are referencing a parameter that is really a part of the varargs
       // parameter (which is the last one)
       var parameterType = parameterTypes[i.coerceAtMost(parameterTypes.lastIndex)]
-      val arg = args[i]
+      val arg = args[i].unwrapped
       if (parameterType.isIncomplete) {
         parameterType = parameterType.erasure()
       }
@@ -94,7 +94,7 @@ class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMetho
      */
     fun betterMatchWithArguments(args: List<PsiModelClass>, thisMethod: PsiModelMethod, thatMethod: PsiModelMethod): PsiModelMethod {
       for (i in args.indices) {
-        val arg = args[i]
+        val arg = args[i].unwrapped
         val thisParameterType = thisMethod.parameterTypes[min(i, thisMethod.parameterTypes.size)]
         val thatParameterType = thatMethod.parameterTypes[min(i, thatMethod.parameterTypes.size)]
         if (thisParameterType == thatParameterType) {

@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_USES_PERMISSION;
+import static com.android.tools.lint.checks.ManifestDetector.MOCK_LOCATION_PERMISSION;
+
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,23 +44,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import java.io.IOException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.checks.ManifestDetector.MOCK_LOCATION_PERMISSION;
 
 /**
  * Quickfix for the {@link com.android.tools.lint.checks.ManifestDetector#MOCK_LOCATION} error, which deletes a mock
  * location permission from a non-debug manifest and adds it to a debug specific one (which is created if possible)
  */
-class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
+class MoveToDebugManifestQuickFix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
@@ -67,7 +69,7 @@ class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
-            VirtualFile mainManifest = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
+            VirtualFile mainManifest = SourceProviderManager.getInstance(facet).getMainManifestFile();
             // TODO: b/22928250
             AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
             if (androidModel != null && mainManifest != null

@@ -1,0 +1,161 @@
+PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
+    MODULE              : app
+        LinkedProjectId     : :app
+        LinkedProjectPath   : <TEMP>/app
+        RootProjectPath     : <TEMP>
+        ModuleFile          : <TEMP>/app/app.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<TEMP>/app/src/main/res [-]
+            - ResFoldersRelativePath      : file://<TEMP>/app/src/debug/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/app/src/test/res [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :app
+        CONENT_ENTRY        : file://<TEMP>/app
+            JavaSource (test)   : file://<TEMP>/app/src/androidTest/aidl [-]
+            JavaResource (test) : file://<TEMP>/app/src/androidTest/assets [-]
+            JavaSource (test)   : file://<TEMP>/app/src/androidTest/java [-]
+            JavaSource (test)   : file://<TEMP>/app/src/androidTest/renderscript [-]
+            JavaResource (test) : file://<TEMP>/app/src/androidTest/res [-]
+            JavaResource (test) : file://<TEMP>/app/src/androidTest/resources [-]
+            JavaSource (test)   : file://<TEMP>/app/src/androidTest/shaders [-]
+            JavaSource          : file://<TEMP>/app/src/debug/aidl [-]
+            JavaResource        : file://<TEMP>/app/src/debug/assets [-]
+            JavaSource          : file://<TEMP>/app/src/debug/java [-]
+            JavaSource          : file://<TEMP>/app/src/debug/renderscript [-]
+            JavaResource        : file://<TEMP>/app/src/debug/res [-]
+            JavaResource        : file://<TEMP>/app/src/debug/resources [-]
+            JavaSource          : file://<TEMP>/app/src/debug/shaders [-]
+            JavaSource          : file://<TEMP>/app/src/main/aidl [-]
+            JavaResource        : file://<TEMP>/app/src/main/assets [-]
+            JavaSource          : file://<TEMP>/app/src/main/java [-]
+            JavaSource          : file://<TEMP>/app/src/main/renderscript [-]
+            JavaResource        : file://<TEMP>/app/src/main/res [-]
+            JavaResource        : file://<TEMP>/app/src/main/resources [-]
+            JavaSource          : file://<TEMP>/app/src/main/shaders [-]
+            JavaSource (test)   : file://<TEMP>/app/src/test/aidl [-]
+            JavaResource (test) : file://<TEMP>/app/src/test/assets [-]
+            JavaSource (test)   : file://<TEMP>/app/src/test/java [-]
+            JavaSource (test)   : file://<TEMP>/app/src/test/renderscript [-]
+            JavaResource (test) : file://<TEMP>/app/src/test/res [-]
+            JavaResource (test) : file://<TEMP>/app/src/test/resources [-]
+            JavaSource (test)   : file://<TEMP>/app/src/test/shaders [-]
+            EXCLUDE_FOLDER      : file://<TEMP>/app/build [-]
+        ORDER_ENTRY         : <Module source>
+        ORDER_ENTRY         : lib
+    MODULE              : lib
+        LinkedProjectId     : :lib
+        LinkedProjectPath   : <TEMP>/lib
+        RootProjectPath     : <TEMP>
+        ModuleFile          : <TEMP>/lib/lib.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<TEMP>/lib/src/main/res [-]
+            - ResFoldersRelativePath      : file://<TEMP>/lib/src/debug/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/lib/src/test/res [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :lib
+        CONENT_ENTRY        : file://<TEMP>/lib
+            JavaSource (test)   : file://<TEMP>/lib/src/androidTest/aidl [-]
+            JavaResource (test) : file://<TEMP>/lib/src/androidTest/assets [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/androidTest/java [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/androidTest/renderscript [-]
+            JavaResource (test) : file://<TEMP>/lib/src/androidTest/res [-]
+            JavaResource (test) : file://<TEMP>/lib/src/androidTest/resources [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/androidTest/shaders [-]
+            JavaSource          : file://<TEMP>/lib/src/debug/aidl [-]
+            JavaResource        : file://<TEMP>/lib/src/debug/assets [-]
+            JavaSource          : file://<TEMP>/lib/src/debug/java [-]
+            JavaSource          : file://<TEMP>/lib/src/debug/renderscript [-]
+            JavaResource        : file://<TEMP>/lib/src/debug/res [-]
+            JavaResource        : file://<TEMP>/lib/src/debug/resources [-]
+            JavaSource          : file://<TEMP>/lib/src/debug/shaders [-]
+            JavaSource          : file://<TEMP>/lib/src/main/aidl [-]
+            JavaResource        : file://<TEMP>/lib/src/main/assets [-]
+            JavaSource          : file://<TEMP>/lib/src/main/java [-]
+            JavaSource          : file://<TEMP>/lib/src/main/renderscript [-]
+            JavaResource        : file://<TEMP>/lib/src/main/res [-]
+            JavaResource        : file://<TEMP>/lib/src/main/resources [-]
+            JavaSource          : file://<TEMP>/lib/src/main/shaders [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/test/aidl [-]
+            JavaResource (test) : file://<TEMP>/lib/src/test/assets [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/test/java [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/test/renderscript [-]
+            JavaResource (test) : file://<TEMP>/lib/src/test/res [-]
+            JavaResource (test) : file://<TEMP>/lib/src/test/resources [-]
+            JavaSource (test)   : file://<TEMP>/lib/src/test/shaders [-]
+            EXCLUDE_FOLDER      : file://<TEMP>/lib/build [-]
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
+        LinkedProjectId     : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
+        LinkedProjectPath   : <TEMP>
+        RootProjectPath     : <TEMP>
+        ModuleFile          : <TEMP>/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     :  [-]
+        ORDER_ENTRY         : <Module source>

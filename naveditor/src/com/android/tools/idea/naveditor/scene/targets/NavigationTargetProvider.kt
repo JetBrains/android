@@ -19,15 +19,14 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.TargetProvider
 import com.android.tools.idea.common.scene.target.LassoTarget
 import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
 
 /**
  * Providers targets for the current display root of the navigation editor.
  */
-class NavigationTargetProvider(private val surface: NavDesignSurface) : TargetProvider {
+object NavigationTargetProvider : TargetProvider {
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     return listOf(
-        if (sceneComponent.childCount == 0) EmptyDesignerTarget(surface) else LassoTarget(true, false)
+        if (sceneComponent.childCount == 0) EmptyDesignerTarget(sceneComponent.scene.designSurface) else LassoTarget(true, false)
     )
   }
 }

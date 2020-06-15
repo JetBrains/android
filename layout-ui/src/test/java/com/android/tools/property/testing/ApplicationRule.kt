@@ -17,7 +17,6 @@ package com.android.tools.property.testing
 
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -37,7 +36,6 @@ open class ApplicationRule : ExternalResource() {
   private lateinit var testName: String
   private var rootDisposable: Disposable? = null
   private var application: MockApplication? = null
-  private var oldApplication: Application? = null
 
   val testRootDisposable: Disposable
     get() = rootDisposable!!
@@ -62,30 +60,13 @@ open class ApplicationRule : ExternalResource() {
   override fun before() {
     rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
     application = TestApplication(rootDisposable!!, testName)
-    oldApplication = ApplicationManager.getApplication()
     ApplicationManager.setApplication(application!!, rootDisposable!!)
   }
 
   override fun after() {
-    resetApplication()
+    Disposer.dispose(rootDisposable!!) // This will recover previous instance of Application (see ApplicationManager::setApplication)
     rootDisposable = null
     application = null
-    oldApplication = null
-  }
-
-  /**
-   * Reverts static reference in [ApplicationManager] to the state it was before the rule started.
-   *
-   * Keeping a reference to a disposed object can cause problems for other tests.
-   */
-  private fun resetApplication() {
-    Disposer.dispose(rootDisposable!!)  // This will recover previous instance of Application (see ApplicationManager::setApplication) unless it is null
-    if (oldApplication == null) {
-      // in the case of null we reset Application to null explicitly
-      val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
-      field.isAccessible = true
-      field.set(null, null)
-    }
   }
 
   private class TestApplication(disposable: Disposable, val name: String): MockApplication(disposable) {

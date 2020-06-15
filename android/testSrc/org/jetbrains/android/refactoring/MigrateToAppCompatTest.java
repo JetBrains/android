@@ -15,45 +15,44 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_ACTIVITY;
+import static com.android.SdkConstants.CLASS_APP_COMPAT_ACTIVITY;
+import static com.android.SdkConstants.TAG_ITEM;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_CUSTOM_VIEW_SUPERCLASS;
+import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_THEME_AND_STYLE;
+import static org.jetbrains.android.refactoring.MigrateToAppCompatProcessor.CLASS_SUPPORT_FRAGMENT_ACTIVITY;
+import static org.jetbrains.android.refactoring.MigrateToAppCompatProcessor.MIGRATION_ENTRY_SIZE;
+import static org.jetbrains.android.refactoring.MigrateToAppCompatProcessor.buildMigrationMap;
+
 import com.android.annotations.NonNull;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Sets;
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.SmartHashMap;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.migration.MigrationMapEntry;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.SmartList;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
-import static org.jetbrains.android.refactoring.MigrateToAppCompatProcessor.*;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.XmlElementMigration;
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.XmlTagMigrationEntry;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This tests the MigrateToAppCompat refactoring for JPS projects.
@@ -364,7 +363,9 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
 
     public void run(JavaCodeInsightTestFixture fixture) {
       MigrateToAppCompatProcessor processor = setUpProcessor(fixture);
+/* b/146019491
       runMigration(fixture, processor);
+b/146019491 */
     }
 
     public MigrateToAppCompatProcessor makeProcessor(Project project, boolean allEntries,

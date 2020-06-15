@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
@@ -217,6 +218,6 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:2.1.2");
 
     ResolvedPropertyModel applicationId = buildModel.android().defaultConfig().applicationId();
-    verifyPropertyModel(applicationId, "android.defaultConfig.applicationId", "3.2.0");
+    verifyPropertyModel(applicationId, "android.defaultConfig." + ProductFlavorModelImpl.APPLICATION_ID, "3.2.0");
   }
 }

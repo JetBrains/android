@@ -40,10 +40,10 @@ enum class FirstRunWizardMode {
   private val installerData: InstallerData
     @Synchronized get() =
       if (this == INSTALL_HANDOFF) {
-        InstallerData.get()
+        com.android.tools.idea.welcome.config.installerData!!
       }
       else {
-        InstallerData.EMPTY
+        EMPTY_INSTALLER_DATA
       }
 
   fun hasValidSdkLocation(): Boolean = installerData.hasValidSdkLocation()

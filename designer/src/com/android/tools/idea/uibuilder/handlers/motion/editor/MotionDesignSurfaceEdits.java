@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.List;
 public interface MotionDesignSurfaceEdits {
   boolean handlesWriteForComponent(String id);
 
-  SmartPsiElementPointer<XmlTag> getSelectedConstraint();
   String getSelectedConstraintSet();
   XmlFile getTransitionFile(NlComponent component);
   XmlTag getConstraintSet(XmlFile file, String s);

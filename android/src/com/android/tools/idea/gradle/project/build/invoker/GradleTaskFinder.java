@@ -24,11 +24,12 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePa
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -48,14 +49,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 public class GradleTaskFinder {
   private final GradleRootPathFinder myRootPathFinder;
@@ -70,8 +70,8 @@ public class GradleTaskFinder {
     this(new GradleRootPathFinder());
   }
 
-  @VisibleForTesting
   @NonInjectable
+  @VisibleForTesting
   GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
     myRootPathFinder = rootPathFinder;
   }
@@ -109,9 +109,19 @@ public class GradleTaskFinder {
       }
     }
 
-    Set<Module> allModules = new HashSet<>();
+    Set<Module> allModules = new LinkedHashSet<>();
     for (Module module : modules) {
       allModules.addAll(DynamicAppUtils.getModulesToBuild(module));
+    }
+
+    // Instrumented test support for Dynamic Features: base-app module should be added explicitly for gradle tasks
+    if (testCompileType == TestCompileType.ANDROID_TESTS) {
+      for (Module module : modules) {
+        Module baseAppModule = DynamicAppUtils.getBaseFeature(module);
+        if (baseAppModule != null) {
+          allModules.add(baseAppModule);
+        }
+      }
     }
 
     for (Module module : allModules) {
@@ -173,7 +183,7 @@ public class GradleTaskFinder {
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
-      JpsAndroidModuleProperties properties = androidFacet.getProperties();
+      AndroidFacetProperties properties = androidFacet.getProperties();
 
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
 
@@ -204,16 +214,25 @@ public class GradleTaskFinder {
           break;
         case BUNDLE:
           // The "Bundle" task is only valid for base (app) module, not for features, libraries, etc.
-          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_APP) {
             String taskName = androidModel.getSelectedVariant().getMainArtifact().getBundleTaskName();
             addTaskIfSpecified(tasks, gradlePath, taskName);
           }
           break;
         case APK_FROM_BUNDLE:
-          // The "ApkFromBundle" task is only valid for base (app) module, not for features, libraries, etc.
-          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+          // The "ApkFromBundle" task is only valid for base (app) module, and for features if it's for instrumented tests
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_APP) {
             String taskName = androidModel.getSelectedVariant().getMainArtifact().getApkFromBundleTaskName();
             addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
+          else if (androidModel != null &&
+                   androidModel.getAndroidProject().getProjectType() == IdeAndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+            // Instrumented test support for Dynamic Features: Add assembleDebugAndroidTest tasks
+            if (testCompileType == TestCompileType.ANDROID_TESTS) {
+              for (BaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+                addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
+              }
+            }
           }
           break;
         default:
@@ -254,7 +273,7 @@ public class GradleTaskFinder {
 
     if (testAndroidModel == null ||
         !testAndroidModel.getFeatures().isTestedTargetVariantsSupported() ||
-        testAndroidModel.getAndroidProject().getProjectType() != AndroidProject.PROJECT_TYPE_TEST) {
+        testAndroidModel.getAndroidProject().getProjectType() != AndroidProjectTypes.PROJECT_TYPE_TEST) {
       // If we don't have the target module and variant to be tested, no task should be added.
       return;
     }
@@ -299,7 +318,7 @@ public class GradleTaskFinder {
 
   private void addAfterSyncTasks(@NotNull Set<String> tasks,
                                  @NotNull String gradlePath,
-                                 @NotNull JpsAndroidModuleProperties properties) {
+                                 @NotNull AndroidFacetProperties properties) {
     // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
     // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
     // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the

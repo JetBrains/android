@@ -23,8 +23,7 @@ import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -70,8 +70,8 @@ public class ConvertFrom9PatchTest {
    *   4. Click OK on the popped up window. (verify 4)
    *   Verify:
    *   1. Verify that corresponding nine-patch file is created.
-   *   2. Verify that Ã¢â‚¬Å“Skip nine-patch (.9.png) imagesÃ¢â‚¬ï¿¾ option is checked and disabled.
-   *   3. Since minSdkVersion is less than 18, the flag to "skip images with transparency"
+   *   2. Verify that "Skip nine-patch (.9.png) images" option is checked and disabled.
+   *   3. Since minSdkVersion is less than 18, the flag to "skip images with transparency/alpha channel"
    *      is selected by default.
    *   4. Verify that no images are converted .WebP and observe a notification at the bottom right
    *      corner with the message similar to the one below. 0 files were converted 1 9-patch files
@@ -115,9 +115,9 @@ public class ConvertFrom9PatchTest {
     });
 
     // Check nine-patch file is created by clicking on it.
-    // Synchronize files before clicking on new generated file.
+    // Reload from Disk before clicking on new generated file.
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .invokeMenuPath("Synchronize 'app'");
+      .invokeMenuPath("Reload from Disk");
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
 
     // Try to convert to webp and verify.

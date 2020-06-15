@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -49,6 +50,8 @@ public class CombinedListPanel extends JPanel {
   MTag mMotionLayout;
   ListSelectionListener mListSelectionListener;
   private boolean mSplitView = false;
+  private static final int UNSCALED_LIST_MARGIN = 2;
+  private int mScaledListMargin = MEUI.scale(UNSCALED_LIST_MARGIN);
 
   static class Row {
     public int mCount = 0;
@@ -113,9 +116,11 @@ public class CombinedListPanel extends JPanel {
     JLabel label = new JLabel();
     JLabel title = new JLabel();
     JPanel panel = new JPanel(new BorderLayout());
-    Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, Color.GRAY);
-    Border mChangeBorder = BorderFactory.createCompoundBorder(b1, BorderFactory.createEmptyBorder(1, 0, 0, 0));
-    Border mNoBorder = BorderFactory.createEmptyBorder(2, 0, 0, 0);
+    Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, MEUI.ourBorder);
+    Border mChangeBorder = BorderFactory.createCompoundBorder(
+      b1,
+      BorderFactory.createEmptyBorder(mScaledListMargin - 1, mScaledListMargin, 0, mScaledListMargin));
+    Border mNoBorder = BorderFactory.createEmptyBorder(mScaledListMargin, mScaledListMargin, 0, mScaledListMargin);
     Color mUnselectedColor = MEUI.ourSecondaryPanelBackground;
     Color mSelectedColor = MEUI.ourMySelectedLineColor;
 
@@ -126,6 +131,7 @@ public class CombinedListPanel extends JPanel {
 
     @Override
     public Component getListCellRendererComponent(JList<? extends Row> list, Row value, int index, boolean isSelected, boolean cellHasFocus) {
+      label.setFont(list.getFont());
       label.setText(value.myString);
       String titleString = "";
       switch (value.mType) {
@@ -149,12 +155,17 @@ public class CombinedListPanel extends JPanel {
       if (mSplitView) {
         panel.remove(title);
         if (value.mCount == 0 && index != 0) {
-          panel.setBorder(mChangeBorder);
+          label.setBorder(mChangeBorder);
         } else {
-          panel.setBorder(mNoBorder);
+          label.setBorder(mNoBorder);
         }
+        mConstraintSetPane.getColumnHeader().getView().setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
+        mConstraintSetPane.getColumnHeader().getView().setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
+        mTransitionPane.getColumnHeader().getView().setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
+        mTransitionPane.getColumnHeader().getView().setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
       } else {
-        panel.setBorder(null);
+        label.setBorder(mNoBorder);
+        title.setBorder(mNoBorder);
         if (value.mCount == 0 && index != 0) {
           title.setText(titleString);
           panel.add(title, BorderLayout.NORTH);
@@ -162,10 +173,12 @@ public class CombinedListPanel extends JPanel {
           panel.remove(title);
         }
       }
+      title.setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
+      title.setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
       label.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
+      label.setForeground(isSelected ? Color.WHITE : ourTextColor);
       panel.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
-      label.setForeground(ourTextColor);
-      panel.setForeground(ourTextColor);
+      panel.setForeground(isSelected ? Color.WHITE : ourTextColor);
       return panel;
     }
   };
@@ -174,10 +187,12 @@ public class CombinedListPanel extends JPanel {
     super(new BorderLayout());
     setBackground(MEUI.ourSecondaryPanelBackground);
 
-    mTransitionPane.setColumnHeaderView(new JLabel("Transitions"));
-    mTransitionPane.setBorder(BorderFactory.createEmptyBorder());
+    mConstraintSetPane.setColumnHeaderView(addHorizontalMargin(new JLabel("Constraint Sets")));
+    mConstraintSetPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 1, MEUI.ourBorder));
 
-    mConstraintSetPane.setColumnHeaderView(new JLabel("Constraint Sets"));
+    mTransitionPane.setColumnHeaderView(addHorizontalMargin(new JLabel("Transitions")));
+    mTransitionPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, MEUI.ourBorder));
+
     mMainList.setBackground(MEUI.ourSecondaryPanelBackground);
     mTransitionList.setBackground(MEUI.ourSecondaryPanelBackground);
     mConstraintSetList.setBackground(MEUI.ourSecondaryPanelBackground);
@@ -186,6 +201,7 @@ public class CombinedListPanel extends JPanel {
     mTransitionList.setCellRenderer(rowRenderer);
     mConstraintSetList.setCellRenderer(rowRenderer);
 
+    mTListPane.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, MEUI.ourBorder));
     add(mTListPane, BorderLayout.CENTER);
 
     ListSelectionListener listSelectionListener = e -> {
@@ -202,7 +218,12 @@ public class CombinedListPanel extends JPanel {
     mMainList.addListSelectionListener(listSelectionListener);
     mTransitionList.addListSelectionListener(listSelectionListener);
     mConstraintSetList.addListSelectionListener(listSelectionListener);
+  }
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    mScaledListMargin = MEUI.scale(UNSCALED_LIST_MARGIN);
   }
 
   public void setSplitView(boolean splitView) {
@@ -346,6 +367,9 @@ public class CombinedListPanel extends JPanel {
   }
 
   public void selectTag(MTag tag) {
+    if (tag == null) {
+      return;
+    }
     if (mSplitView) {
       String name = tag.getTagName();
       if (name.endsWith("MotionLayout")) {
@@ -357,7 +381,7 @@ public class CombinedListPanel extends JPanel {
         int size = model.getSize();
         for (int i = 0; i < size; i++) {
           Row row = model.getElementAt(i);
-          if (tag == row.mTag) { // TODO this should be a deep compare
+          if (tagEquals(tag, row.mTag)) { // TODO this should be a deep compare
             mConstraintSetList.setSelectedIndex(i);
             return;
           }
@@ -367,7 +391,7 @@ public class CombinedListPanel extends JPanel {
         int size = model.getSize();
         for (int i = 0; i < size; i++) {
           Row row = model.getElementAt(i);
-          if (tag == row.mTag) { // TODO this should be a deep compare
+          if (tagEquals(tag, row.mTag)) { // TODO this should be a deep compare
             mTransitionList.setSelectedIndex(i);
             return;
           }
@@ -382,13 +406,26 @@ public class CombinedListPanel extends JPanel {
       }
       for (int i = 0; i < size; i++) {
         Row row = model.getElementAt(i);
-        if (tag == row.mTag) { // TODO this should be a deep compare
+        if (tagEquals(tag, row.mTag)) { // TODO this should be a deep compare
           mMainList.setSelectedIndex(i);
           return;
         }
 
       }
     }
+  }
 
+  private static boolean tagEquals(MTag tag1, MTag tag2) {
+    if (tag1 == null || tag2 == null) {
+      return tag1 == tag2;
+    }
+    String t1 = tag1.getTreeId();
+    String t2 = tag2.getTreeId();
+    return Objects.equals(t1, t2);
+  }
+
+  private Component addHorizontalMargin(JLabel component) {
+    component.setBorder(BorderFactory.createEmptyBorder(mScaledListMargin, mScaledListMargin, mScaledListMargin, mScaledListMargin));
+    return component;
   }
 }

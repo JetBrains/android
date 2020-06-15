@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.GradleDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintUseOfBundledGooglePlayServicesInspection extends AndroidLintInspectionBase {
   public AndroidLintUseOfBundledGooglePlayServicesInspection() {
-    super(AndroidBundle.message("android.lint.inspections.bundled.gms"), GradleDetector.BUNDLED_GMS);
+    super(AndroidBundle.message("android.lint.inspections.use.of.bundled.google.play.services"), GradleDetector.BUNDLED_GMS);
   }
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new OpenFirebaseAssistantQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
+    return new LintIdeQuickFix[]{new OpenFirebaseAssistantQuickFix()};
   }
 }

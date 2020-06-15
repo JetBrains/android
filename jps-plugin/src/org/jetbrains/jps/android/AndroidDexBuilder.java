@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.compiler.tools.AndroidDxRunner;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -432,7 +433,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       logsDir = proguardLogsDir;
     }
     else {
-      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidFacetProperties.DIRECTORY_FOR_LOGS_NAME);
     }
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles);

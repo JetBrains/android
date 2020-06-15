@@ -216,14 +216,25 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     PerfettoTrace.ClockSnapshot.Clock realtimeClock = null;
     PerfettoTrace.ClockSnapshot.Clock boottimeClock = null;
     for (PerfettoTrace.ClockSnapshot.Clock clock : snapshot.getClocksList()) {
-      if (clock.getType() == PerfettoTrace.ClockSnapshot.Clock.Type.MONOTONIC) {
-        monotonicClock = clock;
+      PerfettoTrace.ClockSnapshot.Clock.BuiltinClocks clockType =
+        PerfettoTrace.ClockSnapshot.Clock.BuiltinClocks.forNumber(clock.getClockId());
+
+      if (clockType == null) {
+        continue;
       }
-      else if (clock.getType() == PerfettoTrace.ClockSnapshot.Clock.Type.REALTIME) {
-        realtimeClock = clock;
-      }
-      else if (clock.getType() == PerfettoTrace.ClockSnapshot.Clock.Type.BOOTTIME) {
-        boottimeClock = clock;
+
+      switch (clockType) {
+        case MONOTONIC:
+          monotonicClock = clock;
+          break;
+        case REALTIME:
+          realtimeClock = clock;
+          break;
+        case BOOTTIME:
+          boottimeClock = clock;
+          break;
+        default:
+          // do nothing for other clocks
       }
     }
     assert monotonicClock != null && realtimeClock != null && boottimeClock != null;

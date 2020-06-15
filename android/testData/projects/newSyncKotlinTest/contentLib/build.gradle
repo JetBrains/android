@@ -14,8 +14,6 @@ targetCompatibility = "7"
 buildscript {
     ext.kotlin_version = '1.2.71'
     repositories {
-        mavenLocal()
-        mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -23,7 +21,6 @@ buildscript {
 }
 
 repositories {
-    mavenCentral()
 }
 compileKotlin {
     kotlinOptions {

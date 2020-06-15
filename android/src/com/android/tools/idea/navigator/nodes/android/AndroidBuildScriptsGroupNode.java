@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lang.proguard.ProguardFileType;
+import com.android.tools.idea.lang.proguardR8.ProguardR8FileType;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -23,6 +25,7 @@ import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -49,6 +52,8 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     // TODO: Should this class really be parametrized on List<PsiDirectory>?
     super(project, Collections.emptyList(), settings);
   }
+
+  private static FileType proguardFileType = StudioFlags.R8_SUPPORT_ENABLED.get() ? ProguardR8FileType.INSTANCE : ProguardFileType.INSTANCE;
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
@@ -81,7 +86,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
       // include all .gradle and ProGuard files from each module
       for (VirtualFile file : findAllGradleScriptsInModule(module)) {
-        if (FileTypeRegistry.getInstance().isFileOfType(file, ProguardFileType.INSTANCE)) {
+        if (FileTypeRegistry.getInstance().isFileOfType(file, proguardFileType)) {
           buildScripts.put(file, String.format("ProGuard Rules for %1$s", module.getName()));
         }
         else {
@@ -150,7 +155,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
       if (!child.isValid() || child.isDirectory() || !(child.getName().endsWith(EXT_GRADLE) || child.getName().endsWith(EXT_GRADLE_KTS)) &&
            // Consider proguard rule files as a type of build script (contains build-time configuration
            // for release builds)
-           child.getFileType() != ProguardFileType.INSTANCE) {
+           child.getFileType() != proguardFileType) {
         continue;
       }
       // @formatter:on

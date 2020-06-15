@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
@@ -49,7 +50,7 @@ class CpuCaptureParserTest {
     val largeTraceFile = ByteString.copyFrom(ByteArray(CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1))
     val fakeServices = FakeIdeProfilerServices()
     // Decide not to parse long trace files
-    fakeServices.setShouldParseLongTraces(false)
+    fakeServices.setShouldProceedYesNoDialog(false)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, largeTraceFile, Cpu.CpuTraceType.ART)).isNull()
   }
@@ -59,7 +60,7 @@ class CpuCaptureParserTest {
     val largeTraceFile = ByteString.copyFrom(ByteArray(CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1))
     val fakeServices = FakeIdeProfilerServices()
     // Decide to parse long trace files
-    fakeServices.setShouldParseLongTraces(true)
+    fakeServices.setShouldProceedYesNoDialog(true)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, largeTraceFile, Cpu.CpuTraceType.ART)).isNotNull()
   }
@@ -172,29 +173,20 @@ class CpuCaptureParserTest {
   }
 
   @Test
-  fun parsingAtraceFilesShouldCompleteIfFlagEnabled() {
+  fun parsingAtraceFilesShouldComplete() {
     val services = FakeIdeProfilerServices()
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
 
-    // First, try to parse the capture with the flag disabled.
-    services.enableAtrace(false)
-    var futureCapture = parser.parse(traceFile)!!
-    var capture = futureCapture.get()
-    assertThat(futureCapture.isCompletedExceptionally).isFalse()
-    assertThat(capture).isNull()
-
-    // Now enable the flag and try to parse it again, assume the user canceled the dialog.
+    // Parse the capture, assume the user canceled the dialog.
     services.setListBoxOptionsIndex(-1)
-    services.enableAtrace(true)
-    futureCapture = parser.parse(traceFile)!!
+    var futureCapture = parser.parse(traceFile)!!
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
-    capture = futureCapture.get()
+    var capture = futureCapture.get()
     assertThat(capture).isNull()
 
     // Now set a process select callback to return a process
     services.setListBoxOptionsIndex(0)
-    services.enableAtrace(true)
     futureCapture = parser.parse(traceFile)!!
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     capture = futureCapture.get()
@@ -208,25 +200,15 @@ class CpuCaptureParserTest {
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
-    // First, try to parse the capture with the atrace flag disabled.
-    services.enableAtrace(false)
-    services.enablePerfetto(true)
+    // Try to parse the capture with perfetto disabled.
+    services.enablePerfetto(false)
     var futureCapture = parser.parse(traceFile)!!
     var capture = futureCapture.get()
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     assertThat(capture).isNull()
 
-    // Now try to parse the capture with the atrace flag enabled but perfetto disabled.
-    services.enableAtrace(true)
-    services.enablePerfetto(false)
-    futureCapture = parser.parse(traceFile)!!
-    capture = futureCapture.get()
-    assertThat(futureCapture.isCompletedExceptionally).isFalse()
-    assertThat(capture).isNull()
-
     // Now enable the flag and try to parse it again, assume the user canceled the dialog.
     services.setListBoxOptionsIndex(-1)
-    services.enableAtrace(true)
     services.enablePerfetto(true)
     futureCapture = parser.parse(traceFile)!!
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
@@ -235,7 +217,6 @@ class CpuCaptureParserTest {
 
     // Now set a process select callback to return a process
     services.setListBoxOptionsIndex(0)
-    services.enableAtrace(true)
     services.enablePerfetto(true)
     futureCapture = parser.parse(traceFile)!!
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
@@ -248,11 +229,10 @@ class CpuCaptureParserTest {
   fun parsingPerfettoWithProcessNameHintAutoSelectsProcess() {
     val services = FakeIdeProfilerServices()
     val parser = CpuCaptureParser(services)
-    parser.setProcessNameHint("surfaceflinger")
+    parser.setProcessNameHint("surfaceflinger", 0)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
-    // Now enable the flag and try to parse it again, assume the user canceled the dialog. If the dialog is shown.
+    // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
     services.setListBoxOptionsIndex(-1)
-    services.enableAtrace(true)
     services.enablePerfetto(true)
     val futureCapture = parser.parse(traceFile)!!
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
@@ -269,7 +249,6 @@ class CpuCaptureParserTest {
 
     services.applicationId = "displayingbitmaps"
     services.setListBoxOptionsIndex(0)
-    services.enableAtrace(true)
     val futureCapture = parser.parse(traceFile)!!
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
@@ -311,7 +290,7 @@ class CpuCaptureParserTest {
 
     val fakeServices = FakeIdeProfilerServices()
     // Decide not to parse long trace files
-    fakeServices.setShouldParseLongTraces(false)
+    fakeServices.setShouldProceedYesNoDialog(false)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(someFile)).isNull()
   }
@@ -323,9 +302,47 @@ class CpuCaptureParserTest {
 
     val fakeServices = FakeIdeProfilerServices()
     // Decide to parse long trace files
-    fakeServices.setShouldParseLongTraces(true)
+    fakeServices.setShouldProceedYesNoDialog(true)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(someFile)).isNotNull()
+  }
+
+  @Test
+  fun validateImportMetricsReportedForImport() {
+    val services = FakeIdeProfilerServices()
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    val futureCapture = parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), true)
+    assertThat(fakeFeatureTracker.lastImportTraceStatus).isTrue()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
+  }
+
+  @Test
+  fun validateCaptureMetricsReportedForCapture() {
+    val services = FakeIdeProfilerServices()
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    val futureCapture = parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), false)
+    assertThat(fakeFeatureTracker.lastImportTraceStatus).isNull()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNotNull()
+  }
+
+  @Test
+  fun validateMetricsReportedOnceForCapture() {
+    val services = FakeIdeProfilerServices()
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
+    val futureCapture = parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), false)
+    assertThat(fakeFeatureTracker.lastImportTraceStatus).isNull()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNotNull()
+    // Validate 2nd time parsing does not trigger metrics.
+    fakeFeatureTracker.resetLastCpuCaptureMetadata()
+    parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), false)
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
   }
 
   /**

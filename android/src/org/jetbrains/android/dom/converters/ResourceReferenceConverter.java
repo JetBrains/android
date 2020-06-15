@@ -38,6 +38,8 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNamespaceContext;
@@ -80,6 +82,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
@@ -106,6 +109,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private boolean myWithPrefix = true;
   private boolean myWithExplicitResourceType = true;
   private boolean myQuiet = false;
+  private boolean myIncludeDynamicFeatures = false;
   private boolean myAllowAttributeReferences = true;
   /**
    * Whether the completion suggestion should be expanded or not
@@ -152,6 +156,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   public void setQuiet(boolean quiet) {
     myQuiet = quiet;
+  }
+
+  public void setIncludeDynamicFeatures(boolean includeDynamicFeatures) {
+    myIncludeDynamicFeatures = includeDynamicFeatures;
   }
 
   public void setExpandedCompletionSuggestion(boolean expandedCompletionSuggestion) {
@@ -243,7 +251,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         for (ResourceType type : recommendedTypes) {
           // If getResourceTypes decided SAMPLE_DATA belongs here, then this is one of the few exceptions where it can be referenced.
           if (type.getCanBeReferenced() || type == ResourceType.SAMPLE_DATA) {
-            addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType);
+            addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType, myIncludeDynamicFeatures);
           }
         }
       }
@@ -258,7 +266,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
           String typePrefix = getTypePrefix(namespacePrefix, resourceType);
           if (value.startsWith(typePrefix)) {
-            addResourceReferenceValues(facet, element, prefix, resourceType, namespace, result, true);
+            addResourceReferenceValues(facet, element, prefix, resourceType, namespace, result, true, myIncludeDynamicFeatures);
           }
           else if (recommendedTypes.contains(resourceType) && filteringSet.contains(resourceType)) {
             result.add(ResourceValue.literal(typePrefix));
@@ -312,14 +320,14 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
     // TODO: namespaces
     if (StringUtil.startsWith(value, "?attr/")) {
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, true, false);
     }
     else if (StringUtil.startsWith(value, "?android:attr/")) {
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, true, false);
     }
     else if (StringUtil.startsWithChar(value, '?')) {
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, false);
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, false, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, false, false);
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
@@ -384,6 +392,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
+      if (element.getParent() instanceof DrawableStateListItem) {
+        types.add(ResourceType.MIPMAP);
+      }
     }
     if (TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
@@ -398,7 +409,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  ResourceType type,
                                                  @Nullable ResourceNamespace onlyNamespace,
                                                  Collection<ResourceValue> result,
-                                                 boolean explicitResourceType) {
+                                                 boolean explicitResourceType,
+                                                 boolean includeDynamicFeatures) {
     PsiFile file = element != null ? element.getContainingFile() : null;
 
     if (type == ResourceType.ID && onlyNamespace != ResourceNamespace.ANDROID && file != null && isNonValuesResourceFile(file)) {
@@ -429,6 +441,41 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       else {
         addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
                                            explicitResourceType);
+      }
+      if (includeDynamicFeatures) {
+        addResourceReferenceValuesFromDynamicFeatures(element, prefix, type, onlyNamespace, result);
+      }
+    }
+  }
+
+  private static void addResourceReferenceValuesFromDynamicFeatures(@Nullable XmlElement element,
+                                                                    char prefix,
+                                                                    @Nullable ResourceType type,
+                                                                    @Nullable ResourceNamespace onlyNamespace,
+                                                                    @NotNull Collection<ResourceValue> result) {
+    ResourceNamespace namespace = onlyNamespace != null ? onlyNamespace : ResourceNamespace.RES_AUTO;
+    if (element == null || type == null) {
+      return;
+    }
+    AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(element);
+    if (androidModuleSystem == null) {
+      return;
+    }
+
+    ResourceNamespace.Resolver resolver = firstNonNull(
+      ResourceHelper.getNamespaceResolver(element),
+      ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    // Find the short prefix once for all items.
+    String namespacePrefix = resolver.uriToPrefix(namespace.getXmlNamespaceUri());
+    List<Module> modules = androidModuleSystem.getDynamicFeatureModules();
+    for (Module module : modules) {
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(module);
+      if (moduleResources == null) {
+        continue;
+      }
+      Set<String> resourceNames = moduleResources.getResourceNames(namespace, type);
+      for (String name : resourceNames) {
+        result.add(referenceTo(prefix, type.getName(), namespacePrefix, name, true));
       }
     }
   }
@@ -591,11 +638,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         }
         else {
           Set<ResourceType> types = getResourceTypes(context);
-          if (types.contains(ResourceType.BOOL) && types.size() < VALUE_RESOURCE_TYPES.size()) {
+          if (types.size() == 1 && types.contains(ResourceType.BOOL)) {
             // For a boolean we *only* accept true or false if it's not a resource reference
-            // (We're checking  VALUE_RESOURCE_TYPES.size above since for properties with
-            // *unknown type* we're including all resource types, and we don't want to start
-            // flagging colors (#ff00ff) as unresolved etc.
+            // We're only performing this check if the eligible resource type is only boolean
+            // as we don't want to start flagging resource values with multiple resource type
+            // formats eg. "string|boolean|color" as unresolved etc.
             if (!(VALUE_TRUE.equals(s) || VALUE_FALSE.equals(s))) {
               return null;
             }
@@ -707,20 +754,23 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return PsiReference.EMPTY_ARRAY;
     }
 
-    // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
-    //    android:layout_alignLeft="@+id/foo"
-    // is a reference to R.id.foo, but
-    //    android:id="@+id/foo"
-    // is not; it's the place we're defining it.
-    if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
-      XmlAttribute attribute = (XmlAttribute)element.getParent();
-      if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-        // When defining an id, don't point to another reference
-        return PsiReference.EMPTY_ARRAY;
+
+    if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
+      // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
+      //    android:layout_alignLeft="@+id/foo"
+      // is a reference to R.id.foo, but
+      //    android:id="@+id/foo"
+      // is not; it's the place we're defining it.
+      if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
+        XmlAttribute attribute = (XmlAttribute)element.getParent();
+        if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
+          // When defining an id, don't point to another reference
+          return PsiReference.EMPTY_ARRAY;
+        }
       }
     }
 
-    AndroidResourceReference resourceReference = new AndroidResourceReference(value, facet, resValue);
+    AndroidResourceReference resourceReference = new AndroidResourceReference(value, facet, resValue, myIncludeDynamicFeatures);
     if (!StringUtil.isEmpty(resValue.getPackage())) {
       ResourceNamespaceReference namespaceReference = new ResourceNamespaceReference(value, resValue);
       return new PsiReference[] {namespaceReference, resourceReference};

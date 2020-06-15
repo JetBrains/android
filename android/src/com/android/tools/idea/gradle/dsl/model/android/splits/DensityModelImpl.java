@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DensityModelImpl extends BaseSplitOptionsModelImpl implements DensityModel {
-  @NonNls private static final String AUTO = "auto";
-  @NonNls private static final String COMPATIBLE_SCREENS = "compatibleScreens";
+  @NonNls public static final String AUTO = "mAuto";
+  @NonNls public static final String COMPATIBLE_SCREENS = "mCompatibleScreens";
 
   public DensityModelImpl(@NotNull DensityDslElement dslElement) {
     super(dslElement);
@@ -33,12 +33,12 @@ public class DensityModelImpl extends BaseSplitOptionsModelImpl implements Densi
   @Override
   @NotNull
   public ResolvedPropertyModel auto() {
-    return GradlePropertyModelBuilder.create(myDslElement, AUTO).asMethod(true).buildResolved();
+    return getModelForProperty(AUTO);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel compatibleScreens() {
-    return GradlePropertyModelBuilder.create(myDslElement, COMPATIBLE_SCREENS).asMethod(true).buildResolved();
+    return getModelForProperty(COMPATIBLE_SCREENS);
   }
 }

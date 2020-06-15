@@ -164,7 +164,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -250,7 +250,8 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+  public Collection<GeneratedIcon> generateIcons(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     Map<String, Map<String, AnnotatedImage>> categoryMap = new HashMap<>();
     generateRasterImage(null, categoryMap, context, options, name);
 
@@ -318,7 +319,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   }
 
   /** Options specific to generating launcher icons */
-  public static class LauncherLegacyOptions extends Options {
+  public static class LauncherLegacyOptions extends IconOptions {
     /**
      * Whether to use the foreground color. If we are using images as the source asset for our icons,
      * you shouldn't apply the foreground color, which would paint over it and obscure the image.

@@ -40,9 +40,12 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.psi.TagToClassMapper;
+import com.android.tools.idea.rendering.classloading.ClassConverter;
+import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -55,6 +58,7 @@ import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -66,7 +70,6 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -77,7 +80,6 @@ import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
@@ -88,10 +90,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.StringSelection;
@@ -109,6 +108,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -206,50 +206,24 @@ public class RenderErrorContributor {
   }
 
   @NotNull
-  private static Collection<PsiClass> findInheritors(@NotNull final Module module, @NotNull final String name) {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Collection<PsiClass>>() {
-        @NotNull
-        @Override
-        public Collection<PsiClass> compute() {
-          return findInheritors(module, name);
-        }
-      });
-    }
-
-    Project project = module.getProject();
-    try {
-      PsiClass base = JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
-      if (base != null) {
-        GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
-        return ClassInheritorsSearch.search(base, scope, true).findAll();
-      }
-    }
-    catch (IndexNotReadyException ignored) {
-    }
-    return Collections.emptyList();
-  }
-
-  @NotNull
   private static Collection<String> getAllViews(@Nullable final Module module) {
     if (module == null) {
       return Collections.emptyList();
     }
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<Collection<String>>)() -> getAllViews(module));
+      return ReadAction.compute(() -> getAllViews(module));
     }
 
-    // Optimization: we cache the set of views per module, using a modification tracker which ignores XML keystrokes.
-    return CachedValuesManager.getManager(module.getProject()).getCachedValue(module, VIEWS_CACHE_KEY, () -> {
-      Set<String> names = new HashSet<>();
-      for (PsiClass psiClass : findInheritors(module, CLASS_VIEW)) {
-        String name = psiClass.getQualifiedName();
-        if (name != null) {
-          names.add(name);
-        }
-      }
-      return CachedValueProvider.Result.create(names, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.getProject()));
-    }, false);
+    if (DumbService.getInstance(module.getProject()).isDumb()) {
+      // This method should not be called in dumb mode, but if it is, we can just return an empty list. This will disable the feature
+      // where we return suggestions for correcting views.
+      LOG.warn("getAllViews called in Dumb mode, no views will be returned");
+      return Collections.emptyList();
+    }
+
+    return TagToClassMapper.getInstance(module).getClassMap(CLASS_VIEW).values().stream()
+      .map(PsiClass::getQualifiedName)
+      .collect(Collectors.toSet());
   }
 
   static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
@@ -1268,7 +1242,7 @@ public class RenderErrorContributor {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(logger.getModule());
-    if (facet != null && !facet.requiresAndroidModel()) {
+    if (facet != null && !AndroidModel.isRequired(facet)) {
       Project project = logger.getModule().getProject();
       builder
         .addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)))

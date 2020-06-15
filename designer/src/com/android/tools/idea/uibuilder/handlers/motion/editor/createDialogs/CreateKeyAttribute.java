@@ -19,18 +19,20 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
+import java.awt.GridBagConstraints;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import java.awt.GridBagConstraints;
-import java.util.Arrays;
 
 /**
  * This is the dialog that pops up when you create a KeyAttribute
@@ -40,7 +42,8 @@ public class CreateKeyAttribute extends BaseCreateKey {
   static String TITLE = "Create ConstraintSet";
   String[] options = MotionSceneAttrs.KeyAttributeOptions;
   String[] optionsNameSpace = MotionSceneAttrs.KeyAttributeOptionsNameSpace;
-
+  HashMap<String, MTag> myCustomTypes = new HashMap<>();
+  static final String CUSTOM = "Custom:";
   JComboBox<String> comboBox = MEUI.makeComboBox(options);
   private final JTextField mPosition;
   MTag mKeyFrameSet;
@@ -55,16 +58,20 @@ public class CreateKeyAttribute extends BaseCreateKey {
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Position"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mPosition = newTextField(POS_PROMPT, 15), gbc);
 
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Attribute"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(comboBox, gbc);
 
@@ -74,6 +81,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");
@@ -88,6 +96,37 @@ public class CreateKeyAttribute extends BaseCreateKey {
     MotionEditorSelector.Type selectionType = model.getSelectedType();
     if (selectionType == null) return false;
     MTag[] selected = model.getSelected();
+
+    // ============ Add custom attributes defined in start or end constraintset
+    MTag start = model.findStartConstraintSet(selected[0]);
+    MTag end = model.findEndConstraintSet(selected[0]);
+    ArrayList<MTag> csets = new ArrayList<>();
+    if (start != null) {
+      for (MTag tag : start.getChildTags()) {
+        csets.addAll(Arrays.asList(tag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)));
+      }
+    }
+
+    if (end != null) {
+      for (MTag tag : end.getChildTags()) {
+        csets.addAll(Arrays.asList(tag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)));
+      }
+    }
+    myCustomTypes.clear();
+
+    for (MTag cset : csets) {
+      String str = cset.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME);
+      myCustomTypes.put(str, cset);
+    }
+    comboBox.removeAllItems();
+    for (String option : options) {
+      comboBox.addItem(option);
+    }
+    for (String s : myCustomTypes.keySet()) {
+      comboBox.addItem(CUSTOM + s);
+    }
+    // ==================================================
+
     switch (selectionType) {
       case KEY_FRAME:
       case KEY_FRAME_GROUP:
@@ -101,6 +140,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
             break;
           }
         }
+
         break;
       case TRANSITION:
         MTag[] tag = selected[0].getChildTags("KeyFrameSet");
@@ -112,7 +152,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
     }
     float pos = model.getCurrentProgress();
     if (!Float.isNaN(pos)) {
-      mPosition.setText(Integer.toString((int) (pos * 100)));
+      mPosition.setText(Integer.toString((int)(pos * 100)));
     }
     if (DEBUG) {
       Debug.log("populateDialog " + selectionType + " " + Arrays.toString(model.getSelected()));
@@ -131,13 +171,13 @@ public class CreateKeyAttribute extends BaseCreateKey {
     if (DEBUG) {
       Debug.log("create");
     }
-    String tag = mMatchTag.getText();
     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
       mKeyFrameSet = toCommit = mSelectedTransition.getChildTagWriter(MotionSceneAttrs.Tags.KEY_FRAME_SET);
       keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
-    } else {
+    }
+    else {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     }
     String pos = mPosition.getText();
@@ -146,17 +186,34 @@ public class CreateKeyAttribute extends BaseCreateKey {
       return null;
     }
 
-    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, tag);
+    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, getMotionTarget());
     try {
       int posInt = Integer.parseInt(pos.trim());
       keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.FRAME_POSITION, pos.trim());
-    } catch (Exception ex) {
+    }
+    catch (Exception ex) {
       showErrorDialog("was not able to parse \"" + pos.trim() + "\"");
       return null;
     }
-    keyPosition.setAttribute(optionsNameSpace[comboBox.getSelectedIndex()], (String) comboBox.getSelectedItem(), "0");
 
+    int index = comboBox.getSelectedIndex();
+    if (index < MotionSceneAttrs.KeyAttributeOptionsDefaultValue.length) {
+      String value = MotionSceneAttrs.KeyAttributeOptionsDefaultValue[index];
+      keyPosition.setAttribute(optionsNameSpace[index], (String)comboBox.getSelectedItem(), value);
+    }
+    else {
+      String item = (String)comboBox.getSelectedItem();
+      if (item.startsWith(CUSTOM)) {
+        String name = item.substring(CUSTOM.length());
+        MTag copyFromTag = myCustomTypes.get(name);
+        MTag.TagWriter customTag = toCommit.getChildTagWriter(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+        for (MTag.Attribute value : copyFromTag.getAttrList().values()) {
+          customTag.setAttribute(value.mNamespace, value.mAttribute, value.mValue);
+        }
+      }
+    }
     MTag ret = toCommit.commit("Create KeyAttribute");
+    Track.createKeyAttribute(mMotionEditor.myTrack);
     mMotionEditor.dataChanged();
     super.create();
     return ret;

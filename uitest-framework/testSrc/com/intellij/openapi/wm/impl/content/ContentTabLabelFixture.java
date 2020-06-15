@@ -16,12 +16,16 @@
 package com.intellij.openapi.wm.impl.content;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import java.awt.Container;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JPopupMenuFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ContentTabLabelFixture {
   @NotNull private final ContentTabLabel myContentTabLabel;
@@ -39,7 +43,17 @@ public class ContentTabLabelFixture {
 
   @NotNull
   public static ContentTabLabelFixture find(@NotNull Robot robot, @NotNull ComponentMatcher matcher, long secondsToWait) {
-    ContentTabLabel label = GuiTests.waitUntilShowing(robot, null, new GenericTypeMatcher<ContentTabLabel>(ContentTabLabel.class) {
+    return find(robot, null, matcher, secondsToWait);
+  }
+
+  @NotNull
+  public static ContentTabLabelFixture findByText(@NotNull Robot robot, @Nullable Container root, @NotNull String text, long secondsToWait) {
+    return find(robot, root, Matchers.byText(ContentTabLabel.class, text), secondsToWait);
+  }
+
+    @NotNull
+  public static ContentTabLabelFixture find(@NotNull Robot robot, @Nullable Container root, @NotNull ComponentMatcher matcher, long secondsToWait) {
+    ContentTabLabel label = GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<ContentTabLabel>(ContentTabLabel.class) {
       @Override
       protected boolean isMatching(@NotNull ContentTabLabel component) {
         return matcher.matches(component);
@@ -51,5 +65,16 @@ public class ContentTabLabelFixture {
   @RunsInEDT
   public boolean isSelected() {
     return GuiQuery.getNonNull(() -> myContentTabLabel.isSelected());
+  }
+
+  @RunsInEDT
+  public void click() {
+    robot.click(myContentTabLabel);
+  }
+
+  public void close() {
+    robot.rightClick(myContentTabLabel);
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot, robot.findActivePopupMenu());
+    contextMenuFixture.menuItemWithPath("Close Tab").click();
   }
 }

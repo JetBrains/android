@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;

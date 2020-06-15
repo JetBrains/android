@@ -22,8 +22,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;

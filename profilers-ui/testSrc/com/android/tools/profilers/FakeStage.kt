@@ -15,8 +15,14 @@
  */
 package com.android.tools.profilers
 
-internal class FakeStage(profilers: StudioProfilers) : Stage(profilers) {
+import com.android.tools.adtui.model.StreamingTimeline
+
+internal class FakeStage(profilers: StudioProfilers) : Stage<StreamingTimeline>(profilers) {
   override fun enter() {}
 
   override fun exit() {}
+
+  override fun getTimeline(): StreamingTimeline {
+    return studioProfilers.timeline
+  }
 }

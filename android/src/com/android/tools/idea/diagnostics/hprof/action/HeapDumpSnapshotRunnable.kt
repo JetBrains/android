@@ -43,6 +43,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.max
 
 class HeapDumpSnapshotRunnable(
   private val reason: MemoryReportReason,
@@ -65,42 +66,7 @@ class HeapDumpSnapshotRunnable(
 
     val userInvoked = reason.isUserInvoked()
 
-    if (!userInvoked) {
-      if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
-        LOG.info("Disabled for tests.")
-        return
-      }
-
-      if (!ApplicationManager.getApplication().isEAP) {
-        LOG.info("Heap dump analysis is enabled only on EAP builds.")
-        return
-      }
-
-      // Analysis uses memory-mapped files to analyze heap dumps. This may require larger virtual memory address
-      // space, so limiting the capture/analyze to 64-bit platforms only.
-      if (System.getProperty("sun.arch.data.model") != "64") {
-        LOG.info("Heap dump analysis supported only on 64-bit platforms.")
-        return
-      }
-
-      // capture heap dumps that are larger then a threshold.
-      val usedMemoryMB = usedMemory(false) / 1_000_000
-
-      // Capture only large memory heaps, unless explicitly requested by the user
-      if (usedMemoryMB < MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB) {
-        LOG.info("Heap dump too small: $usedMemoryMB MB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB MB")
-        return
-      }
-
-      val nextCheckPropertyMs = PropertiesComponent.getInstance().getLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
-      val currentTimestampMs = System.currentTimeMillis()
-
-      if (nextCheckPropertyMs > currentTimestampMs) {
-        val nextCheckDateString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date(nextCheckPropertyMs))
-        LOG.info("Don't ask for snapshot until $nextCheckDateString.")
-        return
-      }
-    }
+    if (!shouldRunAnalysis(userInvoked)) return
 
     if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START) {
       try {
@@ -160,8 +126,53 @@ class HeapDumpSnapshotRunnable(
     CaptureHeapDumpTask(hprofPath, reason, analysisOption, userInvoked).queue()
   }
 
+  private fun shouldRunAnalysis(userInvoked: Boolean): Boolean {
+    if (!userInvoked) {
+      if (java.lang.Boolean.getBoolean("diagnostics.disable.heap.analysis")) {
+        LOG.info("Disabled with system property.")
+        return false
+      }
+
+      if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
+        LOG.info("Disabled for tests.")
+        return false
+      }
+
+      if (!ApplicationManager.getApplication().isEAP) {
+        LOG.info("Heap dump analysis is enabled only on EAP builds.")
+        return false
+      }
+
+      // Analysis uses memory-mapped files to analyze heap dumps. This may require larger virtual memory address
+      // space, so limiting the capture/analyze to 64-bit platforms only.
+      if (System.getProperty("sun.arch.data.model") != "64") {
+        LOG.info("Heap dump analysis supported only on 64-bit platforms.")
+        return false
+      }
+
+      // capture heap dumps that are larger then a threshold.
+      val usedMemoryMB = usedMemory(false) / 1_000_000
+
+      // Capture only large memory heaps, unless explicitly requested by the user
+      if (usedMemoryMB < MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB) {
+        LOG.info("Heap dump too small: $usedMemoryMB MB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB MB")
+        return false
+      }
+
+      val nextCheckPropertyMs = PropertiesComponent.getInstance().getLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
+      val currentTimestampMs = System.currentTimeMillis()
+
+      if (nextCheckPropertyMs > currentTimestampMs) {
+        val nextCheckDateString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date(nextCheckPropertyMs))
+        LOG.info("Don't ask for snapshot until $nextCheckDateString.")
+        return false
+      }
+    }
+    return true
+  }
+
   private fun estimateRequiredFreeSpaceInMB(): Long {
-    return Math.max(100, (usedMemory(false) * 2.0).toLong() / 1_000_000)
+    return max(100, (usedMemory(false) * 2.0).toLong() / 1_000_000)
   }
 
   class CaptureHeapDumpTask(private val hprofPath: Path,

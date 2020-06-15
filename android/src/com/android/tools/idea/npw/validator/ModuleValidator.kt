@@ -35,7 +35,7 @@ class ModuleValidator(private val projectPath: StringProperty) : Validator<Strin
   private var project : Project? = null // May be null for new projects
   private val pathValidator: PathValidator = PathValidator.createDefault("module location")
   private val ILLEGAL_CHAR_MATCHER =
-    inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-:")).negate()
+    inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-: ")).negate()
 
   constructor(project: Project) : this(StringValueProperty(project.basePath!!)) {
     this.project = project

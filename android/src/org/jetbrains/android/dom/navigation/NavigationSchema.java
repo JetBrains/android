@@ -24,6 +24,8 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
@@ -258,7 +260,8 @@ public class NavigationSchema implements Disposable {
     }
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myModule.getProject());
-    PsiClass result = javaPsiFacade.findClass(className, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule, true));
+    GlobalSearchScope scope = ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
+    PsiClass result = javaPsiFacade.findClass(className, scope);
     if (result != null) {
       myTypeCache.put(className, new TypeRef(result));
     }
@@ -445,7 +448,7 @@ public class NavigationSchema implements Disposable {
     // Get the root Navigator class
     Project project = myModule.getProject();
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule);
+    GlobalSearchScope scope =  ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
     PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, scope);
     if (navigatorRoot == null) {
       Logger.getInstance(getClass()).warn("Navigator class not found.");
@@ -861,7 +864,15 @@ public class NavigationSchema implements Disposable {
       if (type == NAVIGATION) {
         myTypeToDestinationClass.forEach((childType, childDestinationClass) -> {
           for (String tag : myTagToDestinationClass.inverse().get(childDestinationClass)) {
-            result.put(childType == NAVIGATION ? NavGraphElement.class : ConcreteDestinationElement.class, tag);
+            if (childType == NAVIGATION) {
+              result.put(NavGraphElement.class, tag);
+            } else if (childType == FRAGMENT) {
+              result.put(FragmentDestinationElement.class, tag);
+            } else if (childType == ACTIVITY) {
+              result.put(ActivityDestinationElement.class, tag);
+            } else {
+              result.put(ConcreteDestinationElement.class, tag);
+            }
           }
         });
         result.put(NavGraphElement.class, TAG_INCLUDE);
@@ -995,9 +1006,8 @@ public class NavigationSchema implements Disposable {
    * Classes derived from NavHostFragment will not be included.
    */
   @NotNull
-  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName) {
+  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName, @NotNull SearchScope scope) {
     Collection<PsiClass> destinationClasses = getDestinationClassesForTag(tagName);
-    SearchScope scope = GlobalSearchScope.moduleWithDependenciesScope(myModule);
     List<PsiClass> projectClasses = new ArrayList<>();
 
     for (PsiClass destinationClass : destinationClasses) {
@@ -1007,13 +1017,18 @@ public class NavigationSchema implements Disposable {
 
       Query<PsiClass> query = ClassInheritorsSearch.search(destinationClass, scope, true, true, false);
       for (PsiClass inherited : query) {
-        if (!NavClassHelperKt.extendsNavHostFragment(inherited)) {
+        if (!NavClassHelperKt.extendsNavHostFragment(inherited, myModule)) {
           projectClasses.add(inherited);
         }
       }
     }
 
     return projectClasses;
+  }
+
+  @NotNull
+  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName) {
+    return getProjectClassesForTag(tagName, GlobalSearchScope.moduleWithDependenciesScope(myModule));
   }
 
   /**
@@ -1023,7 +1038,7 @@ public class NavigationSchema implements Disposable {
   public String getDefaultTag(@NotNull DestinationType type) {
     return myTypeToRootTag.get(type);
   }
-
+  
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region UI

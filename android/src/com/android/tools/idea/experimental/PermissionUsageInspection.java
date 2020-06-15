@@ -26,6 +26,7 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.AssignStmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import com.android.tools.idea.lint.common.LintBundle;
 import com.android.tools.lint.detector.api.Category;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -98,7 +99,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
   @NotNull
   @Override
   public String getGroupDisplayName() {
-    return AndroidBundle.message("android.lint.inspections.group.name");
+    return LintBundle.message("android.lint.inspections.group.name");
   }
 
   @NotNull
@@ -106,7 +107,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
   public String[] getGroupPath() {
     return ArrayUtil.mergeArrays(new String[]{
       AndroidBundle.message("android.inspections.group.name"),
-      AndroidBundle.message("android.lint.inspections.subgroup.name"),
+      LintBundle.message("android.lint.inspections.subgroup.name"),
       Category.CORRECTNESS.getName()
     });
   }

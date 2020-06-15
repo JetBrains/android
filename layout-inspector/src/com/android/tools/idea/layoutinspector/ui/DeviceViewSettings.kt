@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import icons.StudioIcons
-import javax.swing.Icon
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
 
-enum class ViewMode(val icon: Icon) {
-  FIXED(StudioIcons.LayoutEditor.Extras.ROOT_INLINE),
-  X_ONLY(StudioIcons.DeviceConfiguration.SCREEN_WIDTH),
-  XY(StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE);
+val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<DeviceViewSettings>(DeviceViewSettings::class.qualifiedName!!)
 
-  val next: ViewMode
-    get() = enumValues<ViewMode>()[(this.ordinal + 1).rem(enumValues<ViewMode>().size)]
-}
+private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
+private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 
-class DeviceViewSettings(scalePercent: Int = 50, drawBorders: Boolean = true, viewMode: ViewMode = ViewMode.XY) {
+class DeviceViewSettings(scalePercent: Int = 100) {
   val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */
@@ -40,11 +36,17 @@ class DeviceViewSettings(scalePercent: Int = 50, drawBorders: Boolean = true, vi
   val scaleFraction: Double
     get() = scalePercent / 100.0
 
-  var drawBorders: Boolean by Delegates.observable(drawBorders) {
-    _, _, _ -> modificationListeners.forEach { it() }
-  }
+  var drawBorders: Boolean
+    get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
+    set(value) {
+      PropertiesComponent.getInstance().setValue(DRAW_BORDERS_KEY, value, true)
+      modificationListeners.forEach { it() }
+    }
 
-  var viewMode: ViewMode by Delegates.observable(viewMode) {
-    _, _, _ -> modificationListeners.forEach { it() }
-  }
+  var drawLabel: Boolean
+    get() = PropertiesComponent.getInstance().getBoolean(DRAW_LABEL_KEY, true)
+    set(value) {
+      PropertiesComponent.getInstance().setValue(DRAW_LABEL_KEY, value, true)
+      modificationListeners.forEach { it() }
+    }
 }

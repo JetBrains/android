@@ -25,9 +25,11 @@ import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -46,17 +48,17 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    clearCache(mySurface.getConfigurations());
-    mySurface.forceUserRequestedRefresh();
+    clearCacheAndRefreshSurface(mySurface);
   }
 
-  public static void clearCacheAndRefreshSurface(@NotNull EditorDesignSurface surface) {
+  @NotNull
+  public static CompletableFuture<Void> clearCacheAndRefreshSurface(@NotNull EditorDesignSurface surface) {
     clearCache(surface.getConfigurations());
-    surface.forceUserRequestedRefresh();
+    return surface.forceUserRequestedRefresh();
   }
 
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
-    ModuleClassLoader.clearCache();
+    ModuleClassLoaderManager.get().clearCache();
 
     configurations.stream()
       .forEach(configuration -> {
@@ -78,8 +80,6 @@ public class RefreshRenderAction extends AnAction {
             .filter(Objects::nonNull)
             .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
-
-        configuration.updated(ConfigurationListener.MASK_RENDERING);
-    });
+      });
   }
 }

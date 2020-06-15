@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android;
 
 import static com.android.SdkConstants.ATTR_ID;
@@ -21,6 +35,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -53,6 +68,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.light.LightElement;
@@ -117,6 +133,9 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   @Override
   public boolean canProcessElement(@NotNull final PsiElement element) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      return false;
+    }
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       final PsiElement computedElement = LazyValueResourceElementWrapper.computeLazyElement(element);
       if (computedElement == null) {
@@ -209,6 +228,17 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     else if (computedElement instanceof ResourceReferencePsiElement) {
       prepareValueResourceRenaming(computedElement, newName, allRenames, facet);
     }
+  }
+
+  @Nullable
+  @Override
+  public Runnable getPostRenameCallback(@NotNull PsiElement element,
+                                        @NotNull String newName,
+                                        @NotNull RefactoringElementListener elementListener) {
+    // After renaming, we need to wait for the new resource to be propagated through the resource repositories. After that we need the
+    // resolve caches to be invalidated and the highlighting to be triggered again.
+    PsiManager manager = PsiManager.getInstance(element.getProject());
+    return () -> AndroidResourceUtil.scheduleNewResolutionAndHighlighting(manager);
   }
 
   private static void prepareCustomViewRenaming(PsiClass cls, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {

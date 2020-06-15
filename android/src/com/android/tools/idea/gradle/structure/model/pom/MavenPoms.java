@@ -20,7 +20,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.nullize;
 
-import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -39,38 +38,35 @@ public class MavenPoms {
   }
 
   @NotNull
-  public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@NotNull File libraryPath) {
-    File pomFilePath = LibraryFilePaths.findPomPathForLibrary(libraryPath);
-    if (pomFilePath == null) {
+  public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@Nullable File pomFilePath) {
+    if (pomFilePath == null || !pomFilePath.isFile()) {
       return Collections.emptyList();
     }
     List<PsArtifactDependencySpec> dependencies = new ArrayList<>();
     try {
       Document document = loadDocument(pomFilePath);
       Element rootElement = document.getRootElement();
-      if (rootElement != null) {
-        Element dependenciesElement = null;
-        for (Element childElement : rootElement.getChildren()) {
-          if ("dependencies".equals(childElement.getName())) {
-            dependenciesElement = childElement;
-            break;
-          }
+      Element dependenciesElement = null;
+      for (Element childElement : rootElement.getChildren()) {
+        if ("dependencies".equals(childElement.getName())) {
+          dependenciesElement = childElement;
+          break;
         }
+      }
 
-        if (dependenciesElement != null) {
-          for (Element childElement : dependenciesElement.getChildren()) {
-            if ("dependency".equals(childElement.getName())) {
-              PsArtifactDependencySpec spec = createSpec(childElement);
-              if (spec != null) {
-                dependencies.add(spec);
-              }
+      if (dependenciesElement != null) {
+        for (Element childElement : dependenciesElement.getChildren()) {
+          if ("dependency".equals(childElement.getName())) {
+            PsArtifactDependencySpec spec = createSpec(childElement);
+            if (spec != null) {
+              dependencies.add(spec);
             }
           }
         }
       }
     }
     catch (Exception e) {
-      String msg = String.format("Failed to obtain dependencies in POM file for library '%1$s", libraryPath.getName());
+      String msg = String.format("Failed to obtain dependencies in POM file '%1$s", pomFilePath.getPath());
       LOG.warn(msg, e);
     }
     return dependencies;

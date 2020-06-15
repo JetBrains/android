@@ -18,8 +18,8 @@ package org.jetbrains.android.dom;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Joiner;
@@ -43,6 +43,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttribute;
@@ -85,7 +86,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProject.PROJECT_TYPE_LIBRARY);
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
   }
 
   @Override
@@ -708,11 +709,12 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
       assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
 
+      // b/139262116: manually commit the Document and clear some caches in an attempt to reduce flakiness of this test.
       myFixture.type('X');
-
-      // b/139262116: manually commit the Document and clear ResolveCache in an attempt to reduce flakiness of this test.
-      PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+      dispatchEvents();
       ResolveCache.getInstance(getProject()).clearCache(myFixture.getFile().isPhysical());
+      PsiManager.getInstance(getProject()).dropPsiCaches();
+      PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
       dispatchEvents();
 
       highlightInfos = myFixture.doHighlighting();

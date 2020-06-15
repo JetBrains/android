@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.tools.idea.gradle.project.facet.java.JavaFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 import com.android.builder.model.SyncIssue;
@@ -35,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
@@ -225,14 +222,5 @@ public class JavaModuleModel implements ModuleModel {
   @NotNull
   public List<String> getConfigurations() {
     return myConfigurations;
-  }
-
-  public static boolean isBuildable(@NotNull GradleProject gradleProject) {
-    for (GradleTask task : gradleProject.getTasks()) {
-      if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
-        return true;
-      }
-    }
-    return false;
   }
 }

@@ -16,13 +16,19 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.view
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class InspectorModelTest {
   @Test
@@ -35,31 +41,36 @@ class InspectorModelTest {
         view(VIEW2, 8, 7, 6, 5, "v2Type")
       }
     }
+    val origRoot = model.root.children[0]
     var isModified = false
-    model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
+    var newRootReported: ViewNode? = null
+    model.modificationListeners.add { _, newRoot, structuralChange ->
+      newRootReported = newRoot
+      isModified = structuralChange
+    }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 2, 4, 6, 8, "rootType") {
         view(VIEW1, 8, 6, 4, 2, "v1Type") {
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
         view(VIEW2, 6, 7, 8, 9, "v2Type")
       }
-    }
+
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     // property change doesn't count as "modified."
     // TODO: confirm this behavior is as desired
     assertFalse(isModified)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
     for ((id, orig) in origNodes) {
-      assertSame(orig, newNodes[id])
+      assertSame(orig, model[id])
     }
-    assertEquals(2, newNodes[ROOT]?.x)
-    assertEquals(6, newNodes[VIEW3]?.height)
+    assertEquals(2, model[ROOT]?.x)
+    assertEquals(6, model[VIEW3]?.height)
+    assertSame(origRoot, newRootReported)
   }
 
   @Test
@@ -72,17 +83,16 @@ class InspectorModelTest {
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 1, 2, 3, 4, "rootType") {
         view(VIEW1, 4, 3, 2, 1, "v1Type") {
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
       }
-    }
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     assertTrue(isModified)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
@@ -102,15 +112,14 @@ class InspectorModelTest {
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 1, 2, 3, 4, "rootType") {
         view(VIEW1, 4, 3, 2, 1, "v1Type")
       }
-    }
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     assertTrue(isModified)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
@@ -131,29 +140,70 @@ class InspectorModelTest {
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 2, 4, 6, 8, "rootType") {
         view(VIEW4, 8, 6, 4, 2, "v4Type") {
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
         view(VIEW2, 6, 7, 8, 9, "v2Type")
       }
-    }
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     assertTrue(isModified)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    assertSame(origNodes[ROOT], model[ROOT])
+    assertSame(origNodes[VIEW2], model[VIEW2])
 
-    assertSame(origNodes[ROOT], newNodes[ROOT])
-    assertSame(origNodes[VIEW2], newNodes[VIEW2])
+    assertNotSame(origNodes[VIEW1], model[VIEW4])
+    assertSameElements(model[ROOT]!!.children.map { it.drawId }, VIEW4, VIEW2)
+    assertEquals("v4Type", model[VIEW4]?.qualifiedName)
+    assertEquals("v3Type", model[VIEW3]?.qualifiedName)
+    assertEquals(8, model[VIEW3]?.y)
+  }
 
-    assertNotSame(origNodes[VIEW1], newNodes[VIEW4])
-    assertSameElements(model.root.children.map { it.drawId }, VIEW4, VIEW2)
-    assertEquals("v4Type", newNodes[VIEW4]?.qualifiedName)
-    assertEquals("v3Type", newNodes[VIEW3]?.qualifiedName)
-    assertEquals(8, newNodes[VIEW3]?.y)
+  @Test
+  fun testWindows() {
+    val model = InspectorModel(mock(Project::class.java))
+    assertTrue(model.isEmpty)
+
+    // add first window
+    val window1 = view(ROOT, 2, 4, 6, 8, "rootType") {
+      view(VIEW1, 8, 6, 4, 2, "v1Type")
+    }
+    model.update(window1, ROOT, listOf(ROOT))
+    assertFalse(model.isEmpty)
+    assertNotNull(model[VIEW1])
+    assertEquals(listOf(ROOT), model.root.children.map { it.drawId })
+
+    // add second window
+    var window2 = view(VIEW2, 2, 4, 6, 8, "root2Type") {
+      view(VIEW3, 8, 6, 4, 2, "v3Type")
+    }
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    assertFalse(model.isEmpty)
+    assertNotNull(model[VIEW1])
+    assertNotNull(model[VIEW3])
+    assertEquals(listOf(ROOT, VIEW2), model.root.children.map { it.drawId })
+
+    // reverse order of windows
+    // same content but new instances, so model.update sees a change
+    window2 = view(VIEW2, 2, 4, 6, 8, "root2Type") {
+      view(VIEW3, 8, 6, 4, 2, "v3Type")
+    }
+    model.update(window2, VIEW2, listOf(VIEW2, ROOT))
+    assertEquals(listOf(VIEW2, ROOT), model.root.children.map { it.drawId })
+
+    // remove a window
+    model.update(null, 0, listOf(VIEW2))
+    assertEquals(listOf(VIEW2), model.root.children.map { it.drawId })
+    assertNull(model[VIEW1])
+    assertNotNull(model[VIEW3])
+
+    // clear
+    model.update(null, 0, listOf<Any>())
+    assertEmpty(model.root.children)
+    assertTrue(model.isEmpty)
   }
 }

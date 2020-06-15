@@ -32,8 +32,8 @@ import javax.swing.JComponent
  *
  * This is useful in case we want to show preview or not depending on the file content.
  */
-open class SeamlessTextEditorWithPreview(textEditor: TextEditor, designEditor: FileEditor, editorName: String) :
-  TextEditorWithPreview(textEditor, designEditor, editorName) {
+open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor, preview: P, editorName: String) :
+  SplitEditor<P>(textEditor, preview, editorName) {
 
   private var toolbarComponent: Component? = null
 
@@ -54,10 +54,14 @@ open class SeamlessTextEditorWithPreview(textEditor: TextEditor, designEditor: F
 
   override fun setState(state: FileEditorState) {
     super.setState(state)
-    saveTrueVisibility()
+
     // super.setState could change the visibility, restore it if we are in a pure text editor mode
     if (isPureTextEditor) {
       setPureTextEditorVisibility()
+    }
+    else {
+      // Save true visibility only if we're not in pure text editor mode, otherwise we'd override the visibility to be text-only
+      saveTrueVisibility()
     }
   }
 

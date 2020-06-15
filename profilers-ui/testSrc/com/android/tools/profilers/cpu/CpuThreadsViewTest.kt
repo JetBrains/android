@@ -73,7 +73,7 @@ class CpuThreadsViewTest {
   fun selectedThreadReflectOnTheModel() {
     val threadsView = CpuThreadsView(stage)
     // Make a selection that includes all threads in the model.
-    stage.studioProfilers.timeline.viewRange.set(-Double.MAX_VALUE, Double.MAX_VALUE)
+    stage.timeline.viewRange.set(-Double.MAX_VALUE, Double.MAX_VALUE)
     val threadsList = getThreadsList(threadsView)
     val tracker = ideServices.featureTracker as FakeFeatureTracker
     assertThat(threadsList.selectedValue).isNull()
@@ -104,7 +104,7 @@ class CpuThreadsViewTest {
       cpuService,
       transportService,
       CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
-    stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
+    stage.timeline.viewRange.set(stage.capture!!.range)
 
     // Find our thread list.
     val hideablePanel = TreeWalker(threadsView.component).ancestors().filterIsInstance<HideablePanel>().first()
@@ -115,7 +115,7 @@ class CpuThreadsViewTest {
       CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
         Cpu.CpuThreadData.State.SLEEPING).build()))
     // Update the view range triggering an aspect change in CpuThreadsModel.
-    stage.studioProfilers.timeline.viewRange.set(stage.studioProfilers.timeline.dataRange)
+    stage.timeline.viewRange.set(stage.timeline.dataRange)
     // Tick to trigger
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(panelTitle.text).contains("THREADS (1)")

@@ -36,8 +36,7 @@ import com.intellij.util.ArrayUtil;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +118,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   private static XmlFile getAndroidManifestPsi(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      VirtualFile manifest = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
+      VirtualFile manifest = SourceProviderManager.getInstance(facet).getMainManifestFile();
       if (manifest != null) {
         PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(manifest);
         if (psiFile instanceof XmlFile) {

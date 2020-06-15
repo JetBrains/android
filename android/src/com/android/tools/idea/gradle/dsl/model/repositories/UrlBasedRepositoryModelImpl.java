@@ -43,6 +43,7 @@ public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl im
   @Override
   @NotNull
   public ResolvedPropertyModel url() {
-    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).addTransform(new RepositoryClosureTransform(myHolder, URL, myDefaultRepoUrl)).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).withDefault(myDefaultRepoUrl)
+      .addTransform(new RepositoryClosureTransform(URL)).buildResolved();
   }
 }

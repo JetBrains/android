@@ -24,6 +24,11 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
+    <fileType name="AIDL"
+              implementationClass="com.android.tools.idea.lang.aidl.AidlFileType"
+              fieldName="INSTANCE"
+              language="AIDL"
+              extensions="aidl"/>
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
     <lang.syntaxHighlighter language="AIDL"
                                    implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
@@ -36,30 +41,94 @@
     <fileType name="ProGuard File" implementationClass="com.android.tools.idea.lang.proguard.ProguardFileType" language="PROGUARD"
               patterns="*.pro;proguard-*.txt;proguard.cfg" fieldName="INSTANCE"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
-    <!--FIXME-ank2: fileType for proguard/r8, drop ProguardFileTypeFactory-->
 
-    <lang.parserDefinition language="PROGUARD_R8"
+    <lang.parserDefinition language="SHRINKER_CONFIG"
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="PROGUARD_R8"
+    <lang.syntaxHighlighterFactory language="SHRINKER_CONFIG"
                                    implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8SyntaxHighlighterFactory"/>
-    <completion.contributor language="PROGUARD_R8" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CompletionContributor"/>
+    <completion.contributor language="SHRINKER_CONFIG"
+                            implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CompletionContributor"
+                            order="before javaClassReference"
+    />
+    <idIndexer filetype="Shrinker Config File" implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8IdIndexer"/>
+    <annotator language="SHRINKER_CONFIG" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8Annotator"/>
+    <lang.braceMatcher language="SHRINKER_CONFIG"
+                       implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8PairedBraceMatcher"/>
+    <lang.quoteHandler language="SHRINKER_CONFIG" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8QuoteHandler"/>
+    <lang.commenter language="SHRINKER_CONFIG" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8Commenter"/>
+    <lang.findUsagesProvider language="SHRINKER_CONFIG"
+                             implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8FindUsagesProvider"/>
+    <usageTypeProvider implementation="com.android.tools.idea.lang.proguardR8.psi.ProguardR8UsageTypeProvider"/>
+    <useScopeEnlarger implementation="com.android.tools.idea.lang.proguardR8.ProguardR8UseScopeEnlarger"/>
     <typedHandler implementation="com.android.tools.idea.lang.proguardR8.ProguardR8TypedHandler" id="proguardR8CompletionAutoPopup"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName"
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedNameManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName"
+                             implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberNameManipulator"/>
+
+    <!-- This inspection uses the same highlight as "unused symbol", so the level is only visible in the gutter.   -->
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ShrinkerUnresolvedReference"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ReferenceInspection"
+                     displayName="Unresolved reference in Shrinker Config file"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="WARNING"
+                     shortName="R8IgnoredFlags"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8IgnoredFlagInspection"
+                     displayName="Flags ignored by R8"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ShrinkerInvalidFlags"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InvalidFlagInspection"
+                     displayName="Invalid flag in shrinker config"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ShrinkerArrayType"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ArrayTypeInspection"
+                     displayName="Invalid using of array type"/>
+
+    <lang.inspectionSuppressor
+        language="SHRINKER_CONFIG"
+        implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
+
     <lang.syntaxHighlighter language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
     <!-- Renderscript -->
+    <fileType name="Android RenderScript"
+              implementationClass="com.android.tools.idea.lang.rs.AndroidRenderscriptFileType"
+              fieldName="INSTANCE"
+              language="Renderscript"
+              extensions="rs;fs;rsh" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.syntaxHighlighter language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
     <!-- SQL support -->
-    <fileType name="Android Room SQL" implementationClass="com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE"
-              fieldName="INSTANCE" language="RoomSql"/>
+    <fileType name="Android Room SQL"
+              implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlFileType"
+              fieldName="INSTANCE"
+              language="RoomSql" />
+
     <lang.parserDefinition language="RoomSql"
                            implementationClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
@@ -108,7 +177,6 @@
     <fileType name="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileType"
               fileNames="multidex-config.txt" language="MultiDexKeep" fieldName="INSTANCE"/>
     <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang.androidSql">

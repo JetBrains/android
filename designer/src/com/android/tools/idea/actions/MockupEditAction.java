@@ -46,7 +46,6 @@ public class MockupEditAction extends AnAction {
     super(ADD_ACTION_TITLE);
 
     if (!StudioFlags.NELE_MOCKUP_EDITOR.get()) {
-      getTemplatePresentation().setEnabledAndVisible(false);
       myMockupToggleAction = null;
       myDesignSurface = null;
       return;
@@ -59,19 +58,22 @@ public class MockupEditAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
-    if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
-      // If the selected component already has a mock-up attribute, display the Edit text
-      // else display the add text
-      NlComponent component = getFirstSelectedComponent();
-      if (component == null) {
-        presentation.setEnabled(false);
-      }
-      else if (component.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null) {
-        presentation.setText(EDIT_ACTION_TITLE);
-      }
-      else {
-        presentation.setText(ADD_ACTION_TITLE);
-      }
+    if (!StudioFlags.NELE_MOCKUP_EDITOR.get()) {
+      presentation.setEnabledAndVisible(false);
+      return;
+    }
+
+    // If the selected component already has a mock-up attribute, display the Edit text
+    // else display the add text
+    NlComponent component = getFirstSelectedComponent();
+    if (component == null) {
+      presentation.setEnabled(false);
+    }
+    else if (component.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null) {
+      presentation.setText(EDIT_ACTION_TITLE);
+    }
+    else {
+      presentation.setText(ADD_ACTION_TITLE);
     }
   }
 

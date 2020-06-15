@@ -23,6 +23,7 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -43,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -107,7 +109,8 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath();
-    assertThat(ndkPath.getAbsolutePath()).matches(myAndroidSdkPath.getPath() + "/ndk/[0-9.]+");
+    assertThat(ndkPath.getAbsolutePath())
+      .matches(Pattern.quote(myAndroidSdkPath.getPath() + toSystemDependentName("/ndk/")) + "[0-9.]+");
   }
 
   public void testGetAndroidNdkPathWithPredicate() {

@@ -45,6 +45,15 @@ interface EditingSupport {
     get() = EDITOR_NO_COMPLETIONS
 
   /**
+   * Are custom values (in addition to the choices from the completion) acceptable?
+   *
+   * If true the completion popup would display the current edited value as the first choice.
+   * Otherwise the popup would only contain the elements from the completion choices.
+   */
+  val allowCustomValues: Boolean
+    get() = true
+
+  /**
    * Support for loading completions asynchronously.
    */
   val execution: PooledThreadExecution

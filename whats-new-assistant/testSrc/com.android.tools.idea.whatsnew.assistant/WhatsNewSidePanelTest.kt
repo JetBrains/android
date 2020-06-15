@@ -22,7 +22,7 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.AssistantGetBundleTask
 import com.android.tools.idea.assistant.DefaultTutorialBundle
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData
-import com.android.tools.idea.util.FutureUtils
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import junit.framework.TestCase
@@ -95,7 +95,7 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     // Tab title will be set after assistant content finishes loading
     WhatsNewMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
     AssistSidePanel(WhatsNewBundleCreator.BUNDLE_ID, project, callback)
-    FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertEquals("Test What's New from Server", completeFuture.get())
   }
 
@@ -126,7 +126,7 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     }
 
     AssistantGetBundleTask(project, mockBundleCreator, callback).queue()
-    FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertTrue(completeFuture.get())
   }
 
@@ -154,7 +154,7 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     }
 
     AssistantGetBundleTask(project, mockBundleCreator, callback).queue()
-    FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertTrue(completeFuture.get())
   }
 }

@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.navigator
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.*
@@ -48,8 +49,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  // TODO(b/121345405): Fix test multi-flavor source set support.
+  // TODO(b/141846471): Fix the order of nodes representing multiple folders or merge them by package.
+  fun testMultiFlavor() {
+    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE)
+    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 
@@ -79,6 +87,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
     val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, initialState = false) { element, state ->
       // Drop any file nodes under IncludesViewNode node.
@@ -98,13 +111,23 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpAndroidProjectView()
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testCompatibilityWithAndroidStudio36Project() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testCompatibilityWithAndroidStudio36NoImlProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
     assertIsEqualToSnapshot(text)
   }
 

@@ -38,8 +38,8 @@ public class DependencySet {
   }
 
   /**
-   * Adds the given dependency to this collection. If this collection already has a dependency under the same name, the dependency with the
-   * wider scope is stored: {@link com.intellij.openapi.roots.DependencyScope#COMPILE} has wider scope than
+   * Adds the given dependency to this collection. If this collection already has a dependency under the same name and artifacts, the
+   * dependency with the wider scope is stored: {@link com.intellij.openapi.roots.DependencyScope#COMPILE} has wider scope than
    * {@link com.intellij.openapi.roots.DependencyScope#TEST}.
    * <p/>
    * It is not uncommon that the Android Gradle plug-in lists the same dependency as explicitly having both "compile" and "test" scopes. In
@@ -77,7 +77,7 @@ public class DependencySet {
     }
 
     if (toAdd != null) {
-      String newName = allStored.size() + "_" + dependency.getName();
+      String newName = dependency.getName() + "_" + allStored.size();
       dependency.setName(newName);
       myLibrariesByName.put(originalName, dependency);
     }

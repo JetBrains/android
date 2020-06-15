@@ -1,0 +1,64 @@
+[
+  {
+    "name": "Gray",
+    "light": [
+      "97b1c0",
+      "a6bcc9",
+      "b6c8d3",
+      "c6d4dd",
+      "d6e0e6"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "97b1c0",
+      "86a5b6",
+      "7699ad",
+      "668da3",
+      "5a8096"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "Vivid Blue",
+    "light": [
+      "a2dffe",
+      "aee4fe",
+      "b8e7fe",
+      "c2eafe",
+      "cdeefe"
+    ],
+    "lightModeDarkText": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "dark": [
+      "74a1b8",
+      "6b9bb3",
+      "6194ae",
+      "578da8",
+      "51859e"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+]

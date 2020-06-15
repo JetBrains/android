@@ -45,14 +45,23 @@ class PanSurfaceActionTest {
   fun setUp() {
     panAction = PanSurfaceAction
     `when`(context.getData(PANNABLE_KEY)).thenReturn(pannable)
+    `when`(pannable.isPannable).thenReturn(true)
   }
 
   @Test
-  fun testDisabledAction() {
+  fun testHiddenAction() {
     `when`(context.getData(PANNABLE_KEY)).thenReturn(null)
     val event = actionEvent
     panAction.update(event)
     assertFalse(event.presentation.isEnabledAndVisible)
+  }
+
+  @Test
+  fun testDisabledAction() {
+    val event = actionEvent
+    `when`(pannable.isPannable).thenReturn(false)
+    panAction.update(event)
+    assertFalse(event.presentation.isEnabled)
   }
 
   @Test

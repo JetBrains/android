@@ -15,26 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.Collections;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
-
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.google.common.truth.Truth.assertThat;
 
 public class ImageViewHandlerTest extends LayoutTestCase {
   private NlModel myModel;
@@ -44,7 +41,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myTestProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
-    ServiceContainerUtil.registerExtension(getProject(), ProjectSystemUtil.getEP_NAME(), myTestProjectSystem, getTestRootDisposable());
+    myTestProjectSystem.useInTests();
 
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
     myModel = createModel();

@@ -26,6 +26,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -58,8 +59,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
-import java.awt.Cursor;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -194,12 +194,21 @@ public class Scene implements SelectionListener, Disposable {
     return true;
   }
 
-  public boolean isInRTL() {
-    // TODO: Update to support multi-model
-    Configuration configuration = myDesignSurface.getConfiguration();
-    if (configuration == null) {
+  /**
+   * Return true if the designed content is resizable, false otherwise
+   */
+  public boolean isResizeAvailable() {
+    Configuration configuration = mySceneManager.getModel().getConfiguration();
+    Device device = configuration.getCachedDevice();
+    if (device == null) {
       return false;
     }
+
+    return true;
+  }
+
+  public boolean isInRTL() {
+    Configuration configuration = mySceneManager.getModel().getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier == null) {
       return false;
@@ -209,12 +218,10 @@ public class Scene implements SelectionListener, Disposable {
 
   public int getRenderedApiLevel() {
     // TODO: Update to support multi-model
-    Configuration configuration = myDesignSurface.getConfiguration();
-    if (configuration != null) {
-      IAndroidTarget target = configuration.getTarget();
-      if (target != null) {
-        return target.getVersion().getApiLevel();
-      }
+    Configuration configuration = mySceneManager.getModel().getConfiguration();
+    IAndroidTarget target = configuration.getTarget();
+    if (target != null) {
+      return target.getVersion().getApiLevel();
     }
     return AndroidVersion.VersionCodes.BASE;
   }
@@ -501,8 +508,8 @@ public class Scene implements SelectionListener, Disposable {
       needsRebuildList();
     }
     if (myRoot != null) {
-      myHoverListener.find(transform, myRoot, x, y);
-      mySnapListener.find(transform, myRoot, x, y);
+      myHoverListener.find(transform, myRoot, x, y, modifiersEx);
+      mySnapListener.find(transform, myRoot, x, y, modifiersEx);
     }
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget(modifiersEx);
@@ -816,7 +823,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
-    myHitListener.find(transform, myRoot, x, y);
+    myHitListener.find(transform, myRoot, x, y, modifiersEx);
     myHitTarget = myHitListener.getClosestTarget(modifiersEx);
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
@@ -880,7 +887,7 @@ public class Scene implements SelectionListener, Disposable {
       }
 
       myHitListener.setTargetFilter(target -> myHitTarget != target);
-      myHitListener.find(transform, myRoot, x, y);
+      myHitListener.find(transform, myRoot, x, y, modifiersEx);
       SceneComponent targetComponent = myHitTarget.getComponent();
       if (lassoTarget == null // No need to select LassoTarget's component.
           && targetComponent != null
@@ -963,7 +970,7 @@ public class Scene implements SelectionListener, Disposable {
 
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      myHitListener.find(transform, myRoot, x, y);
+      myHitListener.find(transform, myRoot, x, y, modifiersEx);
       myHitTarget.mouseRelease(x, y, myHitListener.getHitTargets());
       myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof MultiComponentTarget) {
@@ -987,6 +994,17 @@ public class Scene implements SelectionListener, Disposable {
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
 
     boolean same = sameSelection();
+    if (same && myHitListener.getTopHitComponent() != closestComponent
+        && isWithinThreshold(myPressedMouseX, x, transform)
+        && isWithinThreshold(myPressedMouseY, y, transform)) {
+      // if the hit target ended up selecting the same component -- but
+      // we have a /different/ top component, we should select it instead.
+      // Let's only do that though if there was no drag action.
+      myNewSelectedComponentsOnRelease.clear();
+      myNewSelectedComponentsOnRelease.add(myHitListener.getTopHitComponent());
+      myHitTarget = null;
+      same = sameSelection();
+    }
     if (secondarySelector == null && !same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
@@ -1111,7 +1129,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return null;
     }
-    myFindListener.find(transform, myRoot, x, y);
+    myFindListener.find(transform, myRoot, x, y, 0);
     return myFindListener.getClosestComponent();
   }
 
@@ -1123,7 +1141,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return null;
     }
-    myFindListener.find(transform, myRoot, x, y);
+    myFindListener.find(transform, myRoot, x, y, modifiersEx);
     return myFindListener.getClosestTarget(modifiersEx);
   }
 
@@ -1192,8 +1210,8 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(getSceneManager(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(getSceneManager(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 
   /**

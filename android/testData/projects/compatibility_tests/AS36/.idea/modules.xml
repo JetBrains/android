@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AS36.iml" filepath="$PROJECT_DIR$/AS36.iml" group="AS36" />
+      <module fileurl="file://$PROJECT_DIR$/libs/android_library/android_library.iml" filepath="$PROJECT_DIR$/libs/android_library/android_library.iml" group="AS36/libs/android_library" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="AS36/app" />
+      <module fileurl="file://$PROJECT_DIR$/features/dynamicfeature/dynamicfeature.iml" filepath="$PROJECT_DIR$/features/dynamicfeature/dynamicfeature.iml" group="AS36/features/dynamicfeature" />
+      <module fileurl="file://$PROJECT_DIR$/features/dynamicfeature2/dynamicfeature2.iml" filepath="$PROJECT_DIR$/features/dynamicfeature2/dynamicfeature2.iml" group="AS36/features/dynamicfeature2" />
+      <module fileurl="file://$PROJECT_DIR$/features/features.iml" filepath="$PROJECT_DIR$/features/features.iml" group="AS36/features" />
+      <module fileurl="file://$PROJECT_DIR$/libs/java_lib/java_lib.iml" filepath="$PROJECT_DIR$/libs/java_lib/java_lib.iml" group="AS36/libs/java_lib" />
+      <module fileurl="file://$PROJECT_DIR$/libs/libs.iml" filepath="$PROJECT_DIR$/libs/libs.iml" group="AS36/libs" />
+    </modules>
+  </component>
+</project>

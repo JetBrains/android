@@ -18,6 +18,7 @@ package com.android.tools.idea.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_VERSION_CODE;
+import static com.android.SdkConstants.TAG_MANIFEST;
 import static com.android.SdkConstants.TAG_PERMISSION;
 import static com.android.SdkConstants.TAG_USES_PERMISSION;
 import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23;
@@ -63,12 +64,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -144,6 +143,16 @@ class MergedManifestSnapshotFactory {
     return defaultApiLevel;
   }
 
+  /**
+   * @deprecated This method only exists to preserve the behavior of legacy callers of
+   * {@link MergedManifestManager#getFreshSnapshot}. If the manifest merger fails
+   * for a legitimate reason (e.g. an invalid contributor), you should wrap the
+   * {@link MergedManifestInfo} in a "failed" snapshot using
+   * {@link MergedManifestSnapshotFactory#createFailedMergedManifestSnapshot}. If we encounter
+   * an exception during merging or parsing the result, we should just allow that exception to
+   * propagate up to the caller.
+   */
+  @Deprecated
   @NotNull
   static MergedManifestSnapshot createEmptyMergedManifestSnapshot(@NotNull Module module) {
     return new MergedManifestSnapshot(module,
@@ -167,28 +176,62 @@ class MergedManifestSnapshotFactory {
                                       ImmutableList.of(),
                                       ImmutableList.of(),
                                       null,
-                                      ImmutableList.of()
+                                      ImmutableList.of(),
+                                      false
     );
   }
 
-  @Nullable
+  @NotNull
+  private static MergedManifestSnapshot createFailedMergedManifestSnapshot(@NotNull Module module, @NotNull MergedManifestInfo mergedManifestInfo) {
+    return new MergedManifestSnapshot(module,
+                                      null,
+                                      null,
+                                      null,
+                                      null,
+                                      ImmutableMap.of(),
+                                      mergedManifestInfo,
+                                      AndroidVersion.DEFAULT,
+                                      AndroidVersion.DEFAULT,
+                                      null,
+                                      null,
+                                      false,
+                                      null,
+                                      null,
+                                      ImmutableList.copyOf(mergedManifestInfo.getFiles()),
+                                      ImmutablePermissionHolder.EMPTY,
+                                      false,
+                                      ImmutableList.of(),
+                                      ImmutableList.of(),
+                                      ImmutableList.of(),
+                                      mergedManifestInfo.getActions(),
+                                      mergedManifestInfo.getLoggingRecords(),
+                                      false
+    );
+  }
+
+  @NotNull
   static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet, @NotNull MergedManifestInfo mergedManifestInfo) {
+    // A severe error will have caused the manifest merger to return null, so there's no document to parse.
+    // In such cases, we want to return a dummy snapshot to surface the manifest merger logs to the user.
+    // This also helps us avoid recomputing until the user has made some change to the merged manifest's
+    // contributors, since if the input hasn't changed then we'll just end up with the same severe errors.
+    if (mergedManifestInfo.hasSevereError()) {
+      return createFailedMergedManifestSnapshot(facet.getModule(), mergedManifestInfo);
+    }
     try {
       Document document = mergedManifestInfo.getXmlDocument();
-      if (document == null) {
-        return null;
-      }
-
-      Element root = document.getDocumentElement();
+      Element root = document == null ? null : document.getDocumentElement();
       if (root == null) {
-        return null;
+        throw new MergedManifestException.MissingElement(TAG_MANIFEST, mergedManifestInfo);
       }
-
-      String appId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
 
       // The package comes from the main manifest, NOT from the merged manifest.
+      final String appId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
       Manifest manifest = Manifest.getMainManifest(facet);
       String packageName = manifest == null ? appId : manifest.getPackage().getValue();
+      if (packageName == null) {
+        throw new MergedManifestException.MissingAttribute(TAG_MANIFEST, null, ATTRIBUTE_PACKAGE, mergedManifestInfo);
+      }
 
       AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
       ResourceNamespace namespace =
@@ -208,7 +251,7 @@ class MergedManifestSnapshotFactory {
       boolean supportsRtl = false;
       Boolean isAppDebuggable = null;
       boolean appHasCode = true;
-      HashMap<String, ActivityAttributesSnapshot> activityAttributesMap = new HashMap<>();
+      ImmutableMap.Builder<String, ActivityAttributesSnapshot> activityAttributesMapBuilder = ImmutableMap.builder();
       ArrayList<Element> activities = new ArrayList<>();
       ArrayList<Element> activityAliases = new ArrayList<>(4);
       ArrayList<Element> services = new ArrayList<>(4);
@@ -241,7 +284,7 @@ class MergedManifestSnapshotFactory {
                 if (NODE_ACTIVITY.equals(childNodeName)) {
                   Element element = (Element)child;
                   ActivityAttributesSnapshot attributes = createActivityAttributesSnapshot(element, appId, namespace);
-                  activityAttributesMap.put(attributes.getName(), attributes);
+                  activityAttributesMapBuilder.put(attributes.getName(), attributes);
                   activities.add(element);
                 }
                 else if (NODE_ACTIVITY_ALIAS.equals(childNodeName)) {
@@ -287,7 +330,7 @@ class MergedManifestSnapshotFactory {
 
       AndroidVersion modelMinSdk = null;
       AndroidVersion modelTargetSdk = null;
-      AndroidModel androidModel = facet.getModel();
+      AndroidModel androidModel = AndroidModel.get(facet);
       if (androidModel != null) {
         modelMinSdk = androidModel.getMinSdkVersion();
         modelTargetSdk = androidModel.getTargetSdkVersion();
@@ -300,25 +343,23 @@ class MergedManifestSnapshotFactory {
         ImmutableSet.copyOf(permissions),
         ImmutableSet.copyOf(revocable));
 
-      Actions actions = mergedManifestInfo.getActions();
-      ImmutableList<MergingReport.Record> loggingRecords = mergedManifestInfo.getLoggingRecords();
-      return new MergedManifestSnapshot(facet.getModule(), packageName, appId, versionCode, manifestTheme,
-                                        ImmutableMap.copyOf(activityAttributesMap),
-                                        mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
-                                        ImmutableList.copyOf(mergedManifestInfo.getFiles()),
-                                        permissionHolder, appHasCode,
-                                        ImmutableList.copyOf(activities),
-                                        ImmutableList.copyOf(activityAliases),
-                                        ImmutableList.copyOf(services), actions, loggingRecords);
+        Actions actions = mergedManifestInfo.getActions();
+        ImmutableList<MergingReport.Record> loggingRecords = mergedManifestInfo.getLoggingRecords();
+        return new MergedManifestSnapshot(facet.getModule(), packageName, appId, versionCode, manifestTheme,
+                                          activityAttributesMapBuilder.build(),
+                                          mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
+                                          ImmutableList.copyOf(mergedManifestInfo.getFiles()),
+                                          permissionHolder, appHasCode,
+                                          ImmutableList.copyOf(activities),
+                                          ImmutableList.copyOf(activityAliases),
+                                          ImmutableList.copyOf(services), actions, loggingRecords, true);
     }
-    catch (ProcessCanceledException e) {
+    catch (MergedManifestException|ProcessCanceledException e) {
       throw e;
     }
     catch (Exception e) {
-      Logger.getInstance(MergedManifestManager.class).warn("Could not read Manifest data", e);
+      throw new MergedManifestException.ParsingError(mergedManifestInfo, e);
     }
-
-    return null;
   }
 
   @NotNull

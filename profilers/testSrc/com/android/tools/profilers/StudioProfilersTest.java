@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
@@ -442,6 +443,7 @@ public final class StudioProfilersTest {
 
   @Test
   public void testRestartedPreferredProcessNotSelected() {
+    Assume.assumeTrue(myNewEventPipeline);
     StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
     //int nowInSeconds = 42;
     //myTransportService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
@@ -485,7 +487,20 @@ public final class StudioProfilersTest {
 
     // Re-enable auto-profiling should pick up the new process.
     profilers.setAutoProfilingEnabled(true);
-    assertThat(profilers.getProcess().getPid()).isEqualTo(21);
+    // We need a change in processes to trigger the pickup. In production, setAutoProfilingEnabled(true)
+    // is called only by StudioProfilers.setPreferredProcess() which is called when (1) the app is deployed,
+    // (2) profiler tool window is initialized, or (3) profiler window is reopened and the app was deployed
+    // but not profiled before. We simulate (1) here.
+    myTransportService.removeProcess(device, process); // for legacy pipeline
+    process = process.toBuilder().setState(Common.Process.State.DEAD).build();
+    myTransportService.addProcess(device, process); // for unified pipeline
+    process = process.toBuilder()
+      .setPid(22)
+      .setState(Common.Process.State.ALIVE)
+      .build();
+    myTransportService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getProcess().getPid()).isEqualTo(22);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
   }
 
@@ -612,7 +627,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    ProfilerTimeline timeline = profilers.getTimeline();
+    StreamingTimeline timeline = profilers.getTimeline();
     assertTrue(timeline.isStreaming());
     timeline.getDataRange().set(0, FakeTimer.ONE_SECOND_IN_NS);
     timeline.getSelectionRange().set(0, 0);
@@ -730,8 +745,19 @@ public final class StudioProfilersTest {
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice);
     assertThat(profilers.getProcess()).isEqualTo(preferredProcess);
 
-    // Updating the preferred device should immediately switch over.
+    // Updating the preferred device should switch over.
     profilers.setPreferredProcess("Manufacturer2 Model2", "PreferredProcess", null);
+    // We need a change in processes to trigger the pickup. In production, setAutoProfilingEnabled(true)
+    // is called only by StudioProfilers.setPreferredProcess() which is called when (1) the app is deployed,
+    // (2) profiler tool window is initialized, or (3) profiler window is reopened and the app was deployed
+    // but not profiled before. We simulate (1) here.
+    process = preferredProcess2.toBuilder()
+      .setState(Common.Process.State.DEAD).build();
+    myTransportService.addProcess(preferredDevice2, process);
+    myTransportService.removeProcess(preferredDevice2, preferredProcess2);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTransportService.addProcess(preferredDevice2, preferredProcess2);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice2);
     assertThat(profilers.getProcess()).isNull();
   }
@@ -965,8 +991,8 @@ public final class StudioProfilersTest {
       .setUnsupportedReason(unsupportedReason)
       .build();
     myTransportService.addDevice(device);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.setPreferredProcess(deviceName, "FakeProcess", null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
     assertThat(profilers.getStageClass()).isEqualTo(NullMonitorStage.class);
@@ -1409,7 +1435,7 @@ public final class StudioProfilersTest {
 
     // selecting an ongoing session should use the default zoom with streaming enabled
     profilers.getSessionsManager().setSession(profilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
-    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
+    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-StreamingTimeline.DEFAULT_VIEW_LENGTH_US);
     assertThat(profilers.getTimeline().getViewRange().getMax()).isWithin(0).of(0);
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
     assertThat(profilers.getTimeline().isPaused()).isFalse();
@@ -1425,7 +1451,7 @@ public final class StudioProfilersTest {
 
     // Navigate back to the ongoing session should still use the default zoom
     profilers.getSessionsManager().setSession(profilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
-    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
+    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-StreamingTimeline.DEFAULT_VIEW_LENGTH_US);
     assertThat(profilers.getTimeline().getViewRange().getMax()).isWithin(0).of(0);
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
     assertThat(profilers.getTimeline().isPaused()).isFalse();
@@ -1518,7 +1544,7 @@ public final class StudioProfilersTest {
     }
   }
 
-  private static class FakeStage extends Stage {
+  private static class FakeStage extends StreamingStage {
     private FakeStage(@NotNull StudioProfilers profilers) {
       super(profilers);
     }

@@ -24,31 +24,32 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
-import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
 import kotlin.properties.Delegates
+
+private const val RES_MANAGER_PREF_KEY = "ResourceManagerPrefKey"
 
 /**
  * The View Model for the [ResourceExplorerView].
@@ -82,7 +83,10 @@ class ResourceExplorerViewModel private constructor(
   //endregion
 
   val filterOptions = FilterOptions.create(
-    { refreshListModel() },
+    {
+      updateFilterParamsInModelState()
+      refreshListModel()
+    },
     { updateListModelSpeedSearch(it) },
     modelState.filterParams
   )
@@ -147,31 +151,15 @@ class ResourceExplorerViewModel private constructor(
     set(value) {
       if (value != field && supportedResourceTypes.indices.contains(value)) {
         field = value
+        modelState.selectedResourceType = supportedResourceTypes[value]
         updateListModelResourceType(supportedResourceTypes[value])
         resourceTypeUpdaterCallback(supportedResourceTypes[value])
         updateResourceTabCallback()
       }
     }
 
-  private val resetPreviewsOnNextSuccessfulSync = Runnable {
-    defaultFacet.module.project.runWhenSmartAndSyncedOnEdt(this, Consumer { result ->
-      if (result.isSuccessful) {
-        listViewImageCache.clear()
-      }
-    })
-  }
-
   init {
     subscribeListener(defaultFacet)
-    val project = defaultFacet.module.project
-    if (project.getLastSyncTimestamp() < 0L) {
-      // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
-      // then re-render all assets.
-      ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
-        onCacheClean = resetPreviewsOnNextSuccessfulSync,
-        onSourceGenerationError = EmptyRunnable.INSTANCE
-      )
-    }
   }
 
   fun getTabIndexForFile(virtualFile: VirtualFile): Int {
@@ -209,6 +197,16 @@ class ResourceExplorerViewModel private constructor(
 
   override fun dispose() {
     unsubscribeListener(facet)
+  }
+
+  private fun updateFilterParamsInModelState() {
+    modelState.filterParams = FilterOptionsParams(
+      moduleDependenciesInitialValue = filterOptions.isShowModuleDependencies,
+      librariesInitialValue = filterOptions.isShowLibraries,
+      androidResourcesInitialValue = filterOptions.isShowFramework,
+      themeAttributesInitialValue = filterOptions.isShowThemeAttributes,
+      showSampleData = filterOptions.isShowSampleData
+    )
   }
 
   //region ListModel update functions
@@ -284,7 +282,8 @@ class ResourceExplorerViewModel private constructor(
             androidResourcesInitialValue = false,
             themeAttributesInitialValue = false
           ),
-          MANAGER_SUPPORTED_RESOURCES[0]
+          MANAGER_SUPPORTED_RESOURCES[0],
+          ViewModelStateSaveParams(facet.module.project, RES_MANAGER_PREF_KEY)
         ),
         null,
         null
@@ -321,11 +320,77 @@ class ResourceExplorerViewModel private constructor(
 /**
  * Class that holds the initial state of [ResourceExplorerViewModel].
  *
- * TODO: Update the fields of this class as they change, then add support to save and load the last state of the Resource Manager.
+ * If [saveParams] is not-null, it will save the latest changes of this state.
  */
-private data class ViewModelState (
-  var filterParams: FilterOptionsParams,
-  var selectedResourceType: ResourceType
+private class ViewModelState(
+  filterParams: FilterOptionsParams,
+  selectedResourceType: ResourceType,
+  private val saveParams: ViewModelStateSaveParams? = null
+) {
+
+  private val FILTER_PARAMS_KEY = "FilterParams"
+  private val LOCAL_MODULE_FILTER_KEY = "LocalModules"
+  private val LIBRARIES_FILTER_KEY = "Libraries"
+  private val FRAMEWORK_FILTER_KEY = "Framework"
+  private val THEME_ATTR_FILTER_KEY = "ThemeAttributes"
+  private val RESOURCE_TYPE_KEY = "ResourceType"
+
+  private val defaultFilterParams: FilterOptionsParams = kotlin.run {
+    return@run if (saveParams != null) {
+      val filterKey = "${saveParams.preferencesKey}.$FILTER_PARAMS_KEY"
+      val propertiesComponent = PropertiesComponent.getInstance(saveParams.project)
+      val localModules = propertiesComponent.getBoolean("$filterKey.$LOCAL_MODULE_FILTER_KEY")
+      val libraries = propertiesComponent.getBoolean("$filterKey.$LIBRARIES_FILTER_KEY")
+      val framework = propertiesComponent.getBoolean("$filterKey.$FRAMEWORK_FILTER_KEY")
+      val themeAttr = propertiesComponent.getBoolean("$filterKey.$THEME_ATTR_FILTER_KEY")
+      FilterOptionsParams(
+        moduleDependenciesInitialValue = localModules,
+        librariesInitialValue = libraries,
+        androidResourcesInitialValue = framework,
+        themeAttributesInitialValue = themeAttr,
+        showSampleData = filterParams.showSampleData
+      )
+    }
+    else {
+      filterParams
+    }
+  }
+
+  private val defaultSelectedResourceType: ResourceType = kotlin.run {
+    return@run if (saveParams != null) {
+      PropertiesComponent.getInstance(saveParams.project).getValue("${saveParams.preferencesKey}.$RESOURCE_TYPE_KEY")?.let {
+        ResourceType.valueOf(it)
+      } ?: selectedResourceType
+    }
+    else {
+      selectedResourceType
+    }
+  }
+
+  var filterParams: FilterOptionsParams by Delegates.observable(defaultFilterParams) { _, _, newValue ->
+    saveParams?.let {
+      val filterKey = "${saveParams.preferencesKey}.$FILTER_PARAMS_KEY"
+      val propertiesComponent = PropertiesComponent.getInstance(saveParams.project)
+      propertiesComponent.setValue("$filterKey.$LOCAL_MODULE_FILTER_KEY", newValue.moduleDependenciesInitialValue)
+      propertiesComponent.setValue("$filterKey.$LIBRARIES_FILTER_KEY", newValue.librariesInitialValue)
+      propertiesComponent.setValue("$filterKey.$FRAMEWORK_FILTER_KEY", newValue.androidResourcesInitialValue)
+      propertiesComponent.setValue("$filterKey.$THEME_ATTR_FILTER_KEY", newValue.themeAttributesInitialValue)
+    }
+  }
+
+  var selectedResourceType: ResourceType by Delegates.observable(defaultSelectedResourceType) { _, _, newValue ->
+    saveParams?.let {
+      PropertiesComponent.getInstance(saveParams.project).setValue("${saveParams.preferencesKey}.$RESOURCE_TYPE_KEY", newValue.name)
+    }
+  }
+}
+
+/**
+ * Necessary parameters to save the state of [ViewModelState] on a project-level basis.
+ */
+private class ViewModelStateSaveParams(
+  val project: Project,
+  val preferencesKey: String
 )
 
 /**
@@ -339,8 +404,8 @@ private fun getConfiguration(facet: AndroidFacet, contextFile: VirtualFile? = nu
       configuration = configManager.getConfiguration(contextFile)
     }
     if (configuration == null) {
-      facet.module.project.projectFile?.let { projectFile ->
-        configuration = configManager.getConfiguration(projectFile)
+      runReadAction { facet.getPrimaryManifestXml() }?.let { manifestFile ->
+        configuration = configManager.getConfiguration(manifestFile.virtualFile)
       }
     }
     return@Supplier configuration

@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingRoundRectangle
+import com.android.tools.adtui.common.toSwingRect
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.times
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
@@ -23,50 +29,38 @@ import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorOrNullToString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColorOrNull
-import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.FRAGMENT_BORDER_SPACING
 import com.android.tools.idea.naveditor.scene.NavColors
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.createDrawImageCommand
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_FRAME_STROKE
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_STROKE
-import com.android.tools.idea.naveditor.scene.growRectangle
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
 
-class DrawFragment(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
-                   @VisibleForTesting val scale: Float,
+class DrawFragment(@VisibleForTesting val rectangle: SwingRectangle,
+                   @VisibleForTesting val scale: Scale,
                    @VisibleForTesting val highlightColor: Color?,
                    @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 3))
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), stringToColorOrNull(tokens[2]))
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), tokens[1].toScale(), stringToColorOrNull(tokens[2]))
 
-  override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, colorOrNullToString(highlightColor))
+  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(), scale, colorOrNullToString(highlightColor))
 
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
-    list.add(DrawShape(rectangle, NavColors.FRAME, REGULAR_FRAME_STROKE))
+    list.add(DrawShape(rectangle.value, NavColors.FRAME, REGULAR_FRAME_STROKE))
 
-    @SwingCoordinate val imageRectangle = Rectangle2D.Float()
-    imageRectangle.setRect(rectangle)
-    growRectangle(imageRectangle, -1f, -1f)
-
+    val imageRectangle = rectangle.growRectangle(SwingLength(-1f), SwingLength(-1f))
     list.add(createDrawImageCommand(imageRectangle, image))
 
     if (highlightColor != null) {
-      @SwingCoordinate val spacing = FRAGMENT_BORDER_SPACING * scale
-      @SwingCoordinate val roundRectangle = RoundRectangle2D.Float(
-        rectangle.x, rectangle.y, rectangle.width, rectangle.height, 2 * spacing, 2 * spacing)
-
-      growRectangle(roundRectangle, 2 * spacing, 2 * spacing)
-
-      list.add(DrawShape(roundRectangle, highlightColor, HIGHLIGHTED_FRAME_STROKE))
+      val spacing = 2 * FRAGMENT_BORDER_SPACING * scale
+      val roundRectangle = SwingRoundRectangle(rectangle.growRectangle(spacing, spacing), spacing, spacing)
+      list.add(DrawShape(roundRectangle.value, highlightColor, HIGHLIGHTED_FRAME_STROKE))
     }
 
     return list

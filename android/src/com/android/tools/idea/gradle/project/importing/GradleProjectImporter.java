@@ -20,6 +20,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toC
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -30,24 +31,26 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
-public final class GradleProjectImporter {
+public class GradleProjectImporter {
   // A copy of a private constant from GradleJvmStartupActivity.
   @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
@@ -63,8 +66,8 @@ public final class GradleProjectImporter {
     this(SdkSync.getInstance(), new NewProjectSetup(), new ProjectFolder.Factory());
   }
 
-  @VisibleForTesting
   @NonInjectable
+  @VisibleForTesting
   GradleProjectImporter(@NotNull SdkSync sdkSync,
                         @NotNull NewProjectSetup newProjectSetup,
                         @NotNull ProjectFolder.Factory projectFolderFactory) {
@@ -135,20 +138,21 @@ public final class GradleProjectImporter {
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
   }
 
-  public @NotNull Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
-    Project newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.toPath());
-    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
-    gradleSettings.setGradleVmOptions("");
+  @NotNull
+  public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
+    Project newProject;
+    newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.toPath());
 
-    String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
-    GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
-    if (projectSettings == null) {
-      Set<GradleProjectSettings> projects = new HashSet<>(gradleSettings.getLinkedProjectsSettings());
-      projectSettings = new GradleProjectSettings();
-      projectSettings.setExternalProjectPath(externalProjectPath);
-      projects.add(projectSettings);
-      gradleSettings.setLinkedProjectsSettings(projects);
-    }
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    @NotNull GradleVersion gradleVersion = projectSettings.resolveGradleVersion();
+    @NotNull GradleSettings settings = GradleSettings.getInstance(newProject);
+    GradleProjectImportUtil.setupGradleSettings(settings);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, projectFolderPath.toPath());
+    GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, gradleVersion);
+    GradleSettings.getInstance(newProject).setStoreProjectFilesExternally(false);
+    //noinspection unchecked
+    ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);
+
     return newProject;
   }
 
