@@ -9,6 +9,7 @@ import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       final List<String> proguardCfgUrls = new ArrayList<String>();
 
       if (!Boolean.FALSE.toString().equals(includeSystemCfgStr)) {
-        proguardCfgUrls.add(AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
+        proguardCfgUrls.add(AndroidFacetProperties.PROGUARD_SYSTEM_CFG_FILE_URL);
       }
       proguardCfgUrls.add(proguardCfgFileUrl);
       final Element newElement = new Element("proGuardCfgFiles");
@@ -150,7 +151,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       final List<String> proguardCfgUrls = new ArrayList<String>();
 
       if (Boolean.parseBoolean(includeSystemCfgStr)) {
-        proguardCfgUrls.add(AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
+        proguardCfgUrls.add(AndroidFacetProperties.PROGUARD_SYSTEM_CFG_FILE_URL);
       }
       if (proguardCfgFileUrl != null && !proguardCfgFileUrl.isEmpty()) {
         proguardCfgUrls.add(proguardCfgFileUrl);

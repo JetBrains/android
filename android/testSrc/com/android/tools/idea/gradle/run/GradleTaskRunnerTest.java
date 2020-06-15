@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import static org.mockito.Mockito.mock;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
@@ -27,8 +29,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -37,8 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.mock;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleTaskRunnerTest extends AndroidGradleTestCase {
   public void testExecuteTask() throws InterruptedException {
@@ -47,7 +46,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     GradleBuildInvokerStub buildInvoker = new GradleBuildInvokerStub(project);
     ServiceContainerUtil.replaceService(project, GradleBuildInvoker.class, buildInvoker, getTestRootDisposable());
 
-    GradleTaskRunner runner = GradleTaskRunner.newRunner(project);
+    GradleTaskRunner runner = GradleTaskRunner.newRunner(project, null);
     CountDownLatch countDownLatch = new CountDownLatch(1);
     ForkJoinPool.commonPool().execute(() -> {
       try {

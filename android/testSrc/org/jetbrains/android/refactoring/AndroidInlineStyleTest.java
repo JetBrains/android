@@ -1,6 +1,6 @@
 package org.jetbrains.android.refactoring;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.intellij.openapi.actionSystem.Presentation;

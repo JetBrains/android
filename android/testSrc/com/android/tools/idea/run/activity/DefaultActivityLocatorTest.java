@@ -18,7 +18,9 @@ package com.android.tools.idea.run.activity;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestModificationListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiClass;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActivitiesFromMergedManifest;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -56,7 +59,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   private void renameClass(@NotNull String oldName, @NotNull String newName) {
     PsiClass classToRename = myFixture.findClass(oldName);
-    myFixture.renameElement(classToRename, newName, true, true);
+    myFixture.renameElement(classToRename, newName);
   }
 
   private void runAndWaitForMergedManifestUpdate(@NotNull Runnable runnable) throws Exception {
@@ -68,7 +71,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   @Nullable
   private static String computeDefaultActivity(@NotNull AndroidFacet facet, @Nullable IDevice device) {
-    List<DefaultActivityLocator.ActivityWrapper> activities = DefaultActivityLocator.getActivitiesFromMergedManifest(facet);
+    List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromMergedManifest(facet);
     if (device == null) {
       return DefaultActivityLocator.computeDefaultActivity(activities);
     }
@@ -90,7 +93,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LauncherAlias", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LauncherAlias", computeDefaultActivity(myFacet, null));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
@@ -126,11 +129,11 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LaunchActivity", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LaunchActivity", computeDefaultActivity(myFacet, null));
 
     // make sure that the dom based approach to getting values works as well
     final Manifest manifest = Manifest.getMainManifest(myFacet);
-    assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
+    assertEquals("com.example.unittest.LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
   }
 
   public void testLauncherActivityIntent() throws Exception {
@@ -140,7 +143,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testBlockStrategy_blocksOnFreshMergedManifest() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("BLOCK");
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.BLOCK);
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
@@ -152,7 +155,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testStaleStrategy_blocksBackgroundThreadOnFreshMergedManifest() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("STALE");
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.STALE);
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
@@ -164,7 +167,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testStaleStrategy_usesStaleManifestOnEdt() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("STALE");
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.STALE);
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -184,5 +187,44 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
       () -> assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null)));
     // But it eventually is able to identify the correct class once the merged manifest has been recomputed.
     assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
+  }
+
+  public void testIndexStrategy_onBackgroundThread() throws Exception {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    MergedManifestModificationListener.ensureSubscribed(getProject());
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    assertEquals("com.example.unittest.Launcher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
+    renameClass("com.example.unittest.Launcher", "NewLauncher");
+    assertEquals("com.example.unittest.NewLauncher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
+  }
+
+  public void testIndexStrategy_onEdt() {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    MergedManifestModificationListener.ensureSubscribed(getProject());
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
+    renameClass("com.example.unittest.Launcher", "NewLauncher");
+    assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
+  }
+
+  public void testIndexStrategy_cacheHit() {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    MergedManifestModificationListener.ensureSubscribed(getProject());
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromMergedManifest(myFacet);
+    assertSame(activities, getActivitiesFromMergedManifest(myFacet));
   }
 }

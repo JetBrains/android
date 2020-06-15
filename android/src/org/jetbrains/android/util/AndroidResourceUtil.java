@@ -71,6 +71,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.CreateElementActionBase;
@@ -102,10 +103,13 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -127,6 +131,7 @@ import java.util.Set;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.ManifestClass;
+import org.jetbrains.android.augment.StyleableAttrLightField;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
@@ -227,10 +232,61 @@ public class AndroidResourceUtil {
                                               @NotNull Collection<String> resourceNames,
                                               boolean onlyInOwnPackages) {
     final List<PsiField> result = new ArrayList<>();
-    for (PsiClass rClass : findRJavaClasses(facet, onlyInOwnPackages)) {
+    for (PsiClass rClass : findRJavaClasses(facet)) {
       findResourceFieldsFromClass(rClass, resClassName, resourceNames, result);
     }
     return result.toArray(PsiField.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  public static PsiField[] findStyleableAttrFieldsForAttr(@NotNull AndroidFacet facet, @NotNull String attrName) {
+    final List<PsiField> result = new ArrayList<>();
+    for (PsiClass rClass : findRJavaClasses(facet)) {
+      PsiClass styleableClass = rClass.findInnerClassByName(STYLEABLE.getName(), false);
+      if (styleableClass == null) continue;
+      for (PsiField field : styleableClass.getFields()) {
+        if (field instanceof StyleableAttrLightField) {
+          if (((StyleableAttrLightField)field).getStyleableAttrFieldUrl().getAttr().getName().equals(attrName)) {
+            result.add(field);
+          }
+        }
+      }
+    }
+    return result.toArray(PsiField.EMPTY_ARRAY);
+  }
+
+
+  @NotNull
+  public static PsiField[] findStyleableAttrFieldsForStyleable(@NotNull AndroidFacet facet, @NotNull String styleableName) {
+    final List<PsiField> result = new ArrayList<>();
+    for (PsiClass rClass : findRJavaClasses(facet)) {
+      PsiClass styleableClass = rClass.findInnerClassByName(STYLEABLE.getName(), false);
+      if (styleableClass == null) continue;
+      for (PsiField field : styleableClass.getFields()) {
+        if (field instanceof StyleableAttrLightField) {
+          if (((StyleableAttrLightField)field).getStyleableAttrFieldUrl().getStyleable().getName().equals(styleableName)) {
+            result.add(field);
+          }
+        }
+      }
+    }
+    return result.toArray(PsiField.EMPTY_ARRAY);
+  }
+
+  /**
+   * Clears the reference resolution cache and triggers the highlighting in the project.
+   *
+   * <p>
+   * This is necessary after a complex Android Resource refactor where the ResourceFolderRepository needs to rescan files to stay up to
+   * date. This must be called after the ResourceFolderRepository has scheduled the scan (at the end of the refactor) so that the caches
+   * are dropped after the repository is updated.
+   * </p>
+   */
+  public static void scheduleNewResolutionAndHighlighting(@NotNull PsiManager psiManager) {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      psiManager.dropResolveCaches();
+      ((PsiModificationTrackerImpl)psiManager.getModificationTracker()).incCounter();
+    });
   }
 
   private static void findResourceFieldsFromClass(@NotNull PsiClass rClass,
@@ -254,15 +310,11 @@ public class AndroidResourceUtil {
    * Finds all R classes that contain fields for resources from the given module.
    *
    * @param facet {@link AndroidFacet} of the module to find classes for
-   * @param onlyInOwnPackages whether to limit results to "canonical" R classes, that is classes defined in the same module as the module
-   *                          they describe. When sync-time R.java generation is used, sources for the same fully-qualified R class are
-   *                          generated both in the owning module and all modules depending on it.
    * @return
    */
   @NotNull
-  private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
+  private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet) {
     final Module module = facet.getModule();
-    final Project project = module.getProject();
     if (Manifest.getMainManifest(facet) == null) {
       return Collections.emptySet();
     }
@@ -1378,6 +1430,32 @@ public class AndroidResourceUtil {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  public static ResourceReferencePsiElement getResourceElementFromSurroundingValuesTag(@NotNull PsiElement element) {
+    PsiFile file = element.getContainingFile();
+    if (file != null && isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName()) &&
+        (element.getText() == null || ResourceUrl.parse(element.getText()) == null)) {
+      XmlTag valuesResource = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+      if (valuesResource != null && VALUE_RESOURCE_TYPES.contains(getResourceTypeForResourceTag(valuesResource))) {
+        XmlAttribute attribute = valuesResource.getAttribute(ATTR_NAME);
+        if (attribute == null) {
+          return null;
+        }
+        XmlAttributeValue valueElement = attribute.getValueElement();
+        if (valueElement == null) {
+          return null;
+        }
+        PsiReference elementReference = valueElement.getReference();
+        if (elementReference == null) {
+          return null;
+        }
+        PsiElement resolvedElement = elementReference.resolve();
+        return resolvedElement instanceof ResourceReferencePsiElement ? (ResourceReferencePsiElement)resolvedElement : null;
+      }
+    }
     return null;
   }
 

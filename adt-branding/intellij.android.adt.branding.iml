@@ -14,9 +14,12 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.java.ui" />
     <orderEntry type="module" module-name="intellij.xml.impl" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="commons-imaging" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
   </component>
 </module>

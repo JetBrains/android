@@ -17,13 +17,14 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,9 +145,24 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
         }
       }
       else {
-        // TODO consider generated source
         for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
           roots.addAll(getAllSourceFolders(sourceProvider));
+        }
+
+        // Workaround for (b/151029089) and Gradle not providing generated test sources (b/153655585)
+        IdeBaseArtifact testArtifact;
+        switch (artifactName) {
+          case ARTIFACT_UNIT_TEST:
+            testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
+            break;
+          case ARTIFACT_ANDROID_TEST:
+            testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
+            break;
+          default:
+            testArtifact = null;
+        }
+        if (testArtifact != null) {
+          roots.addAll(testArtifact.getGeneratedSourceFolders());
         }
       }
     }
@@ -164,7 +181,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // When a file is shared by both tests, then the test should only access the dependencies that android test and unit test both
       // have. Since the API requires us return a excluding scope, we want to exclude all the dependencies android test doesn't
       // includes and the ones that unit test doesn't have.
-      mySharedTestsExcludeScope = getAndroidTestDependencyExcludeScope().add(getUnitTestDependencyExcludeScope());
+      mySharedTestsExcludeScope = getAndroidTestExcludeClasspathScope().add(getUnitTestExcludeClasspathScope());
     }
     return mySharedTestsExcludeScope;
   }
@@ -176,7 +193,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // Exclude all unit tests, unless some of them are also android tests (currently that's never the case).
       FileRootSearchScope exclude = getUnitTestSourceScope().subtract(getAndroidTestSourceScope());
       // Exclude all dependencies which are only for unit tests.
-      myAndroidTestExcludeScope = exclude.add(getAndroidTestDependencyExcludeScope());
+      myAndroidTestExcludeScope = exclude.add(getAndroidTestExcludeClasspathScope());
     }
     return myAndroidTestExcludeScope;
   }
@@ -188,7 +205,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // Exclude all android tests, unless some of them are also unit tests (currently that's never the case).
       FileRootSearchScope exclude = getAndroidTestSourceScope().subtract(getUnitTestSourceScope());
       // Exclude all dependencies which are only for android tests.
-      myUnitTestExcludeScope = exclude.add(getUnitTestDependencyExcludeScope());
+      myUnitTestExcludeScope = exclude.add(getUnitTestExcludeClasspathScope());
     }
     return myUnitTestExcludeScope;
   }
@@ -199,23 +216,23 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   }
 
   @NotNull
-  private FileRootSearchScope getAndroidTestDependencyExcludeScope() {
+  private FileRootSearchScope getAndroidTestExcludeClasspathScope() {
     if (myAndroidTestDependencyExcludeScope == null) {
-      myAndroidTestDependencyExcludeScope = getExcludedDependenciesScope(ARTIFACT_ANDROID_TEST);
+      myAndroidTestDependencyExcludeScope = getExcludeClasspathScope(ARTIFACT_ANDROID_TEST);
     }
     return myAndroidTestDependencyExcludeScope;
   }
 
   @NotNull
-  private FileRootSearchScope getUnitTestDependencyExcludeScope() {
+  private FileRootSearchScope getUnitTestExcludeClasspathScope() {
     if (myUnitTestDependencyExcludeScope == null) {
-      myUnitTestDependencyExcludeScope = getExcludedDependenciesScope(ARTIFACT_UNIT_TEST);
+      myUnitTestDependencyExcludeScope = getExcludeClasspathScope(ARTIFACT_UNIT_TEST);
     }
     return myUnitTestDependencyExcludeScope;
   }
 
   @NotNull
-  private FileRootSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
+  private FileRootSearchScope getExcludeClasspathScope(@NotNull String artifactName) {
     if (getAndroidModel() == null) {
       return new FileRootSearchScope(myModule.getProject(), Collections.emptyList());
     }
@@ -270,7 +287,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   private void extractMainDependencies(@NotNull AndroidModuleModel androidModel) {
     synchronized (ourLock) {
       if (myMainDependencies == null) {
-        myMainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact());
+        myMainDependencies = extractDependencies(getProjectBasePath(), COMPILE, androidModel.getMainArtifact());
       }
     }
   }
@@ -295,14 +312,14 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
 
   @NotNull
   private DependencySet extractTestDependencies(@Nullable IdeBaseArtifact artifact) {
-    return extractDependencies(TEST, artifact);
+    return extractDependencies(getProjectBasePath(), TEST, artifact);
   }
 
   @NotNull
-  private DependencySet extractDependencies(@NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
+  private DependencySet extractDependencies(@NotNull File basePath, @NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
       ModuleFinder moduleFinder = ProjectStructure.getInstance(myModule.getProject()).getModuleFinder();
-      return DependenciesExtractor.getInstance().extractFrom(artifact, scope, moduleFinder);
+      return DependenciesExtractor.getInstance().extractFrom(basePath, artifact, scope, moduleFinder);
     }
     return DependencySet.EMPTY;
   }
@@ -310,6 +327,11 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @Nullable
   private AndroidModuleModel getAndroidModel() {
     return myModule.isDisposed() ? null : AndroidModuleModel.get(myModule);
+  }
+
+  @NotNull
+  private File getProjectBasePath() {
+    return new File(Objects.requireNonNull(getModule().getProject().getBasePath()));
   }
 
   /**

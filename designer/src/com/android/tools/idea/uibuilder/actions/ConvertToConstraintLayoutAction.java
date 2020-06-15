@@ -82,7 +82,7 @@ import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

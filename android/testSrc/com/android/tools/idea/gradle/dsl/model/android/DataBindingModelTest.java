@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_PARSE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.DATA_BINDING_MODEL_REMOVE_ELEMENTS;
 
@@ -62,6 +65,8 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     dataBinding.version().setValue("2.0");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, DATA_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -89,6 +94,8 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     dataBinding.version().setValue("1.0");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, DATA_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -101,7 +108,6 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
   @Test
   public void testAddElementsFromExisting() throws Exception {
     writeToBuildFile(DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING);
-
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -116,13 +122,14 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     dataBinding.version().setValue("1.0");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
     dataBinding = android.dataBinding();
     assertEquals("addDefaultAdapters", Boolean.TRUE, dataBinding.addDefaultAdapters());
     assertEquals("enabled", Boolean.FALSE, dataBinding.enabled());
-    assertEquals("version", "1.0", dataBinding.version());
   }
 
   @Test
@@ -144,6 +151,8 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     dataBinding.version().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
 

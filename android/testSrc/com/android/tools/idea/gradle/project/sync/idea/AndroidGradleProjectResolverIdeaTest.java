@@ -38,6 +38,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -66,9 +67,9 @@ import java.util.Collection;
 import java.util.List;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
+import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
@@ -81,7 +82,6 @@ import org.mockito.Mock;
  */
 public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
-  @Mock private ProjectImportErrorHandler myErrorHandler;
   @Mock private ProjectFinder myProjectFinder;
   @Mock private VariantSelector myVariantSelector;
   @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
@@ -131,7 +131,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     };
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector,
+    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myVariantSelector,
                                                          myNativeAndroidProjectFactory, myIdeaJavaModuleModelFactory,
                                                          new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);
@@ -321,6 +321,57 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
     Variant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
+  }
+
+  public void testKaptTestSourcesAreAddedToAndroidModuleModel() {
+    DataNode<ProjectData> projectNode = createProjectNode();
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
+
+    File androidTestGeneratedSourceFile = new File("/gen/debugAndroidTest");
+    File unitTestGeneratedSourceFile = new File("/gen/debugUnitTest");
+
+    KaptGradleModel mockKaptModel = new KaptGradleModel() {
+      @Override
+      public boolean isEnabled() {
+        return true;
+      }
+
+      @NotNull
+      @Override
+      public File getBuildDirectory() {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public List<KaptSourceSetModel> getSourceSets() {
+        KaptSourceSetModel androidTestSetModel = mock(KaptSourceSetModel.class);
+        when(androidTestSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(androidTestGeneratedSourceFile);
+        when(androidTestSetModel.getSourceSetName()).thenReturn("debugAndroidTest");
+        when(androidTestSetModel.isTest()).thenReturn(true);
+        KaptSourceSetModel unitTestSetModel = mock(KaptSourceSetModel.class);
+        when(unitTestSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(unitTestGeneratedSourceFile);
+        when(unitTestSetModel.getSourceSetName()).thenReturn("debugUnitTest");
+        when(unitTestSetModel.isTest()).thenReturn(true);
+        return ImmutableList.of(androidTestSetModel, unitTestSetModel);
+      }
+    };
+
+    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
+
+    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
+    myResolverCtx.setModels(allModels);
+
+    myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
+
+    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
+    assertThat(androidModelNodes).hasSize(1);
+    AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
+    IdeVariant variant = androidModuleModel.findVariantByName("debug");
+    assertThat(variant.getAndroidTestArtifact().getGeneratedSourceFolders()).contains(androidTestGeneratedSourceFile);
+    assertThat(variant.getUnitTestArtifact().getGeneratedSourceFolders()).contains(unitTestGeneratedSourceFile);
   }
 
   @NotNull

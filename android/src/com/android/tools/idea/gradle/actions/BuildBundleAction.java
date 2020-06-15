@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BuildBundleAction extends DumbAwareAction {
@@ -56,24 +51,12 @@ public class BuildBundleAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToBundleLocationTask(project, appModules, ACTION_TEXT));
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        gradleBuildInvoker.bundle(modulesToBuild, Collections.emptyList(), new OutputBuildAction(getModuleGradlePaths(appModules)));
+        gradleBuildInvoker.bundle(modulesToBuild, OutputBuildActionUtil.create(appModules));
       }
       else {
         DynamicAppUtils.promptUserForGradleUpdate(project);
       }
     }
-  }
-
-  @NotNull
-  private static List<String> getModuleGradlePaths(@NotNull List<Module> modules) {
-    List<String> gradlePaths = new ArrayList<>();
-    for (Module module : modules) {
-      String gradlePath = getGradlePath(module);
-      if (gradlePath != null) {
-        gradlePaths.add(gradlePath);
-      }
-    }
-    return gradlePaths;
   }
 
   private static boolean isProjectBuildWithGradle(@Nullable Project project) {

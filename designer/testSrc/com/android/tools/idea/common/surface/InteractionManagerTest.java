@@ -48,6 +48,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
@@ -62,6 +63,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -80,6 +82,22 @@ import org.mockito.Mockito;
  */
 public class InteractionManagerTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper(true, false);
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    StudioFlags.NELE_NEW_INTERACTION_INTERFACE.override(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.NELE_NEW_INTERACTION_INTERFACE.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
@@ -316,7 +334,6 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testLinearLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    when(((NlDesignSurface)surface).isResizeAvailable()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height,
@@ -324,7 +341,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
-  private InteractionManager setupLinearLayoutCursorTest() {
+  protected InteractionManager setupLinearLayoutCursorTest() {
     SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
       .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
       .withBounds(0, 0, 100, 100)
@@ -387,7 +404,6 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testConstraintLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    when(((NlDesignSurface)surface).isResizeAvailable()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height,
@@ -396,6 +412,10 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testCursorChangeWhenSetPanningTrue() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // AdtUiCursors.GRAB is not created properly in headless environment. See AdtUiCursors.makeCursor()
+      return;
+    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
 
@@ -405,6 +425,10 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testInterceptPanOnModifiedKeyPressed() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // AdtUiCursors.GRABBING is not created properly in headless environment. See AdtUiCursors.makeCursor()
+      return;
+    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     Point moved = new Point(0, 0);
@@ -416,6 +440,10 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testInterceptPanModifiedKeyReleased() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // AdtUiCursors.GRAB is not created properly in headless environment. See AdtUiCursors.makeCursor()
+      return;
+    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
@@ -507,7 +535,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     return new MouseEvent(sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false, button);
   }
 
-  private InteractionManager setupConstraintLayoutCursorTest() {
+  protected InteractionManager setupConstraintLayoutCursorTest() {
     SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()

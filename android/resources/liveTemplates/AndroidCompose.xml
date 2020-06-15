@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templateSet group="AndroidCompose">
+  <template name="W" description="Surround with widget"
+            value="$WIDGET$ {&#10;  $SELECTION$&#10;  $END$ }"
+            toReformat="true" toShortenFQNames="true">
+    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.ui.layout.Container&quot;" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN" value="true"/>
+      <option name="KOTLIN_COMMENT" value="false"/>
+    </context>
+  </template>
+</templateSet>
+

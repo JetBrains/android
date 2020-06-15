@@ -2,6 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 18
     buildToolsVersion "19.1.0"
@@ -22,6 +24,12 @@ android {
 }
 
 dependencies {
-    api 'com.android.support:appcompat-v7:+'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     api fileTree(dir: 'libs', include: ['*.jar'])
+    kapt 'com.google.dagger:dagger-compiler:2.6'
+}
+
+kapt {
+    javacOptions {
+    }
 }

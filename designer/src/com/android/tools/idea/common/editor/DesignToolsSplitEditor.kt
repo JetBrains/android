@@ -20,14 +20,14 @@ import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.codeHighlighting.HighlightingPass
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
-import com.intellij.util.ArrayUtil
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import javax.swing.JComponent
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 
@@ -38,8 +38,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
                                   val designerEditor: DesignerEditor,
                                   editorName: String,
                                   private val project: Project)
-  : SplitEditor(textEditor, designerEditor, editorName,
-                if (AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) Layout.SHOW_EDITOR else Layout.SHOW_PREVIEW) {
+  : SplitEditor<DesignerEditor>(textEditor, designerEditor, editorName, defaultLayout(designerEditor)) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 
@@ -57,8 +56,15 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
       return String.format("%s_%s", SPLIT_MODE_PROPERTY_PREFIX, file.path)
     }
 
-  init {
-    restoreSurfaceState()
+  private var stateRestored = false
+
+  override fun getComponent(): JComponent {
+    val thisComponent = super.getComponent()
+    if (!stateRestored) {
+      stateRestored = true
+      restoreSurfaceState()
+    }
+    return thisComponent
   }
 
   private fun restoreSurfaceState() {
@@ -123,6 +129,9 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
   }
 
   override fun setState(state: FileEditorState) {
+    // Restore the editor state, which includes, for instance, cursor position.
+    myEditor.setState(state)
+
     // Restore the surface mode persisted.
     val propertyName = modePropertyName
     var propertyValue: String? = null
@@ -142,7 +151,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
   }
 
   private inner class MyToolBarAction internal constructor(delegate: SplitEditorAction, internal val surfaceState: DesignSurface.State)
-    : SplitEditor.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate) {
+    : SplitEditor<DesignerEditor>.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate) {
 
     override fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
       designerEditor.component.surface.state = surfaceState
@@ -165,4 +174,10 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
       return designEditorPasses + textEditorPasses
     }
   }
+}
+
+private fun defaultLayout(designerEditor: DesignerEditor) = when(designerEditor.component.surface.state) {
+  DesignSurface.State.FULL -> TextEditorWithPreview.Layout.SHOW_PREVIEW
+  DesignSurface.State.SPLIT -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
+  DesignSurface.State.DEACTIVATED -> TextEditorWithPreview.Layout.SHOW_EDITOR
 }

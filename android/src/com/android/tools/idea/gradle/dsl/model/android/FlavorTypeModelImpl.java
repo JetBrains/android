@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Function;
@@ -38,25 +39,25 @@ import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtFile;
 
 /**
  * Common base class for {@link BuildTypeModelImpl} and {@link ProductFlavorModelImpl}.
  */
 public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements FlavorTypeModel {
-  @NonNls private static final String APPLICATION_ID_SUFFIX = "applicationIdSuffix";
-  @NonNls private static final String BUILD_CONFIG_FIELD = "buildConfigField";
-  @NonNls private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
-  @NonNls private static final String MANIFEST_PLACEHOLDERS = "manifestPlaceholders";
-  @NonNls private static final String MATCHING_FALLBACKS = "matchingFallbacks";
-  @NonNls private static final String MULTI_DEX_ENABLED = "multiDexEnabled";
-  @NonNls private static final String MULTI_DEX_KEEP_FILE = "multiDexKeepFile";
-  @NonNls private static final String MULTI_DEX_KEEP_PROGUARD = "multiDexKeepProguard";
-  @NonNls private static final String PROGUARD_FILES = "proguardFiles";
-  @NonNls private static final String SET_PROGUARD_FILES = "setProguardFiles";
-  @NonNls private static final String RES_VALUE = "resValue";
-  @NonNls private static final String SIGNING_CONFIG = "signingConfig";
-  @NonNls private static final String USE_JACK = "useJack";
-  @NonNls private static final String VERSION_NAME_SUFFIX = "versionNameSuffix";
+  @NonNls public static final String APPLICATION_ID_SUFFIX = "mApplicationIdSuffix";
+  @NonNls public static final String BUILD_CONFIG_FIELD = "mBuildConfigField";
+  @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
+  @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
+  @NonNls public static final String MATCHING_FALLBACKS = "mMatchingFallbacks";
+  @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
+  @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
+  @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";
+  @NonNls public static final String PROGUARD_FILES = "mProguardFiles";
+  @NonNls public static final String RES_VALUE = "mResValue";
+  @NonNls public static final String SIGNING_CONFIG = "mSigningConfig";
+  @NonNls public static final String USE_JACK = "mUseJack";
+  @NonNls public static final String VERSION_NAME_SUFFIX = "mVersionNameSuffix";
 
   public FlavorTypeModelImpl(@NotNull AbstractFlavorTypeDslElement dslElement) {
     super(dslElement);
@@ -133,6 +134,10 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel manifestPlaceholders() {
+    GradleDslExpressionMap manifestPlaceholders = myDslElement.getPropertyElement(GradleDslExpressionMap.MANIFEST_PLACEHOLDERS);
+    if (manifestPlaceholders == null) {
+      myDslElement.addDefaultProperty(new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(MANIFEST_PLACEHOLDERS)));
+    }
     return getModelForProperty(MANIFEST_PLACEHOLDERS);
   }
 
@@ -151,20 +156,20 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel multiDexKeepFile() {
-    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_FILE).asMethod(true).addTransform(FILE_TRANSFORM).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_FILE).addTransform(FILE_TRANSFORM).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel multiDexKeepProguard() {
-    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_PROGUARD).asMethod(true).addTransform(FILE_TRANSFORM)
+    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_PROGUARD).addTransform(FILE_TRANSFORM)
                                      .buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel proguardFiles() {
-    return getModelForProperty(PROGUARD_FILES, true);
+    return getModelForProperty(PROGUARD_FILES);
   }
 
   @Override
@@ -213,7 +218,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public SigningConfigPropertyModel signingConfig() {
-    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).asMethod(true).buildSigningConfig();
+    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).buildSigningConfig();
   }
 
   @Override
@@ -303,15 +308,14 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
                                                                           @NotNull String name,
                                                                           @NotNull String value) {
     GradleNameElement nameElement = GradleNameElement.create(elementName);
-    // For kts build files, buildConfigField and resValue are declared in callExpression psiElements and are expected to be converted to
-    // GradleDslMethodCall instead of GradleDslExpressionList (as of in Groovy).
-    // Currently we can, at this level, find if we are dealing with a Groovy or Kts model by checking ${myDslElement) : if this is
-    // a AbstractFlavorTypeDslElement and has a methodName => it's a KTS based mode, otherwise, it's Groovy.
-    // TODO(karimai) : this is just a workaround, find a better way of separating use cases.
+    // TODO(b/141842964): Groovy expects buildConfigField and resValue to be expressed with GradleDslExpressionList, while Kotlin expresses
+    //  them with a GradleDslMethodCall.  This method of detecting which to produce is unsound given the possibility of multi-language build
+    //  files, and should in any case be replaced by the two language backends producing a common representation.
+    boolean forKotlin = myDslElement.getDslFile().getPsiElement() instanceof KtFile;
     GradleDslExpressionList expressionList;
     GradleDslMethodCall expressionCall = null;
-    if (myDslElement instanceof AbstractFlavorTypeDslElement && ((AbstractFlavorTypeDslElement)myDslElement).getMethodName() != null) {
-       expressionCall = new GradleDslMethodCall(myDslElement, nameElement, elementName);
+    if (forKotlin) {
+      expressionCall = new GradleDslMethodCall(myDslElement, nameElement, elementName);
       expressionList = new GradleDslExpressionList(expressionCall, nameElement, false);
       expressionCall.setParsedArgumentList(expressionList);
     }

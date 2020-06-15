@@ -8,9 +8,9 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",
-        "//tools/idea/images:intellij.platform.images",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
         "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
+        "//tools/idea/images:intellij.platform.images",
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -27,6 +27,7 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
         "//tools/idea/platform/built-in-server:intellij.platform.builtInServer.impl",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
     ],
     # do not sort: must match IML order
     deps = [

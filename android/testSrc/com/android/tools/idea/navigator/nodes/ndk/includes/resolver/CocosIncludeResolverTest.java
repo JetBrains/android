@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import com.android.utils.FileUtils;
 import org.junit.Test;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("external");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/cocos2d/external");
   }
 
@@ -68,7 +69,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("editor-support");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/cocos2d/cocos/editor-support");
   }
 
@@ -84,7 +85,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("cocos2d");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/cocos2d");
   }
 
@@ -100,7 +101,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("cocos");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/cocos2d/cocos");
   }
 
@@ -116,7 +117,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("some-package");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/cocos/editor-support/some-package/b/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/cocos2d");
   }
 
@@ -132,7 +133,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("some-package");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/cocos/some-package/b/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/cocos2d");
   }
 
@@ -148,7 +149,7 @@ public class CocosIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("tests");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/tests/cpp-empty-test/Classes/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/someuser/cocos2d-x");
   }
 }

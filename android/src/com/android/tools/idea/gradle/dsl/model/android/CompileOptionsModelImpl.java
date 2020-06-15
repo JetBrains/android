@@ -24,11 +24,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class CompileOptionsModelImpl extends BaseCompileOptionsModelImpl implements
                                                                          CompileOptionsModel {
-  @NonNls private static final String ENCODING = "encoding";
-  @NonNls private static final String INCREMENTAL = "incremental";
+  @NonNls public static final String ENCODING = "mEncoding";
+  @NonNls public static final String INCREMENTAL = "mIncremental";
 
-  public CompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement, boolean useAssignment) {
-    super(dslElement, useAssignment);
+  public CompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement) {
+    super(dslElement);
   }
 
   @Override

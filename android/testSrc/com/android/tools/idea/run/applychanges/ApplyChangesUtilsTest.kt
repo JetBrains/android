@@ -39,6 +39,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -54,18 +55,25 @@ import org.mockito.MockitoAnnotations
 class ApplyChangesUtilsTest {
   @Mock
   lateinit var mockEnv: ExecutionEnvironment
+
   @Mock
   lateinit var mockDevices: DeviceFutures
+
   @Mock
   lateinit var mockProject: Project
+
   @Mock
   lateinit var mockExecutionManager: ExecutionManager
+
   @Mock
   lateinit var mockRunProfile: AndroidRunConfigurationBase
+
   @Mock
   lateinit var mockExecutionTarget: ExecutionTarget
+
   @Mock
   lateinit var mockDebugManager: DebuggerManagerEx
+
   @Mock
   lateinit var mockRunContentManager: RunContentManager
 
@@ -76,10 +84,10 @@ class ApplyChangesUtilsTest {
     `when`(mockEnv.runProfile).thenReturn(mockRunProfile)
     `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
     `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf())
-    `when`(mockProject.getService(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
-    `when`(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
-    `when`(mockProject.getService(eq(RunContentManager::class.java))).thenReturn(mockRunContentManager)
+    `when`(mockProject.getService(eq(ExecutionManager::class.java), anyBoolean())).thenReturn(mockExecutionManager)
+    `when`(mockProject.getComponent(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
     `when`(mockDebugManager.sessions).thenReturn(listOf())
+    `when`(mockProject.getService(eq(RunContentManager::class.java), anyBoolean())).thenReturn(mockRunContentManager)
   }
 
   @Test

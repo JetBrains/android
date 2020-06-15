@@ -43,7 +43,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
       .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
       .withEntry(PackageMigrationEntry("android.support.design", "androidx.design"))
-      .run(myFixture)
+      .run(myFixture, mapOf("MainActivity.java" to "MainActivity_after.java"))
   }
 
   /**
@@ -56,7 +56,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
       .withEntry(PackageMigrationEntry("android.support.design", "androidx.design"))
       .withEntry(PackageMigrationEntry("android.support", "wrong"))
-      .run(myFixture)
+      .run(myFixture, mapOf("MainActivity.java" to "MainActivity_after.java"))
   }
 
   fun testMigrateLayoutXml() {
@@ -68,7 +68,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
       .withEntry(PackageMigrationEntry("android.support", "androidx"))
       .withFileInProject("app_bar_main.xml", "res/layout/app_bar_main.xml")
-      .run(myFixture)
+      .run(myFixture, mapOf("app_bar_main.xml" to "app_bar_main_after.xml"))
   }
 
   fun testMigrateClassNamesInXmlAttributes() {
@@ -82,10 +82,10 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       )
       .withFileInProject("menu_main.xml", "res/menu/menu_main.xml")
       .withFileInProject("AndroidManifest.xml", "AndroidManifest.xml")
-      .run(myFixture)
+      .run(myFixture, mapOf("menu_main.xml" to "menu_main_after.xml", "AndroidManifest.xml" to "AndroidManifest_after.xml"))
   }
 
-  fun testMigrateBuildDependencies() {
+  private fun doTestMigrateBuildDependencies(relativePath: String, targetPath: String, expectedPath:String) {
     // test both map notation as well as compact notation
     AndroidxMigrationBuilder()
       .withEntry(GradleDependencyMigrationEntry("com.android.support", "appcompat-v7",
@@ -100,17 +100,32 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .withEntry(GradleDependencyMigrationEntry("com.android.support", "exifinterface",
                                                 "androidx.exifinterface", "exifinterface", "1.0.0-alpha1"))
       .withEntry(
-        UpdateGradleDepedencyVersionMigrationEntry("androidx.core", "core-ktx",
-                                                   "1.0.0-alpha1"))
-      .withEntry(UpdateGradleDepedencyVersionMigrationEntry("androidx.core",
-                                                            "newer-core-ktx",
-                                                            "1.5.0"))
-      .withEntry(UpdateGradleDepedencyVersionMigrationEntry("androidx.core",
-                                                            "variable-ktx",
-                                                            "1.0.0-alpha1"))
-      .withFileInProject("buildDependencies.gradle", "build.gradle")
+        UpdateGradleDependencyVersionMigrationEntry(
+          "androidx.core", "core-ktx",
+          "1.0.0-alpha1"))
+      .withEntry(UpdateGradleDependencyVersionMigrationEntry(
+        "androidx.core",
+        "newer-core-ktx",
+        "1.5.0"))
+      .withEntry(UpdateGradleDependencyVersionMigrationEntry(
+        "androidx.core",
+        "variable-ktx",
+        "1.0.0-alpha1"))
+      .withEntry(UpdateGradleDependencyVersionMigrationEntry(
+        "androidx.core",
+        "newer-version-ktx",
+        "1.1.0"))
+      .withFileInProject(relativePath, targetPath)
       .withVersionProvider { _, _, defaultVersion -> defaultVersion }
-      .run(myFixture)
+      .run(myFixture, mapOf(relativePath to expectedPath))
+  }
+
+  fun testMigrateBuildDependenciesGroovy() {
+    doTestMigrateBuildDependencies("buildDependencies.gradle", "build.gradle", "buildDependencies_after.gradle")
+  }
+
+  fun testMigrateBuildDependenciesKTS() {
+    doTestMigrateBuildDependencies("buildDependencies.gradle.kts", "build.gradle.kts", "buildDependencies_after.gradle.kts")
   }
 
   /**
@@ -130,7 +145,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       entries += entry
     }
 
-    fun run(fixture: JavaCodeInsightTestFixture) {
+    fun run(fixture: JavaCodeInsightTestFixture, expectedFile: Map<String, String>) {
       TestCase.assertTrue("Requires entries", !entries.isEmpty())
       for ((key, value) in paths.entries) {
         fixture.copyFileToProject(BASE_PATH + key, value)
@@ -157,8 +172,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
 
       // validate results
       for ((key, value) in paths.entries) {
-        val ext = key.substring(key.lastIndexOf('.'))
-        val afterFile = key.substring(0, key.indexOf(ext)) + "_after" + ext
+        val afterFile = expectedFile.get(key) ?: continue
         fixture.checkResultByFile(value, BASE_PATH + afterFile, true)
       }
     }

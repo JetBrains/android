@@ -19,7 +19,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -150,9 +150,8 @@ public class MarginWidget extends JComboBox<String> {
       null,
       true,
       false,
-      tag.getContainingFile().getVirtualFile(),
-      null,
-      tag);
+      tag.getContainingFile().getVirtualFile()
+    );
 
     if (dialog.showAndGet()) {
       String pickedResourceName = dialog.getResourceName();

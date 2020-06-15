@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.components.JBLabel;
-import java.awt.Font;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,7 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

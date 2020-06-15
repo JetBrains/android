@@ -475,7 +475,7 @@ public final class AvdOptionsModel extends WizardModel {
     List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
     String manufacturer = avdInfo.getDeviceManufacturer();
-    String deviceId = avdInfo.getProperties().get(AvdManager.AVD_INI_DEVICE_NAME);
+    String deviceId = avdInfo.getDeviceName();
     for (Device device : devices) {
       if (manufacturer.equals(device.getManufacturer()) && deviceId.equals(device.getId())) {
         selectedDevice = device;

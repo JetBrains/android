@@ -15,38 +15,102 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
-import kotlin.properties.Delegates
+import com.intellij.openapi.util.Disposer
+import java.util.concurrent.atomic.AtomicLong
 
-// TODO: Set this to false before turning the dynamic layout inspector on by default
-private const val DEBUG = true
+@VisibleForTesting
+const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
-class LayoutInspector(layoutInspectorModel: InspectorModel) {
-  val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
-  val client = InspectorClient.createOrGetDefaultInstance(layoutInspectorModel.project)
+class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable: Disposable) : Disposable {
+  var currentClient: InspectorClient = DisconnectedClient
+    private set(client) {
+      if (field != client) {
+        field.disconnect()
+        field = client
+        layoutInspectorModel.updateConnection(client)
+      }
+    }
+
+  private val latestLoadTime = AtomicLong(-1)
+
+  val allClients: List<InspectorClient>
 
   init {
-    client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::showError)
+    val defaultClient = InspectorClient.createInstance(layoutInspectorModel, this)
+    registerClientListeners(defaultClient)
+    val legacyClient = LegacyClient(this)
+    registerClientListeners(legacyClient)
+    allClients = listOf(defaultClient, legacyClient)
+    Disposer.register(parentDisposable, this)
   }
 
-  var layoutInspectorModel: InspectorModel by Delegates.observable(layoutInspectorModel) { _, old, new ->
-    modelChangeListeners.forEach { it(old, new) }
+  override fun dispose() {
   }
 
-  private fun showError(event: LayoutInspectorProto.LayoutInspectorEvent) {
-    Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(event.errorMessage)
+  private fun registerClientListeners(client: InspectorClient) {
+    client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::logError)
+    client.register(Common.Event.EventGroupIds.COMPONENT_TREE) { event ->
+      // TODO: maybe find a better place to do this?
+      currentClient = client
+      loadComponentTree(event)
+    }
+    client.registerProcessChanged(::clearComponentTreeWhenProcessEnds)
+  }
+
+  private fun loadComponentTree(event: Any) {
+    val time = System.currentTimeMillis()
+    val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
+    val (root, rootId) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
+                                                                    currentClient, layoutInspectorModel.project) ?: return
+    if (rootId != null && allIds != null) {
+      ApplicationManager.getApplication().invokeLater {
+        synchronized(latestLoadTime) {
+          if (latestLoadTime.get() > time) {
+            return@invokeLater
+          }
+          latestLoadTime.set(time)
+          layoutInspectorModel.update(root, rootId, allIds)
+        }
+      }
+    }
+  }
+
+  private fun logError(event: Any) {
+    val error = when (event) {
+      is LayoutInspectorProto.LayoutInspectorEvent -> event.errorMessage
+      is String -> event
+      else -> "Unknown Error"
+    }
+
+    Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
 
     @Suppress("ConstantConditionIf")
-    if (DEBUG) {
+    if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
       ApplicationManager.getApplication().invokeLater {
-        Messages.showErrorDialog(layoutInspectorModel.project, event.errorMessage, "Inspector Error")
+        Messages.showErrorDialog(layoutInspectorModel.project, error, "Inspector Error")
       }
+    }
+  }
+
+  private fun clearComponentTreeWhenProcessEnds() {
+    if (currentClient.isConnected) {
+      return
+    }
+    currentClient = DisconnectedClient
+    val application = ApplicationManager.getApplication()
+    application.invokeLater {
+      layoutInspectorModel.update(null, 0, listOf<Any>())
     }
   }
 }

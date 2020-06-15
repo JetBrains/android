@@ -39,6 +39,6 @@ final class Utils {
       .collect(Collectors.toList());
 
     LocalResourceRepository repository = ResourcesTestsUtil.createTestModuleRepository(facet, resVirtualFiles);
-    panel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(repository), facet));
+    panel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(repository), facet.getModule().getProject()));
   }
 }

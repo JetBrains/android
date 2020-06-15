@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import java.util.ArrayList;
@@ -76,8 +77,8 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
 
   @NotNull
   @Override
-  protected Object[] getInnerClassesDependencies() {
-    return new Object[]{mySource.getResourceRepository()};
+  protected ModificationTracker getInnerClassesDependencies() {
+    return () -> mySource.getResourceRepository().getModificationCount();
   }
 
   /**

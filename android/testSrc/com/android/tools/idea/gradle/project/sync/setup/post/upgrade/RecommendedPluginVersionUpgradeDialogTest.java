@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link RecommendedPluginVersionUpgradeDialog}.
  */
 public class RecommendedPluginVersionUpgradeDialogTest extends PlatformTestCase {
-  @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
+  @Mock private RecommendedUpgradeReminder myUpgradeReminder;
 
   private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   private RemindMeTomorrowAction myRemindMeTomorrowAction;
@@ -39,6 +39,7 @@ public class RecommendedPluginVersionUpgradeDialogTest extends PlatformTestCase 
     super.setUp();
     initMocks(this);
 
+    when(myUpgradeReminder.getDoNotAskForProjectPropertyString()).thenReturn("test.property");
     myUpgradeDialog = new RecommendedPluginVersionUpgradeDialog(getProject(), GradleVersion.parse("2.2.0"), GradleVersion.parse("2.3.0"),
                                                                 myUpgradeReminder);
     myRemindMeTomorrowAction = myUpgradeDialog.new RemindMeTomorrowAction();
@@ -47,12 +48,12 @@ public class RecommendedPluginVersionUpgradeDialogTest extends PlatformTestCase 
   public void testRemindMeLater() {
     myRemindMeTomorrowAction.doAction(mock(ActionEvent.class));
     // Verify that the timestamp was recorded, so a day later the user will be reminded about the upgrade.
-    verify(myUpgradeReminder).storeLastUpgradeRecommendation(getProject());
+    verify(myUpgradeReminder).updateLastTimestamp();
   }
 
   public void testCloseDialog() {
     myUpgradeDialog.doCancelAction();
     // Verify that when user close the upgrade dialog, timestamp is not recorded.
-    verify(myUpgradeReminder, never()).storeLastUpgradeRecommendation(getProject());
+    verify(myUpgradeReminder, never()).updateLastTimestamp();
   }
 }

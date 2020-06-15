@@ -78,10 +78,12 @@ public class OnClickEnumSupportTest extends AndroidTestCase {
   }
 
   public void testFindPossibleValuesWithUnknownActivityName() {
+/* b/146019765
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("onClick", "onClick", "MainActivity"),
       new ValueWithDisplayString("help", "help", "MainActivity"),
       new ValueWithDisplayString("startProcessing", "startProcessing", "OtherActivity")).inOrder();
+b/146019765 */
   }
 
   public void testCreateDefaultValue() {

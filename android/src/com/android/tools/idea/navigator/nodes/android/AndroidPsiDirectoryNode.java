@@ -16,13 +16,13 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,12 +30,12 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
-  private final IdeaSourceProvider mySourceProvider;
+  private final NamedIdeaSourceProvider mySourceProvider;
 
   AndroidPsiDirectoryNode(@NotNull Project project,
                           @NotNull PsiDirectory directory,
                           @NotNull ViewSettings settings,
-                          @Nullable IdeaSourceProvider sourceProvider) {
+                          @Nullable NamedIdeaSourceProvider sourceProvider) {
     super(project, directory, settings);
     mySourceProvider = sourceProvider;
   }
@@ -71,7 +71,7 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   }
 
   @NotNull
-  static String toTestString(@NotNull String element, @Nullable IdeaSourceProvider provider) {
+  static String toTestString(@NotNull String element, @Nullable NamedIdeaSourceProvider provider) {
     StringBuilder buffer = new StringBuilder(element);
     if (provider != null) {
       buffer.append(" (");

@@ -180,7 +180,7 @@ public class LinearInterpolator extends Interpolator {
   }
 
   @Override
-  double[] getTimePoints() {
+  public double[] getTimePoints() {
     return mT;
   }
 

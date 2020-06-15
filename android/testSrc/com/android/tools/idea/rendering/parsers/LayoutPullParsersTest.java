@@ -62,8 +62,8 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     super.setUp();
     RenderTestUtil.beforeRenderTestCase();
     myFontCacheServiceMock = mock(DownloadableFontCacheService.class);
-    ServiceContainerUtil
-          .replaceService(ApplicationManager.getApplication(), DownloadableFontCacheService.class, myFontCacheServiceMock, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(
+        ApplicationManager.getApplication(), DownloadableFontCacheService.class, myFontCacheServiceMock, getTestRootDisposable());
   }
 
   @Override

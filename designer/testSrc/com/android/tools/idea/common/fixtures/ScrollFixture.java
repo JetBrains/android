@@ -58,13 +58,13 @@ public class ScrollFixture {
 
   @NotNull
   public ComponentFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, 0, false);
+    myInteraction.end(myCurrentX, myCurrentY, 0);
     return myComponentFixture;
   }
 
   @NotNull
   public ComponentFixture cancel() {
-    myInteraction.end(myCurrentX, myCurrentY, 0, true);
+    myInteraction.cancel(myCurrentX, myCurrentY, 0);
     return myComponentFixture;
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.project;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.ModuleKind
@@ -39,8 +39,8 @@ import com.google.common.base.CharMatcher
 import java.io.File
 import javax.swing.Icon
 
-const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|']"
-val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*|")
+const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|', ' ']"
+val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*| ")
 
 class PsAndroidModule(
   parent: PsProject,
@@ -64,6 +64,8 @@ class PsAndroidModule(
   var compileSdkVersion by AndroidModuleDescriptors.compileSdkVersion
   var sourceCompatibility by AndroidModuleDescriptors.sourceCompatibility
   var targetCompatibility by AndroidModuleDescriptors.targetCompatibility
+  var viewBindingEnabled by AndroidModuleDescriptors.viewBindingEnabled
+  var includeDependenciesInfoInApk by AndroidModuleDescriptors.includeDependenciesInfoInApk
 
   fun init(
     name: String,
@@ -162,6 +164,7 @@ class PsAndroidModule(
       "implementation",
       "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
       "compileOnly".takeIf { onlyImportantFor == null },
+      "runtimeOnly".takeIf { onlyImportantFor == null },
       "annotationProcessor".takeIf { onlyImportantFor == null })
 
     val result = mutableListOf<String>()

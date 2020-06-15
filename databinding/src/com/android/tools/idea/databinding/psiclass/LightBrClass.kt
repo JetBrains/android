@@ -19,6 +19,8 @@ import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
 import com.android.tools.idea.databinding.util.BrUtil
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
@@ -103,15 +105,14 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
   private fun collectVariableNamesFromUserBindables(): Set<String>? {
     val facade = JavaPsiFacade.getInstance(facet.module.project)
     val mode = ModuleDataBinding.getInstance(facet).dataBindingMode
-    val bindableAnnotation = facade.findClass(
-      mode.bindable,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false)) ?: return null
+    val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+    val bindableAnnotation = facade.findClass(mode.bindable, moduleScope) ?: return null
 
     // Generated code with @Bindable annotations is identified as classes that inherit from
     // ViewDataBinding. User code should never do this.
     val psiElements =
       AnnotatedElementsSearch.searchElements<PsiModifierListOwner>(
-        bindableAnnotation, facet.module.moduleScope, PsiMethod::class.java, PsiField::class.java)
+        bindableAnnotation, moduleScope, PsiMethod::class.java, PsiField::class.java)
         // Asserting non-null as we are confident that @Bindable fields exist within a class
         .filter { element -> PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding }
 

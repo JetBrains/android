@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class ConfigurationModelImpl extends GradleDslBlockModel implements ConfigurationModel {
-  @NonNls private static final String TRANSITIVE = "transitive";
-  @NonNls private static final String VISIBLE = "visible";
+  @NonNls public static final String TRANSITIVE = "mTransitive";
+  @NonNls public static final String VISIBLE = "mVisible";
 
   public ConfigurationModelImpl(@NotNull ConfigurationDslElement element) {
     super(element);

@@ -16,12 +16,14 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceStatusData;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
@@ -31,7 +33,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.atrace.AtraceExporter;
@@ -70,23 +71,22 @@ public class CpuProfiler extends StudioProfiler {
   public CpuProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
     mySessionTraceFiles = new HashMap<>();
-    if (profilers.getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()) {
-      // Only enable handling *.trace files if the import CPU traces flag is enabled.
-      registerImportedSessionListener();
-      registerTraceImportHandler();
-    }
+    registerImportedSessionListener();
+    registerTraceImportHandler();
   }
 
   private void run() {
     Common.Session session = myProfilers.getSession();
     // Make sure the timeline is paused when the stage is opened for the first time, and its bounds are within the session.
-    ProfilerTimeline timeline = myProfilers.getTimeline();
+    StreamingTimeline timeline = myProfilers.getTimeline();
     timeline.reset(session.getStartTimestamp(), session.getEndTimestamp());
     timeline.setIsPaused(true);
 
     assert mySessionTraceFiles.containsKey(session.getSessionId());
     if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      myProfilers.setStage(CpuCaptureStage.create(myProfilers, "Imported", mySessionTraceFiles.get(session.getSessionId())));
+      ProfilingConfiguration importConfig =
+        new ProfilingConfiguration("Imported", CpuTraceType.UNSPECIFIED_TYPE, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
+      myProfilers.setStage(CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId())));
     }
     else {
       myProfilers.setStage(new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(session.getSessionId())));
@@ -327,6 +327,28 @@ public class CpuProfiler extends StudioProfiler {
                                                            @NotNull Common.Session session,
                                                            boolean newPipeline) {
     return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE), newPipeline);
+  }
+
+  /**
+   * Gets the trace status for a given trace id.
+   * This function only uses the unified pipeline.
+   */
+  @NotNull
+  public static Common.Event getTraceStatusEventFromId(@NotNull StudioProfilers profilers, long traceId) {
+    if (!profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      return Common.Event.getDefaultInstance();
+    }
+
+    Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
+      Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(profilers.getSession().getStreamId())
+        .setKind(Common.Event.Kind.CPU_TRACE_STATUS)
+        .setGroupId(traceId)
+        .build());
+    if (response.getGroupsCount() == 0) {
+      return Common.Event.getDefaultInstance();
+    }
+    return response.getGroups(0).getEvents(response.getGroups(0).getEventsCount() - 1);
   }
 
   public static void stopTracing(@NotNull StudioProfilers profilers,

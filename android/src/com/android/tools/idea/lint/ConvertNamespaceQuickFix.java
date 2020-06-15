@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.android.SdkConstants.XMLNS;
+
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.*;
-
-class ConvertNamespaceQuickFix implements AndroidLintQuickFix {
+class ConvertNamespaceQuickFix implements LintIdeQuickFix {
   public ConvertNamespaceQuickFix() {
   }
 

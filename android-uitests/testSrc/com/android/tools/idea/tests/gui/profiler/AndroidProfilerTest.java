@@ -23,20 +23,17 @@ import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.WindowDeviationAnalyzer;
 import com.google.common.truth.Correspondence;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.File;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -102,9 +99,15 @@ public class AndroidProfilerTest {
   }
 
   @After
-  public void after() throws Exception {
+  public void after() throws InterruptedException {
+    myGuiTest.ideFrame().closeProject();
+    Wait.seconds(30)
+      .expecting("Project to close")
+      .until(() -> ProjectManagerEx.getInstanceEx().getOpenProjects().length == 0);
+
     if (myAdbServer != null) {
-      myAdbServer.stop().get();
+      boolean status = myAdbServer.awaitServerTermination(30, TimeUnit.SECONDS);
+      assertThat(status).isTrue();
     }
 
     AdbService.getInstance().dispose();

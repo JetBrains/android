@@ -61,6 +61,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -147,8 +148,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Files.deleteIfExists(file);
   }
 
-  private static void resetScanCounter() {
+  private static void resetCounters() {
     ResourceFolderRepository.ourFullRescans = 0;
+    ResourceFolderRepository.ourLayoutlibCacheFlushes = 0;
   }
 
   private static void ensureIncremental() {
@@ -157,6 +159,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private static void ensureSingleScan() {
     assertEquals(1, ResourceFolderRepository.ourFullRescans);
+  }
+
+  private static void ensureLayoutlibCachesFlushed() {
+    assertThat(ResourceFolderRepository.ourLayoutlibCacheFlushes).named("times layoutlib caches flushed").isGreaterThan(0);
   }
 
   @NotNull
@@ -463,7 +469,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       @Override
       public void run() {
         try {
-          file.rename(this, "layout*2.xml");
+          file.rename(this, "layout-2.xml");
         }
         catch (IOException e) {
           fail(e.toString());
@@ -489,6 +495,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertSame(Density.XHIGH, rv.getResourceDensity());
 
     long generation = resources.getModificationCount();
+    resetCounters();
+
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -503,6 +511,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
     assertTrue(resources.getModificationCount() > generation);
+    ensureLayoutlibCachesFlushed();
   }
 
   public void testRenameResourceBackedByPsiResourceItem() {
@@ -897,7 +906,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditLayoutNoOp() {
-    resetScanCounter();
+    resetCounters();
 
     // Make some miscellaneous edits in the file that have no bearing on the
     // project resources and therefore end up doing no work
@@ -990,7 +999,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
     assertTrue(resources.getModificationCount() > initial);
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit, where things should be incremental now.
     long generation = resources.getModificationCount();
@@ -1015,7 +1024,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     assertTrue(resources.isScanPending(psiFile1));
-    resetScanCounter();
+    resetCounters();
     ApplicationManager.getApplication().invokeLater(() -> {
       ensureSingleScan();
       assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
@@ -1025,7 +1034,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditValueFileNoOp() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1063,7 +1072,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testInsertNewElementWithId() {
-    resetScanCounter();
+    resetCounters();
 
     // Make some miscellaneous edits in the file that have no bearing on the
     // project resources and therefore end up doing no work
@@ -1098,7 +1107,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(initial < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid1"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
-    resetScanCounter();
+    resetCounters();
 
     // A second update should be incremental.
     long generation = resources.getModificationCount();
@@ -1119,7 +1128,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditIdAttributeValue() {
-    resetScanCounter();
+    resetCounters();
     // Edit the id attribute value of a layout item to change the set of available ids
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1146,7 +1155,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
-    resetScanCounter();
+    resetCounters();
 
     // A second update should be incremental.
     long generation2 = resources.getModificationCount();
@@ -1175,7 +1184,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // perform a tiny edit on the character content; this takes a different code
     // path in the incremental updater.
 
-    resetScanCounter();
+    resetCounters();
     // Edit the id attribute value of a layout item to change the set of available ids.
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1207,7 +1216,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
-    resetScanCounter();
+    resetCounters();
 
     // A second update should be incremental.
     long generation2 = resources.getModificationCount();
@@ -1245,7 +1254,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
 
   public void testEditIdFromDrawable() {
-    resetScanCounter();
+    resetCounters();
 
     // Mix PNGs and XML in the same directory.
     myFixture.copyFileToProject(DRAWABLE, "res/drawable-v21/logo.png");
@@ -1277,7 +1286,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    resetScanCounter();
+    resetCounters();
 
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "locused_state"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "focused_state"));
@@ -1306,7 +1315,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * change any resources since it does not add or remove ids.
    */
   public void testEditNonIdFromDrawable() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-v21/drawable_with_ids.xml");
     PsiFile psiFiles = PsiManager.getInstance(getProject()).findFile(file);
@@ -1340,7 +1349,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * change any resources since it does not add or remove ids.
    */
   public void testEditNonIdGeneratingXml() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/xml/xml_file.xml");
     PsiFile psiFiles = PsiManager.getInstance(getProject()).findFile(file);
@@ -1370,7 +1379,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditValueText() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1398,7 +1407,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit, where things should be incremental now.
     int screeenSlideOffset = document.getText().indexOf("Screeen Slide");
@@ -1434,7 +1443,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testNestedEditValueText() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1476,7 +1485,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Llorem Ipsum", resourceValue.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // Try a second edit
     long generation2 = resources.getModificationCount();
@@ -1500,7 +1509,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditValueName() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1530,7 +1539,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "tap_name"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    resetScanCounter();
+    resetCounters();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
@@ -1548,7 +1557,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddValue() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1591,7 +1600,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testRemoveValue() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1620,7 +1629,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_zoom"));
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit that is also a delete, where things should be incremental now.
     long generation2 = resources.getModificationCount();
@@ -1639,7 +1648,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddIdValue() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1666,7 +1675,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
-    resetScanCounter();
+    resetCounters();
 
     // Try a second edit.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -1683,7 +1692,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testRemoveIdValue() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1709,7 +1718,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
-    resetScanCounter();
+    resetCounters();
 
     // Try a second edit.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -1726,7 +1735,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testChangeType() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1756,7 +1765,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testBreakNameAttribute() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1785,7 +1794,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testChangeValueTypeByTagNameEdit() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -1812,7 +1821,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditStyleName() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1839,7 +1848,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "GreyTheme"));
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit where things should be incremental now.
     long generation2 = resources.getModificationCount();
@@ -1858,7 +1867,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditStyleParent() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1895,7 +1904,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
       assertNotNull(actionBarStyle);
       assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
-      resetScanCounter();
+      resetCounters();
     });
 
     // Even on the second edit we don't expect editing the style parent to be incremental.
@@ -1924,7 +1933,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditStyleItemText() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1961,7 +1970,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/GreyActionBar", actionBarStyle.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit where things should be incremental now.
     long generation2 = resources.getModificationCount();
@@ -1985,7 +1994,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditStyleItemName() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2022,7 +2031,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     actionBarStyle = srv.getItem(ANDROID, "nactionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit, where things should be incremental now.
     long generation2 = resources.getModificationCount();
@@ -2046,7 +2055,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddStyleItem() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2089,7 +2098,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceValue textSize = srv.getItem(ANDROID, "textSize");
     assertNotNull(textSize);
     assertEquals("20sp", textSize.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // Now try a second edit.
     long generation2 = resources.getModificationCount();
@@ -2114,7 +2123,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testRemoveStyleItem() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2158,7 +2167,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // Try second edit, which is incremental.
     long generation2 = resources.getModificationCount();
@@ -2182,7 +2191,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   public void testEditDeclareStyleableAttr() {
     // Check edits of the name in a <declare-styleable> element.
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     myFixture.openFileInEditor(file1);
@@ -2226,7 +2235,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomrView"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit, where things should be incremental now.
     long generation2 = resources.getModificationCount();
@@ -2260,7 +2269,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   public void testEditAttr() {
     // Insert, remove and change <attr> attributes inside a <declare-styleable> and ensure that
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2300,7 +2309,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "ywatchType"));
-    resetScanCounter();
+    resetCounters();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
@@ -2328,7 +2337,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
 
     // Now insert a new item and delete one and make sure we're still okay
-    resetScanCounter();
+    resetCounters();
     WriteCommandAction.runWriteCommandAction(null, () -> {
       String crashAttr = "<attr name=\"crash\" format=\"boolean\" />";
       int offset = document.getText().indexOf(crashAttr);
@@ -2364,7 +2373,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   public void testEditDeclareStyleableFlag() {
     // Rename, add and remove <flag> and <enum> nodes under a declare styleable and assert
     // that the declare styleable parent is updated
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2414,7 +2423,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertEquals(Integer.valueOf(16), flagType1.getAttributeValues().get("fllag1"));
 
       // Now insert a new enum and delete one and make sure we're still okay
-      resetScanCounter();
+      resetCounters();
       long nextGeneration = resources.getModificationCount();
       WriteCommandAction.runWriteCommandAction(null, () -> {
         String enumAttr = "<enum name=\"type_stopwatch\" value=\"1\"/>";
@@ -2448,7 +2457,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditPluralItems() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2484,7 +2493,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resourceValue);
     assertEquals("@string/hallo_two", resourceValue.getValue());
     assertTrue(generation < resources.getModificationCount());
-    resetScanCounter();
+    resetCounters();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
@@ -2505,7 +2514,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddPluralItems() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2544,7 +2553,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("@string/hello_two", resourceValue.getValue());
     assertEquals("one_and_half", prv.getQuantity(1));
     assertTrue(resources.getModificationCount() > generation);
-    resetScanCounter();
+    resetCounters();
 
     // Now try a second edit.
     long generation2 = resources.getModificationCount();
@@ -2567,7 +2576,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testRemovePluralItems() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2607,7 +2616,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("@string/hello_two", resourceValue.getValue());
     assertEquals("two", prv.getQuantity(0));
     assertTrue(generation < resources.getModificationCount());
-    resetScanCounter();
+    resetCounters();
     // Try a second edit.
     long generation2 = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2631,7 +2640,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditArrayItemText() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2669,7 +2678,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("QQuestion 4", resourceValue.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
@@ -2690,7 +2699,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddStringArrayItemElements() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2732,7 +2741,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("Question 2", arv.getElement(1));
     assertEquals("Question 2.5", arv.getElement(2));
     assertEquals("Question 3", arv.getElement(3));
-    resetScanCounter();
+    resetCounters();
 
     // However, the second edit can then be incremental.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2759,7 +2768,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testRemoveStringArrayItemElements() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2797,7 +2806,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resourceValue instanceof ArrayResourceValue);
     arv = (ArrayResourceValue)resourceValue;
     assertEquals(5, arv.getElementCount());
-    resetScanCounter();
+    resetCounters();
 
     // Now try another edit that is also a delete item, where things should be incremental now.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2821,7 +2830,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddIntegerArrayItemElements() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2862,7 +2871,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("5", arv.getElement(0));
     assertEquals("10", arv.getElement(1));
     assertEquals("20", arv.getElement(2));
-    resetScanCounter();
+    resetCounters();
 
     // Now try a second edit.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2888,7 +2897,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testRemoveIntegerArrayItemElements() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2927,7 +2936,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     arv = (ArrayResourceValue)resourceValue;
     assertEquals(1, arv.getElementCount());
     assertEquals("20", resourceValue.getValue());
-    resetScanCounter();
+    resetCounters();
 
     // Try a second edit.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2949,7 +2958,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testAddTypedArrayItemElements() {
-    resetScanCounter();
+    resetCounters();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2991,7 +3000,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("#FFFFFF00", arv.getElement(0));
     assertEquals("#FFFF0000", arv.getElement(1));
     assertEquals("#FF00FF00", arv.getElement(2));
-    resetScanCounter();
+    resetCounters();
 
     // Now try a second edit.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -3017,7 +3026,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testGradualEdits() {
-    resetScanCounter();
+    resetCounters();
 
     // Gradually type in the contents of a value file and make sure we end up with a valid view of the world
     VirtualFile file1 = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/myvalues.xml");
@@ -3196,6 +3205,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         .containsExactly("btn_title_refresh", "header", "text2", "title_refresh_progress");
   }
 
+  public void testInvalidFileResourceName() {
+    // Test initial loading.
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable/foo.bar.xml");
+    ResourceFolderRepository resources = createRepository(false);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.DRAWABLE)).isEmpty();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+
+    // Test adding a file after repository has been loaded.
+    resources = createRegisteredRepository();
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable/bar.baz.xml");
+    assertThat(resources.getResources(RES_AUTO, ResourceType.DRAWABLE)).isEmpty();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+  }
+
   public void testIssue36973561() {
     // Test deleting a string; ensure that the whole repository is updated correctly.
     // Regression test for https://issuetracker.google.com/36973561.
@@ -3227,7 +3250,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "action_settings"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
-    resetScanCounter();
+    resetCounters();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
@@ -3349,7 +3372,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    resetScanCounter();
+    resetCounters();
 
     // Second edit (duplicate again)
     long generation2 = resources.getModificationCount();
@@ -3409,7 +3432,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testLoadDuplicatedValues() {
-    resetScanCounter();
+    resetCounters();
 
     // Test loading up a file that already illegally had duplicates.
     VirtualFile file1 = myFixture.copyFileToProject(VALUES_WITH_DUPES, "res/values/values.xml");
@@ -3492,7 +3515,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testLoadValuesWithBadName() {
-    resetScanCounter();
+    resetCounters();
 
     // If a file had bad value names, test that it can still be parsed.
     VirtualFile file = myFixture.copyFileToProject(VALUES_WITH_BAD_NAME, "res/values/values.xml");
@@ -3624,7 +3647,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testEditColorStateList() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(COLOR_STATELIST, "res/color/my_state_list.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3679,7 +3702,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * Check that whitespace edits do not trigger a rescan
    */
   public void testEmptyEdits() {
-    resetScanCounter();
+    resetCounters();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3704,7 +3727,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "_app_name"));
-    resetScanCounter();
+    resetCounters();
 
     // Try a second edit, adding another space.
     long generation2 = resources.getModificationCount();
@@ -3748,7 +3771,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * and that the file cache is considered stale (as a signal that updating would be good).
    */
   public void testFileCacheFreshness() {
-    resetScanCounter();
+    resetCounters();
 
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
@@ -4420,6 +4443,25 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myFixture.openFileInEditor(layout.getVirtualFile());
     type("@+id/b' |/>", "foo='bar'");
     assertFalse(repository.isScanPending(layout));
+  }
+
+  public void testFontChanged() throws Exception {
+    VirtualFile ttfFile = VfsTestUtil.createFile(ProjectUtil.guessProjectDir(getProject()),
+                                                 "res/font/myfont.ttf",
+                                                 new byte[] { 1 });
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    resetCounters();
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        ttfFile.setBinaryContent(new byte[] { 2 });
+      }
+      catch (IOException e) {
+        throw new AssertionError(e);
+      }
+    });
+    runListeners();
+    ensureLayoutlibCachesFlushed();
   }
 
   @Nullable

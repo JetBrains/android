@@ -28,10 +28,12 @@ import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
@@ -53,7 +55,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,8 +82,11 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Override
   @NotNull
   protected Collection<AbstractTreeNode<?>> getModuleChildren() {
+    if (getModule() == null) {
+      return platformGetChildren();
+    }
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    if (facet == null || facet.getModel() == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return platformGetChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
@@ -92,10 +96,9 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
-                                                  @NotNull Iterable<IdeaSourceProvider> providers) {
-    Project project = facet.getModule().getProject();
+                                                  @NotNull Iterable<NamedIdeaSourceProvider> providers) {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
-
+    Project project = facet.getModule().getProject();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
 
@@ -142,7 +145,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<IdeaSourceProvider> providers,
+  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<NamedIdeaSourceProvider> providers,
                                                                                      @Nullable AndroidModuleModel androidModel) {
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = HashMultimap.create();
 
@@ -189,10 +192,10 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull Iterable<IdeaSourceProvider> providers) {
+  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull Iterable<NamedIdeaSourceProvider> providers) {
     Set<VirtualFile> sources = new HashSet<>();
 
-    for (IdeaSourceProvider provider : providers) {
+    for (NamedIdeaSourceProvider provider : providers) {
       sources.addAll(sourceType.getSources(provider));
     }
 
@@ -257,8 +260,11 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
 
       // If there is a native-containing module then check it for externally referenced header files
+      if (getModule() == null) {
+        return false;
+      }
       AndroidFacet facet = AndroidFacet.getInstance(getModule());
-      if (facet == null || facet.getModel() == null) {
+      if (facet == null || AndroidModel.get(facet) == null) {
         return false;
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
@@ -273,24 +279,36 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Override
   @Nullable
   public Comparable getSortKey() {
+    if (getModule() == null) {
+      return null;
+    }
     return getModule().getName();
   }
 
   @Override
   @Nullable
   public Comparable getTypeSortKey() {
+    if (getModule() == null) {
+      return null;
+    }
     return getSortKey();
   }
 
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
+    if (getModule() == null) {
+      return null;
+    }
     return String.format("%1$s (Android)", getModule().getName());
   }
 
   @Override
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
+    if (getModule() == null) {
+      return;
+    }
     // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
     // This can happen when a module was just deleted, see b/67838273.
     Module module = getValue();

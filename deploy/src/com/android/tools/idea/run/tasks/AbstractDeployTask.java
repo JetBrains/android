@@ -17,7 +17,12 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.deployer.*;
+import com.android.tools.deployer.AdbClient;
+import com.android.tools.deployer.AdbInstaller;
+import com.android.tools.deployer.DeployMetric;
+import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.Installer;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
@@ -44,10 +49,6 @@ import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +56,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDeployTask implements LaunchTask {
 
@@ -251,7 +255,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
                        : IdeActions.ACTION_DEFAULT_RUNNER;
           break;
         case RETRY:
-          myActionId = getId();
+          myActionId = executor.getActionName();
           break;
         default:
           myActionId = null;
@@ -280,7 +284,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
 
       manager.tryToExecute(action,
-                           ActionCommand.getInputEvent(ApplyChangesAction.ID),
+                           ActionCommand.getInputEvent(myActionId),
                            null,
                            ActionPlaces.UNKNOWN,
                            true);

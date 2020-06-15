@@ -15,9 +15,11 @@
  */
 package org.jetbrains.android.maven;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -34,7 +36,14 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.util.Key;
@@ -42,17 +51,34 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
-import java.util.HashSet;
 import com.intellij.util.io.ZipUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jdom.Element;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidFacetType;
+import org.jetbrains.android.facet.AndroidImportableProperty;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -70,21 +96,24 @@ import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenConstants;
 import org.jetbrains.idea.maven.model.MavenId;
-import org.jetbrains.idea.maven.project.*;
+import org.jetbrains.idea.maven.project.MavenConsole;
+import org.jetbrains.idea.maven.project.MavenEmbeddersManager;
+import org.jetbrains.idea.maven.project.MavenGeneralSettings;
+import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.idea.maven.project.MavenProjectChanges;
+import org.jetbrains.idea.maven.project.MavenProjectReader;
+import org.jetbrains.idea.maven.project.MavenProjectReaderProjectLocator;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import org.jetbrains.idea.maven.project.MavenProjectsProcessorTask;
+import org.jetbrains.idea.maven.project.MavenProjectsTree;
+import org.jetbrains.idea.maven.project.ResolveContext;
+import org.jetbrains.idea.maven.project.SupportedRequestType;
 import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
 import org.jetbrains.idea.maven.server.NativeMavenProjectHolder;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
-import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.util.JpsPathUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 /**
  * @author Eugene.Kudelevsky
@@ -135,7 +164,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @Override
   protected void setupFacet(AndroidFacet facet, MavenProject mavenProject) {
     String mavenProjectDirPath = FileUtil.toSystemIndependentName(mavenProject.getDirectory());
-    facet.getConfiguration().init(facet.getModule(), mavenProjectDirPath);
+    AndroidUtils.setUpAndroidFacetConfiguration(facet, mavenProjectDirPath);
     AndroidMavenProviderImpl.setPathsToDefault(mavenProject, facet.getModule(), facet.getConfiguration());
 
     final boolean hasApkSources = AndroidMavenProviderImpl.hasApkSourcesDependency(mavenProject);
@@ -266,7 +295,16 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         additionalNativeLibs.add(new AndroidNativeLibData(architecture, path, targetFileName));
       }
     }
-    facet.getConfiguration().setAdditionalNativeLibraries(additionalNativeLibs);
+    AndroidFacetProperties properties = facet.getConfiguration().getState();
+    properties.myNativeLibs = new ArrayList<>(additionalNativeLibs.size());
+
+    for (AndroidNativeLibData lib : additionalNativeLibs) {
+      AndroidFacetProperties.AndroidNativeLibDataEntry data = new AndroidFacetProperties.AndroidNativeLibDataEntry();
+      data.myArchitecture = lib.getArchitecture();
+      data.myUrl = VfsUtilCore.pathToUrl(lib.getPath());
+      data.myTargetFileName = lib.getTargetFileName();
+      properties.myNativeLibs.add(data);
+    }
   }
 
   private static boolean hasAndroidLibDependencies(@NotNull MavenProject mavenProject) {

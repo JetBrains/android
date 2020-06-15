@@ -57,7 +57,10 @@ class CollectRootReasonsVisitor(private val threadsMap: TLongObjectHashMap<Threa
       else {
         RootReason.createJavaFrameReason("Unknown location")
       }
-    roots.put(objectId, rootReason)
+    // Java frame has a lower priority - if won't override any other GC-root reasons.
+    if (!roots.containsKey(objectId)) {
+      roots.put(objectId, rootReason)
+    }
   }
 
   override fun visitRootNativeStack(objectId: Long, threadSerialNumber: Long) {

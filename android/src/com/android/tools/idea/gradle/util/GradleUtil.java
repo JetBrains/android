@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -29,30 +36,20 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.ui.Messages.getQuestionIcon;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
 import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
@@ -87,10 +84,10 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -107,7 +104,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -132,7 +128,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -167,48 +162,6 @@ public final class GradleUtil {
   @NotNull
   public static File getCacheFolderRootPath(@NotNull Project project) {
     return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
-  }
-
-  public static void clearStoredGradleJvmArgs(@NotNull Project project) {
-    GradleSettings settings = GradleSettings.getInstance(project);
-    String existingJvmArgs = settings.getGradleVmOptions();
-    settings.setGradleVmOptions(null);
-    if (!isEmptyOrSpaces(existingJvmArgs)) {
-      invokeAndWaitIfNeeded((Runnable)() -> {
-        String jvmArgs = existingJvmArgs.trim();
-        String msg =
-          String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
-                        "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
-                        "Would you like to copy these JVM arguments:\n%1$s\n" +
-                        "to the project's gradle.properties file?\n\n" +
-                        "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
-
-        int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", getQuestionIcon());
-        if (result == Messages.YES) {
-          try {
-            GradleProperties gradleProperties = new GradleProperties(project);
-            gradleProperties.setJvmArgs(jvmArgs);
-            gradleProperties.save();
-          }
-          catch (IOException e) {
-            String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
-            LOG.info(err, e);
-
-            String cause = e.getMessage();
-            if (isNotEmpty(cause)) {
-              err += String.format("<br>\nCause: %1$s", cause);
-            }
-
-            AndroidNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
-          }
-        }
-        else {
-          String text =
-            String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-          AndroidNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
-        }
-      });
-    }
   }
 
   public static boolean isSupportedGradleVersion(@NotNull GradleVersion gradleVersion) {
@@ -359,6 +312,60 @@ public final class GradleUtil {
     return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
   }
 
+  /**
+   * Returns true if the file given by the file exists, is a file and ends with either ".gradle"
+   * or ".gradle.kts".
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#isGradleScript(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   */
+  public static boolean isGradleScript(@NotNull VirtualFile file) {
+    return !file.isDirectory() && (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS));
+  }
+
+  /**
+   * Returns the virtual file representing a build.gradle or build.gradle.kts file in the directory at the given
+   * parentDir. build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
+   *
+   * __Note__: Do __not__ use this method unless you have to, use {@link #getGradleBuildFile(Module)} instead.
+   * This will return the actual build script that is used by Gradle rather than just guessing its location.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleBuildFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   *
+   */
+  @Nullable
+  public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
+  }
+
+  /**
+   * Returns the virtual file representing a settings.gradle or settings.gradle.kts file in the directory at the given
+   * parentDir. settings.gradle.kts is only returned when settings.gradle doesn't exist and settings.gradle.kts exists.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleSettingsFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   */
+  @Nullable
+  public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);
+  }
+
+  /**
+   * Finds and returns a file that exists as a child of the parentDir with one of the given names. This method will search for the
+   * names in order and will return as soon as one is found.
+   */
+  @Nullable
+  private static VirtualFile findFileWithNames(@NotNull VirtualFile parentDir, @NotNull String...names) {
+    for (String name : names) {
+      VirtualFile file = parentDir.findChild(name);
+      if (file != null && !file.isDirectory()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
   @Nullable
   private static GradleModuleModel getGradleModuleModel(Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
@@ -383,40 +390,16 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
-    File gradleBuildFilePath = getGradleBuildFilePath(dirPath);
+    File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
 
   /**
-   * Returns the path of a build.gradle or build.gradle.kts file in the directory at the given path.
-   * build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
-   * <p>
-   * Please note that the build.gradle file may not exist at the returned path.
-   * <p>
-   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
-   * {@link #getGradleBuildFile(Module)}.
-   * </p>
-   *
-   * @param dirPath the given directory path.
-   * @return the path of a build.gradle or build.gradle.kts file in the directory at the given path.
-   */
-  @NotNull
-  public static File getGradleBuildFilePath(@NotNull File dirPath) {
-    File defaultBuildFile = new File(dirPath, FN_BUILD_GRADLE);
-    if (!defaultBuildFile.isFile()) {
-      File ktsBuildFile = new File(dirPath, FN_BUILD_GRADLE_KTS);
-      if (ktsBuildFile.isFile()) {
-        return ktsBuildFile;
-      }
-    }
-    return defaultBuildFile;
-  }
-
-  /**
    * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
    * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
-   * should use {@link #getGradleSettingsFilePath(File)} along with {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
+   * should use {@link BuildScriptUtil#findGradleSettingsFile(File)} along with
+   * {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
    * to ensure a refresh occurs.
    *
    * @param dirPath the path to find the Gradle settings file for.
@@ -424,21 +407,9 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
-    File gradleSettingsFilePath = getGradleSettingsFilePath(dirPath);
+    File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
     return (result != null && result.isValid()) ? result : null;
-  }
-
-  @NotNull
-  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
-    File defaultSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE);
-    if (!defaultSettingsFile.isFile()) {
-      File ktsSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE_KTS);
-      if (ktsSettingsFile.isFile()) {
-        return ktsSettingsFile;
-      }
-    }
-    return defaultSettingsFile;
   }
 
   @NotNull

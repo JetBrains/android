@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lint;
 
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.util.AndroidBundle;
-
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
+
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintImpliedQuantityInspection extends AndroidLintInspectionBase {
   public AndroidLintImpliedQuantityInspection() {

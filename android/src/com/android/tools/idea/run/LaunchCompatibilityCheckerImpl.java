@@ -27,7 +27,6 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import java.util.EnumSet;
@@ -119,17 +118,29 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
                                                   @Nullable ExecutionEnvironment env,
                                                   @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
-    ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
-    AndroidVersion minSdkVersion = minSdkVersionFuture.isDone() ? Futures.getUnchecked(minSdkVersionFuture) : AndroidVersion.DEFAULT;
-
-    AndroidPlatform platform = facet.getAndroidPlatform();
+    AndroidVersion minSdkVersion = getMinSdkVersion(facet);
+    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
     }
-    Set<String> supportedAbis = facet.getModel() instanceof AndroidModuleModel ?
-                                ((AndroidModuleModel)facet.getModel()).getSelectedVariant().getMainArtifact()
-                                  .getAbiFilters() :
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    Set<String> supportedAbis = androidModuleModel != null ?
+                                androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
                                 null;
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
+  }
+
+  private static AndroidVersion getMinSdkVersion(@NotNull AndroidFacet facet) {
+    ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    if (minSdkVersionFuture.isDone()) {
+      try {
+        return minSdkVersionFuture.get();
+      }
+      catch (ExecutionException|InterruptedException ignored) {
+        // It'd be nice to log something here, but we're constantly validating
+        // launch compatibility so that would result in a lot of spam.
+      }
+    }
+    return AndroidVersion.DEFAULT;
   }
 }

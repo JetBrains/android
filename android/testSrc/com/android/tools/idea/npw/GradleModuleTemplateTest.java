@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
@@ -30,7 +30,7 @@ public final class GradleModuleTemplateTest {
   @Test
   public void testDefaultSourceSetAtCurrentDir() {
     NamedModuleTemplate moduleTemplate = createDefaultTemplateAt(".", "");
-    AndroidModuleTemplate paths = moduleTemplate.getPaths();
+    AndroidModulePaths paths = moduleTemplate.getPaths();
 
     assertEquals("main", moduleTemplate.getName());
     assertEquals(new File("."), paths.getModuleRoot());

@@ -30,17 +30,18 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidTestBase;
-
 import java.io.File;
 import java.util.Map;
+import org.jetbrains.android.AndroidTestBase;
 
 public class AndroidVirtualDeviceTest extends AndroidTestBase {
+  private static final String DEVICE_ID =  "pixel_3a";
 
   private static Map<String, String> getReferenceMap() {
     // Expected values are defined in http://b.android.com/78945
@@ -55,7 +56,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("hw.cpu.arch", "x86");
     builder.put("hw.dPad", "no");
     builder.put("hw.device.manufacturer", "Google");
-    builder.put("hw.device.name", "Nexus 5X");
+    builder.put("hw.device.name", DEVICE_ID);
     builder.put("hw.gps", "yes");
     builder.put("hw.gpu.enabled", "yes");
     builder.put("hw.keyboard", "yes");
@@ -70,7 +71,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
     builder.put("sdcard.size", "800M");
-    builder.put("skin.name", "nexus_5x");
+    builder.put("skin.name", DEVICE_ID);
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
     builder.put("tag.id", "google_apis");
@@ -104,11 +105,11 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordPlatform23(fop);
     recordGoogleApisAddon23(fop);
     recordGoogleApisSysImg23(fop);
-    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5x"));
+    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
 
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
-    final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
+    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, MoreExecutors.newDirectExecutorService());
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
@@ -130,7 +131,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those so we only ensure we have the ones we need.
     File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
-    assertEquals("nexus_5x", skin.getName());
+    assertEquals(DEVICE_ID, skin.getName());
   }
 
   private static void recordPlatform23(MockFileOp fop) {

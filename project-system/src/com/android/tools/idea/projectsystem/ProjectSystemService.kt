@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.ProjectTopics
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.impl.ModuleRootEventImpl
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicReference
 
 // open/public for testing was: final/internal
@@ -55,8 +59,24 @@ open class ProjectSystemService(val project: Project) {
   private fun detectProjectSystem(project: Project): AndroidProjectSystem {
     val extensions = EP_NAME.getExtensions(project)
     val provider = extensions.find { it.isApplicable() }
-        ?: extensions.find { it.id == "" }
-        ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
+                   ?: extensions.find { it.id == "" }
+                   ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
     return provider.projectSystem
+  }
+
+  /**
+   * Replaces the project system of the current [project] and re-initializes it by sending [ProjectTopics.PROJECT_ROOTS] notifications.
+   */
+  @TestOnly
+  fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
+    val old = cachedProjectSystem.getAndUpdate { projectSystem }
+    if (old != null) {
+      runWriteAction {
+        val publisher = project.messageBus.syncPublisher(ProjectTopics.PROJECT_ROOTS)
+        val rootChangedEvent = ModuleRootEventImpl(project, false)
+        publisher.beforeRootsChange(rootChangedEvent)
+        publisher.rootsChanged(rootChangedEvent)
+      }
+    }
   }
 }

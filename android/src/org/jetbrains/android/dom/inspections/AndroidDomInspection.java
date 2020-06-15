@@ -33,7 +33,7 @@ import org.jetbrains.android.dom.AndroidXmlExtension;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.DeclareStyleableNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -97,7 +97,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
         Module module = ModuleUtilCore.findModuleForFile(virtualFile, psiFile.getProject());
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null && IdeaSourceProvider.isTestFile(facet, virtualFile)) {
+          if (facet != null && IdeaSourceProviderUtil.isTestFile(facet, virtualFile)) {
             // Don't highlight resolve problems in test files, the whole resolve machinery doesn't know how to handle test files.
             return true;
           }

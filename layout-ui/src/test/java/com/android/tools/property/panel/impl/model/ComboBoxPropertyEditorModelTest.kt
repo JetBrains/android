@@ -27,8 +27,10 @@ import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -38,6 +40,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
+import java.util.concurrent.Future
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
@@ -95,22 +98,54 @@ class ComboBoxPropertyEditorModelTest {
   @RunsInEdt
   @Test
   fun testSelectActionItemShouldNotUpdateValueOnFocusLoss() {
+    ActionManager.getInstance()
     val model = createModel()
+    var future: Future<*>? = null
     val action = object : AnAction() {
       override fun actionPerformed(event: AnActionEvent) {
-        model.property.value = "gone"
         model.focusLost()
+        future = ApplicationManager.getApplication().executeOnPooledThread { model.property.value = "gone" }
       }
     }
+    ActionManager.getInstance()
     model.isPopupVisible = true
+    ActionManager.getInstance()
     model.selectedItem = EnumValue.action(action)
-    model.text = "More Fonts..." // Text from action enum value. Should be overwritten.
     model.popupMenuWillBecomeInvisible(false)
     assertThat(model.property.value).isEqualTo("visible")
 
     // The action is executed delayed on the UI event queue:
-    UIUtil.dispatchAllInvocationEvents()
+    while (future == null) {
+      UIUtil.dispatchAllInvocationEvents()
+    }
+
+    // Emulate a dialog is writing to the property long after the menu has been closed:
+    future!!.get()
+
     assertThat(model.property.value).isEqualTo("gone")
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSelectedItemSetOnlyOnce() {
+    val model = createModel()
+    val property = model.property as FakePropertyItem
+    model.isPopupVisible = true
+    model.selectedItem = EnumValue.item("gone")
+    model.popupMenuWillBecomeInvisible(false)
+
+    // Emulate: propertiesGenerated event causing the current editor to refresh.
+    // The underlying xml may not have updated yet.
+    property.emulateLateValueUpdate("emulated")
+
+    // This focus loss should NOT update the value again.
+    model.focusLost()
+
+    // The property value will eventually update, however in this test it will remain the emulated value:
+    assertThat(model.property.value).isEqualTo("emulated")
+
+    // Test that the property value should be updated only once:
+    assertThat((model.property as FakePropertyItem).updateCount).isEqualTo(1)
   }
 
   @Test

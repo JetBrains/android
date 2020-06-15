@@ -67,6 +67,9 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override val definition: AttributeDefinition?
     get() = delegate?.definition
 
+  override val components: List<NlComponent>
+    get() = delegate?.components ?: emptyList()
+
   override val componentName: String
     get() = delegate?.componentName ?: ""
 
@@ -92,6 +95,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
 
   override val nameEditingSupport = object : EditingSupport {
     override val completion = { getPropertyNamesWithPrefix() }
+    override val allowCustomValues = false
     override val validation = { text: String? -> validateName(text)}
   }
 

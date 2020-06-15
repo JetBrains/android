@@ -231,7 +231,10 @@ public class motion_scene_16_xml {
    "                    motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
    "                    motion:layout_constraintTop_toTopOf=\"parent\"/>\n" +
    "\n" +
-   "        </Constraint>\n" +
+   "                   <CustomAttribute\n" +
+   "                motion:attributeName=\"letterSpacing\"\n" +
+   "                motion:customFloatValue=\"1\" />" +
+   "          </Constraint>\n" +
    "\n" +
    "    </ConstraintSet>\n" +
    "\n" +

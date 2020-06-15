@@ -16,14 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.project.messages.AbstractSyncMessages;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 /**

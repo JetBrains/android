@@ -16,11 +16,12 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
-import com.android.tools.idea.util.SwingWorker;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.SwingWorker;
 import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public class IconGenerationProcessor {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (iconGenerator.sourceAsset().get().isPresent()) {
-      IconGenerator.Options options = iconGenerator.createOptions(true);
+      IconOptions options = iconGenerator.createOptions(true);
       myQueuedRequest = new Request(iconGenerator, options, onDone);
     }
 
@@ -76,13 +77,11 @@ public class IconGenerationProcessor {
   private static class Request {
     @NotNull private final IconGenerator myIconGenerator;
     @NotNull private final Consumer<IconGeneratorResult> myOnDone;
-    @NotNull private final IconGenerator.Options myOptions;
+    @NotNull private final IconOptions myOptions;
     @Nullable private IconGeneratorResult myGeneratorResult;
     private boolean isCanceled;
 
-    Request(@NotNull IconGenerator iconGenerator,
-                   @NotNull IconGenerator.Options options,
-                   @NotNull Consumer<IconGeneratorResult> onDone) {
+    Request(@NotNull IconGenerator iconGenerator, @NotNull IconOptions options, @NotNull Consumer<IconGeneratorResult> onDone) {
       myIconGenerator = iconGenerator;
       myOptions = options;
       myOnDone = onDone;

@@ -29,21 +29,81 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
+/**
+ * An interface to implement Android debugger.
+ *
+ * <p>This interface is exposed publicly as an extension point of Android plugin. Any IntelliJ plugin
+ * may supply their debugger implementations by registering it to {@link #EP_NAME} from their
+ * plugin.xml file.
+ *
+ * <p>This interface provides two entry points to start the debugger: {@link #getConnectDebuggerTask}
+ * and {@link #attachToClient}.
+ *
+ * <p>{@link #getConnectDebuggerTask} is used when you run a {@link com.android.tools.idea.run.AndroidRunConfiguration}
+ * with {@link com.intellij.execution.executors.DefaultDebugExecutor}. It creates a task which is to be executed at
+ * the end of application launch pipeline by {@link com.android.tools.idea.run.LaunchTaskRunner}.
+ *
+ * <p>{@link #attachToClient} is used by {@link org.jetbrains.android.actions.AndroidConnectDebuggerAction} which
+ * is an action to attach Android debugger to running Android processes.
+ *
+ * @param <S> a class which represents a state and configuration of your android debugger
+ */
 public interface AndroidDebugger<S extends AndroidDebuggerState> {
+
+  /**
+   * Extension point for any IntelliJ plugins to supply their {@link AndroidDebugger} implementations.
+   *
+   * If there multiple debugger implementations available for a project. Ones with {@link #shouldBeDefault}
+   * returning true will be prioritized. A user may specify a debugger by run configuration or in
+   * {@link org.jetbrains.android.actions.AndroidProcessChooserDialog}.
+   */
   ExtensionPointName<AndroidDebugger> EP_NAME = ExtensionPointName.create("com.android.run.androidDebugger");
 
+  /**
+   * An arbitrary identifier string of this debugger. The ID must be unique among all other registered debuggers.
+   */
   @NotNull
   String getId();
 
+  /**
+   * A name of this debugger. This string may be displayed to user to ask them choose a debugger if there
+   * are multiple eligible debuggers for a run.
+   */
   @NotNull
   String getDisplayName();
 
+  /**
+   * Creates a new state object. Although this is called state, it contains mostly about configurations of
+   * how you run your debugger. The created state will be associated with one of your
+   * {@link com.android.tools.idea.run.AndroidRunConfiguration} and properties will be persisted onto xml file.
+   *
+   * <p>Note: this method is supposed to be used for {@link #getConnectDebuggerTask}. {@link #attachToClient}
+   * does not use this state at all.
+   */
   @NotNull
   S createState();
 
+  /**
+   * Creates a run configuration to start debugger executable with a context of debugging a given
+   * {@code runConfiguration}.
+   *
+   * @param runConfiguration a run configuration of an executable to be debugged
+   */
   @NotNull
   AndroidDebuggerConfigurable<S> createConfigurable(@NotNull RunConfiguration runConfiguration);
 
+  /**
+   * An main entry point of starting a debugger. This is used for attaching a debugger to a process
+   * started by run action with {@link com.intellij.execution.executors.DefaultDebugExecutor} type.
+   * When you attach a debugger to an arbitrary running Android processes without run configuration,
+   * {@link #attachToClient} is used instead.
+   *
+   * @param env an execution environment of a debugee process is running
+   * @param applicationIds target Android application IDs to be debugged
+   * @param state an Android debugger state and configuration to be used to start the debugger
+   * @param runConfigTypeId a run configuration type ID of a debugee process
+   * @return a task which starts a debugger and attach to target processes
+   */
   @NotNull
   DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
                                             @Nullable AndroidVersion version,
@@ -52,19 +112,31 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
                                             @NotNull S state,
                                             @NotNull String runConfigTypeId);
 
+  /**
+   * Returns true if this debugger supports a given {@code project}.
+   */
   boolean supportsProject(@NotNull Project project);
 
+  /**
+   * An alternative entry point of starting a debugger. This is used for attaching a debugger to an arbitrary
+   * running Android processes without associated run configuration and run action. When you attach a debugger
+   * through debug run action, {@link #getConnectDebuggerTask} is used instead.
+   *
+   * <p>Note: the state object is not passed into this method because the state is associated with run configuration
+   * and we have no associated run configuration.
+   */
   void attachToClient(@NotNull Project project, @NotNull Client client);
-
-  @NotNull
-  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version);
 
   /**
    * Indicates whether this debugger should be the default.
+   *
    * @return true if it should be the default.
    */
   boolean shouldBeDefault();
 
+  /**
+   * Returns additional options to be passed into "am start" command to start an debugee Android application process.
+   */
   @NotNull
   String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version);
 }

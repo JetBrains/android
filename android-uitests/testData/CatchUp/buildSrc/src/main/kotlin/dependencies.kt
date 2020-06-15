@@ -128,7 +128,7 @@ object deps {
     }
 
     object build {
-      const val buildToolsVersion = "28.0.3"
+      const val buildToolsVersion = "29.0.2"
       const val compileSdkVersion = 28
       const val minSdkVersion = 21
       const val targetSdkVersion = 28

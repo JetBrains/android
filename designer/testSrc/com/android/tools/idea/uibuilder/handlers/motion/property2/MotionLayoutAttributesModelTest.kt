@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,219 +15,331 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2
 
-import com.android.SdkConstants
-import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.property.panel.api.PropertiesModelListener
-import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
-import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
-import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetStart
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.AUTO_URI
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ConstraintSet.DERIVE_CONSTRAINTS_FROM
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.OnClick.ATTR_TARGET_ID
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CONSTRAINT
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CONSTRAINTSET
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.LAYOUT
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.ON_CLICK
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.TRANSITION
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START
+import com.android.tools.idea.uibuilder.handlers.motion.property2.CustomAttributeType.CUSTOM_STRING
+import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.surface.AccessoryPanel
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.psi.xml.XmlFile
-import com.intellij.psi.xml.XmlTag
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mock
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
-import javax.swing.JPanel
+import org.mockito.MockitoAnnotations
 
-class MotionLayoutAttributesModelTest: LayoutTestCase() {
+private const val SCENE_FILE = "scene.xml"
 
-  fun testPropertiesGeneratedEventWhenDesignSurfaceIsHookedUp() {
-    // setup
-    val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
-    val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
+@RunsInEdt
+class MotionLayoutAttributesModelTest {
+  @JvmField
+  @Rule
+  val projectRule = AndroidProjectRule.withSdk()
 
-    @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
-    val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    val nlModel = createNlModel()
-    val motionPanel = retrieveMotionAccessoryPanel(nlModel)
+  @JvmField
+  @Rule
+  val motionRule = MotionAttributeRule(projectRule)
+
+  @JvmField
+  @Rule
+  val edtRule = EdtRule()
+
+  @Mock
+  private lateinit var listener: PropertiesModelListener<NelePropertyItem>
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.initMocks(this)
+  }
+
+  @Test
+  fun testPropertiesEventsAfterHookupAndSelection() {
+    val model = motionRule.attributesModel
+    val surface = model.surface
+    model.surface = null
+
     model.addListener(listener)
-
-    // test
-    model.surface = nlModel.surface
-    assertThat(motionPanel.listenerCount).isEqualTo(1)
+    model.surface = surface
     verifyZeroInteractions(listener)
 
-    val textView = nlModel.components[0].getChild(0)
-    val scene = MotionSceneModel.parse(textView, project, file, xmlFile)
-    motionPanel.select(scene.getTransitionTag(0).tag, textView)
-    waitUntilEventsProcessed(model)
+    // Verify that we get a generated event:
+    motionRule.selectConstraint("start", "widget")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertiesGenerated(model)
+    reset(listener)
+
+    // Verify that if the same motion tag is selected again we get a changed event instead:
+    motionRule.selectConstraint("start", "widget")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener, times(1)).propertyValuesChanged(model)
+    reset(listener)
+
+    // Verify that if the same motion tag is selected again after the model is deactivated, we get a generated event:
+    motionRule.attributesModel.deactivate()
+    motionRule.selectConstraint("start", "widget")
+    UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertiesGenerated(model)
   }
 
-  fun testPropertiesGeneratedEventWhenSwitchingDesignSurface() {
-    // setup
-    myFixture.copyFileToProject("motion/attrs.xml", "res/values/attrs.xml")
-    val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
-    val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
+  @Test
+  fun testSelectBetweenTwoConstraintSets() {
+    val model = motionRule.attributesModel
+    val surface = model.surface
+    model.surface = null
 
-    @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
-    val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     model.addListener(listener)
-    val nlModelA = createNlModel()
-    val nlModelB = createNlModel()
-    val motionPanelA = retrieveMotionAccessoryPanel(nlModelA)
-    val motionPanelB = retrieveMotionAccessoryPanel(nlModelB)
-    val textViewA = nlModelA.find("widget")!!
-    val textViewB = nlModelB.find("widget")!!
-    val scene = MotionSceneModel.parse(textViewB, project, file, xmlFile)
-
-    // test
-    model.surface = nlModelA.surface
-    model.surface = nlModelB.surface
-    nlModelA.surface.selectionModel.setSelection(listOf(textViewA))
-    motionPanelA.select(scene.getTransitionTag(0).tag, textViewA)
-    waitUntilEventsProcessed(model)
+    model.surface = surface
     verifyZeroInteractions(listener)
 
-    nlModelB.surface.selectionModel.setSelection(listOf(textViewB))
-    motionPanelB.select(scene.getTransitionTag(0).tag, textViewB)
-    waitUntilEventsProcessed(model)
+    // Verify that we get a generated event:
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertiesGenerated(model)
-    assertThat(model.properties[SdkConstants.AUTO_URI, TransitionConstraintSetStart].components[0].model).isEqualTo(nlModelB)
-  }
+    reset(listener)
 
-  fun testConstraintSet() {
-    // setup
-    myFixture.copyFileToProject("motion/attrs.xml", "res/values/attrs.xml")
-    val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
-    val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
-
-    @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
-    val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    val nlModel = createNlModel()
-    val textView = nlModel.components[0].getChild(0)
-    val timeline = retrieveMotionAccessoryPanel(nlModel)
-    model.addListener(listener)
-    val scene = MotionSceneModel.parse(textView, project, file, xmlFile)
-    model.surface = nlModel.surface
-    nlModel.surface.selectionModel.setSelection(nlModel.components)
-
-    // test
-    timeline.select(scene.startConstraintSet.getConstraintView("widget")!!.tag, textView)
-    waitUntilEventsProcessed(model)
+    // Verify that we get a generated event after selecting a different empty constraint:
+    motionRule.selectConstraint("end", "buttonEmptyConstraint")
+    UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertiesGenerated(model)
-    assertThat(model.properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value).isEqualTo("64dp")
+    reset(listener)
+
+    // Verify that we get a generated event after selecting a different empty constraint:
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertiesGenerated(model)
+    reset(listener)
   }
 
-  private fun createNlModel(): SyncNlModel {
-    val builder = model(
-      "motion.xml",
-      component(SdkConstants.MOTION_LAYOUT.newName())
-        .withBounds(0, 0, 1000, 1500)
-        .id("@id/motion")
-        .matchParentWidth()
-        .matchParentHeight()
-        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
-        .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(100, 100, 100, 100)
-            .id("@+id/widget")
-            .width("wrap_content")
-            .height("wrap_content")
-        )
-    )
-    val model = builder.build()
-    val panel = mock(AccessoryPanel::class.java)
-    val timeline = MotionAccessoryPanel()
-    val surface = model.surface as NlDesignSurface
-    `when`(surface.accessoryPanel).thenReturn(panel)
-    `when`(panel.currentPanel).thenReturn(timeline)
-    return model
+  @Test
+  fun testRenameOfConstraintId() {
+    val model = motionRule.attributesModel
+    motionRule.selectConstraintSet("start")
+    val property = model.allProperties[CONSTRAINTSET]!![ANDROID_URI, ATTR_ID]
+    NeleIdRenameProcessor.dialogProvider = { _, _, _, _ -> NeleIdRenameProcessor.RefactoringChoice.YES }
+    property.value = "different_start"
+    motionRule.update()
+
+    motionRule.selectConstraintSet("different_start")
+    assertThat(model.allProperties[CONSTRAINTSET]!![ANDROID_URI, ATTR_ID].rawValue)
+      .isEqualTo("@+id/different_start")
+    motionRule.selectTransition("different_start", "end")
+    assertThat(model.allProperties[TRANSITION]!![AUTO_URI, ATTR_CONSTRAINTSET_START].rawValue)
+      .isEqualTo("@id/different_start")
   }
 
-  private fun retrieveMotionAccessoryPanel(model: SyncNlModel): MotionAccessoryPanel {
-    val surface = model.surface as NlDesignSurface
-    return surface.accessoryPanel.currentPanel as MotionAccessoryPanel
+  @Test
+  fun testSetPropertyOnMotionTag() {
+    motionRule.selectConstraintSet("start")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[CONSTRAINTSET]!![AUTO_URI, DERIVE_CONSTRAINTS_FROM]!!
+    property.value = "@id/end"
+    assertThat(motionRule.sceneFileLines(5..7)).isEqualTo("<ConstraintSet\n" +
+                                                          "     android:id=\"@+id/start\"\n" +
+                                                          "     motion:deriveConstraintsFrom=\"@id/end\">")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set ConstraintSet.deriveConstraintsFrom to @id/end")
   }
 
-  private class MotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdits {
-    val listeners = mutableListOf<AccessorySelectionListener>()
+  @Test
+  fun testSetCustomProperty() {
+    motionRule.selectConstraint("start", "widget")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[CUSTOM_ATTRIBUTE]!!["", ATTR_TEXT_SIZE]!!
+    property.value = "7sp"
+    assertThat(motionRule.sceneFileLines(27..29)).isEqualTo("<CustomAttribute\n" +
+                                                            "     motion:attributeName=\"textSize\"\n" +
+                                                            "     motion:customPixelDimension=\"7sp\"/>")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 7sp")
+  }
+
+  @Test
+  fun testSetSectionedProperty() {
+    motionRule.selectConstraint("start", "button")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[LAYOUT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
+    property.value = "10dp"
+    assertThat(motionRule.sceneFileLines(33..35)).isEqualTo("<Layout\n" +
+                                                            "     android:layout_width=\"1dp\"\n" +
+                                                            "     android:layout_height=\"10dp\"/>")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set Layout.layout_height to 10dp")
+  }
+
+  @Test
+  fun testSetSectionedPropertyInheritedFromLayout() {
+    motionRule.selectConstraint("base", "button")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[LAYOUT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
+    property.value = "30dp"
+    assertThat(motionRule.sceneFileLines(96..104)).isEqualTo("<Layout\n" +
+                                                             "     android:layout_width=\"32dp\"\n" +
+                                                             "     android:layout_height=\"30dp\"\n" +
+                                                             "     motion:layout_constraintTop_toTopOf=\"@id/image\"\n" +
+                                                             "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+                                                             "     motion:layout_editor_absoluteY=\"30dp\"\n" +
+                                                             "     motion:layout_editor_absoluteX=\"10dp\"\n" +
+                                                             "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+                                                             "     motion:layout_constraintHorizontal_bias=\"0.5\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set Layout.layout_height to 30dp")
+  }
+
+  @Test
+  fun testSetPropertyConstraintsFromLayout() {
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[CONSTRAINT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
+    property.value = "30dp"
+    assertThat(motionRule.sceneFileLines(37..45)).isEqualTo("<Constraint\n" +
+                                                            "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
+                                                            "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+                                                            "     android:layout_width=\"32dp\"\n" +
+                                                            "     android:layout_height=\"30dp\"\n" +
+                                                            "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
+                                                            "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+                                                            "     motion:layout_editor_absoluteY=\"40dp\"\n" +
+                                                            "     motion:layout_editor_absoluteX=\"10dp\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set Constraint.layout_height to 30dp")
+  }
+
+  @Test
+  fun testSetOnClickProperty() {
+    motionRule.selectTransition("start", "end")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[ON_CLICK]!![AUTO_URI, ATTR_TARGET_ID]!!
+    property.value = "@+id/widget"
+    assertThat(motionRule.sceneFileLines(106..106)).isEqualTo("<OnClick motion:targetId=\"@+id/widget\"/>")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set OnClick.targetId to @+id/widget")
+  }
+
+  @Test
+  fun testBrowse() {
+    motionRule.enableFileOpenCaptures()
+    motionRule.selectConstraint("start", "widget")
+    val model = motionRule.attributesModel
+    val property = model.allProperties[CONSTRAINT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
+    model.browseToValue(property)
+    motionRule.checkEditor(SCENE_FILE, 12, "android:layout_height=\"64dp\"")
+  }
+
+  @Test
+  fun testCreateCustomConstraintTag() {
+    motionRule.selectConstraint("start", "widget")
+    val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT, "Hello", CUSTOM_STRING) { tag = it }
+    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
+                                            "            motion:attributeName=\"text\"\n" +
+                                            "            motion:customStringValue=\"Hello\" />")
+    assertThat(motionRule.sceneFileLines(30..32)).isEqualTo("<CustomAttribute\n" +
+                                                            "     motion:attributeName=\"text\"\n" +
+                                                            "     motion:customStringValue=\"Hello\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
+  }
 
-    override fun getPanel(): JPanel {
-      throw Error("should not be called")
-    }
+  @Test
+  fun testCreateCustomConstraintTagInNonExistingConstraint() {
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    val model = motionRule.attributesModel
+    var tag: MotionSceneTag? = null
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT, "Hello", CUSTOM_STRING) { tag = it }
+    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
+                                            "              motion:attributeName=\"text\"\n" +
+                                            "              motion:customStringValue=\"Hello\" />")
+    assertThat(motionRule.sceneFileLines(37..49)).isEqualTo("<Constraint\n" +
+                                                            "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
+                                                            "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+                                                            "     android:layout_width=\"32dp\"\n" +
+                                                            "     android:layout_height=\"10dp\"\n" +
+                                                            "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
+                                                            "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+                                                            "     motion:layout_editor_absoluteY=\"40dp\"\n" +
+                                                            "     motion:layout_editor_absoluteX=\"10dp\">\n" +
+                                                            "     <CustomAttribute\n" +
+                                                            "         motion:attributeName=\"text\"\n" +
+                                                            "         motion:customStringValue=\"Hello\" />\n" +
+                                                            " </Constraint>")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
+  }
 
-    override fun createPanel(type: AccessoryPanel.Type?): JPanel {
-      throw Error("should not be called")
-    }
+  @Test
+  fun testCreateCustomTagForKeyAttribute() {
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_ATTRIBUTE, 60, "widget")
+    val model = motionRule.attributesModel
+    var tag: MotionSceneTag? = null
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) { tag = it }
+    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
+                                            "              motion:attributeName=\"textSize\"\n" +
+                                            "              motion:customStringValue=\"50sp\" />")
+    assertThat(motionRule.sceneFileLines(150..152)).isEqualTo("<CustomAttribute\n" +
+                                                            "     motion:attributeName=\"textSize\"\n" +
+                                                            "     motion:customStringValue=\"50sp\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
+  }
 
-    override fun updateAccessoryPanelWithSelection(type: AccessoryPanel.Type, selection: MutableList<NlComponent>) {
-      throw Error("should not be called")
-    }
+  @Test
+  fun testCreateCustomTagForKeyCycle() {
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_CYCLE, 15, "widget")
+    val model = motionRule.attributesModel
+    var tag: MotionSceneTag? = null
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) { tag = it }
+    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
+                                            "              motion:attributeName=\"textSize\"\n" +
+                                            "              motion:customStringValue=\"50sp\" />")
+    assertThat(motionRule.sceneFileLines(165..167)).isEqualTo("<CustomAttribute\n" +
+                                                              "     motion:attributeName=\"textSize\"\n" +
+                                                              "     motion:customStringValue=\"50sp\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
+  }
 
-    override fun deactivate() {
-      throw Error("should not be called")
-    }
+  @Test
+  fun testCreateCustomTagForKeyTimeCycle() {
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_TIME_CYCLE, 25, "widget")
+    val model = motionRule.attributesModel
+    var tag: MotionSceneTag? = null
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) { tag = it }
+    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
+                                            "              motion:attributeName=\"textSize\"\n" +
+                                            "              motion:customStringValue=\"50sp\" />")
+    assertThat(motionRule.sceneFileLines(173..175)).isEqualTo("<CustomAttribute\n" +
+                                                              "     motion:attributeName=\"textSize\"\n" +
+                                                              "     motion:customStringValue=\"50sp\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
+  }
 
-    override fun updateAfterModelDerivedDataChanged() {
-      throw Error("should not be called")
-    }
-
-    override fun handlesWriteForComponent(id: String?): Boolean {
-      throw Error("should not be called")
-    }
-
-    override fun getSelectedConstraint(): SmartPsiElementPointer<XmlTag> {
-      throw Error("should not be called")
-    }
-
-    override fun getSelectedConstraintSet(): String {
-      throw Error("should not be called")
-    }
-
-    override fun getTransitionFile(component: NlComponent?): XmlFile {
-      throw Error("should not be called")
-    }
-
-    override fun getConstraintSet(file: XmlFile?, s: String?): XmlTag {
-      throw Error("should not be called")
-    }
-
-    override fun getConstrainView(set: XmlTag?, id: String?): XmlTag {
-      throw Error("should not be called")
-    }
-
-    override fun getKeyframes(file: XmlFile?, id: String?): MutableList<XmlTag> {
-      throw Error("should not be called")
-    }
-
-    fun select(tagPointer: SmartPsiElementPointer<XmlTag>?, component: NlComponent?) {
-      tag = null
-      val xmlTag = tagPointer?.element ?: return
-      this.tag = MotionSceneTag(xmlTag, null)
-      val list = if (component != null) listOf(component) else emptyList()
-      listeners.forEach { it.selectionChanged(this, list) }
-    }
-
-    override fun getSelectedAccessory(): Any? {
-      return tag
-    }
-
-    val listenerCount: Int
-      get() = listeners.size
-
-    override fun addListener(listener: AccessorySelectionListener) {
-      listeners.add(listener)
-    }
-
-    override fun removeListener(listener: AccessorySelectionListener) {
-      listeners.remove(listener)
-    }
+  @Test
+  fun testCreateExistingCustomConstraintTag() {
+    motionRule.selectConstraint("start", "widget")
+    val model = motionRule.attributesModel
+    var tag: MotionSceneTag? = null
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "20sp", CUSTOM_STRING) { tag = it }
+    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
+                                            "          motion:attributeName=\"textSize\"\n" +
+                                            "          motion:customStringValue=\"20sp\" />")
+    assertThat(motionRule.sceneFileLines(27..29)).isEqualTo("<CustomAttribute\n" +
+                                                            "     motion:attributeName=\"textSize\"\n" +
+                                                            "     motion:customStringValue=\"20sp\" />")
+    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 20sp")
   }
 }

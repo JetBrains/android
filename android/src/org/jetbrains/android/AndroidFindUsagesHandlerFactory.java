@@ -21,6 +21,7 @@ import static com.android.SdkConstants.ATTR_NAME;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.collect.ObjectArrays;
@@ -59,6 +60,8 @@ import org.jetbrains.annotations.Nullable;
  * PsiField} (for light R classes fields), {@link ValueResourceElementWrapper}, {@link FileResourceElementWrapper} or {@link PsiFile}. Note
  * that {@link FileResourceElementWrapper} implements {@link PsiFile} and is equivalent to the {@link PsiFile} it wraps, so needs no
  * special handling.
+ *
+ * {@see AndroidResourcesFindUsagesHandlerFactory} for the new implementation of FindUsages on Android Resources.
  */
 public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 
@@ -73,6 +76,9 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
   @WorkerThread
   @Override
   public boolean canFindUsages(@NotNull PsiElement element) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      return false;
+    }
     if (element instanceof ResourceReferencePsiElement) {
       return true;
     }

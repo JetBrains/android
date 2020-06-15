@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.Modules;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,6 +51,9 @@ public class ModuleFinder {
   // Map from module folder to project folder for included modules, this will be used to construct projectId for included modules.
   @NotNull private final Map<String, File> myIncludedProjectFolderByModuleFolder = new HashMap<>();
 
+  @NotNull public static final Key<BuildParticipant> EXTRA_BUILD_PARTICIPANT_FROM_BUILD_SRC =
+    new Key<>("extra.build.participant.from.build.src");
+
   private ModuleFinder() {
   }
 
@@ -58,6 +62,8 @@ public class ModuleFinder {
   }
 
   private void populateIncludedProjectFolderByModuleFolder(@NotNull Project project) {
+    // Populate extra build participant from buildSrc.
+    populateExtraBuildParticipants(project);
     String projectPath = project.getBasePath();
     if (projectPath == null) {
       return;
@@ -72,10 +78,21 @@ public class ModuleFinder {
     }
 
     for (BuildParticipant participant : compositeBuild.getCompositeParticipants()) {
-      for (String modulePath : participant.getProjects()) {
-        String path = nullToEmpty(participant.getRootPath());
-        myIncludedProjectFolderByModuleFolder.put(modulePath, new File(path));
-      }
+      addBuildParticipant(participant);
+    }
+  }
+
+  private void populateExtraBuildParticipants(@NotNull Project project) {
+    BuildParticipant buildParticipant = project.getUserData(EXTRA_BUILD_PARTICIPANT_FROM_BUILD_SRC);
+    if (buildParticipant != null) {
+      addBuildParticipant(buildParticipant);
+    }
+  }
+
+  private void addBuildParticipant(BuildParticipant participant) {
+    for (String modulePath : participant.getProjects()) {
+      String path = nullToEmpty(participant.getRootPath());
+      myIncludedProjectFolderByModuleFolder.put(modulePath, new File(path));
     }
   }
 

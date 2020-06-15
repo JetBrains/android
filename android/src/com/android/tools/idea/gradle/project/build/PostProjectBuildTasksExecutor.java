@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.intellij.notification.NotificationType;
@@ -150,13 +151,15 @@ public class PostProjectBuildTasksExecutor {
         }
       }
 
-      // Refresh Studio's view of the file system after a compile. This is necessary for Studio to see generated code.
-      refreshProject();
-
       BuildSettings buildSettings = BuildSettings.getInstance(myProject);
       BuildMode buildMode = buildSettings.getBuildMode();
       String runConfigurationTypeId = buildSettings.getRunConfigurationTypeId();
       buildSettings.clear();
+
+      // Refresh Studio's view of the file system after a compile. This is necessary for Studio to see generated code.
+      // If this build is invoked from a run configuration, then we should refresh synchronously since subsequent task,
+      // e.g. unit test run, might need updated VFS state immediately.
+      refreshProject(runConfigurationTypeId == null);
 
       myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
 
@@ -240,14 +243,14 @@ public class PostProjectBuildTasksExecutor {
   }
 
   /**
-   * Refreshes, asynchronously, the cached view of the project's contents.
+   * Refreshes the cached view of the project's contents.
    */
-  private void refreshProject() {
+  private void refreshProject(boolean asynchronous) {
     String projectPath = myProject.getBasePath();
     if (projectPath != null) {
       VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(projectPath);
       if (rootDir != null && rootDir.isDirectory()) {
-        rootDir.refresh(true, true);
+        rootDir.refresh(asynchronous, true);
       }
     }
   }

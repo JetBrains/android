@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_VARIANT_COLLISIONS
 import com.android.tools.idea.testing.TestProjectPaths.SCRIPTED_DIMENSIONS
 import com.google.common.truth.Truth.assertThat
@@ -48,7 +48,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|"
 
   fun testFlavorDimensions() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -62,7 +62,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testFallbackFlavorDimensions() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -100,7 +100,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateFlavorDimensionName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -121,7 +121,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testAddFlavorDimension() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -147,7 +147,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testAddFirstFlavorDimension() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -173,7 +173,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRemoveFlavorDimension() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -250,7 +250,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateProductFlavorName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -398,7 +398,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRemoveProductFlavor() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -430,7 +430,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRenameProductFlavor() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -503,7 +503,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateBuildTypeName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -602,7 +602,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRemoveBuildType() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -638,7 +638,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRenameBuildType() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -744,7 +744,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateSigningConfigName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -885,7 +885,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testApplyChangesAndSyncReloadsResolvedValues() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -914,7 +914,10 @@ class PsAndroidModuleTest : DependencyTestCase() {
         assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar", "otherBar")
         assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
         assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" })
-          .containsExactly("api appcompat-v7", "api libs")
+          .containsExactly("api appcompat-v7", "api libs",
+                           "implementation constraint-layout",
+                           "implementation runner",
+                           "implementation espresso-core")
       }
       finally {
         Disposer.dispose(disposable)
@@ -969,7 +972,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testResolvingProjectReloadsCollections() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -990,7 +993,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testModuleChanged() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -1016,7 +1019,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testImportantConfigurations() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -1057,7 +1060,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testConfigurations() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -1240,6 +1243,64 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestBasicOtherBarCompileOnly",
       "androidTestPaidOtherBarCompileOnly",
 
+      "runtimeOnly",
+      "releaseRuntimeOnly",
+      "specialReleaseRuntimeOnly",
+      "debugRuntimeOnly",
+      "basicRuntimeOnly",
+      "paidRuntimeOnly",
+      "barRuntimeOnly",
+      "otherBarRuntimeOnly",
+      "basicBarRuntimeOnly",
+      "basicBarReleaseRuntimeOnly",
+      "basicBarSpecialReleaseRuntimeOnly",
+      "basicBarDebugRuntimeOnly",
+      "paidBarRuntimeOnly",
+      "paidBarReleaseRuntimeOnly",
+      "paidBarSpecialReleaseRuntimeOnly",
+      "paidBarDebugRuntimeOnly",
+      "basicOtherBarRuntimeOnly",
+      "basicOtherBarReleaseRuntimeOnly",
+      "basicOtherBarSpecialReleaseRuntimeOnly",
+      "basicOtherBarDebugRuntimeOnly",
+      "paidOtherBarRuntimeOnly",
+      "paidOtherBarReleaseRuntimeOnly",
+      "paidOtherBarSpecialReleaseRuntimeOnly",
+      "paidOtherBarDebugRuntimeOnly",
+      "testRuntimeOnly",
+      "testReleaseRuntimeOnly",
+      "testSpecialReleaseRuntimeOnly",
+      "testDebugRuntimeOnly",
+      "testBasicRuntimeOnly",
+      "testPaidRuntimeOnly",
+      "testBarRuntimeOnly",
+      "testOtherBarRuntimeOnly",
+      "testBasicBarRuntimeOnly",
+      "testBasicBarReleaseRuntimeOnly",
+      "testBasicBarSpecialReleaseRuntimeOnly",
+      "testBasicBarDebugRuntimeOnly",
+      "testPaidBarRuntimeOnly",
+      "testPaidBarReleaseRuntimeOnly",
+      "testPaidBarSpecialReleaseRuntimeOnly",
+      "testPaidBarDebugRuntimeOnly",
+      "testBasicOtherBarRuntimeOnly",
+      "testBasicOtherBarReleaseRuntimeOnly",
+      "testBasicOtherBarSpecialReleaseRuntimeOnly",
+      "testBasicOtherBarDebugRuntimeOnly",
+      "testPaidOtherBarRuntimeOnly",
+      "testPaidOtherBarReleaseRuntimeOnly",
+      "testPaidOtherBarSpecialReleaseRuntimeOnly",
+      "testPaidOtherBarDebugRuntimeOnly",
+      "androidTestRuntimeOnly",
+      "androidTestBasicRuntimeOnly",
+      "androidTestPaidRuntimeOnly",
+      "androidTestBarRuntimeOnly",
+      "androidTestBasicBarRuntimeOnly",
+      "androidTestPaidBarRuntimeOnly",
+      "androidTestOtherBarRuntimeOnly",
+      "androidTestBasicOtherBarRuntimeOnly",
+      "androidTestPaidOtherBarRuntimeOnly",
+
       "annotationProcessor",
       "releaseAnnotationProcessor",
       "specialReleaseAnnotationProcessor",
@@ -1301,7 +1362,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testConfigurationRequiresWorkaround() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -1422,6 +1483,43 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestPaidBarCompileOnly",
       "androidTestBasicOtherBarCompileOnly",
       "androidTestPaidOtherBarCompileOnly",
+
+      "basicBarRuntimeOnly",
+      "basicBarReleaseRuntimeOnly",
+      "basicBarSpecialReleaseRuntimeOnly",
+      "basicBarDebugRuntimeOnly",
+      "paidBarRuntimeOnly",
+      "paidBarReleaseRuntimeOnly",
+      "paidBarSpecialReleaseRuntimeOnly",
+      "paidBarDebugRuntimeOnly",
+      "basicOtherBarRuntimeOnly",
+      "basicOtherBarReleaseRuntimeOnly",
+      "basicOtherBarSpecialReleaseRuntimeOnly",
+      "basicOtherBarDebugRuntimeOnly",
+      "paidOtherBarRuntimeOnly",
+      "paidOtherBarReleaseRuntimeOnly",
+      "paidOtherBarSpecialReleaseRuntimeOnly",
+      "paidOtherBarDebugRuntimeOnly",
+      "testBasicBarRuntimeOnly",
+      "testBasicBarReleaseRuntimeOnly",
+      "testBasicBarSpecialReleaseRuntimeOnly",
+      "testBasicBarDebugRuntimeOnly",
+      "testPaidBarRuntimeOnly",
+      "testPaidBarReleaseRuntimeOnly",
+      "testPaidBarSpecialReleaseRuntimeOnly",
+      "testPaidBarDebugRuntimeOnly",
+      "testBasicOtherBarRuntimeOnly",
+      "testBasicOtherBarReleaseRuntimeOnly",
+      "testBasicOtherBarSpecialReleaseRuntimeOnly",
+      "testBasicOtherBarDebugRuntimeOnly",
+      "testPaidOtherBarRuntimeOnly",
+      "testPaidOtherBarReleaseRuntimeOnly",
+      "testPaidOtherBarSpecialReleaseRuntimeOnly",
+      "testPaidOtherBarDebugRuntimeOnly",
+      "androidTestBasicBarRuntimeOnly",
+      "androidTestPaidBarRuntimeOnly",
+      "androidTestBasicOtherBarRuntimeOnly",
+      "androidTestPaidOtherBarRuntimeOnly",
 
       "basicBarAnnotationProcessor",
       "basicBarReleaseAnnotationProcessor",

@@ -16,10 +16,10 @@
 
 package org.jetbrains.kotlin.android.quickfix
 
+import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canAddParcelable
 import org.jetbrains.kotlin.android.implementParcelable
@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.psi.KtClass
 
 
-class ParcelableQuickFix : AndroidLintQuickFix {
+class ParcelableQuickFix : LintIdeQuickFix {
     override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
         startElement.getTargetClass()?.implementParcelable()
     }

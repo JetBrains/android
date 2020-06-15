@@ -31,5 +31,10 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="layoutinspector-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>

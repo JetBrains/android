@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.npw.dynamicapp
 
+import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
+import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 
 /**
  * Model for a single row of "device-feature"
  */
-class DeviceFeatureModel {
+data class DeviceFeatureModel(
   @JvmField
-  val deviceFeatureType = ObjectValueProperty( DeviceFeatureKind.NAME)
+  val deviceFeatureType: ObjectProperty<DeviceFeatureKind> = ObjectValueProperty(DeviceFeatureKind.NAME),
   @JvmField
-  val deviceFeatureValue = StringValueProperty( "")
-
+  val deviceFeatureValue: StringProperty = StringValueProperty( "")
+) {
   // For FreeMarker support only. TODO(qumeric): remove it
   fun getDeviceFeatureType() = deviceFeatureType
   fun getDeviceFeatureValue() = deviceFeatureValue

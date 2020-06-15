@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.toSwingRect
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
-import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
@@ -30,45 +32,41 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.scaledFont
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Font
-import java.awt.geom.Rectangle2D
 
-class DrawHeader(@VisibleForTesting val rectangle: Rectangle2D.Float,
-                 @VisibleForTesting val scale: Float,
+class DrawHeader(@VisibleForTesting val rectangle: SwingRectangle,
+                 @VisibleForTesting val scale: Scale,
                  @VisibleForTesting val text: String,
                  @VisibleForTesting val isStart: Boolean,
                  @VisibleForTesting val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 5))
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), tokens[2],
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), tokens[1].toScale(), tokens[2],
                                                     tokens[3].toBoolean(), tokens[4].toBoolean())
 
-  override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, text, isStart, hasDeepLink)
+  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(), scale, text, isStart, hasDeepLink)
 
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
 
-    val textRectangle = Rectangle2D.Float()
-    textRectangle.setRect(rectangle)
-
+    var textX = rectangle.x
+    var textWidth = rectangle.width
     val textPadding = scale * HEADER_TEXT_PADDING
     val iconSize = scale * HEADER_ICON_SIZE
 
     if (isStart) {
-      val startRect = Rectangle2D.Float(rectangle.x, rectangle.y, iconSize, iconSize)
+      val startRect = SwingRectangle(rectangle.x, rectangle.y, iconSize, iconSize)
       list.add(DrawIcon(startRect, DrawIcon.IconType.START_DESTINATION))
-      textRectangle.x += iconSize + textPadding
+      textX += iconSize + textPadding
     }
 
     if (hasDeepLink) {
-      val deepLinkRect = Rectangle2D.Float(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
+      val deepLinkRect = SwingRectangle(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
       list.add(DrawIcon(deepLinkRect, DrawIcon.IconType.DEEPLINK))
-      textRectangle.width -= rectangle.height + textPadding
+      textWidth -= rectangle.height + textPadding
     }
 
-    textRectangle.y += textPadding
-    textRectangle.height = scale * HEADER_TEXT_HEIGHT
-
+    val textRectangle = SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)
     list.add(DrawTruncatedText(0, text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false))
 
     return list

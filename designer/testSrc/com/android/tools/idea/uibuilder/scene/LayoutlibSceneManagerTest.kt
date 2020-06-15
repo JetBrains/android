@@ -31,22 +31,27 @@ class LayoutlibSceneManagerTest: SceneTest() {
     super.setUp()
   }
 
+  override fun tearDown() {
+    super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
+  }
+
   fun testSceneModeWithPreferenceFile() {
     // Regression test for b/122673792
     val nlSurface = myScene.designSurface as NlDesignSurface
     val sceneManager = nlSurface.sceneManager!!
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.SCREEN_ONLY)
+    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.RENDER)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BLUEPRINT_ONLY)
+    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BOTH)
+    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.RENDER_AND_BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNotNull(sceneManager.secondarySceneView)

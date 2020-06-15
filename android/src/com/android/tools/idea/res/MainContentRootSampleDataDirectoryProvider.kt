@@ -19,9 +19,8 @@ import com.android.SdkConstants.FD_SAMPLE_DATA
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.util.toPathString
-import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing
+import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.IOException
@@ -40,8 +39,8 @@ class MainContentRootSampleDataDirectoryProvider(val module: Module): SampleData
 
   @Throws(IOException::class)
   override fun getOrCreateSampleDataDirectory(): PathString? {
-   return getSampleDataDirectory()?.apply {
-       createDirectoryIfMissing(root!!.toVirtualFile(), portablePath)
-   }
+    return getSampleDataDirectory()?.apply {
+      VfsUtil.createDirectoryIfMissing(nativePath)
+    }
   }
 }

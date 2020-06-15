@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.AndroidTvDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,13 +32,13 @@ public class AndroidLintPermissionImpliesUnsupportedHardwareInspection extends A
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     String hardwareFeatureName = LintFix.getData(fixData, String.class);
     if (hardwareFeatureName != null) {
-      return new AndroidLintQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
+      return new LintIdeQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);

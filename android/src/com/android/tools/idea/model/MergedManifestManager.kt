@@ -110,11 +110,11 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
     return runReadAction {
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        Disposer.isDisposed(facet) -> null
+        Disposer.isDisposed(facet) -> MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
       }
-    } ?: MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
+    }
   }
 
   /**
@@ -204,6 +204,7 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
         // that we don't try to use the cached snapshot because the fact that there was
         // another thread already computing the merged manifest means that the cached
         // snapshot was stale.
+        ProgressManager.checkCanceled()
         return getOrCreateSnapshot(null)
       }
       throw e
@@ -225,10 +226,9 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
    */
   @AnyThread
   private fun snapshotUpToDate(snapshot: MergedManifestSnapshot): Boolean {
-    if (Disposer.isDisposed(snapshot.module)) {
-      return true
-    }
-    val mergedManifestInfo = snapshot.mergedManifestInfo ?: return false
+    // The only way the snapshot's merged manifest info could be null is if the facet
+    // is disposed, in which case there's no need to try and recalculate it.
+    val mergedManifestInfo = snapshot.mergedManifestInfo ?: return true
     return runReadAction(mergedManifestInfo::isUpToDate)
   }
 }
@@ -236,6 +236,8 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
 /**
  * Module service responsible for offloading merged manifest computations
  * to a worker thread and maintaining a cache of the resulting [MergedManifestSnapshot].
+ *
+ * This class is open for mocking. Do not extend it.
  */
 open class MergedManifestManager(facet: AndroidFacet) {
   private val supplier: MergedManifestSupplier
@@ -333,16 +335,24 @@ open class MergedManifestManager(facet: AndroidFacet) {
     @JvmStatic
     fun getFreshSnapshot(module: Module): MergedManifestSnapshot {
       val supplier = getInstance(module).supplier
-      return if (ApplicationManager.getApplication().isReadAccessAllowed) {
-        // If we're holding the global write lock, blocking on the delegate supplier's
-        // computation would create a deadlock since the worker thread needs the read
-        // lock to create a new snapshot. If we're holding the read lock, we can't block
-        // on another thread that also requires the read lock, as this would cause deadlock
-        // if there's an incoming write request before the second thread acquires the lock.
-        supplier.getOrCreateSnapshotInCallingThread()
+      return try {
+        if (ApplicationManager.getApplication().isReadAccessAllowed) {
+          // If we're holding the global write lock, blocking on the delegate supplier's
+          // computation would create a deadlock since the worker thread needs the read
+          // lock to create a new snapshot. If we're holding the read lock, we can't block
+          // on another thread that also requires the read lock, as this would cause deadlock
+          // if there's an incoming write request before the second thread acquires the lock.
+          supplier.getOrCreateSnapshotInCallingThread()
+        }
+        else {
+          supplier.get().get()
+        }
       }
-      else {
-        supplier.get().get()
+      catch(e: ProcessCanceledException) {
+        throw e
+      }
+      catch(e: Exception) {
+        MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
       }
     }
   }

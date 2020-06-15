@@ -32,13 +32,15 @@ import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
 import icons.StudioIcons
 import org.jetbrains.android.formatter.AttributeComparator
 
-private const val ADD_PROPERTY_ACTION_TITLE = "Add Attribute"
-private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Attribute"
+private const val ADD_PROPERTY_ACTION_TITLE = "Add attribute"
+private const val DELETE_ROW_ACTION_TITLE = "Remove selected attribute"
 
 /**
  * Comparator that is sorting [PTableItem] in Android sorting order.
@@ -66,11 +68,12 @@ class DeclaredAttributesInspectorBuilder(
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null }, androidSortOrder)
-    val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
-    val deleteRowAction = DeleteRowAction(declaredTableModel)
-    val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, addNewRow, deleteRowAction)
-    val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, titleModel)
+    val declaredTableModel = FilteredPTableModel.create(model, { it.rawValue != null }, { it.value = null }, androidSortOrder)
+    val addNewRow = AddNewRowAction(newPropertyInstance)
+    val deleteRowAction = DeleteRowAction()
+    val actions = listOf(addNewRow, deleteRowAction)
+    val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, actions)
+    val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, actions, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
@@ -79,7 +82,6 @@ class DeclaredAttributesInspectorBuilder(
   }
 
   private class AddNewRowAction(
-    val tableModel: FilteredPTableModel<NelePropertyItem>,
     val newProperty: NeleNewPropertyItem
   ) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
 
@@ -89,22 +91,33 @@ class DeclaredAttributesInspectorBuilder(
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
       val model = lineModel ?: return
-      val nextItem = tableModel.addNewItem(newProperty)
+      val nextItem = model.addItem(newProperty)
       model.requestFocus(nextItem)
     }
   }
 
-  private class DeleteRowAction(
-    private val tableModel: FilteredPTableModel<NelePropertyItem>
-  ) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
-
+  private class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 
+    init {
+      val manager = ActionManager.getInstance()
+      shortcutSet = manager.getAction(ACTION_DELETE).shortcutSet
+    }
+
+    override fun update(event: AnActionEvent) {
+      val enabled = lineModel?.tableModel?.items?.isNotEmpty() ?: false
+      event.presentation.isEnabled = enabled
+
+      // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
+      templatePresentation.isEnabled = enabled
+    }
+
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
-      val selected = lineModel?.selectedItem as? NelePropertyItem ?: return
-      tableModel.deleteItem(selected)
+      val model = lineModel ?: return
+      val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) ?: return
+      model.removeItem(selected)
     }
   }
 }

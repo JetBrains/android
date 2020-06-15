@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
@@ -47,6 +48,10 @@ import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -95,7 +100,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
           disposable.toString().startsWith("services of " + ApplicationImpl.class.getName()) ||
           disposable instanceof Application ||
-          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
+          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
+          disposable instanceof PsiReferenceContributor) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }
@@ -107,7 +113,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
           root = parent;
           disposerChain.append(" <- ").append(root);
         }
-        fail("Undisposed object: " + disposerChain.append(" (root)"));
+        fail("Undisposed object of type " + disposable.getClass().getName() + ": " + disposerChain.append(" (root)"));
       }
       return DisposerExplorer.VisitResult.CONTINUE;
     });
@@ -195,8 +201,18 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (elements == null) {
       return "Empty";
     }
+    List<PsiElement> sortedElements = Arrays.stream(elements).map((element) -> {
+      if (element instanceof LazyValueResourceElementWrapper) {
+        LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
+        XmlAttributeValue value = wrapper.computeElement();
+        if (value != null) {
+          return value;
+        }
+      }
+      return element;
+    }).sorted(Comparator.comparing(PsiElement::getText)).collect(Collectors.toList());
     StringBuilder sb = new StringBuilder();
-    for (PsiElement target : elements) {
+    for (PsiElement target : sortedElements) {
       appendElementDescription(sb, target);
     }
     return sb.toString();
@@ -206,13 +222,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
    * Appends a description of the given element, suitable as unit test golden file output
    */
   public static void appendElementDescription(@NotNull StringBuilder sb, @NotNull PsiElement element) {
-    if (element instanceof LazyValueResourceElementWrapper) {
-      LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
-      XmlAttributeValue value = wrapper.computeElement();
-      if (value != null) {
-        element = value;
-      }
-    }
     PsiFile file = element.getContainingFile();
     int offset = element.getTextOffset();
     TextRange segment = element.getTextRange();

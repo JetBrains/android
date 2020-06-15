@@ -33,9 +33,10 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportModelProvider {
-  override fun populateBuildModels(controller: BuildController,
-                                   buildModel: GradleBuild,
-                                   consumer: ProjectImportModelProvider.BuildModelConsumer) {
+  override fun populateBuildModels(
+    controller: BuildController,
+    buildModel: GradleBuild,
+    consumer: ProjectImportModelProvider.BuildModelConsumer) {
     populateAndroidModels(controller, buildModel, consumer)
     // Requesting ProjectSyncIssues must be performed last since all other model requests may produces addition issues.
     populateProjectSyncIssues(controller, buildModel, consumer)

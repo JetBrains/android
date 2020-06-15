@@ -25,7 +25,8 @@ import org.jetbrains.android.AndroidTestCase;
 
 public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
   public void testGradleWrapper() {
-    VirtualFile vFile = myFixture.copyFileToProject("projects/projectWithAppandLib/gradle/wrapper/gradle-wrapper.properties", "gradle/wrapper/gradle-wrapper.properties");
+    VirtualFile vFile = myFixture.copyFileToProject("projects/projectWithAppandLib/gradle/wrapper/gradle-wrapper.properties",
+                                                    "wrapper/gradle-wrapper.properties");
     PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
     assertNotNull(file);
     PropertiesFile propertiesFile = (PropertiesFile)file;

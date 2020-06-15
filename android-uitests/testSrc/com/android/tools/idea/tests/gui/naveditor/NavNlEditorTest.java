@@ -42,6 +42,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,8 +55,15 @@ public class NavNlEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @After
+  public void tearDown() {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.clearOverride();
+  }
+
   @Test
   public void testSelectComponent() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
+
     IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = frame.getEditor();
@@ -76,6 +84,8 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
   @Test
   public void testCreateAndDelete() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
+
     NlEditorFixture layout = guiTest
       .importProject("Navigation")
       .waitForGradleProjectSyncToFinish()
@@ -111,9 +121,49 @@ public class NavNlEditorTest {
     assertEquals(0, selectedComponents.size());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/137919011
+  @Test
+  public void testCreateNewFragmentFromWizard() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
+    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
+    try {
+      NlEditorFixture layout = guiTest
+        .importProject("Navigation")
+        .waitForGradleProjectSyncToFinish()
+        .getEditor()
+        .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+        .getLayoutEditor(true);
+
+      AddDestinationMenuFixture menuFixture = layout
+        .waitForRenderToFinish()
+        .getNavSurface()
+        .openAddDestinationMenu()
+        .waitForContents();
+
+      assertEquals(3, menuFixture.visibleItemCount());
+      menuFixture.clickCreateNewFragment()
+        .waitUntilStepErrorMessageIsGone()
+        .chooseFragment("Fullscreen Fragment")
+        .clickNextFragment()
+        .waitUntilStepErrorMessageIsGone()
+        .clickFinish();
+
+      ApplicationManager.getApplication().invokeAndWait(() -> dispatchAllInvocationEventsInIdeEventQueue());
+      waitForIdle();
+
+      DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
+      List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
+      assertEquals(1, selectedComponents.size());
+      assertEquals("fullscreenFragment", selectedComponents.get(0).getId());
+    } finally {
+      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
+    }
+  }
+
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       IdeFrameFixture frame = guiTest.importProject("Navigation");
       // Open file as XML and switch to design tab, wait for successful render
@@ -130,11 +180,12 @@ public class NavNlEditorTest {
         .getNavSurface()
         .openAddDestinationMenu()
         .waitForContents()
-        .clickCreateBlank()
-
+        .clickCreateNewFragment()
+        .chooseFragment("Fragment (Blank)")
+        .clickNextFragment()
         .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name:", "TestSingleVariantSync")
-        .selectComboBoxItem("Source Language:", "Java")
+        .enterTextFieldValue("Fragment Name", "TestSingleVariantSync")
+        .selectComboBoxItem("Source Language", "Java")
         .wizard()
         .clickFinish();
 
@@ -157,64 +208,74 @@ public class NavNlEditorTest {
     }
     finally {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
     }
   }
 
   @Test
   public void testCreateAndCancel() throws Exception {
-    final String file = "app/src/main/res/navigation/mobile_navigation.xml";
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
-    // Open file as XML and switch to design tab, wait for successful render
-    NlEditorFixture layout = guiTest
-      .ideFrame()
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .open(file, EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true);
+    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
+    try {
+      final String file = "app/src/main/res/navigation/mobile_navigation.xml";
+      IdeFrameFixture frame = guiTest.importProject("Navigation");
+      // Open file as XML and switch to design tab, wait for successful render
+      NlEditorFixture layout = guiTest
+        .ideFrame()
+        .waitForGradleProjectSyncToFinish()
+        .getEditor()
+        .open(file, EditorFixture.Tab.DESIGN)
+        .getLayoutEditor(true);
 
-    layout
-      .waitForRenderToFinish()
-      .getNavSurface()
-      .openAddDestinationMenu()
-      .waitForContents()
-      .clickCreateBlank()
-      .getConfigureTemplateParametersStep()
-      .enterTextFieldValue("Fragment Name:", "TestCreateAndCancelFragment")
-      .selectComboBoxItem("Source Language:", "Java")
-      .wizard()
-      .clickFinish();
+      layout
+        .waitForRenderToFinish()
+        .getNavSurface()
+        .openAddDestinationMenu()
+        .waitForContents()
+        .clickCreateNewFragment()
+        .chooseFragment("Fragment (Blank)")
+        .clickNextFragment()
+        .getConfigureTemplateParametersStep()
+        .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment")
+        .selectComboBoxItem("Source Language", "Java")
+        .wizard()
+        .clickFinish();
 
-    ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+      ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
 
-    long matchingComponents = frame
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      // Open the file again in case build.gradle is open after gradle sync
-      .open(file, EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
-      .waitForRenderToFinish()
-      .getAllComponents().stream()
-      .filter(component -> "testCreateAndCancelFragment".equals(component.getComponent().getId()))
-      .count();
+      long matchingComponents = frame
+        .waitForGradleProjectSyncToFinish()
+        .getEditor()
+        // Open the file again in case build.gradle is open after gradle sync
+        .open(file, EditorFixture.Tab.DESIGN)
+        .getLayoutEditor(true)
+        .waitForRenderToFinish()
+        .getAllComponents().stream()
+        .filter(component -> "testCreateAndCancelFragment".equals(component.getComponent().getId()))
+        .count();
 
-    assertEquals(1, matchingComponents);
+      assertEquals(1, matchingComponents);
 
-    int countAfterAdd = layout.getAllComponents().size();
+      int countAfterAdd = layout.getAllComponents().size();
 
-    layout
-      .getNavSurface()
-      .openAddDestinationMenu()
-      .clickCreateBlank()
-      .getConfigureTemplateParametersStep()
-      .enterTextFieldValue("Fragment Name:", "TestCreateAndCancelFragment2")
-      .selectComboBoxItem("Source Language:", "Java")
-      .wizard()
-      .clickCancel();
+      layout
+        .getNavSurface()
+        .openAddDestinationMenu()
+        .clickCreateNewFragment()
+        .chooseFragment("Fragment (Blank)")
+        .clickNextFragment()
+        .getConfigureTemplateParametersStep()
+        .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment2")
+        .selectComboBoxItem("Source Language", "Java")
+        .wizard()
+        .clickCancel();
 
-    ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
-    layout.waitForRenderToFinish();
+      ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+      layout.waitForRenderToFinish();
 
-    assertEquals(countAfterAdd, layout.getAllComponents().size());
+      assertEquals(countAfterAdd, layout.getAllComponents().size());
+    } finally {
+      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
+    }
   }
 
   @Test

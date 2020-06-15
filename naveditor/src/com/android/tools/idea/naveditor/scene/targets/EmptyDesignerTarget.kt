@@ -16,23 +16,26 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingPoint
+import com.android.tools.adtui.common.SwingX
+import com.android.tools.adtui.common.SwingY
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawEmptyDesigner
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
-import java.awt.Point
+import org.intellij.lang.annotations.JdkConstants
 
 @SwingCoordinate
 val WIDTH = 240
 
-class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() {
+class EmptyDesignerTarget(private val surface: DesignSurface) : BaseTarget() {
   override fun getPreferenceLevel() = ACTION_LEVEL
 
   override fun layout(
@@ -53,7 +56,9 @@ class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() 
     return false
   }
 
-  override fun addHit(transform: SceneContext, picker: ScenePicker) {
+  override fun addHit(transform: SceneContext,
+                      picker: ScenePicker,
+                      @JdkConstants.InputEventMask modifiersEx: Int) {
     picker.addRect(
         this, 0,
         transform.getSwingX(myLeft.toInt()),
@@ -64,9 +69,9 @@ class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() 
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
-    @SwingCoordinate val x = sceneContext.getSwingX(myLeft.toInt())
-    @SwingCoordinate val y = sceneContext.getSwingY(myBottom.toInt())
-    list.add(DrawEmptyDesigner(Point(x, y)))
+    val x = SwingX(sceneContext.getSwingX(myLeft.toInt()).toFloat())
+    val y = SwingY(sceneContext.getSwingY(myBottom.toInt()).toFloat())
+    list.add(DrawEmptyDesigner(SwingPoint(x, y)))
   }
 
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {

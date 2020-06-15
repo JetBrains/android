@@ -16,6 +16,9 @@
 
 package org.jetbrains.android.intentions;
 
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -45,6 +48,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 /**
@@ -105,10 +109,11 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    if (!(file instanceof GroovyFile) || !file.getName().equals("build.gradle")) {
-      return false;
+    if ((file instanceof GroovyFile || file instanceof KtFile) &&
+        (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS))) {
+      return AndroidFacet.getInstance(file) != null;
     }
-    return AndroidFacet.getInstance(file) != null;
+    return false;
   }
 
   /**

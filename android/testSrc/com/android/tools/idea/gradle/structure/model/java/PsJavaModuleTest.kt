@@ -30,7 +30,7 @@ import com.google.common.truth.Truth
 class PsJavaModuleTest : DependencyTestCase() {
 
   fun testImportantConfigurations() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -61,7 +61,7 @@ class PsJavaModuleTest : DependencyTestCase() {
 
   // TODO(b/117969438) : Find out what the correct configurations are and implement.
   fun /*testC*/onfigurations() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }

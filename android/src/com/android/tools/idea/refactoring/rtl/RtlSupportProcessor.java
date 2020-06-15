@@ -104,7 +104,7 @@ import java.util.Map;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -215,7 +215,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
       if (facet == null || facet.getConfiguration().isLibraryProject()) {
         continue;
       }
-      for (VirtualFile manifestFile : IdeaSourceProvider.getManifestFiles(facet)) {
+      for (VirtualFile manifestFile : IdeaSourceProviderUtil.getManifestFiles(facet)) {
         XmlFile manifestPsiFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
         try {
           if (manifestPsiFile == null) {

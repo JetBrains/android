@@ -398,9 +398,6 @@ public final class AndroidSdkUtils {
       if (adb.exists()) {
         return adb;
       }
-      else {
-        LOG.warn(String.format("%1$s was set to \"%2$s\", but no such file exists.", ADB_PATH_PROPERTY, path));
-      }
     }
 
     File adb = null;
@@ -424,7 +421,7 @@ public final class AndroidSdkUtils {
   public static AndroidSdkData getFirstAndroidModuleSdkData(Project project) {
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     for (AndroidFacet facet : facets) {
-      AndroidPlatform androidPlatform = facet.getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
       if (androidPlatform != null) {
         return androidPlatform.getSdkData();
       }

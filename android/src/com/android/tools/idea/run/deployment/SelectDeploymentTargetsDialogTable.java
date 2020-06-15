@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.OptionalInt;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +58,31 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
     });
   }
 
+  @NotNull
+  @VisibleForTesting
+  List<List<Object>> getData() {
+    List<List<Object>> data = new ArrayList<>(1 + getRowCount());
+
+    List<Object> columnNames = IntStream.range(0, getColumnCount())
+      .mapToObj(this::getColumnName)
+      .collect(Collectors.toList());
+
+    data.add(columnNames);
+
+    IntStream.range(0, getRowCount())
+      .mapToObj(this::getRowAt)
+      .forEach(data::add);
+
+    return data;
+  }
+
+  @NotNull
+  private List<Object> getRowAt(int viewRowIndex) {
+    return IntStream.range(0, getColumnCount())
+      .mapToObj(viewColumnIndex -> getValueAt(viewRowIndex, viewColumnIndex))
+      .collect(Collectors.toList());
+  }
+
   @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
@@ -66,7 +96,7 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
 
   private void setSelectedAndIconColumnMaxWidthsToFit() {
     setMaxWidthToFit(convertColumnIndexToView(SelectDeploymentTargetsDialogTableModel.SELECTED_MODEL_COLUMN_INDEX));
-    setMaxWidthToFit(convertColumnIndexToView(SelectDeploymentTargetsDialogTableModel.ICON_MODEL_COLUMN_INDEX));
+    setMaxWidthToFit(convertColumnIndexToView(SelectDeploymentTargetsDialogTableModel.TYPE_MODEL_COLUMN_INDEX));
   }
 
   private void setMaxWidthToFit(int viewColumnIndex) {
@@ -89,5 +119,23 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
     }
 
     return component.getPreferredSize().width + JBUI.scale(8);
+  }
+
+  @Override
+  public void createDefaultColumnsFromModel() {
+    while (columnModel.getColumnCount() != 0) {
+      columnModel.removeColumn(columnModel.getColumn(0));
+    }
+
+    IntStream.range(0, dataModel.getColumnCount())
+      .filter(this::notAllValuesEqualEmptyString)
+      .mapToObj(TableColumn::new)
+      .forEach(this::addColumn);
+  }
+
+  private boolean notAllValuesEqualEmptyString(int modelColumnIndex) {
+    return !IntStream.range(0, dataModel.getRowCount())
+      .mapToObj(modelRowIndex -> dataModel.getValueAt(modelRowIndex, modelColumnIndex))
+      .allMatch(Predicate.isEqual(""));
   }
 }

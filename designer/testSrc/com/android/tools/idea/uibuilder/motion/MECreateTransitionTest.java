@@ -19,8 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateTransition;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import java.awt.Dimension;
+import java.awt.*;
 
 public class MECreateTransitionTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateTransition {
@@ -35,26 +34,27 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
 
   public void testCreateTransitionLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,152,269\n" +
-                    "1,JLabel,5,2,142,15\n" +
-                    "1,JSeparator,5,20,142,2\n" +
-                    "1,JLabel,5,25,142,15\n" +
-                    "1,PromptedTextField,5,43,142,19\n" +
-                    "1,JLabel,5,65,142,15\n" +
-                    "1,MEComboBox,5,83,142,24\n" +
-                    "1,JLabel,5,110,142,15\n" +
-                    "1,MEComboBox,5,128,142,24\n" +
-                    "1,JLabel,5,155,142,15\n" +
-                    "1,PromptedTextField,5,173,142,19\n" +
-                    "1,JLabel,5,195,142,15\n" +
-                    "1,MEComboBox,5,213,142,24\n" +
-                    "1,JButton,5,243,142,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,5,2,88,5\n" +
+                    "1,JSeparator         ,0,10,99,0\n" +
+                    "1,JLabel             ,5,14,88,5\n" +
+                    "1,PromptedTextField  ,6,21,87,6\n" +
+                    "1,JLabel             ,5,30,88,5\n" +
+                    "1,MEComboBox         ,6,37,87,8\n" +
+                    "1,JLabel             ,5,48,88,5\n" +
+                    "1,MEComboBox         ,6,55,87,8\n" +
+                    "1,JLabel             ,5,67,88,5\n" +
+                    "1,MEComboBox         ,6,73,87,8\n" +
+                    "1,JButton            ,5,86,88,8\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
-  }
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }
+   }
 
   public void testCreateTransitionAction() {
     CreatorAccess panel = new CreatorAccess();
@@ -63,19 +63,17 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
     panel.getAction(motionSceneUi, motionSceneUi);
     panel.access_populateDialog();
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE TRANSITION\n" +
-      "1,JSeparator,\n" +
-      "1,JLabel,ID\n" +
-      "1,PromptedTextField,Enter Transition's id\n" +
-      "1,JLabel,Start\n" +
-      "1,MEComboBox,base_state,dial,people,half_people\n" +
-      "1,JLabel,End\n" +
-      "1,MEComboBox,base_state,dial,people,half_people\n" +
-      "1,JLabel,Duration\n" +
-      "1,PromptedTextField,Duration in ms\n" +
-      "1,JLabel,Automatically\n" +
-      "1,MEComboBox,Do Nothing,Jump to Start,Jump to End,Animate to Start,Animate to End\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE TRANSITION\n" +
+                  "1,JSeparator,\n" +
+                  "1,JLabel,ID\n" +
+                  "1,PromptedTextField,Enter Transition's id\n" +
+                  "1,JLabel,Start\n" +
+                  "1,MEComboBox,base_state,dial,people,half_people\n" +
+                  "1,JLabel,End\n" +
+                  "1,MEComboBox,base_state,dial,people,half_people\n" +
+                  "1,JLabel,Automatically\n" +
+                  "1,MEComboBox,Do Nothing,Jump to Start,Jump to End,Animate to Start,Animate to End\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     MTag tag = panel.create();
     String created = "\n" +

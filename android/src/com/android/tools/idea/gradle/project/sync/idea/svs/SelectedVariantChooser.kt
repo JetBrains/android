@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
@@ -51,7 +51,6 @@ fun chooseSelectedVariants(
 ) {
   val selectedVariants = syncActionOptions.selectedVariants
                          ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
-  val shouldGenerateSources = syncActionOptions.shouldGenerateSources()
   val modulesById = HashMap<String, AndroidModule>()
   val allModules = LinkedList<String>()
   val visitedModules = HashSet<String>()
@@ -82,13 +81,13 @@ fun chooseSelectedVariants(
     val module = modulesById[moduleId]!!
 
     // Request the Variant model for the module
-    val variant = selectVariantForAppOrLeaf(controller, module, selectedVariants, moduleId, shouldGenerateSources) ?: return@forEach
+    val variant = selectVariantForAppOrLeaf(controller, module, selectedVariants, moduleId) ?: return@forEach
     // Request the native Variant model (this won't do any work for non-native projects) and get the name of it's ABI
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, selectedVariants.getSelectedAbi(moduleId))
     // Store the requested/obtained information in the IdeaAndroidModule
     module.addSelectedVariant(variant, abi)
     // Request models for the dependencies of this module.
-    selectVariantForDependencyModules(controller, module, modulesById, visitedModules, shouldGenerateSources)
+    selectVariantForDependencyModules(controller, module, modulesById, visitedModules)
   }
 }
 
@@ -97,8 +96,7 @@ private fun selectVariantForAppOrLeaf(
   controller: BuildController,
   androidModule: AndroidModule,
   selectedVariants: SelectedVariants,
-  moduleId: String,
-  shouldGenerateSources: Boolean
+  moduleId: String
 ): Variant? {
   var variant = selectedVariants.getSelectedVariant(moduleId)
   val variantNames = try {
@@ -119,7 +117,7 @@ private fun selectVariantForAppOrLeaf(
     }
   }
 
-  return variant?.let { syncAndAddVariant(controller, androidModule, variant, shouldGenerateSources) }
+  return variant?.let { syncAndAddVariant(controller, androidModule, variant) }
 }
 
 @UsedInBuildAction
@@ -127,8 +125,7 @@ private fun selectVariantForDependencyModules(
   controller: BuildController,
   androidModule: AndroidModule,
   modulesById: Map<String, AndroidModule>,
-  visitedModules: MutableSet<String>,
-  shouldGenerateSources: Boolean
+  visitedModules: MutableSet<String>
 ) {
   androidModule.moduleDependencies.forEach { dependency ->
     if (visitedModules.contains(dependency.id)) return@forEach
@@ -139,11 +136,11 @@ private fun selectVariantForDependencyModules(
     val dependencyModule = modulesById[dependency.id] ?: return@forEach
     if (dependencyModule.containsVariant(dependency.variant)) return@forEach
 
-    val dependencyVariant = syncAndAddVariant(controller, dependencyModule, dependency.variant, shouldGenerateSources) ?: return@forEach
+    val dependencyVariant = syncAndAddVariant(controller, dependencyModule, dependency.variant) ?: return@forEach
     val abiName = syncAndAddNativeVariantAbi(controller, dependencyModule, dependency.variant, dependency.abi)
 
     dependencyModule.addSelectedVariant(dependencyVariant, abiName)
-    selectVariantForDependencyModules(controller, dependencyModule, modulesById, visitedModules, shouldGenerateSources)
+    selectVariantForDependencyModules(controller, dependencyModule, modulesById, visitedModules)
   }
 }
 
@@ -156,17 +153,14 @@ private fun selectVariantForDependencyModules(
  * @param[module] the module to request a [Variant] for
  * @param[controller] the Gradle [BuildController] that is queried for the model
  * @param[variantName] the name of the [Variant] that should be requested
- * @param[shouldGenerateSources] whether or not the model builder should schedule source generation
  */
 @UsedInBuildAction
 private fun syncAndAddVariant(
   controller: BuildController,
   module: AndroidModule,
-  variantName: String,
-  shouldGenerateSources: Boolean
+  variantName: String
 ): Variant? = controller.findModel(module.gradleProject, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
   parameter.setVariantName(variantName)
-  parameter.shouldGenerateSources = shouldGenerateSources
 }?.also {
   module.variantGroup.variants.add(it)
 }

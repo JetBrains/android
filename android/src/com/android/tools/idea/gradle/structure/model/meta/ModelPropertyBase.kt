@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
-import com.android.tools.idea.concurrent.transform
+import com.android.tools.idea.concurrency.transform
 import com.google.common.util.concurrent.ListenableFuture
 
 abstract class ModelPropertyBase<in ModelT, ValueT : Any> {

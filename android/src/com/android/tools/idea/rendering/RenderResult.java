@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +42,7 @@ public class RenderResult {
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   @NotNull private final Map<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
+  private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
@@ -65,8 +68,13 @@ public class RenderResult {
   }
 
   public void dispose() {
-    isDisposed = true;
-    myImage.dispose();
+    myDisposeLock.writeLock().lock();
+    try {
+      isDisposed = true;
+      myImage.dispose();
+    } finally {
+      myDisposeLock.writeLock().unlock();
+    }
   }
 
   /**
@@ -126,14 +134,30 @@ public class RenderResult {
    */
   @NotNull
   public static RenderResult createBlank(@NotNull PsiFile file) {
+    return createErrorResult(file, Result.Status.ERROR_UNKNOWN.createResult(""), null);
+  }
+
+  /**
+   * Creates a blank {@link RenderResult} to report render task creation errors
+   *
+   * @param file the PSI file the render result corresponds to
+   * @param logger the logger containing the errors to surface to the user
+   */
+  @NotNull
+  public static RenderResult createRenderTaskErrorResult(@NotNull PsiFile file, @NotNull RenderLogger logger) {
+    return createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult(), logger);
+  }
+
+  @NotNull
+  private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     assert module != null;
     return new RenderResult(
       file,
       module,
-      new RenderLogger(null, module),
+      logger != null ? logger : new RenderLogger(null, module),
       null,
-      Result.Status.ERROR_UNKNOWN.createResult(""),
+      errorResult,
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
@@ -153,11 +177,21 @@ public class RenderResult {
 
   @NotNull
   public ImagePool.Image getRenderedImage() {
-    return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
+    myDisposeLock.readLock().lock();
+    try {
+      return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
+    } finally {
+      myDisposeLock.readLock().unlock();
+    }
   }
 
   public boolean hasImage() {
-    return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
+    myDisposeLock.readLock().lock();
+    try {
+      return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
+    } finally {
+      myDisposeLock.readLock().unlock();
+    }
   }
 
   @NotNull

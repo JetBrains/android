@@ -2,10 +2,12 @@ PROJECT             : testSyncKotlinProject
     MODULE              : app
         - ModuleGroupPath   : testSyncKotlinProject
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testSyncKotlinProject
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,14 @@ PROJECT             : testSyncKotlinProject
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -50,13 +58,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.72/kotlin-android-extensions-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.72/kotlin-compiler-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.72/kotlin-daemon-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.72/kotlin-reflect-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.72/kotlin-script-runtime-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -74,13 +82,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.72/kotlin-android-extensions-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.72/kotlin-compiler-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.72/kotlin-daemon-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.72/kotlin-reflect-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.72/kotlin-script-runtime-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -103,6 +111,8 @@ PROJECT             : testSyncKotlinProject
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
             JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -512,34 +522,34 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.72@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.3.72/kotlin-android-extensions-runtime-1.3.72.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.72@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.72/kotlin-stdlib-jdk7-1.3.72.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.72@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar!/
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -551,10 +561,12 @@ PROJECT             : testSyncKotlinProject
     MODULE              : awesomeandroidlibrary
         - ModuleGroupPath   : testSyncKotlinProject
         - ModuleGroupPath   : awesomeandroidlibrary
+        ExternalModuleGroup : testSyncKotlinProject
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :awesomeandroidlibrary
         LinkedProjectPath   : <PROJECT>/awesomeandroidlibrary
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/awesomeandroidlibrary/awesomeandroidlibrary.iml
+        ModuleFile          : <PROJECT>/.idea/modules/awesomeandroidlibrary/awesomeandroidlibrary.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -567,6 +579,14 @@ PROJECT             : testSyncKotlinProject
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/awesomeandroidlibrary/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/awesomeandroidlibrary/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -597,13 +617,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.72/kotlin-android-extensions-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.72/kotlin-compiler-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.72/kotlin-daemon-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.72/kotlin-reflect-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.72/kotlin-script-runtime-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -621,13 +641,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.72/kotlin-android-extensions-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.72/kotlin-compiler-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.72/kotlin-daemon-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.72/kotlin-reflect-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.72/kotlin-script-runtime-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -1027,27 +1047,27 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.72@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.72/kotlin-stdlib-jdk7-1.3.72.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.72@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.72@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar!/
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1058,10 +1078,12 @@ PROJECT             : testSyncKotlinProject
     MODULE              : contentLib
         - ModuleGroupPath   : testSyncKotlinProject
         - ModuleGroupPath   : contentLib
+        ExternalModuleGroup : testSyncKotlinProject
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :contentLib
         LinkedProjectPath   : <PROJECT>/contentLib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/contentLib/contentLib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/contentLib/contentLib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1079,14 +1101,14 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.72/kotlin-compiler-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.72/kotlin-daemon-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.72/kotlin-reflect-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.72/kotlin-script-runtime-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/1.3.72/kotlin-scripting-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/1.3.72/kotlin-scripting-jvm-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.2.1/kotlinx-coroutines-core-1.2.1.jar
             CompilerSettings
                 additionalArguments : -Xallow-no-source-files -verbose
@@ -1102,19 +1124,23 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.72/kotlin-compiler-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.72/kotlin-daemon-embeddable-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.72/kotlin-reflect-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.72/kotlin-script-runtime-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/1.3.72/kotlin-scripting-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/1.3.72/kotlin-scripting-jvm-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.2.1/kotlinx-coroutines-core-1.2.1.jar
             Platform            : JVM (JVM_1_8)
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/contentLib
+            JavaSource          : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
+            JavaSource (test)   : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
+            JavaSource          : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main
+            JavaSource (test)   : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test
             JavaSource          : file://<PROJECT>/contentLib/src/main/java
             JavaSource          : file://<PROJECT>/contentLib/src/main/kotlin
             JavaResource        : file://<PROJECT>/contentLib/src/main/resources [-]
@@ -1123,6 +1149,10 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/contentLib/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/contentLib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/contentLib/build
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -1155,40 +1185,42 @@ PROJECT             : testSyncKotlinProject
             Name                : Gradle: kaptGeneratedClasses [=]
             *CLASSES            : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main [-]
             *CLASSES            : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test [-]
-        LIBRARY             : Gradle: kotlin-stdlib-1.3.72
+        LIBRARY             : Gradle: kotlin-stdlib-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-1.3.72 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar!/
-        LIBRARY             : Gradle: kotlin-stdlib-common-1.3.72
+            Name                : Gradle: kotlin-stdlib-<KOTLIN_VERSION> [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: kotlin-stdlib-common-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-common-1.3.72 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar!/
-        LIBRARY             : Gradle: kotlin-stdlib-jdk7-1.3.72
+            Name                : Gradle: kotlin-stdlib-common-<KOTLIN_VERSION> [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: kotlin-stdlib-jdk7-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-jdk7-1.3.72 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.72/kotlin-stdlib-jdk7-1.3.72.jar!/
-        LIBRARY             : Gradle: kotlin-stdlib-jdk8-1.3.72
+            Name                : Gradle: kotlin-stdlib-jdk7-<KOTLIN_VERSION> [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY             : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-jdk8-1.3.72 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.72/kotlin-stdlib-jdk8-1.3.72.jar!/
+            Name                : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION> [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
     MODULE              : testSyncKotlinProject
         - ModuleGroupPath   : testSyncKotlinProject
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testSyncKotlinProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSyncKotlinProject.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testSyncKotlinProject.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

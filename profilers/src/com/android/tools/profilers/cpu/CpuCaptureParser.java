@@ -32,19 +32,17 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
@@ -96,9 +94,20 @@ public class CpuCaptureParser {
   private String myProcessNameHint;
 
   /**
-   * Metadata associated with parsing a capture. If an entry exists, the metadata will be populated and uploaded to metrics.
+   * Hint to the parser what process id to look for. This is used if a process with the process name hint was not found.
+   */
+  private int myProcessIdHint;
+
+  /**
+   * Metadata associated with parsing a capture.
    */
   private Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
+
+  /**
+   * If an entry exist we have already published metrics for the loaded capture. We use a static set because
+   * the CpuCaptureParser is recreated each time a new capture is loaded.
+   */
+  private static Set<String> myPreviouslyLoadedCaptures = new HashSet<>();
 
   public CpuCaptureParser(@NotNull IdeProfilerServices services) {
     myServices = services;
@@ -111,6 +120,11 @@ public class CpuCaptureParser {
 
   public AspectModel<CpuProfilerAspect> getAspect() {
     return myAspect;
+  }
+
+  @VisibleForTesting
+  static void clearPreviouslyLoadedCaptures() {
+    myPreviouslyLoadedCaptures.clear();
   }
 
   /**
@@ -151,8 +165,9 @@ public class CpuCaptureParser {
     return System.currentTimeMillis() - myParsingStartTimeMs;
   }
 
-  public void setProcessNameHint(@Nullable String processName) {
+  public void setProcessNameHint(@Nullable String processName, int processIdHint) {
     myProcessNameHint = processName;
+    myProcessIdHint = processIdHint;
   }
 
   /**
@@ -190,7 +205,13 @@ public class CpuCaptureParser {
    * they want to abort the trace parsing or continue with it.
    */
   @Nullable
+  @VisibleForTesting
   public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
+    return parse(traceFile, true); // Most test don't check which metrics are captured so we default a value.
+  }
+
+  @Nullable
+  public CompletableFuture<CpuCapture> parse(@NotNull File traceFile, boolean captureImportedTraceMetrics) {
     if (!traceFile.exists() || traceFile.isDirectory()) {
       // Nothing to be parsed. We shouldn't even try to do it.
       getLogger().info("Trace not parsed, as its path doesn't exist or points to a directory.");
@@ -214,13 +235,31 @@ public class CpuCaptureParser {
       };
 
       // Open the dialog warning the user the file is too large and asking them if they want to proceed with parsing.
-      myServices.openParseLargeTracesDialog(yesCallback, noCallback);
+      openParseLargeTracesDialog(yesCallback, noCallback);
     }
     else {
       // Trace file is not too big to be parsed. Parse it normally.
       myCaptures.put(IMPORTED_TRACE_ID, createCaptureFuture(traceFile));
     }
-
+    // If we have already sent metrics for this capture then do not send again.
+    if (!myPreviouslyLoadedCaptures.contains(traceFile.getAbsolutePath())) {
+      // Toggle which metrics we report if we are imported or a fresh capture.
+      if (captureImportedTraceMetrics) {
+        CompletableFuture<CpuCapture> future = myCaptures.get(IMPORTED_TRACE_ID);
+        if (future != null) {
+          future.whenCompleteAsync((capture, exception) -> {
+            if (capture != null) {
+              myServices.getFeatureTracker().trackImportTrace(capture.getType(), true);
+            }
+          }, myServices.getMainExecutor());
+        }
+      }
+      else {
+        // If we are not capturing imported trace metrics we are capturing recorded trace metrics
+        trackCaptureTrace(IMPORTED_TRACE_ID, (int)traceFile.length());
+      }
+      myPreviouslyLoadedCaptures.add(traceFile.getAbsolutePath());
+    }
     updateParsingStateWhenDone(myCaptures.get(IMPORTED_TRACE_ID));
     return myCaptures.get(IMPORTED_TRACE_ID);
   }
@@ -255,42 +294,45 @@ public class CpuCaptureParser {
       // We should go on and try parsing the file as an atrace trace.
     }
 
-    // If atrace flag is enabled, check the file header to see if it's an atrace file.
-    if (myServices.getFeatureConfig().isAtraceEnabled()) {
-      try {
-        if (AtraceProducer.verifyFileHasAtraceHeader(traceFile) ||
-            (myServices.getFeatureConfig().isPerfettoEnabled() && PerfettoProducer.verifyFileHasPerfettoTraceHeader(traceFile))) {
-          // Atrace files contain multiple processes. For imported Atrace files we don't have a
-          // session that can tell us which process the user is interested in. So for all imported
-          // trace files we ask the user to select a process. The list of processes the user can
-          // choose from is parsed from the Atrace file.
-          AtraceParser parser = new AtraceParser(traceFile);
-          // Any process matching the application id of the current project will be sorted to
-          // the top of our process list.
-          CpuThreadSliceInfo[] processList = parser.getProcessList(myServices.getApplicationId());
-          // Attempt to find users intended process.
-          CpuThreadSliceInfo selected = null;
-          // 1) Use hint if available.
-          if (StringUtil.isNotEmpty(myProcessNameHint)) {
-            selected = Arrays.stream(processList).filter(it -> myProcessNameHint.endsWith(it.getProcessName())).findFirst().orElse(null);
-          }
+    // Check the file header to see if it's an atrace file.
+    try {
+      if (AtraceProducer.verifyFileHasAtraceHeader(traceFile) ||
+          (myServices.getFeatureConfig().isPerfettoEnabled() && PerfettoProducer.verifyFileHasPerfettoTraceHeader(traceFile))) {
+        // Atrace files contain multiple processes. For imported Atrace files we don't have a
+        // session that can tell us which process the user is interested in. So for all imported
+        // trace files we ask the user to select a process. The list of processes the user can
+        // choose from is parsed from the Atrace file.
+        AtraceParser parser = new AtraceParser(traceFile);
+        // Any process matching the application id of the current project will be sorted to
+        // the top of our process list.
+        CpuThreadSliceInfo[] processList = parser.getProcessList(myServices.getApplicationId());
+        // Attempt to find users intended process.
+        CpuThreadSliceInfo selected = null;
+        // 1) Use hint if available.
+        if (StringUtil.isNotEmpty(myProcessNameHint)) {
+          selected = Arrays.stream(processList).filter(it -> myProcessNameHint.endsWith(it.getProcessName())).findFirst().orElse(null);
+        }
 
-          // 2) Ask the user for input.
-          if (selected == null) {
-            selected = myServices.openListBoxChooserDialog("Select a process",
-                                                           "Select the process you want to analyze.",
-                                                           processList,
-                                                           (t) -> t.getProcessName());
-          }
-          if (selected != null) {
-            parser.setSelectProcess(selected);
-            return parser.parse(traceFile, IMPORTED_TRACE_ID);
-          }
+        // 2) If we don't have a process based on named find one based on id.
+        if (selected == null && myProcessIdHint > 0) {
+          selected = Arrays.stream(processList).filter(it -> it.getProcessId() == myProcessIdHint).findFirst().orElse(null);
+        }
+
+        // 3) Ask the user for input.
+        if (selected == null) {
+          selected = myServices.openListBoxChooserDialog("Select a process",
+                                                         "Select the process you want to analyze.",
+                                                         processList,
+                                                         (t) -> t.getProcessName());
+        }
+        if (selected != null) {
+          parser.setSelectProcess(selected);
+          return parser.parse(traceFile, IMPORTED_TRACE_ID);
         }
       }
-      catch (Exception ex) {
-        // We failed to find a proper process, or the file was not atrace.
-      }
+    }
+    catch (Exception ex) {
+      // We failed to find a proper process, or the file was not atrace.
     }
 
     // File couldn't be parsed by any of the parsers. Log the issue and return null.
@@ -309,8 +351,6 @@ public class CpuCaptureParser {
                                              @NotNull ByteString traceData,
                                              CpuTraceType profilerType) {
     updateParsingStateWhenStarting();
-    CpuCaptureMetadata metadata = myCaptureMetadataMap.containsKey(traceId) ?
-                                  myCaptureMetadataMap.get(traceId) : new CpuCaptureMetadata(new ProfilingConfiguration());
 
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
@@ -332,11 +372,21 @@ public class CpuCaptureParser {
           myCaptures.put(traceId, null);
         };
         // Open the dialog warning the user the trace is too large and asking them if they want to proceed with parsing.
-        myServices.openParseLargeTracesDialog(yesCallback, noCallback);
+        openParseLargeTracesDialog(yesCallback, noCallback);
       }
     }
 
+    CompletableFuture<CpuCapture> future = trackCaptureTrace(traceId, traceData.size());
+    updateParsingStateWhenDone(future);
+    return future;
+  }
+
+  @Nullable
+  private CompletableFuture<CpuCapture> trackCaptureTrace(long traceId, int traceDataSize) {
+    CpuCaptureMetadata metadata =
+      myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(new ProfilingConfiguration()));
     CompletableFuture<CpuCapture> future = myCaptures.get(traceId);
+    metadata.setTraceFileSizeBytes(traceDataSize);
     if (future != null) {
       future.whenCompleteAsync((capture, exception) -> {
         if (capture != null) {
@@ -367,7 +417,6 @@ public class CpuCaptureParser {
       }, myServices.getMainExecutor());
     }
     else {
-      metadata.setTraceFileSizeBytes(traceData.size());
       metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
       myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
 
@@ -379,8 +428,6 @@ public class CpuCaptureParser {
         myCaptureMetadataMap.remove(traceId);
       }
     }
-
-    updateParsingStateWhenDone(future);
     return future;
   }
 
@@ -449,5 +496,15 @@ public class CpuCaptureParser {
     catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
+    myServices.openYesNoDialog("The trace file generated is large, and Android Studio may become unresponsive while " +
+                               "it parses the data. Do you want to continue?\n\n" +
+                               "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
+                               "to capture a new method trace.",
+                               "Trace File Too Large",
+                               yesCallback,
+                               noCallback);
   }
 }

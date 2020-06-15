@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import com.intellij.util.ReflectionUtil
 import java.util.Vector
 
 interface BleakHelper {
@@ -29,10 +28,12 @@ class JavaBleakHelper: BleakHelper {
   override fun pauseThreads() {}
   override fun resumeThreads() {}
 
-  // this isn't all the classes, just the ones from this class loader
+  // this isn't all the classes, just the ones from this class loader and the system class loader
   override fun allLoadedClasses(): Collection<Any> {
-    val classLoader = JavaBleakHelper::class.java.classLoader
-    return ReflectionUtil.getField(classLoader.javaClass, classLoader, Vector::class.java, "classes").toList()
+    val loaders = listOf(JavaBleakHelper::class.java.classLoader, ClassLoader.getSystemClassLoader()).distinct()
+    val classesField = ClassLoader::class.java.getDeclaredField("classes")
+    classesField.isAccessible = true
+    return loaders.flatMap { classesField.get(it) as Vector<*> }
   }
 
 }

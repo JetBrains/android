@@ -91,7 +91,7 @@ public class IdeResourceNameValidatorTest {
     multimap.put("foo_5", new ResourceMergerItem("foo_5", null, ResourceType.ID, null, null, null));
 
     TestLocalResourceRepository resources = new TestLocalResourceRepository(RES_AUTO);
-    resources.getFullTable().put(RES_AUTO, ResourceType.ID, multimap);
+    resources.addResources(RES_AUTO, ResourceType.ID, multimap);
 
     IdeResourceNameValidator validator = IdeResourceNameValidator.forResourceName(ResourceType.ID, resources);
     assertEquals("foo1 already exists", validator.getErrorText("foo1"));

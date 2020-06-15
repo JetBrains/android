@@ -31,9 +31,9 @@ public interface ProguardR8RuleWithClassSpecification extends PsiElement {
   ProguardR8ClassSpecificationHeader getClassSpecificationHeader();
 
   @NotNull
-  List<ProguardR8KeepOptionModifier> getKeepOptionModifierList();
+  ProguardR8Flag getFlag();
 
   @NotNull
-  PsiElement getFlag();
+  List<ProguardR8KeepOptionModifier> getKeepOptionModifierList();
 
 }

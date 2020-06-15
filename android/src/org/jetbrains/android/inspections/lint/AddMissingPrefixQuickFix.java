@@ -1,6 +1,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -17,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
+public class AddMissingPrefixQuickFix implements LintIdeQuickFix {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AddMissingPrefixQuickFix");
 
   @Override

@@ -2,10 +2,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,18 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -391,10 +403,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleK
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleK
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleK/jModuleK.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/jModuleK.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -466,10 +480,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleL
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleL
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleL/jModuleL.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/jModuleL.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -505,10 +521,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleM
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleM
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleM/jModuleM.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/jModuleM.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -544,10 +562,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleZ
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleZ
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleZ/jModuleZ.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/jModuleZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -635,10 +655,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : mainModule
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : mainModule
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/mainModule/mainModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/mainModule/mainModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -651,8 +673,18 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1053,10 +1085,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleA
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleA
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleA/moduleA.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleA/moduleA.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1069,6 +1103,14 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1151,19 +1193,19 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: ./lib/libsam1-1.1.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: ./lib/libsam1-1.1.jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
-        LIBRARY             : Gradle: __local_aars__:./lib/libsam2-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: ./lib/libsam2-1.1.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./lib/libsam2-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: ./lib/libsam2-1.1.jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -1411,10 +1453,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleB
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleB
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleB/moduleB.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleB/moduleB.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1427,6 +1471,14 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1509,12 +1561,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar
+        LIBRARY             : Gradle: ./lib/libsam1-1.1.jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: __local_aars__:./lib/libsam1-1.1.jar:unspecified@jar [=]
+            Name                : Gradle: ./lib/libsam1-1.1.jar [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
             LibraryLevel        : project
@@ -1763,10 +1815,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleC
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleC
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleC/moduleC.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleC/moduleC.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1779,6 +1833,14 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2107,10 +2169,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleFlavor
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleFlavor
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleFlavor
         LinkedProjectPath   : <PROJECT>/moduleFlavor
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleFlavor/moduleFlavor.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/moduleFlavor.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2123,6 +2187,18 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2250,10 +2326,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : modulePlus
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : modulePlus
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/modulePlus/modulePlus.iml
+        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/modulePlus.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2266,6 +2344,14 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2626,10 +2712,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleZ
         - ModuleGroupPath   : nestedZ
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule.jModuleZ
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jModuleZ/nestedZ/nestedZ.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/nestedZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -2657,10 +2745,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testPsdDependencyUpgradeLibraryModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testPsdDependencyUpgradeLibraryModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

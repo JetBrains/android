@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingFont
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPoint
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -22,7 +27,6 @@ import com.intellij.ui.JBColor
 import junit.framework.TestCase
 import java.awt.Color
 import java.awt.Font
-import java.awt.Point
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
@@ -33,13 +37,13 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawIcon(s) }
 
     testSerialization("DrawIcon,10.0x20.0x100.0x200.0,DEEPLINK,null",
-                      DrawIcon(Rectangle2D.Float(10f, 20f, 100f, 200f),
+                      DrawIcon(SwingRectangle(Rectangle2D.Float(10f, 20f, 100f, 200f)),
                                DrawIcon.IconType.DEEPLINK), factory)
     testSerialization("DrawIcon,20.0x10.0x200.0x100.0,START_DESTINATION,null",
-                      DrawIcon(Rectangle2D.Float(20f, 10f, 200f, 100f),
+                      DrawIcon(SwingRectangle(Rectangle2D.Float(20f, 10f, 200f, 100f)),
                                DrawIcon.IconType.START_DESTINATION), factory)
     testSerialization("DrawIcon,20.0x10.0x200.0x100.0,POP_ACTION,ffff0000",
-                      DrawIcon(Rectangle2D.Float(20f, 10f, 200f, 100f),
+                      DrawIcon(SwingRectangle(Rectangle2D.Float(20f, 10f, 200f, 100f)),
                                DrawIcon.IconType.POP_ACTION, Color.RED), factory)
   }
 
@@ -47,8 +51,8 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawAction(s) }
 
     testSerialization("DrawAction,10.0x20.0x30.0x40.0,50.0x60.0x70.0x80.0,1.0,ffffffff,false", DrawAction(
-      Rectangle2D.Float(10f, 20f, 30f, 40f),
-      Rectangle2D.Float(50f, 60f, 70f, 80f), 1f,
+      SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)),
+      SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(1.0),
       JBColor.WHITE, false), factory)
   }
 
@@ -56,19 +60,19 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawTruncatedText(s) }
 
     testSerialization("DrawTruncatedText,0,foo,10.0x20.0x30.0x40.0,ffff0000,Default:0:10,true",
-        DrawTruncatedText(0, "foo", Rectangle2D.Float(10f, 20f, 30f, 40f), Color.RED,
-                          Font("Default", Font.PLAIN, 10), true), factory)
+                      DrawTruncatedText(0, "foo", SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Color.RED,
+                                        SwingFont("Default", Font.PLAIN, SwingLength(10f)), true), factory)
 
     testSerialization("DrawTruncatedText,1,bar,50.0x60.0x70.0x80.0,ff0000ff,Helvetica:1:20,false",
-        DrawTruncatedText(1, "bar", Rectangle2D.Float(50f, 60f, 70f, 80f), Color.BLUE,
-                          Font("Helvetica", Font.BOLD, 20), false), factory)
+                      DrawTruncatedText(1, "bar", SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Color.BLUE,
+                                        SwingFont("Helvetica", Font.BOLD, SwingLength(20f)), false), factory)
   }
 
   fun testDrawEmptyDesigner() {
     val factory = { s: String -> DrawEmptyDesigner(s) }
 
-    testSerialization("DrawEmptyDesigner,0x0", DrawEmptyDesigner(Point(0, 0)), factory)
-    testSerialization("DrawEmptyDesigner,10x20", DrawEmptyDesigner(Point(10, 20)), factory)
+    testSerialization("DrawEmptyDesigner,0.0x0.0", DrawEmptyDesigner(SwingPoint(Point2D.Float(0f, 0f))), factory)
+    testSerialization("DrawEmptyDesigner,10.0x20.0", DrawEmptyDesigner(SwingPoint(Point2D.Float(10f, 20f))), factory)
   }
 
   fun testDrawNavScreen() {
@@ -76,10 +80,10 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawNavScreen(s) }
 
     testSerialization("DrawNavScreen,10.0x20.0x30.0x40.0",
-                      DrawNavScreen(Rectangle2D.Float(10f, 20f, 30f, 40f),
+                      DrawNavScreen(SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)),
                                     RefinableImage()), factory)
     testSerialization("DrawNavScreen,10.0x20.0x30.0x40.0",
-                      DrawNavScreen(Rectangle2D.Float(10f, 20f, 30f, 40f),
+                      DrawNavScreen(SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)),
                                     RefinableImage(BufferedImage(1, 1, TYPE_INT_RGB))), factory)
   }
 
@@ -87,85 +91,89 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawSelfAction(s) }
 
     testSerialization("DrawSelfAction,10.0x20.0x30.0x40.0,1.0,ffff0000,false",
-                      DrawSelfAction(Rectangle2D.Float(10f, 20f,30f, 40f), 1f, Color.RED, false), factory)
+                      DrawSelfAction(SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Scale(1.0), Color.RED, false), factory)
     testSerialization("DrawSelfAction,50.0x60.0x70.0x80.0,2.0,ff0000ff,true",
-                      DrawSelfAction(Rectangle2D.Float(50f, 60f,70f, 80f), 2f, Color.BLUE, true), factory)
+                      DrawSelfAction(SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(2.0), Color.BLUE, true), factory)
   }
 
   fun testDrawActionHandle() {
     val factory = { s: String -> DrawActionHandle(s) }
 
     testSerialization("DrawActionHandle,10.0x20.0,1.0,2.0,3.0,4.0,5,ffff0000,ff0000ff",
-                      DrawActionHandle(Point2D.Float(10f, 20f),
-                                       1f, 2f, 3f, 4f, 5, Color.RED, Color.BLUE), factory)
+                      DrawActionHandle(SwingPoint(Point2D.Float(10f, 20f)),
+                                       SwingLength(1f), SwingLength(2f), SwingLength(3f), SwingLength(4f),
+                                       5, Color.RED, Color.BLUE), factory)
 
     testSerialization("DrawActionHandle,30.0x40.0,11.0,12.0,13.0,14.0,15,ff00ff00,ffffc800",
-                      DrawActionHandle(Point2D.Float(30f, 40f),
-                                       11f, 12f, 13f, 14f, 15, Color.GREEN, Color.ORANGE), factory)
+                      DrawActionHandle(SwingPoint(Point2D.Float(30f, 40f)),
+                                       SwingLength(11f), SwingLength(12f), SwingLength(13f), SwingLength(14f),
+                                       15, Color.GREEN, Color.ORANGE), factory)
   }
 
   fun testDrawActionHandleDrag() {
     val factory = { s: String -> DrawActionHandleDrag(s) }
 
-    testSerialization("DrawActionHandleDrag,10.0x20.0,1.0,2.0,3.0,4", DrawActionHandleDrag(Point2D.Float(10f, 20f),
-                                                                         1f, 2f, 3f, 4), factory)
-    testSerialization("DrawActionHandleDrag,30.0x40.0,11.0,12.0,13.0,4", DrawActionHandleDrag(Point2D.Float(30f, 40f),
-                                                                         11f, 12f, 13f, 4), factory)
+    testSerialization("DrawActionHandleDrag,10.0x20.0,1.0,2.0,3.0,4",
+                      DrawActionHandleDrag(SwingPoint(Point2D.Float(10f, 20f)),
+                                           SwingLength(1f), SwingLength(2f), SwingLength(3f), 4), factory)
+    testSerialization("DrawActionHandleDrag,30.0x40.0,11.0,12.0,13.0,4", DrawActionHandleDrag(SwingPoint(Point2D.Float(30f, 40f)),
+                                                                                              SwingLength(11f), SwingLength(12f),
+                                                                                              SwingLength(13f), 4), factory)
   }
 
   fun testDrawHorizontalAction() {
     val factory = { s: String -> DrawHorizontalAction(s) }
 
     testSerialization("DrawHorizontalAction,10.0x20.0x30.0x40.0,1.0,ffff0000,false",
-                      DrawHorizontalAction(Rectangle2D.Float(10f, 20f, 30f, 40f), 1f, Color.RED, false), factory)
+                      DrawHorizontalAction(SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Scale(1.0), Color.RED, false), factory)
 
     testSerialization("DrawHorizontalAction,50.0x60.0x70.0x80.0,2.0,ff0000ff,true",
-                      DrawHorizontalAction(Rectangle2D.Float(50f, 60f, 70f, 80f), 2f, Color.BLUE, true), factory)
+                      DrawHorizontalAction(SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(2.0), Color.BLUE, true), factory)
   }
 
   fun testDrawLineToMouse() {
     val factory = { s: String -> DrawLineToMouse(s) }
 
-    testSerialization("DrawLineToMouse,10.0x20.0", DrawLineToMouse(Point2D.Float(10f, 20f)), factory)
-    testSerialization("DrawLineToMouse,30.0x40.0", DrawLineToMouse(Point2D.Float(30f, 40f)), factory)
+    testSerialization("DrawLineToMouse,10.0x20.0", DrawLineToMouse(SwingPoint(Point2D.Float(10f, 20f))), factory)
+    testSerialization("DrawLineToMouse,30.0x40.0", DrawLineToMouse(SwingPoint(Point2D.Float(30f, 40f))), factory)
   }
 
   fun testDrawNestedGraph() {
     val factory = { s: String -> DrawNestedGraph(s) }
 
     testSerialization("DrawNestedGraph,10.0x20.0x30.0x40.0,1.5,ffff0000,1.0,text1,ff0000ff", DrawNestedGraph(
-      Rectangle2D.Float(10f, 20f, 30f, 40f), 1.5f, Color.RED, 1f, "text1", Color.BLUE), factory)
+      SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Scale(1.5), Color.RED, SwingLength(1f), "text1", Color.BLUE), factory)
     testSerialization("DrawNestedGraph,50.0x60.0x70.0x80.0,0.5,ffffffff,2.0,text2,ff000000", DrawNestedGraph(
-      Rectangle2D.Float(50f, 60f, 70f, 80f), 0.5f, Color.WHITE, 2f, "text2", Color.BLACK), factory)
+      SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(0.5), Color.WHITE, SwingLength(2f), "text2", Color.BLACK), factory)
   }
 
   fun testDrawFragment() {
     val factory = { s: String -> DrawFragment(s) }
 
     testSerialization("DrawFragment,10.0x20.0x30.0x40.0,1.5,null", DrawFragment(
-      Rectangle2D.Float(10f, 20f, 30f, 40f), 1.5f, null), factory)
+      SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Scale(1.5), null), factory)
     testSerialization("DrawFragment,50.0x60.0x70.0x80.0,0.5,ffffffff", DrawFragment(
-      Rectangle2D.Float(50f, 60f, 70f, 80f), 0.5f, Color.WHITE), factory)
+      SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(0.5), Color.WHITE), factory)
   }
 
   fun testDrawActivity() {
     val factory = { s: String -> DrawActivity(s) }
 
     testSerialization("DrawActivity,10.0x20.0x30.0x40.0,15.0x25.0x35.0x45.0,1.5,ffff0000,1.0,ff0000ff", DrawActivity(
-      Rectangle2D.Float(10f, 20f, 30f, 40f), Rectangle2D.Float(15f, 25f, 35f, 45f),
-      1.5f, Color.RED, 1f, Color.BLUE), factory)
+      SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), SwingRectangle(Rectangle2D.Float(15f, 25f, 35f, 45f)),
+      Scale(1.5), Color.RED, SwingLength(1f), Color.BLUE), factory)
     testSerialization("DrawActivity,50.0x60.0x70.0x80.0,55.0x65.0x75.0x85.0,0.5,ffffffff,2.0,ff000000", DrawActivity(
-      Rectangle2D.Float(50f, 60f, 70f, 80f), Rectangle2D.Float(55f, 65f, 75f, 85f),
-      0.5f, Color.WHITE, 2f, Color.BLACK), factory)
+      SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), SwingRectangle(Rectangle2D.Float(55f, 65f, 75f, 85f)),
+      Scale(0.5), Color.WHITE, SwingLength(2f), Color.BLACK), factory)
   }
 
   fun testDrawHeader() {
     val factory = { s: String -> DrawHeader(s) }
 
     testSerialization("DrawHeader,10.0x20.0x30.0x40.0,1.5,text1,true,false", DrawHeader(
-      Rectangle2D.Float(10f, 20f, 30f, 40f), 1.5f, "text1", true, false), factory)
+      SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Scale(1.5), "text1", true, false), factory)
     testSerialization("DrawHeader,50.0x60.0x70.0x80.0,0.5,text2,false,true", DrawHeader(
-      Rectangle2D.Float(50f, 60f, 70f, 80f), 0.5f, "text2", false, true), factory)
+      SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(0.5), "text2", false, true), factory)
   }
 
   companion object {

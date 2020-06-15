@@ -120,12 +120,12 @@ public class DragFixture {
   }
 
   public ComponentListFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, myModifiers, false);
+    myInteraction.end(myCurrentX, myCurrentY, myModifiers);
     return myComponents;
   }
 
   public ComponentListFixture cancel() {
-    myInteraction.end(myCurrentX, myCurrentY, myModifiers, true);
+    myInteraction.cancel(myCurrentX, myCurrentY, myModifiers);
     return myComponents;
   }
 }

@@ -14,6 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional = "true" config-file="naveditor-assistant.xml">com.intellij.modules.androidstudio</depends>
+
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.naveditor.editor.NavEditorProvider"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>

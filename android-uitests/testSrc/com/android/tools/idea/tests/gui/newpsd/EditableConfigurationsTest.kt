@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.StudioRobot
@@ -35,7 +34,6 @@ import org.junit.runner.RunWith
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_TAB
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class EditableConfigurationsTest {
 
@@ -46,7 +44,6 @@ class EditableConfigurationsTest {
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
     // Under StudioRobot, typing into an editor happens character-by-character below a certain limit.  The EditorComboBox implementation
     // we currently use will pop up a completion window, which will update and disappear at uncertain times, and testing for the presence
     // of this window is also unreliable.  We work around this in these tests by using replaceText() with long strings, which the
@@ -58,9 +55,9 @@ class EditableConfigurationsTest {
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testEditableJarDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
@@ -148,6 +145,7 @@ class EditableConfigurationsTest {
     }
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testEditableModuleDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
@@ -229,6 +227,7 @@ class EditableConfigurationsTest {
     }
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testEditableLibraryDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")

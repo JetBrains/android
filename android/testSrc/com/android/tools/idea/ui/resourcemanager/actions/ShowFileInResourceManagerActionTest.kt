@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcemanager.actions
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -30,6 +32,7 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -41,6 +44,12 @@ class ShowFileInResourceManagerActionTest {
 
   @get:Rule
   val rule = AndroidProjectRule.onDisk()
+
+  @Before
+  fun setUp() {
+    rule.fixture.testDataPath = getTestDataDirectory()
+    rule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
+  }
 
   private fun findResourceManagerAction(): ShowFileInResourceManagerAction =
     ActionManager.getInstance().getAction("ResourceExplorer.show") as ShowFileInResourceManagerAction
@@ -57,17 +66,8 @@ class ShowFileInResourceManagerActionTest {
   @Test
   fun actionIsNotAvailableOnString() {
     val newFile = rule.fixture.loadNewFile("res/values/strings.xml", "<resource></resource")
-    val testActionEvent = checkActionWithFile(ShowFileInResourceManagerAction(), newFile.virtualFile)
+    val testActionEvent = checkActionWithFile(findResourceManagerAction(), newFile.virtualFile)
     assertFalse { testActionEvent.presentation.isEnabledAndVisible }
-  }
-
-  @Test
-  fun actionFallbackToThumbnailAction() {
-    val newFile = object : LightVirtualFile("photo") {
-      override fun isDirectory(): Boolean = true
-    }
-    val testActionEvent = checkActionWithFile(ShowFileInResourceManagerAction(), newFile)
-    assertTrue { testActionEvent.presentation.isEnabledAndVisible }
   }
 
   @Test

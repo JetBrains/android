@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import java.util.Locale;
 
 /**
  * This performs direct conversion of ConstraintLayout to MotionLayout
@@ -48,6 +49,15 @@ public class ScoutMotionConvert {
       }
       motion_scene_name = layoutFile.getName() + "_" + name + "_scene";
     }
+    for (NlComponent child : layout.getChildren()) {
+      String name = child.getId();
+      if (name == null) {
+        child.assignId(child.getTagName());
+      }
+    }
+
+    motion_scene_name = motion_scene_name.replace('.', '_').toLowerCase(Locale.US); // remove . and make lowercase
+    motion_scene_name = motion_scene_name.replace(' ', '_'); // remove potential white space
 
     String text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                   "<MotionScene \n" +
@@ -69,20 +79,26 @@ public class ScoutMotionConvert {
                   "    </ConstraintSet>\n" +
                   "</MotionScene>";
 
-    PsiFile file =
-      PsiFileFactory.getInstance(project).createFileFromText(motion_scene_name + ".xml", XmlFileType.INSTANCE, text);
     EditorFactory editorFactory = EditorFactory.getInstance();
 
     PsiDirectory xmlDir = layoutFile.getParent().getParent().findSubdirectory("xml");
     if (xmlDir == null) {
       xmlDir = layoutFile.getParent().getParent().createSubdirectory("xml");
     }
-
+    String countStr = "";
+    int count = 1;
+    while (xmlDir.findFile(motion_scene_name + countStr + ".xml") != null) {
+      count++;
+      countStr = Integer.toString(count);
+    }
+    motion_scene_name += countStr;
+    PsiFile file =
+      PsiFileFactory.getInstance(project).createFileFromText(motion_scene_name + ".xml", XmlFileType.INSTANCE, text);
     xmlDir.add(file);
 
     AttributesTransaction transaction = layout.startAttributeTransaction();
 
-    layout.getTagDeprecated().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_MOTION_LAYOUT));
+    layout.getTag().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_MOTION_LAYOUT));
 
     transaction.setAttribute(SHERPA_URI, ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, "@xml/" + motion_scene_name);
 

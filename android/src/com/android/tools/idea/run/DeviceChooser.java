@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.run;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -44,28 +46,34 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
-import java.util.HashSet;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import gnu.trove.TIntArrayList;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener {
   private final static int UPDATE_DELAY_MILLIS = 250;
@@ -102,8 +110,9 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
     myProjectTarget = projectTarget;
-    mySupportedAbis = facet.getModel() instanceof AndroidModuleModel ?
-                      ((AndroidModuleModel)facet.getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    mySupportedAbis = androidModuleModel != null ?
+                      androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
                       null;
 
     // Currently, we only look at whether the device supports the watch feature.

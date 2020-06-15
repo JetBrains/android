@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -35,7 +36,16 @@ public class MockupDeleteAction extends AnAction {
   public MockupDeleteAction(@NotNull NlComponent leafComponent) {
     super(TITLE);
     myNlComponent = leafComponent;
-    getTemplatePresentation().setEnabledAndVisible(StudioFlags.NELE_MOCKUP_EDITOR.get());
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    super.update(e);
+
+    Presentation presentation = e.getPresentation();
+    if (!StudioFlags.NELE_MOCKUP_EDITOR.get()) {
+      presentation.setEnabledAndVisible(false);
+    }
   }
 
   @Override

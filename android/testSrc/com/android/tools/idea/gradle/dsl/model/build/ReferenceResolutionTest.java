@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.utils.FileUtils;
 import org.junit.Test;
 
 /**
@@ -62,7 +63,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_PROJECT_DIR_SUB);
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
-    String expectedSubModuleDir = mySubModuleBuildFile.getParent().getPath();
+    String expectedSubModuleDir = FileUtils.toSystemDependentPath(mySubModuleBuildFile.getParent().getPath());
     ExtModel ext = getSubModuleGradleBuildModel().ext();
     verifyPropertyModel(ext.findProperty("pd").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);
     verifyPropertyModel(ext.findProperty("pd1").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);
@@ -82,7 +83,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion());
-    assertEquals("minSdkVersion", "android-23", android.defaultConfig().minSdkVersion());
+    assertEquals("applicationIdSuffix", "android-23", android.defaultConfig().applicationIdSuffix());
   }
 
   @Test

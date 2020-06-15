@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.listenUntilNextSync
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -34,8 +38,16 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.ColorUtil
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import java.util.function.Consumer
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 internal const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
 
@@ -50,18 +62,30 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    createContent(toolWindow, project)
+    toolWindow.displayLoading()
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
+      onCacheClean = Runnable {
+        project.runWhenSmartAndSyncedOnEdt(callback = Consumer {
+          createContent(toolWindow, project)
+        })
+      },
+      onSourceGenerationError = Runnable {
+        toolWindow.displayWaitingForGoodSync()
+      }
+    )
     project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
-  override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
+  override fun shouldBeAvailable(project: Project) = AndroidUtils.hasAndroidFacets(project)
 
   override fun isApplicable(project: Project) = shouldBeAvailable(project)
 }
 
-private fun connectListeners(toolWindow: ToolWindow,
-                             project: Project,
-                             resourceExplorer: ResourceExplorer) {
+private fun connectListeners(
+  toolWindow: ToolWindow,
+  project: Project,
+  resourceExplorer: ResourceExplorer
+) {
   val connection = project.messageBus.connect(resourceExplorer)
   connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorListener(project, toolWindow, resourceExplorer))
   connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener(project, resourceExplorer, toolWindow))
@@ -95,24 +119,78 @@ private fun findAllFacets(project: Project): Sequence<AndroidFacet> {
     .mapNotNull { it.androidFacet }
 }
 
-private fun createContent(toolWindow: ToolWindow,
-                          project: Project) {
+private fun createContent(toolWindow: ToolWindow, project: Project) {
   toolWindow.contentManager.removeAllContents(true)
   val facet = findCurrentFacet(project)
-  if (facet != null) {
-    displayInToolWindow(facet, toolWindow)
-  }
-  else {
+  if (facet == null) {
     displayNoFacetView(project, toolWindow)
+    return
   }
+
+  if (project.getLastSyncTimestamp() < 0L) {
+    toolWindow.displayWaitingForBuild()
+  } else {
+    toolWindow.displayWaitingForGoodSync()
+  }
+  // No existing successful sync, since there's a fair chance of having rendering issues, wait for next successful sync.
+  project.runWhenSmartAndSyncedOnEdt(callback = Consumer { result ->
+    if (result.isSuccessful) {
+      displayInToolWindow(facet, toolWindow)
+    } else {
+      project.listenUntilNextSync(listener = object : ProjectSystemSyncManager.SyncResultListener {
+        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+          createContent(toolWindow, project)
+        }
+      })
+    }
+  })
 }
 
+/**
+ * Display the [NoFacetView]. Contains a message and a couple of action links to sync or add an Android Module.
+ */
 private fun displayNoFacetView(project: Project, toolWindow: ToolWindow) {
   val contentManager = toolWindow.contentManager
   val content = contentManager.factory.createContent(NoFacetView(project), null, false)
   contentManager.addContent(content)
 }
 
+/**
+ * Display a simple centered message.
+ *
+ * @param message The message to display
+ * @param showWarning If true, shows a warning Icon next to the message
+ */
+private fun ToolWindow.displayWaitingView(message: String, showWarning: Boolean) {
+  contentManager.removeAllContents(true)
+  val waitingForSyncPanel = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    val waitingLabel = JBLabel().apply {
+      text = message
+      if (showWarning) {
+        icon = AllIcons.General.Warning
+      }
+      foreground = ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150)
+      alignmentX = JComponent.CENTER_ALIGNMENT
+      alignmentY = JComponent.CENTER_ALIGNMENT
+    }
+    add(Box.createVerticalGlue())
+    add(waitingLabel)
+    add(Box.createVerticalGlue())
+  }
+  val content = contentManager.factory.createContent(waitingForSyncPanel, null, false)
+  contentManager.addContent(content)
+}
+
+private fun ToolWindow.displayWaitingForBuild() = displayWaitingView("Waiting for build to finish...", false)
+
+private fun ToolWindow.displayWaitingForGoodSync() = displayWaitingView("Waiting for successful sync...", true)
+
+private fun ToolWindow.displayLoading() = displayWaitingView("Loading...", false)
+
+/**
+ * Display the [ResourceExplorer] in the [ToolWindow].
+ */
 private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   val resourceExplorer = ResourceExplorer.createForToolWindow(facet)
   val contentManager = toolWindow.contentManager
@@ -120,13 +198,16 @@ private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   val content = contentManager.factory.createContent(resourceExplorer, null, false)
   Disposer.register(content, resourceExplorer)
   contentManager.addContent(content)
+  content.preferredFocusableComponent = resourceExplorer
   connectListeners(toolWindow, facet.module.project, resourceExplorer)
   ResourceManagerTracking.logPanelOpens()
 }
 
-private class MyFileEditorListener(val project: Project,
-                                   val toolWindow: ToolWindow,
-                                   val resourceExplorer: ResourceExplorer?) : FileEditorManagerListener {
+private class MyFileEditorListener(
+  val project: Project,
+  val toolWindow: ToolWindow,
+  val resourceExplorer: ResourceExplorer?
+) : FileEditorManagerListener {
 
   override fun selectionChanged(event: FileEditorManagerEvent) {
     val editor = event.newEditor ?: return
@@ -162,16 +243,17 @@ private class MyToolWindowManagerListener(private val project: Project) : ToolWi
     if (!window.isVisible) {
       contentManager.removeAllContents(true)
       ResourceManagerTracking.logPanelCloses()
-    }
-    else if (!resourceExplorerIsPresent) {
+    } else if (!resourceExplorerIsPresent) {
       createContent(window, project)
     }
   }
 }
 
-private class SyncResultListener(private val project: Project,
-                                 private val resourceExplorer: ResourceExplorer,
-                                 private val toolWindow: ToolWindow) : ProjectSystemSyncManager.SyncResultListener {
+private class SyncResultListener(
+  private val project: Project,
+  private val resourceExplorer: ResourceExplorer,
+  private val toolWindow: ToolWindow
+) : ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
     // After sync, if the facet is not found anymore, recreate the view.
     if (!findAllFacets(project).contains(resourceExplorer.facet)) {

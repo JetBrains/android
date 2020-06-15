@@ -15,10 +15,10 @@ package com.android.tools.adtui.workbench;
 
 import com.android.tools.adtui.mockito.MockitoThreadLocalsCleaner;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class WorkBenchTestCase extends HeavyPlatformTestCase {
+public abstract class WorkBenchTestCase extends LightPlatformTestCase {
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
   MockitoThreadLocalsCleaner cleaner = new MockitoThreadLocalsCleaner();
@@ -36,9 +36,9 @@ public abstract class WorkBenchTestCase extends HeavyPlatformTestCase {
   protected void tearDown() throws Exception {
     try {
       cleaner.cleanupAndTearDown();
-      myApplicationComponentStack.restoreComponents();
+      myApplicationComponentStack.restore();
       myApplicationComponentStack = null;
-      myProjectComponentStack.restoreComponents();
+      myProjectComponentStack.restore();
       myProjectComponentStack = null;
     }
     catch (Throwable e) {
@@ -53,15 +53,15 @@ public abstract class WorkBenchTestCase extends HeavyPlatformTestCase {
     myApplicationComponentStack.registerComponentInstance(key, instance);
   }
 
-  public <T> void registerApplicationComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
-    myApplicationComponentStack.registerComponentImplementation(key, instance);
+  public <T> void registerApplicationService(@NotNull Class<T> key, @NotNull T instance) {
+    myApplicationComponentStack.registerServiceInstance(key, instance);
   }
 
   public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerComponentInstance(key, instance);
   }
 
-  public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
-    myProjectComponentStack.registerComponentImplementation(key, instance);
+  public <T> void registerProjectService(@NotNull Class<T> key, @NotNull T instance) {
+    myProjectComponentStack.registerServiceInstance(key, instance);
   }
 }

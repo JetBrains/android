@@ -6,7 +6,15 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidNativeLibData;
@@ -32,10 +40,6 @@ import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 import org.jetbrains.jps.model.java.compiler.JpsCompilerExcludes;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky

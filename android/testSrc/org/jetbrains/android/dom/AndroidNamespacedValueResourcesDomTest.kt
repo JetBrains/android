@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom
 
-import com.android.builder.model.AndroidProject
+import com.android.AndroidProjectTypes
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.goToElementAtCaret
 import com.android.tools.idea.testing.highlightedAs
@@ -49,7 +49,7 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
       projectBuilder,
       modules,
       "lib",
-      AndroidProject.PROJECT_TYPE_LIBRARY,
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
       true
     )
   }

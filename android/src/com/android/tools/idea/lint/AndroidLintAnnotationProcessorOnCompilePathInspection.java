@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.GradleDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintAnnotationProcessorOnCompilePathInspection extends AndroidLintInspectionBase {
   public AndroidLintAnnotationProcessorOnCompilePathInspection() {
-    super(AndroidBundle.message("android.lint.inspections.annotation.processor.on.compile.path"), GradleDetector.ANNOTATION_PROCESSOR_ON_COMPILE_PATH);
+    super(AndroidBundle.message("android.lint.inspections.annotation.processor.on.compile.path"),
+          GradleDetector.ANNOTATION_PROCESSOR_ON_COMPILE_PATH);
   }
 }

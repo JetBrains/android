@@ -18,6 +18,8 @@ package com.android.tools.idea.common.scene;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
@@ -71,6 +73,7 @@ abstract public class SceneManager implements Disposable {
     Disposer.register(this, mySceneView);
 
     myDesignSurface.addLayers(getLayers());
+    myDesignSurface.layoutContent();
   }
 
   /**
@@ -98,6 +101,12 @@ abstract public class SceneManager implements Disposable {
   public ImmutableList<Layer> getLayers() {
     return mySceneView.getLayers();
   }
+
+  /**
+   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
+   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
+   */
+  public abstract float getSceneScalingFactor();
 
   @Override
   public void dispose() {
@@ -245,7 +254,10 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   public abstract CompletableFuture<Void> requestRender();
 
-  public void requestLayoutAndRender(boolean animate) {}
+  @NotNull
+  public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
+    return CompletableFuture.completedFuture(null);
+  }
 
   @NotNull
   public abstract CompletableFuture<Void> requestLayout(boolean animate);

@@ -31,6 +31,7 @@ import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
@@ -272,7 +273,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
     List<Library> libraries = new ArrayList<>();
-    if (facet.requiresAndroidModel()) {
+    if (AndroidModel.isRequired(facet)) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
@@ -548,7 +549,7 @@ public final class ResourceRepositoryManager implements Disposable {
     if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
       return ImmutableList.of(appRepository);
     }
-    return appRepository.getRepositoriesForNamespace(namespace);
+    return ImmutableList.copyOf(appRepository.getRepositoriesForNamespace(namespace));
   }
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
@@ -640,10 +641,6 @@ public final class ResourceRepositoryManager implements Disposable {
     AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
     if (projectResources != null) {
       projectResources.updateRoots();
-
-      if (appResources != null) {
-        appResources.invalidateCache(projectResources);
-      }
     }
 
     Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
@@ -716,7 +713,7 @@ public final class ResourceRepositoryManager implements Disposable {
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     synchronized (myLibraryLock) {
       if (myResourceVisibilityProvider == null) {
-        if (!myFacet.requiresAndroidModel() || myFacet.getModel() == null) {
+        if (!AndroidModel.isRequired(myFacet) || AndroidModel.get(myFacet) == null) {
           return null;
         }
         myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();

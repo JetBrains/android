@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.ObjectAnimatorDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import java.util.Objects;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,19 +36,20 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     PsiMethod method = LintFix.getData(fixData, PsiMethod.class);
     if (method instanceof KtLightMethod) {
       KtNamedFunction fun = PsiTreeUtil.getParentOfType(startElement, KtNamedFunction.class, false);
       if (fun == null || !Objects.equals(fun.getName(), method.getName())) {
         return super.getQuickFixes(startElement, endElement, message, fixData);
       }
-    } else if (method == null || !method.equals(PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, false))) {
+    }
+    else if (method == null || !method.equals(PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, false))) {
       return super.getQuickFixes(startElement, endElement, message, fixData);
     }
-    return new AndroidLintQuickFix[]{new AddKeepAnnotationFix()};
+    return new LintIdeQuickFix[]{new AddKeepAnnotationFix()};
   }
 }

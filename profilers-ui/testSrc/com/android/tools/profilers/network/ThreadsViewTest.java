@@ -28,10 +28,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -97,7 +97,7 @@ public class ThreadsViewTest {
 
   @Test
   public void showsCorrectThreadData() {
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     JTable table = getTable();
 
     selection.set(0, TimeUnit.SECONDS.toMicros(22));
@@ -110,7 +110,7 @@ public class ThreadsViewTest {
 
   @Test
   public void shouldHandleEmptySelection() {
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     JTable list = getTable();
 
     selection.set(0, TimeUnit.SECONDS.toMicros(22));
@@ -122,7 +122,7 @@ public class ThreadsViewTest {
 
   @Test
   public void shouldHandleThreadsWithTheSameNameButDifferentID() {
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     JTable table = getTable();
 
     selection.set(TimeUnit.SECONDS.toMicros(99), TimeUnit.SECONDS.toMicros(120));
@@ -135,7 +135,7 @@ public class ThreadsViewTest {
 
   @Test
   public void tableCanBeSortedByInitiatingThreadColumn() {
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     JTable table = getTable();
 
     selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
@@ -155,7 +155,7 @@ public class ThreadsViewTest {
 
   @Test
   public void tableCanBeSortedByTimelineColumn() {
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     JTable table = getTable();
 
     selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
@@ -181,7 +181,7 @@ public class ThreadsViewTest {
   @Test
   public void ensureAxisInList() {
     JTable table = getTable();
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     selection.set(0, TimeUnit.SECONDS.toMicros(22));
 
     TableCellRenderer renderer = table.getCellRenderer(0, 1);
@@ -191,7 +191,7 @@ public class ThreadsViewTest {
 
   @Test
   public void clickingOnARequestSelectsIt() {
-    Range selection = myStageView.getTimeline().getSelectionRange();
+    Range selection = myStageView.getStage().getTimeline().getSelectionRange();
     // The following selection puts threads in the first and second rows on the left
     // half of the view. The right half is mostly blank.
     selection.set(0, TimeUnit.SECONDS.toMicros(44));

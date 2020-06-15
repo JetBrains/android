@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedSho
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
+import com.intellij.util.ExceptionUtil
 import gnu.trove.TIntArrayList
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongHashSet
@@ -28,6 +29,8 @@ import gnu.trove.TObjectIntHashMap
 import java.util.ArrayDeque
 
 class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
+
+  private var prepareException: Exception? = null
 
   data class Grouping(val childClass: ClassDefinition,
                       val parentClass: ClassDefinition?,
@@ -56,48 +59,73 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
   }
 
   fun prepareDisposerChildren() {
+    prepareException = null
     val result = analysisContext.disposerParentToChildren
     result.clear()
 
     if (!analysisContext.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
       return
     }
-    val nav = analysisContext.navigator
+    try {
+      val nav = analysisContext.navigator
 
-    nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
+      nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
 
-    analysisContext.diposerTreeObjectId = nav.id.toInt()
+      analysisContext.diposerTreeObjectId = nav.id.toInt()
 
-    assert(!nav.isNull())
-    nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myObject2NodeMap")
-    nav.goToInstanceField("gnu.trove.THashMap", "_values")
-    nav.getReferencesCopy().forEach {
-      if (it == 0L) return@forEach true
+      verifyClassIsObjectTree(nav.getClass())
 
-      nav.goTo(it)
-      val objectNodeParentId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
-      val childId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
-      nav.goTo(objectNodeParentId)
-
-      val parentId =
-        if (nav.isNull())
-          0L
-        else
-          nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
-
-      val childrenList = if (result.containsKey(parentId.toInt())) {
-        result.get(parentId.toInt())
-      } else {
-        val list = TIntArrayList()
-        result.put(parentId.toInt(), list)
-        list
+      if (nav.isNull()) {
+        throw ObjectNavigator.NavigationException("Disposer.ourTree == null")
       }
-      childrenList.add(childId.toInt())
-      true
+      nav.goToInstanceField(null, "myObject2NodeMap")
+      nav.goToInstanceField("gnu.trove.THashMap", "_values")
+      nav.getReferencesCopy().forEach {
+        if (it == 0L) return@forEach true
+
+        nav.goTo(it)
+        verifyClassIsObjectNode(nav.getClass())
+        val objectNodeParentId = nav.getInstanceFieldObjectId(null, "myParent")
+        val childId = nav.getInstanceFieldObjectId(null, "myObject")
+        nav.goTo(objectNodeParentId)
+
+        val parentId =
+          if (nav.isNull())
+            0L
+          else
+            nav.getInstanceFieldObjectId(null, "myObject")
+
+        val childrenList = if (result.containsKey(parentId.toInt())) {
+          result.get(parentId.toInt())
+        }
+        else {
+          val list = TIntArrayList()
+          result.put(parentId.toInt(), list)
+          list
+        }
+        childrenList.add(childId.toInt())
+        true
+      }
+      result.forEachValue { list ->
+        list.trimToSize()
+        true
+      }
+    } catch (ex : Exception) {
+      prepareException = ex
     }
-    result.forEachValue { list ->
-      list.trimToSize()
-      true
+  }
+
+  private fun verifyClassIsObjectNode(clazzObjectTree: ClassDefinition) {
+    if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectNode" &&
+        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectNode") {
+      throw ObjectNavigator.NavigationException("Wrong type, expected ObjectNode: ${clazzObjectTree.name}")
+    }
+  }
+
+  private fun verifyClassIsObjectTree(clazzObjectTree: ClassDefinition) {
+    if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectTree" &&
+        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectTree") {
+      throw ObjectNavigator.NavigationException("Wrong type, expected ObjectTree: ${clazzObjectTree.name}")
     }
   }
 
@@ -105,99 +133,116 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     if (!analysisContext.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
       return@buildString
     }
+
+    prepareException?.let {
+      appendln(ExceptionUtil.getThrowableText(it))
+      return@buildString
+    }
+
     val nav = analysisContext.navigator
 
-    nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
-    assert(!nav.isNull())
-    nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myObject2NodeMap")
-    nav.goToInstanceField("gnu.trove.THashMap", "_values")
-
-    val groupingToObjectStats = HashMap<Grouping, InstanceStats>()
-    val maxTreeDepth = 200
-    val tooDeepObjectClasses = HashSet<ClassDefinition>()
-    nav.getReferencesCopy().forEach {
-      if (it == 0L) return@forEach true
-
-      nav.goTo(it)
-      val objectNodeParentId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
-      val objectNodeObjectId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
-      nav.goTo(objectNodeParentId)
-
-      val parentId =
-        if (nav.isNull())
-          0L
-        else
-          nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
-
-      val parentClass =
-        if (parentId == 0L)
-          null
-        else {
-          nav.goTo(parentId)
-          nav.getClass()
-        }
-
-      nav.goTo(objectNodeObjectId)
-      val objectClass = nav.getClass()
-
-      val rootClass: ClassDefinition
-      val rootId: Long
-
-      if (parentId == 0L) {
-        rootClass = objectClass
-        rootId = objectNodeObjectId
+    try {
+      nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
+      if (nav.isNull()) {
+        throw ObjectNavigator.NavigationException("ourTree is null")
       }
-      else {
-        var rootObjectNodeId = objectNodeParentId
-        var rootObjectId: Long
-        var iterationCount = 0
-        do {
-          nav.goTo(rootObjectNodeId)
-          rootObjectNodeId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
-          rootObjectId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
-          iterationCount++
-        }
-        while (rootObjectNodeId != 0L && iterationCount < maxTreeDepth)
+      verifyClassIsObjectTree(nav.getClass())
+      nav.goToInstanceField(null, "myObject2NodeMap")
+      nav.goToInstanceField("gnu.trove.THashMap", "_values")
 
-        if (iterationCount >= maxTreeDepth) {
-          tooDeepObjectClasses.add(objectClass)
-          rootId = parentId
-          rootClass = parentClass!!
-        }
-        else {
-          nav.goTo(rootObjectId)
-          rootId = rootObjectId
-          rootClass = nav.getClass()
-        }
-      }
+      val groupingToObjectStats = HashMap<Grouping, InstanceStats>()
+      val maxTreeDepth = 200
+      val tooDeepObjectClasses = HashSet<ClassDefinition>()
+      nav.getReferencesCopy().forEach {
+        if (it == 0L) return@forEach true
 
-      groupingToObjectStats
-        .getOrPut(Grouping(objectClass, parentClass, rootClass)) { InstanceStats() }
-        .registerObject(parentId, rootId)
-      true
-    }
+        nav.goTo(it)
+        verifyClassIsObjectNode(nav.getClass())
+        val objectNodeParentId = nav.getInstanceFieldObjectId(null, "myParent")
+        val objectNodeObjectId = nav.getInstanceFieldObjectId(null, "myObject")
+        nav.goTo(objectNodeParentId)
 
-    TruncatingPrintBuffer(400, 0, this::appendln).use { buffer ->
-      groupingToObjectStats
-        .entries
-        .sortedByDescending { it.value.objectCount() }
-        .groupBy { it.key.rootClass }
-        .forEach { (rootClass, entries) ->
-          buffer.println("Root: ${rootClass.name}")
-          TruncatingPrintBuffer(100, 0, buffer::println).use { buffer ->
-            entries.forEach { (mapping, groupedObjects) ->
-              printDisposerTreeReportLine(buffer, mapping, groupedObjects)
-            }
+        val parentId =
+          if (nav.isNull())
+            0L
+          else {
+            verifyClassIsObjectNode(nav.getClass())
+            nav.getInstanceFieldObjectId(null, "myObject")
           }
-          buffer.println()
-        }
-    }
 
-    if (tooDeepObjectClasses.size > 0) {
-      appendln("Skipped analysis of objects too deep in disposer tree:")
-      tooDeepObjectClasses.forEach {
-        appendln(" * ${nav.classStore.getShortPrettyNameForClass(it)}")
+        val parentClass =
+          if (parentId == 0L)
+            null
+          else {
+            nav.goTo(parentId)
+            nav.getClass()
+          }
+
+        nav.goTo(objectNodeObjectId)
+        val objectClass = nav.getClass()
+
+        val rootClass: ClassDefinition
+        val rootId: Long
+
+        if (parentId == 0L) {
+          rootClass = objectClass
+          rootId = objectNodeObjectId
+        }
+        else {
+          var rootObjectNodeId = objectNodeParentId
+          var rootObjectId: Long
+          var iterationCount = 0
+          do {
+            nav.goTo(rootObjectNodeId)
+            verifyClassIsObjectNode(nav.getClass())
+            rootObjectNodeId = nav.getInstanceFieldObjectId(null, "myParent")
+            rootObjectId = nav.getInstanceFieldObjectId(null, "myObject")
+            iterationCount++
+          }
+          while (rootObjectNodeId != 0L && iterationCount < maxTreeDepth)
+
+          if (iterationCount >= maxTreeDepth) {
+            tooDeepObjectClasses.add(objectClass)
+            rootId = parentId
+            rootClass = parentClass!!
+          }
+          else {
+            nav.goTo(rootObjectId)
+            rootId = rootObjectId
+            rootClass = nav.getClass()
+          }
+        }
+
+        groupingToObjectStats
+          .getOrPut(Grouping(objectClass, parentClass, rootClass)) { InstanceStats() }
+          .registerObject(parentId, rootId)
+        true
       }
+
+      TruncatingPrintBuffer(400, 0, this::appendln).use { buffer ->
+        groupingToObjectStats
+          .entries
+          .sortedByDescending { it.value.objectCount() }
+          .groupBy { it.key.rootClass }
+          .forEach { (rootClass, entries) ->
+            buffer.println("Root: ${rootClass.name}")
+            TruncatingPrintBuffer(100, 0, buffer::println).use { buffer ->
+              entries.forEach { (mapping, groupedObjects) ->
+                printDisposerTreeReportLine(buffer, mapping, groupedObjects)
+              }
+            }
+            buffer.println()
+          }
+      }
+
+      if (tooDeepObjectClasses.size > 0) {
+        appendln("Skipped analysis of objects too deep in disposer tree:")
+        tooDeepObjectClasses.forEach {
+          appendln(" * ${nav.classStore.getShortPrettyNameForClass(it)}")
+        }
+      }
+    } catch (ex : Exception) {
+      appendln(ExceptionUtil.getThrowableText(ex))
     }
   }
 
@@ -236,38 +281,50 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     val disposedObjectsIDs = analysisContext.disposedObjectsIDs
     disposedObjectsIDs.clear()
 
-    val nav = analysisContext.navigator
-    val parentList = analysisContext.parentList
-
-    if (!nav.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
+    if (prepareException != null) {
       return
     }
 
-    nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
-    assert(!nav.isNull())
-    nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myDisposedObjects")
-    nav.goToInstanceField("com.intellij.util.containers.WeakHashMap", "myMap")
-    nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "_set")
-    val weakKeyClass = nav.classStore["com.intellij.util.containers.WeakHashMap\$WeakKey"]
+    try {
 
-    nav.getReferencesCopy().forEach {
-      if (it == 0L) {
-        return@forEach true
-      }
-      nav.goTo(it, ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
-      if (nav.getClass() != weakKeyClass) {
-        return@forEach true
-      }
-      nav.goToInstanceField("com.intellij.util.containers.WeakHashMap\$WeakKey", "referent")
-      if (nav.id == 0L) return@forEach true
+      val nav = analysisContext.navigator
+      val parentList = analysisContext.parentList
 
-      val leakId = nav.id.toInt()
-      if (parentList[leakId] == 0) {
-        // If there is no parent, then the object does not have a strong-reference path to GC root
-        return@forEach true
+      if (!nav.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
+        return
       }
-      disposedObjectsIDs.add(leakId)
-      true
+
+      nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
+      if (nav.isNull()) {
+        throw ObjectNavigator.NavigationException("ourTree is null")
+      }
+      verifyClassIsObjectTree(nav.getClass())
+      nav.goToInstanceField(null, "myDisposedObjects")
+      nav.goToInstanceField("com.intellij.util.containers.WeakHashMap", "myMap")
+      nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "_set")
+      val weakKeyClass = nav.classStore["com.intellij.util.containers.WeakHashMap\$WeakKey"]
+
+      nav.getReferencesCopy().forEach {
+        if (it == 0L) {
+          return@forEach true
+        }
+        nav.goTo(it, ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
+        if (nav.getClass() != weakKeyClass) {
+          return@forEach true
+        }
+        nav.goToInstanceField("com.intellij.util.containers.WeakHashMap\$WeakKey", "referent")
+        if (nav.id == 0L) return@forEach true
+
+        val leakId = nav.id.toInt()
+        if (parentList[leakId] == 0) {
+          // If there is no parent, then the object does not have a strong-reference path to GC root
+          return@forEach true
+        }
+        disposedObjectsIDs.add(leakId)
+        true
+      }
+    } catch (navEx : ObjectNavigator.NavigationException) {
+      prepareException = navEx
     }
   }
 

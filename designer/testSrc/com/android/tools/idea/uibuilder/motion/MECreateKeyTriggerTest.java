@@ -21,8 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import java.awt.Dimension;
+import java.awt.*;
 
 public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateKeyTrigger {
@@ -41,28 +40,31 @@ public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
 
   public void testCreateKeyTriggerLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,153,272\n" +
-                    "1,JLabel,5,2,143,15\n" +
-                    "1,JSeparator,5,20,143,2\n" +
-                    "1,JRadioButton,5,25,89,23\n" +
-                    "1,JRadioButton,104,25,44,23\n" +
-                    "1,JPanel,5,51,143,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,78,143,15\n" +
-                    "1,MEComboBox,5,96,143,24\n" +
-                    "1,JLabel,5,123,143,15\n" +
-                    "1,PromptedTextField,5,141,143,19\n" +
-                    "1,JLabel,5,163,89,15\n" +
-                    "1,PromptedTextField,5,181,143,19\n" +
-                    "1,JLabel,5,203,143,15\n" +
-                    "1,PromptedTextField,5,221,143,19\n" +
-                    "1,JButton,5,246,143,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,4,2,90,4\n" +
+                    "1,JSeparator         ,0,9,99,0\n" +
+                    "1,JRadioButton       ,4,12,42,6\n" +
+                    "1,JRadioButton       ,57,11,37,6\n" +
+                    "1,JPanel             ,5,20,89,7\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JLabel             ,4,29,90,4\n" +
+                    "1,MEComboBox         ,5,35,89,7\n" +
+                    "1,JLabel             ,4,45,90,4\n" +
+                    "1,PromptedTextField  ,5,50,89,5\n" +
+                    "1,JLabel             ,4,58,90,4\n" +
+                    "1,PromptedTextField  ,5,64,89,5\n" +
+                    "1,JLabel             ,4,72,90,4\n" +
+                    "1,PromptedTextField  ,5,78,89,5\n" +
+                    "1,JButton            ,4,88,90,7\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,4)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateKeyTriggerAction() {
@@ -96,10 +98,10 @@ public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyTrigger\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"test32\"\n" +
-      "   motion:onCross=\"method\" />\n";
+                     "<KeyTrigger\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:motionTarget=\"@+id/number\"\n" +
+                     "   motion:onCross=\"method\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }

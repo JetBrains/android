@@ -17,10 +17,9 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter;
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchStyle;
 import com.google.common.collect.ImmutableList;
+import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
 
 /**
  * Class that holds a mapping between a {@link SketchStyle} and its sharedObjectId.

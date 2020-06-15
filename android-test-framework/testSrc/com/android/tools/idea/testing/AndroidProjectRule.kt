@@ -18,7 +18,7 @@ package com.android.tools.idea.testing
 import com.android.testutils.TestUtils
 import com.android.tools.idea.io.FilePaths.toSystemDependentPath
 import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModel
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
@@ -76,9 +76,9 @@ class AndroidProjectRule private constructor(
     /**
      * Not null if the project should be initialized from an instance of [AndroidModel].
      *
-     * See also: [withAndroidModel].
+     * See also: [withAndroidModels].
      */
-    private val androidProjectBuilder: AndroidProjectBuilder? = null,
+    private val projectModuleBuilders: List<ModuleModelBuilder> = emptyList(),
 
     /**
      * Name of the fixture used to create the project directory when not
@@ -135,8 +135,28 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder]. Such a project will have a module from which an instance of [AndroidModel] can be retrieved.
      */
-    fun withAndroidModel(androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilder()) =
-      AndroidProjectRule(initAndroid = false, lightFixture = false, withAndroidSdk = false, androidProjectBuilder = androidProjectBuilder)
+    fun withAndroidModel(
+      androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
+    ): AndroidProjectRule {
+      return withAndroidModels(
+        AndroidModuleModelBuilder(
+          gradlePath = ":",
+          selectedBuildVariant = "debug",
+          projectBuilder = androidProjectBuilder
+        )
+      )
+    }
+
+    /**
+     * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
+     * [androidProjectBuilder].
+     */
+    fun withAndroidModels(vararg projectModuleBuilders: ModuleModelBuilder): AndroidProjectRule = AndroidProjectRule(
+      initAndroid = false,
+      lightFixture = false,
+      withAndroidSdk = false,
+      projectModuleBuilders = projectModuleBuilders.toList()
+    )
   }
 
   fun initAndroid(shouldInit: Boolean): AndroidProjectRule {
@@ -184,14 +204,13 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    if (androidProjectBuilder != null) {
+    if (projectModuleBuilders.isNotEmpty()) {
       ApplicationManager.getApplication().invokeAndWait {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
         AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
-        setupTestProjectFromAndroidModel(project) { projectName, _ ->
-          androidProjectBuilder.invoke(projectName, File(fixture.tempDirPath))
-        }
+        val basePath = File(fixture.tempDirPath)
+        setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
       }
     }
     mocks = IdeComponents(fixture)
@@ -223,27 +242,39 @@ class AndroidProjectRule private constructor(
         .createFixtureBuilder(fixtureName ?: description.displayName)
 
     val tempDirFixture =
-        if (androidProjectBuilder == null) {
-            // Use a default temp dir fixture for simple tests which do not require an AndroidModel.
-            TempDirTestFixtureImpl()
-        }
-        else {
-            // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
-            // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
-            object : TempDirTestFixtureImpl() {
-                override fun getTempHome(): Path? = toSystemDependentPath(projectBuilder.fixture.project.basePath)?.toPath()
+      if (projectModuleBuilders.isEmpty()) {
+        // Use a default temp dir fixture for simple tests which do not require an AndroidModel.
+        TempDirTestFixtureImpl()
+      }
+      else {
+        // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
+        // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
+        object : TempDirTestFixtureImpl() {
+          private val tempDir by lazy { toSystemDependentPath(projectBuilder.fixture.project.basePath)!! }
+
+          override fun getTempHome(): Path = tempDir.toPath()
+
+          override fun tearDown() {
+            val existed = tempDir.exists()
+            super.tearDown()
+            // TempDirTestFixtureImpl re-creates parent directories on tear down. Delete tempDir if it was re-created.
+            if (!existed && tempDir.exists()) {
+              tempDir.delete()
             }
+          }
         }
+      }
 
     val javaCodeInsightTestFixture = JavaTestFixtureFactory
-        .getFixtureFactory()
-        .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
+      .getFixtureFactory()
+      .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
 
-    if (androidProjectBuilder == null) {
-        val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
-        initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
-    } else {
-        // Do nothing. There is no need to setup a module manually. It will be created by sync from the AndroidProject model.
+    if (projectModuleBuilders.isEmpty()) {
+      val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
+      initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
+    }
+    else {
+      // Do nothing. There is no need to setup a module manually. It will be created by sync from the AndroidProject model.
     }
 
     return javaCodeInsightTestFixture

@@ -22,6 +22,7 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
@@ -29,7 +30,6 @@ import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.ClassSet;
@@ -43,7 +43,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.containers.HashMap;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
@@ -52,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -93,7 +93,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final ProfilerTimeline myTimeline;
+  @NotNull private final StreamingTimeline myTimeline;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
@@ -119,9 +119,9 @@ final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private List<FieldObject> myFieldObjectPath;
 
-  public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeline = myStage.getStudioProfilers().getTimeline();
+    myTimeline = myStage.getTimeline();
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
     myStage.getAspect().addDependency(this)
@@ -676,7 +676,6 @@ final class MemoryClassSetView extends AspectObserver {
     List<MemoryObjectTreeNode<MemoryObject>> results = new ArrayList<>(1);
     if (fieldPath.size() == 1) {
       // We reached the leaf node. Just find all children nodes with adapters matching the leaf FieldObject.
-      //noinspection ArraysAsListWithZeroOrOneArgument
       parentNode.getChildren().stream().filter(child -> child.getAdapter().equals(currentField)).forEach(results::add);
     }
     else {
@@ -689,7 +688,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   static class InstanceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    public InstanceTreeNode(@NotNull InstanceObject adapter) {
+    InstanceTreeNode(@NotNull InstanceObject adapter) {
       super(adapter, true);
     }
 
@@ -715,7 +714,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   static class FieldTreeNode extends LazyMemoryObjectTreeNode<FieldObject> {
-    public FieldTreeNode(@NotNull FieldObject adapter) {
+    FieldTreeNode(@NotNull FieldObject adapter) {
       super(adapter, true);
     }
 

@@ -31,6 +31,17 @@
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
+    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewNotificationForwarder" />
+  </extensions>
+
+  <!-- Collects all the providers for source code preview representations -->
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
+                    interface="com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
   </extensions>
@@ -44,9 +55,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.CustomViewEditorProvider" />
-    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.OutdatedCustomViewNotificationProvider" />
-
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors" />
@@ -59,7 +67,4 @@
     <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpPanelAssistantBundleCreator"/>
-  </extensions>
 </idea-plugin>

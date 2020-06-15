@@ -33,7 +33,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to
@@ -67,18 +66,9 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
   private class Subscriber(val project: Project) : LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project)),
                                                    Disposable {
     override fun subscribe() {
-      subscribeVFSListener()
-      subscribePSIListener()
-    }
-
-    private fun subscribePSIListener() {
-      val psiProjectListener = PsiProjectListener.getInstance(project)
-      psiProjectListener.setSampleDataListener(listener)
-    }
-
-    private fun subscribeVFSListener() {
       // Never use Application or Project as parents for disposables, as they will be leaked on plugin unload.
       VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
+      AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
     }
 
     override fun dispose() {

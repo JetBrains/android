@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.testing;
 
+
+import static org.junit.Assert.assertNotNull;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -23,34 +26,36 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 
-import static junit.framework.Assert.assertNotNull;
-
 public class Modules {
   @NotNull private final Project myProject;
+  @NotNull private final ModuleNames myModuleNames;
 
   public Modules(@NotNull Project project) {
     myProject = project;
+    myModuleNames = new ModuleNames(myProject);
   }
 
   @NotNull
   public Module getAppModule() {
-    String name = "app";
-    return getModule(name);
+    String qualifiedName = myProject.getName() + ".app";
+    return getModule(qualifiedName);
   }
 
   @NotNull
-  public Module getModule(@NotNull String name) {
+  public Module getModule(@NotNull String qualifiedName) {
+    String name = myModuleNames.transformIfNeeded(qualifiedName);
     Ref<Module> moduleRef = new Ref<>();
     ApplicationManager.getApplication().runReadAction(() -> {
       Module module = ModuleManager.getInstance(myProject).findModuleByName(name);
       moduleRef.set(module);
     });
     Module module = moduleRef.get();
-    assertNotNull("Unable to find module with name '" + name + "'", module);
+    assertNotNull("Unable to find module with name '" + name + "' (" + qualifiedName + ")", module);
     return module;
   }
 
-  public boolean hasModule(@NotNull String name) {
+  public boolean hasModule(@NotNull String qualifiedName) {
+    String name = myModuleNames.transformIfNeeded(qualifiedName);
     return ApplicationManager.getApplication().runReadAction(
       (Computable<Boolean>)() -> ModuleManager.getInstance(myProject).findModuleByName(name) != null);
   }

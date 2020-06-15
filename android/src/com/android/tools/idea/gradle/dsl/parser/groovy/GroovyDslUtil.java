@@ -28,6 +28,7 @@ import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStri
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.removeQuotes;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -35,11 +36,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.extapi.psi.ASTDelegatePsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -54,12 +59,14 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
@@ -142,10 +149,31 @@ public final class GroovyDslUtil {
     return GroovyPsiElementFactory.getInstance(project);
   }
 
+  static String getGradleNameForPsiElement(@NotNull PsiElement element) {
+    StringBuilder gradleName = new StringBuilder();
+
+    GroovyPsiElementVisitor visitor = new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+      @Override
+      public void visitMethodCallExpression(@NotNull GrMethodCallExpression e) {
+        if (e.getText().startsWith("project") && e.getArgumentList().getAllArguments().length == 1 &&
+            e.getArgumentList().getAllArguments()[0] instanceof GrLiteral) {
+          // TODO(karimai): Add interpolation handling when these are supported.
+          gradleName.append(e.getText().replaceAll("\\s", "").replace("\"", "'"));
+        }
+      }
+    });
+
+    for (PsiElement child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child instanceof GrMethodCallExpression) child.accept(visitor);
+      else gradleName.append(child.getText());
+    }
+    return (gradleName.length() == 0) ? element.getText() : gradleName.toString();
+  }
+
   static void  maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
     GradleDslElement parentDslElement = dslElement.getParent();
-    if ((parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted()) ||
-        (parentDslElement instanceof GradleDslExpressionMap && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted()) &&
+    if (((parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted()) ||
+         (parentDslElement instanceof GradleDslExpressionMap && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted())) &&
         parentDslElement.getPsiElement() == element) {
       // Don't delete parent if empty.
       return;
@@ -328,8 +356,11 @@ public final class GroovyDslUtil {
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean || unsavedValue instanceof BigDecimal) {
       unsavedValueText = unsavedValue.toString();
     }
+    else if (unsavedValue instanceof ReferenceTo) {
+      unsavedValueText = ((ReferenceTo)unsavedValue).getText();
+    }
     else if (unsavedValue instanceof RawText) {
-      unsavedValueText = ((RawText)unsavedValue).getText();
+      unsavedValueText = ((RawText)unsavedValue).getGroovyText();
     }
 
     if (unsavedValueText == null) {
@@ -459,7 +490,13 @@ public final class GroovyDslUtil {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(newLiteral.getProject());
     GrNamedArgument namedArgument = factory.createNamedArgument(expression.getName(), newLiteral);
     PsiElement added;
-    if (parentPsiElement instanceof GrArgumentList) {
+    if (parentPsiElement instanceof GrCommandArgumentList) {
+      // addNamedArgument() on a GrCommandArgumentList adds the argument before the last existing argument, if any.  Although it doesn't
+      // directly affect the semantics, we want to add new elements at the end of the argument list.  (This doesn't work for general
+      // GrArgumentLists because the last child of the Psi might be the closing bracket of an explicit method call.)
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
+    else if (parentPsiElement instanceof GrArgumentList) {
       added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
     }
     else if (parentPsiElement instanceof GrListOrMap) {
@@ -487,13 +524,13 @@ public final class GroovyDslUtil {
     }
   }
 
-  static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression) {
+  static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression, GroovyDslWriter writer) {
     PsiElement psiElement = ensureGroovyPsi(expression.getPsiElement());
     if (psiElement == null) {
       return;
     }
 
-    maybeUpdateName(expression);
+    maybeUpdateName(expression, writer);
 
     GrExpression newLiteral = extractUnsavedExpression(expression);
     if (newLiteral == null) {
@@ -508,7 +545,22 @@ public final class GroovyDslUtil {
     }
     else {
       // This element has just been created and will currently look like "propertyName =" or "propertyName ". Here we add the value.
-      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      PsiElement added;
+      // This element will look like "propertyName propertyValue" and we need to create an intermediate psiElement (commandArgumentList)
+      // to prevent breaking the psiTree of a GrApplicationStatement.
+      if (psiElement instanceof GrApplicationStatement) {
+        GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
+        // Create a fake applicationStatement element.
+        GrApplicationStatement fakeStatement = (GrApplicationStatement)(factory.createStatementFromText("a 'a'"));
+        GrCommandArgumentList arguments = fakeStatement.getArgumentList();
+        // Empty the arguments list so we can use it for psiElement.
+        arguments.getFirstChild().delete();
+        psiElement.addAfter(arguments, psiElement.getLastChild());
+        added = ((GrApplicationStatement)psiElement).getArgumentList().add(newLiteral);
+      }
+      else {
+        added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      }
       expression.setExpression(added);
 
       if (expression.getUnsavedConfigBlock() != null) {
@@ -717,13 +769,30 @@ public final class GroovyDslUtil {
     }
   }
 
-  static void maybeUpdateName(@NotNull GradleDslElement element) {
+  static void maybeUpdateName(@NotNull GradleDslElement element, GroovyDslWriter writer) {
+    GradleNameElement nameElement = element.getNameElement();
+
+    String localName = nameElement.getLocalName();
+    if (localName == null) return;
+    if (localName.equals(nameElement.getOriginalName())) return;
+
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
-    String newName = element.getNameElement().getLocalName();
-    PsiElement newElement;
-    if (newName == null || oldName == null) {
-      return;
+    if (oldName == null) return;
+
+    GradleDslElement parent = element.getParent();
+    if (parent != null) {
+      ImmutableCollection<Pair<String, SemanticsDescription>> modelProperties = parent.getExternalToModelMap(writer).values();
+      for (Pair<String, SemanticsDescription> value : modelProperties) {
+        if (value.getFirst().equals(nameElement.getOriginalName())) {
+          Logger.getInstance(GroovyDslWriter.class)
+            .warn(new UnsupportedOperationException("trying to update a property: " + nameElement.getOriginalName()));
+          return;
+        }
+      }
     }
+    String newName = localName;
+
+    PsiElement newElement;
     if (oldName instanceof PsiNamedElement) {
       PsiNamedElement namedElement = (PsiNamedElement)oldName;
       namedElement.setName(newName);
@@ -732,11 +801,11 @@ public final class GroovyDslUtil {
     else {
       PsiElement psiElement = createNameElement(element, newName);
       if (psiElement == null) {
-        throw new IllegalStateException("Can't create new GrExpression for name element '" + newName + "'");
+        return;
       }
       newElement = oldName.replace(psiElement);
     }
-    element.getNameElement().commitNameChange(newElement);
+    element.getNameElement().commitNameChange(newElement, writer, element.getParent());
   }
 
   @Nullable

@@ -15,8 +15,14 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
+import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
+
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
@@ -24,36 +30,46 @@ import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.ReferenceObject;
+import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.memory.instanceviewers.BitmapViewer;
 import com.android.tools.profilers.memory.instanceviewers.InstanceViewer;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.Dimension;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JTabbedPane;
+import javax.swing.JTree;
+import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.util.*;
-import java.util.List;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
-import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A view object that is responsible for displaying the callstack + references of an {@link InstanceObject} based on whether the
@@ -69,7 +85,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final ProfilerTimeline myTimeline;
+  @NotNull private final StreamingTimeline myTimeline;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -87,9 +103,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final List<InstanceViewer> myInstanceViewers = new ArrayList<>();
 
-  public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeline = myStage.getStudioProfilers().getTimeline();
+    myTimeline = myStage.getTimeline();
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);

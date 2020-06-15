@@ -15,61 +15,91 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.TestUtils
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuCaptureStage
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.lang.Thread.sleep
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
 
 class CpuAnalysisPanelTest {
 
   private val timer = FakeTimer()
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer))
+  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer),
+                                    FakeTransportService(timer, true))
   private val profilerClient = ProfilerClient(grpcChannel.name)
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
+  private lateinit var stage: CpuCaptureStage
+  private lateinit var panel: CpuAnalysisPanel
 
   @Before
   fun setUp() {
+    services.enablePerfetto(true)
     profilers = StudioProfilers(profilerClient, services, timer)
+    stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
+    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)
   }
 
   @Test
   fun tabsUpdatedOnCaptureCompleted() {
-    services.enablePerfetto(true)
-    services.enableAtrace(true)
-    sleep(1000)
-    val stage = CpuCaptureStage.create(profilers, "Test", File(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
-    val panel = CpuAnalysisPanel(stage)
+    val observer = AspectObserver()
+    val stateLatch = CountDownLatch(1)
+    stage.aspect.addDependency(observer).onChange(CpuCaptureStage.Aspect.STATE, Runnable {
+      assertThat(panel.tabView.tabCount).isNotEqualTo(0)
+      stateLatch.countDown()
+    })
     assertThat(panel.tabView.tabCount).isEqualTo(0)
     stage.enter()
-    assertThat(panel.tabView.tabCount).isNotEqualTo(0)
+    assertThat(stateLatch.await(5, TimeUnit.SECONDS)).isTrue()
   }
 
   @Test
   fun newAnalysisIsAutoSelected() {
-    services.enablePerfetto(true)
-    services.enableAtrace(true)
-    val stage = CpuCaptureStage.create(profilers, "Test", File(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
-    val panel = CpuAnalysisPanel(stage)
     stage.enter()
-    val selectionModel = CpuAnalysisModel("TEST")
-    selectionModel.tabs.add(CpuAnalysisTabModel<CpuCapture>(CpuAnalysisTabModel.Type.SUMMARY))
-    selectionModel.tabs.add(CpuAnalysisTabModel<CpuCapture>(CpuAnalysisTabModel.Type.SUMMARY))
-    stage.addCpuAnalysisModel(selectionModel)
+    val selectedModel = CpuAnalysisModel<CpuCapture>("TEST")
+    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
+    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
+    stage.addCpuAnalysisModel(selectedModel)
     assertThat(panel.tabView.tabCount).isEqualTo(2)
+  }
+
+  @Test
+  fun tabsUpdatedOnTabRemoved() {
+    stage.enter()
+    val treeWalker = TreeWalker(panel.tabs.tabsPanel)
+    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(1)
+    stage.removeCpuAnalysisModel(0)
+    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(0)
+  }
+
+  @Test
+  fun tabsAreOnlyPopulatedWhenSelected() {
+    stage.enter()
+    assertThat(panel.tabView.selectedIndex).isEqualTo(0)
+    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisChart::class.java)
+    panel.tabView.selectedIndex = 1
+    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisChart::class.java)
   }
 }

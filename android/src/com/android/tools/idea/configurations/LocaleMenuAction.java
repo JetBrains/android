@@ -30,6 +30,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -63,7 +64,7 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
     // TODO: Offer submenus, lazily populated, which offer languages either by code or by name.
     // However, this doesn't currently work for the JBPopup dialog we're using as part
@@ -195,8 +196,7 @@ public class LocaleMenuAction extends DropDownAction {
       Locale locale = configuration.getLocale();
       presentation.setIcon(
         locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? locale.getFlagImage() : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
-      // TODO: remove the tail space after we fix the offset of Dropdown arrow in DropDownAction.
-      String brief = getLocaleLabel(locale, true) + " ";
+      String brief = getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
     else {
@@ -278,7 +278,7 @@ public class LocaleMenuAction extends DropDownAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       super.actionPerformed(e);
-      updateActions();
+      updateActions(e.getDataContext());
     }
 
     @Override

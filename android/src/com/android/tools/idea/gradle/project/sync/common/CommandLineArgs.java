@@ -26,6 +26,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL
 import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
@@ -36,9 +37,11 @@ import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.ArrayList;
@@ -50,19 +53,16 @@ import org.jetbrains.annotations.Nullable;
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
-  @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
 
   public CommandLineArgs() {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance());
+    this(IdeInfo.getInstance(), GradleInitScripts.getInstance());
   }
 
   @VisibleForTesting
-  CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
-                  @NotNull IdeInfo ideInfo,
+  CommandLineArgs(@NotNull IdeInfo ideInfo,
                   @NotNull GradleInitScripts initScripts) {
-    myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
   }
@@ -95,16 +95,26 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, GradleSyncState.isLevel4Model()
                                                                         ? MODEL_LEVEL_4_NEW_DEP_MODEL
                                                                         : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
-    if (myIdeInfo.isAndroidStudio() && !isDevBuild(myApplicationInfo.getStrictVersion())) {
+
+    // Obtains the version of the Android Support plugin.
+    IdeaPluginDescriptor androidSupport = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
+    if (androidSupport != null && !isDevBuild(androidSupport.getVersion()) && IdeInfo.getInstance().isAndroidStudio()) {
       // Example of version to pass: 2.4.0.6
-      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
+      // FIXME-ank3: when IJ installers are built plugin descriptors are patched to match IDE version, so
+      // androidSupport.getVersion() reports 202.SNAPSHOT.20200614 which cannot be parsed by AGP. 202.xxx does not make sense either.
+      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, androidSupport.getVersion()));
     }
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
     //noinspection deprecation AGP 3.6 and above do not download sources at all.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
 
     args.add(createProjectProperty("idea.gradle.do.not.build.tasks", GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST));
-
+    if (myIdeInfo.isAndroidStudio()) {
+      // This property customizes GradleProjectBuilder, with "omit_all_tasks" the builder will skip task realization and return
+      // GradleProject model with empty task list. The task list in GradleProject is not used by IDE and thus should always be omitted.
+      // This property exists since Gradle 6.1, and has no effect on prior versions of Gradle.
+      args.add(createJvmArg("org.gradle.internal.GradleProjectBuilderOptions", "omit_all_tasks"));
+    }
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
       if (refreshExternalNativeModels != null) {
@@ -127,7 +137,7 @@ public class CommandLineArgs {
   }
 
   private static boolean isDevBuild(String version) {
-    return version.equals("0.0.0.0");  // set in AndroidStudioApplicationInfo.xml
+    return version.equals("dev build");  // set in org.jetbrains.android plugin.xml
   }
 
   public static boolean isInTestingMode() {

@@ -1,6 +1,7 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -45,7 +46,7 @@ public final class AndroidSdkNotConfiguredNotificationProvider extends EditorNot
     if (facet == null) {
       return null;
     }
-    if (!facet.requiresAndroidModel()
+    if (!AndroidModel.isRequired(facet)
         && (AndroidResourceUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
       final AndroidPlatform platform = AndroidPlatform.getInstance(module);
 

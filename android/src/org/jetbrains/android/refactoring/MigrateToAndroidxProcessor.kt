@@ -65,13 +65,12 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependenc
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UPGRADE_GRADLE_DEPENDENCY_VERSION
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDepedencyVersionMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
 
 private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
 private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
@@ -204,7 +203,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
             gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
           }
           UPGRADE_GRADLE_DEPENDENCY_VERSION -> {
-            val migrationEntry = entry as UpdateGradleDepedencyVersionMigrationEntry
+            val migrationEntry = entry as UpdateGradleDependencyVersionMigrationEntry
             gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
           }
         }
@@ -413,6 +412,12 @@ open class MigrateToAndroidxProcessor(val project: Project,
           val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue
+          val migrationEntryCoordinates = GradleCoordinate.parseCoordinateString(entry.toCompactNotation(entry.newBaseVersion)) ?: continue
+          // Prevent showing the migration entry if there is already a newer version in the file
+          if (gc.isSameArtifact(migrationEntryCoordinates) &&
+              GradleCoordinate.COMPARE_PLUS_HIGHER.compare(migrationEntryCoordinates, gc) <= 0) {
+            continue
+          }
           gradleUsages.add(
             MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, projectBuildModel, dep, entry, versionProvider))
         }
@@ -420,8 +425,15 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
       fun addStringUsage(model: GradlePropertyModel, oldString: String, newString: String) {
         val psiElement = model.psiElement ?: return
-        for (literal in PsiTreeUtil.findChildrenOfType(psiElement, GrLiteral::class.java).filter { it.value == oldString }) {
-          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newString))
+        if (model.getValue(GradlePropertyModel.STRING_TYPE) == oldString) {
+          model.setValue(newString)
+          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(psiElement, newString, gradleBuildModel))
+        }
+        else {
+          // Here the lookup will go through all the children psiElements
+          for (literal in PsiTreeUtil.findChildrenOfType(psiElement, PsiElement::class.java).filter { it.text == oldString }) {
+            gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newString, gradleBuildModel))
+          }
         }
       }
 

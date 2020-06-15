@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.common.editor.SetZoomActionGroups
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.uibuilder.drawable.DrawableActionGroups
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
@@ -32,5 +32,5 @@ abstract class DrawableFileType(private val allowedRootTags: Set<String>) : Desi
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, allowedRootTags)
 
-  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups = SetZoomActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups = DrawableActionGroups(surface)
 }

@@ -18,18 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.plugins;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class PluginsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String PLUGINS_BLOCK_NAME = "plugins";
+  public static final PropertiesElementDescription<PluginsDslElement> PLUGINS =
+    new PropertiesElementDescription<>("plugins", PluginsDslElement.class, PluginsDslElement::new);
 
-  public PluginsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(PLUGINS_BLOCK_NAME));
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    super.addParsedElement(element);
+  public PluginsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

@@ -16,7 +16,8 @@
 package com.android.tools.adtui.common
 
 import com.intellij.ui.JBColor
-import javax.swing.UIManager
+import com.intellij.util.ui.JBUI
+import java.awt.Color
 
 /**
  * Colors defined in the UX prototype
@@ -66,15 +67,37 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
 
 /**
+ * Background color for selected content.
+ *
+ * Example: selected range in profilers.
+ */
+val contentSelectionBackground = JBColor.namedColor("Content.selectionBackground",
+                                                    JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true)))
+
+/**
+ * Background color for an active selection.
+ *
+ * Example: selected track in a track group.
+ */
+val selectionBackground = JBColor.namedColor("List.selectionBackground", JBColor(0x4874D7, 0x1E67CE))
+
+/**
+ * Foreground color for an active selection.
+ *
+ * Example: title label of a selected track in a track group.
+ */
+val selectionForeground = JBColor.namedColor("List.selectionForeground", JBColor(0xFFFFFF, 0xFFFFFF))
+
+/**
  * Color of the underline when a intellij style tab is focused.
  *
  * Example: Analysis tab of a cpu profiling capture.
  */
-val tabbedPaneFocus = UIManager.getColor("TabbedPane.focus")
+val tabbedPaneFocus = JBUI.CurrentTheme.TabbedPane.ENABLED_SELECTED_COLOR
 
 /**
  * Color of the background when user mouse overs an intellij style tab.
  *
  * Example: Analysis tab of a cpu profiling capture.
  */
-val tabbedPaneHoverHighlight = UIManager.getColor("TabbedPane.shadow")
+val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR

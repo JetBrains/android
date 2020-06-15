@@ -19,13 +19,12 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.StudioMonitorStageView;
+import com.android.tools.profilers.StageView;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class CpuMonitorTooltipView extends ProfilerMonitorTooltipView<CpuMonitor> {
-  public CpuMonitorTooltipView(StudioMonitorStageView parent, @NotNull CpuMonitorTooltip tooltip) {
+  public CpuMonitorTooltipView(StageView parent, @NotNull CpuMonitorTooltip tooltip) {
     super(tooltip.getMonitor());
   }
 

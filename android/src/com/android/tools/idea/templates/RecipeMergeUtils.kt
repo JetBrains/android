@@ -22,19 +22,18 @@ import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.utils.StdLogger
 import com.android.utils.XmlUtils
 import com.google.common.base.Charsets
-import com.google.common.base.Splitter
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.xml.*
-import com.intellij.util.SystemProperties
-import org.apache.commons.lang.StringUtils
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
@@ -51,54 +50,27 @@ private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
 private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
 
-@Throws(RuntimeException::class)
-fun mergeGradleSettingsFile(source: String, dest: String): String {
-  // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
-  // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
-  // support requires a project, which we don't necessarily have when instantiating a template.
-
-  /*
-  Add new include lines instead of merging everything in a single line (b/133578918)
-
-  For simplicity, this will add new lines at the end of the file. Trying to look for "include" lines could cause issues if we do not
-  consider all cases, for example if there are comment blocks or 'include' directives inside functions. See this for some examples:
-
-  https://docs.gradle.org/current/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])
-   */
-
-  val includeLines = Splitter.on('\n').omitEmptyStrings().trimResults().split(source).toList()
-
-  if (!includeLines.all { it.startsWith("include") }) {
-    throw RuntimeException("When merging settings.gradle files, only include directives can be merged.")
-  }
-
-  if (includeLines.isEmpty()) {
-    return dest
-  }
-
-  val contents = StringBuilder(StringUtils.stripEnd(StringUtils.chomp(dest), null))
-  val lineSeparator = SystemProperties.getLineSeparator()
-  if (contents.isNotEmpty()) {
-    contents.append(lineSeparator)
-  }
-  contents.append(includeLines.joinToString(lineSeparator))
-  contents.append(lineSeparator)
-
-  return contents.toString()
+data class RenderingContextAdapter(
+  val project: Project,
+  val moduleRoot: File?,
+  val warningsToAdd: MutableCollection<String>
+) {
+  constructor(c: RenderingContext): this(c.project, c.moduleRoot, c.warnings)
+  constructor(c2: RenderingContext2): this(c2.project, c2.moduleRoot, c2.warnings)
 }
 
 /**
  * Merges sourceXml into targetXml/targetFile (targetXml is the contents of targetFile).
  * @return the resulting xml if it still needs to be written to targetFile or null if the file has already been/doesn't need to be updated.
  */
-fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, targetFile: File): String {
+fun mergeXml(context: RenderingContextAdapter, sourceXml: String, targetXml: String, targetFile: File): String {
   val fileName = targetFile.name
   var errors: String? = null
 
   fun mergeManifest(): String? {
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
-    val report = mergeManifest(context.moduleRoot, targetFile, targetXml, sourceXml) ?: return null
+    val report = mergeManifest(context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
     if (report.result.isSuccess) {
       return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
     }
@@ -118,13 +90,13 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
     val parentFolderName = targetFile.parentFile.name
     val folderType = ResourceFolderType.getFolderType(parentFolderName)
     // mergeResourceFile handles the file updates itself
-    return mergeResourceFile(context, targetXml, sourceXml, fileName, folderType)
+    return mergeResourceFile(context.project, context.warningsToAdd, targetXml, sourceXml, fileName, folderType)
   }
 
   return (if (fileName == FN_ANDROID_MANIFEST_XML) mergeManifest() else mergePlainXml())
          ?: // Just insert into file along with comment, using the "standard" conflict syntax that many tools and editors recognize.
          wrapWithMergeConflict(targetXml, sourceXml).also {
-           context.warnings.add(
+           context.warningsToAdd.add(
              "Merge conflict for: ${targetFile.name}\nThis file must be fixed by hand. Errors encountered during the merge:\n\n$errors")
          }
 }
@@ -132,14 +104,15 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
 /**
  * Merges the given resource file contents into the given resource file
  */
-fun mergeResourceFile(context: RenderingContext,
+fun mergeResourceFile(project: Project,
+                      warningsToAdd: MutableCollection<String>,
                       targetXml: String,
                       sourceXml: String,
                       fileName: String,
                       folderType: ResourceFolderType?): String {
-  val targetPsiFile = PsiFileFactory.getInstance(context.project)
+  val targetPsiFile = PsiFileFactory.getInstance(project)
     .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml), false, true) as XmlFile
-  val sourcePsiFile = PsiFileFactory.getInstance(context.project)
+  val sourcePsiFile = PsiFileFactory.getInstance(project)
     .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml), false, true) as XmlFile
   val root = targetPsiFile.document!!.rootTag ?: error("Cannot find XML root in target: $targetXml")
 
@@ -172,7 +145,7 @@ fun mergeResourceFile(context: RenderingContext,
         val mergeStrategy = subTag.getAttributeValue(MERGE_ATTR_STRATEGY)
         subTag.setAttribute(MERGE_ATTR_STRATEGY, null)
         // remove the space left by the deleted attribute
-        CodeStyleManager.getInstance(context.project).reformat(subTag)
+        CodeStyleManager.getInstance(project).reformat(subTag)
         val name = getResourceId(subTag)
         val replace = if (name == null) null else old[name]
         if (replace == null) {
@@ -214,7 +187,7 @@ fun mergeResourceFile(context: RenderingContext,
             // There are no differences, do not issue a warning.
           }
           else -> // No explicit directive given, preserve the original value by default.
-            context.warnings.add("Ignoring conflict for the value: $name wanted: \"%${child.text}\" but it already is: \"%${replace.text}\" in the file: $fileName")
+            warningsToAdd.add("Ignoring conflict for the value: $name wanted: \"%${child.text}\" but it already is: \"%${replace.text}\" in the file: $fileName")
         }
         prependElements.clear()
       }

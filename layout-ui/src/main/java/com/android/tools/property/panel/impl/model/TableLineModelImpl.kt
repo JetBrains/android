@@ -31,9 +31,10 @@ class TableLineModelImpl(override val tableModel: PTableModel,
   override val focusable: Boolean
     get() = true
 
+  /** Updated by UI implementation */
   override var selectedItem: PTableItem? = null
 
-  /** Updated by UI implementation  */
+  /** Updated by UI implementation */
   override var itemCount = 0
 
   override fun requestFocus() {
@@ -53,8 +54,24 @@ class TableLineModelImpl(override val tableModel: PTableModel,
     fireEditRequest(TableEditingRequest.STOP_EDITING)
   }
 
+  override fun removeItem(item: PTableItem) {
+    val next = nextSelectedItem(item)
+    tableModel.removeItem(item)
+    fireEditRequest(TableEditingRequest.SELECT, next)
+  }
+
   override fun refresh() {
     tableModel.refresh()
+  }
+
+  private fun nextSelectedItem(item: PTableItem): PTableItem? {
+    val index: Int = tableModel.items.indexOf(item)
+    val next: Int = when {
+      index + 1 < tableModel.items.size -> index + 1
+      index > 0 -> index - 1
+      else -> return null
+    }
+    return tableModel.items[next]
   }
 
   private fun fireEditRequest(request: TableEditingRequest, item: PTableItem? = null) {

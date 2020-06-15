@@ -15,6 +15,6 @@
  */
 android {
   defaultConfig {
-    applicationId("com.example.myapplication")
+    setApplicationId("com.example.myapplication")
   }
 }

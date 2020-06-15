@@ -15,23 +15,35 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import javax.swing.JLabel
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class ResourceExplorerToolWindowTest {
   lateinit var fixture: CodeInsightTestFixture
@@ -42,9 +54,11 @@ class ResourceExplorerToolWindowTest {
 
   @Before
   fun before() {
-    fixture = createLightFixture()
+    fixture = createHeavyFixture()
     fixture.setUp()
     module = fixture.module
+    TestProjectSystem(project, lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN).useInTests()
+    ClearResourceCacheAfterFirstBuild.getInstance(module.project).syncSucceeded()
   }
 
   @After
@@ -70,11 +84,21 @@ class ResourceExplorerToolWindowTest {
     }
   }
 
-  private fun createLightFixture(): CodeInsightTestFixture {
-    // This is a very abstract way to initialize a new Project and a single Module.
-    val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureTestCase.JAVA_8)
-    return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
+  private fun createHeavyFixture(): CodeInsightTestFixture {
+    IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
+      AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
+      AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
+
+    val projectBuilder = IdeaTestFixtureFactory
+      .getFixtureFactory()
+      .createFixtureBuilder(ResourceExplorerToolWindowTest::class.java.simpleName)
+    val tempDirFixture = TempDirTestFixtureImpl()
+    val javaCodeInsightTestFixture = JavaTestFixtureFactory
+      .getFixtureFactory()
+      .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
+    val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
+    AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
+    return javaCodeInsightTestFixture
   }
 
   @Test
@@ -82,7 +106,9 @@ class ResourceExplorerToolWindowTest {
     val windowManager = ToolWindowManager.getInstance(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
-    resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    runInEdtAndWait {
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    }
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
     assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(NoFacetView::class.java)
   }
@@ -93,8 +119,67 @@ class ResourceExplorerToolWindowTest {
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
-    resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    runInEdtAndWait {
+      (project.getProjectSystem() as TestProjectSystem).emulateSync(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      ClearResourceCacheAfterFirstBuild.getInstance(module.project).syncSucceeded()
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    }
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
     assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(ResourceExplorer::class.java)
+  }
+
+  @Test
+  fun createWithLoadingMessage() {
+    val windowManager = ToolWindowManagerEx.getInstanceEx(module.project)
+    val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
+    initFacet()
+    val resourceExplorerToolFactory = ResourceExplorerToolFactory()
+    runInEdtAndWait {
+      (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
+    }
+    resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    assertThat(toolWindow.contentManager.contents).isNotEmpty()
+    val content = toolWindow.contentManager.contents[0].component
+    val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+    assertNotNull(label)
+    assertNull(label.icon)
+    assertThat(label.text).isEqualTo("Loading...")
+  }
+
+  @Test
+  fun createWithWaitingForSyncMessage() {
+    val windowManager = ToolWindowManagerEx.getInstanceEx(module.project)
+    val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
+    initFacet()
+    val resourceExplorerToolFactory = ResourceExplorerToolFactory()
+    (project.getProjectSystem() as TestProjectSystem).emulateSync(ProjectSystemSyncManager.SyncResult.FAILURE)
+    val resourceCache = ClearResourceCacheAfterFirstBuild.getInstance(module.project)
+    resourceCache.syncFailed()
+    runInEdtAndWait {
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+      assertThat(toolWindow.contentManager.contents).isNotEmpty()
+      val content = toolWindow.contentManager.contents[0].component
+      val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+      assertNotNull(label)
+      assertNotNull(label.icon)
+      assertThat(label.text).isEqualTo("Waiting for successful sync...")
+    }
+  }
+
+  @Test
+  fun createWithWaitingForBuildMessage() {
+    val windowManager = ToolWindowManagerEx.getInstanceEx(module.project)
+    val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
+    initFacet()
+    val resourceExplorerToolFactory = ResourceExplorerToolFactory()
+    runInEdtAndWait {
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+    }
+    assertThat(toolWindow.contentManager.contents).isNotEmpty()
+    val content = toolWindow.contentManager.contents[0].component
+    val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+    assertNotNull(label)
+    assertNull(label.icon)
+    assertThat(label.text).isEqualTo("Waiting for build to finish...")
   }
 }

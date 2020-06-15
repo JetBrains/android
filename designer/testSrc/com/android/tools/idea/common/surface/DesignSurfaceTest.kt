@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.SelectionModel
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableList
@@ -53,9 +52,11 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(2, surface.models.size)
 
     surface.removeModel(model2)
+    surface.zoomToFit()
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model1)
+    surface.zoomToFit()
     assertEquals(0, surface.models.size)
   }
 
@@ -81,6 +82,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(0, surface.models.size)
 
     surface.removeModel(model1)
+    surface.zoomToFit()
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
 
@@ -88,6 +90,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model2)
+    surface.zoomToFit()
     assertEquals(1, surface.models.size)
   }
 
@@ -97,8 +100,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertFalse(surface.setScale(0.663, -1, -1))
     assertFalse(surface.setScale(0.664, -1, -1))
     assertTrue(surface.setScale(0.665, -1, -1))
-
-    surface.sceneScalingFactor = 2f
 
     surface.setScale(0.33, -1, -1)
     assertFalse(surface.setScale(0.332, -1, -1))
@@ -130,16 +131,27 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 }
 
-private class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
-  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
+class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+  override fun registerActionsShortcuts(component: JComponent) = Unit
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
-private class TestDesignSurface(project: Project, disposible: Disposable) :
-  DesignSurface(project, disposible, java.util.function.Function { TestActionManager(it) }, true) {
+class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
+  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+}
+
+private class TestDesignSurface(project: Project, disposible: Disposable)
+  : DesignSurface(project,
+                  disposible,
+                  java.util.function.Function { TestActionManager(it) },
+                  java.util.function.Function { TestInteractionHandler(it) },
+                  State.FULL,
+                  true) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
@@ -151,12 +163,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable) :
   override fun createActionHandler(): DesignSurfaceActionHandler {
     throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
   }
-
-  fun setSceneScalingFactor(factor: Float) {
-    this.factor = factor
-  }
-
-  override fun getSceneScalingFactor() = factor
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
@@ -170,25 +176,13 @@ private class TestDesignSurface(project: Project, disposible: Disposable) :
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
-  override fun isResizeAvailable() = false
-
   override fun getScrolledAreaSize(): Dimension? = null
-
-  override fun getContentOriginX() = 0
-
-  override fun getContentOriginY() = 0
-
-  override fun getContentSize(dimension: Dimension?) = Dimension()
 
   override fun getDefaultOffset() = Dimension()
 
   override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
 
   override fun isLayoutDisabled() = true
-
-  override fun doCreateInteractionOnClick(mouseX: Int, mouseY: Int, view: SceneView) = null
-
-  override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primary: SceneComponent?) = null
 
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 

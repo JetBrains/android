@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -58,18 +59,22 @@ public class CreateKeyTrigger extends BaseCreateKey {
     int y = createTop(gbc, "CREATE KEY TRIGGER");
 
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Type"), gbc);
     grid(gbc, 0, y++, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;
+    gbc.insets = MEUI.dialogControlInsets();
     add(comboBox, gbc);
 
     JLabel title;
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(title = new JLabel("Position"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mMainParameter = newTextField("0-100", 15), gbc);
 
@@ -85,19 +90,23 @@ public class CreateKeyTrigger extends BaseCreateKey {
         }
       }
     });
-    grid(gbc, 0, y++);
+    grid(gbc, 0, y++,2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Collide width"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(newTextField("triggerId", 15), gbc);
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("onCross"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mOnCross = newTextField("method", 15), gbc);
 
@@ -107,6 +116,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");
@@ -151,7 +161,6 @@ public class CreateKeyTrigger extends BaseCreateKey {
     if (DEBUG) {
       Debug.log("create");
     }
-    String tag = mMatchTag.getText();
     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
@@ -160,7 +169,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
     } else {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     }
-    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, tag);
+    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, getMotionTarget());
 
     if (comboBox.getSelectedIndex() == 0) {
       String pos = mMainParameter.getText();
@@ -188,6 +197,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
     keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyTrigger.ON_CROSS, mOnCross.getText());
 
     MTag ret = toCommit.commit("Create KeyTrigger");
+    Track.createKeyTrigger(mMotionEditor.myTrack);
     mMotionEditor.dataChanged();
     super.create();
     return ret;

@@ -45,9 +45,25 @@ interface PTableModel {
   /**
    * Add an update listener.
    *
-   * A model should notify all its listeners if the [items] have been changed.
+   * A model should notify all its listeners if the [items] have changed.
    */
   fun addListener(listener: PTableModelUpdateListener) {}
+
+  /**
+   * Add an item to this model.
+   *
+   * A model should notify all its listener if the [items] have changed.
+   * The added item is returned. If a similar item already exists a model
+   * may return that instance instead.
+   */
+  fun addItem(item: PTableItem): PTableItem
+
+  /**
+   * Remove an item from this model.
+   *
+   * A model should notify all its listener if the [items] have changed.
+   */
+  fun removeItem(item: PTableItem)
 
   /**
    * Refresh the table contents after a property value change.

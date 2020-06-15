@@ -150,10 +150,10 @@ class AppKotlinUnitTest {
 
     @Test
     fun javaResourcesOnClasspath() {
-        val url = javaClass.classLoader.getResource("app_test_resource_file.txt")
+        val url = javaClass.classLoader!!.getResource("app_test_resource_file.txt")
         assertNotNull(url)
 
-        val stream = javaClass.classLoader.getResourceAsStream("app_test_resource_file.txt")
+        val stream = javaClass.classLoader!!.getResourceAsStream("app_test_resource_file.txt")
         assertNotNull(stream)
         val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
         assertEquals("app test", s)
@@ -161,10 +161,10 @@ class AppKotlinUnitTest {
 
     @Test
     fun prodJavaResourcesOnClasspath() {
-        val url = javaClass.classLoader.getResource("app_resource_file.txt")
+        val url = javaClass.classLoader!!.getResource("app_resource_file.txt")
         assertNotNull(url)
 
-        val stream = javaClass.classLoader.getResourceAsStream("app_resource_file.txt")
+        val stream = javaClass.classLoader!!.getResourceAsStream("app_resource_file.txt")
         assertNotNull(stream)
         val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
         assertEquals("app", s)
@@ -172,10 +172,10 @@ class AppKotlinUnitTest {
 
     @Test
     fun libJavaResourcesOnClasspath() {
-        val url = javaClass.classLoader.getResource("util_resource_file.txt")
+        val url = javaClass.classLoader!!.getResource("util_resource_file.txt")
         assertNotNull(url)
 
-        val stream = javaClass.classLoader.getResourceAsStream("util_resource_file.txt")
+        val stream = javaClass.classLoader!!.getResourceAsStream("util_resource_file.txt")
         assertNotNull(stream)
         val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
         assertEquals("util", s)
@@ -183,10 +183,10 @@ class AppKotlinUnitTest {
 
     @Test
     fun javaLibJavaResourcesOnClasspath() {
-        val url = javaClass.classLoader.getResource("javalib_resource_file.txt")
+        val url = javaClass.classLoader!!.getResource("javalib_resource_file.txt")
         assertNotNull(url)
 
-        val stream = javaClass.classLoader.getResourceAsStream("javalib_resource_file.txt")
+        val stream = javaClass.classLoader!!.getResourceAsStream("javalib_resource_file.txt")
         assertNotNull(stream)
         val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
         assertEquals("javalib", s)

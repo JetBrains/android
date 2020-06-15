@@ -96,7 +96,7 @@ public class NetworkProfilerStageTest {
     myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     myStudioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myStage = new NetworkProfilerStage(myStudioProfilers);
-    myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));
+    myStage.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));
     myStage.getStudioProfilers().setStage(myStage);
 
     // TODO remove once we remove the legacy pipeline codebase.
@@ -176,7 +176,7 @@ public class NetworkProfilerStageTest {
     NetworkTrafficTooltip tooltip = (NetworkTrafficTooltip)myStage.getTooltip();
 
     double tooltipTime = TimeUnit.SECONDS.toMicros(10);
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
+    myStage.getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
 
     NetworkProfilerStage.NetworkStageLegends networkLegends = tooltip.getLegends();
     assertThat(networkLegends.getRxLegend().getName()).isEqualTo("Received");
@@ -250,17 +250,17 @@ public class NetworkProfilerStageTest {
     assertThat(legendsUpdated[0]).isFalse();
     assertThat(tooltipLegendsUpdated[0]).isFalse();
 
-    myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2));
+    myStage.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2));
     assertThat(networkUsageUpdated[0]).isTrue();
 
     // Make sure the axis lerps correctly when we move the range there.
-    myStudioProfilers.getTimeline().getDataRange().setMax(TimeUnit.SECONDS.toMicros(101));
-    myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(99), TimeUnit.SECONDS.toMicros(101));
+    myStage.getTimeline().getDataRange().setMax(TimeUnit.SECONDS.toMicros(101));
+    myStage.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(99), TimeUnit.SECONDS.toMicros(101));
     myTimer.tick(100);
     assertThat(legendsUpdated[0]).isTrue();
     assertThat(trafficAxisUpdated[0]).isTrue();
     assertThat(connectionAxisUpdated[0]).isTrue();
-    myStudioProfilers.getTimeline().getTooltipRange().set(TimeUnit.SECONDS.toMicros(100), TimeUnit.SECONDS.toMicros(100));
+    myStage.getTimeline().getTooltipRange().set(TimeUnit.SECONDS.toMicros(100), TimeUnit.SECONDS.toMicros(100));
     assertThat(tooltipLegendsUpdated[0]).isTrue();
   }
 
@@ -422,9 +422,9 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void getProfilerMode() {
-    myStage.getStudioProfilers().getTimeline().getSelectionRange().clear();
+    myStage.getTimeline().getSelectionRange().clear();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
+    myStage.getTimeline().getSelectionRange().set(0, 10);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
@@ -437,7 +437,7 @@ public class NetworkProfilerStageTest {
     myStage.getStackTraceModel().setStackFrames(stackTrace.getTrace());
 
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
-    myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
+    myStage.getTimeline().getSelectionRange().set(0, 10);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
 
     myStage.getStackTraceModel().setSelectedIndex(0);
@@ -446,7 +446,7 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void selectionDisabledWithoutAgent() {
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
 
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));

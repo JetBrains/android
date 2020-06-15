@@ -33,6 +33,7 @@ import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
@@ -85,7 +86,6 @@ import com.intellij.util.ObjectUtils;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.SequentialTask;
-import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,7 +95,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
@@ -348,7 +348,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    }, SameThreadExecutor.INSTANCE);
+    }, MoreExecutors.directExecutor());
   }
 
   private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {

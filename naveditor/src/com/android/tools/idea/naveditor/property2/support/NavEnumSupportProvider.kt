@@ -28,9 +28,9 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.util.ClassUtil
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
+import org.jetbrains.android.dom.navigation.getClassesForTag
 import org.jetbrains.android.dom.navigation.isInProject
 
 private val emptyList = listOf(EnumValue.EMPTY)
@@ -88,16 +88,10 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     }
 
     private fun getClasses(component: NlComponent): List<EnumValue> {
-      val schema = NavigationSchema.get(component.model.module)
-
-      val classes = schema.getProjectClassesForTag(component.tagName)
-        .filter { it.qualifiedName != null }
-        .distinctBy { it.qualifiedName }
-
-      return classes
-        .map { EnumValue.item(it.qualifiedName!!, displayString(it)) to it.isInProject() }
-        .sortedWith(compareBy({ !it.second }, { it.first.display }))
-        .map { it.first }
+      return getClassesForTag(component.model.module, component.tagName)
+        .filterKeys { it.qualifiedName != null }
+        .map { ClassEnumValue(it.key.qualifiedName!!, displayString(it.key), it.value, it.key.isInProject()) }
+        .sortedWith(compareBy({ !it.isInProject }, { it.display }))
         .toList()
     }
 

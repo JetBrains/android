@@ -18,6 +18,7 @@ package com.android.tools.profilers.event;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEvent;
@@ -25,8 +26,6 @@ import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerMonitorTooltip;
-import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,7 @@ public class EventMonitor extends ProfilerMonitor {
 
   private boolean myEnabled;
 
-  private Supplier<ProfilerMonitorTooltip<EventMonitor>> myTooltipBuilder;
+  private Supplier<TooltipModel> myTooltipBuilder;
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -52,19 +51,7 @@ public class EventMonitor extends ProfilerMonitor {
     myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events, getTimeline().getDataRange()));
 
     LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers, false);
-    LifecycleEventDataSeries fragments;
-    if (myProfilers.getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      fragments = new LifecycleEventDataSeries(myProfilers, true);
-    }
-    else {
-      fragments = new LifecycleEventDataSeries(myProfilers, true) {
-        @Override
-        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForRange(@NotNull Range range) {
-          // Return empty list when fragments data are disabled.
-          return new ArrayList<>();
-        }
-      };
-    }
+    LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers, true);
 
     myLifecycleEvents = new LifecycleEventModel(
       new RangedSeries<>(getTimeline().getViewRange(), activities, getTimeline().getDataRange()),
@@ -98,15 +85,15 @@ public class EventMonitor extends ProfilerMonitor {
   }
 
   @Override
-  public ProfilerTooltip buildTooltip() {
+  public TooltipModel buildTooltip() {
     if (myTooltipBuilder != null) {
       return myTooltipBuilder.get();
     }
-    return new LifecycleTooltip(this);
+    return new LifecycleTooltip(getTimeline(), getLifecycleEvents());
   }
 
-  public void setTooltipBuilder(Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip) {
-    myTooltipBuilder = tooltip;
+  public void setTooltipBuilder(Supplier<TooltipModel> tooltipBuilder) {
+    myTooltipBuilder = tooltipBuilder;
   }
 
   @Override

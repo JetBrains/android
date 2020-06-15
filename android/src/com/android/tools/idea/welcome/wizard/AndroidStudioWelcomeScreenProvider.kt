@@ -20,7 +20,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.config.InstallerData
+import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.google.common.util.concurrent.Atomics
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -88,10 +88,8 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
      * Returns true if the handoff data was updated since the last time wizard ran.
      */
     private fun isHandoff(persistentData: AndroidFirstRunPersistentData): Boolean {
-      if (InstallerData.exists() && (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(InstallerData.get().timestamp))) {
-        return InstallerData.get().isCurrentVersion
-      }
-      return false
+      val data = installerData ?: return false
+      return (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(data.timestamp)) && data.isCurrentVersion
     }
 
     private fun checkInternetConnection(): ConnectionState {

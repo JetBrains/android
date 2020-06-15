@@ -29,13 +29,7 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Map;
@@ -74,10 +68,10 @@ public class ScreenViewLayer extends Layer {
   private final ScheduledExecutorService myScheduledExecutorService;
   private final RescaleRunnable myRescaleRunnable = new RescaleRunnable(this::onScaledResultReady);
   @Nullable private ScheduledFuture<?> myScheduledFuture;
-  private final Rectangle myScreenViewVisibleSize = new Rectangle();
+  private final Rectangle myScreenViewVisibleRect = new Rectangle();
   private final Dimension myScreenViewSize = new Dimension();
-  private final Rectangle myCachedScreenViewDisplaySize = new Rectangle();
-
+  private final Rectangle myCachedScreenViewDisplayRect = new Rectangle();
+  private double myLastScale;
   /**
    * Create a new ScreenView
    *
@@ -101,8 +95,11 @@ public class ScreenViewLayer extends Layer {
   ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ScheduledExecutorService executor) {
     myScreenView = screenView;
     myScheduledExecutorService = executor != null ? executor : Executors.newScheduledThreadPool(1);
+    myLastScale = myScreenView.getScale();
     Disposer.register(screenView.getSurface(), this);
   }
+
+  private static final Color CLEAR_BACKGROUND = new Color(255, 255, 255, 0);
 
   /**
    * Renders a preview image trying to reuse the existing buffer when possible.
@@ -122,6 +119,7 @@ public class ScreenViewLayer extends Layer {
     int sx2 = sx1 + (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
     int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
     BufferedImage image;
+    boolean clearBackground;
     boolean bufferWithScreenViewSizeExists = existingBuffer != null && existingBuffer.getWidth() == screenViewVisibleSize.width
                                              && existingBuffer.getHeight() == screenViewVisibleSize.height;
     if (screenViewHasBorderLayer && bufferWithScreenViewSizeExists) {
@@ -130,13 +128,22 @@ public class ScreenViewLayer extends Layer {
       // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
       // need to force the creation of a new image in this case.
       image = existingBuffer;
+      clearBackground = true;
     }
     else {
       image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
       assert image != null;
+      // No need to clear the background for a new image
+      clearBackground = false;
     }
     Graphics2D cacheImageGraphics = image.createGraphics();
     cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
+    if (clearBackground) {
+      cacheImageGraphics.setColor(CLEAR_BACKGROUND);
+      cacheImageGraphics.setComposite(AlphaComposite.Clear);
+      cacheImageGraphics.fillRect(0,0,image.getWidth(),image.getHeight());
+      cacheImageGraphics.setComposite(AlphaComposite.Src);
+    }
     cacheImageGraphics.drawImage(renderedImage, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2, null);
     cacheImageGraphics.dispose();
 
@@ -147,11 +154,17 @@ public class ScreenViewLayer extends Layer {
   public void paint(@NotNull Graphics2D graphics2D) {
     myScreenView.getSize(myScreenViewSize);
     // Calculate the portion of the screen view that it's visible
-    myScreenViewVisibleSize.setBounds(myScreenView.getX(), myScreenView.getY(),
+    myScreenViewVisibleRect.setBounds(myScreenView.getX(), myScreenView.getY(),
                                       myScreenViewSize.width, myScreenViewSize.height);
-    Rectangle2D.intersect(myScreenViewVisibleSize, graphics2D.getClipBounds(), myScreenViewVisibleSize);
-    if (myScreenViewVisibleSize.isEmpty()) {
+    Rectangle2D clipBounds = graphics2D.getClipBounds();
+    if (!myScreenViewVisibleRect.intersects(clipBounds)) {
       return;
+    }
+
+    // When the screen view visible rect is bigger than the current viewport, we limit the visible rect to the viewport.
+    // We will never be painting an image bigger than the viewport.
+    if (myScreenViewVisibleRect.width > clipBounds.getWidth() || myScreenViewVisibleRect.height > clipBounds.getHeight()) {
+      Rectangle2D.intersect(myScreenViewVisibleRect, clipBounds, myScreenViewVisibleRect);
     }
 
     // In some cases, we will try to re-use the previous image to paint on top of it, assuming that it still matches the right dimensions.
@@ -160,38 +173,42 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     boolean drawNewImg = false;
     if (newRenderImageAvailable(renderResult)) {
-      myLastRenderResult = renderResult;
+      setLastRenderResult(renderResult);
       myScreenView.getScene().needsRebuildList();
       drawNewImg = true;
     }
 
     Graphics2D g = (Graphics2D) graphics2D.create();
     BufferedImage cachedVisibleImage = drawNewImg ? null : previousVisibleImage;
-    if (drawNewImg || !myScreenViewVisibleSize.equals(myCachedScreenViewDisplaySize)) {
+    double currentScale = myScreenView.getScale();
+    //noinspection FloatingPointEquality
+    if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
-        assert renderedImage != null : "Image was already disposed";
-        int resultImageWidth = renderedImage.getWidth();
-        int resultImageHeight = renderedImage.getHeight();
+        if (renderedImage != null) {
+          int resultImageWidth = renderedImage.getWidth();
+          int resultImageHeight = renderedImage.getHeight();
 
-        myCachedScreenViewDisplaySize.setBounds(myScreenViewVisibleSize);
-        // Obtain the factors to convert from screen view coordinates to our result image coordinates
-        double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
-        double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
-        cancelHighQualityScaleRequests();
-        if (Math.abs(1 - xScaleFactor) > 0.2 && Math.abs(1 - yScaleFactor) > 0.2) {
-          // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
-          // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
-          // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
+          myCachedScreenViewDisplayRect.setBounds(myScreenViewVisibleRect);
+          // Obtain the factors to convert from screen view coordinates to our result image coordinates
+          double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
+          double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
+          cancelHighQualityScaleRequests();
+          if (xScaleFactor > 1.2 && yScaleFactor > 1.2) {
+            // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
+            // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
+            // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
 
-          requestHighQualityScaledImage(ScaleContext.create(g));
+            requestHighQualityScaledImage(ScaleContext.create(g));
+          }
+
+          cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
+                                               myScreenView.getX(), myScreenView.getY(),
+                                               myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
+                                               previousVisibleImage, myScreenView.hasBorderLayer());
+          myCachedVisibleImage = cachedVisibleImage;
+          myLastScale = currentScale;
         }
-
-        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
-                                             myScreenView.getX(), myScreenView.getY(),
-                                             myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
-                                             previousVisibleImage, myScreenView.hasBorderLayer());
-        myCachedVisibleImage = cachedVisibleImage;
       }
     }
 
@@ -200,11 +217,13 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      // b/140428773 : Graphics.drawImage returns even it is not completed. Fill the default color here to avoid un-painted image.
-      g.fillRect(myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, myScreenViewVisibleSize.width, myScreenViewVisibleSize.height);
-      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();
+  }
+
+  protected void setLastRenderResult(@Nullable RenderResult result) {
+    myLastRenderResult = result;
   }
 
   /**
@@ -251,10 +270,10 @@ public class ScreenViewLayer extends Layer {
 
     // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
     // size so we need to also rescale.
-    int sx = (int)Math.round((myScreenViewVisibleSize.x - myScreenView.getX()) * xScaleFactor);
-    int sy = (int)Math.round((myScreenViewVisibleSize.y - myScreenView.getY()) * yScaleFactor);
-    int sw = (int)Math.round(myScreenViewVisibleSize.width * xScaleFactor);
-    int sh = (int)Math.round(myScreenViewVisibleSize.height * yScaleFactor);
+    int sx = (int)Math.round((myScreenViewVisibleRect.x - myScreenView.getX()) * xScaleFactor);
+    int sy = (int)Math.round((myScreenViewVisibleRect.y - myScreenView.getY()) * yScaleFactor);
+    int sw = (int)Math.round(myScreenViewVisibleRect.width * xScaleFactor);
+    int sh = (int)Math.round(myScreenViewVisibleRect.height * yScaleFactor);
 
     if (sx + sw > image.getWidth()) {
       sw = image.getWidth() - sx;
@@ -287,7 +306,7 @@ public class ScreenViewLayer extends Layer {
   @Override
   public void dispose() {
     super.dispose();
-    myLastRenderResult = null;
+    setLastRenderResult(null);
     myScheduledExecutorService.shutdown();
   }
 

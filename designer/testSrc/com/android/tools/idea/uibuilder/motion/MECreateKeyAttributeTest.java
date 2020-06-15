@@ -21,8 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import java.awt.Dimension;
+import java.awt.*;
 
 public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateKeyAttribute {
@@ -43,25 +42,27 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
 
   public void testCreateKeyAttributeLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,182,192\n" +
-                    "1,JLabel,5,2,172,15\n" +
-                    "1,JSeparator,5,20,172,2\n" +
-                    "1,JRadioButton,5,25,52,23\n" +
-                    "1,JRadioButton,67,25,110,23\n" +
-                    "1,JPanel,5,51,172,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,78,172,15\n" +
-                    "1,PromptedTextField,5,96,172,19\n" +
-                    "1,JLabel,5,118,172,15\n" +
-                    "1,MEComboBox,5,136,172,24\n" +
-                    "1,JButton,5,166,172,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+      "1,JLabel             ,4,3,90,6\n" +
+      "1,JSeparator         ,0,12,99,0\n" +
+      "1,JRadioButton       ,4,16,42,9\n" +
+      "1,JRadioButton       ,57,16,37,9\n" +
+      "1,JPanel             ,5,27,89,9\n" +
+      "2,PromptedTextField  ,0,0,0,0\n" +
+      "2,MEComboBox         ,0,0,0,0\n" +
+      "1,JLabel             ,4,41,90,6\n" +
+      "1,PromptedTextField  ,5,48,89,7\n" +
+      "1,JLabel             ,4,60,90,6\n" +
+      "1,MEComboBox         ,5,67,89,9\n" +
+      "1,JButton            ,4,84,90,10\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
-  }
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }  }
 
   public void testCreateKeyAttributeAction() {
     CreatorAccess panel = new CreatorAccess();
@@ -74,26 +75,26 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
     panel.access_populateDialog();
 
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE KEY ATTRIBUTE\n" +
-      "1,JSeparator,\n" +
-      "1,JRadioButton,\n" +
-      "1,JRadioButton,\n" +
-      "1,JPanel,\n" +
-      "2,PromptedTextField,tag or regex\n" +
-      "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-      "1,JLabel,Position\n" +
-      "1,PromptedTextField,0-100\n" +
-      "1,JLabel,Attribute\n" +
-      "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE KEY ATTRIBUTE\n" +
+                  "1,JSeparator,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JPanel,\n" +
+                  "2,PromptedTextField,tag or regex\n" +
+                  "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JLabel,Position\n" +
+                  "1,PromptedTextField,0-100\n" +
+                  "1,JLabel,Attribute\n" +
+                  "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate,Custom:letterSpacing\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyAttribute\n" +
-      "   android:alpha=\"0\"\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"test32\" />\n";
+                     "<KeyAttribute\n" +
+                     "   android:alpha=\"0.5\"\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:motionTarget=\"@+id/button1\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }

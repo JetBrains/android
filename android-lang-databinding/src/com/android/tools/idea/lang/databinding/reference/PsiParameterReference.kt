@@ -19,7 +19,6 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.PsiType
 
 /**
  * Reference for [PsiParameter] in lambda expressions.
@@ -29,5 +28,5 @@ internal class PsiParameterReference(element: PsiElement, resolveTo: PsiParamete
   override val resolvedType: PsiModelClass
     get() = PsiModelClass((resolve() as PsiParameter).type, DataBindingMode.fromPsiElement(element))
 
-  override val isStatic = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 }

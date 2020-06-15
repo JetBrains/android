@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import gnu.trove.THashSet;
+import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.compiler.tools.AndroidIdl;

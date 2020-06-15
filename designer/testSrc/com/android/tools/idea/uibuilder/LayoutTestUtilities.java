@@ -261,7 +261,7 @@ public class LayoutTestUtilities {
     selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
     if (NlDesignSurface.class.equals(surfaceClass)) {
       when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
-      when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
+      when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT);
     }
     return surface;
   }

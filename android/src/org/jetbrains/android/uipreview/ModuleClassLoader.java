@@ -3,8 +3,6 @@ package org.jetbrains.android.uipreview;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
-import static com.android.SdkConstants.EXT_JAR;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 import com.android.builder.model.AaptOptions;
@@ -15,15 +13,11 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.projectmodel.Library;
-import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -31,31 +25,19 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
-import com.android.utils.SdkUtils;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,9 +54,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * of this class as well to find classes */
   private final WeakReference<Module> myModuleReference;
 
-  /** The layout library to use as a root class loader (e.g. the place to obtain the layoutlib Android SDK view classes from */
-  private final LayoutLibrary myLayoutLibrary;
-
   /** Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader */
   private Map<String, VirtualFile> myClassFiles;
   /** Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader */
@@ -90,9 +69,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
   }
 
-  private ModuleClassLoader(@NotNull LayoutLibrary layoutLibrary, @NotNull Module module) {
-    super(layoutLibrary.getClassLoader(), layoutLibrary.getApiLevel());
-    myLayoutLibrary = layoutLibrary;
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
+    super(parent);
     myModuleReference = new WeakReference<>(module);
 
     registerResources(module);
@@ -115,14 +93,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
               ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, repositoryManager);
               if (data != null) {
-                data = convertClass(data);
-                if (LOG.isDebugEnabled()) {
-                  LOG.debug("  Defining class from AAR registry");
-                }
-                return defineClassAndPackage(name, data, 0, data.length);
+                LOG.debug("  Defining class from AAR registry");
+                return loadClass(name, data);
               }
             }
-            else if (LOG.isDebugEnabled()) {
+            else  {
               LOG.debug("  LocalResourceRepositoryInstance not found");
             }
           }
@@ -156,21 +131,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
   }
 
-  @Nullable
-  public static ClassLoader create(IAndroidTarget target, Module module) throws Exception {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
-    if (androidPlatform == null) {
-      return null;
-    }
-    AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
-    LayoutLibrary library = targetData.getLayoutLibrary(module.getProject());
-    if (library == null) {
-      return null;
-    }
-
-    return get(library, module);
-  }
-
   @Override
   @NotNull
   protected Class<?> load(@NotNull String name) throws ClassNotFoundException {
@@ -187,18 +147,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
     Class<?> aClass = loadClassFromModuleOrDependency(module, name);
 
-    if (aClass == null) {
-      aClass = loadClassFromJar(name);
-    }
-
     if (aClass != null) {
       return aClass;
     }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("  ClassNotFoundException(%s)", anonymizeClassName(name)));
-    }
-    throw new ClassNotFoundException(name);
+    return loadClassFromNonProjectDependency(name);
   }
 
   @Override
@@ -235,6 +187,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return super.loadClass(name);
   }
 
+  /**
+   * Loads a class from the project, either from the given module or one of the source code dependencies. If the class
+   * is in a library dependency, like a jar file, this method will not find the class.
+   */
   @Nullable
   private Class<?> loadClassFromModuleOrDependency(@NotNull Module module, @NotNull String name) {
     if (module.isDisposed()) {
@@ -280,13 +236,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return false;
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getModel() == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return false;
     }
     // Allow file system access for timestamps.
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      return facet.getModel().isClassFileOutOfDate(module, name, classFile);
+      return AndroidModel.get(facet).isClassFileOutOfDate(module, name, classFile);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
@@ -411,42 +367,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Override
   @NotNull
   protected List<URL> getExternalJars() {
-    Module module = myModuleReference.get();
-    if (module == null) {
-      return Collections.emptyList();
-    }
-
-    List<URL> result = new ArrayList<>();
-    getExternalLibraryJars(module)
-        .filter(file -> EXT_JAR.equals(Files.getFileExtension(file.getName())) && file.exists())
-        .forEach(jarFile -> addFileUrl(jarFile, result));
-
-    return result;
-  }
-
-  /**
-   * Returns a stream of JAR files of the referenced libraries for the {@link Module} of this class loader.
-   */
-  @NotNull
-  private static Stream<File> getExternalLibraryJars(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel()) {
-      AndroidModel model = facet.getModel();
-      if (model != null) {
-        return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
-      }
-    }
-
-    return AndroidRootUtil.getExternalLibraries(module).stream().map(VfsUtilCore::virtualToIoFile);
-  }
-
-  private static void addFileUrl(@NotNull File file, @NotNull List<URL> result) {
-    try {
-      result.add(SdkUtils.fileToUrl(file));
-    }
-    catch (MalformedURLException e) {
-      LOG.error(e);
-    }
+    return ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get());
   }
 
   /** Returns the path to a class file loaded for the given class, if any */
@@ -463,7 +384,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   /** Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader */
-  private boolean isUpToDate() {
+  boolean isUpToDate() {
     if (myClassFiles != null) {
       for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
         String className = entry.getKey();
@@ -485,87 +406,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
       }
     }
 
-    return true;
-  }
-
-  /**
-   * Returns a project class loader to use for rendering. May cache instances across render sessions.
-   */
-  @NotNull
-  public static ModuleClassLoader get(@NotNull LayoutLibrary library, @NotNull Module module) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("ModuleClassLoader.get(%s)", anonymize(module)));
-    }
-
-    ModuleClassLoader loader;
-    synchronized (ourCache) {
-      loader = ourCache.get(module);
-    }
-    if (loader != null) {
-      if (library != loader.myLayoutLibrary) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("  Discarding loader because the layout library has changed");
-        }
-        loader = null;
-      } else if (!loader.isUpToDate()) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("  Discarding loader because some files have changed");
-        }
-        loader = null;
-      } else {
-        List<URL> updatedJarDependencies = loader.getExternalJars();
-        if (loader.myJarClassLoader != null && !updatedJarDependencies.equals(loader.myJarClassLoader.getUrls())) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("  Recreating jar class loader because dependencies have changed.");
-          }
-          loader.myJarClassLoader = loader.createClassLoader(updatedJarDependencies);
-        }
-      }
-
-      // To be correct we should also check that the dependencies have not changed. It's not
-      // a problem when you add a new dependency with classes that haven't yet been resolved,
-      // but if for some reason a class is defined in multiple dependencies, and we've already
-      // resolved that class, changing the order could change the particular class that should
-      // be loaded, and we would need to recreate the loader - but this won't detect that.
-      // To solve this correctly we'd need to store a key in the cache recording the project
-      // dependencies when the loader was created, and compare it to the current one. However,
-      // that's a pretty unusual scenario so we won't worry about it until the loader situation
-      // is solved more generally (e.g. separating out .jar loading from .class loading etc).
-    }
-
-    if (loader == null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("  New class loader");
-      }
-      loader = new ModuleClassLoader(library, module);
-      synchronized (ourCache) {
-        ourCache.put(module, loader);
-      }
-    } else if (LOG.isDebugEnabled()) {
-      LOG.debug("  Re-used class loader");
-    }
-
-    return loader;
-  }
-
-  /** Flush any cached class loaders. */
-  public static void clearCache() {
-    synchronized (ourCache) {
-      ourCache.clear();
-    }
-  }
-
-  /** Remove the cached class loader for the module. */
-  public static void clearCache(Module module) {
-    synchronized (ourCache) {
-      ourCache.remove(module);
-    }
+    return areDependenciesUpToDate();
   }
 
   public boolean isClassLoaded(@NotNull String className) {
     return findLoadedClass(className) != null;
   }
-
-  // TODO: move this into a proper persistent render service.
-  private static final Map<Module, ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
 }

@@ -103,7 +103,10 @@ class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(activityFile)
 
-    assertThat((fixture.getReferenceAtCaretPosition()!!.resolve() as LightBindingClass.LightDataBindingField).name)
-      .isEqualTo("included")
+    (fixture.getReferenceAtCaretPosition()!!.resolve() as LightBindingClass.LightDataBindingField).let { includedField ->
+      assertThat(includedField.name).isEqualTo("included")
+      // Make sure field's package comes from the lib module, where it lives, not app, the calling module
+      assertThat(includedField.type.canonicalText).isEqualTo("com.android.example.lib.databinding.IncludedBinding")
+    }
   }
 }

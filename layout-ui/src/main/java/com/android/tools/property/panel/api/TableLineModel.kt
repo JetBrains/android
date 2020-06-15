@@ -49,7 +49,29 @@ interface TableLineModel: InspectorLineModel {
   fun requestFocusInBestMatch()
 
   /**
-   * Stop editing the any table item.
+   * Add an item to the table.
+   *
+   * The added item will be placed in its natural order among the
+   * existing items. If the added item implements [NewPropertyItem]
+   * it will be placed at the bottom the table.
+   * Adding an already existing item is a noop and will return the
+   * instance of the existing item in the table.
+   *
+   * The returned item is the current item after the operation.
+   */
+  fun addItem(item: PTableItem): PTableItem {
+    return tableModel.addItem(item)
+  }
+
+  /**
+   * Remove the currently selected item and select the next item in the table.
+   */
+  fun removeItem(item: PTableItem) {
+    tableModel.removeItem(item)
+  }
+
+  /**
+   * Stop editing the current cell.
    */
   fun stopEditing()
 }

@@ -57,7 +57,7 @@ class ClearResourceCacheAfterFirstBuildTest {
     project = projectRule.project
 
     projectSystem = TestProjectSystem(project, lastSyncResult = SyncResult.UNKNOWN)
-    projectRule.registerExtension(EP_NAME, projectSystem)
+    projectSystem.useInTests()
 
     clearResourceCacheAfterFirstBuild = ClearResourceCacheAfterFirstBuild.getInstance(project)
 

@@ -135,18 +135,24 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
   @Test
   fun sparklineVisibilityChangesOnMouseStates() {
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    cpuProfilerStageView.timeline.tooltipRange.set(0.0, 0.0)
+    cpuProfilerStageView.stage.timeline.apply {
+      tooltipRange.set(0.0, 0.0)
+      dataRange.set(0.0, 100.0)
+      viewRange.set(0.0, 100.0)
+      selectionRange.set(0.0, 10.0)
+    }
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     // Grab the tooltip component and give it dimensions to be visible.
     val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
-    tooltipComponent.setSize(10, 10)
+    tooltipComponent.setSize(100, 10)
     // Grab the overlay component and move the mouse to update the last position in the tooltip component.
     val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
     val overlayMouseUi = FakeUi(overlayComponent)
-    overlayComponent.setBounds(1, 1, 10, 10)
+    overlayComponent.setBounds(1, 1, 100, 10)
     overlayMouseUi.mouse.moveTo(0, 0)
     // Grab the selection component and move the mouse to set the mode to !MOVE.
     val selectionComponent = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>()[0]
+    selectionComponent.setSize(100, 10)
     FakeUi(selectionComponent).mouse.moveTo(0, 0)
     val mockGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
@@ -154,7 +160,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.never()).draw(Mockito.any())
     // Enter the overlay component and paint again, this time we expect to draw the spark line.
-    overlayMouseUi.mouse.moveTo(5, 5)
+    overlayMouseUi.mouse.moveTo(50, 5)
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
     // Exit the overlay component and paint a third time. We don't expect our draw count to increase because the spark line
@@ -172,12 +178,13 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
                                              CpuProfilerTestUtils.traceFileToByteString(
                                                TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
 
-    // Enable import trace flag which is required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
+    myIdeServices.enableCpuCaptureStage(false)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(cpuStageView.supportsStreaming()).isFalse()
+    assertThat(cpuStageView.supportsStageNavigation()).isFalse()
     // Selecting the capture automatically selects the first process in the capture.
     myStage.setAndSelectCapture(0)
     val processLabel = TreeWalker(cpuStageView.toolbar).descendants().filterIsInstance<JLabel>()[0]
@@ -187,8 +194,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
   @Test
   fun importTraceModeShouldShowCpuCaptureView() {
-    // Enable import trace flag which is required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 
@@ -321,7 +326,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     val selectionPos = ui.getPosition(selection)
 
     val w = selection.width.toDouble()
-    stageView.timeline.apply {
+    stageView.stage.timeline.apply {
       viewRange.set(0.0, w)
       selectionRange.set(w / 2, w)
     }
@@ -346,7 +351,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     assertThat(myStage.tooltip).isNull()
     // Move into |CpuUsageView|
     ui.mouse.moveTo(usageViewOrigin.x, usageViewOrigin.y)
-    assertThat(myStage.tooltip).isInstanceOf(CpuUsageTooltip::class.java)
+    assertThat(myStage.tooltip).isInstanceOf(CpuProfilerStageCpuUsageTooltip::class.java)
   }
 
   @Test

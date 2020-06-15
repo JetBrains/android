@@ -16,23 +16,29 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ARTIFACT_NOTATION_EDGE_CASES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_PSI_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_SET_TO_REFERENCE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_NO_PARENS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONTAINS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CORRECT_OBTAIN_RESULT_MODEL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_NAME_AND_RENAME_UNSUPPORTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_INSERTION_ORDER;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_METHOD_CALL_COMPACT_PSI_ELEMENT;
@@ -55,22 +61,35 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IS_PSI_ELEMENT_IS_NOT_FOUND;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IF_PSI_ELEMENT_IS_NOT_FOUND;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_IN_ARGUMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_MAP;
@@ -80,8 +99,13 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
@@ -119,6 +143,8 @@ import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtCallExpression;
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.junit.Test;
@@ -294,6 +320,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_EXPECTED);
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -301,10 +328,10 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
     expected.setClassifier("jdk14");
     expected.setExtension("jar");
-    expected.assertMatches(dependencies.get(0));
+    expected.assertMatches(dependencies.get(1));
 
     expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
-    expected.assertMatches(dependencies.get(1));
+    expected.assertMatches(dependencies.get(0));
   }
 
   @Test
@@ -331,14 +358,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
-    ArtifactDependencyModel jdkDependency = dependencies.get(0);
+    ArtifactDependencyModel jdkDependency = dependencies.get(1);
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
     expected.setClassifier("jdk14");
     expected.setExtension("jar");
     expected.assertMatches(jdkDependency);
     assertNull(jdkDependency.configuration());
 
-    ArtifactDependencyModel espressoDependency = dependencies.get(1);
+    ArtifactDependencyModel espressoDependency = dependencies.get(0);
     expected = new ExpectedArtifactDependency(ANDROID_TEST_COMPILE, "espresso-contrib", "com.android.support.test.espresso", "2.2.2");
     expected.assertMatches(espressoDependency);
 
@@ -381,6 +408,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -403,12 +431,31 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.2.3");
     expected.assertMatches(dependencies.get(0));
+  }
+
+  @Test
+  public void testSetDependencyWithCompactNotation() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+    ExtModel ext = buildModel.ext();
+
+    // Create an extra property.
+    ext.findProperty("ext.appCom").setValue("28.0.0");
+
+    dependenciesModel.addArtifact("implementation", "androidx.appcompat:appcompat:${appCom}");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED);
+
   }
 
   @Test
@@ -497,6 +544,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_RESET);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -520,6 +568,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -576,6 +625,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -652,11 +702,17 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     ArtifactDependencySpecImpl guavaSpec = new ArtifactDependencySpecImpl("guava", "com.google.guava", "18.0");
-    ArtifactDependencySpecImpl guiceSpec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "2.0");
+    ArtifactDependencySpecImpl guice1Spec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "1.0");
+    ArtifactDependencySpecImpl guice2Spec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "2.0");
+    ArtifactDependencySpecImpl appcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.android.support", "22.1.1");
+    ArtifactDependencySpecImpl notAppcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.example", "22.1.1");
 
     assertTrue(dependenciesModel.containsArtifact(COMPILE, guavaSpec));
-    assertFalse(dependenciesModel.containsArtifact(COMPILE, guiceSpec));
     assertFalse(dependenciesModel.containsArtifact(CLASSPATH, guavaSpec));
+    assertTrue(dependenciesModel.containsArtifact(COMPILE, guice1Spec));
+    assertFalse(dependenciesModel.containsArtifact(COMPILE, guice2Spec));
+    assertTrue(dependenciesModel.containsArtifact(COMPILE, appcompat));
+    assertFalse(dependenciesModel.containsArtifact(COMPILE, notAppcompat));
   }
 
   @Test
@@ -830,8 +886,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
-    dependencies = buildModel.dependencies().artifacts();
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT_EXPECTED);
 
+    dependencies = buildModel.dependencies().artifacts();
     assertThat(dependencies).hasSize(1);
 
     expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
@@ -856,8 +913,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
-    dependencies = buildModel.dependencies().artifacts();
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT_EXPECTED);
 
+    dependencies = buildModel.dependencies().artifacts();
     assertThat(dependencies).hasSize(3);
 
     expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
@@ -865,8 +923,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
-  public void testReplaceDependencyFailsIsPsiElementIsNotFound() throws IOException {
-    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IS_PSI_ELEMENT_IS_NOT_FOUND);
+  public void testReplaceDependencyFailsIfPsiElementIsNotFound() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IF_PSI_ELEMENT_IS_NOT_FOUND);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -875,13 +933,15 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(dependencies).hasSize(2);
 
     ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0");
-    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement().getParent(), newDep);
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement().getParent().getParent(), newDep);
     assertFalse(result);
 
     result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(1).getPsiElement().getContainingFile(), newDep);
     assertFalse(result);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IF_PSI_ELEMENT_IS_NOT_FOUND);
+
     dependencies = buildModel.dependencies().artifacts();
 
     // Make sure none of the dependencies have changed.
@@ -912,6 +972,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION_EXPECTED);
+
     dependencies = buildModel.dependencies().artifacts();
 
     // Make sure the new dependency is correct.
@@ -943,6 +1005,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS_EXPECTED);
 
     expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
     expected.setClassifier("class");
@@ -970,6 +1033,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS_EXPECTED);
 
     expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "+");
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
@@ -1018,6 +1082,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED);
 
     expected = new ExpectedArtifactDependency(TEST_COMPILE, "guava", "com.google.guava", "+");
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
@@ -1044,6 +1109,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(result);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES_EXPECTED);
 
     expected = new ExpectedArtifactDependency(TEST_COMPILE, "hibernate", "org.hibernate", "3.1");
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
@@ -1072,6 +1138,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     second.group().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION_EXPECTED);
 
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
@@ -1130,6 +1197,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     first.completeModel().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES_EXPECTED);
 
     buildModel = getGradleBuildModel();
     dependencies = buildModel.dependencies();
@@ -1193,8 +1261,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PsiElement psiElement = artifact.getPsiElement();
     if (isGroovy()) {
       assertThat(psiElement).isInstanceOf(GrLiteral.class);
+      assertThat(psiElement.getText()).isEqualTo("'org.gradle.test.classifiers:service:1.0'");
     }
-    assertThat(psiElement.getText()).isEqualTo("'org.gradle.test.classifiers:service:1.0'");
+    else {
+      assertThat(psiElement).isInstanceOf(KtStringTemplateExpression.class);
+      assertThat(psiElement.getText()).isEqualTo("\"org.gradle.test.classifiers:service:1.0\"");
+    }
   }
 
   @Test
@@ -1236,8 +1308,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PsiElement psiElement = artifact.getPsiElement();
     if (isGroovy()) {
       assertThat(psiElement).isInstanceOf(GrLiteral.class);
+      assertThat(psiElement.getText()).isEqualTo("'org.hibernate:hibernate:3.1'");
     }
-    assertThat(psiElement.getText()).isEqualTo("'org.hibernate:hibernate:3.1'");
+    else {
+      assertThat(psiElement).isInstanceOf(KtStringTemplateExpression.class);
+      assertThat(psiElement.getText()).isEqualTo("\"org.hibernate:hibernate:3.1\"");
+    }
   }
 
   @Test
@@ -1278,9 +1354,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PsiElement psiElement = artifact.getPsiElement();
     if (isGroovy()) {
       assertThat(psiElement).isInstanceOf(GrArgumentList.class);
+      assertThat(psiElement.getText())
+        .isEqualTo("group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'");
     }
-    assertThat(psiElement.getText())
-      .isEqualTo("group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'");
+    else {
+      assertThat(psiElement).isInstanceOf(KtCallExpression.class);
+      assertThat(psiElement.getText())
+        .isEqualTo("compile(group=\"com.google.code.guice\", name=\"guice\", version=\"1.0\", classifier=\"high\", ext=\"bleh\")");
+    }
   }
 
   @Test
@@ -1393,12 +1474,18 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
     assertSize(2, artifacts);
 
-    ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
-    model = artifacts.get(1).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
+    ResolvedPropertyModel model0 = artifacts.get(0).completeModel();
+    ResolvedPropertyModel model1 = artifacts.get(1).completeModel();
+    if (isGroovy()) {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+    }
+    else {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+    }
   }
 
   private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
@@ -1553,7 +1640,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel model = getGradleBuildModel();
     DependenciesModel depModel = model.dependencies();
 
-    depModel.addArtifact("implementation", "junit:junit:${jUnitVersion}");
+    String compactNotation = isGroovy() ? "junit:junit:${jUnitVersion}" : "junit:junit:${extra[\"jUnitVersion\"]}";
+    depModel.addArtifact("implementation", compactNotation);
     ArtifactDependencyModel artModel = depModel.artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
     verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
@@ -1563,6 +1651,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artModel = depModel.artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
     verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
+
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE_EXPECTED);
   }
 
   @Test
@@ -1577,6 +1667,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     // Dependency configuration blocks are not supported before applying and re-parsing.
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED);
 
     ArtifactDependencyModel artifactModel = buildModel.dependencies().artifacts().get(0);
     ExcludedDependencyModel excludedModel = artifactModel.configuration().excludes().get(0);
@@ -1631,6 +1722,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artModel.group().setValue("e");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES_EXPECTED);
 
     artModel = buildModel.dependencies().artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "e:c:2.0", STRING, REGULAR, 0);
@@ -1896,6 +1988,58 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertThat(artifacts.get(10).configurationName()).isEqualTo("api");
     assertThat(artifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
+  }
+
+  @Test
+  public void testInsertionOrder() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_INSERTION_ORDER);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    buildModel.dependencies().addArtifact("api", "com.example.libs1:lib1:1.0");
+    buildModel.dependencies().addArtifact("feature", "com.example.libs3:lib3:3.0");
+    buildModel.dependencies().addArtifact("testCompile", "com.example.libs2:lib2:2.0");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED);
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("feature");
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testCompile");
+  }
+
+  @Test
+  public void testSetConfigurationToEmpty() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertThat(buildModel.dependencies().artifacts()).hasSize(1);
+    buildModel.dependencies().artifacts().get(0).setConfigurationName("");
+
+    applyChangesAndReparse(buildModel);
+    // the change to an empty configuration name should cause the writer to refuse to change the
+    // identifier, without throwing an exception.
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY);
+  }
+
+  @Test
+  public void testSetConfigurationToNonStandard() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+
+    assertThat(artifacts).hasSize(1);
+    artifacts.get(0).setConfigurationName("customImplementation");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("customImplementation");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

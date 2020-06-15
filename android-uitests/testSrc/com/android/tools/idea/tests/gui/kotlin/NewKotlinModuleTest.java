@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.kotlin;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.IOException;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +25,8 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
@@ -37,18 +38,18 @@ public class NewKotlinModuleTest {
   private static final String NEW_KOTLIN_MODULE_NAME = "KotlinModule";
 
   @Test
-  public void addNewKotlinModuleToNonKotlinProject() throws Exception {
+  public void addNewKotlinModuleToNonKotlinProject() {
     createNewBasicProject(false);
     addNewKotlinModule();
   }
 
   @Test
-  public void addNewKotlinModuleToKotlinProject() throws Exception {
+  public void addNewKotlinModuleToKotlinProject() {
     createNewBasicProject(true);
     addNewKotlinModule();
   }
 
-  private void createNewBasicProject(boolean hasKotlinSupport) throws IOException {
+  private void createNewBasicProject(boolean hasKotlinSupport) {
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -56,7 +57,7 @@ public class NewKotlinModuleTest {
       .getConfigureNewAndroidProjectStep()
       .enterName(APP_NAME)
       .enterPackageName("android.com")
-      .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
+      .setSourceLanguage(hasKotlinSupport ? KOTLIN : JAVA)
       .wizard()
       .clickFinish();
 
@@ -70,11 +71,11 @@ public class NewKotlinModuleTest {
     }
   }
 
-  private void addNewKotlinModule() throws IOException {
+  private void addNewKotlinModule() {
     guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
       .enterModuleName(NEW_KOTLIN_MODULE_NAME)
-      .setSourceLanguage("Kotlin")
+      .setSourceLanguage(KOTLIN)
       .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
@@ -84,13 +85,13 @@ public class NewKotlinModuleTest {
     assertModuleSupportsKotlin(NEW_KOTLIN_MODULE_NAME);
   }
 
-  private void assertModuleSupportsKotlin(String moduleName) throws IOException {
-    assertThat(guiTest.getProjectFileText(moduleName.toLowerCase(Locale.US) + "/build.gradle"))
-      .contains("apply plugin: 'kotlin-android");
+  private void assertModuleSupportsKotlin(String moduleName) {
+    assertThat(guiTest.getProjectFileText(moduleName + "/build.gradle"))
+      .contains("kotlin-android");
   }
 
-  private void assertModuleDoesNotSupportKotlin(String moduleName) throws IOException {
-    assertThat(guiTest.getProjectFileText(moduleName.toLowerCase(Locale.US) + "/build.gradle"))
+  private void assertModuleDoesNotSupportKotlin(String moduleName) {
+    assertThat(guiTest.getProjectFileText(moduleName + "/build.gradle"))
       .doesNotContain("kotlin");
   }
 }

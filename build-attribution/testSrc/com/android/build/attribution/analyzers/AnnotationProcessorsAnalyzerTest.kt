@@ -16,10 +16,10 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.build.attribution.BuildAttributionManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils

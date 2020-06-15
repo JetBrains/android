@@ -24,6 +24,7 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
@@ -92,7 +93,7 @@ public final class IconGeneratorTestUtil {
                                    @NotNull String goldenFileFolderName) throws IOException {
     generator.sourceAsset().setValue(imageAsset);
     generator.outputName().set(baseName);
-    IconGenerator.Options options = generator.createOptions(false);
+    IconOptions options = generator.createOptions(false);
     Collection<GeneratedIcon> icons = generator.generateIcons(options).getIcons();
 
     List<String> errors = new ArrayList<>();
@@ -142,7 +143,7 @@ public final class IconGeneratorTestUtil {
   private static File getSourceFile(@NotNull SourceType sourceType) throws IOException {
     switch (sourceType) {
       case CLIPART:
-        VirtualFile inputFile = VfsUtil.findFileByURL(MaterialDesignIcons.getDefaultIcon());
+        VirtualFile inputFile = VfsUtil.findFileByIoFile(getTestIconFile(), false);
         File file = FileUtil.createTempFile("clipart", ".xml");
         try (InputStream input = inputFile.getInputStream(); OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
           StreamUtil.copyStreamContent(input, output);
@@ -150,7 +151,7 @@ public final class IconGeneratorTestUtil {
         return file;
 
       case PNG: {
-        VdIcon androidIcon = new VdIcon(MaterialDesignIcons.getDefaultIcon());
+        VdIcon androidIcon = new VdIcon(getTestIconFile().toURI().toURL());
         BufferedImage sourceImage = androidIcon.renderIcon(512, 512);
         File pngFile = FileUtil.createTempFile("android", ".png");
         BufferedImage coloredImage = AssetUtil.filledImage(sourceImage, new Color(0xA4C639));
@@ -282,6 +283,10 @@ public final class IconGeneratorTestUtil {
     }
 
     return new File(System.getProperty("java.io.tmpdir"));
+  }
+
+  private static File getTestIconFile() {
+    return new File(getTestDataPath(), "images/vd/ic_android_black_24dp.xml");
   }
 
   private IconGeneratorTestUtil() {}

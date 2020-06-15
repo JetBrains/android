@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE;
+
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.SystemProperties;
@@ -35,6 +40,9 @@ import java.net.URL;
  * Static utility methods useful across wizards
  */
 public final class WizardUtils {
+  // TODO: parentej needs to be updated to 4.0.0 when released
+  public static final String COMPOSE_MIN_AGP_VERSION = "4.0.0-alpha02";
+
   /**
    * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
    * A windows directory path cannot be longer than 250 chars
@@ -118,5 +126,20 @@ public final class WizardUtils {
     }
 
     return uniqueName;
+  }
+
+  public static boolean hasComposeMinAgpVersion(@Nullable Project project, @Nullable String templateCategory) {
+    if (project == null || !CATEGORY_COMPOSE.equals(templateCategory)) {
+      return true;
+    }
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
+    if (androidPluginInfo == null) {
+      return true;
+    }
+    GradleVersion agpVersion = androidPluginInfo.getPluginVersion();
+    if (agpVersion == null) {
+      return true;
+    }
+    return agpVersion.compareTo(COMPOSE_MIN_AGP_VERSION) >= 0;
   }
 }

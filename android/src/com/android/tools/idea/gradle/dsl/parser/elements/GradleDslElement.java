@@ -18,9 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -209,4 +214,19 @@ public interface GradleDslElement extends AnchorProvider {
   void resolve();
 
   boolean isNewEmptyBlockElement();
+
+  /**
+   * The map returned by this method is responsible for encoding the semantics of expressed user Dsl code in terms of the Dsl Model.
+   *
+   * The keys of the map represent user Dsl code as the (name, null) Pair for properties, and (name, arity) for method calls, with an
+   * encoding to handle varargs documented in {@link ArityHelper}.
+   *
+   * The values of the map represent the model property, and the effect of this code on the property, encoded as a value in subclasses of
+   * {@link SemanticsDescription}.
+   *
+   * @param converter
+   * @return a map from expressed code to model semantics
+   */
+  @NotNull
+  ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter);
 }

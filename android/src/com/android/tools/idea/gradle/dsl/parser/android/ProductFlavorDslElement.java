@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,82 +16,32 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+public class ProductFlavorDslElement extends AbstractProductFlavorDslElement implements GradleDslNamedDomainElement {
+  public static final PropertiesElementDescription<ProductFlavorDslElement> PRODUCT_FLAVOR =
+    new PropertiesElementDescription<>(null, ProductFlavorDslElement.class, ProductFlavorDslElement::new);
 
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-
-public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement {
+  @Nullable
+  private String methodName;
 
   public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
   @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("resConfigs") || property.equals("resConfig")) {
-      addToParsedExpressionList("resConfigs", element);
-      return;
-    }
+  public void setMethodName(String methodName) {
+    this.methodName = methodName;
+  }
 
-    if (property.equals("testInstrumentationRunnerArguments")) {
-      // This deals with references to maps.
-      GradleDslElement oldElement = element;
-      if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        element = followElement((GradleDslLiteral) element);
-      }
-      if (!(element instanceof GradleDslExpressionMap)) {
-        return;
-      }
-
-      GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
-        getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
-      if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement =
-          new GradleDslExpressionMap(this, element.getPsiElement(), oldElement.getNameElement(), true);
-        setParsedElement(testInstrumentationRunnerArgumentsElement);
-      }
-
-
-      testInstrumentationRunnerArgumentsElement.setPsiElement(element.getPsiElement());
-      GradleDslExpressionMap elementsToAdd = (GradleDslExpressionMap)element;
-      for (Map.Entry<String, GradleDslElement> entry : elementsToAdd.getPropertyElements().entrySet()) {
-        testInstrumentationRunnerArgumentsElement.setParsedElement(entry.getValue());
-      }
-      return;
-    }
-
-    if (property.equals("testInstrumentationRunnerArgument")) {
-      if (!(element instanceof GradleDslExpressionList)) {
-        return;
-      }
-      GradleDslExpressionList gradleDslExpressionList = (GradleDslExpressionList)element;
-      List<GradleDslSimpleExpression> elements = gradleDslExpressionList.getSimpleExpressions();
-      if (elements.size() != 2) {
-        return;
-      }
-
-      String key = elements.get(0).getValue(String.class);
-      if (key == null) {
-        return;
-      }
-      GradleDslSimpleExpression value = elements.get(1);
-      // Set the name element of the value to be the previous element.
-      value.getNameElement().commitNameChange(elements.get(0).getPsiElement());
-
-      GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
-        getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
-      if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement =
-          new GradleDslExpressionMap(this, GradleNameElement.create("testInstrumentationRunnerArguments"));
-      }
-      testInstrumentationRunnerArgumentsElement.setParsedElement(value);
-      return;
-    }
-
-    super.addParsedElement(element);
+  @Nullable
+  @Override
+  public String getMethodName() {
+    return methodName;
   }
 }

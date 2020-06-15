@@ -17,9 +17,10 @@ package com.android.tools.idea.javadoc;
 
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
@@ -98,10 +99,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                                             "res/drawable-hdpi/ic_launcher.png").getPath();
 
     String divTag = "<div style=\"background-color:gray;padding:10px\">";
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
-                                   FileUtil.toSystemDependentName(p1));
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
-                                   FileUtil.toSystemDependentName(p2));
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1), p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2), p2);
     checkJavadoc("/javadoc/drawables/Activity1.java",
                  String.format("<html><body><table>" +
                                "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
@@ -122,12 +121,9 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     String p3 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
                                             "res/drawable/button_disabled.png").getPath();
 
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
-                                   FileUtil.toSystemDependentName(p1));
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
-                                   FileUtil.toSystemDependentName(p2));
-    String imgTag3 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p3.startsWith("/") ? p3 : '/' + p3),
-                                   FileUtil.toSystemDependentName(p3));
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1), p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2), p2);
+    String imgTag3 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p3.startsWith("/") ? p3 : '/' + p3), p3);
     checkJavadoc("/javadoc/drawables/Activity2.java",
                  String.format("<html><body><table><tr><td><div style=\"background-color:gray;padding:10px\">" +
                                "%3$s" +
@@ -149,10 +145,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                                             "res/mipmap-hdpi/ic_launcher.png").getPath();
 
     String divTag = "<div style=\"background-color:gray;padding:10px\">";
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
-                                   FileUtil.toSystemDependentName(p1));
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
-                                   FileUtil.toSystemDependentName(p2));
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1), p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2), p2);
     checkJavadoc("/javadoc/mipmaps/Activity1.java",
                  String.format("<html><body><table>" +
                                "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
@@ -379,6 +373,17 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/lint/lint_issue_id.xml", "lint.xml",
                  "A layout that has no children or no background can often be removed (since it is invisible) " +
                  "for a flatter and more efficient layout hierarchy.");
+  }
+
+  /**
+   * Regression test for http://b/151964515
+   */
+  public void testInheritanceLoop() {
+    // A layout is needed for the ResourceResolver to be able to automatically pick a default configuration (it will find a layout at
+    // random). The layout is not related to the test.
+    myFixture.copyFileToProject("/javadoc/layout/layout.xml", "res/layout/layout.xml");
+    checkJavadoc("/javadoc/styles/styles_loop.xml", "res/values/styles.xml",
+             doc -> assertTrue(doc.startsWith("<html><body><BR/>@style/TextAppearance<BR/><BR/><hr><B>TextAppearance</B>")));
   }
 
   // TODO: Test flavor docs

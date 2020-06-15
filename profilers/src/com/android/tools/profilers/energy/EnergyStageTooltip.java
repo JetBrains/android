@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.energy;
 
-import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
-final class EnergyStageTooltip implements ProfilerTooltip {
+final class EnergyStageTooltip implements TooltipModel {
   @NotNull private final EnergyProfilerStage myStage;
 
   public EnergyStageTooltip(@NotNull EnergyProfilerStage stage) {

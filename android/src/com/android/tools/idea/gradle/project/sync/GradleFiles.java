@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.EXT_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -36,8 +36,8 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
@@ -46,11 +46,10 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -101,6 +100,14 @@ public class GradleFiles {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  public static class UpdateHashesStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      // Populate build file hashes on project startup.
+      getInstance(project).scheduleUpdateFileHashes();
+    }
+  }
+
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleFiles.class);
@@ -124,28 +131,6 @@ public class GradleFiles {
 
 
     GradleSyncState.subscribe(myProject, mySyncListener);
-
-    // Populate build file hashes on creation.
-    if (myProject.isInitialized()) {
-      scheduleUpdateFileHashes();
-      checkAndAddInitialFileChangeListener(fileChangeListener);
-    }
-    else {
-      StartupManager.getInstance(myProject).registerPostStartupActivity(this::scheduleUpdateFileHashes);
-      StartupManager.getInstance(myProject).registerPostStartupActivity(() -> checkAndAddInitialFileChangeListener(fileChangeListener));
-    }
-  }
-
-  // Make sure if we already have a file open when this object is constructed we also attach the listener.
-  private void checkAndAddInitialFileChangeListener(@NotNull PsiTreeChangeListener fileChangeListener) {
-    ApplicationManager.getApplication().runReadAction(() -> {
-      FileEditor editor = FileEditorManager.getInstance(myProject).getSelectedEditor();
-      VirtualFile openFile = null;
-      if (editor != null) {
-        openFile = editor.getFile();
-      }
-      maybeAddOrRemovePsiTreeListener(openFile, fileChangeListener);
-    });
   }
 
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
@@ -204,7 +189,7 @@ public class GradleFiles {
     }
   }
 
-  private void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
+  private static void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
     Integer hash = computeHash(file);
     if (hash != null) {
       map.put(file, hash);
@@ -254,15 +239,11 @@ public class GradleFiles {
    * and its value should not be used.
    */
   @Nullable
-  private Integer computeHash(@NotNull VirtualFile file) {
+  private static Integer computeHash(@NotNull VirtualFile file) {
     return ReadAction.compute(() -> {
-      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-
-      if (psiFile != null && psiFile.isValid()) {
-        return psiFile.getText().hashCode();
-      }
-
-      return null;
+      if (!file.isValid()) return null;
+      Document document = FileDocumentManager.getInstance().getDocument(file);
+      return document == null ? null : document.getText().hashCode();
     });
   }
 
@@ -306,13 +287,6 @@ public class GradleFiles {
    */
   private void scheduleUpdateFileHashes() {
     ApplicationManager.getApplication().invokeLater(() -> {
-      // We need to ensure that all of the pending PSI element actions have been processed before computing and storing
-      // the hashes for the files. Otherwise it is possible to have syncStarted clear the hashes and then a pending PSI
-      // event immediately run the GradleFileChangeListener and be marked as changed again.
-      // Note: This does not completely ensure that the hashes here are exactly the ones used by Gradle, it is still possible
-      //       for the files to be changed after these computations and before Gradle reads them, this just makes that window smaller.
-      PsiDocumentManager.getInstance(myProject).commitAllDocuments();
-
       // Local map to minimize time holding myLock
       Map<VirtualFile, Integer> fileHashes = new HashMap<>();
       GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
@@ -342,7 +316,7 @@ public class GradleFiles {
           ProgressManager.checkCanceled();
           File path = VfsUtilCore.virtualToIoFile(buildFile);
           if (path.isFile()) {
-            putHashForFile(fileHashes, buildFile);
+            ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
           }
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
@@ -427,18 +401,13 @@ public class GradleFiles {
   }
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
-    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
-      if (psiFile.getName().endsWith(EXT_GRADLE)) {
+    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE || psiFile.getFileType().getName().equals("Kotlin")) {
+      if (psiFile.getName().endsWith(EXT_GRADLE) || psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
         return true;
       }
     }
     if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
       if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
-        return true;
-      }
-    }
-    if (psiFile.getFileType().getName().equals("Kotlin")) {
-      if (FN_BUILD_GRADLE_KTS.equals(psiFile.getName()) || FN_SETTINGS_GRADLE_KTS.equals(psiFile.getName())) {
         return true;
       }
     }

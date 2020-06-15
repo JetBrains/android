@@ -19,14 +19,25 @@ import com.android.builder.model.SourceProvider
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.testing.*
 import com.android.tools.idea.util.toIoFile
+import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.utils.FileUtils
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.facet.getManifestFiles
 import java.io.File
 
 /**
@@ -50,13 +61,24 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  // TODO(b/121345405): Fix missing test source providers.
+  fun testMultiFlavor() {
+    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE)
+    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 
   fun testCompositeBuild() {
     val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
     assertIsEqualToSnapshot(text)
   }
 
@@ -72,13 +94,23 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpSourceProviders()
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testCompatibilityWithAndroidStudio36Project() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testCompatibilityWithAndroidStudio36NoImlProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
     assertIsEqualToSnapshot(text)
   }
 
@@ -111,12 +143,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         return result
       }
 
-      fun File.toPrintablePath(): String {
-        val relativePath = absoluteFile.relativeTo(projectRootPath)
-        return if (!relativePath.isAbsolute) "./${relativePath.path}" else relativePath.path
-      }
+      fun String.toPrintablePath(): String = this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
 
-      fun <T, F> T.dumpPaths(name: String, getter: (T) -> Collection<F>, mapper: (F) -> File?) {
+      fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Collection<F>, mapper: (F) -> String?) {
         val entries = getter(this)
         if (entries.isEmpty()) return
         out("$name:")
@@ -130,10 +159,13 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       }
 
       fun SourceProvider.dumpPaths(name: String, getter: (SourceProvider) -> Collection<File>) =
-        dumpPaths(name, getter) { it }
+        dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
+
+      fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Collection<String>) =
+        dumpPathsCore(name, getter) { it }
 
       fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Collection<VirtualFile?>) =
-        dumpPaths(name, getter) { it?.toIoFile() }
+        dumpPathsCore(name, getter) { it?.url }
 
       fun SourceProvider.dump() {
         out(name)
@@ -152,19 +184,34 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         }
       }
 
-      fun IdeaSourceProvider.dump() {
-        out("$name (IDEA)")
+      fun IdeaSourceProvider.dump(name: String) {
+        out("${name} (IDEA)")
         nest {
-          dumpPaths("Manifest") { listOf(manifestFile) }
+          dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
+          dumpPaths("ManifestFiles") { it.manifestFiles }
+          dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }
+          dumpPaths("ManifestDirectories") { it.manifestDirectories }
+          dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
           dumpPaths("AidlDirectories") { it.aidlDirectories }
+          dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
           dumpPaths("AssetsDirectories") { it.assetsDirectories }
+          dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
           dumpPaths("JavaDirectories") { it.javaDirectories }
+          dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
           dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
+          dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
           dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
+          dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
           dumpPaths("ResDirectories") { it.resDirectories }
+          dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
           dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
+          dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
           dumpPaths("ShadersDirectories") { it.shadersDirectories }
         }
+      }
+
+      fun NamedIdeaSourceProvider.dump() {
+        dump(name)
       }
 
       ModuleManager
@@ -172,30 +219,34 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         .modules
         .sortedBy { it.name }
         .forEach { module ->
-          out("MODULE: ${module.name}");
+          out("MODULE: ${module.name}")
           val androidFacet = AndroidFacet.getInstance(module)
           if (androidFacet != null) {
             nest {
               nest("by Facet:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
-                sourceProviderManager.mainSourceProvider.dump()
                 sourceProviderManager.mainIdeaSourceProvider.dump()
               }
-              val model = AndroidModel.get(module)
+              val model = AndroidModuleModel.get(module)
               if (model != null) {
                 nest("by AndroidModel:") {
                   model.defaultSourceProvider.dump()
                   nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
                   nest("All:") { model.allSourceProviders.forEach { it.dump() } }
-                  nest("Test:") { model.testSourceProviders.forEach { it.dump() } }
+                  nest("UnitTest:") { model.unitTestSourceProviders.forEach { it.dump() } }
+                  nest("AndroidTest:") { model.androidTestSourceProviders.forEach { it.dump() } }
                 }
               }
               nest("by IdeaSourceProviders:") {
-                dumpPaths("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.toIoFile() })
-                nest("AllIdeaSourceProviders:") { IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet).forEach { it.dump() } }
-                nest("AllSourceProviders:") { IdeaSourceProvider.getAllSourceProviders(androidFacet).forEach { it.dump() } }
-                nest("CurrentSourceProviders:") { IdeaSourceProvider.getCurrentSourceProviders(androidFacet).forEach { it.dump() } }
-                nest("CurrentTestSourceProviders:") { IdeaSourceProvider.getCurrentTestSourceProviders(androidFacet).forEach { it.dump() } }
+                val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
+                dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
+                nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
+                nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
+                nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
+                nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
+                nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
+                nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
+                nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }
               }
             }
           }
@@ -205,3 +256,4 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   }
 }
 
+private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(this)

@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
-import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.npw.assetstudio.ui.IconPickerDialog;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.intellij.ui.SearchTextField;
+import javax.swing.JTable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class IconPickerDialogFixture extends IdeaDialogFixture<IconPickerDialog> {
 
@@ -34,8 +34,12 @@ public class IconPickerDialogFixture extends IdeaDialogFixture<IconPickerDialog>
 
   @NotNull
   public static IconPickerDialogFixture find(@NotNull AssetStudioWizardFixture parentFixture) {
-    return new IconPickerDialogFixture(
+    IconPickerDialogFixture dialogFixture = new IconPickerDialogFixture(
       parentFixture, IdeaDialogFixture.find(parentFixture.robot(), IconPickerDialog.class));
+    JTableFixture tableFixture =
+      new JTableFixture(dialogFixture.robot(), parentFixture.robot().finder().findByType(dialogFixture.target(), JTable.class));
+    Wait.seconds(60L).expecting("Table should be populated.").until(() -> tableFixture.contents().length > 1);
+    return dialogFixture;
   }
 
   private IconPickerDialogFixture(

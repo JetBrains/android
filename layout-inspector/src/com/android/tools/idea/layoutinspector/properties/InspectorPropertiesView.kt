@@ -22,10 +22,18 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
+import com.android.tools.property.ptable2.PTableItem
+import org.jetbrains.android.formatter.AttributeComparator
 
 private const val VIEW_NAME = "LayoutInspectorPropertyEditor"
 private const val WATERMARK_MESSAGE = "No view selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a view in the Component Tree."
+
+/**
+ * Comparator that is sorting [PTableItem] in Android sorting order.
+ * This implies layout attributes first and layout_width before layout_height.
+ */
+val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
 class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<InspectorPropertyItem>(VIEW_NAME, model) {
 
@@ -43,15 +51,15 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
       }
   }
 
-  private val declaredEditorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
-  private val allEditorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
-
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedViewBuilder())
     val tab = addTab("")
     tab.builders.add(DimensionBuilder())
-    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.isDeclared }, model, controlTypeProvider, declaredEditorProvider))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, controlTypeProvider, allEditorProvider))
+    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.group == PropertySection.DECLARED },
+                                           model, enumSupportProvider, controlTypeProvider))
+    tab.builders.add(InspectorTableBuilder("Layout", { it.group == PropertySection.LAYOUT },
+                                           model, enumSupportProvider, controlTypeProvider, androidSortOrder))
+    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, enumSupportProvider, controlTypeProvider, searchable = true))
   }
 }

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.verifyNotNull;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
@@ -23,16 +26,16 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
-
-import static com.google.common.truth.Truth.assertThat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Test utility class to synthesize a particular layout of include folders.
@@ -61,18 +64,18 @@ public class IncludeLayout {
    * Create a local directory and at the same time also create the directory within the virtual file system
    */
   void createDirs(@NotNull File folder) {
-    folder.mkdirs();
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(folder);
+    verify(folder.exists() || folder.mkdirs());
+    verifyNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(folder));
   }
 
   /**
    * Create an empty local file and at the same time also create the file (and parent directories) within the virtual file system
    */
   void createFile(@NotNull File file) throws IOException {
-    createDirs(file.getParentFile());
-    file.createNewFile();
-    VirtualFile child = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-    assertThat(child).isNotNull();
+    File parent = file.getParentFile();
+    verify(parent == null || parent.exists() || parent.mkdirs());
+    verify(file.exists() || file.createNewFile());
+    verifyNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file));
   }
 
   @NotNull

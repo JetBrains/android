@@ -22,13 +22,10 @@ import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
 import com.android.resources.ResourceType
-import com.android.tools.idea.gradle.stubs.FileStructure
-import com.android.tools.idea.gradle.stubs.android.SourceProviderStub
-import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
+import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -38,7 +35,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
@@ -108,14 +104,6 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
     ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
 }
 
-fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
-  val fileStructure = FileStructure("")
-  val defaultSourceProvider = SourceProviderStub(fileStructure)
-  defaultSourceProvider.addResDirectory("res")
-  val first = defaultSourceProvider.resDirectories.first()
-  androidFacet.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
-  return first
-}
 private const val WAIT_TIMEOUT = 3000
 
 internal inline fun <reified T : JComponent> waitAndAssert(view: ResourceExplorerView, crossinline condition: (list: T?) -> Boolean) {

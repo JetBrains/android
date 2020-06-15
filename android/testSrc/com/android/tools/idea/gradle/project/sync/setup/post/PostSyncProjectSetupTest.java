@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
@@ -28,20 +29,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testing.IdeComponents;
@@ -76,13 +75,10 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
-  @Mock private PluginVersionUpgrade myVersionUpgrade;
-  @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private SyncViewManager myViewManager;
 
-  private ProjectStructureStub myProjectStructure;
   private PostSyncProjectSetup mySetup;
 
   @Override
@@ -93,10 +89,9 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     Project project = getProject();
     new IdeComponents(myProject).replaceProjectService(SyncViewManager.class, myViewManager);
 
-    myProjectStructure = new ProjectStructureStub(project);
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
-                                       myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder);
+    ProjectStructureStub projectStructure = new ProjectStructureStub(project);
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, projectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
+                                       myDependencySetupIssues, myProjectSetup, myModuleSetup);
   }
 
   @Override
@@ -192,14 +187,9 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.generateSourcesAfterSync = true;
-    request.cleanProjectAfterSync = true;
-
     mySetup.setUpProject(request, myTaskId, null);
 
-    Project project = getProject();
     verify(myDependencySetupIssues, times(1)).reportIssues();
-    verify(myVersionCompatibilityChecker, times(1)).checkAndReportComponentIncompatibilities(project);
 
     verify(myProjectSetup, times(1)).setUpProject(true);
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
@@ -209,27 +199,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
     verify(myGradleProjectInfo, times(1)).setNewProject(false);
     verify(myGradleProjectInfo, times(1)).setImportedProject(false);
-  }
-
-  public void testCleanIsInvokedWhenGeneratingSourcesAndPluginVersionsChanged() {
-    when(mySyncState.lastSyncFailed()).thenReturn(false);
-
-    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.generateSourcesAfterSync = true;
-
-    myProjectStructure.currentAgpVersions = new AndroidPluginVersionsInProject() {
-      @Override
-      public boolean haveVersionsChanged(@NotNull AndroidPluginVersionsInProject other) {
-        return true; // Simulate AGP versions have changed between Sync executions.
-      }
-    };
-
-    mySetup.setUpProject(request, myTaskId, null);
-
-    // verify "clean" was invoked.
-    verify(myProjectBuilder).cleanAndGenerateSources();
-
-    assertTrue(myProjectStructure.analyzed);
   }
 
   public void testJavaLanguageLevelIsUpdated() {
@@ -283,13 +252,13 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   private void createAndroidModuleWithLanguageLevel(@NotNull String moduleName, @NotNull LanguageLevel level) {
     AndroidFacet facet = createAndAddAndroidFacet(createModule(moduleName));
     AndroidModuleModel model = mock(AndroidModuleModel.class);
-    facet.setModel(model);
+    AndroidModel.set(facet, model);
     when(model.getJavaLanguageLevel()).thenReturn(level);
 
     // Setup the fields that are necessary to run mySetup.SetUpProject.
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(model.getAndroidProject()).thenReturn(androidProject);
-    when(androidProject.getProjectType()).thenReturn(AndroidProject.PROJECT_TYPE_APP);
+    when(androidProject.getProjectType()).thenReturn(PROJECT_TYPE_APP);
     when(model.getFeatures()).thenReturn(mock(AndroidModelFeatures.class));
   }
 

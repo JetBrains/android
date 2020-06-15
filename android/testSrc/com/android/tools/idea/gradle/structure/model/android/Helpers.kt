@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.concurrent.addCallback
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModelDescriptor

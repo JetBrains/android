@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
-import java.awt.BasicStroke
 import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
 
@@ -32,9 +33,9 @@ private const val HEIGHT = 120f
 
 class DrawPlaceholderTest : NavTestCase() {
   fun testDrawPlaceholder() {
-    val rectangle = Rectangle2D.Float(X, Y, WIDTH, HEIGHT)
+    val rectangle = SwingRectangle(Rectangle2D.Float(X, Y, WIDTH, HEIGHT))
     val drawPlaceholder = DrawPlaceholder(rectangle)
-    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
+    val stroke = SwingStroke(REGULAR_FRAME_THICKNESS)
 
     assertEquals(3, drawPlaceholder.commands.size)
     assertDrawCommandsEqual(FillShape(Rectangle2D.Float(X, Y, WIDTH, HEIGHT), PLACEHOLDER_BACKGROUND), drawPlaceholder.commands[0])

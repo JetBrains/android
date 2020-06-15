@@ -15,26 +15,23 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestUtil;
-import junit.framework.AssertionFailedError;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.mock;
+
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
+import java.util.List;
+import junit.framework.AssertionFailedError;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.
@@ -45,7 +42,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mock(GradleSyncState.class), new AndroidPluginVersionUpdater.TextSearch(getProject()));
+    myVersionUpdater = new AndroidPluginVersionUpdater(getProject());
   }
 
   @Override

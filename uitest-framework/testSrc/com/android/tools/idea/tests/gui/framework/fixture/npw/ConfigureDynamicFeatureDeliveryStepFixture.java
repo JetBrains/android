@@ -79,10 +79,10 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
   }
 
   @NotNull
-  public ConfigureDynamicFeatureDeliveryStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
     ApiLevelComboBoxFixture apiLevelComboBox =
       new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class));
-    apiLevelComboBox.selectApiLevel(api);
+    apiLevelComboBox.selectApiLevel(minSdkApi);
     return this;
   }
 

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.updater;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.Downloader;
@@ -48,8 +50,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 /**
  * An {@link ExternalComponentSource} that retrieves information from the {@link RepoManager} provided

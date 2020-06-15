@@ -34,11 +34,11 @@ public class DesignModeAction extends ToggleAction {
 
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
-    return mySurface.getSceneMode() == SceneMode.SCREEN_ONLY;
+    return mySurface.getSceneMode() == SceneMode.RENDER;
   }
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, true);
+    mySurface.setScreenMode(SceneMode.RENDER, true);
   }
 }

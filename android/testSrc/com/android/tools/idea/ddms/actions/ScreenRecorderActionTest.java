@@ -27,6 +27,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import java.io.File;
@@ -162,25 +163,28 @@ public final class ScreenRecorderActionTest {
 
   @Test
   public void getEmulatorScreenRecorderOptions() {
-    Path path = Paths.get("/sdcard/1.mp4");
+    Path path = Jimfs.newFileSystem().getPath("sdcard", "1.mp4");
+    String expectedPath = path.toString();
+    assert expectedPath.equals("sdcard" + File.separator + "1.mp4");
 
     ScreenRecorderOptions options = new ScreenRecorderOptions.Builder()
       .setBitRate(6)
       .setSize(600, 400)
       .build();
 
-    assertEquals("--size 600x400 --bit-rate 6000000 /sdcard/1.mp4", ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
+    assertEquals("--size 600x400 --bit-rate 6000000 " + expectedPath,
+                 ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
 
     options = new ScreenRecorderOptions.Builder()
       .setTimeLimit(100, TimeUnit.SECONDS)
       .build();
 
-    assertEquals("--time-limit 100 /sdcard/1.mp4", ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
+    assertEquals("--time-limit 100 " + expectedPath, ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
 
     options = new ScreenRecorderOptions.Builder()
       .setTimeLimit(4, TimeUnit.MINUTES)
       .build();
 
-    assertEquals("--time-limit 180 /sdcard/1.mp4", ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
+    assertEquals("--time-limit 180 " + expectedPath, ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
   }
 }

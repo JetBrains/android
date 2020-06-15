@@ -43,11 +43,9 @@ import com.android.tools.idea.common.scene.LerpValue;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
-import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -60,6 +58,7 @@ import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.scene.NavSceneManagerKt;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -115,6 +114,7 @@ import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -161,7 +161,8 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), true);
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
+          getDefaultSurfaceState(), true);
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -177,6 +178,21 @@ public class NavDesignSurface extends DesignSurface {
     });
 
     getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
+  }
+
+  private static State getDefaultSurfaceState() {
+    AndroidEditorSettings.EditorMode preferredMode = AndroidEditorSettings.getInstance().getGlobalState().getPreferredEditorMode();
+    if (preferredMode == null) {
+      return State.FULL;
+    }
+    switch (preferredMode) {
+      case CODE:
+        return State.DEACTIVATED;
+      case SPLIT:
+        return State.SPLIT;
+      default:
+        return State.FULL;
+    }
   }
 
   @Override
@@ -210,11 +226,7 @@ public class NavDesignSurface extends DesignSurface {
     return super.getData(dataId);
   }
 
-  @Override
-  public float getSceneScalingFactor() {
-    return 1f;
-  }
-
+  @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     // Ignored for nav editor
@@ -403,7 +415,7 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected void layoutContent() {
+  public void layoutContent() {
     requestRender();
   }
 
@@ -462,17 +474,11 @@ public class NavDesignSurface extends DesignSurface {
   @Nullable
   @Override
   public Dimension getScrolledAreaSize() {
-    return getContentSize(null);
-  }
-
-  @NotNull
-  @Override
-  public Dimension getContentSize(@Nullable Dimension dimension) {
+    Dimension dimension = new Dimension();
     SceneView view = getFocusedSceneView();
     if (view == null) {
-      Dimension dim = dimension == null ? new Dimension() : dimension;
-      dim.setSize(0, 0);
-      return dim;
+      dimension.setSize(0, 0);
+      return dimension;
     }
     return view.getSize(dimension);
   }
@@ -496,23 +502,13 @@ public class NavDesignSurface extends DesignSurface {
       return new Dimension(0, 0);
     }
 
-    @NavCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
+    @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
     return boundingBox.getSize();
   }
 
   @Override
   public boolean isLayoutDisabled() {
     return false;
-  }
-
-  @Override
-  public int getContentOriginX() {
-    return 0;
-  }
-
-  @Override
-  public int getContentOriginY() {
-    return 0;
   }
 
   @Override
@@ -609,19 +605,6 @@ public class NavDesignSurface extends DesignSurface {
     return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
-  @VisibleForTesting
-  @Nullable
-  @Override
-  public Interaction doCreateInteractionOnClick(int mouseX, int mouseY, @NotNull SceneView view) {
-    return new SceneInteraction(view);
-  }
-
-  @Nullable
-  @Override
-  public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
-    return null;
-  }
-
   @Override
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     boolean scaled = super.zoom(type, x, y);
@@ -655,7 +638,7 @@ public class NavDesignSurface extends DesignSurface {
     }
 
     @NavCoordinate Rectangle selectionBounds =
-      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
+      NavSceneManagerKt.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
                                          .filter(sceneComponent -> sceneComponent != null)
                                          .collect(Collectors.toList()));
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
@@ -690,11 +673,6 @@ public class NavDesignSurface extends DesignSurface {
     });
 
     getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
-  }
-
-  @Override
-  public boolean isResizeAvailable() {
-    return false;
   }
 
   @VisibleForTesting
@@ -773,13 +751,7 @@ public class NavDesignSurface extends DesignSurface {
       result = ref.get();
     }
     if (result == null) {
-      result = new ConfigurationManager(facet.getModule()) {
-        @Override
-        public ConfigurationStateManager getStateManager() {
-          // Nav editor doesn't want persistent configuration state
-          return new ConfigurationStateManager();
-        }
-      };
+      result = new MyConfigurationManager(facet.getModule());
       ourConfigurationManagers.put(facet, new SoftReference<>(result));
     }
     return result;
@@ -841,6 +813,18 @@ public class NavDesignSurface extends DesignSurface {
 
     if (next != null) {
       setCurrentNavigation(next);
+    }
+  }
+
+  private static class MyConfigurationManager extends ConfigurationManager {
+    MyConfigurationManager(@NotNull Module module) {
+      super(module);
+    }
+
+    @Override
+    public ConfigurationStateManager getStateManager() {
+      // Nav editor doesn't want persistent configuration state.
+      return new ConfigurationStateManager();
     }
   }
 }

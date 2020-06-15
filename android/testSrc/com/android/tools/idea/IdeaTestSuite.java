@@ -27,8 +27,6 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
-  com.android.tools.idea.templates.TemplateTestBase.class, // This is a base class, does not contain actual tests
-  com.android.tools.idea.templates.TemplateTest.CoverageChecker.class, // Inner class is used to test TemplateTest covers all templates
 
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
@@ -47,7 +45,8 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    symlinkToIdeaHome(
+    try {
+      symlinkToIdeaHome(
         "prebuilts/studio/jdk",
         "prebuilts/studio/layoutlib",
         "prebuilts/studio/sdk",
@@ -59,13 +58,16 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
         "tools/base/templates",
         "tools/idea/java");
 
-    setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
-    setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/1.5.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/2.2.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/3.0.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/3.3.2.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
+      setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
+      setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+      setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
+      // Please consider adding tests that depend on specific versions of AGP into old-agp-tests instead of b/141628806
+      setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
+    }
+    catch (Throwable e) {
+      // See b/143359533 for why we are handling errors here
+      System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
+      e.printStackTrace();
+    }
   }
 }

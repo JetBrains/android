@@ -15,30 +15,30 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <fileType name="SQLite" implementationClass="com.android.tools.idea.editors.sqlite.SqliteFileType"/>
-    <fileTypeDetector implementation="com.android.tools.idea.editors.sqlite.SqliteFileTypeDetector" />
-    <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl"/>
+    <fileType name="SQLite" implementationClass="com.android.tools.idea.sqlite.fileType.SqliteFileType"/>
+    <fileTypeDetector implementation="com.android.tools.idea.sqlite.fileType.SqliteFileTypeDetector" />
+    <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>
 
-    <annotator language="JAVA" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
-    <annotator language="kotlin" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
+    <annotator language="JAVA" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
 
     <projectService
-        serviceInterface="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService"
-        serviceImplementation="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectServiceImpl" />
+        serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
+        serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl" />
 
-    <facet.toolWindow id="Sqlite Explorer"
+    <facet.toolWindow id="Database Inspector"
                       facetIdList="android"
                       anchor="bottom"
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                      factoryClass="com.android.tools.idea.sqliteExplorer.SqliteExplorerToolWindowFactory"/>
+                      factoryClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowFactory"/>
 
     <notificationWhitelist groupIds="Sqlite Viewer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">
-    <fileHandler implementation="com.android.tools.idea.SqliteFileHandler"/>
+    <fileHandler implementation="com.android.tools.idea.sqlite.fileType.SqliteFileHandler"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.lang">
     <androidSql.contextProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext$Provider" />

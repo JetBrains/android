@@ -244,8 +244,8 @@ fun <T : PsDeclaredJarDependency> PsResolvedDependencyCollection<*, *, *, *, *>.
 ): List<T> = parsedDependencies
   .jars
   .filter { probe ->
-    val probleFile = File(probe.filePath)
-    val resolvedProbe = parent.resolveFile(probleFile)
-    val caninicalResolvedProbe = resolvedProbe.canonicalFile
-    caninicalResolvedProbe.let { artifactCanonicalFile.startsWith(it) }
+    val probeFile = File(probe.filePath)
+    val resolvedProbe = parent.resolveFile(probeFile)
+    val canonicalResolvedProbe = resolvedProbe.canonicalFile
+    canonicalResolvedProbe.let { artifactCanonicalFile.startsWith(it) }
   }

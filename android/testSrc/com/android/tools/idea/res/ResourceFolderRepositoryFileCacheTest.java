@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,11 +34,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
-import org.picocontainer.MutablePicoContainer;
 
 /**
  * Tests for {@link ResourceFolderRepositoryFileCacheImpl}.
@@ -47,13 +46,6 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   @NotNull
   private static ResourceFolderRepositoryFileCacheImpl getCache() {
     return (ResourceFolderRepositoryFileCacheImpl)ResourceFolderRepositoryFileCacheService.get();
-  }
-
-  @NotNull
-  private void overrideCacheService(ResourceFolderRepositoryFileCacheImpl newCache) {
-    // Use a file cache that has per-test root directories instead of sharing the system directory.
-    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, newCache, getTestRootDisposable());
   }
 
   @NotNull
@@ -68,7 +60,8 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     ResourceFolderRepositoryFileCacheImpl cache = new ResourceFolderRepositoryFileCacheImpl(Paths.get(myFixture.getTempDirPath()));
-    overrideCacheService(cache);
+    ServiceContainerUtil.replaceService(
+      ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, cache, getTestRootDisposable());
   }
 
   public void testInvalidationBlocksDirectoryQuery() {

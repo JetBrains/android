@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -28,25 +30,40 @@ import com.android.tools.profilers.TimelineTable;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-
-import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableRowSorter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Displays network connection information of all threads.
@@ -70,7 +87,7 @@ final class ThreadsView {
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     ThreadsTableModel model = new ThreadsTableModel(stageView.getStage().getHttpDataFetcher());
-    myThreadsTable = TimelineTable.create(model, stageView.getTimeline(), Column.TIMELINE.ordinal());
+    myThreadsTable = TimelineTable.create(model, stageView.getStage().getTimeline(), Column.TIMELINE.ordinal());
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
 
     myThreadsTable.getColumnModel().getColumn(Column.NAME.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
@@ -100,7 +117,7 @@ final class ThreadsView {
     myThreadsTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        Range selection = stageView.getStage().getStudioProfilers().getTimeline().getSelectionRange();
+        Range selection = stageView.getStage().getTimeline().getSelectionRange();
         HttpData data = findHttpDataUnderCursor(myThreadsTable, selection, e);
         if (data != null) {
           stageView.getStage().setSelectedConnection(data);
@@ -109,14 +126,14 @@ final class ThreadsView {
       }
     });
 
-    TooltipView.install(myThreadsTable, stageView);
+    ThreadsView.TooltipView.install(myThreadsTable, stageView);
 
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
-             .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
-               timelineRenderer.updateRows();
-               myThreadsTable.repaint();
-             });
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
+        timelineRenderer.updateRows();
+        myThreadsTable.repaint();
+      });
   }
 
   @NotNull
@@ -223,7 +240,7 @@ final class ThreadsView {
     @NotNull private final NetworkProfilerStage myStage;
 
     TimelineRenderer(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
-      super(stage.getStudioProfilers().getTimeline());
+      super(stage.getTimeline());
       myTable = table;
       myConnectionsInfo = new ArrayList<>();
       myStage = stage;
@@ -266,7 +283,7 @@ final class ThreadsView {
     private ConnectionsInfoComponent(@NotNull JTable table, @NotNull List<HttpData> data, @NotNull NetworkProfilerStage stage) {
       myStage = stage;
       myDataList = data;
-      myRange = stage.getStudioProfilers().getTimeline().getSelectionRange();
+      myRange = stage.getTimeline().getSelectionRange();
       setFont(ProfilerFonts.SMALL_FONT);
       setForeground(Color.BLACK);
       setBackground(ProfilerColors.DEFAULT_BACKGROUND);
@@ -351,12 +368,12 @@ final class ThreadsView {
 
     private TooltipView(@NotNull JTable table, @NotNull NetworkProfilerStageView stageView) {
       myTable = table;
-      myRange = stageView.getStage().getStudioProfilers().getTimeline().getSelectionRange();
+      myRange = stageView.getStage().getTimeline().getSelectionRange();
 
       myContent = new JPanel(new TabularLayout("*", "*"));
       myContent.setBorder(TOOLTIP_BORDER);
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myContent.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+      myContent.setFont(com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT);
 
       myTooltipComponent = new TooltipComponent.Builder(myContent, table, stageView.getProfilersView().getComponent()).build();
       myTooltipComponent.registerListenersOn(table);
@@ -415,7 +432,7 @@ final class ThreadsView {
     private static JLabel newTooltipLabel(String text) {
       JLabel label = new JLabel(text);
       label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-      label.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+      label.setFont(com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT);
       return label;
     }
 

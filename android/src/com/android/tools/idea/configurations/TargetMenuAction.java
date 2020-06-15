@@ -156,7 +156,7 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {

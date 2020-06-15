@@ -17,8 +17,8 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.computeUserDataIfAbsent
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -77,7 +77,7 @@ class AndroidManifestClassPsiElementFinder(private val project: Project) : PsiEl
 
   fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
     return if (facet.hasManifestClass()) {
-      facet.getUserData(MODULE_MANIFEST_CLASS) ?: facet.putUserDataIfAbsent(MODULE_MANIFEST_CLASS, ManifestClass(facet, PsiManager.getInstance(project)))
+      facet.computeUserDataIfAbsent(MODULE_MANIFEST_CLASS) { ManifestClass(facet, PsiManager.getInstance(project)) }
     } else {
       null
     }
@@ -85,7 +85,7 @@ class AndroidManifestClassPsiElementFinder(private val project: Project) : PsiEl
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
     return if (findAndroidFacetsWithPackageName(qualifiedName).isNotEmpty()) {
-      project.service<AndroidLightPackage.InstanceCache>().get(qualifiedName)
+      AndroidLightPackage.withName(qualifiedName, project)
     }
     else {
       null

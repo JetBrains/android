@@ -185,10 +185,12 @@ public class TransportServiceProxyTest {
       receivedEvents.stream().filter(e -> e.getKind() == Common.Event.Kind.ECHO && e.getGroupId() == 3 && e.getIsEnded()).count())
       .isEqualTo(1);
     assertThat(
-      receivedEvents.stream().filter(e -> e.getKind() == Common.Event.Kind.PROCESS && e.getGroupId() == 1 && e.getIsEnded()).count())
+      receivedEvents.stream()
+        .filter(e -> e.getKind() == Common.Event.Kind.PROCESS && e.getGroupId() == 1 && e.getPid() == 1 && e.getIsEnded()).count())
       .isEqualTo(1);
     assertThat(
-      receivedEvents.stream().filter(e -> e.getKind() == Common.Event.Kind.PROCESS && e.getGroupId() == 2 && e.getIsEnded()).count())
+      receivedEvents.stream()
+        .filter(e -> e.getKind() == Common.Event.Kind.PROCESS && e.getGroupId() == 2 && e.getPid() == 2 && e.getIsEnded()).count())
       .isEqualTo(1);
   }
 

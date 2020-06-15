@@ -61,34 +61,34 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private val valueControlTypeProvider: ControlTypeProvider<P>,
   private val valueEditorProvider: EditorProvider<P>) : PTableCellEditorProvider {
 
-  private val defaultEditor = DefaultPTableCellEditor()
+  private val defaultNameEditor = DefaultNameTableCellEditor()
+  private val nullEditor = DefaultPTableCellEditor()
   private val editor = PTableCellEditorImpl()
 
-  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
-    when (column) {
-      PTableColumn.NAME -> {
-        if (!nameType.isInstance(property)) {
-          return defaultEditor
-        }
-        val newProperty = nameType.cast(property)
-        val controlType = nameControlTypeProvider(newProperty)
-        val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
-        val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
-        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
-      }
-
-      PTableColumn.VALUE -> {
-        if (!valueType.isInstance(property)) {
-          return defaultEditor
-        }
-        val valueProperty = valueType.cast(property)
-        val controlType = valueControlTypeProvider(valueProperty)
-        val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
-        val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
-        newModel.isExpandedTableItem = (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
-        editor.nowEditing(table, property, column, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
-      }
+  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor =
+    when {
+      column == PTableColumn.NAME && nameType.isInstance(property) -> configureEditorForNewPropertyItemName(table, property)
+      column == PTableColumn.NAME && property is PTableGroupItem -> defaultNameEditor.nowEditing(table, property)
+      column == PTableColumn.VALUE && valueType.isInstance(property) -> configureEditorPropertyValue(table, property)
+      else -> nullEditor
     }
+
+  private fun configureEditorForNewPropertyItemName(table: PTable, property: PTableItem): PTableCellEditor {
+    val newProperty = nameType.cast(property)
+    val controlType = nameControlTypeProvider(newProperty)
+    val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
+    val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
+    editor.nowEditing(table, property, PTableColumn.NAME, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
+    return editor
+  }
+
+  private fun configureEditorPropertyValue(table: PTable, property: PTableItem): PTableCellEditor {
+    val valueProperty = valueType.cast(property)
+    val controlType = valueControlTypeProvider(valueProperty)
+    val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
+    val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
+    newModel.isExpandedTableItem = (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
+    editor.nowEditing(table, property, PTableColumn.VALUE, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
     return editor
   }
 }
@@ -170,7 +170,11 @@ class PTableCellEditorImpl : PTableCellEditor {
 }
 
 @VisibleForTesting
-class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: Color?): JPanel(BorderLayout()) {
+class EditorPanel(
+  val editor: JComponent,
+  withBorder: Border,
+  backgroundColor: Color?
+): JPanel(BorderLayout()), PTableVariableHeightCellEditor {
 
   init {
     add(editor, BorderLayout.CENTER)
@@ -181,4 +185,11 @@ class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: C
   override fun requestFocus() {
     editor.requestFocus()
   }
+
+  override val isCustomHeight: Boolean
+    get() = (editor as? PTableVariableHeightCellEditor)?.isCustomHeight ?: false
+
+  override var updateRowHeight: () -> Unit
+    get() = (editor as? PTableVariableHeightCellEditor)?.updateRowHeight ?: {}
+    set(value) { (editor as? PTableVariableHeightCellEditor)?.updateRowHeight = value }
 }

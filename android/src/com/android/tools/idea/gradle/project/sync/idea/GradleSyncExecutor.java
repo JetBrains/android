@@ -27,14 +27,14 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskN
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -51,12 +51,13 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -64,20 +65,25 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.SystemProperties;
+import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.kotlin.idea.scripting.gradle.importing.KotlinDslScriptModelKt;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 public class GradleSyncExecutor {
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
@@ -86,7 +92,6 @@ public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
   @NotNull public static final Key<GradleSyncListener> LISTENER_KEY = new Key<>("GradleSyncListener");
-  @NotNull public static final Key<Boolean> SOURCE_GENERATION_KEY = new Key<>("android.sourcegeneration.enabled");
   @NotNull public static final Key<Boolean> SINGLE_VARIANT_KEY = new Key<>("android.singlevariant.enabled");
 
   public GradleSyncExecutor(@NotNull Project project) {
@@ -95,7 +100,6 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    boolean shouldBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
@@ -104,10 +108,7 @@ public class GradleSyncExecutor {
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache) && !areCachedFilesMissing(myProject)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
           setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = shouldBuildAfterSync;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
-
-          setSkipAndroidPluginUpgrade(request, setupRequest);
 
           // Create a new taskId when using cache
           ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
@@ -126,32 +127,39 @@ public class GradleSyncExecutor {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = shouldBuildAfterSync && !GradleSyncState.isCompoundSync();
-    setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
-    // We enable compound sync if we have been requested to generate sources and compound sync is enabled.
-    boolean shouldUseCompoundSync = shouldBuildAfterSync && GradleSyncState.isCompoundSync();
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
-    setProjectUserDataForAndroidGradleProjectResolver(shouldUseCompoundSync, shouldUseSingleVariantSync, listener);
-
-    setSkipAndroidPluginUpgrade(request, setupRequest);
+    setProjectUserDataForAndroidGradleProjectResolver(shouldUseSingleVariantSync, listener);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
-    createGradleProjectSettingsIfNotExist(myProject);
+    // FYI: some info on linked projects: https://www.jetbrains.com/help/idea/gradle.html#link_gradle_project
     Set<String> androidProjectCandidatesPaths = GradleSettings.getInstance(myProject)
       .getLinkedProjectsSettings()
       .stream()
       .map(ExternalProjectSettings::getExternalProjectPath)
       .collect(Collectors.toSet());
 
+    // We have no Gradle project linked, attempt to link one using Intellijs Projects root path.
     if (androidProjectCandidatesPaths.isEmpty()) {
-      GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);
-      return;
+      // auto-discovery of the gradle project located in the IDE Project.basePath can not be applied to IntelliJ IDEA
+      // because IDEA still supports working with gradle projects w/o built-in gradle integration
+      // (e.g. using generated project by 'idea' gradle plugin)
+      if (IdeInfo.getInstance().isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) { // FIXME-ank3
+        String foundPath = attemptToLinkGradleProject(myProject);
+        if (foundPath != null) {
+          androidProjectCandidatesPaths.add(foundPath);
+        }
+        else {
+          // Linking failed.
+          GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);
+          return;
+        }
+      }
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
@@ -164,27 +172,41 @@ public class GradleSyncExecutor {
     }
   }
 
-  public static void createGradleProjectSettingsIfNotExist(@NotNull Project project) {
-    GradleSettings gradleSettings = GradleSettings.getInstance(project);
-    Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
-    if (projectsSettings.isEmpty()) {
-      if (project.getBasePath() != null && GradleProjectImportUtil.canOpenGradleProject(project.getBaseDir())) {
-        GradleProjectSettings projectSettings = new GradleProjectSettings();
-        // As of now, mismatch between IDE JDK and Gradle JDK will result in StreamCorruptedException => use the same JDK in Idea and Gradle
-        // (see https://github.com/gradle/gradle/issues/8285)
-        projectSettings.setGradleJvm(ExternalSystemJdkUtil.USE_INTERNAL_JAVA);
-        String externalProjectPath = toCanonicalPath(project.getBasePath());
-        projectSettings.setExternalProjectPath(externalProjectPath);
-        gradleSettings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));
-      }
+  /**
+   * Attempts to find and link a Gradle project based at the current Project's base path.
+   * <p>
+   * This method should only be called when running and Android Studio since intellij needs to support legacy Gradle projects
+   * which should not be linked via the ExternalSystem API.
+   *
+   * @param project the current project
+   * @return the canonical path to the project that has just been linked if successful, null otherwise.
+   */
+  @Nullable
+  public static String attemptToLinkGradleProject(@NotNull Project project) {
+    @SystemIndependent String projectBasePath = project.getBasePath();
+    // We can't link anything if we have no path
+    if (projectBasePath == null) {
+      return null;
     }
-  }
 
-  private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
-                                                  @NotNull PostSyncProjectSetup.Request setupRequest) {
-    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
-      setupRequest.skipAndroidPluginUpgrade = true;
+    String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
+    VirtualFile projectRootFolder = project.getBaseDir();
+    projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
+
+    if (!GradleProjectImportUtil.canOpenGradleProject(projectRootFolder)) {
+      return null;
     }
+
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    @NotNull GradleVersion gradleVersion = projectSettings.resolveGradleVersion();
+    @NotNull GradleSettings settings = GradleSettings.getInstance(project);
+    GradleProjectImportUtil.setupGradleSettings(settings);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, Paths.get(externalProjectPath));
+    GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, gradleVersion);
+    GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
+    //noinspection unchecked
+    ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
+    return externalProjectPath;
   }
 
   /**
@@ -192,14 +214,11 @@ public class GradleSyncExecutor {
    * We use the projects user data as a way of passing this information across since the resolver is create by the
    * external system infrastructure.
    *
-   * @param shouldGenerateSources whether or not sources should be generated
-   * @param singleVariant         whether or not only a single variant should be synced
-   * @param listener              the listener that is being used for the current sync.
+   * @param singleVariant whether or not only a single variant should be synced
+   * @param listener      the listener that is being used for the current sync.
    */
-  private void setProjectUserDataForAndroidGradleProjectResolver(boolean shouldGenerateSources,
-                                                                 boolean singleVariant,
+  private void setProjectUserDataForAndroidGradleProjectResolver(boolean singleVariant,
                                                                  @Nullable GradleSyncListener listener) {
-    myProject.putUserData(SOURCE_GENERATION_KEY, shouldGenerateSources);
     myProject.putUserData(SINGLE_VARIANT_KEY, singleVariant);
     myProject.putUserData(LISTENER_KEY, listener);
   }
@@ -211,10 +230,18 @@ public class GradleSyncExecutor {
     String projectPath = myProject.getBasePath();
     assert projectPath != null;
 
-    setProjectUserDataForAndroidGradleProjectResolver(false, false, null);
+    setProjectUserDataForAndroidGradleProjectResolver(false, null);
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
+    // Android Studio 4.0 ONLY - Cleanup Kotlin dsl script models these are cleared normally in a data service that is not called by fetch
+    // models.
+    try {
+      KotlinDslScriptModelKt.getKOTLIN_DSL_SCRIPT_MODELS(new DataNode(ProjectKeys.PROJECT, new ProjectData(SYSTEM_ID, "", "", ""), null))
+        .clear();
+    } catch (Exception e) {
+      // Ignore everything, this hack should never throw
+    }
 
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
 
@@ -262,6 +289,9 @@ public class GradleSyncExecutor {
       rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
         for (OrderRootType type : OrderRootType.getAllTypes()) {
           List<String> expectedUrls = asList(entry.getUrls(type));
+          if (expectedUrls.isEmpty()) {
+            continue;
+          }
           // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
           // all files are missing.
           if (type.equals(CLASSES)) {

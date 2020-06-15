@@ -23,9 +23,11 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,6 +50,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -68,6 +71,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
   static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
+
   /**
    * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
    * example a custom view generates an error, it will go to the IDE log, which will interpret it as an
@@ -78,7 +82,25 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
    */
   @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
   private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog") ||
-                                         ApplicationManager.getApplication().isUnitTestMode();
+                                         (ApplicationManager.getApplication() != null &&
+                                          ApplicationManager.getApplication().isUnitTestMode());
+
+  /**
+   * Maximum number of RenderProblems that the logger will save. After hitting this limit, no more errors will be added and an additional
+   * "too many problems" RenderProblem will be added.
+   */
+  @VisibleForTesting
+  static final int RENDER_PROBLEMS_LIMIT =
+    Integer.getInteger("com.android.tools.idea.rendering.RENDER_PROBLEMS_LIMIT", 100);
+
+  /**
+   * Maximum size allowed for StackOverflowError exceptions reported by Layoutlib. The exception stacktrace will be rewritten to
+   * have STACK_OVERFLOW_TRACE_LIMIT/2 elements from the top and STACK_OVERFLOW_TRACE_LIMIT/2 from the bottom.
+   */
+  @VisibleForTesting
+  static final int STACK_OVERFLOW_TRACE_LIMIT =
+    Integer.getInteger("com.android.tools.idea.rendering.STACK_OVERFLOW_TRACE_LIMIT", 100);
+
   private static Set<String> ourIgnoredFidelityWarnings;
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
@@ -90,6 +112,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   private Multiset<String> myTags;
   @GuardedBy("myMessages")
   private final List<RenderProblem> myMessages = new ArrayList<>();
+  @GuardedBy("myMessages")
+  private int myMessagesOverflowCounter;
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
@@ -214,7 +238,12 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   @Override
   public void addMessage(@NotNull RenderProblem message) {
     synchronized (myMessages) {
-      myMessages.add(message);
+      if (myMessages.size() < RENDER_PROBLEMS_LIMIT) {
+        myMessages.add(message);
+      }
+      else {
+        myMessagesOverflowCounter++;
+      }
     }
 
     logMessageToIdeaLog(XmlUtils.fromXmlAttributeValue(message.getHtml()));
@@ -222,11 +251,19 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
 
   @NotNull
   public List<RenderProblem> getMessages() {
-    ImmutableList<RenderProblem> copy;
+    ImmutableList.Builder<RenderProblem> builder = ImmutableList.builder();
+    int overflowCounter;
     synchronized (myMessages) {
-      copy = ImmutableList.copyOf(myMessages);
+      builder.addAll(myMessages);
+      overflowCounter = myMessagesOverflowCounter;
     }
-    return copy;
+
+    if (overflowCounter > 0) {
+      builder.add(RenderProblem.createPlain(WARNING, String.format(Locale.US,
+                                                                   "Too many errors (%d more errors not displayed)", overflowCounter)));
+    }
+
+    return builder.build();
   }
 
   /**
@@ -275,7 +312,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     if (LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
         && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null && facet.requiresAndroidModel()) {
+      if (facet != null && AndroidModel.isRequired(facet)) {
         description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
                       "build is complete.\n\n" + description;
         tag = TAG_STILL_BUILDING;
@@ -284,6 +321,33 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     }
 
     addMessage(RenderProblem.createPlain(ERROR, description).tag(tag));
+  }
+
+  /**
+   * If the given {@link StackOverflowError} has a stacktrace longer then {@link RenderLogger#STACK_OVERFLOW_TRACE_LIMIT}, the stacktrace
+   * will be summarized by keeping the beginning and end of it and adding an "omitted:omitted" line in the middle.
+   * The resulting stacktrace will be at most {@link RenderLogger#STACK_OVERFLOW_TRACE_LIMIT} + 1 elements long.
+   */
+  @NotNull
+  private static StackOverflowError summarizeStackOverFlowException(@NotNull StackOverflowError stackOverflowError) {
+    StackTraceElement[] stackTraceElements = stackOverflowError.getStackTrace();
+    int traceSize = stackTraceElements.length;
+    if (traceSize < STACK_OVERFLOW_TRACE_LIMIT) {
+      return stackOverflowError;
+    }
+
+    // The stack trace is too large, summarize
+    int elementsToCopy = STACK_OVERFLOW_TRACE_LIMIT / 2;
+    // We save STACK_OVERFLOW_TRACE_LIMIT/2 elements from the beginning and the same from the end of the old stacktrace. In the middle
+    // we add a fake element saying "omitted:omitted"
+    StackTraceElement[] newStackTraceElements = new StackTraceElement[elementsToCopy * 2 + 1];
+    newStackTraceElements[elementsToCopy] = new StackTraceElement("omitted", "omitted", "omitted", -1);
+    System.arraycopy(stackTraceElements, 0, newStackTraceElements, 0, elementsToCopy);
+    System
+      .arraycopy(stackTraceElements, stackTraceElements.length - elementsToCopy, newStackTraceElements, elementsToCopy + 1, elementsToCopy);
+    stackOverflowError.setStackTrace(newStackTraceElements);
+
+    return stackOverflowError;
   }
 
   @Override
@@ -433,6 +497,10 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
         }
         addMessage(problem);
         return;
+      }
+      else if (throwable instanceof StackOverflowError) {
+        // StackOverflowError exceptions can have very large stack traces, limit the size when needed
+        throwable = summarizeStackOverFlowException((StackOverflowError)throwable);
       }
 
       myHaveExceptions = true;
@@ -628,11 +696,21 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     myResourceClass = resourceClass;
   }
 
+  /**
+   * Returns all the logged classes with incorrect format during rendering. If any of the {@link Throwable}s stack traces is
+   * longer than 100 elements, it will be summarized by only keeping the first 50 and last 50 elements and one element in the
+   * middle to indicate the exception stack trace has been summarized.
+   */
   @NotNull
   public Map<String, Throwable> getClassesWithIncorrectFormat() {
     return myClassesWithIncorrectFormat != null ? myClassesWithIncorrectFormat : Collections.emptyMap();
   }
 
+  /**
+   * Returns all the logged broken classes during rendering. If any of the {@link Throwable}s stack traces is
+   * longer than 100 elements, it will be summarized by only keeping the first 50 and last 50 elements and one element in the
+   * middle to indicate the exception stack trace has been summarized.
+   */
   @NotNull
   public Map<String, Throwable> getBrokenClasses() {
     return myBrokenClasses != null ? myBrokenClasses : Collections.emptyMap();
@@ -676,6 +754,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     if (myBrokenClasses == null) {
       myBrokenClasses = new HashMap<>();
     }
+
     myBrokenClasses.put(className, exception);
     logMessageToIdeaLog("Broken class " + className, exception);
   }
@@ -683,5 +762,48 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
+  }
+
+  /**
+   * Android framework log priority levels.
+   * They are defined in system/core/liblog/include/android/log.h in the Android Framework code.
+   */
+  private static final int ANDROID_LOG_UNKNOWN = 0;
+  private static final int ANDROID_LOG_DEFAULT = 1;
+  private static final int ANDROID_LOG_VERBOSE = 2;
+  private static final int ANDROID_LOG_DEBUG = 3;
+  private static final int ANDROID_LOG_INFO = 4;
+  private static final int ANDROID_LOG_WARN = 5;
+  private static final int ANDROID_LOG_ERROR = 6;
+  private static final int ANDROID_LOG_FATAL = 7;
+  private static final int ANDROID_LOG_SILENT = 8;
+
+  @Override
+  public void logAndroidFramework(int priority, String tag, String message) {
+    if (StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()) {
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        String fullMessage = tag + ": " + message;
+        switch (priority) {
+          case ANDROID_LOG_VERBOSE:
+          case ANDROID_LOG_DEBUG:
+            LOG.debug(fullMessage);
+            break;
+          case ANDROID_LOG_INFO:
+            LOG.info(fullMessage);
+            break;
+          case ANDROID_LOG_WARN:
+          case ANDROID_LOG_ERROR:
+            LOG.warn(fullMessage);
+            break;
+          case ANDROID_LOG_FATAL:
+            LOG.error(fullMessage);
+            break;
+        }
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
+    }
   }
 }

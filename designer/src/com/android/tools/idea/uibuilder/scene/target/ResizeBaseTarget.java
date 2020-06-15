@@ -162,7 +162,9 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform,
+                     @NotNull ScenePicker picker,
+                     @JdkConstants.InputEventMask int modifiersEx) {
     if (isHittable()) {
       int halfSize = DrawResize.SIZE / 2;
       picker.addRect(this, 0, transform.getSwingXDip(myLeft) - halfSize,

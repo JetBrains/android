@@ -17,8 +17,7 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DoNotTrace
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
-import com.intellij.util.ref.DebugReflectionUtil
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
 import java.lang.ref.Reference
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -35,22 +34,16 @@ import java.lang.reflect.Modifier
  * throughout its lifetime, even though its referent can be replaced with a different object (when
  * the list needs to grow).
  */
-open class DefaultObjectExpander(g: HeapGraph, val shouldOmitEdge: (Any, Field, Any) -> Boolean =
+open class DefaultObjectExpander(val shouldOmitEdge: (Any, Field, Any) -> Boolean =
   { receiver, field, value -> value is DoNotTrace // avoid expanding BLeak internals
                               || receiver.javaClass.name == "com.intellij.openapi.util.objectTree.ObjectNode" && field.name == "myParent"
                               || (!FOLLOW_WEAK_REFS && receiver is Reference<*> && field.name in listOf("referent", "discovered")) // only expand Weak/Soft refs if that's enabled
-  }): Expander(g) {
-
-  inner class FieldLabel(val field: Field): Label() {
-    override fun signature() = field.name
-    override fun equals(other: Any?) = other is FieldLabel && field == other.field
-    override fun hashCode(): Int = field.hashCode()
-  }
+  }): Expander() {
 
   override fun canExpand(obj: Any) = true
 
   override fun expand(n: Node) {
-    for (field in DebugReflectionUtil.getAllFields(
+    for (field in ReflectionUtil.getAllFields(
       n.type).filter { it.modifiers and Modifier.STATIC == 0 }) {
       val value = field.get(n.obj)
       if (value != null && !shouldOmitEdge(n.obj, field, value)) {

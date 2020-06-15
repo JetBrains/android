@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThrowableRunnable
@@ -26,7 +26,16 @@ private fun ComposeFileEditorProvider.accept(file: PsiFile) =
   accept(file.project, file.virtualFile)
 
 class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+  override fun tearDown() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW.clearOverride()
+
+    super.tearDown()
+  }
+
   fun testAcceptFile() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+
     val provider = ComposeFileEditorProvider()
 
     @Language("kotlin")
@@ -44,8 +53,8 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
 
     @Language("kotlin")
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
-      import com.android.tools.preview.Preview
-      import com.android.tools.preview.Configuration
+      import androidx.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.Configuration
       import androidx.compose.Composable
 
       @Preview
@@ -60,14 +69,41 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
   }
 
   /**
-   * [ComposeFileEditorProvider#accept] might be called on dumb mode. Make sure that we do not run any smart mode operations.
+   * This test ensures that we fail if we disable source code editor back.
    */
-  fun testAcceptOnDumbMode() {
+  fun testDoesNotAcceptByDefault() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+    StudioFlags.COMPOSE_PREVIEW.override(false)
+
     val provider = ComposeFileEditorProvider()
 
     @Language("kotlin")
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
-      import com.android.tools.preview.Preview
+      import androidx.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.Configuration
+      import androidx.compose.Composable
+
+      @Preview
+      @Composable
+      fun PreviewTest() {
+
+      }
+    """.trimIndent())
+
+    assertFalse(provider.accept(previewFile))
+  }
+
+  /**
+   * [ComposeFileEditorProvider#accept] might be called on dumb mode. Make sure that we do not run any smart mode operations.
+   */
+  fun testAcceptOnDumbMode() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+
+    val provider = ComposeFileEditorProvider()
+
+    @Language("kotlin")
+    val previewFile = myFixture.addFileToProject("src/Preview.kt", """
+      import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Preview
@@ -90,11 +126,13 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
   }
 
   fun testOnlyAcceptKotlinFiles() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+
     val provider = ComposeFileEditorProvider()
 
     @Language("java")
     val previewFile = myFixture.addFileToProject("src/KOnly.java", """
-      import com.android.tools.preview.Preview;
+      import androidx.ui.tooling.preview.Preview;
       import androidx.compose.Composable;
 
       public class KOnly {

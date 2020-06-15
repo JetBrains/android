@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,8 +80,13 @@ public final class NdkToolchainMissingABIHandler extends BaseSyncErrorHandler {
     if (version == null) {
       return false;
     }
+    return isVersionOver3dot0(version);
+  }
+
+  @VisibleForTesting
+  static boolean isVersionOver3dot0(@NotNull String version) {
     GradleCoordinate versionOnly = GradleCoordinate.parseVersionOnly(version);
-    return versionOnly.getMajorVersion() >= 3 && versionOnly.getMinorVersion() > 0;
+    return (versionOnly.getMajorVersion() > 3) || (versionOnly.getMajorVersion() == 3 && versionOnly.getMinorVersion() > 0);
   }
 
   /**

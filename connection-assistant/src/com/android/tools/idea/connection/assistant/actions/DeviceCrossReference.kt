@@ -38,7 +38,7 @@ fun crossReference(usbDevices: Collection<UsbDevice>,
                    adbDevices: Collection<AdbDevice>): List<DeviceCrossReference> {
   val snToDdms = ddmsDevices.groupBy { it.serialNumber }
   val snToAdb = adbDevices.groupBy { it.serial }
-  val snToUsb = usbDevices.groupBy { it.iSerial }
+  val snToUsb = usbDevices.groupBy { it.serialNumber }
 
   val serialNumbers = (snToAdb.keys + snToDdms.keys + snToUsb.keys).filterNotNull().toSet()
 

@@ -1,5 +1,4 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:include href="android-kotlin-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/android-kotlin-extensions.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensionPoints>
@@ -29,6 +28,11 @@
         <intentionAction>
             <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
             <category>Kotlin Android</category>
+        </intentionAction>
+
+        <intentionAction>
+            <className>org.jetbrains.kotlin.android.intention.ComposeSurroundWithWidget</className>
+            <category>Compose Android</category>
         </intentionAction>
 
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
@@ -92,15 +96,10 @@
         <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
+        <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
     </extensions>
 
-    <extensions defaultExtensionNs="org.jetbrains.android">
-        <androidLintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
-    </extensions>
-
-    <extensions defaultExtensionNs="com.android.gradle.sync">
-        <postSyncModuleSetupStep implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidModuleSetupStep"/>
-        <extraGradleSyncJavaModels implementation="org.jetbrains.kotlin.android.sync.ng.KotlinSyncModels$KotlinJavaSyncModels"/>
-        <extraGradleSyncAndroidModels implementation="org.jetbrains.kotlin.android.sync.ng.KotlinSyncModels$KotlinAndroidSyncModels"/>
+    <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
+        <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
     </extensions>
 </idea-plugin>

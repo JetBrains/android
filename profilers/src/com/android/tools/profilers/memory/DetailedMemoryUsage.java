@@ -97,6 +97,10 @@ public class DetailedMemoryUsage extends MemoryUsage {
     add(myCodeSeries);
     add(myOtherSeries);
     add(myObjectsSeries);
+
+    // Listen to range changes, because others (e.g. AxisComponentModel) may adjust these
+    getMemoryRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.LINE_CHART));
+    getObjectsRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.LINE_CHART));
   }
 
   @NotNull

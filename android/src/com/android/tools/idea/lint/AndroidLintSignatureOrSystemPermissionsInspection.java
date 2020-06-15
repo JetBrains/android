@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.SignatureOrSystemDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintSignatureOrSystemPermissionsInspection extends AndroidLintInspectionBase {

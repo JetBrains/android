@@ -1,0 +1,80 @@
+<!--
+  ~ Copyright (C) 2019 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <description>
+    IDE support for running Android Lint (which despite the name is not Android specific and
+    can warn about general programming issues in Kotlin and Java source files, Gradle files, etc).
+  </description>
+
+  <resource-bundle>messages.LintBundle</resource-bundle>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.lint.common.lintIdeSupport"
+                    interface="com.android.tools.idea.lint.common.LintIdeSupport"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.lint.common.lintQuickFixProvider"
+                    interface="com.android.tools.idea.lint.common.LintIdeQuickFixProvider" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <codeInsight.linkHandler prefix="#lint/" handlerClass="com.android.tools.idea.lint.common.LintInspectionDescriptionLinkHandler"/>
+    <codeInspection.InspectionExtension implementation="com.android.tools.idea.lint.common.LintInspectionExtensionsFactory"/>
+
+    <externalAnnotator language="JAVA" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="kotlin" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="XML" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="TEXT" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="Groovy" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+    <externalAnnotator language="Properties" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
+
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintAccidentalOctal" displayName="Accidental Octal" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccidentalOctalInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintBadHostnameVerifier" displayName="Insecure HostnameVerifier" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintBadHostnameVerifierInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintCheckResult" displayName="Ignoring results" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintCheckResultInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintDefaultLocale" displayName="Implied default locale in case conversion" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintDefaultLocaleInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintEasterEgg" displayName="Code contains easter egg" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintEasterEggInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintExpensiveAssertion" displayName="Expensive Assertions" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintExpensiveAssertionInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleDependency" displayName="Obsolete Gradle Dependency" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleDeprecatedConfiguration" displayName="Deprecated Gradle Configuration" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleDynamicVersion" displayName="Gradle Dynamic Version" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleIdeError" displayName="Gradle IDE Support Issues" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintGradleIdeErrorInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGradlePath" displayName="Gradle Path Issues" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintGradlePathInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintIgnoreWithoutReason" displayName="@Ignore without Reason" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintIgnoreWithoutReasonInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintImplicitSamInstance" displayName="Implicit SAM Instances" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintImplicitSamInstanceInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintKotlinPropertyAccess" displayName="Kotlin Property Access" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintKotlinPropertyAccessInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintLambdaLast" displayName="Lambda Parameters Last" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintLambdaLastInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintLocalSuppress" displayName="@SuppressLint on invalid element" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintLocalSuppressInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMergeMarker" displayName="Code contains merge marker" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintMergeMarkerInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingSuperCall" displayName="Missing Super Call" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintMissingSuperCallInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintNewerVersionAvailable" displayName="Newer Library Versions Available" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintNewerVersionAvailableInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintNoHardKeywords" displayName="No Hard Kotlin Keywords" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintNoHardKeywordsInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintNotInterpolated" displayName="Incorrect Interpolation" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintNotInterpolatedInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintPropertyEscape" displayName="Incorrect property escapes" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintPropertyEscapeInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintProxyPassword" displayName="Proxy Password in Cleartext" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintProxyPasswordInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintRange" displayName="Outside Range" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintRangeInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintRestrictedApi" displayName="Restricted API" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintRestrictedApiInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSecureRandom" displayName="Using a fixed seed with SecureRandom" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintSecureRandomInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintShiftFlags" displayName="Dangerous Flag Constant Declaration" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintShiftFlagsInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSimpleDateFormat" displayName="Implied locale in date format" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintSimpleDateFormatInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSQLiteString" displayName="Using STRING instead of TEXT" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintSQLiteStringInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintStopShip" displayName="Code contains STOPSHIP marker" bundle="messages.LintBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintStopShipInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSupportAnnotationUsage" displayName="Incorrect support annotation usage" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintSupportAnnotationUsageInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUnknownNullness" displayName="Unknown nullness" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUnknownNullnessInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUseValueOf" displayName="Should use valueOf instead of new" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUsingHttp" displayName="Using HTTP instead of HTTPS" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUsingHttpInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" displayName="Visible Only For Tests" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintVisibleForTestsInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWeekBasedYear" displayName="Week Based Year" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWeekBasedYearInspection"/>
+
+  </extensions>
+</idea-plugin>

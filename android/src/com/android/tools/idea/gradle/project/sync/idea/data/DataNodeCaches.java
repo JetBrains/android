@@ -101,7 +101,7 @@ public class DataNodeCaches {
     Map<String, DataNode<ModuleData>> mapping = Maps.newHashMap();
     for (DataNode<ModuleData> moduleDataNode : moduleDataNodes) {
       ModuleData data = moduleDataNode.getData();
-      mapping.put(data.getExternalName(), moduleDataNode);
+      mapping.put(data.getInternalName(), moduleDataNode);
     }
     return mapping;
   }

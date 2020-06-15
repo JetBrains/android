@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.StringAuthLeakDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintAuthLeakInspection extends AndroidLintInspectionBase {
   public AndroidLintAuthLeakInspection() {
-    super(AndroidBundle.message("android.lint.inspections.credential.leak"), StringAuthLeakDetector.AUTH_LEAK);
+    super(AndroidBundle.message("android.lint.inspections.auth.leak"), StringAuthLeakDetector.AUTH_LEAK);
   }
 }

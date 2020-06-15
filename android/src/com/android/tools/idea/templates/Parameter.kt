@@ -17,11 +17,19 @@ package com.android.tools.idea.templates
 
 import com.android.SdkConstants
 import com.android.builder.model.SourceProvider
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.npw.assetstudio.AssetStudioUtils
-import com.android.tools.idea.res.*
+import com.android.tools.idea.res.IdeResourceNameValidator
+import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
+import com.android.tools.idea.templates.Template.ATTR_DEFAULT
+import com.android.tools.idea.templates.Template.ATTR_ENABLED
+import com.android.tools.idea.templates.Template.ATTR_HELP
+import com.android.tools.idea.templates.Template.ATTR_ID
+import com.android.tools.idea.templates.Template.ATTR_NAME
+import com.android.tools.idea.templates.Template.ATTR_SUGGEST
+import com.android.tools.idea.templates.Template.ATTR_TYPE
+import com.android.tools.idea.templates.Template.ATTR_VISIBILITY
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -31,16 +39,14 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
-import org.w3c.dom.Element
-
-import java.io.File
-import java.util.*
-
-import com.android.tools.idea.templates.Template.*
-import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.annotations.SystemIndependent
+import org.w3c.dom.Element
+import java.io.File
+import java.util.EnumSet
+import java.util.Locale
+import com.android.tools.idea.wizard.template.Constraint
+import org.jetbrains.kotlin.idea.stubindex.KotlinTopLevelFunctionFqnNameIndex
 
 /**
  * Parameter represents an external input to a template. It consists of an ID used to refer to it within the template, human-readable
@@ -89,61 +95,6 @@ class Parameter(
     SEPARATOR;
   }
 
-  /**
-   * Constraints that can be applied to a parameter which helps the UI add a validator etc for user input.
-   * These are typically combined into a set of constraints via an EnumSet.
-   */
-  enum class Constraint {
-    /**
-     * This value must be unique. This constraint usually only makes sense when other constraints are specified, such as [LAYOUT],
-     * which means that the parameter should designate a name that does not represent an existing layout resource name.
-     */
-    UNIQUE,
-    /**
-     * This value must already exist. This constraint usually only makes sense when other constraints are specified, such as [LAYOUT],
-     * which means that the parameter should designate a name that already exists as a resource name.
-     */
-    EXISTS,
-    /** The associated value must not be empty. */
-    NONEMPTY,
-    /** The associated value should represent a fully qualified activity class name. */
-    ACTIVITY,
-    /** The associated value should represent an API level. */
-    API_LEVEL,
-    /** The associated value should represent a valid class name. */
-    CLASS,
-    /** The associated value should represent a valid package name. */
-    PACKAGE,
-    /** The associated value should represent a valid Android application package name. */
-    APP_PACKAGE,
-    /** The associated value should represent a valid Module name. */
-    MODULE,
-    /** The associated value should represent a valid layout resource name. */
-    LAYOUT,
-    /** The associated value should represent a valid drawable resource name. */
-    DRAWABLE,
-    /** The associated value should represent a valid navigation resource name. */
-    NAVIGATION,
-    /** The associated value should represent a valid values file name. */
-    VALUES,
-    /** The associated value should represent a valid id resource name. */
-    ID,
-    /** The associated value should represent a valid source directory name. */
-    SOURCE_SET_FOLDER,
-    /** The associated value should represent a valid string resource name. */
-    STRING,
-    /**  The associated value should represent a valid URI authority. Format: [userinfo@]host[:port] */
-    URI_AUTHORITY;
-
-    fun toResourceFolderType(): ResourceFolderType = when (this) {
-      DRAWABLE -> ResourceFolderType.DRAWABLE
-      STRING, VALUES -> ResourceFolderType.VALUES
-      LAYOUT -> ResourceFolderType.LAYOUT
-      NAVIGATION -> ResourceFolderType.NAVIGATION
-      else -> throw IllegalArgumentException("There is not matching ResourceFolderType for $this constraint")
-    }
-  }
-
   init {
     val typeName = element.getAttribute(ATTR_TYPE)
     assert(typeName != null && typeName.isNotEmpty()) { ATTR_TYPE }
@@ -184,6 +135,7 @@ class Parameter(
     Constraint.CLASS -> name!! + " is not set to a valid class name"
     Constraint.PACKAGE -> name!! + " is not set to a valid package name"
     Constraint.MODULE -> name!! + " is not set to a valid module name"
+    Constraint.KOTLIN_FUNCTION -> name!! + " is not set to a valid function name"
     Constraint.ID -> name!! + " is not set to a valid id."
     Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.NAVIGATION -> {
       val rft = c.toResourceFolderType()
@@ -210,12 +162,9 @@ class Parameter(
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @VisibleForTesting
-  fun validateStringType(project: Project?,
-                         module: Module?,
-                         provider: SourceProvider?,
-                         packageName: String?,
-                         value: String?,
-                         relatedValues: Set<Any> = setOf()): Collection<Constraint> {
+  fun validateStringType(
+    project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()
+  ): Collection<Constraint> {
     if (value == null || value.isEmpty()) {
       return if (Constraint.NONEMPTY in constraints) listOf(Constraint.NONEMPTY) else listOf()
     }
@@ -229,7 +178,7 @@ class Parameter(
     fun validateConstraint(c: Constraint): Boolean = when (c) {
       Constraint.NONEMPTY -> value.isEmpty()
       Constraint.URI_AUTHORITY -> !value.matches("$URI_AUTHORITY_REGEX(;$URI_AUTHORITY_REGEX)*".toRegex())
-      Constraint.ACTIVITY, Constraint.CLASS, Constraint.PACKAGE -> !isValidFullyQualifiedJavaIdentifier(fqName)
+      Constraint.ACTIVITY, Constraint.CLASS, Constraint.PACKAGE, Constraint.KOTLIN_FUNCTION -> !isValidFullyQualifiedJavaIdentifier(fqName)
       Constraint.APP_PACKAGE -> AndroidUtils.validateAndroidPackageName(value) != null
       Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.VALUES, Constraint.NAVIGATION -> {
         val rft = c.toResourceFolderType()
@@ -247,6 +196,10 @@ class Parameter(
           val aClass = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope)
           val activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project))
           aClass != null && activityClass != null && aClass.isInheritor(activityClass, true)
+        }
+        Constraint.KOTLIN_FUNCTION -> {
+          project ?: return false
+          KotlinTopLevelFunctionFqnNameIndex.getInstance().get(fqName, project, searchScope).isNotEmpty()
         }
         Constraint.CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
         Constraint.PACKAGE, Constraint.APP_PACKAGE -> project != null && existsPackage(project, provider, value)
@@ -276,7 +229,7 @@ class Parameter(
           val modulePath: @SystemIndependent String  = AndroidRootUtil.getModuleDirPath(module) ?: return false
           val file = File(FileUtil.toSystemDependentName(modulePath), value)
           val vFile = VfsUtil.findFileByIoFile(file, true)
-          IdeaSourceProvider.getSourceProvidersForFile(facet, vFile, null).isNotEmpty()
+          getSourceProvidersForFile(facet, vFile) != null
         }
         Constraint.NONEMPTY, Constraint.ID, Constraint.STRING, Constraint.URI_AUTHORITY, Constraint.API_LEVEL -> false
         Constraint.UNIQUE, Constraint.EXISTS -> false // not applicable
@@ -295,93 +248,14 @@ class Parameter(
     return violations
   }
 
-
   /**
    * Returns true if the given stringType is non-unique when it should be.
    */
-  fun uniquenessSatisfied(project: Project?, module: Module?, provider: SourceProvider?,
-                          packageName: String?, value: String?, relatedValues: Set<Any>): Boolean =
-    !validateStringType(project, module, provider, packageName, value, relatedValues).contains(Constraint.UNIQUE)
+  fun uniquenessSatisfied(
+    project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any>
+  ): Boolean = !validateStringType(project, module, provider, packageName, value, relatedValues).contains(Constraint.UNIQUE)
 
   fun isRelated(p: Parameter): Boolean = TYPE_CONSTRAINTS.intersect(constraints).intersect(p.constraints).isNotEmpty()
 
   override fun toString(): String = "(parameter id: $id)"
-
-  companion object {
-    private const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
-
-    val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet
-      .of(Constraint.ACTIVITY, Constraint.API_LEVEL, Constraint.CLASS, Constraint.PACKAGE, Constraint.APP_PACKAGE, Constraint.MODULE,
-          Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.NAVIGATION, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING,
-          Constraint.URI_AUTHORITY)
-
-    private fun isValidFullyQualifiedJavaIdentifier(value: String) = AndroidUtils.isValidJavaPackageName(value) && value.contains('.')
-
-    fun existsResourceFile(module: Module?, resourceType: ResourceType, name: String?): Boolean {
-      if (name == null || name.isEmpty() || module == null) {
-        return false
-      }
-      val facet = AndroidFacet.getInstance(module) ?: return false
-      return AssetStudioUtils.resourceExists(facet, resourceType, name)
-    }
-
-    fun existsResourceFile(sourceProvider: SourceProvider?, module: Module?,
-                           resourceFolderType: ResourceFolderType, resourceType: ResourceType, name: String?): Boolean {
-      if (name == null || name.isEmpty() || sourceProvider == null) {
-        return false
-      }
-      val facet = if (module != null) AndroidFacet.getInstance(module) else null
-
-      return sourceProvider.resDirectories.any { resDir ->
-        if (facet != null) {
-          val virtualResDir = VfsUtil.findFileByIoFile(resDir, false) ?: return@any false
-          val folderRepository = ResourceFolderRegistry.getInstance(facet.module.project).get(facet, virtualResDir)
-          val resourceItemList = folderRepository.getResources(ResourceNamespace.TODO(), resourceType, name)
-          resourceItemList.isNotEmpty()
-        }
-        else {
-          existsResourceFile(resDir, resourceFolderType, name)
-        }
-      }
-    }
-
-    fun existsResourceFile(resDir: File, resourceType: ResourceFolderType, name: String): Boolean {
-      val resTypes = resDir.listFiles() ?: return false
-      return resTypes.filter { it.isDirectory && resourceType == ResourceFolderType.getFolderType(it.name) }.any {
-        it.listFiles()?.any { f -> getNameWithoutExtensions(f).equals(name, ignoreCase = true) } ?: false
-      }
-    }
-
-    private fun getNameWithoutExtensions(f: File): String = f.name.dropLastWhile { it != '.' }.removeSuffix(".")
-
-    fun existsClassFile(project: Project?, searchScope: GlobalSearchScope,
-                        sourceProvider: SourceProvider?, fullyQualifiedClassName: String): Boolean {
-      if (project == null) {
-        return false
-      }
-      if (sourceProvider == null) {
-        return searchScope !== GlobalSearchScope.EMPTY_SCOPE &&
-               JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, searchScope) != null
-      }
-      val base = fullyQualifiedClassName.replace('.', File.separatorChar)
-      return sourceProvider.javaDirectories.any { javaDir ->
-        val javaFile = File(javaDir, base + SdkConstants.DOT_JAVA)
-        val ktFile = File(javaDir, base + SdkConstants.DOT_KT)
-        javaFile.exists() || ktFile.exists()
-      }
-    }
-
-    private fun existsPackage(project: Project?, sourceProvider: SourceProvider?, packageName: String): Boolean {
-      if (project == null) {
-        return false
-      }
-      if (sourceProvider == null) {
-        return JavaPsiFacade.getInstance(project).findPackage(packageName) != null
-      }
-      return sourceProvider.javaDirectories.any {
-        val classFile = File(it, packageName.replace('.', File.separatorChar))
-        classFile.exists() && classFile.isDirectory
-      }
-    }
-  }
 }

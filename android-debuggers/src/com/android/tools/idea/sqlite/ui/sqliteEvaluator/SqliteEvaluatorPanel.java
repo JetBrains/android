@@ -23,7 +23,7 @@ public class SqliteEvaluatorPanel {
   private JPanel myRoot;
   private JButton myEvaluateButton;
   private JPanel myControlsContainer;
-  private JComboBox<SqliteEvaluatorViewImpl.ComboBoxItem> mySchemaComboBox;
+  private JComboBox<SqliteEvaluatorViewImpl.ComboBoxItem> myDatabaseComboBox;
 
   public JPanel getRoot() {
     return myRoot;
@@ -37,7 +37,7 @@ public class SqliteEvaluatorPanel {
     return myControlsContainer;
   }
 
-  public JComboBox<SqliteEvaluatorViewImpl.ComboBoxItem> getSchemaComboBox() {
-    return mySchemaComboBox;
+  public JComboBox<SqliteEvaluatorViewImpl.ComboBoxItem> getDatabaseComboBox() {
+    return myDatabaseComboBox;
   }
 }

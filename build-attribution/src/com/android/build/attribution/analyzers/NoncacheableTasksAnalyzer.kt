@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
@@ -23,8 +24,10 @@ import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 /**
  * Analyzer for reporting tasks that are not cacheable.
  */
-class NoncacheableTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
-  : BaseTasksAnalyzer(taskContainer), BuildAttributionReportAnalyzer {
+class NoncacheableTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
+                                taskContainer: TaskContainer,
+                                pluginContainer: PluginContainer)
+  : BaseAnalyzer(taskContainer, pluginContainer), BuildAttributionReportAnalyzer {
   var noncacheableTasks: List<TaskData> = emptyList()
 
   override fun onBuildStart() {
@@ -34,8 +37,7 @@ class NoncacheableTasksAnalyzer(override val warningsFilter: BuildAttributionWar
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     noncacheableTasks = androidGradlePluginAttributionData.noncacheableTasks.mapNotNull(this::getTask).filter { task ->
-      // ignore tasks from our plugins
-      !isAndroidPlugin(task.originPlugin) && warningsFilter.applyNoncacheableTaskFilter(task)
+      warningsFilter.applyNoncacheableTaskFilter(task) && applyWhitelistedTasksFilter(task)
     }
   }
 }

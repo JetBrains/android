@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -30,7 +31,7 @@ import com.intellij.psi.search.GlobalSearchScope
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
+interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, ModuleHierarchyProvider {
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module
@@ -164,6 +165,20 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
   /**
+   * Returns the overrides that the underlying build system applies when computing the module's
+   * merged manifest.
+   *
+   * @see ManifestOverrides
+   */
+  fun getManifestOverrides(): ManifestOverrides
+
+  /**
+   * Returns a structure describing the manifest files contributing to the module's merged manifest.
+   */
+  @JvmDefault
+  fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
+
+  /**
    * Returns the module's resource package name, or null if it could not be determined.
    *
    * The resource package name is equivalent to the "package" attribute of the module's
@@ -184,6 +199,46 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
   @JvmDefault
   fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
+
+  /** Whether the Jetpack Compose feature is enabled for this module. */
+  @JvmDefault
+  val usesCompose: Boolean get() = false
+
+  /** Shrinker type in selected variant or null if minification is disabled or shrinker cannot be determined.**/
+  @JvmDefault
+  val codeShrinker: CodeShrinker? get() = null
+
+  /**
+   * Whether the R class generated for this module is transitive.
+   *
+   * If it is transitive it will contain all of the resources defined in its transitive dependencies alongside those defined in this
+   * module. If non-transitive it will only contain the resources defined in this module.
+   */
+  @JvmDefault
+  val isRClassTransitive: Boolean get() = true
+
+  /**
+   * Returns a list of dynamic feature modules for this module
+   */
+  @JvmDefault
+  fun getDynamicFeatureModules(): List<Module> = emptyList()
+}
+
+/**
+ * Overrides to be applied when computing the merged manifest, as determined by the build system.
+ *
+ * These overrides are divided into two categories: [directOverrides], known properties of the merged manifest
+ * that are directly overridden (e.g. the application ID), and [placeholders], identifiers in the contributing
+ * manifest which the build system replaces with arbitrary plain text during merged manifest computation.
+ */
+data class ManifestOverrides(
+  val directOverrides: Map<ManifestSystemProperty, String> = mapOf(),
+  val placeholders: Map<String, String> = mapOf()
+) {
+  companion object {
+    private val PLACEHOLDER_REGEX = Regex("\\$\\{([^}]*)}") // e.g. matches "${placeholder}" and extracts "placeholder"
+  }
+  fun resolvePlaceholders(string: String) = string.replace(PLACEHOLDER_REGEX) { placeholders[it.groupValues[1]].orEmpty() }
 }
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */

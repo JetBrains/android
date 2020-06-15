@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui;
 
-import com.intellij.util.Producer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -29,6 +28,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
@@ -50,15 +50,16 @@ public final class TooltipComponent extends AnimatedComponent {
   private final JLayeredPane myParent;
 
   @NotNull
-  private final Producer<Boolean> myIsOwnerDisplayable;
+  private final Supplier<Boolean> myIsOwnerDisplayable;
 
   @Nullable
-  private final Producer<Boolean> myDefaultVisibilityOverride;
+  private final Supplier<Boolean> myDefaultVisibilityOverride;
 
   // Minimum size of the tooltip between mouse enter/exit events.
   // This prevents the tooltip component from flapping due to the content size changing constantly.
   @NotNull
-  private final Dimension myExpandedSize = new Dimension(0, 0);
+  private final Dimension myAntiFlapSize = new Dimension(0, 0);
+  private final boolean myEnableAntiFlap;
 
   @Nullable
   private Point myLastPoint;
@@ -74,6 +75,7 @@ public final class TooltipComponent extends AnimatedComponent {
     myParent = builder.myParent;
     myIsOwnerDisplayable = builder.myIsOwnerDisplayable;
     myDefaultVisibilityOverride = builder.myDefaultVisibilityOverride;
+    myEnableAntiFlap = builder.myEnableAntiFlap;
 
     myParentListener = new ComponentAdapter() {
       @Override
@@ -96,7 +98,7 @@ public final class TooltipComponent extends AnimatedComponent {
     // We usually handle tooltip removal on mouseExit, but we add this here for possible edge
     // cases.
     myOwner.addHierarchyListener(event -> SwingUtilities.invokeLater(() -> {
-      if (!myIsOwnerDisplayable.produce()) {
+      if (!myIsOwnerDisplayable.get()) {
         removeFromParent();
       }
     }));
@@ -125,7 +127,7 @@ public final class TooltipComponent extends AnimatedComponent {
   @Override
   public void doLayout() {
     Dimension size = getPreferredSize();
-    myExpandedSize.setSize(size.width, 0); // Always let height vary.
+    myAntiFlapSize.setSize(size.width, 0); // Always let height vary.
     myTooltipContent.setSize(size);
     super.doLayout();
   }
@@ -144,13 +146,13 @@ public final class TooltipComponent extends AnimatedComponent {
 
       @Override
       public void mouseEntered(MouseEvent e) {
-        myExpandedSize.setSize(0, 0);
+        myAntiFlapSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         myParent.addComponentListener(myParentListener);
         resetBounds();
         myParent.add(TooltipComponent.this, JLayeredPane.POPUP_LAYER);
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
-        setVisible(myDefaultVisibilityOverride == null ? true : myDefaultVisibilityOverride.produce());
+        setVisible(myDefaultVisibilityOverride == null ? true : myDefaultVisibilityOverride.get());
         revalidate();
         myLastSize = myTooltipContent.getPreferredSize(); // Stash this value only after revalidate().
         repaintIfVisible(myLastSize);
@@ -159,7 +161,7 @@ public final class TooltipComponent extends AnimatedComponent {
       @Override
       public void mouseExited(MouseEvent e) {
         repaintLastPoint(myLastSize);
-        myExpandedSize.setSize(0, 0);
+        myAntiFlapSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         removeFromParent();
         setVisible(false);
@@ -178,7 +180,7 @@ public final class TooltipComponent extends AnimatedComponent {
         if (!isVisible()) {
           // If we turn invisible, then reset the anti-flap size.
           // This won't work in all cases, since the content could set itself to invisible.
-          myExpandedSize.setSize(0, 0);
+          myAntiFlapSize.setSize(0, 0);
         }
         if (!myTooltipContent.getPreferredSize().equals(myTooltipContent.getBounds().getSize())) {
           revalidate();
@@ -193,12 +195,17 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    return max(max(myTooltipContent.getPreferredSize(), myTooltipContent.getMinimumSize()), myExpandedSize);
+    Dimension preferredSize = max(myTooltipContent.getPreferredSize(), myTooltipContent.getMinimumSize());
+    if (myEnableAntiFlap) {
+      // Prevent the size from constantly changing.
+      return max(preferredSize, myAntiFlapSize);
+    }
+    return preferredSize;
   }
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (!isVisible()) {
+    if (!isVisible() || !myTooltipContent.isVisible()) {
       return; // We shouldn't draw the tooltip if its content is not supposed to be visible
     }
     Container parent = getParent();
@@ -262,8 +269,9 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull private final JComponent myTooltipContent;
     @NotNull private final JComponent myOwner;
     @NotNull private final JLayeredPane myParent;
-    @NotNull private Producer<Boolean> myIsOwnerDisplayable;
-    @Nullable private Producer<Boolean> myDefaultVisibilityOverride;
+    @NotNull private Supplier<Boolean> myIsOwnerDisplayable;
+    @Nullable private Supplier<Boolean> myDefaultVisibilityOverride;
+    private boolean myEnableAntiFlap;
 
     /**
      * Construct a tooltip component to show for a particular {@code owner}. After
@@ -280,6 +288,7 @@ public final class TooltipComponent extends AnimatedComponent {
       myOwner = owner;
       myParent = parent;
       myIsOwnerDisplayable = myOwner::isDisplayable;
+      myEnableAntiFlap = true;
     }
 
     /**
@@ -288,7 +297,7 @@ public final class TooltipComponent extends AnimatedComponent {
      */
     @TestOnly
     @NotNull
-    public Builder setIsOwnerDisplayable(@NotNull Producer<Boolean> isOwnerDisplayable) {
+    public Builder setIsOwnerDisplayable(@NotNull Supplier<Boolean> isOwnerDisplayable) {
       myIsOwnerDisplayable = isOwnerDisplayable;
       return this;
     }
@@ -298,8 +307,16 @@ public final class TooltipComponent extends AnimatedComponent {
      * and has more context about when it should first appear.
      */
     @NotNull
-    public Builder setDefaultVisibilityOverride(@NotNull Producer<Boolean> defaultVisibilityOverride) {
+    public Builder setDefaultVisibilityOverride(@NotNull Supplier<Boolean> defaultVisibilityOverride) {
       myDefaultVisibilityOverride = defaultVisibilityOverride;
+      return this;
+    }
+
+    /**
+     * @param enableAntiFlap set to true to enable anti-flapping on the tooltip component.
+     */
+    public Builder setEnableAntiFlap(boolean enableAntiFlap) {
+      myEnableAntiFlap = enableAntiFlap;
       return this;
     }
 

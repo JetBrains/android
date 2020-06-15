@@ -30,4 +30,9 @@ interface PTableVariableHeightCellEditor {
    * true, if this editor requires a custom row height in the table.
    */
   val isCustomHeight: Boolean
+
+  /**
+   * Callback a cell editor can use to update the row height in the table.
+   */
+  var updateRowHeight: () -> Unit
 }

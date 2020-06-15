@@ -15,16 +15,36 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class SplitsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String SPLITS_BLOCK_NAME = "splits";
+  public static final PropertiesElementDescription<SplitsDslElement> SPLITS =
+    new PropertiesElementDescription<>("splits", SplitsDslElement.class, SplitsDslElement::new);
 
-  public SplitsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(SPLITS_BLOCK_NAME));
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"abi", AbiDslElement.ABI},
+    {"density", DensityDslElement.DENSITY},
+    {"language", LanguageDslElement.LANGUAGE}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
+  public SplitsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

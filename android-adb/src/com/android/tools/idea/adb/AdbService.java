@@ -22,6 +22,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -31,6 +32,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -54,7 +58,6 @@ import org.jetbrains.annotations.Nullable;
 public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
   public static final int TIMEOUT = 3000000;
-
   @GuardedBy("this")
   @Nullable private ListenableFuture<AndroidDebugBridge> myFuture;
 
@@ -83,6 +86,18 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
     AdbOptionsService.getInstance().addListener(this);
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      @Override
+      public void projectClosed(@NotNull Project project) {
+        // Ideally, android projects counts should be used here.
+        // However, such logic would introduce circular dependency(relying AndroidFacet.ID in intellij.android.core).
+        // So, we only check if all projects are closed. If yes, terminate adb.
+        if (ProjectManager.getInstance().getOpenProjects().length == 0) {
+          LOG.info("Ddmlib can be terminated as no projects");
+          terminateDdmlib();
+        }
+      }
+    });
   }
 
   @Override
@@ -95,12 +110,20 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     myAdb.set(adb);
 
     // Cancel previous requests if they were unsuccessful
+    boolean terminateDdmlibFirst;
     if (myFuture != null && myFuture.isDone() && !wasSuccessful(myFuture)) {
-      terminateDdmlib();
+      cancelCurrentFuture();
+      terminateDdmlibFirst = true;
+    } else {
+      terminateDdmlibFirst = false;
     }
 
     if (myFuture == null) {
-      Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
+      Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb, () -> {
+        if (terminateDdmlibFirst) {
+          shutdownAndroidDebugBridge();
+        }
+      }));
       // TODO: expose connection timeout in some settings UI? Also see TIMEOUT which is way too long
       myFuture = makeTimedFuture(future, 20, TimeUnit.SECONDS);
     }
@@ -109,14 +132,30 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
   }
 
   public synchronized void terminateDdmlib() {
-    if (myFuture != null) {
-      myFuture.cancel(true);
-      myFuture = null;
-    }
+    cancelCurrentFuture();
+    shutdownAndroidDebugBridge();
+  }
+
+  private static void shutdownAndroidDebugBridge() {
+    LOG.info("Terminating ADB connection");
 
     synchronized (ADB_INIT_LOCK) {
       AndroidDebugBridge.disconnectBridge();
       AndroidDebugBridge.terminate();
+      LOG.info("ADB connection successfully terminated");
+    }
+  }
+
+  @VisibleForTesting
+  synchronized void cancelFutureForTesting() {
+    assert myFuture != null;
+    myFuture.cancel(true);
+  }
+
+  private synchronized void cancelCurrentFuture() {
+    if (myFuture != null) {
+      myFuture.cancel(true);
+      myFuture = null;
     }
   }
 
@@ -173,9 +212,11 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
   private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
     private final File myAdb;
+    private Runnable myPreCreateAction;
 
-    public CreateBridgeTask(@NotNull File adb) {
+    public CreateBridgeTask(@NotNull File adb, Runnable preCreateAction) {
       myAdb = adb;
+      myPreCreateAction = preCreateAction;
     }
 
     @Override
@@ -189,6 +230,12 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       }
       else {
         env = ImmutableMap.of();
+      }
+
+      try {
+        myPreCreateAction.run();
+      } catch (Exception e) {
+        return BridgeConnectionResult.make("Unable to prepare for adb server creation: " + e.getMessage());
       }
 
       AndroidDebugBridge bridge;

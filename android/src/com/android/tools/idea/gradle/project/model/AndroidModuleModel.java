@@ -19,7 +19,7 @@ import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
@@ -91,7 +91,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -128,7 +128,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public static AndroidModuleModel get(@NotNull AndroidFacet androidFacet) {
-    AndroidModel androidModel = androidFacet.getModel();
+    AndroidModel androidModel = AndroidModel.get(androidFacet);
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
@@ -255,13 +255,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return getSelectedVariant().getMainArtifact();
   }
 
-  @Override
   @NotNull
   public SourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
-  @Override
   @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
     return getMainSourceProviders(mySelectedVariantName);
@@ -311,10 +309,19 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
   }
 
-  @Override
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
     return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
+  }
+
+  @NotNull
+  public List<SourceProvider> getUnitTestSourceProviders() {
+    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_UNIT_TEST);
+  }
+
+  @NotNull
+  public List<SourceProvider> getAndroidTestSourceProviders() {
+    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_ANDROID_TEST);
   }
 
   @NotNull
@@ -375,7 +382,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return false;
   }
 
-  @Override
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
     Collection<Variant> variants = myAndroidProject.getVariants();
@@ -578,7 +584,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public Variant findVariantByName(@NotNull String variantName) {
+  public IdeVariant findVariantByName(@NotNull String variantName) {
     return myVariantsByName.get(variantName);
   }
 
@@ -798,7 +804,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
     IdeVariant variant = getSelectedVariant();
-    JpsAndroidModuleProperties state = facet.getProperties();
+    AndroidFacetProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
@@ -807,7 +813,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     updateGradleTaskNames(state, mainArtifact);
   }
 
-  private static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
+  private static void updateGradleTaskNames(@NotNull AndroidFacetProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
     state.AFTER_SYNC_TASK_NAMES = new HashSet<>(mainArtifact.getIdeSetupTaskNames());
@@ -913,7 +919,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       return Desugaring.NONE;
     }
 
-    return getGradleDesugaring(version, getJavaLanguageLevel());
+    return getGradleDesugaring(version, getJavaLanguageLevel(), myAndroidProject.getJavaCompileOptions().isCoreLibraryDesugaringEnabled());
   }
 
   @Override

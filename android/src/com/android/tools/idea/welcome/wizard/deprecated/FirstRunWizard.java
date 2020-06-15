@@ -123,7 +123,6 @@ public class FirstRunWizard extends DynamicWizard {
       case DoNotClose:
         break; // Do nothing
     }
-
   }
 
   // We need to show progress page before proceeding closing the wizard.

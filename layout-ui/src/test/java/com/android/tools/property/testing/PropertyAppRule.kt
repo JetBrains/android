@@ -16,8 +16,7 @@
 package com.android.tools.property.testing
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.intellij.ide.ui.NotRoamableUiSettings
-import com.intellij.ide.ui.UISettings
+import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import org.mockito.Mockito.mock
@@ -32,6 +31,7 @@ class PropertyAppRule : ApplicationRule() {
     try {
       testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
       testApplication.registerService(ActionManager::class.java, mock(ActionManager::class.java))
+      testApplication.registerService(DataManager::class.java, mock(DataManager::class.java))
     } catch (e: Exception) {
       super.after()
       throw e

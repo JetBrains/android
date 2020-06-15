@@ -352,7 +352,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
-    when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
+    when(surface.getSceneMode()).thenReturn(SceneMode.RENDER_AND_BLUEPRINT);
     surface.setState(DesignSurface.State.SPLIT);
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
@@ -514,7 +514,9 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   }
 
   private static Palette getPalette(@NotNull Project project) throws Exception {
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(LayoutFileType.INSTANCE.getPaletteFileName()))) {
+    String id = LayoutFileType.INSTANCE.getPaletteId();
+    assertNotNull(id);
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.getPaletteFileNameFromId(id)))) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }
   }

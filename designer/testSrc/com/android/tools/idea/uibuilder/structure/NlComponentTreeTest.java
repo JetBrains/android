@@ -63,8 +63,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -120,7 +119,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
       .build();
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
-    registerApplicationServiceInstance(BrowserLauncher.class, myBrowserLauncher);
+    registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
     myActionHandler = getActionHandler(myTree);
     myDataContext = mock(DataContext.class);
 

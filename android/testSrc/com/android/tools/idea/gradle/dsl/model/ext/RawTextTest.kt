@@ -51,10 +51,8 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetLiteral() {
-    // TODO : enable this test when extra properties are supported in kotlin.
-    assumeTrue(isGroovy())
     set {
-      it.setValue(RawText("25"))
+      it.setValue(RawText("25", "25"))
     }.validate {
       verifyPropertyModel(it, INTEGER_TYPE, 25, INTEGER, REGULAR, 0, "newProp")
     }
@@ -62,31 +60,33 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun textSetUnknownMethodCall() {
-    // TODO : enable this test when extra properties are supported in kotlin.
-    assumeTrue(isGroovy())
+    val quotes = if(isGroovy) "'" else "\""
     set {
-      it.setValue(RawText("getDefaultProguardFile('android.txt')"))
+      it.setValue(RawText("getDefaultProguardFile('android.txt')", "getDefaultProguardFile(\"android.txt\")"))
     }.validate {
-      verifyPropertyModel(it, STRING_TYPE, "getDefaultProguardFile('android.txt')", UNKNOWN, REGULAR, 0, "newProp")
+      verifyPropertyModel(it, STRING_TYPE, "getDefaultProguardFile(${quotes}android.txt${quotes})", UNKNOWN, REGULAR, 0, "newProp")
     }
   }
 
   @Test
   fun testSetUnknownExpression() {
-    assumeTrue(isGroovy())
+    // In KTS we cannot use ** as this will result in a broken psi tree different from what we want to get.
+    // This highlights that a RawText consumer will very likely want to use different text for KTS and Groovy.
+    val expectedValueText = when {
+      isGroovy -> "1 + (4 * 5)**2 - 7"
+      else -> "1 + (4 * 5) * 2 - 7"
+    }
     set {
-      it.setValue(RawText("1 + (4 * 5)**2 - 7"))
+      it.setValue(RawText("1 + (4 * 5)**2 - 7", "1 + (4 * 5) * 2 - 7"))
     }.validate {
-      verifyPropertyModel(it, STRING_TYPE, "1 + (4 * 5)**2 - 7", UNKNOWN, REGULAR, 0, "newProp")
+      verifyPropertyModel(it, STRING_TYPE, expectedValueText, UNKNOWN, REGULAR, 0, "newProp")
     }
   }
 
   @Test
   fun testSetReference() {
-    // TODO : enable this test when extra properties are supported in kotlin.
-    assumeTrue(isGroovy())
     set {
-      it.setValue(RawText("prop1"))
+      it.setValue(RawText("prop1", "prop1"))
     }.validate {
       verifyPropertyModel(it, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0, "newProp")
     }
@@ -94,10 +94,8 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetIndexReference() {
-    // TODO : enable this test when extra properties are supported in kotlin.
-    assumeTrue(isGroovy())
     set {
-      it.setValue(RawText("prop1[2]"))
+      it.setValue(RawText("prop1[2]", "prop1[2]"))
     }.validate {
       verifyPropertyModel(it, STRING_TYPE, "prop1[2]", REFERENCE, REGULAR, 0, "newProp")
     }

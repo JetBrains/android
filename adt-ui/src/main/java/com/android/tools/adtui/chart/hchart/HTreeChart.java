@@ -103,6 +103,11 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   @Nullable
   private N myFocusedNode;
 
+  private boolean myNodeSelectionEnabled;
+
+  @Nullable
+  private N mySelectedNode;
+
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
@@ -124,6 +129,17 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private int myCachedMaxHeight;
 
   /**
+   * Height of a tree node in pixels. If not set, we use the default font height.
+   */
+  private final int myCustomNodeHeightPx;
+
+  /**
+   * Vertical and horizontal padding in pixels between tree nodes.
+   */
+  private final int myNodeXPaddingPx;
+  private final int myNodeYPaddingPx;
+
+  /**
    * Creates a Horizontal Tree Chart.
    */
   private HTreeChart(@NotNull Builder<N> builder) {
@@ -134,12 +150,17 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     myRenderer = builder.myRenderer;
     myOrientation = builder.myOrientation;
     myRootVisible = builder.myRootVisible;
+    myNodeSelectionEnabled = builder.myNodeSelectionEnabled;
+    myCustomNodeHeightPx = builder.myCustomNodeHeightPx;
+    myNodeXPaddingPx = builder.myNodeXPaddingPx;
+    myNodeYPaddingPx = builder.myNodeYPaddingPx;
 
     myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
     myDrawnRectangles = new ArrayList<>();
+    mySelectedNode = null;
 
     setFocusable(true);
     initializeInputMap();
@@ -160,6 +181,25 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   @VisibleForTesting
   public void setFocusedNode(@Nullable N node) {
     myFocusedNode = node;
+  }
+
+  /**
+   * Updates the selected node. This is called by mouse click event handler and also from other instances of HTreeChart selects a node and
+   * wants to update the (un)selected state of this instance.
+   *
+   * @param selectedNode the new selected node, or null if no node is being selected.
+   */
+  public void setSelectedNode(@Nullable N selectedNode) {
+    if (selectedNode != mySelectedNode) {
+      myDataUpdated = true;
+      mySelectedNode = selectedNode;
+    }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public N getSelectedNode() {
+    return mySelectedNode;
   }
 
   private void changed() {
@@ -223,7 +263,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       Rectangle2D.Float newRect = new Rectangle2D.Float();
       newRect.x = rect.x * (float)dim.getWidth();
       newRect.y = rect.y;
-      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - PADDING);
+      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - myNodeXPaddingPx);
       newRect.height = rect.height;
 
       if (myOrientation == HTreeChart.Orientation.BOTTOM_UP) {
@@ -240,12 +280,12 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
       N node = myDrawnNodes.get(i);
       Rectangle2D.Float drawingArea = myDrawnRectangles.get(i);
-      Rectangle2D.Float clampedDrawingArea = new Rectangle2D.Float(Math.max(0, drawingArea.x),
-                                                                   drawingArea.y,
-                                                                   Math.min(drawingArea.x + drawingArea.width, dim.width - PADDING) -
-                                                                   Math.max(0, drawingArea.x),
-                                                                   drawingArea.height);
-      myRenderer.render(g, node, drawingArea, clampedDrawingArea, node == myFocusedNode);
+      Rectangle2D.Float clampedDrawingArea = new Rectangle2D.Float(
+        Math.max(0, drawingArea.x),
+        drawingArea.y,
+        Math.min(drawingArea.x + drawingArea.width, dim.width - myNodeXPaddingPx) - Math.max(0, drawingArea.x),
+        drawingArea.height);
+      myRenderer.render(g, node, drawingArea, clampedDrawingArea, node == myFocusedNode, mySelectedNode != null && node != mySelectedNode);
     }
 
     g.dispose();
@@ -292,10 +332,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     float right = (float)((node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
     rect.x = left;
-    rect.y = (float)((mDefaultFontMetrics.getHeight() + PADDING) * node.getDepth()
-                     - getYRange().getMin());
+    rect.y = (float)((getNodeHeight() + myNodeYPaddingPx) * node.getDepth() - getYRange().getMin());
     rect.width = right - left;
-    rect.height = mDefaultFontMetrics.getHeight();
+    rect.height = getNodeHeight();
     return rect;
   }
 
@@ -385,7 +424,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
         if (node != myFocusedNode) {
           myDataUpdated = true;
           myFocusedNode = node;
-          opaqueRepaint();
+          eventSourceRepaint(e);
         }
       }
 
@@ -393,6 +432,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       public void mouseClicked(MouseEvent e) {
         if (!hasFocus()) {
           requestFocusInWindow();
+        }
+        if (myNodeSelectionEnabled) {
+          setSelectedNode(getNodeAt(e.getPoint()));
         }
       }
 
@@ -495,7 +537,14 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     // The HEIGHT_PADDING is for the chart's toe (the innermost frame on call stacks).
     // We have this because the padding near the chart's head (the outermost frame on call stacks)
     // is there because the root node of the tree is invisible.
-    return (mDefaultFontMetrics.getHeight() + PADDING) * maxDepth + HEIGHT_PADDING;
+    return (getNodeHeight() + myNodeYPaddingPx) * maxDepth + HEIGHT_PADDING;
+  }
+
+  private int getNodeHeight() {
+    if (myCustomNodeHeightPx > 0) {
+      return myCustomNodeHeightPx;
+    }
+    return mDefaultFontMetrics.getHeight();
   }
 
   public static class Builder<N extends HNode<N>> {
@@ -506,7 +555,11 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     @NotNull private Orientation myOrientation = Orientation.TOP_DOWN;
     @NotNull private Range myGlobalXRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     private boolean myRootVisible = true;
+    private boolean myNodeSelectionEnabled = false;
     @NotNull private HTreeChartReducer<N> myReducer = new DefaultHTreeChartReducer<>();
+    private int myCustomNodeHeightPx = 0;
+    private int myNodeXPaddingPx = PADDING;
+    private int myNodeYPaddingPx = PADDING;
 
     /**
      * Creates a builder for {@link HTreeChart<N>}
@@ -532,6 +585,12 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       return this;
     }
 
+    @NotNull
+    public Builder<N> setNodeSelectionEnabled(boolean nodeSelectionEnabled) {
+      myNodeSelectionEnabled = nodeSelectionEnabled;
+      return this;
+    }
+
     /**
      * @param globalXRange the bounding range of chart's visible area,
      *                     if it's not set, it assumes that there is no bounding range of chart.
@@ -545,6 +604,24 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     @VisibleForTesting
     public Builder<N> setReducer(@NotNull HTreeChartReducer<N> reducer) {
       myReducer = reducer;
+      return this;
+    }
+
+    @NotNull
+    public Builder<N> setCustomNodeHeightPx(int customNodeHeightPx) {
+      myCustomNodeHeightPx = customNodeHeightPx;
+      return this;
+    }
+
+    @NotNull
+    public Builder<N> setNodeXPaddingPx(int nodeXPaddingPx) {
+      myNodeXPaddingPx = nodeXPaddingPx;
+      return this;
+    }
+
+    @NotNull
+    public Builder<N> setNodeYPaddingPx(int nodeYPaddingPx) {
+      myNodeYPaddingPx = nodeYPaddingPx;
       return this;
     }
 

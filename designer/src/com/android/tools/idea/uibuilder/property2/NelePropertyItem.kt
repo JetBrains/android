@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
@@ -61,12 +62,11 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.AttributeProcessingUtil
@@ -99,10 +99,14 @@ open class NelePropertyItem(
   open val componentName: String,
   open val libraryName: String,
   val model: NelePropertiesModel,
-  val components: List<NlComponent>,
+  open val components: List<NlComponent>,
   val optionalValue1: Any? = null,
   val optionalValue2: Any? = null
 ) : PropertyItem {
+
+  override fun toString(): String {
+    return "$namespace:$name=\"$value\""
+  }
 
   override var value: String?
     get() {
@@ -188,26 +192,16 @@ open class NelePropertyItem(
   override val helpSupport = object : HelpSupport {
     override val help = HelpActions.help
     override val secondaryHelp = HelpActions.secondaryHelp
-    override fun browse() { browseToValue() }
+    override fun browse() { model.browseToValue(this@NelePropertyItem) }
   }
 
   override val editingSupport = object : EditingSupport {
     override val completion = { getCompletionValues() }
+    override val allowCustomValues: Boolean
+      get() = type.allowCustomValues
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
     override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
-  }
-
-  private fun browseToValue() {
-    val tag = firstTag ?: return
-    val attribute = tag.getAttribute(name, namespace) ?: return
-    val attributeValue = attribute.valueElement ?: return
-    val file = tag.containingFile
-    val ref = file.findReferenceAt(attributeValue.textOffset)
-    val navigable = ref?.resolve() as? Navigatable ?: return
-    if (navigable != attributeValue) {
-      navigable.navigate(true)
-    }
   }
 
   val designProperty: NelePropertyItem
@@ -256,6 +250,10 @@ open class NelePropertyItem(
     }
   }
 
+  fun getFolderConfiguration(): FolderConfiguration? {
+    return nlModel?.configuration?.fullConfig
+  }
+
   private fun resolveValue(resValue: ResourceValue?): String? {
     if (resValue == null) {
       return null
@@ -296,7 +294,7 @@ open class NelePropertyItem(
   val project: Project
     get() = model.facet.module.project
 
-  protected val firstTag: XmlTag?
+  internal val firstTag: XmlTag?
     get() = ReadAction.compute<XmlTag?, RuntimeException> { firstComponent?.backend?.tag }
 
   private val nlModel: NlModel?
@@ -415,7 +413,8 @@ open class NelePropertyItem(
     if (text == NULL_RESOURCE) {
       return EDITOR_NO_ERROR
     }
-    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false)!!
+    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false) ?:
+                 return Pair(EditingErrorCategory.ERROR, "Invalid syntax")
     val error = parsed.errorMessage
     if (error != null) {
       return Pair(EditingErrorCategory.ERROR, error)
@@ -523,18 +522,13 @@ open class NelePropertyItem(
     override val action: AnAction?
       get() {
         val value = rawValue
-        if (isColor(value)) {
-          return ColorSelectionAction
-        }
-        else {
-          return OpenResourceManagerAction
-        }
+        return if (isColor(value)) ColorSelectionAction else OpenResourceManagerAction
       }
 
       private fun resolveValueAsIcon(value: String?): Icon? {
         if (value != null && !isReferenceValue(value)) {
           val color = parseColor(value) ?: return null
-          return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+          return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
         }
         val resValue = asResourceValue(value) ?: return null
         return resolver?.resolveAsIcon(resValue, project, model.facet)

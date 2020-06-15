@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class handles rendering the box, labels timing, and stop/abort button. This is used when parsing and recording.
@@ -55,15 +56,19 @@ public class StatusPanel extends JComponent {
 
   private final JButton myAbortButton;
 
-  public StatusPanel(@NotNull StatusPanelModel captureHandler, @NotNull String status, @NotNull String abortText) {
+  /**
+   * @param abortText The text shown on the button. If null, no button is added.
+   */
+  public StatusPanel(@NotNull StatusPanelModel captureHandler, @NotNull String status, @Nullable String abortText) {
     myModel = captureHandler;
     myStatus = status;
     myModel.getRange().addDependency(myObserver).onChange(Range.Aspect.RANGE, this::updateDuration);
-    myAbortButton = createAbortButton(abortText);
+    myAbortButton = abortText != null ? createAbortButton(abortText) : null;
     populateContent();
   }
 
   public void setAbortButtonEnabled(boolean enabled) {
+    if (myAbortButton == null) return;
     myAbortButton.setEnabled(enabled);
   }
 
@@ -110,7 +115,9 @@ public class StatusPanel extends JComponent {
 
   private JPanel createButtonPanel() {
     JPanel panel = new JPanel(new TabularLayout("Fit", "4px,*"));
-    panel.add(myAbortButton, new TabularLayout.Constraint(1, 0));
+    if (myAbortButton != null) {
+      panel.add(myAbortButton, new TabularLayout.Constraint(1, 0));
+    }
     return panel;
   }
 

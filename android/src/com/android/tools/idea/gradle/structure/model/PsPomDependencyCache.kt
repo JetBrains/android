@@ -18,5 +18,5 @@ package com.android.tools.idea.gradle.structure.model
 import java.io.File
 
 interface PsPomDependencyCache {
-  fun getPomDependencies(libraryPath: File): List<PsArtifactDependencySpec>
+  fun getPomDependencies(libraryName: String, libraryPath: File): List<PsArtifactDependencySpec>
 }

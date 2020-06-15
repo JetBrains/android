@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
-  @NonNls private static final String PROJECT_DIR = "projectDir";
+  @NonNls public static final String PROJECT_DIR = "projectDir";
   @NonNls public static final String BUILD_FILE_NAME = "buildFileName";
 
   public ProjectPropertiesDslElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
@@ -40,6 +40,17 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
       return projectDir.getValue(File.class);
     }
     return null;
+  }
+
+  @Nullable
+  @Override
+  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+    // This element should not be involved in anchoring, skip and request anchor from parent.
+    if (myParent instanceof GradlePropertiesDslElement) {
+      return myParent.requestAnchor(element);
+    }
+
+    return super.requestAnchor(element);
   }
 
   @Nullable

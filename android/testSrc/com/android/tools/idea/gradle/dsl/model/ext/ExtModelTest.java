@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_NESTED_DE
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_LIST_OF_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_SIMPLE_PROPERTY_IN_EXT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_SIMPLE_PROPERTY_PER_LINE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PROPERTY_NAMES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_EXT_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY_WITH_HISTORY;
@@ -59,6 +60,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTE
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
@@ -74,6 +76,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
@@ -121,7 +124,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, AndroidModelImpl.COMPILE_SDK_VERSION);
   }
 
   @Test
@@ -134,7 +137,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, AndroidModelImpl.COMPILE_SDK_VERSION);
   }
 
   @Test
@@ -379,7 +382,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradlePropertyModel second = extModel.findProperty("SECOND");
     verifyPropertyModel(second.resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 1);
-    verifyPropertyModel(second, STRING_TYPE, "FIRST", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(second, STRING_TYPE, extraName("FIRST", "rootProject"), REFERENCE, REGULAR, 1);
     GradlePropertyModel first = second.getDependencies().get(0);
     verifyPropertyModel(first.resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 0);
     verifyPropertyModel(first, INTEGER_TYPE, 123, INTEGER, REGULAR, 0);
@@ -399,7 +402,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradlePropertyModel third = extModel.findProperty("third");
     verifyPropertyModel(third.resolve(), STRING_TYPE, "value_from_gradle_properties", STRING, REGULAR, 1);
-    verifyPropertyModel(third, STRING_TYPE, "second", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(third, STRING_TYPE, extraName("second", "rootProject"), REFERENCE, REGULAR, 1);
     GradlePropertyModel second = third.getDependencies().get(0);
     verifyPropertyModel(second.resolve(), STRING_TYPE, "value_from_gradle_properties", STRING, REGULAR, 1);
     verifyPropertyModel(second, STRING_TYPE, "first", REFERENCE, REGULAR, 1);
@@ -485,7 +488,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel ext = buildModel.ext();
 
-    ext.findProperty("newProp").setValue(true);
+    ext.findProperty("ext.newProp").setValue(true);
 
     applyChangesAndReparse(buildModel);
 
@@ -517,5 +520,18 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(newModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
 
     verifyFileContents(myBuildFile, EXT_MODEL_EXT_FLAT_AND_BLOCK_EXPECTED);
+  }
+
+  @Test
+  public void testPropertyNames() throws IOException {
+    writeToBuildFile(EXT_MODEL_PROPERTY_NAMES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel ext = buildModel.ext();
+
+    verifyPropertyModel(ext.findProperty("isDebuggable"), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
+    verifyPropertyModel(ext.findProperty("foo"), STRING_TYPE, "isDebuggable", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("foo").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("debuggable"), BOOLEAN_TYPE, null, NONE, REGULAR, 0);
   }
 }

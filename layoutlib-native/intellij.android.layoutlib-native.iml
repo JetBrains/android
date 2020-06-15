@@ -11,7 +11,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
+          <root url="jar:///home/open/projects/studio-master-dev/prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -21,27 +21,77 @@ import com.android.testutils.TestUtils;
 import com.google.common.truth.Truth;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.LightPlatformTestCase;
-import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
-public class AdbServiceTest extends HeavyPlatformTestCase {
-  // tests that basic API for getting and terminating a debug bridge works
-  public void testBasics() throws ExecutionException {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
+public class AdbServiceTest extends LightPlatformTestCase {
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      AdbService.getInstance().terminateDdmlib();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
+      super.tearDown();
+    }
+  }
 
+  /**
+   * Tests that basic API for getting and terminating a debug bridge works
+   */
+  public void testBasics() throws ExecutionException {
+    // Prepare
     Path adb = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+
+    // Act
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
     AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
+
+    // Assert
     Truth.assertThat(bridge.isConnected()).isTrue();
-    AdbService.getInstance().terminateDdmlib();
+  }
+
+  public void testInvalidAdbFile() {
+    // Prepare
+    Path invalidAdbPath = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB).resolve("not-a-file");
+
+    // Act
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(invalidAdbPath.toFile());
+    AndroidDebugBridge bridge = null;
+    try {
+      bridge = Uninterruptibles.getUninterruptibly(future);
+    }
+    catch (ExecutionException expected) {
+    }
+
+    // Assert
+    Truth.assertThat(bridge).isNull();
+  }
+
+  /**
+   * Tests that if the connection to the bridge is broken, re-initing works.
+   */
+  public void testReinit() throws ExecutionException {
+    // Prepare
+    Path adb = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+
+    // Act
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
+    AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
+
+    // Assert
+    Truth.assertThat(bridge.isConnected()).isTrue();
+
+    // Simulate disconnect
+    AdbService.getInstance().cancelFutureForTesting();
+
+    // Reinit
+    Uninterruptibles.getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
+
+    // Get again
+    Uninterruptibles.getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
   }
 }

@@ -47,6 +47,10 @@ import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Wizard step for JDK setup.
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.JdkSetupStep}
+ */
 public class JdkSetupStep extends FirstRunWizardStep {
   @SuppressWarnings("unused") private ComboboxWithBrowseButton myJdkLocationComboBox;
   private JBLabel myJdkLocationHelp;

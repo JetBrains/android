@@ -108,7 +108,6 @@ public class ProxySettings {
     properties.setProperty(getProxyPropertyName(PROXY_PORT_PROPERTY_SUFFIX), String.valueOf(myPort));
     if (isEmpty(myUser)) {
       properties.remove(getProxyPropertyName(PROXY_USER_PROPERTY_SUFFIX));
-      properties.remove(getProxyPropertyName(PROXY_PASSWORD_PROPERTY_SUFFIX));
     }
     else {
       properties.setProperty(getProxyPropertyName(PROXY_USER_PROPERTY_SUFFIX), myUser);

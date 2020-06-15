@@ -21,13 +21,12 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ThreeState;
+import java.util.EnumSet;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
-import java.util.Set;
 
 public abstract class TargetDeviceFilter implements Predicate<IDevice> {
   @Override
@@ -56,14 +55,15 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return myPreferredAvd.equals(avdName);
       }
 
-      AndroidPlatform androidPlatform = myFacet.getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
       if (androidPlatform == null) {
         Logger.getInstance(EmulatorFilter.class).warn("Target Android platform not set for module: " + myFacet.getModule().getName());
         return false;
       } else {
         AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-        Set<String> supportedAbis = myFacet.getModel() instanceof AndroidModuleModel ?
-                                    ((AndroidModuleModel)myFacet.getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+        AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
+        Set<String> supportedAbis = androidModuleModel != null ?
+                                    androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
                                     null;
 
         LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.getInstance(myFacet).getRuntimeMinSdkVersionSynchronously(),

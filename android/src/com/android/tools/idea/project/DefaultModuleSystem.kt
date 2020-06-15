@@ -21,21 +21,28 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
+import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -49,11 +56,19 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
-import org.jetbrains.android.dom.manifest.packageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+
+/** Creates a map for the given pairs, filtering out null values. */
+private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
+  return pairs.asSequence()
+    .filter { it.second != null }
+    .toMap() as Map<K, V>
+}
 
 class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
@@ -185,6 +200,17 @@ class DefaultModuleSystem(override val module: Module) :
     return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
   }
 
+  override fun getManifestOverrides(): ManifestOverrides {
+    val androidModel = module.androidFacet?.let(AndroidModel::get) ?: return ManifestOverrides()
+    val directOverrides = notNullMapOf(
+      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
+      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
+      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
+      ManifestSystemProperty.PACKAGE to androidModel.applicationId
+    )
+    return ManifestOverrides(directOverrides)
+  }
+
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
     val includeTests = when (scopeType) {
       ScopeType.MAIN -> false
@@ -192,5 +218,41 @@ class DefaultModuleSystem(override val module: Module) :
       else -> error("unknown scope type")
     }
     return module.getModuleWithDependenciesAndLibrariesScope(includeTests)
+  }
+
+  override val submodules: Collection<Module>
+    get() = getSubmodules(module.project, module)
+
+  private companion object Keys {
+    val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
+    val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
+    val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName)
+  }
+
+  override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
+
+  override var isRClassTransitive: Boolean by UserData(Keys.isRClassTransitive, true)
+
+  override var codeShrinker: CodeShrinker? by UserData(Keys.codeShrinker, null)
+}
+
+/**
+ * Property delegate that uses the facet's user data to store information.
+ *
+ * During testing, this allows us to enable IDE features which are not supported by JPS builds but can still be tested without relying on
+ * the Gradle model.
+ */
+private class UserData<T>(
+  val key: Key<T>,
+  val defaultValue: T
+) : ReadWriteProperty<DefaultModuleSystem, T> {
+
+  override fun getValue(thisRef: DefaultModuleSystem, property: KProperty<*>): T {
+    return thisRef.module.androidFacet?.getUserData(key) ?: defaultValue
+  }
+
+  override fun setValue(thisRef: DefaultModuleSystem, property: KProperty<*>, value: T) {
+    val facet = thisRef.module.androidFacet ?: error("Not an Android module")
+    facet.putUserData(key, value)
   }
 }

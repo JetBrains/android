@@ -35,6 +35,8 @@ enum class NelePropertyType {
   COLOR,
   COLOR_STATE_LIST,
   DIMENSION,
+  DIMENSION_PIXEL,      // Dimension in pixels (motion layout)
+  DIMENSION_UNIT_LESS,  // Dimension or unit less float (motion layout)
   DESTINATION,
   DRAWABLE,
   ENUM,
@@ -45,7 +47,7 @@ enum class NelePropertyType {
   FRACTION,
   FRAGMENT,
   ID,
-  ID_OR_STRING,
+  ID_OR_STRING,        // id or string (motion layout)
   INTEGER,
   INTERPOLATOR,
   LAYOUT,
@@ -69,6 +71,7 @@ enum class NelePropertyType {
       COLOR -> EnumSet.of(ResourceType.COLOR)
       COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
       DESTINATION -> EnumSet.of(ResourceType.ID)
+      DIMENSION_PIXEL,
       DIMENSION -> EnumSet.of(ResourceType.DIMEN)
       DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
       FLAGS -> EnumSet.of(ResourceType.STRING)
@@ -112,7 +115,9 @@ enum class NelePropertyType {
       DRAWABLE -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
       ENUM -> "Invalid value: '$literal'"
       FONT_SIZE,
+      DIMENSION_PIXEL,
       DIMENSION -> error(DimensionConverter.INSTANCE.fromString(literal, null) == null) { getDimensionError(literal) }
+      DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)
       FLOAT -> error(PsiLiteralUtil.parseDouble(literal) == null) { "Invalid float: '$literal'" }
       FRACTION -> error(parseFraction(literal) == null) { "Invalid fraction: '$literal'"}
       INTEGER -> error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'"}
@@ -121,6 +126,14 @@ enum class NelePropertyType {
     }
   }
 
+  val allowCustomValues: Boolean
+    get() = when (this) {
+      THREE_STATE_BOOLEAN,
+      BOOLEAN,
+      ENUM -> false
+      else -> true
+    }
+
   private fun error(condition: Boolean, message: () -> String): String? {
     return if (condition) message() else null
   }
@@ -128,6 +141,11 @@ enum class NelePropertyType {
   private fun getDimensionError(literal: String): String {
     val unit = DimensionConverter.getUnitFromValue(literal)
     return if (unit == null) "Cannot resolve: '$literal'" else "Unknown units '$unit'"
+  }
+
+  private fun checkUnitLessDimension(literal: String): String? {
+    val hasLetters = literal.indexOfFirst { Character.isLetter(it) } >= 0
+    return if (hasLetters) DIMENSION.validateLiteral(literal) else FLOAT.validateLiteral(literal)
   }
 
   private fun parseFraction(literal: String): Double? {

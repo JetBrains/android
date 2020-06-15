@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -57,21 +53,8 @@ public class BuildApkAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(project, appModules, ACTION_TEXT));
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, Collections.emptyList(),
-                                    new OutputBuildAction(getModuleGradlePaths(appModules)));
+        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, OutputBuildActionUtil.create(appModules));
       }
     }
-  }
-
-  @NotNull
-  private static List<String> getModuleGradlePaths(@NotNull List<Module> modules) {
-    List<String> gradlePaths = new ArrayList<>();
-    for (Module module : modules) {
-      String gradlePath = getGradlePath(module);
-      if (gradlePath != null) {
-        gradlePaths.add(gradlePath);
-      }
-    }
-    return gradlePaths;
   }
 }

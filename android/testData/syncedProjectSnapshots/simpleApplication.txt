@@ -2,10 +2,12 @@ PROJECT             : testSimpleApplication
     MODULE              : app
         - ModuleGroupPath   : testSimpleApplication
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testSimpleApplication
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,14 @@ PROJECT             : testSimpleApplication
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -434,13 +442,13 @@ PROJECT             : testSimpleApplication
             IsExported          : false
             Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
             *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
-        LIBRARY             : Gradle: org.apache.http.legacy-android-28
+        LIBRARY             : Gradle: org.apache.http.legacy-android-29
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.apache.http.legacy-android-28 [=]
-            *CLASSES            : jar://<ANDROID_SDK>/platforms/android-28/optional/org.apache.http.legacy.jar!/
+            Name                : Gradle: org.apache.http.legacy-android-29 [=]
+            *CLASSES            : jar://<ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar!/
         LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -464,10 +472,12 @@ PROJECT             : testSimpleApplication
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     MODULE              : testSimpleApplication
         - ModuleGroupPath   : testSimpleApplication
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testSimpleApplication
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSimpleApplication.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testSimpleApplication.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

@@ -16,46 +16,22 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.sqlite.model.SqliteColumnValue
-import com.android.tools.idea.sqlite.ui.renderers.ResultSetTreeCellRenderer
-import com.android.tools.idea.sqlite.ui.renderers.ResultSetTreeHeaderRenderer
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import java.util.concurrent.CancellationException
-import javax.swing.JTable
-import javax.swing.table.DefaultTableModel
-
-internal fun JBTable.setupResultSetTable(queryTableModel: DefaultTableModel, columnClass: Class<SqliteColumnValue>) {
-  if (this.model != queryTableModel) {
-    this.model = queryTableModel
-    this.setDefaultRenderer(columnClass, ResultSetTreeCellRenderer())
-    // Turn off JTable's auto resize so that JScrollPane will show a horizontal scroll bar.
-    this.autoResizeMode = JTable.AUTO_RESIZE_OFF
-    this.emptyText.text = "Table is empty"
-  }
-}
-
-internal fun JBTable.setResultSetTableColumns() {
-  val headerRenderer = ResultSetTreeHeaderRenderer(this.tableHeader.defaultRenderer)
-  val width = Math.max(JBUI.scale(50), (this.parent.width - JBUI.scale(10)) / this.columnModel.columnCount)
-  for (index in 0 until this.columnModel.columnCount) {
-    val column = this.columnModel.getColumn(index)
-    column.preferredWidth = width
-    column.headerRenderer = headerRenderer
-  }
-}
+import kotlin.math.max
 
 @AnyThread
-internal fun notifyError(message: String, t: Throwable) {
+internal fun notifyError(message: String, t: Throwable?) {
   if (t is CancellationException) {
     return
   }
 
   var errorMessage = message
-  t.message?.let { errorMessage += ": " + t.message }
+  t?.message?.let { errorMessage += ": " + t.message }
 
   val notification = Notification("Sqlite Viewer", "Sqlite Viewer", errorMessage, NotificationType.WARNING)
 

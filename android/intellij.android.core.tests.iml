@@ -25,8 +25,19 @@
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="freemarker" level="project" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="TEST" />
+    <orderEntry type="module-library">
+      <library name="freemarker" type="repository">
+        <properties maven-id="org.freemarker:freemarker:2.3.20" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.20/freemarker-2.3.20.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.20/freemarker-2.3.20-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
@@ -115,6 +126,9 @@
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="library" name="Trove4j" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
   </component>
 </module>

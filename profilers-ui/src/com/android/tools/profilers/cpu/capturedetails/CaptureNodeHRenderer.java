@@ -17,14 +17,22 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.*;
+import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
@@ -55,38 +63,46 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   public CaptureNodeHRenderer(@NotNull CaptureDetails.Type type) {
-    this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
+    this(type, (text, metrics, width, height) -> metrics.stringWidth(text) <= width && metrics.getHeight() <= height);
   }
 
-  private Color getFillColor(CaptureNode node, boolean isFocused) {
+  private Color getFillColor(CaptureNode node, boolean isFocused, boolean isDeselected) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
-      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     else if (nodeModel instanceof NativeNodeModel) {
-      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
     else if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     else if (nodeModel instanceof SingleNameModel) {
-      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     throw new IllegalStateException("Node type not supported.");
   }
 
-  private Color getIdleCpuColor(CaptureNode node, boolean isFocused) {
+  private Color getIdleCpuColor(CaptureNode node, boolean isFocused, boolean isDeselected) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
 
     // The only nodes that actually show idle time are the atrace nodes. As such they are the only ones,
     // that return a custom color for the idle cpu time.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
-    return getFillColor(node, isFocused);
+    return getFillColor(node, isFocused, isDeselected);
+  }
+
+  private Color getTextColor(CaptureNode node, boolean isDeselected) {
+    CaptureNodeModel nodeModel = node.getData();
+    if (nodeModel instanceof AtraceNodeModel) {
+      return AtraceNodeModelHChartColors.getTextColor(nodeModel, myType, isDeselected);
+    }
+    return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
   }
 
   /**
@@ -103,12 +119,13 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
                      @NotNull CaptureNode node,
                      @NotNull Rectangle2D fullDrawingArea,
                      @NotNull Rectangle2D drawingArea,
-                     boolean isFocused) {
+                     boolean isFocused,
+                     boolean isDeselected) {
     // Draw rectangle background
     CaptureNode captureNode = node;
     CaptureNodeModel nodeModel = node.getData();
-    Color nodeColor = getFillColor(captureNode, isFocused);
-    Color idleColor = getIdleCpuColor(captureNode, isFocused);
+    Color nodeColor = getFillColor(captureNode, isFocused, isDeselected);
+    Color idleColor = getIdleCpuColor(captureNode, isFocused, isDeselected);
     g.setPaint(nodeColor);
     g.fill(drawingArea);
 
@@ -137,21 +154,24 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // Draw text
     Font font = g.getFont();
     Font restoreFont = font;
+    Color textColor = getTextColor(node, isDeselected);
     if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
-      g.setPaint(Color.BLACK);
+      g.setPaint(textColor);
     }
     else if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
-      g.setPaint(toUnmatchColor(Color.BLACK));
+      g.setPaint(toUnmatchColor(textColor));
     }
     else {
-      g.setPaint(Color.BLACK);
+      g.setPaint(textColor);
       font = font.deriveFont(Font.BOLD);
       g.setFont(font);
     }
     FontMetrics fontMetrics = g.getFontMetrics(font);
 
-    Float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
-    String text = generateFittingText(node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth));
+    float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
+    float availableHeight = (float)drawingArea.getHeight();
+    String text = generateFittingText(
+      node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
     float textPositionX = MARGIN_PX + (float)drawingArea.getX();
     float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
     g.drawString(text, textPositionX, textPositionY);
@@ -206,6 +226,6 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   public interface TextFitsPredicate {
-    boolean test(String text, FontMetrics metrics, float width);
+    boolean test(String text, FontMetrics metrics, float width, float height);
   }
 }

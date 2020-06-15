@@ -15,16 +15,36 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.build;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildScriptDslElement extends GradleDslBlockElement {
-  @NonNls public static final String BUILDSCRIPT_BLOCK_NAME = "buildscript";
+  public static final PropertiesElementDescription<BuildScriptDslElement> BUILDSCRIPT =
+    new PropertiesElementDescription<>("buildscript", BuildScriptDslElement.class, BuildScriptDslElement::new);
 
-  public BuildScriptDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(BUILDSCRIPT_BLOCK_NAME));
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"dependencies", DependenciesDslElement.DEPENDENCIES},
+    {"repositories", RepositoriesDslElement.REPOSITORIES}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
+  public BuildScriptDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    // we always attach a buildscript element to the corresponding file, even when it is lexically a child
+    // element of a subrojects { ... } block.  (This seems wrong to me, but what do I know?)
+    super(parent.getDslFile(), name);
   }
 }

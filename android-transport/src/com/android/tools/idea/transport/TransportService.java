@@ -50,6 +50,7 @@ public class TransportService implements Disposable {
   }
 
   private static final String DATASTORE_NAME = "DataStoreService";
+  public static final String CHANNEL_NAME = DATASTORE_NAME;
 
   @NotNull private final LogService myLogService;
   @NotNull private final MessageBus myMessageBus;
@@ -70,7 +71,7 @@ public class TransportService implements Disposable {
     myDataStoreService.setNoPiiExceptionHandler((t) -> getLogger().error(new NoPiiException(t)));
 
     myMessageBus = ApplicationManager.getApplication().getMessageBus();
-    myDeviceManager = new TransportDeviceManager(myDataStoreService, myMessageBus);
+    myDeviceManager = new TransportDeviceManager(myDataStoreService, myMessageBus, this);
   }
 
   @Override
@@ -79,7 +80,6 @@ public class TransportService implements Disposable {
     myStreamIdToServerMap.clear();
 
     myDataStoreService.shutdown();
-    myDeviceManager.dispose();
   }
 
   @NotNull
@@ -90,11 +90,6 @@ public class TransportService implements Disposable {
   @NotNull
   public MessageBus getMessageBus() {
     return myMessageBus;
-  }
-
-  @NotNull
-  public String getChannelName() {
-    return DATASTORE_NAME;
   }
 
   /**

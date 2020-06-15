@@ -22,10 +22,8 @@ import com.android.support.AndroidxName
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
-import java.io.File
 
 const val USE_ANDROIDX_PROPERTY = "android.useAndroidX"
 const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
@@ -34,12 +32,14 @@ const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
  * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
  */
 private fun Project.getProjectProperties(createIfNotExists: Boolean = false): PropertiesFile? {
-  if (isDisposed || basePath == null) return null
-  val projectBaseDirectory = VfsUtil.findFileByIoFile(File(FileUtil.toCanonicalPath(basePath)), true)
-  val gradlePropertiesFile = if (createIfNotExists)
+  if (isDisposed) return null
+  val projectBaseDirectory = guessProjectDir()
+  val gradlePropertiesFile = if (createIfNotExists) {
     projectBaseDirectory?.findOrCreateChildData(this, SdkConstants.FN_GRADLE_PROPERTIES)
-  else
+  }
+  else {
     projectBaseDirectory?.findChild(SdkConstants.FN_GRADLE_PROPERTIES)
+  }
   val psiPropertiesFile = PsiManager.getInstance(this).findFile(gradlePropertiesFile ?: return null)
 
   return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null

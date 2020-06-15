@@ -26,7 +26,7 @@ fun createModel(vararg items: PTableItem): PTableTestModel {
 }
 
 fun addModelListener(model: PTableModelImpl): TableModelListener {
-  val listener = Mockito.mock<TableModelListener>(TableModelListener::class.java)
+  val listener = Mockito.mock(TableModelListener::class.java)
   model.addTableModelListener(listener)
   return listener
 }
@@ -50,11 +50,12 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   private val listeners = mutableListOf<PTableModelUpdateListener>()
   override val items = mutableListOf(*items)
   override var editedItem: PTableItem? = null
+  var readOnly = false
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
     when (column) {
-      PTableColumn.NAME -> item.name == "new"
-      PTableColumn.VALUE -> item.name != "readonly" && item.name != "new"
+      PTableColumn.NAME -> item.name == "new" && !readOnly
+      PTableColumn.VALUE -> item.name != "readonly" && item.name != "new" && !readOnly
     }
 
   fun updateTo(modelChanged: Boolean, vararg newItems: PTableItem) {
@@ -65,6 +66,15 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
 
   override fun addListener(listener: PTableModelUpdateListener) {
     listeners.add(listener)
+  }
+
+  override fun addItem(item: PTableItem): PTableItem {
+    items.add(item)
+    return item
+  }
+
+  override fun removeItem(item: PTableItem) {
+    items.remove(item)
   }
 
   fun find(name: String): PTableItem? {

@@ -39,7 +39,7 @@ class DataBindingFoldingBuilder : FoldingBuilderEx() {
   )
 
   override fun getPlaceholderText(node: ASTNode): String? {
-    return null
+    return escapeFolds[node.text]
   }
 
   override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {

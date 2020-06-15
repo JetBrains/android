@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
-import com.android.builder.model.AndroidProject;
+import com.android.AndroidProjectTypes;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -424,10 +424,10 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     if (found != null) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(found);
       if (androidModuleModel != null) {
-        if (androidModuleModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+        if (androidModuleModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_APP) {
           return ANDROID_FQCN;
         }
-        else if (androidModuleModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_LIBRARY) {
+        else if (androidModuleModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_LIBRARY) {
           return ANDROID_LIB_FQCN;
         }
       }

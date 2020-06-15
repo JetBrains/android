@@ -5,4 +5,4 @@
 val childVar2 = "value"
 val childVar1 = 23
 val childProp1 by extra(childVar1)
-val childProp3 by extra(listOf(extra["parentProperty1"], extra["childProp1"]))
+val childProp3 by extra(listOf(rootProject.extra["parentProperty1"], extra["childProp1"]))

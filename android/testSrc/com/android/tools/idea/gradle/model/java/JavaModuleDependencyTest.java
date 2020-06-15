@@ -15,7 +15,21 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.ImmutableList;
+import com.google.common.jimfs.Jimfs;
+import java.io.File;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
@@ -27,13 +41,6 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link JavaModuleDependency}.
@@ -86,7 +93,7 @@ public class JavaModuleDependencyTest {
     GradleProject gradleProject = mock(GradleProject.class);
     ProjectIdentifier projectIdentifier = mock(ProjectIdentifier.class);
     BuildIdentifier buildIdentifier = mock(BuildIdentifier.class);
-    when(buildIdentifier.getRootDir()).thenReturn(new File("/mock/project"));
+    when(buildIdentifier.getRootDir()).thenReturn(new File(Jimfs.newFileSystem().getPath("mock", "project").toString()));
     when(projectIdentifier.getBuildIdentifier()).thenReturn(buildIdentifier);
     when(gradleProject.getProjectIdentifier()).thenReturn(projectIdentifier);
     when(gradleProject.getPath()).thenReturn(":lib");
@@ -106,7 +113,7 @@ public class JavaModuleDependencyTest {
     assertNotNull(copy);
     assertEquals(moduleName, copy.getModuleName());
     assertSame("compile", copy.getScope());
-    assertEquals("/mock/project::lib", copy.getModuleId());
+    assertEquals("mock" + File.separator + "project::lib", copy.getModuleId());
     assertTrue(copy.isExported());
 
     verify(myOriginalDependency, myIdeaModule, scope);

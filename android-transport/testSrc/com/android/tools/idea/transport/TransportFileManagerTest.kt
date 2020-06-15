@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.messages.ListenerDescriptor
-import com.intellij.util.messages.MessageBusFactory
+import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.MessageBusOwner
 import org.junit.Before
 import org.junit.Rule
@@ -37,10 +37,14 @@ class TransportFileManagerTest {
   val temporaryFolder = TemporaryFolder()
 
   private lateinit var mockDevice: IDevice
+  private lateinit var messageBus: MessageBus
+  private lateinit var fileManager: TransportFileManager
 
   @Before
   fun setUp() {
     mockDevice = mock(IDevice::class.java)
+    messageBus = mock(MessageBus::class.java)
+    fileManager = TransportFileManager(mockDevice, messageBus)
   }
 
   @Test
@@ -60,7 +64,6 @@ class TransportFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(createMessageBusOwner()))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
@@ -118,7 +121,6 @@ class TransportFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(createMessageBusOwner()))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
@@ -169,7 +171,6 @@ class TransportFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(createMessageBusOwner()))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
@@ -223,7 +224,6 @@ class TransportFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(createMessageBusOwner()))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
     val expectedAbis = listOf(

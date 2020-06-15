@@ -35,6 +35,16 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
    */
   protected var pendingValueChange = false
 
+  open val editingValue = true
+
+  override var property: PropertyItem
+    get() = super.property
+    set(value) {
+      super.property = value
+      // Without this the outline validations are wrong in the EditorBaseedTableCellRenderer
+      updateValueFromProperty()
+    }
+
   override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
 
   override val editingSupport: EditingSupport

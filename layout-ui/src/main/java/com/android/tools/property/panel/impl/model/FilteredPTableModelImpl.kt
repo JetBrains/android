@@ -15,16 +15,17 @@
  */
 package com.android.tools.property.panel.impl.model
 
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.FlagPropertyItem
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.PTableModelUpdateListener
 
 /**
  * Implementation of [FilteredPTableModel].
@@ -40,10 +41,12 @@ import com.android.tools.property.panel.api.PropertyItem
 class FilteredPTableModelImpl<P : PropertyItem>(
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
+  private val deleteOperation: (P) -> Unit,
   private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean,
-  private val allowEditing: Boolean
+  private val allowEditing: Boolean,
+  private val valueEditable: (P) -> Boolean
 ) : FilteredPTableModel<P>, PTableModel {
 
   private val listeners = mutableListOf<PTableModelUpdateListener>()
@@ -66,31 +69,44 @@ class FilteredPTableModelImpl<P : PropertyItem>(
       return item
     }
     val newItems = ArrayList(items)
-    newItems.add(item)
     if (item is NewPropertyItem) {
+      newItems.add(item)
       editedItem = item
     } else {
-      sort(newItems)
+      val index = newItems.indexOfFirst { it is NewPropertyItem || itemComparator.compare(it, item) >= 0 }
+      if (index < 0) {
+        newItems.add(item)
+      }
+      else {
+        newItems.add(index, item)
+      }
     }
-    updateItems(newItems, lastItem())
+    updateItems(newItems, lastItem(items))
     return item
   }
 
-  override fun deleteItem(item: P, delete: (P) -> Unit) {
+  override fun addItem(item: PTableItem): PTableItem {
+    @Suppress("UNCHECKED_CAST")
+    return addNewItem(item as P)
+  }
+
+  override fun removeItem(item: PTableItem) {
     val newItems = ArrayList(items)
     if (!newItems.remove(item)) {
       return
     }
-    delete(item)
-    updateItems(newItems, lastItem())
+    @Suppress("UNCHECKED_CAST")
+    deleteOperation(item as P)
+    updateItems(newItems, null)
   }
 
-  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
-    return allowEditing && when (item) {
+  @Suppress("UNCHECKED_CAST")
+  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
+    allowEditing && when (item) {
       is NewPropertyItem -> column == PTableColumn.NAME || item.delegate != null
-      else -> column == PTableColumn.VALUE
+      is PTableGroupItem -> true
+      else -> column == PTableColumn.VALUE && valueEditable(item as P)
     }
-  }
 
   override fun acceptMoveToNextEditor(item: PTableItem, column: PTableColumn): Boolean {
     // Accept any move to the next editor unless we know that that the current row
@@ -111,7 +127,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    * the end of the table.
    */
   override fun refresh() {
-    val last = lastItem()
+    val last = lastItem(items)
     val newItems = mutableListOf<PTableItem>()
     groupAndSort(findParticipatingItems(), newItems)
     if (last != null) {
@@ -157,12 +173,12 @@ class FilteredPTableModelImpl<P : PropertyItem>(
    *
    * Skip flag items if the property is currently expanded in the table.
    */
-  private fun lastItem(): NewPropertyItem? {
-    var last = items.lastOrNull() ?: return null
+  private fun lastItem(itemList: List<PTableItem>): NewPropertyItem? {
+    var last = itemList.lastOrNull() ?: return null
     if (last is FlagPropertyItem) {
       val flags = last.flags.children.size
-      if (items.size - flags >= 1) {
-        last = items[items.size - flags - 1]
+      if (itemList.size - flags >= 1) {
+        last = itemList[itemList.size - flags - 1]
       }
     }
     return last as? NewPropertyItem
@@ -247,7 +263,23 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   }
 
   private fun sort(list: MutableList<PTableItem>) {
+    val lastItems = removeLastItems(list)
     list.sortWith(itemComparator)
+    list.addAll(lastItems)
+  }
+
+  private fun removeLastItems(list: MutableList<PTableItem>): List<PTableItem> {
+    val last = list.lastOrNull() ?: return emptyList()
+    val lastNewItem = lastItem(list) ?: return emptyList()
+    if (last == lastNewItem) {
+      list.removeAt(list.size - 1)
+      return listOf(last)
+    }
+    val index = list.lastIndexOf(lastNewItem)
+    val toRemove = list.subList(index, list.size)
+    val lastItems = toRemove.toList()
+    toRemove.clear()
+    return lastItems
   }
 
   private fun groupAndSort(list: List<P>, output: MutableList<PTableItem>) {

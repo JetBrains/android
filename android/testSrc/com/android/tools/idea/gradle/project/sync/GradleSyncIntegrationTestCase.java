@@ -21,16 +21,13 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
   private boolean myUseSingleVariantSync;
-  private boolean myUseCompoundSync;
   private boolean myDefaultUseSingleVariantSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myUseSingleVariantSync = StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get();
-    myUseCompoundSync = StudioFlags.COMPOUND_SYNC_ENABLED.get();
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(useSingleVariantSyncInfrastructure());
-    StudioFlags.COMPOUND_SYNC_ENABLED.override(useCompoundSyncInfrastructure());
     myDefaultUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = useSingleVariantSyncInfrastructure();
   }
@@ -39,7 +36,6 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
   protected void tearDown() throws Exception {
     try {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(myUseSingleVariantSync);
-      StudioFlags.COMPOUND_SYNC_ENABLED.override(myUseCompoundSync);
       GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myDefaultUseSingleVariantSync;
     }
     finally {
@@ -48,6 +44,4 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
   }
 
   protected abstract boolean useSingleVariantSyncInfrastructure();
-
-  protected abstract boolean useCompoundSyncInfrastructure();
 }

@@ -18,16 +18,20 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
+import com.intellij.ide.actions.OpenFileAction;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
+import java.nio.file.Path;
 import java.util.concurrent.Executor;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
@@ -49,16 +53,39 @@ public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWin
     Executor edtExecutor = EdtExecutorService.getInstance();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(project);
+    AdbDeviceFileSystemService adbService = AdbDeviceFileSystemService.getInstance(project);
+    DeviceExplorerFileManager fileManager = DeviceExplorerFileManager.getInstance(project);
 
-    DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(service);
-    DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);
+    DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(adbService);
 
     DeviceExplorerModel model = new DeviceExplorerModel();
 
     DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
+    DeviceExplorerController.FileOpener fileOpener = new DeviceExplorerController.FileOpener() {
+      @Override
+      public void openFile(@NotNull Path localPath) {
+        // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
+        TransactionGuard.submitTransaction(project, () -> {
+          // We need this assertion because in tests OpenFileAction.openFile doesn't trigger it. But it does in production.
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+          OpenFileAction.openFile(localPath.toString(), project);
+        });
+      }
+
+      @Override
+      public void openFile(@NotNull VirtualFile virtualFile) {
+        // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
+        TransactionGuard.submitTransaction(project, () -> {
+          // We need this assertion because in tests OpenFileAction.openFile doesn't trigger it. But it does in production.
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+          OpenFileAction.openFile(virtualFile, project);
+        });
+      }
+    };
+
     DeviceExplorerController controller =
-      new DeviceExplorerController(project, model, view, service, fileManager, edtExecutor, taskExecutor);
+      new DeviceExplorerController(project, model, view, adbService, fileManager, fileOpener, edtExecutor, taskExecutor);
+
     controller.setup();
 
     ContentManager contentManager = toolWindow.getContentManager();

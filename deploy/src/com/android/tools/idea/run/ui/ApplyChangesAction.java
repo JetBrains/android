@@ -19,13 +19,15 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.update.RunningApplicationUpdater;
 import com.intellij.execution.update.RunningApplicationUpdaterProvider;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +36,7 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final String NAME = "Apply Changes and Restart Activity";
+  public static final String NAME = "&Apply Changes and Restart Activity";
 
   private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
 
@@ -63,7 +65,14 @@ public class ApplyChangesAction extends BaseAction {
       String id = type.getId();
       if (AndroidBuildCommonUtils.isTestConfiguration(id) || AndroidBuildCommonUtils.isInstrumentationTestConfiguration(id)) {
         return new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
-                                                              "the selected configuration is a test configuration");
+                                  "the selected configuration is a test configuration");
+      }
+
+      ProcessHandler handler = findRunningProcessHandler(project, runConfig.getConfiguration());
+      if (handler != null &&
+          getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance()) == DefaultDebugExecutor.getDebugExecutorInstance()) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "debug execution",
+                                  "it is currently not allowed during debugging");
       }
     }
     return null;

@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
+
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import java.util.Objects;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
-
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 
 public class AndroidLintFontValidationErrorInspection extends AndroidLintInspectionBase {
   public AndroidLintFontValidationErrorInspection() {
@@ -35,12 +34,12 @@ public class AndroidLintFontValidationErrorInspection extends AndroidLintInspect
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     if (Objects.equals(LintFix.getData(fixData, String.class), APPCOMPAT_LIB_ARTIFACT_ID)) {
-      return new AndroidLintQuickFix[]{new UpgradeAppCompatV7Fix()};
+      return new LintIdeQuickFix[]{new UpgradeAppCompatV7Fix()};
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);

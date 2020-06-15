@@ -16,8 +16,6 @@
 package com.android.tools.idea.instantapp;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.android.instantapp.sdk.InstantAppSdkException;
-import com.android.instantapp.sdk.Metadata;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
@@ -31,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,27 +111,6 @@ public class InstantAppSdks {
   }
 
   /**
-   * Since instant app SDK is already public and available, it should be always enabled.
-   * However this method can still be mocked in tests.
-   */
-  public boolean isInstantAppSdkEnabled() {
-    return true;
-  }
-
-  public long getCompatApiMinVersion() {
-    try {
-      LocalPackage localPackage = getInstantAppLocalPackage();
-      if (localPackage != null) {
-        return Metadata.getInstance(localPackage.getLocation()).getAiaCompatApiMinVersion();
-      }
-    }
-    catch (InstantAppSdkException ex) {
-      getLogger().error(ex);
-    }
-    return 1; // If there is any exception return the default value
-  }
-
-  /**
    * Attempts to dynamically load the Instant Apps SDK library used to provision devices and run
    * apps. Returns null if it could not be loaded.
    */
@@ -185,16 +161,9 @@ public class InstantAppSdks {
     return cachedSdkLib;
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(InstantApps.class);
-  }
-
   public static class LoadInstantAppSdkException extends RuntimeException {
     public LoadInstantAppSdkException(@NotNull String message) {
       super(message);
     }
-    public LoadInstantAppSdkException(@NotNull Throwable cause) {
-      super(cause);
-      }
   }
 }

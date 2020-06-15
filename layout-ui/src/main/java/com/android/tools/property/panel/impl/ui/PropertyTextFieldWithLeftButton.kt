@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.JBUI
@@ -44,6 +45,7 @@ open class PropertyTextFieldWithLeftButton(
 
   init {
     border = DarculaTextBorder()
+    putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     leftButton?.border = JBUI.Borders.empty(0, ICON_LEFT_BORDER, 0, 0)
     textField.border = JBUI.Borders.empty()
     textField.isOpaque = false
@@ -57,8 +59,16 @@ open class PropertyTextFieldWithLeftButton(
     setFromModel()
   }
 
+  override fun isFocusable(): Boolean {
+    return leftComponent.isFocusable || textField.isFocusable
+  }
+
   override fun requestFocus() {
-    leftComponent.requestFocusInWindow() || textField.requestFocusInWindow()
+    requestFocusInWindow()
+  }
+
+  override fun requestFocusInWindow(): Boolean {
+    return leftComponent.requestFocusInWindow() || textField.requestFocusInWindow()
   }
 
   override fun hasFocus(): Boolean {

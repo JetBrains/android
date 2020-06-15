@@ -18,12 +18,11 @@ package com.android.tools.idea.npw.assetstudio;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleDimension;
 
 import com.android.SdkConstants;
-import com.android.ide.common.internal.WaitableExecutor;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
@@ -31,7 +30,7 @@ import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.utils.CharSequences;
 import com.android.utils.FileUtils;
@@ -65,6 +64,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
@@ -113,9 +114,7 @@ public abstract class IconGenerator implements Disposable {
    * @param minSdkVersion the minimal supported Android SDK version
    * @param context the content used to render vector drawables
    */
-  public IconGenerator(@NotNull Project project,
-                       int minSdkVersion,
-                       @NotNull GraphicGeneratorContext context) {
+  public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
     myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {
@@ -148,7 +147,7 @@ public abstract class IconGenerator implements Disposable {
   }
 
   @NotNull
-  public IconGeneratorResult generateIcons(Options options) {
+  public IconGeneratorResult generateIcons(@NotNull IconOptions options) {
     return new IconGeneratorResult(generateIcons(myContext, options, myOutputName.get()), options);
   }
 
@@ -164,12 +163,12 @@ public abstract class IconGenerator implements Disposable {
       throw new IllegalStateException("Can't generate icons without a source asset set first");
     }
 
-    Options options = createOptions(false);
+    IconOptions options = createOptions(false);
     return generateIntoMemory(options);
   }
 
   @NotNull
-  private CategoryIconMap generateIntoMemory(Options options) {
+  private CategoryIconMap generateIntoMemory(@NotNull IconOptions options) {
     Map<String, Map<String, AnnotatedImage>> categoryMap = new HashMap<>();
     generateRasterImage(null, categoryMap, myContext, options, myOutputName.get());
     return new CategoryIconMap(categoryMap);
@@ -204,26 +203,26 @@ public abstract class IconGenerator implements Disposable {
    * an exception will be thrown.
    */
   @NotNull
-  public Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate template) {
-    Options options = createOptions(false);
-    return generateIntoIconMap(template, options);
+  public Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModulePaths paths) {
+    IconOptions options = createOptions(false);
+    return generateIntoIconMap(paths, options);
   }
 
   /**
-   * Similar to {@link ##generateIntoIconMap(AndroidModuleTemplate)} but instead of generating real icons
+   * Similar to {@link ##generateIntoIconMap(AndroidModulePaths)} but instead of generating real icons
    * uses placeholders that are much faster to produce.
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
   @NotNull
-  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull AndroidModuleTemplate template) {
+  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull AndroidModulePaths paths) {
     if (myOutputName.get().isEmpty()) {
       return Collections.emptyMap(); // May happen during initialization.
     }
-    Options options = createOptions(false);
+    IconOptions options = createOptions(false);
     options.usePlaceholders = true;
-    return generateIntoIconMap(template, options);
+    return generateIntoIconMap(paths, options);
   }
 
   /**
@@ -234,7 +233,7 @@ public abstract class IconGenerator implements Disposable {
    * an exception will be thrown.
    */
   @NotNull
-  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate template, Options options) {
+  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModulePaths paths, @NotNull IconOptions options) {
     if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
@@ -244,7 +243,7 @@ public abstract class IconGenerator implements Disposable {
     icons.getIcons().forEach(icon -> {
       PathString relativePath = icon.getOutputPath();
       if (relativePath != null && icon.getCategory() != IconCategory.PREVIEW) {
-        File path = new File(getBaseDirectory(template, icon.getCategory()), relativePath.getNativePath());
+        File path = new File(getBaseDirectory(paths, icon.getCategory()), relativePath.getNativePath());
         outputMap.put(path, icon);
       }
     });
@@ -252,20 +251,20 @@ public abstract class IconGenerator implements Disposable {
   }
 
   @NotNull
-  private static File getBaseDirectory(@NotNull AndroidModuleTemplate template, @NotNull IconCategory category) {
+  private static File getBaseDirectory(@NotNull AndroidModulePaths paths, @NotNull IconCategory category) {
     File dir;
     if (category == IconCategory.PLAY_STORE) {
-      dir = template.getManifestDirectory();
+      dir = paths.getManifestDirectory();
       if (dir != null) {
         return dir;
       }
-      dir = getResDirectory(template);
+      dir = getResDirectory(paths);
       if (dir != null) {
         dir = dir.getParentFile();
       }
     }
     else {
-      dir = getResDirectory(template);
+      dir = getResDirectory(paths);
     }
 
     if (dir == null) {
@@ -280,8 +279,8 @@ public abstract class IconGenerator implements Disposable {
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
-  public void generateIconsToDisk(@NotNull AndroidModuleTemplate template) {
-    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(template);
+  public void generateIconsToDisk(@NotNull AndroidModulePaths paths) {
+    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(paths);
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       for (Map.Entry<File, GeneratedIcon> fileImageEntry : pathIconMap.entrySet()) {
@@ -345,32 +344,48 @@ public abstract class IconGenerator implements Disposable {
   }
 
   @NotNull
-  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+  public Collection<GeneratedIcon> generateIcons(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     List<Callable<GeneratedIcon>> tasks = createIconGenerationTasks(context, options, name);
+    List<Future<GeneratedIcon>> futures = new ArrayList<>(tasks.size());
+    List<GeneratedIcon> icons = new ArrayList<>(futures.size());
+
+    Disposable taskCanceler = () -> {
+      synchronized (futures) {
+        for (Future<GeneratedIcon> f : futures) {
+          f.cancel(true);
+        }
+      }
+    };
+
+    Disposer.register(this, taskCanceler);
 
     // Execute tasks in parallel and wait for results.
-    WaitableExecutor executor = WaitableExecutor.useGlobalSharedThreadPool();
-    Disposable taskCanceler = () -> executor.cancelAllTasks();
-    Disposer.register(this, taskCanceler);
-    tasks.forEach(executor::execute);
-
-    try {
-      return executor.waitForTasksWithQuickFail(true);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } finally {
-      Disposer.dispose(taskCanceler);
+    synchronized (futures) {
+      for (Callable<GeneratedIcon> task : tasks) {
+        futures.add(ApplicationManager.getApplication().executeOnPooledThread(task));
+      }
     }
+
+    for(Future<GeneratedIcon> future: futures) {
+      try {
+        icons.add(future.get());
+      }
+      catch (InterruptedException | ExecutionException e) {
+        Disposer.dispose(taskCanceler);
+      }
+    }
+
+    return icons;
   }
 
   /**
    * Creates icon generation tasks to be executed in parallel.
-   * Subclasses must override this method unless they override {@link #generateIcons(GraphicGeneratorContext, Options, String)}.
+   * Subclasses must override this method unless they override {@link #generateIcons(GraphicGeneratorContext, IconOptions, String)}.
    */
   @NotNull
-  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                    @NotNull Options options,
-                                                                    @NotNull String name) {
+  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TransformedImageAsset imageAsset = options.image;
     if (imageAsset == null) {
       return Collections.emptyList();
@@ -381,14 +396,14 @@ public abstract class IconGenerator implements Disposable {
     // Generate tasks for raster icons in different densities and a vector drawable
     // if the input can be converted to a vector drawable.
     for (Density density : DENSITIES) {
-      Options localOptions = options.clone();
+      IconOptions localOptions = options.clone();
       localOptions.density = density;
       Density outputDensity = density == Density.XXXHIGH && imageAsset.isDrawable() ? Density.ANYDPI : density;
       if (options.generateOutputIcons) {
         if (outputDensity == Density.ANYDPI) {
           // Generate a vector drawable.
           tasks.add(() -> {
-            Options iconOptions = options.clone();
+            IconOptions iconOptions = options.clone();
             iconOptions.density = Density.ANYDPI;
             String xmlDrawableText = imageAsset.getTransformedDrawable();
             assert xmlDrawableText != null;
@@ -435,14 +450,14 @@ public abstract class IconGenerator implements Disposable {
   }
 
   /**
-   * Creates a placeholder image for a faild preview rendering.
+   * Creates a placeholder image for a failed preview rendering.
    *
    * @param e the exception that happen while generating preview
    * @param options the options determining the image scale
    * @return a placeholder image with a message describing the preview rendering error
    */
   @NotNull
-  protected static AnnotatedImage createPlaceholderErrorImage(@NotNull Throwable e, @NotNull Options options) {
+  protected static AnnotatedImage createPlaceholderErrorImage(@NotNull Throwable e, @NotNull IconOptions options) {
     StringBuilder errorMessage = new StringBuilder("Preview rendering error: ");
     String message = e.getMessage();
     if (message == null) {
@@ -470,7 +485,7 @@ public abstract class IconGenerator implements Disposable {
    * @return the generated image
    */
   @NotNull
-  public abstract AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options);
+  public abstract AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options);
 
   /**
    * Generates a single raster image of the given size using the given options.
@@ -480,7 +495,7 @@ public abstract class IconGenerator implements Disposable {
    * @return the generated image
    */
   @NotNull
-  protected AnnotatedImage generateRasterImage(@NotNull Dimension iconSize, @NotNull Options options) {
+  protected AnnotatedImage generateRasterImage(@NotNull Dimension iconSize, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -512,19 +527,19 @@ public abstract class IconGenerator implements Disposable {
   }
 
   @NotNull
-  public abstract Options createOptions(boolean forPreview);
+  public abstract IconOptions createOptions(boolean forPreview);
 
   /**
    * Computes the target filename (relative to the Android project folder) where an icon rendered
    * with the given options should be stored. This is also used as the map keys in the result map
-   * used by {@link #generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)}.
+   * used by {@link #generateRasterImage(String, Map, GraphicGeneratorContext, IconOptions, String)}.
    *
    * @param options the options object used by the generator for the current image
    * @param iconName the base name to use when creating the path
    * @return a platform-independent path relative to the project folder where the image should be stored
    */
   @NotNull
-  protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
+  protected String getIconPath(@NotNull IconOptions options, @NotNull String iconName) {
     return getIconFolder(options) + '/' + getIconFileName(options, iconName);
   }
 
@@ -532,7 +547,7 @@ public abstract class IconGenerator implements Disposable {
    * Returns the name of an icon file.
    */
   @NotNull
-  private static String getIconFileName(@NotNull Options options, @NotNull String iconName) {
+  private static String getIconFileName(@NotNull IconOptions options, @NotNull String iconName) {
     if (options.density == Density.ANYDPI) {
       return iconName + SdkConstants.DOT_XML;
     }
@@ -544,7 +559,7 @@ public abstract class IconGenerator implements Disposable {
    * sometimes modified by options. For example, in some notification icons we add in -v9 or -v11.
    */
   @NotNull
-  protected String getIconFolder(@NotNull Options options) {
+  protected String getIconFolder(@NotNull IconOptions options) {
     switch (options.iconFolderKind) {
       case DRAWABLE:
         return getIconFolder(ResourceFolderType.DRAWABLE, options.density, options.apiVersion);
@@ -577,7 +592,7 @@ public abstract class IconGenerator implements Disposable {
   /**
    * Generates a full set of icons into the given map. The values in the map will be the generated
    * images, and each value is keyed by the corresponding relative path of the image, which is
-   * determined by the {@link #getIconPath(Options, String)} method.
+   * determined by the {@link #getIconPath(IconOptions, String)} method.
    *
    * @param category the current category to place images into (if null the density name will be used)
    * @param categoryMap the map to put images into, should not be null. The map is a map from a category name,
@@ -587,7 +602,7 @@ public abstract class IconGenerator implements Disposable {
    * @param name the base name of the icons to generate
    */
   public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
-                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+                                  @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     // Vector image only need to generate one preview image, so we bypass all the other image densities.
     if (options.density == Density.ANYDPI) {
       generateImageAndUpdateMap(category, categoryMap, context, options, name);
@@ -611,7 +626,7 @@ public abstract class IconGenerator implements Disposable {
   }
 
   private void generateImageAndUpdateMap(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
-                                         @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+                                         @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     AnnotatedImage annotatedImage = generateRasterImage(context, options);
     // The category key is either the "category" parameter or the density if not present.
     String mapCategory = category;
@@ -716,13 +731,24 @@ public abstract class IconGenerator implements Disposable {
   }
 
   /**
-   * Returns the most specific resource directory of the given template.
+   * Returns the most specific resource directory of the given template. Does not consider resource
+   * directories located under "generated" (https://issuetracker.google.com/144939147).
    *
-   * @see AndroidModuleTemplate#getResDirectories()
+   * @see AndroidModulePaths#getResDirectories()
    */
+  // TODO(b/145991621)
   @Nullable
-  public static File getResDirectory(@NotNull AndroidModuleTemplate template) {
-    return Iterables.getLast(template.getResDirectories(), null);
+  public static File getResDirectory(@NotNull AndroidModulePaths paths) {
+    List<File> directories = paths.getResDirectories();
+    for (int i = directories.size(); --i >= 0;) {
+      File dir = directories.get(i);
+      File parent = dir.getParentFile();
+      if (parent == null || !"generated".equals(parent.getName())) {
+        return dir;
+      }
+    }
+
+    return Iterables.getLast(directories, null);
   }
 
   /**
@@ -770,9 +796,9 @@ public abstract class IconGenerator implements Disposable {
   }
 
   /**
-   * Options used for all generators.
+   * IconOptions used for all generators.
    */
-  public static class Options implements Cloneable {
+  public static class IconOptions implements Cloneable {
     /** Whether to actual icons to be written to disk. */
     public boolean generateOutputIcons;
 
@@ -806,16 +832,16 @@ public abstract class IconGenerator implements Disposable {
     /** Indicates that the graphic generator may use placeholders instead of real images. */
     public boolean usePlaceholders;
 
-    public Options(boolean forPreview) {
+    public IconOptions(boolean forPreview) {
       generatePreviewIcons = forPreview;
       generateOutputIcons = !forPreview;
     }
 
     @Override
     @NotNull
-    public Options clone() {
+    public IconOptions clone() {
       try {
-        return (Options)super.clone();
+        return (IconOptions)super.clone();
       }
       catch (CloneNotSupportedException e) {
         throw new Error(e); // Not possible.

@@ -50,6 +50,7 @@ import com.android.tools.adtui.instructions.RenderInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
@@ -64,7 +65,6 @@ import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -171,8 +171,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
 
     getTooltipBinder().bind(MemoryUsageTooltip.class, MemoryUsageTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
 
     myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
     myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
@@ -473,14 +473,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
-    ProfilerTimeline timeline = profilers.getTimeline();
-    Range viewRange = getTimeline().getViewRange();
+    StreamingTimeline timeline = getStage().getTimeline();
+    Range viewRange = timeline.getViewRange();
     myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                getTooltipPanel(), getProfilersView().getComponent(),
-                                () -> myRangeSelectionComponent.shouldShowSeekComponent());
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(getStage().getTimeline(),
+                                                              getTooltipPanel(),
+                                                              getProfilersView().getComponent(),
+                                                              () -> myRangeSelectionComponent.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -744,7 +744,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Nullable
   private CaptureObject getCaptureIntersectingWithMouseX(int mouseXLocation) {
     assert myRangeSelectionComponent != null;
-    Range range = getTimeline().getViewRange();
+    Range range = getStage().getTimeline().getViewRange();
     double pos = mouseXLocation / myRangeSelectionComponent.getSize().getWidth() * range.getLength() + range.getMin();
     CaptureDurationData<? extends CaptureObject> durationData = getStage().getIntersectingCaptureDuration(new Range(pos, pos));
     return durationData == null ? null : durationData.getCaptureEntry().getCaptureObject();
@@ -804,19 +804,17 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (!getStage().isMemoryCaptureOnly()) {
       buttonToolbar.add(getSelectionTimeLabel());
     }
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      CommonToggleButton button = FilterComponent.createFilterToggleButton();
-      buttonToolbar.add(new FlatSeparator());
-      buttonToolbar.add(button);
-      FilterComponent filterComponent =
-        new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+    CommonToggleButton button = FilterComponent.createFilterToggleButton();
+    buttonToolbar.add(new FlatSeparator());
+    buttonToolbar.add(button);
+    FilterComponent filterComponent =
+      new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
 
-      filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
-      headingPanel.add(filterComponent, new TabularLayout.Constraint(2, 0, 3));
-      filterComponent.setVisible(false);
-      filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
-      FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
-    }
+    filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
+    headingPanel.add(filterComponent, new TabularLayout.Constraint(2, 0, 3));
+    filterComponent.setVisible(false);
+    filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
+    FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
 
     // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
     headingPanel.add(buttonToolbar, new TabularLayout.Constraint(0, 2));

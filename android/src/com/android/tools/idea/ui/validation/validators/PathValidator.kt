@@ -94,19 +94,15 @@ class PathValidator
       withCommonRules()
       withError(IS_EMPTY)
       withError(PATH_NOT_WRITABLE)
-      withError(NON_EMPTY_DIRECTORY)
+      withWarning(NON_EMPTY_DIRECTORY)
       return this
     }
 
     /**
      * Useful for creating a [PathValidator] with most rules enforced.
      */
-    @JvmOverloads
-    fun withCommonRules(checkWritable: Boolean = false): Builder {
+    fun withCommonRules(): Builder {
       withCommonTestRules()
-      if (checkWritable) {
-        withWarning(PATH_NOT_WRITABLE)
-      }
       if (SystemInfo.isWindows) {
         withError(WINDOWS_PATH_TOO_LONG)
       }
@@ -153,6 +149,12 @@ class PathValidator
      */
     @JvmStatic
     fun createDefault(pathName: String): PathValidator = Builder().withAllRules().build(pathName)
+
+    @JvmStatic
+    fun forAndroidSdkLocation(): PathValidator = Builder().withCommonRules().build("Android SDK location")
+
+    @JvmStatic
+    fun forAndroidNdkLocation(): PathValidator = Builder().withCommonRules().build("Android NDK location")
   }
 }
 
@@ -209,7 +211,7 @@ private val RESERVED_WINDOWS_FILENAMES: Set<String> = setOf(
  */
 private const val WINDOWS_PATH_LENGTH_LIMIT = 240
 
-private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\\\?%*:|\"<>!;]")
+private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\?%*:|\"<>!;]")
 
 val IS_EMPTY = createSimpleRule(
   { _, file -> file.name.isEmpty() },
@@ -254,7 +256,7 @@ val PATH_INSIDE_ANDROID_STUDIO = createSimpleRule(
 
 val NON_EMPTY_DIRECTORY = createSimpleRule(
   { fileOp, file -> fileOp.listFiles(file).isNotEmpty() },
-  { file, fieldName -> "'${file.name}' already exists at the specified $fieldName." }
+  { file, fieldName -> "'${file.name}' already exists at the specified $fieldName and it is not empty." }
 )
 
 val WINDOWS_PATH_TOO_LONG = createSimpleRule(

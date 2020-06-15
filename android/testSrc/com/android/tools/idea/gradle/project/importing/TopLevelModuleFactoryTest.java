@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.importing;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -35,6 +34,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mock;
 
 /**
@@ -73,17 +73,13 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     assertThat(modules).hasLength(1);
     Module module = modules[0];
     assertEquals(getProject().getName(), module.getName());
-    File moduleFilePath = new File(module.getModuleFilePath());
-    assertEquals(projectRootFolderPath.getPath(), moduleFilePath.getParent());
+    File moduleFilePath = AndroidRootUtil.findModuleRootFolderPath(module);
+    assertEquals(projectRootFolderPath.getPath(), moduleFilePath.getPath());
 
     // Verify the module has a JDK.
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     assertNotNull(sdk);
     assertEquals(myIdeSdks.getJdk().getHomePath(), sdk.getHomePath());
-
-    // Verify module was marked as a "Gradle" module.
-    String systemId = module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY);
-    assertEquals(GRADLE_SYSTEM_ID.getId(), systemId);
 
     ExternalSystemModulePropertyManager externalSystemProperties = ExternalSystemModulePropertyManager.getInstance(module);
     assertEquals(GRADLE_SYSTEM_ID.getId(), externalSystemProperties.getExternalSystemId());

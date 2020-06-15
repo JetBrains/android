@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PROJECT_OUT
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ProjectLocator
@@ -29,8 +30,7 @@ class FmGetAppManifestDirMethod(private val myParamMap: Map<String, Any>) : Temp
   override fun exec(arguments: List<*>): Any? {
     val module = findAppModuleIfAny() ?: return null
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val provider = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider
-    val file = provider.manifestFile ?: return null
+    val file = SourceProviderManager.getInstance(facet).mainManifestFile ?: return null
 
     return file.parent.canonicalPath
   }
@@ -38,7 +38,7 @@ class FmGetAppManifestDirMethod(private val myParamMap: Map<String, Any>) : Temp
   private fun findAppModuleIfAny(): Module? {
     val appName = "app"
     val mobileName = "mobile"
-    val modulePath = myParamMap[TemplateMetadata.ATTR_PROJECT_OUT] as? String ?: return null
+    val modulePath = myParamMap[ATTR_PROJECT_OUT] as? String ?: return null
     val file = LocalFileSystem.getInstance().findFileByIoFile(File(modulePath.replace('/', File.separatorChar))) ?: return null
     val project = ProjectLocator.getInstance().guessProjectForFile(file) ?: return null
     val manager = ModuleManager.getInstance(project)

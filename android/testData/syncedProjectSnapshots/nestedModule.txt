@@ -2,10 +2,12 @@ PROJECT             : testNestedModule
     MODULE              : app
         - ModuleGroupPath   : testNestedModule
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testNestedModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,14 @@ PROJECT             : testNestedModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -451,10 +459,12 @@ PROJECT             : testNestedModule
         ORDER_ENTRY         : testNestedModule
     MODULE              : testNestedModule
         - ModuleGroupPath   : testNestedModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testNestedModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testNestedModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testNestedModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

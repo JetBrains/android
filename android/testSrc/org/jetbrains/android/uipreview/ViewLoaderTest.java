@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 
 public class ViewLoaderTest extends AndroidTestCase {
   @SuppressWarnings("ALL")
@@ -57,7 +58,8 @@ public class ViewLoaderTest extends AndroidTestCase {
     Module module = myFacet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assertNotNull(platform);
-    myLayoutLib = RenderService.getLayoutLibrary(module, new ConfigurationManager(module).getHighestApiTarget());
+    ConfigurationManager manager = new ConfigurationManager(module);
+    myLayoutLib = RenderService.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
   }
 

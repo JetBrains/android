@@ -18,15 +18,20 @@ package com.android.tools.profilers.customevent;
 
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
-import com.android.tools.adtui.DragAndDropList;
-import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerScrollbar;
+import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.components.JBScrollPane;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,15 +39,24 @@ import org.jetbrains.annotations.NotNull;
  * This class represents the view of all the custom events that users have chosen to track for Custom Event Visualization.
  */
 public class CustomEventProfilerStageView extends StageView<CustomEventProfilerStage> {
+  private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
   @NotNull
-  private final JList<TrackGroupModel> myTrackGroupList;
+  private final TrackGroupListPanel myTrackGroupList;
 
   public CustomEventProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventProfilerStage stage) {
     super(profilersView, stage);
 
-    //TODO: add the track group list into the view
-    myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
+    myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels());
+
+    // Add a dependency for when the range changes so the track group list has to be repainted as the timeline moves.
+    getStage().getTimeline().getViewRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateTrackGroupList);
+
+    // Add a dependency for when an event has been added so the track group list can be updated
+    stage.getUserCounterAspectModel().addDependency(this).onChange(UserCounterAspectModel.Aspect.USER_COUNTER, this::reloadTrackGroup);
+
+    buildUI(stage.getStudioProfilers());
   }
 
   @Override
@@ -54,17 +68,42 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     return panel;
   }
 
-  /**
-   * Creates the JList containing all the track groups in the stage.
-   */
-  private static JList<TrackGroupModel> createTrackGroups(@NotNull TrackGroupListModel trackGroupListModel) {
-    DragAndDropList<TrackGroupModel> trackGroupList = new DragAndDropList<>(trackGroupListModel);
-    return trackGroupList;
-  }
-
   @VisibleForTesting
   @NotNull
-  protected final JList<TrackGroupModel> getTrackGroupList() {
+  protected final TrackGroupListPanel getTrackGroupList() {
     return myTrackGroupList;
+  }
+
+  private void buildUI(StudioProfilers profilers) {
+    StreamingTimeline timeline = getStage().getTimeline();
+
+    // The scrollbar can modify the view range of timeline and the tracks.
+    getComponent().add(new ProfilerScrollbar(timeline, getComponent()), BorderLayout.SOUTH);
+
+    // Two row panel:
+    // 1. first row contains the EventMonitor and the tracks for each user event.
+    // 2. second row contains the time axis. Time axis will stay pinned when the view window is resized.
+    JPanel container = new JPanel(new TabularLayout("*", "*,Fit-"));
+
+    // Main panel containing the interaction trackgroup and user counter trackgroup.
+    JPanel mainPanel = new JPanel(new TabularLayout("*"));
+    mainPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    mainPanel.add(myTrackGroupList.getComponent(), new TabularLayout.Constraint(1, 0));
+    container.add(new JBScrollPane(mainPanel), new TabularLayout.Constraint(0, 0));
+
+    JComponent timeAxis = buildTimeAxis(profilers);
+    container.add(timeAxis, new TabularLayout.Constraint(1, 0));
+
+    getComponent().add(container, BorderLayout.CENTER);
+  }
+
+  private void updateTrackGroupList() {
+    // Force track group list to validate its children.
+    myTrackGroupList.getComponent().updateUI();
+  }
+
+  private void reloadTrackGroup() {
+    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels());
+    updateTrackGroupList();
   }
 }

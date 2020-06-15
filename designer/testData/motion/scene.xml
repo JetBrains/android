@@ -2,7 +2,9 @@
 <MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:motion="http://schemas.android.com/apk/res-auto">
 
-  <ConstraintSet android:id="@+id/start">
+  <ConstraintSet
+      android:id="@+id/start"
+      motion:deriveConstraintsFrom="@id/base">
 
     <Constraint
         android:id="@+id/widget"
@@ -22,11 +24,23 @@
         motion:layout_constraintVertical_bias="0.9"
         motion:pathMotionArc="startHorizontal"
         motion:transitionEasing="standard">
+      <CustomAttribute
+          motion:attributeName="textSize"
+          motion:customPixelDimension="2sp"/>
+    </Constraint>
+
+    <Constraint android:id="@+id/button">
+      <Layout
+          android:layout_width="1dp"
+          android:layout_height="1dp"/>
     </Constraint>
 
   </ConstraintSet>
 
-  <ConstraintSet android:id="@+id/end">
+  <ConstraintSet
+      android:id="@+id/end"
+      motion:deriveConstraintsFrom="@id/base">
+
     <Constraint
         android:id="@+id/widget"
         android:layout_width="128dp"
@@ -43,22 +57,58 @@
         motion:layout_constraintStart_toStartOf="parent"
         motion:layout_constraintTop_toTopOf="parent"
         motion:layout_constraintVertical_bias="0.3">
+      <CustomAttribute
+          motion:attributeName="textSize"
+          motion:customPixelDimension="13sp"/>
+    </Constraint>
+
+  </ConstraintSet>
+
+  <ConstraintSet android:id="@+id/base">
+
+    <Constraint
+        android:id="@+id/image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        motion:layout_constraintBottom_toBottomOf="parent"
+        motion:layout_constraintEnd_toEndOf="parent"
+        motion:layout_constraintHorizontal_bias="0.1"
+        motion:layout_constraintStart_toStartOf="parent"
+        motion:layout_constraintTop_toTopOf="parent"
+        motion:layout_constraintVertical_bias="0.9"
+        motion:pathMotionArc="startHorizontal"
+        motion:transitionEasing="standard">
+    </Constraint>
+
+    <Constraint android:id="@+id/button">
+      <Motion
+          motion:motionStagger="1"
+          motion:pathMotionArc="startHorizontal"/>
+      <CustomAttribute
+          motion:attributeName="textSize"
+          motion:customPixelDimension="2sp"/>
     </Constraint>
 
   </ConstraintSet>
 
   <Transition
-      motion:constraintSetEnd="@+id/end"
-      motion:constraintSetStart="@+id/start"
+      motion:constraintSetEnd="@id/end"
+      motion:constraintSetStart="@id/start"
       motion:duration="2000"
-      motion:interpolator="linear">
+      motion:motionInterpolator="linear">
 
-    <OnClick motion:target="@+id/run" />
+    <OnClick motion:targetId="@+id/run"/>
 
     <OnSwipe
         motion:dragDirection="dragRight"
         motion:touchAnchorId="@+id/widget"
-        motion:touchAnchorSide="right" />
+        motion:touchAnchorSide="right"/>
 
     <KeyFrameSet>
       <KeyPosition
@@ -68,58 +118,59 @@
           motion:transitionEasing="standard"
           motion:percentY="0.2"
           motion:percentX="0.7"
-          motion:target="@+id/widget"/>
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="0"
           motion:framePosition="0"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="0"
           motion:framePosition="5"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="20"
           motion:framePosition="10"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="-49"
           motion:framePosition="45"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="0"
           motion:framePosition="48"
-          motion:target="@+id/widget"
-      />
-
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="0"
           motion:framePosition="56"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
           android:rotation="0"
           motion:framePosition="60"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget"/>
       <KeyAttribute
-          android:rotation="0"
+          android:rotation="1"
           motion:framePosition="99"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget">
+        <CustomAttribute
+            motion:attributeName="textSize"
+            motion:customPixelDimension="2sp"/>
+      </KeyAttribute>
       <KeyCycle
           motion:transitionPathRotate="1.5"
           motion:framePosition="15"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget">
+        <CustomAttribute
+            motion:attributeName="pivotX"
+            motion:customFloatValue=".3"/>
+      </KeyCycle>
       <KeyTimeCycle
           motion:transitionPathRotate="1.5"
           motion:framePosition="25"
-          motion:target="@+id/widget"
-      />
+          motion:motionTarget="@+id/widget">
+        <CustomAttribute
+            motion:attributeName="pivotX"
+            motion:customFloatValue=".7"/>
+      </KeyTimeCycle>
     </KeyFrameSet>
   </Transition>
 </MotionScene>

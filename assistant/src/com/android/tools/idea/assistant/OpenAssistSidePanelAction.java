@@ -63,6 +63,7 @@ public class OpenAssistSidePanelAction extends AnAction {
       // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
       toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, project, true);
     }
+    toolWindow.setHelpId(actionId);
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT);
 
     factory.createToolWindowContent(project, toolWindow, true);

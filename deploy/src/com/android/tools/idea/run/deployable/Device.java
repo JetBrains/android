@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.run.deployable;
 
+import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,6 +76,12 @@ public class Device {
 
   @NotNull
   public List<Client> findClientWithApplicationId(@NotNull String applicationId) {
+    if (myIDevice.supportsFeature(IDevice.Feature.REAL_PKG_NAME)) {
+      // If the device supports reporting the real package name, then just use that directly.
+      return Arrays.stream(myIDevice.getClients()).filter(client -> applicationId.equals(client.getClientData().getPackageName()))
+        .collect(Collectors.toList());
+    }
+
     if (isLegacyDevice()) {
       myResolutions.computeIfAbsent(applicationId, ignored -> resolveLegacyPid(applicationId));
     }
@@ -94,7 +106,15 @@ public class Device {
     return clients;
   }
 
+  /**
+   * Refreshes the pid to {@link Process} mapping since the {@link Client} list has changed.
+   */
   synchronized void refresh() {
+    if (myIDevice.supportsFeature(IDevice.Feature.REAL_PKG_NAME)) {
+      // If the device supports reporting the real package name, then just skip refresh.
+      return;
+    }
+
     Map<Integer, Client> clients = new HashMap<>(myIDevice.getClients().length);
     for (Client client : myIDevice.getClients()) {
       clients.put(client.getClientData().getPid(), client);
@@ -149,28 +169,29 @@ public class Device {
    * will return the process name, not the application ID. Therefore, this method guarantees the
    * application ID if it's possible to resolve. Only if it's not possible will this fall back to
    * using the process name instead.
-   *
-   * @return a {@link ListenableFuture} that will eventually resolve to the application ID, or
-   * {@code null} if this device does not support this feature.
    */
   private void resolveApplicationId(@NotNull Process process) {
-    myResolverExecutor.submit(() -> {
-      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 pm list packages --uid", process.getPid());
+    myResolverExecutor.execute(() -> {
+      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 cmd package list packages --uid", process.getPid());
 
       CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-      myIDevice.executeShellCommand(command, receiver);
+      try {
+        myIDevice.executeShellCommand(command, receiver);
+      }
+      catch (IOException | TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException e) {
+        Logger.getInstance(Device.class).warn("Could not resolve application ID", e);
+        return;
+      }
 
       String output = receiver.getOutput();
       if (output.isEmpty()) {
-        // We return null to coerce the lambda into a Callable instead of a Runnable.
-        return null;
+        return;
       }
 
       Matcher m = PACKAGE_NAME_PATTERN.matcher(output);
       while (m.find()) {
         process.addApplicationId(m.group(1));
       }
-      return null;
     });
   }
 
@@ -181,20 +202,21 @@ public class Device {
         // This shell command tries to retrieve the PID associated with a given application ID.
         // To achieve this goal, it does the following:
         //
-        // 1) Gets the UID using run-as with the application ID and the whoami command.
+        // 1) Gets the user name (e.g. u0_a01) using run-as with the application ID and
+        //    the whoami command.
         // 2) Runs the ps command under the application ID to get a list of all running
         //    processes running under the user associated with the given application ID.
-        //    The output of ps looks something like: "<uid> <pid> ..."
+        //    The output of ps looks something like: "<user> <pid> ..."
         // 3) The output of ps is piped into grep/tr/cut to parse out the second parameter,
         //    of each line, which is the PID of each process.
-        // 4) The pid is then used in the readlink command to follow the symbolic links of
+        // 4) The PID is then used in the readlink command to follow the symbolic links of
         //    the symlinked exe file under the PID's /proc directory.
         // 5) If the symlink resolves to any of the 32 or 64 bit zygote process, the PID is
         //    printed to the console, serving as the output of the script.
         String command =
           String.format(
             "uid=`run-as %s whoami` && " +
-            "for pid in `run-as %s ps | grep -o -p \"$uid[[:space:]]\\{1,\\}[[:digit:]]\\{1,\\}\" | tr -s ' ' ' ' | cut -d ' ' -f2`; do " +
+            "for pid in `run-as %s ps | grep -o \"$uid[[:space:]]\\{1,\\}[[:digit:]]\\{1,\\}\" | tr -s ' ' ' ' | cut -d ' ' -f2`; do " +
             "  if [[ `run-as %s readlink /proc/$pid/exe` == /system/bin/app_process* ]]; then " +
             "    echo $pid; " +
             "  fi; " +

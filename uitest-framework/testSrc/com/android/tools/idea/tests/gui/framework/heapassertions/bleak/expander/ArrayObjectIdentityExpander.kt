@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 import gnu.trove.TObjectHash
 import java.lang.ref.WeakReference
 
@@ -32,11 +31,14 @@ import java.lang.ref.WeakReference
  * is maintained to accelerate lookups. For small arrays, the extra memory usage is not worth the
  * small (or possibly negative) performance improvement.
  */
-class ArrayObjectIdentityExpander(g: HeapGraph): Expander(g) {
+class ArrayObjectIdentityExpander: Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
   // primitive arrays should be expanded by DefaultObjectExpander so we don't end up with nodes for primitive types
   override fun canExpand(obj: Any): Boolean = obj.javaClass.isArray && !obj.javaClass.componentType.isPrimitive
+
+  override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
   override fun expand(n: Node) {
     val arr = n.obj as Array<*>
     val map = if (arr.size > LABEL_MAP_DEGREE_THRESHOLD) {

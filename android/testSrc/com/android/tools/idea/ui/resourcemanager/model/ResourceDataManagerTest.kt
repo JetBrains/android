@@ -16,17 +16,17 @@
 package com.android.tools.idea.ui.resourcemanager.model
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceFile
+import com.android.ide.common.resources.ResourceMergerItem
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
-import com.android.tools.idea.ui.resourcemanager.model.Asset
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_URL_FLAVOR
-import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
@@ -41,6 +41,7 @@ import com.intellij.usages.UsageView
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -55,13 +56,38 @@ class ResourceDataManagerTest {
   }
 
   @Test
+  fun getResourceUrlForThemeAttributesAndSampleData() {
+    val dataManager = ResourceDataManager(rule.module.androidFacet!!)
+
+    val attrResource = ResourceMergerItem("my_attr", ResourceNamespace.RES_AUTO, ResourceType.ATTR, null, null, null)
+    ResourceFile.createSingle(File("source"), attrResource, "")
+    val colorAttributeAsset = Asset.fromResourceItem(attrResource, ResourceType.COLOR)
+
+    dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAttributeAsset))
+    dataManager.performCopy(DataContext.EMPTY_CONTEXT)
+    val resourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
+    Truth.assertThat(resourceUrl).isNotNull()
+    Truth.assertThat(resourceUrl!!.toString()).isEqualTo("?attr/my_attr")
+
+    val toolsResource = ResourceMergerItem("my_sample", ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, null, null, null)
+    ResourceFile.createSingle(File("sample"), toolsResource, "")
+    val drawableSample = Asset.fromResourceItem(toolsResource, ResourceType.DRAWABLE)
+
+    dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(drawableSample))
+    dataManager.performCopy(DataContext.EMPTY_CONTEXT)
+    val sampleResourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
+    Truth.assertThat(sampleResourceUrl).isNotNull()
+    Truth.assertThat(sampleResourceUrl!!.toString()).isEqualTo("@tools:sample/my_sample")
+  }
+
+  @Test
   fun getColorPsiElement() {
     rule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
     val colorItem = ResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
       .appResources
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()
-    val colorAsset = Asset.fromResourceItem(colorItem)!!
+    val colorAsset = Asset.fromResourceItem(colorItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
     val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAsset)) as Array<PsiElement> }
@@ -76,14 +102,13 @@ class ResourceDataManagerTest {
     assertTrue { usageTargetKey.isNotEmpty() }
 
     dataManager.performCopy(DataContext.EMPTY_CONTEXT)
-    assertEquals("@color/colorPrimary", CopyPasteManager.getInstance().getContents<ResourceUrl>(
-      RESOURCE_URL_FLAVOR)!!.toString())
+    assertEquals("@color/colorPrimary", CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)!!.toString())
   }
 
   @Test
   fun getFilePsiElement() {
     val pngItem = rule.getPNGResourceItem()
-    val colorAsset = Asset.fromResourceItem(pngItem)!!
+    val colorAsset = Asset.fromResourceItem(pngItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
     val psiArray = runInEdtAndGet { dataManager.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name, listOf(colorAsset)) as Array<PsiElement> }

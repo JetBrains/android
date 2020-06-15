@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -43,24 +44,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.Consumer;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import javax.swing.*;
-import java.io.File;
-import java.util.List;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 public final class GradleProjectInfo {
   @NotNull private final Project myProject;
@@ -148,7 +137,7 @@ public final class GradleProjectInfo {
         return true;
       }
 
-      return hasTopLevelGradleBuildFile();
+      return hasTopLevelGradleFile();
     });
   }
 
@@ -161,22 +150,18 @@ public final class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether the project has build.gradle or build.gradle.kts file in the project's root folder.
+   * Indicates whether the project has a file which gradle could use to perform initialization, either of a "single project" or a
+   * "multi-project" build.
    *
-   * @return {@code true} if the project has build.gradle or build.gradle.kts file in the project's root folder; {@code false} otherwise.
+   * @return {@code true} if the project has a Gradle build or settings file in the project's root folder; {@code false} otherwise.
    */
-  public boolean hasTopLevelGradleBuildFile() {
+  public boolean hasTopLevelGradleFile() {
     if (myProject.isDefault()) {
       return false;
     }
     VirtualFile baseDir = myProject.getBaseDir();
     if (baseDir != null) {
-      for (String fileName : Arrays.asList(FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS)) {
-        VirtualFile buildGradle = baseDir.findChild(fileName);
-        if (buildGradle != null && !buildGradle.isDirectory()) {
-          return true;
-        }
-      }
+      return ((findGradleBuildFile(baseDir) != null) || (findGradleSettingsFile(baseDir) != null));
     }
     return false;
   }

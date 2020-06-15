@@ -27,7 +27,7 @@ public class MotionEditorMainUI extends BaseMotionEditorTest {
   public void testMainUICreation() {
     MotionEditor motionSceneUi = new MotionEditor();
     MeModel model = new MeModel(mScene, mLayout, "layout", "scene");
-    motionSceneUi.setMTag(mScene, mLayout, "layout", "scene");
+    motionSceneUi.setMTag(mScene, mLayout, "layout", "scene", null);
     motionSceneUi.setMTag(model);
   }
 }

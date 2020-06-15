@@ -18,13 +18,19 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.ide.ui.UISettings;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.ComponentEvent;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for components that should change their look over time.
@@ -151,6 +157,17 @@ public abstract class AnimatedComponent extends JComponent {
   protected abstract void draw(Graphics2D g, Dimension size);
 
   protected void debugDraw(Graphics2D g) {}
+
+  /**
+   * When we want to repaint in reaction to certain UI events, it's better to repaint the event source instead of the parent component
+   * because it also works for events dispatched from renderers (e.g. JList).
+   */
+  protected void eventSourceRepaint(ComponentEvent event) {
+    Component source = event.getComponent();
+    if (source != null) {
+      source.repaint();
+    }
+  }
 
   protected void opaqueRepaint() {
     getOpaqueContainer().repaint();

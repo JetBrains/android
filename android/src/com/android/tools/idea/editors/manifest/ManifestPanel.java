@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.manifest;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
 import com.android.builder.model.level2.Library;
@@ -30,15 +31,15 @@ import com.android.manifmerger.XmlNode;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.parser.NamedObject;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
@@ -67,6 +68,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -108,8 +110,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -841,78 +843,36 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (!declaration.startsWith("applicationId")) {
       throw new IllegalArgumentException("unexpected remove suggestion format " + message);
     }
-    final GradleBuildFile buildFile = GradleBuildFile.get(facet.getModule());
     Runnable link = null;
 
-    if (buildFile != null) {
-      final String applicationId = declaration.substring(declaration.indexOf('"') + 1, declaration.lastIndexOf('"'));
-      final File manifestOverlayFile = position.getFile().getSourceFile();
-      assert manifestOverlayFile != null;
-      VirtualFile manifestOverlayVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(manifestOverlayFile);
-      assert manifestOverlayVirtualFile != null;
+    final String applicationId = declaration.substring(declaration.indexOf('"') + 1, declaration.lastIndexOf('"'));
+    final File manifestOverlayFile = position.getFile().getSourceFile();
+    assert manifestOverlayFile != null;
+    VirtualFile manifestOverlayVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(manifestOverlayFile);
+    assert manifestOverlayVirtualFile != null;
 
-      IdeaSourceProvider sourceProvider = ManifestUtils.findManifestSourceProvider(facet, manifestOverlayVirtualFile);
-      assert sourceProvider != null;
-      final String name = sourceProvider.getName();
+    NamedIdeaSourceProvider sourceProvider = ManifestUtils.findManifestSourceProvider(facet, manifestOverlayVirtualFile);
+    assert sourceProvider != null;
+    final String name = sourceProvider.getName();
 
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet.getModule());
-      assert androidModuleModel != null;
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet.getModule());
+    assert androidModuleModel != null;
 
-      final XmlFile manifestOverlayPsiFile = (XmlFile)PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestOverlayVirtualFile);
-      assert manifestOverlayPsiFile != null;
+    final XmlFile manifestOverlayPsiFile =
+      (XmlFile)PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestOverlayVirtualFile);
+    assert manifestOverlayPsiFile != null;
 
-      if (androidModuleModel.getBuildTypeNames().contains(name)) {
-        final String packageName = MergedManifestManager.getSnapshot(facet).getPackage();
-        assert packageName != null;
-        if (applicationId.startsWith(packageName)) {
-          link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
-            @Override
-            protected void run() throws Throwable {
-              if (currentlyOpenFile != null) {
-                // We mark this action as affecting the currently open file, so the Undo is available in this editor
-                CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
-              }
-              removePackageAttribute(manifestOverlayPsiFile);
-              final String applicationIdSuffix = applicationId.substring(packageName.length());
-              @SuppressWarnings("unchecked")
-              List<NamedObject> buildTypes = (List<NamedObject>)buildFile.getValue(BuildFileKey.BUILD_TYPES);
-              if (buildTypes == null) {
-                buildTypes = new ArrayList<>();
-              }
-              NamedObject buildType = find(buildTypes, name);
-              if (buildType == null) {
-                buildType = new NamedObject(name);
-                buildTypes.add(buildType);
-              }
-              buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
-              buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
-              requestSync(facet.getModule().getProject());
-            }
-          }.execute();
-        }
+    if (androidModuleModel.getBuildTypeNames().contains(name)) {
+      final String packageName = AndroidManifestUtils.getPackageName(facet);
+      assert packageName != null;
+      if (applicationId.startsWith(packageName)) {
+        final String applicationIdSuffix = applicationId.substring(packageName.length());
+        link = createLinkAction(facet, manifestOverlayPsiFile, name, currentlyOpenFile, true, applicationIdSuffix);
       }
-      else if (androidModuleModel.getProductFlavorNames().contains(name)) {
-        link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
-          @Override
-          protected void run() throws Throwable {
-            if (currentlyOpenFile != null) {
-              // We mark this action as affecting the currently open file, so the Undo is available in this editor
-              CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
-            }
-            removePackageAttribute(manifestOverlayPsiFile);
-            @SuppressWarnings("unchecked")
-            List<NamedObject> flavors = (List<NamedObject>)buildFile.getValue(BuildFileKey.FLAVORS);
-            assert flavors != null;
-            NamedObject flavor = find(flavors, name);
-            assert flavor != null;
-            flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
-            buildFile.setValue(BuildFileKey.FLAVORS, flavors);
-
-            requestSync(facet.getModule().getProject());
-          }
-        }.execute();
-      }
+    }
+    else if (androidModuleModel.getProductFlavorNames().contains(name)) {
+      link = createLinkAction(facet, manifestOverlayPsiFile, name, currentlyOpenFile, false, applicationId);
     }
 
     if (link != null) {
@@ -925,6 +885,59 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return sb.getHtml();
   }
 
+  /**
+   * Creates a link action to remove the package id from the manifest and write the given applicationIdOrSuffix to the Gradle build files.
+   *
+   * @param facet the facet that we are editing
+   * @param manifestOverlayPsiFile the manifest file to remove the package from
+   * @param name the name of the build type or product flavor to add the applicationId and applicationIdSuffix to
+   * @param currentlyOpenFile the currently open file that is marked as part of the command action
+   * @param isBuildType whether or not to edit the build type of a product flavour
+   * @param applicationIdOrSuffix either the applicationIdSuffix for build types or applicationId for product flavours
+   * @return the link the performs the action
+   */
+  @NotNull
+  private static Runnable createLinkAction(final @NotNull AndroidFacet facet,
+                                           final XmlFile manifestOverlayPsiFile,
+                                           String name,
+                                           final @Nullable VirtualFile currentlyOpenFile,
+                                           boolean isBuildType,
+                                           final @NotNull String applicationIdOrSuffix) {
+    return () -> writeCommandAction(facet.getModule().getProject(), manifestOverlayPsiFile).withName("Apply manifest suggestion").run(() -> {
+      ProjectBuildModel projectBuildModel = ProjectBuildModel.get(facet.getModule().getProject());
+      GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(facet.getModule());
+      if (gradleBuildModel == null) {
+        String errorMessage =
+          "Could not edit build file for '" + facet.getModule().getName() + "' please apply the suggestion manually";
+        ApplicationManager.getApplication()
+          .invokeLater(() -> Messages.showErrorDialog(facet.getModule().getProject(), errorMessage, "Apply Manifest Suggestion"));
+        return;
+      }
+
+      if (currentlyOpenFile != null) {
+        // We mark this action as affecting the currently open file and build file, so the Undo is available in this editor
+        CommandProcessor.getInstance()
+          .addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile, gradleBuildModel.getVirtualFile());
+      }
+      removePackageAttribute(manifestOverlayPsiFile);
+
+      if (isBuildType) {
+        BuildTypeModel buildTypeModel = gradleBuildModel.android().buildTypes().stream().filter(type -> type.name().equals(name)).findFirst()
+          .orElse(gradleBuildModel.android().addBuildType(name));
+        buildTypeModel.applicationIdSuffix().setValue(applicationIdOrSuffix);
+      } else {
+        ProductFlavorModel flavorModel = gradleBuildModel.android().productFlavors().stream().filter(type -> type.name().equals(name)).findFirst()
+          .orElse(gradleBuildModel.android().addProductFlavor(name));
+        flavorModel.applicationId().setValue(applicationIdOrSuffix);
+      }
+
+      projectBuildModel.applyChanges();
+
+      requestSync(facet.getModule().getProject());
+    });
+  }
+
+
   private static void requestSync(Project project) {
     assert ApplicationManager.getApplication().isDispatchThread();
     ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
@@ -934,16 +947,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     XmlTag tag = manifestFile.getRootTag();
     assert tag != null;
     tag.setAttribute("package", null);
-  }
-
-  @Nullable/*item not found*/
-  static NamedObject find(@NotNull List<NamedObject> items, @NotNull String name) {
-    for (NamedObject item : items) {
-      if (name.equals(item.getName())) {
-        return item;
-      }
-    }
-    return null;
   }
 
   static void addToolsAttribute(final @NotNull XmlFile file,
@@ -1004,7 +1007,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
-        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+        for (NamedIdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
           if (provider.getResDirectories().contains(vResDir)) {
             source += provider.getName() + " ";
             break;
@@ -1037,7 +1040,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (file != null) {
       String source = null;
 
-      Module libraryModule = null;
       Module[] modules = ModuleManager.getInstance(facet.getModule().getProject()).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
       if (vFile != null) {
@@ -1073,7 +1075,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
         }
 
-        IdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
+        NamedIdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
         if (provider != null /*&& !provider.equals(facet.getMainIdeaSourceProvider())*/) {
           String providerName = provider.getName();
           if (source == null) {
@@ -1094,29 +1096,12 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
       sb.addHtml("<a href=\"");
 
-      boolean redirected = false;
-      if (libraryModule != null) {
-        AndroidFacet libraryFacet = AndroidFacet.getInstance(libraryModule);
-        if (libraryFacet != null) {
-          File manifestFile = SourceProviderManager.getInstance(libraryFacet).getMainSourceProvider().getManifestFile();
-          if (manifestFile.exists()) {
-            sb.add(manifestFile.toURI().toString());
-            redirected = true;
-            // Line numbers probably aren't right
-            sourcePosition = SourcePosition.UNKNOWN;
-            // TODO: Set URL which points to the element/attribute path
-          }
-        }
-      }
-
-      if (!redirected) {
-        sb.add(file.toURI().toString());
-        if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-          sb.add(":");
-          sb.add(String.valueOf(sourcePosition.getStartLine()));
-          sb.add(":");
-          sb.add(String.valueOf(sourcePosition.getStartColumn()));
-        }
+      sb.add(file.toURI().toString());
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartLine()));
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartColumn()));
       }
       sb.addHtml("\">");
 

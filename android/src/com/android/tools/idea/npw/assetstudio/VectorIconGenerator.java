@@ -58,7 +58,7 @@ public class VectorIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -71,7 +71,7 @@ public class VectorIconGenerator extends IconGenerator {
   }
 
   @Nullable
-  private static BufferedImage getTrimmedAndPaddedImage(@NotNull Options options) {
+  private static BufferedImage getTrimmedAndPaddedImage(@NotNull IconOptions options) {
     if (options.sourceImageFuture == null) {
       return null;
     }
@@ -94,7 +94,8 @@ public class VectorIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+  public Collection<GeneratedIcon> generateIcons(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     VectorAsset vectorAsset = (VectorAsset)sourceAsset().getValue();
     VectorAsset.Preview result = vectorAsset.generatePreview();
     if (!result.isValid()) {
@@ -106,7 +107,7 @@ public class VectorIconGenerator extends IconGenerator {
     return Collections.singleton(icon);
   }
 
-  public static class VectorIconOptions extends Options {
+  public static class VectorIconOptions extends IconOptions {
     public VectorIconOptions(boolean forPreview) {
       super(forPreview);
       iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;

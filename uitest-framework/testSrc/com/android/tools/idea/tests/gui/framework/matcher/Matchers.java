@@ -90,4 +90,16 @@ public final class Matchers {
       }
     };
   }
+
+  @NotNull
+  public static <T extends JComponent> FluentMatcher<T> byClientProperty(Class<T> componentType,
+                                                                         @NotNull Object key,
+                                                                         @NotNull Class<?> valueClass) {
+    return new FluentMatcher<T>(componentType) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return valueClass.isInstance(component.getClientProperty(key));
+      }
+    };
+  }
 }

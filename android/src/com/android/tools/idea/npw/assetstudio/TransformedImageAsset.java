@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.ide.common.util.AssetUtil.NO_EFFECTS;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
+import static com.android.tools.idea.npw.assetstudio.VectorDrawableTransformer.transform;
 
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
@@ -29,6 +30,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
@@ -48,8 +50,14 @@ public final class TransformedImageAsset {
   private final double myOpacity;
   private final boolean myIsTrimmed;
   @NotNull private final Dimension myTargetSize;
-  private final double myScaleFactor;
   @Nullable private Rectangle2D myTrimRectangle;
+  @GuardedBy("myLock")
+  private double myScaleFactor;
+  @GuardedBy("myLock")
+  @Nullable private Point2D myShift;
+
+  @GuardedBy("myLock")
+  @NotNull private Gravity myGravity;
   @GuardedBy("myLock")
   @Nullable private String myTransformedDrawable;
   @GuardedBy("myLock")
@@ -79,6 +87,33 @@ public final class TransformedImageAsset {
     myTargetSize = targetSize;
     myScaleFactor = scaleFactor;
     myContext = context;
+    myGravity = Gravity.CENTER;
+  }
+
+  @Nullable
+  public Point2D getShift() {
+    synchronized (myLock) {
+      return myShift;
+    }
+  }
+
+  public void setShift(@Nullable Point2D shift) {
+    synchronized (myLock) {
+      myShift = shift;
+    }
+  }
+
+  @NotNull
+  public Gravity getGravity() {
+    synchronized (myLock) {
+      return myGravity;
+    }
+  }
+
+  public void setGravity(@NotNull Gravity gravity) {
+    synchronized (myLock) {
+      myGravity = gravity;
+    }
   }
 
   public boolean isDrawable() {
@@ -107,8 +142,7 @@ public final class TransformedImageAsset {
         }
         if (myTransformedDrawable == null) {
           Rectangle2D clipRectangle = myIsTrimmed ? getTrimRectangle(xmlDrawable) : null;
-          myTransformedDrawable =
-              VectorDrawableTransformer.transform(xmlDrawable, myTargetSize, myScaleFactor, clipRectangle, myTint, myOpacity);
+          myTransformedDrawable = transform(xmlDrawable, myTargetSize, myGravity, myScaleFactor, clipRectangle, myShift, myTint, myOpacity);
         }
         return myTransformedDrawable;
       }
@@ -146,7 +180,7 @@ public final class TransformedImageAsset {
       return createErrorImage(imageSize);
     }
 
-    return applyScaleTintAndOpacity(imageSize, trimmedImage);
+    return applyScaleShiftTintAndOpacity(imageSize, trimmedImage);
   }
 
   /**
@@ -157,24 +191,35 @@ public final class TransformedImageAsset {
    */
   @NotNull
   public BufferedImage createErrorImage(@NotNull Dimension imageSize) {
-    return applyScaleTintAndOpacity(imageSize, AssetStudioUtils.createDummyImage());
+    return applyScaleShiftTintAndOpacity(imageSize, AssetStudioUtils.createDummyImage());
   }
 
   @NotNull
-  private BufferedImage applyScaleTintAndOpacity(@NotNull Dimension imageSize, @NotNull BufferedImage sourceImage) {
-    double scaleFactor = Math.min(imageSize.getWidth() * myScaleFactor / sourceImage.getWidth(),
-                                  imageSize.getHeight() * myScaleFactor / sourceImage.getHeight());
-    int width = roundToInt(sourceImage.getWidth() * scaleFactor);
-    int height = roundToInt(sourceImage.getHeight() * scaleFactor);
-    BufferedImage scaledImage = AssetUtil.scaledImage(sourceImage, width, height);
+  private BufferedImage applyScaleShiftTintAndOpacity(@NotNull Dimension imageSize, @NotNull BufferedImage sourceImage) {
+    int width;
+    int height;
+    double x;
+    double y;
+    synchronized (myLock) {
+      double scaleFactor = Math.min(imageSize.getWidth() * myScaleFactor / sourceImage.getWidth(),
+                                    imageSize.getHeight() * myScaleFactor / sourceImage.getHeight());
+      width = roundToInt(sourceImage.getWidth() * scaleFactor);
+      height = roundToInt(sourceImage.getHeight() * scaleFactor);
 
-    int x = roundToInt( (imageSize.width - width) / 2.);
-    int y = roundToInt( (imageSize.height - height) / 2.);
+      x = (imageSize.width - width) / 2.;
+      y = (imageSize.height - height) / 2.;
+      if (myShift != null) {
+        x += imageSize.getWidth() * myShift.getX();
+        y += imageSize.getHeight() * myShift.getY();
+      }
+    }
+
+    BufferedImage scaledImage = AssetUtil.scaledImage(sourceImage, width, height);
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageSize.width, imageSize.height);
     Graphics2D g = (Graphics2D)outImage.getGraphics();
     AssetUtil.Effect[] effects =
-        myTint == null || myOpacity == 0 ? NO_EFFECTS : new AssetUtil.FillEffect[] {new AssetUtil.FillEffect(myTint, myOpacity)};
-    AssetUtil.drawEffects(g, scaledImage, x, y, effects);
+        myTint == null || myOpacity == 0 ? NO_EFFECTS : new AssetUtil.FillEffect[]{new AssetUtil.FillEffect(myTint, myOpacity)};
+    AssetUtil.drawEffects(g, scaledImage, roundToInt(x), roundToInt(y), effects);
 
     g.dispose();
     return outImage;
@@ -184,7 +229,19 @@ public final class TransformedImageAsset {
    * Returns the scale factor.
    */
   public double getScaleFactor() {
-    return myScaleFactor;
+    synchronized (myLock) {
+      return myScaleFactor;
+    }
+  }
+
+  /**
+   * Adjusts the scale factor by multiplying it by the given value. Returns the resulting scale factor.
+   */
+  public double applyAdditionalScaleFactor(double scale) {
+    synchronized (myLock) {
+      myScaleFactor *= scale;
+      return myScaleFactor;
+    }
   }
 
   /**

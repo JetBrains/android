@@ -31,7 +31,7 @@ public class NavPropertyPanelDefinition extends ToolWindowDefinition<DesignSurfa
   public NavPropertyPanelDefinition(@NotNull AndroidFacet facet, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     // TODO: Get a different 13x13 tool window icon
     super("Attributes", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide,
-          JBUI.scale(DEFAULT_NAV_PANEL_SIDE_WIDTH), DEFAULT_BUTTON_SIZE,
+          JBUI.scale(DEFAULT_NAV_PANEL_SIDE_WIDTH), DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE,
           (disposable) -> new NavPropertiesManager(facet, null, disposable));
   }
 }

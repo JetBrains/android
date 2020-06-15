@@ -31,12 +31,9 @@ public interface ProguardR8FieldsSpecification extends PsiElement {
   ProguardR8AnyFieldOrMethod getAnyFieldOrMethod();
 
   @Nullable
-  ProguardR8FieldName getFieldName();
+  ProguardR8Field getField();
 
   @NotNull
-  List<ProguardR8FieldsModifier> getFieldsModifierList();
-
-  @Nullable
-  ProguardR8Type getType();
+  List<ProguardR8Modifier> getModifierList();
 
 }

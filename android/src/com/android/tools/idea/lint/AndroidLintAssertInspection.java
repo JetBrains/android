@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.AssertDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintAssertInspection extends AndroidLintInspectionBase {
   public AndroidLintAssertInspection() {
-    super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.DISABLED);
   }
 }

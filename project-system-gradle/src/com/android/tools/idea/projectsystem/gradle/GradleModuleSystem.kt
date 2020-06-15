@@ -17,29 +17,45 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
+import com.android.builder.model.AndroidLibrary
+import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
+import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
+import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.ManifestOverrides
+import com.android.tools.idea.projectsystem.MergedManifestContributors
+import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
+import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
+import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
+import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
@@ -47,17 +63,20 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
-import org.jetbrains.android.dom.manifest.packageName
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
+import java.io.File
 import java.util.ArrayDeque
 import java.util.Collections
+import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 
 /**
  * Make [.getRegisteredDependency] return the direct module dependencies.
@@ -76,9 +95,17 @@ const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
 
+/** Creates a map for the given pairs, filtering out null values. */
+private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
+  return pairs.asSequence()
+    .filter { it.second != null }
+    .toMap() as Map<K, V>
+}
+
 class GradleModuleSystem(
   override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
+  private val moduleHierarchyProvider: ModuleHierarchyProvider,
   @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
 ) : AndroidModuleSystem,
     ClassFileFinder by GradleClassFileFinder(module),
@@ -157,7 +184,8 @@ class GradleModuleSystem(
           else -> "annotationProcessor"
         }
       }
-    } else {
+    }
+    else {
       manager.addDependenciesWithoutSync(module, coordinates)
     }
   }
@@ -368,6 +396,50 @@ class GradleModuleSystem(
     fun isSameAs(coordinate: GradleCoordinate) = groupId == coordinate.groupId && artifactId == coordinate.artifactId
   }
 
+  override fun getManifestOverrides(): ManifestOverrides {
+    val facet = AndroidFacet.getInstance(module)
+    val androidModel = facet?.let(AndroidModel::get) ?: return ManifestOverrides()
+    val directOverrides = notNullMapOf(
+      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
+      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
+      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
+      ManifestSystemProperty.PACKAGE to androidModel.applicationId
+    )
+    val gradleModel = AndroidModuleModel.get(facet) ?: return ManifestOverrides(directOverrides)
+    val flavor = gradleModel.selectedVariant.mergedFlavor
+    val buildType = gradleModel.findBuildType(gradleModel.selectedVariant.buildType)!!.buildType
+    val placeholders = (flavor.manifestPlaceholders + buildType.manifestPlaceholders).mapValues { it.value.toString() }
+    val directOverridesFromGradle = notNullMapOf(
+      ManifestSystemProperty.MAX_SDK_VERSION to flavor.maxSdkVersion?.toString(),
+      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel, buildType)
+    )
+    return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
+  }
+
+  override fun getMergedManifestContributors(): MergedManifestContributors {
+    val facet = module.androidFacet!!
+    val dependencies = getResourceModuleDependencies().mapNotNull { it.androidFacet }
+    return MergedManifestContributors(
+      primaryManifest = facet.sourceProviders.mainManifestFile,
+      flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
+      libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
+      navigationFiles = facet.getTransitiveNavigationFiles(dependencies),
+      flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
+    )
+  }
+
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: BuildType): String? {
+    val flavor = gradleModel.selectedVariant.mergedFlavor
+    val versionName = flavor.versionName
+    val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""
+    val suffix = flavorSuffix + buildType.versionNameSuffix.orEmpty()
+    return when {
+      versionName != null && versionName.isNotEmpty() -> versionName + suffix
+      suffix.isEmpty() -> null
+      else -> facet.getPrimaryManifestXml()?.versionName.orEmpty() + suffix
+    }
+  }
+
   override fun getPackageName(): String? {
     val facet = AndroidFacet.getInstance(module)!!
     val cachedValue = facet.cachedValueFromPrimaryManifest {
@@ -396,6 +468,26 @@ class GradleModuleSystem(
   }
 
   override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
+
+  private inline fun <T> readFromAgpFlags(read: (IdeAndroidGradlePluginProjectFlags) -> T): T? {
+    return AndroidModuleModel.get(module)?.androidProject?.agpFlags?.let(read)
+  }
+
+  override val usesCompose: Boolean get() = readFromAgpFlags { it.usesCompose } ?: false
+
+  override val codeShrinker: CodeShrinker?
+    get() = when (AndroidModuleModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
+      BuildModelCodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+      BuildModelCodeShrinker.R8 -> CodeShrinker.R8
+      null -> null
+    }
+
+  override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
+
+  override fun getDynamicFeatureModules(): List<Module> {
+    val project = GradleUtil.getAndroidProject(module) ?: return emptyList()
+    return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
+  }
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
@@ -529,6 +621,45 @@ class GradleModuleSystem(
           .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }
+    }
+  }
+
+  override val submodules: Collection<Module>
+    get() = moduleHierarchyProvider.submodules
+}
+
+private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  if (isDisposed) return emptyList()
+  val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
+
+  val aarManifests = hashSetOf<File>()
+  AndroidModuleModel.get(this)
+    ?.selectedMainCompileDependencies
+    ?.libraries
+    ?.forEach { addAarManifests(it, aarManifests, dependencies) }
+
+  // Local library manifests come first because they have higher priority.
+  return localLibManifests +
+         // If any of these are null, then the file is specified in the model,
+         // but not actually available yet, such as exploded AAR manifests.
+         aarManifests.mapNotNull { VfsUtil.findFileByIoFile(it, false) }
+}
+
+private fun addAarManifests(lib: AndroidLibrary, result: MutableSet<File>, moduleDeps: List<AndroidFacet>) {
+  lib.project?.let { projectName ->
+    // The model ends up with AndroidLibrary references both to normal, source modules,
+    // as well as AAR dependency wrappers. We don't want to add an AAR reference for
+    // normal libraries (so we find these and just return below), but we *do* want to
+    // include AAR wrappers.
+    // TODO(b/128928135): Make this build system-independent.
+    if (moduleDeps.any { projectName == GradleUtil.getGradlePath(it.module) }) {
+      return
+    }
+  }
+  if (lib.manifest !in result) {
+    result.add(lib.manifest)
+    lib.libraryDependencies.forEach {
+      addAarManifests(it, result, moduleDeps)
     }
   }
 }

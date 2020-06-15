@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
@@ -72,7 +75,7 @@ public class JavaDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveJavaDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()

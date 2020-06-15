@@ -46,7 +46,6 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -78,13 +77,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
   @NotNull
   public PaneFixture selectAndroidPane() {
     return selectPane("Android");
-  }
-
-  @NotNull
-  public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    selectProjectPane().clickPath(MouseButton.RIGHT_BUTTON, "External Libraries", libraryName);
-    new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot,  Matchers.byText(JMenuItem.class, "Library Properties..."))).click();
-    return LibraryPropertiesDialogFixture.find(myRobot, libraryName, myProject);
   }
 
   /**

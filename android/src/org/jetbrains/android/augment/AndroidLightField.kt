@@ -1,5 +1,8 @@
 package org.jetbrains.android.augment
 
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.flattenResourceName
+import com.google.common.base.MoreObjects
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.util.TextRange
@@ -23,8 +26,8 @@ import com.intellij.util.PlatformIcons
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
-class AndroidLightField(
-  @Volatile private var _name: String,
+open class AndroidLightField(
+  @Volatile protected var _name: String,
   private val myContext: PsiClass,
   private val myType: PsiType,
   fieldModifier: FieldModifier,
@@ -76,10 +79,60 @@ class AndroidLightField(
     return this
   }
 
-
   public override fun getElementIcon(flags: Int): Icon? {
     val baseIcon = ElementPresentationUtil.createLayeredIcon(PlatformIcons.FIELD_ICON, this, false)
     return ElementPresentationUtil.addVisibilityIcon(this, flags, baseIcon)
   }
 }
 
+class ResourceLightField(
+  resourceName: String,
+  myContext: PsiClass,
+  myType: PsiType,
+  fieldModifier: FieldModifier,
+  myConstantValue: Any?) : AndroidLightField(resourceName, myContext, myType, fieldModifier, myConstantValue) {
+
+  override fun getNameIdentifier(): LightIdentifier = LightIdentifier(manager, flattenResourceName(_name))
+  override fun getName(): String = flattenResourceName(_name)
+  override fun toString(): String = "ResourceLightField:$_name"
+
+  fun getResourceName(): String = super._name
+}
+
+class ManifestLightField(
+  name: String,
+  myContext: PsiClass,
+  myType: PsiType,
+  fieldModifier: FieldModifier,
+  myConstantValue: Any?) : AndroidLightField(name, myContext, myType, fieldModifier, myConstantValue) {
+  override fun toString(): String = "ManifestLightField:$_name"
+}
+
+/**
+ * Subclass of [AndroidLightField] to store extra information specific to styleable attribute fields.
+ */
+class StyleableAttrLightField(
+  val styleableAttrFieldUrl: StyleableAttrFieldUrl,
+  myContext: PsiClass,
+  fieldModifier: FieldModifier,
+  myConstantValue: Any?
+) : AndroidLightField(styleableAttrFieldUrl.toFieldName(), myContext, PsiType.INT, fieldModifier, myConstantValue) {
+
+  override fun toString(): String {
+    return MoreObjects.toStringHelper(this)
+      .add("styleable", styleableAttrFieldUrl.styleable)
+      .add("attr", styleableAttrFieldUrl.attr)
+      .toString()
+  }
+}
+
+data class StyleableAttrFieldUrl(val styleable: ResourceReference, val attr: ResourceReference) {
+  fun toFieldName(): String {
+    val packageName = attr.namespace.packageName
+    return if (styleable.namespace == attr.namespace || packageName.isNullOrEmpty()) {
+      "${flattenResourceName(styleable.name)}_${flattenResourceName(attr.name)}"
+    } else {
+      "${flattenResourceName(styleable.name)}_${flattenResourceName(packageName)}_${flattenResourceName(attr.name)}"
+    }
+  }
+}

@@ -24,7 +24,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoveFilesOrDirectoriesDialogFixture
-import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
@@ -130,7 +130,7 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ResourceExplorerDialogFixture.find(robot()).run {
+        ResourcePickerDialogFixture.find(robot()).run {
           resourceExplorer.searchField.setText("ic_qr")
           resourceExplorer.selectResource("ic_qr_code")
           clickOk()
@@ -160,12 +160,12 @@ class QrScanningCujTest {
 
     // Add dependency by typing it in build.gradle file
     ide.editor
-      .open("app/build.gradle")
-      .moveBetween("dependencies {\n", "")
-      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       // play-services-vision uses AndroidX, so we need to add the following property (see bug 130286699). Eventually, all the dependencies
       // used in this test project should be upgraded to AndroidX.
       .newFile(Paths.get("gradle.properties"), "android.useAndroidX=true")
+      .open("app/build.gradle")
+      .moveBetween("dependencies {\n", "")
+      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       .ideFrame
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish()
@@ -188,7 +188,7 @@ class QrScanningCujTest {
           .chooseIcon()
           .filterByNameAndSelect("flash on")
           .clickOk()
-          .setName("ic_flash_on_white_24dp")
+          .setName("ic_baseline_flash_on_24")
           .setColor("FFFFFF")
           .clickNext()
           .clickFinish()
@@ -198,9 +198,9 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ResourceExplorerDialogFixture.find(robot()).run {
-          resourceExplorer.searchField.setText("ic_flash_on_white")
-          resourceExplorer.selectResource("ic_flash_on_white_24dp")
+        ResourcePickerDialogFixture.find(robot()).run {
+          resourceExplorer.searchField.setText("ic_baseline_flash_on")
+          resourceExplorer.selectResource("ic_baseline_flash_on_24")
           clickOk()
         }
       }

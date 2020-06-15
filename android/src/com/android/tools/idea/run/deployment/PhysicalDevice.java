@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
@@ -29,6 +28,7 @@ import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,12 +39,12 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
-                                  @NotNull DeviceNamePropertiesFetcher fetcher,
+                                  @NotNull Function<ConnectedDevice, String> getName,
                                   @NotNull KeyToConnectionTimeMap map) {
     Key key = device.getKey();
 
     return new Builder()
-      .setName(device.getPhysicalDeviceName(fetcher))
+      .setName(getName.apply(device))
       .setValid(device.isValid())
       .setValidityReason(device.getValidityReason())
       .setKey(key)
@@ -137,7 +137,7 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     futures.getDevices().add(getAndroidDevice());
   }
 

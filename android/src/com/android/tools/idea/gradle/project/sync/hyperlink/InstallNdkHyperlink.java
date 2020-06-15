@@ -68,7 +68,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
   }
 
   @Override
-  protected void execute(@NotNull Project project) {
+  public void execute(@NotNull Project project) {
     // Remove any value old value from ndk.dir
     try {
       LocalProperties localProperties = new LocalProperties(project);

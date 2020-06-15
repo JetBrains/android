@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.module;
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -30,7 +30,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
@@ -62,17 +62,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
-
-public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleModel> {
+public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidModuleModel> {
   private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
   private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
   private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
@@ -89,18 +83,25 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private JComboBox<Language> myLanguageCombo;
   private JTextField myModuleName;
   private JPanel myPanel;
+  private JLabel myAppNameLabel;
   private JTextField myAppName;
   private LabelWithEditButton myPackageName;
   private JLabel myModuleNameLabel;
 
   @NotNull private RenderTemplateModel myRenderModel;
 
-  public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel, String basePackage,
+  public ConfigureAndroidModuleStep(@NotNull NewAndroidModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel, String basePackage,
                                     @NotNull String title) {
     super(model, title, formFactor.getIcon());
 
     myFormFactor = formFactor;
     myMinSdkLevel = minSdkLevel;
+
+    // We do not use module name for android library
+    if (model.isLibrary()) {
+      myAppNameLabel.setVisible(false);
+      myAppName.setVisible(false);
+    }
 
     TextProperty packageNameText = new TextProperty(myPackageName);
     TextProperty moduleNameText = new TextProperty(myModuleName);
@@ -117,8 +118,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     // Project should never be null (we are adding a new module to an existing project)
-    NewModuleModel moduleModel = getModel();
-    Project project = moduleModel.getProject().getValue();
+    NewAndroidModuleModel moduleModel = getModel();
+    Project project = moduleModel.getProject();
 
     Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName(), model.getModuleParent());
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
@@ -134,7 +135,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       if (value.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
       }
-      else if (!model.isLibrary().get() && !Character.isUpperCase(value.charAt(0))) {
+      else if (!model.isLibrary() && !Character.isUpperCase(value.charAt(0))) {
         return new Validator.Result(Validator.Severity.INFO,  message("android.wizard.validate.lowercase.application.name"));
       }
       return Validator.Result.OK;
@@ -170,9 +171,9 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
-    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor,
-                                                                           new ArrayList<com.android.tools.idea.projectsystem.NamedModuleTemplate>());
-    chooseActivityStep.setShouldShow(!getModel().isLibrary().get());
+    ChooseActivityTypeStep chooseActivityStep =
+      new ChooseActivityTypeStep(myRenderModel, myFormFactor, new ArrayList<>(), getModel().getAndroidSdkInfo());
+    chooseActivityStep.setShouldShow(!getModel().isLibrary());
 
     LicenseAgreementStep licenseAgreementStep =
       new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
@@ -200,12 +201,12 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
   @Override
   protected void onProceeding() {
-    NewModuleModel moduleModel = getModel();
+    NewAndroidModuleModel moduleModel = getModel();
     moduleModel.getModuleTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
 
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().getModuleName().set(myModuleName.getText());
-    Project project = moduleModel.getProject().getValue();
+    Project project = moduleModel.getProject();
     getModel().getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.getModuleName().get()));
 
     myInstallRequests.clear();
@@ -228,16 +229,11 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     return myAppName;
   }
 
-  @TestOnly
-  @NotNull
-  RenderTemplateModel getRenderModel() {
-    return myRenderModel;
-  }
-
   private void createUIComponents() {
     myApiLevelCombo = new AndroidApiLevelComboBox();
     myLanguageCombo = new LanguageComboProvider().createComponent();
     myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
+    myPackageName = new LabelWithEditButton();
   }
 
   @Override

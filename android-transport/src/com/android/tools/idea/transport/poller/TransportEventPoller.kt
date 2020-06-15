@@ -21,8 +21,10 @@ import com.android.tools.profiler.proto.TransportServiceGrpc
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 
 /**
  * Encapsulates most of the polling functionality that Transport Pipeline subscribers would need to implement
@@ -54,7 +56,7 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
     // Poll for each listener
     for (eventListener in listeners) {
       // Use start/end time if available
-      val startTimestamp = eventListener.startTime?.invoke() ?: listenersToLastTimestamp.getOrDefault(eventListener, Long.MIN_VALUE)
+      val startTimestamp = listenersToLastTimestamp[eventListener] ?: eventListener.startTime?.invoke() ?: Long.MIN_VALUE
       val endTimestamp = eventListener.endTime()
 
       val builder = Transport.GetEventGroupsRequest.newBuilder()
@@ -78,7 +80,7 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
         filtered.forEach { event -> eventListener.executor.execute { removeListener = eventListener.callback(event) } }
         val maxTimeEvent = filtered.maxBy {it.timestamp}
         // Update last timestamp per listener
-        maxTimeEvent?.let { listenersToLastTimestamp[eventListener] = Math.max(startTimestamp, it.timestamp + 1) }
+        maxTimeEvent?.let { listenersToLastTimestamp[eventListener] = max(startTimestamp, it.timestamp + 1) }
       }
 
       if (removeListener) {
@@ -88,18 +90,19 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
   }
 
   companion object {
-    private val myExecutorService = Executors.newScheduledThreadPool(1)
+    private val myExecutorService: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
     private val myScheduledFutures = mutableMapOf<TransportEventPoller, ScheduledFuture<*>>()
 
     @JvmOverloads
     @JvmStatic
     fun createPoller(transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
                      pollPeriodNs: Long,
-                     sortOrder: java.util.Comparator<Common.Event> = java.util.Comparator.comparing(Common.Event::getTimestamp)
+                     sortOrder: java.util.Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
+                     executorServiceForTest: ScheduledExecutorService? = null
     ): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
-      val scheduledFuture = myExecutorService.scheduleAtFixedRate({ poller.poll() },
-                                                                  0, pollPeriodNs, TimeUnit.NANOSECONDS)
+      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay({ poller.poll() },
+                                                                                                 0, pollPeriodNs, TimeUnit.NANOSECONDS)
       myScheduledFutures[poller] = scheduledFuture
       return poller
     }

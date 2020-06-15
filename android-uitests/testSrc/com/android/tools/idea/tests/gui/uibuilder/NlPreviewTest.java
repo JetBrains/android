@@ -53,12 +53,16 @@ public class NlPreviewTest {
 
   @Before
   public void setUp() {
+    // Since NELE_SPLIT_EDITOR is disabled for these tests it is not possible to use new source code editor, hence disabling it.
+    // TODO(b/146399022): Remove these overrides
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false);
     StudioFlags.NELE_SPLIT_EDITOR.override(false);
   }
 
   @After
   public void tearDown() {
     StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride();
   }
 
   @Test
@@ -271,19 +275,19 @@ public class NlPreviewTest {
       .getLayoutPreview(true)
       .waitForRenderToFinish()
       .showOnlyBlueprintView()
-      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT);
     guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
       .waitForRenderToFinish()
-      .waitForScreenMode(SceneMode.SCREEN_ONLY);
+      .waitForScreenMode(SceneMode.RENDER);
     guiTest.ideFrame()
       .getEditor()
       .switchToTab("activity_my.xml")
       .getLayoutPreview(false)
       .waitForRenderToFinish()
-      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT);
   }
 
   @Test

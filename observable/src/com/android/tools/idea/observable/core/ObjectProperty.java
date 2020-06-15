@@ -17,7 +17,6 @@ package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.expressions.value.TransformOptionalExpression;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -56,14 +55,24 @@ public abstract class ObjectProperty<T> extends AbstractProperty<T> implements O
    * consider using {@link TransformOptionalExpression} instead.
    */
   public static <T> ObjectProperty<T> wrap(@NotNull OptionalProperty<T> optionalProperty) {
-    return new OptionalWrapper<>(optionalProperty);
+    return new OptionalWrapper<>(optionalProperty, null);
+  }
+
+  /**
+   * Debugging version of the above method that creates a wrapper with the given id. The id is included in
+   * the exception message produced by the {@link OptionalWrapper#get()} method.
+   */
+  public static <T> ObjectProperty<T> wrap(@NotNull OptionalProperty<T> optionalProperty, @NotNull String id) {
+    return new OptionalWrapper<>(optionalProperty, id);
   }
 
   private static final class OptionalWrapper<U> extends ObjectProperty<U> implements InvalidationListener {
-    private final OptionalProperty<U> myOptionalProperty;
+    @NotNull private final OptionalProperty<U> myOptionalProperty;
+    @Nullable private String myId;
 
-    public OptionalWrapper(@NotNull OptionalProperty<U> optionalProperty) {
+    OptionalWrapper(@NotNull OptionalProperty<U> optionalProperty, @Nullable String id) {
       myOptionalProperty = optionalProperty;
+      myId = id;
       myOptionalProperty.addWeakListener(this);
     }
 
@@ -75,7 +84,11 @@ public abstract class ObjectProperty<T> extends AbstractProperty<T> implements O
     @Override
     @NotNull
     public U get() {
-      return myOptionalProperty.getValue();
+      U value = myOptionalProperty.getValueOrNull();
+      if (value != null) {
+        return value;
+      }
+      throw new IllegalStateException("Wrapped optional property " + (myId == null ? "" : myId + " ") + "doesn't contain a value");
     }
 
     @Override

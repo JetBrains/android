@@ -28,5 +28,6 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

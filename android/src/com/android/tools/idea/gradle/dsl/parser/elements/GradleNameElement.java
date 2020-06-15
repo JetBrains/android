@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -31,19 +33,19 @@ import org.jetbrains.annotations.Nullable;
 
 public class GradleNameElement {
   /**
-   * This regex is used to extract indexes out from a map or list property.
-   * Example matches would be:
+   * This regex is used to extract indexes out from a dereferenced map or list property.
+   * Example properties would be:
    *   someListProperty[0]
    *   otherMap['key'][1]
    *   list[0][2]['key'][2]
    *
-   * The first group will be the property name, with the index texts in succeeding groups.
-   * I.e for the last example property.
-   *    1st group -> "list"
-   *    2nd group -> "0"
-   *    3rd group -> "2"
-   *    4th group -> "'key'"
-   *    5th group -> "2"
+   * The first match will be the property name, with the index texts in group 1 of succeeding matches.
+   * For example, for the last example property:
+   *    1st match, group 0 -> "list"
+   *    2nd match, group 1 -> "0"
+   *    3rd match, group 1 -> "2"
+   *    4th match, group 1 -> "'key'"
+   *    5th match, group 1 -> "2"
    */
   @NotNull
   public static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
@@ -59,19 +61,20 @@ public class GradleNameElement {
   private String myFakeName; // Used for names that do not require a file element.
   @Nullable
   private String myName = null; // Cached version of the final name (to be reset on any change of the above fields).
-
+  @Nullable
+  private String myOriginalName; // used to detect name changes in checkForModifiedName
 
   /**
    * Requires read access.
    */
   @NotNull
-  public static GradleNameElement from(@NotNull PsiElement element) {
-    return new GradleNameElement(element);
+  public static GradleNameElement from(@NotNull PsiElement element, GradleDslNameConverter converter) {
+    return new GradleNameElement(element, converter);
   }
 
   @NotNull
   public static GradleNameElement empty() {
-    return new GradleNameElement((PsiElement)null);
+    return new GradleNameElement(null, null);
   }
 
   @NotNull
@@ -90,8 +93,8 @@ public class GradleNameElement {
   /**
    * Requires read access.
    */
-  private GradleNameElement(@Nullable PsiElement element) {
-    setUpFrom(element);
+  private GradleNameElement(@Nullable PsiElement element, GradleDslNameConverter converter) {
+    setUpFrom(element, converter);
   }
 
   private GradleNameElement(@NotNull String name, boolean isFake) {
@@ -101,19 +104,24 @@ public class GradleNameElement {
     else {
       myLocalName = name;
     }
+    myOriginalName = name;
   }
 
   private GradleNameElement(@NotNull GradleNameElement element) {
     myLocalName = element.myLocalName;
     myFakeName = element.myFakeName;
+    myOriginalName = element.myOriginalName;
   }
 
   /**
    * Changes this element to be backed by the given PsiElement. This method should not be called outside of
    * GradleWriter subclasses.
    */
-  public void commitNameChange(@Nullable PsiElement nameElement) {
-    setUpFrom(nameElement);
+  public void commitNameChange(@Nullable PsiElement nameElement,
+                               GradleDslNameConverter converter,
+                               GradleDslElement context) {
+    setUpFrom(nameElement, converter);
+    canonize(converter.modelNameForParent(fullName(), context));  // NOTYPO
   }
 
   @NotNull
@@ -173,6 +181,10 @@ public class GradleNameElement {
     return myLocalName;
   }
 
+  @Nullable
+  public String getOriginalName() {
+    return myOriginalName;
+  }
 
   public void rename(@NotNull String newName) {
     if (!isFake()) {
@@ -182,6 +194,17 @@ public class GradleNameElement {
       myFakeName = newName;
     }
     myName = null;
+  }
+
+  /**
+   * Arranges that this element have the name given by its argument, and also that that name be considered canonical (which in practice
+   * means preventing any client from detecting a difference between its current name and its original name).
+   *
+   * @param newName the new name to be considered canonical
+   */
+  public void canonize(@NotNull String newName) { // NOTYPO
+    rename(newName);
+    myOriginalName = newName;
   }
 
   public boolean isEmpty() {
@@ -217,7 +240,7 @@ public class GradleNameElement {
     if (!parts.isEmpty() && parts.get(0).equals(name)) {
       return true;
     }
-    if (parts.size() > 1 && parts.get(0).equals(ExtDslElement.EXT_BLOCK_NAME) && parts.get(1).equals(name)) {
+    if (parts.size() > 1 && parts.get(0).equals(EXT.name) && parts.get(1).equals(name)) {
       return true;
     }
 
@@ -251,14 +274,15 @@ public class GradleNameElement {
   /**
    * READ ACCESS REQUIRED.
    */
-  private void setUpFrom(@Nullable PsiElement element) {
+  private void setUpFrom(@Nullable PsiElement element, GradleDslNameConverter converter) {
     myNameElement = element;
     if (myNameElement instanceof PsiNamedElement) {
       myLocalName = ((PsiNamedElement)myNameElement).getName();
     }
     else if (myNameElement != null) {
-      myLocalName = myNameElement.getText();
+      myLocalName = converter.psiToName(myNameElement);
     }
+    myOriginalName = myLocalName;
     myName = null;
   }
 }

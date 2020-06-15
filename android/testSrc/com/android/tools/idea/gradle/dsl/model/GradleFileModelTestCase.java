@@ -61,6 +61,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -155,12 +156,29 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
    * @return the String that corresponds to looking up the extra property {@code name} in the language of this test case
    */
   protected String extraName(String name) {
+    return extraName(name, null);
+  }
+
+  /**
+   * @param name the name of an extra property
+   * @param container the (dotted) name of a container holding the extra property
+   *
+   * @return the String that corresponds to looking up the extra property designated by the arguments in the language of this test case
+   */
+  protected String extraName(String name, String container) {
     if (myLanguageName.equals(GROOVY_LANGUAGE)) {
       return name;
     }
     else {
       assumeTrue("Language is neither Groovy nor Kotlin", myLanguageName.equals(KOTLIN_LANGUAGE));
-      return "extra[\"" + name + "\"]";
+      String containerPrefix;
+      if (container == null) {
+        containerPrefix = "";
+      }
+      else {
+        containerPrefix = container + ".";
+      }
+      return containerPrefix + "extra[\"" + name + "\"]";
     }
   }
 
@@ -243,23 +261,24 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   @NotNull
   protected Module createMainModule() {
     Module mainModule = createModule(myProject.getName());
+    mySubModule = createSubModule(SUB_MODULE_NAME);
+    return mainModule;
+  }
 
-    // Create a sub module
+  @NotNull
+  private Module createSubModule(String name) {
     final VirtualFile baseDir = ProjectUtil.guessProjectDir(myProject);
     assertNotNull(baseDir);
-    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
-                                     SUB_MODULE_NAME + File.separatorChar + SUB_MODULE_NAME + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()), name + File.separatorChar + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
     myFilesToDelete.add(moduleFile);
-    mySubModule = WriteAction.compute(() -> {
+    return WriteAction.compute(() -> {
       VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
       assertNotNull(virtualFile);
       Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
       module.getModuleFile();
       return module;
     });
-
-    return mainModule;
   }
 
   protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
@@ -294,8 +313,12 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     return loadFile(testFile);
   }
 
+  protected String getSubModuleSettingsText(String name) {
+    return isGroovy() ? ("include ':" + name + "'\n") : ("include(\":" + name + "\")\n");
+  }
+
   protected String getSubModuleSettingsText() {
-    return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : ("include(\":" + SUB_MODULE_NAME + "\")");
+    return getSubModuleSettingsText(SUB_MODULE_NAME);
   }
 
   protected Module writeToNewSubModule(@NotNull String name, @NotNull TestFileName fileName, @NotNull String propertiesFileText)
@@ -305,25 +328,12 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   protected Module writeToNewSubModule(@NotNull String name, @NotNull String buildFileText, @NotNull String propertiesFileText)
     throws IOException {
-    final VirtualFile baseDir = ProjectUtil.guessProjectDir(myProject);
-    assertNotNull(baseDir);
-    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
-                                     name + File.separator + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
-    createIfDoesntExist(moduleFile);
-    myFilesToDelete.add(moduleFile);
-
-    Module newModule = WriteAction.compute(() -> {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-      assertNotNull(virtualFile);
-      Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
-      module.getModuleFile();
-      return module;
-    });
+    Module newModule = createSubModule(name);
 
     File newModuleFilePath = new File(newModule.getModuleFilePath());
     File newModuleDirPath = newModuleFilePath.getParentFile();
     assertAbout(file()).that(newModuleDirPath).isDirectory();
-    File moduleBuildFile = new File(newModuleDirPath, FN_BUILD_GRADLE);
+    File moduleBuildFile = new File(newModuleDirPath, getBuildFileName());
     assertTrue(ensureCanCreateFile(moduleBuildFile));
     File moduleProperties = new File(newModuleDirPath, FN_GRADLE_PROPERTIES);
     assertTrue(ensureCanCreateFile(moduleProperties));
@@ -421,7 +431,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull String contents) throws IOException {
-    assertEquals(loadText(file).replaceAll("[ \\t]+", "").trim(), contents.replaceAll("[ \\t]+", "").trim());
+    assertEquals(contents.replaceAll("[ \\t]+", "").trim(), loadText(file).replaceAll("[ \\t]+", "").trim());
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
@@ -656,6 +666,14 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       GradlePropertyModel tempModel = actualValues.get(i);
       verifyPropertyModel(message, tempModel, expectedValues.get(i), resolveItems);
     }
+  }
+
+  public static void verifyEmptyMapProperty(@Nullable GradlePropertyModel model) {
+    verifyEmptyMapProperty("verifyEmptyMapProperty", model);
+  }
+
+  public static void verifyEmptyMapProperty(@NotNull String message, @Nullable GradlePropertyModel model) {
+    verifyMapProperty(message, model, ImmutableMap.of());
   }
 
   public static void verifyMapProperty(@Nullable GradlePropertyModel model,

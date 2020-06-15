@@ -91,7 +91,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
-  private static final String DEFAULT_DEVICE_ID = "Nexus 5X";
+  private static final String DEFAULT_DEVICE_ID = "pixel_3a";
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs");
   private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
@@ -149,16 +149,15 @@ public class AndroidVirtualDevice extends InstallableComponent {
     SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
     String cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString();
-    File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
+    File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, fileOp);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
     displayName = connection.uniquifyDisplayName(displayName);
     String internalName = cleanAvdName(connection, displayName, true);
     Abi abi = Abi.getEnum(systemImageDescription.getAbiType());
-    boolean useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, myFileOp);
+    boolean useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, fileOp);
     boolean supportsSmp = abi != null && abi.supportsMultipleCpuCores() && getMaxCpuCores() > 1;
     Map<String, String> settings = getAvdSettings(internalName, d);
-    settings.put(AVD_INI_DISPLAY_NAME, displayName);
     if (useRanchu) {
       settings.put(CPU_CORES_KEY, String.valueOf(supportsSmp ? getMaxCpuCores() : 1));
     }
@@ -179,12 +178,15 @@ public class AndroidVirtualDevice extends InstallableComponent {
     for (String key : ImmutableSet.of(AVD_INI_CAMERA_BACK, AVD_INI_CAMERA_FRONT)) {
       result.put(key, "emulated");
     }
-    result.put(AVD_INI_DEVICE_NAME, device.getDisplayName());
+    result.put(AVD_INI_DEVICE_NAME, device.getId());
     result.put(AVD_INI_DEVICE_MANUFACTURER, device.getManufacturer());
 
     result.put(AVD_INI_NETWORK_LATENCY, EmulatedProperties.DEFAULT_NETWORK_LATENCY.getAsParameter());
     result.put(AVD_INI_NETWORK_SPEED, EmulatedProperties.DEFAULT_NETWORK_SPEED.getAsParameter());
+
     result.put(AVD_INI_AVD_ID, internalName);
+    result.put(AVD_INI_DISPLAY_NAME, internalName);
+
     result.put(AvdManagerConnection.AVD_INI_HW_LCD_DENSITY, String.valueOf(Density.XXHIGH.getDpiValue()));
 
     setStorageSizeKey(result, AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, true);
@@ -237,19 +239,19 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @Override
   protected boolean isSelectedByDefault() {
-    if (mySdkHandler == null) {
+    if (sdkHandler == null) {
       return false;
     }
     SystemImageDescription desired;
     try {
-      desired = getSystemImageDescription(mySdkHandler);
+      desired = getSystemImageDescription(sdkHandler);
     }
     catch (WizardException e) {
       // ignore, error will be shown during configure if they opt to try to create.
       return false;
     }
 
-    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(mySdkHandler);
+    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler);
     List<AvdInfo> avds = connection.getAvds(false);
     for (AvdInfo avd : avds) {
       if (avd.getAbiType().equals(desired.getAbiType()) &&

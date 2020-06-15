@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.intellij.openapi.util.TextRange
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
   classes
@@ -30,3 +27,8 @@ internal fun UFile.method(name: String): UMethod? =
   declaredMethods()
     .filter { it.name == name }
     .singleOrNull()
+
+internal class StaticPreviewProvider(private val list: List<PreviewElement>): PreviewElementProvider {
+  override val previewElements: List<PreviewElement>
+    get() = list
+}

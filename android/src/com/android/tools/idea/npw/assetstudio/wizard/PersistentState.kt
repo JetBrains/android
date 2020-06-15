@@ -29,7 +29,7 @@ import java.util.TreeMap
  */
 fun PersistentStateComponent<PersistentState>.load(state: PersistentState?) {
   if (state == null) {
-    noStateLoaded()
+    loadState(PersistentState())
   } else {
     loadState(state)
   }

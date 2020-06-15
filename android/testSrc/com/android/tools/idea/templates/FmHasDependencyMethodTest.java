@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP;
+
 import com.android.SdkConstants;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
@@ -69,7 +73,7 @@ public class FmHasDependencyMethodTest extends TestCase {
 
     check(false,
           "com.android.support:support-v4",
-          createMap(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, dependencies));
+          createMap(ATTR_DEPENDENCIES_MULTIMAP, dependencies));
 
     dependencies.clear();
     dependencies.put(configuration, "com.android.support:appcompat-v7:21.0.0");
@@ -77,23 +81,23 @@ public class FmHasDependencyMethodTest extends TestCase {
 
     check(true,
           "com.android.support:support-v4",
-          createMap(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, dependencies));
+          createMap(ATTR_DEPENDENCIES_MULTIMAP, dependencies));
   }
 
   public void testAppCompatBasedOnMinAndCompileApis() throws Exception {
     // Too old: appcompat requires API 8
-    check(false, "com.android.support:appcompat-v7", createMap(TemplateMetadata.ATTR_BUILD_API, 21,
-                                                               TemplateMetadata.ATTR_MIN_API_LEVEL, 4));
+    check(false, "com.android.support:appcompat-v7", createMap(ATTR_BUILD_API, 21,
+                                                               ATTR_MIN_API_LEVEL, 4));
     // Too high: not needed with minSdkVersion 21
-    check(false, "com.android.support:appcompat-v7", createMap(TemplateMetadata.ATTR_BUILD_API, 21,
-                                                               TemplateMetadata.ATTR_MIN_API_LEVEL, 21));
+    check(false, "com.android.support:appcompat-v7", createMap(ATTR_BUILD_API, 21,
+                                                               ATTR_MIN_API_LEVEL, 21));
 
     // Not needed when minSdkVersion >= 14 and compileSdkVersion < 21
-    check(false, "com.android.support:appcompat-v7", createMap(TemplateMetadata.ATTR_BUILD_API, 18,
-                                                               TemplateMetadata.ATTR_MIN_API_LEVEL, 15));
+    check(false, "com.android.support:appcompat-v7", createMap(ATTR_BUILD_API, 18,
+                                                               ATTR_MIN_API_LEVEL, 15));
 
     // Use it with minSdkVersion 21
-    check(true, "com.android.support:appcompat-v7", createMap(TemplateMetadata.ATTR_BUILD_API, 21,
-                                                               TemplateMetadata.ATTR_MIN_API_LEVEL, 15));
+    check(true, "com.android.support:appcompat-v7", createMap(ATTR_BUILD_API, 21,
+                                                               ATTR_MIN_API_LEVEL, 15));
   }
 }

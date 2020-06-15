@@ -176,7 +176,7 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
     }
 
     final AndroidFacet facet = facets.get(0);
-    AndroidPlatform platform = facet.getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       console.clear();
       final Module module = facet.getModule();
@@ -234,7 +234,7 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
       final List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
       if (!facets.isEmpty()) {
         final AndroidFacet facet = facets.get(0);
-        newPlatform = facet.getAndroidPlatform();
+        newPlatform = AndroidPlatform.getInstance(facet.getModule());
       }
       return newPlatform;
     }

@@ -22,8 +22,9 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefault
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.URL;
 import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel.JCENTER_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -68,10 +69,10 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
         }
       }
       else if (element instanceof MavenRepositoryDslElement) {
-        if (MAVEN_BLOCK_NAME.equals(element.getName())) {
+        if (MAVEN.name.equals(element.getName())) {
           result.add(new MavenRepositoryModelImpl(myDslElement, (MavenRepositoryDslElement)element));
         }
-        else if (JCENTER_BLOCK_NAME.equals(element.getName())) {
+        else if (JCENTER.name.equals(element.getName())) {
           result.add(new JCenterRepositoryModel(myDslElement, (MavenRepositoryDslElement)element));
         }
       }
@@ -118,7 +119,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     }
     else {
       // We need to create one
-      GradlePropertiesDslElement gradleDslElement = new FlatDirRepositoryDslElement(myDslElement);
+      GradlePropertiesDslElement gradleDslElement = new FlatDirRepositoryDslElement(myDslElement, GradleNameElement.fake(FLAT_DIR.name));
       myDslElement.setNewElement(gradleDslElement);
       new FlatDirRepositoryModel(myDslElement, gradleDslElement).dirs().addListValue().setValue(dirName);
     }
@@ -152,7 +153,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     if (containsMavenRepositoryByUrl(url)) {
       return;
     }
-    GradleNameElement nameElement = GradleNameElement.create(MAVEN_BLOCK_NAME);
+    GradleNameElement nameElement = GradleNameElement.fake(MAVEN.name);
     MavenRepositoryDslElement newElement = new MavenRepositoryDslElement(myDslElement, nameElement);
     newElement.setNewLiteral("url", url);
     // name is an optional property, it can be nullable but at this point only non null values are used.

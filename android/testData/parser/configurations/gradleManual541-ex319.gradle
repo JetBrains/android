@@ -5,3 +5,7 @@ configurations {
         exclude group: 'com.sun.jmx', module: 'jmxri'
     }
 }
+
+dependencies {
+    implementation 'log4j:log4j:1.2.15'
+}

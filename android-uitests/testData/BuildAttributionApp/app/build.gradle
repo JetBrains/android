@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+apply plugin: DummyPlugin
+
+class DummyTask extends DefaultTask {
+    @TaskAction
+    def run() {
+    }
+}
+
+class DummyPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.android.applicationVariants.all { variant ->
+            if (variant.name == "debug") {
+                DummyTask dummy1 = project.tasks.create("dummy1", DummyTask)
+
+                DummyTask dummy2 = project.tasks.create("dummy2", DummyTask)
+                variant.mergeResourcesProvider.configure {
+                    dependsOn(dummy2)
+                }
+                project.tasks.findByName("preBuild").dependsOn(dummy2)
+                dummy2.dependsOn dummy1
+                dummy2.outputs.upToDateWhen { false }
+            }
+        }
+    }
+}
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+
+    defaultConfig {
+        applicationId "com.example.buildattributionapp"
+        minSdkVersion 16
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}

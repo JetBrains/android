@@ -17,10 +17,12 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -104,7 +106,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayout.BindingLayoutFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in the
       // header docs of BindingLayoutFile
@@ -156,5 +158,86 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
             android:layout_height="fill_parent">
           </LinearLayout>
     """.trimIndent())
+  }
+
+  @Test
+  fun canNavigateFromVariableTypeToInnerClassOfImportAlias() {
+    val file = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout>
+        <data>
+          <import type='java.util.Map' alias='MyMap'/>
+          <variable name='dummy' type='MyMap.En${caret}try'/>
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    assertThat((fixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("java.util.Map.Entry")
+  }
+
+  @Test
+  fun canNavigateFromImportType() {
+    val file = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout>
+        <data>
+          <import type='java.util.M${caret}ap' />
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    assertThat((fixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("java.util.Map")
+  }
+
+  @Test
+  fun canNavigateFromVariableTypeToJavaLangClass() {
+    val file = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout>
+        <data>
+          <variable name='dummy' type='Int${caret}eger'/>
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    assertThat((fixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("java.lang.Integer")
+  }
+
+  @Test
+  fun canNavigateFromVariableTypeToModuleClass() {
+    fixture.addClass(
+      // language=JAVA
+    """
+      package a.b.c;
+      class Dummy {}
+    """.trimIndent())
+
+    val file = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout>
+        <data>
+          <variable name='dummy' type='a.b.c.Dumm${caret}y'/>
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    assertThat((fixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("a.b.c.Dummy")
+
   }
 }

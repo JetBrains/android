@@ -20,11 +20,12 @@ package com.android.tools.adtui.chart.hchart;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.DefaultHNode;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Renderer which renders a single node in an {@link HTreeChart}.
@@ -66,7 +67,8 @@ public abstract class DefaultHRenderer<T> implements HRenderer<DefaultHNode<T>> 
                            @NotNull DefaultHNode<T> node,
                            @NotNull Rectangle2D fullDrawingArea,
                            @NotNull Rectangle2D drawingArea,
-                           boolean isFocused) {
+                           boolean isFocused,
+                           boolean isDeselected) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();

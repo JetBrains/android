@@ -16,24 +16,24 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.ActivityComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.StageView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBEmptyBorder;
+import java.awt.Color;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
+public class LifecycleTooltipView extends TooltipView {
 
   private static final int HOVER_OVER_WIDTH_PX = ActivityComponent.EVENT_LINE_WIDTH_PX + ActivityComponent.EVENT_LINE_GAP_WIDTH_PX * 2;
 
@@ -52,14 +52,13 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
   @NotNull
   private JComponent myComponent;
 
-  public LifecycleTooltipView(@NotNull StageView parent, @NotNull LifecycleTooltip tooltip) {
-    super(tooltip.getMonitor());
+  public LifecycleTooltipView(@NotNull JComponent parent, @NotNull LifecycleTooltip tooltip) {
+    super(tooltip.getTimeline());
     myLifecycleTooltip = tooltip;
-    myComponent = parent.getComponent();
+    myComponent = parent;
 
     // Callback on the data range so the active event time gets updated properly.
-    getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
-    getMonitor().getProfilers().getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
 
     myActivityNameLabel = new JLabel();
     myDurationLabel = new JLabel();
@@ -69,19 +68,24 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
   @Override
   public void dispose() {
     super.dispose();
-    getMonitor().getProfilers().getTimeline().getDataRange().removeDependencies(this);
+    getTimeline().getDataRange().removeDependencies(this);
+  }
+
+  @Override
+  protected void updateTooltip() {
+    // Respond to tooltip range change.
+    timeChanged();
   }
 
   private void timeChanged() {
-    ProfilerTimeline timeline = getMonitor().getProfilers().getTimeline();
-    Range dataRange = timeline.getDataRange();
-    Range range = timeline.getTooltipRange();
+    Range dataRange = getTimeline().getDataRange();
+    Range range = getTimeline().getTooltipRange();
     if (!range.isEmpty()) {
-      showStackedEventInfo(timeline, dataRange, range.getMin());
+      showStackedEventInfo(getTimeline(), dataRange, range.getMin());
     }
   }
 
-  private void showStackedEventInfo(ProfilerTimeline timeline, Range dataRange, double tooltipX) {
+  private void showStackedEventInfo(Timeline timeline, Range dataRange, double tooltipX) {
     LifecycleAction activity = myLifecycleTooltip.getActivityAt(tooltipX);
 
     if (activity != null) {
@@ -89,32 +93,32 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
       setTimelineText(timeline.getDataRange(), activity.getStartUs(), endTime);
       myActivityNameLabel.setText(activity.getName());
-    } else {
+    }
+    else {
       myDurationLabel.setText("");
       myActivityNameLabel.setText("");
     }
 
-    if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      myFragmentsPanel.removeAll();
-      double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
-      Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
-      List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
-      List<JLabel> labels = new ArrayList<>();
-      fragments.forEach(fragment -> {
-        String text = fragment.getName();
-        boolean justAdded = fragment.getStartUs() > hoverRange.getMin() && fragment.getStartUs() <= hoverRange.getMax();
-        boolean justRemoved = fragment.getEndUs() != 0 && fragment.getEndUs() > hoverRange.getMin() && fragment.getEndUs() <= hoverRange.getMax();
-        if (justAdded) {
-          text += " - resumed";
-        }
-        else if (justRemoved) {
-          text += " - paused";
-        }
-        labels.add(new JLabel(text));
-      });
-      labels.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
-      labels.forEach(label -> myFragmentsPanel.add(label));
-    }
+    myFragmentsPanel.removeAll();
+    double timePerPixel = getTimeline().getViewRange().getLength() / myComponent.getWidth();
+    Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
+    List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
+    List<JLabel> labels = new ArrayList<>();
+    fragments.forEach(fragment -> {
+      String text = fragment.getName();
+      boolean justAdded = fragment.getStartUs() > hoverRange.getMin() && fragment.getStartUs() <= hoverRange.getMax();
+      boolean justRemoved =
+        fragment.getEndUs() != 0 && fragment.getEndUs() > hoverRange.getMin() && fragment.getEndUs() <= hoverRange.getMax();
+      if (justAdded) {
+        text += " - resumed";
+      }
+      else if (justRemoved) {
+        text += " - paused";
+      }
+      labels.add(new JLabel(text));
+    });
+    labels.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
+    labels.forEach(label -> myFragmentsPanel.add(label));
   }
 
   private void setTimelineText(Range dataRange, double startTime, double endTime) {
@@ -151,10 +155,8 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
     myDurationLabel.setForeground(Color.GRAY);
     myDurationLabel.setFont(myFont);
     panel.add(myDurationLabel);
-    if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      myFragmentsPanel.setBorder(new JBEmptyBorder(8, 0, 0, 0));
-      panel.add(myFragmentsPanel);
-    }
+    myFragmentsPanel.setBorder(new JBEmptyBorder(8, 0, 0, 0));
+    panel.add(myFragmentsPanel);
     return panel;
   }
 }

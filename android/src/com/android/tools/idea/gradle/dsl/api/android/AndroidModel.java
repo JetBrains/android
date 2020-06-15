@@ -72,6 +72,9 @@ public interface AndroidModel extends GradleDslModel {
   ResolvedPropertyModel generatePureSplits();
 
   @NotNull
+  KotlinOptionsModel kotlinOptions();
+
+  @NotNull
   LintOptionsModel lintOptions();
 
   @NotNull
@@ -115,4 +118,13 @@ public interface AndroidModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel resourcePrefix();
+
+  @NotNull
+  ViewBindingModel viewBinding();
+
+  @NotNull // TODO(b/149459214): but maybe should be nullable?  return null if we are not an application AndroidModel?
+  DependenciesInfoModel dependenciesInfo();
+
+  @NotNull
+  BuildFeaturesModel buildFeatures();
 }

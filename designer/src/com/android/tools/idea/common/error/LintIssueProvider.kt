@@ -16,6 +16,8 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel
+import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.rendering.HtmlBuilderHelper
 import com.android.tools.lint.detector.api.TextFormat
 import com.android.utils.HtmlBuilder
@@ -23,8 +25,6 @@ import com.google.common.collect.ImmutableCollection
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import java.util.*
 import java.util.stream.Stream
 import kotlin.properties.Delegates
@@ -100,7 +100,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map {createQuickFixPair(it)}).stream()
     }
 
-    private fun createQuickFixPair(fix: AndroidLintQuickFix) = Fix(fix.name, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix(fix.name, createQuickFixRunnable(fix))
 
     private fun createQuickFixPair(fix: IntentionAction) = Fix(fix.text, createQuickFixRunnable(fix))
 
@@ -119,15 +119,15 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       return res
     }
 
-    private fun createQuickFixRunnable(fix: AndroidLintQuickFix): Runnable {
+    private fun createQuickFixRunnable(fix: LintIdeQuickFix): Runnable {
       return Runnable {
         val model = myIssue.component.model
         val editor = PsiEditorUtil.findEditor(myIssue.startElement)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(
-              project,
-              { fix.apply(myIssue.startElement, myIssue.endElement, AndroidQuickfixContexts.BatchContext.getInstance()) },
+            project,
+            { fix.apply(myIssue.startElement, myIssue.endElement, AndroidQuickfixContexts.BatchContext.getInstance()) },
               EXECUTE_FIX + fix.name, null
           )
         }

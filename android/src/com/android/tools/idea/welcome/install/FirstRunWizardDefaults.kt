@@ -35,6 +35,7 @@ import java.io.File
 const val HAXM_DOCUMENTATION_URL = "https://software.intel.com/android/articles/intel-hardware-accelerated-execution-manager"
 const val HAXM_WINDOWS_INSTALL_URL = "https://software.intel.com/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-windows"
 const val HAXM_MAC_INSTALL_URL = "https://software.intel.com/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x"
+const val GVM_WINDOWS_INSTALL_URL = "https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors"
 
 /**
  * Returns the default Android SDK install location.
@@ -71,7 +72,7 @@ fun getRecommendedHaxmMemory(memorySize: Long): Int {
     memorySize > 2 * gb -> gb
     else -> gb / 2
   }
-  return (defaultMemory / Haxm.UI_UNITS.numberOfBytes).toInt()
+  return (defaultMemory / UI_UNITS.numberOfBytes).toInt()
 }
 
 /**

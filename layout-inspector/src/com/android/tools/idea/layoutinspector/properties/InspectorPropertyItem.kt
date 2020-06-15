@@ -18,12 +18,16 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.res.RESOURCE_ICON_SIZE
+import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.ColorIcon
 import javax.swing.Icon
 
 /**
@@ -46,17 +50,17 @@ open class InspectorPropertyItem(
   /** The value of the attribute when the snapshot was taken */
   override var value: String?,
 
-  /** If the attribute value was specified in a layout file i.e. by the user */
-  val isDeclared: Boolean,
+  /** Which group this attribute belongs to */
+  val group: PropertySection,
 
   /** A reference to the resource where the value was set e.g. "@layout/my_form.xml" */
   val source: ResourceReference?,
 
   /** The view this attribute belongs to */
-  val view: ViewNode,
+  var view: ViewNode,
 
-  /** The properties model this item is a part of */
-  val model: InspectorPropertiesModel
+  /** The inspector model this item is a part of */
+  val resourceLookup: ResourceLookup?
 
 ) : PropertyItem {
 
@@ -71,13 +75,10 @@ open class InspectorPropertyItem(
 
   override val helpSupport = object : HelpSupport {
     override fun browse() {
-      val (_, location) = resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1) ?: return
+      val location = resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1)?.singleOrNull() ?: return
       location.navigatable?.navigate(true)
     }
   }
-
-  val resourceLookup: ResourceLookup?
-    get() = model.layoutInspector?.layoutInspectorModel?.resourceLookup
 
   override val colorButton = createColorButton()
 
@@ -92,6 +93,12 @@ open class InspectorPropertyItem(
     override val actionButtonFocusable = false
     override val action: AnAction? = null
     override val actionIcon: Icon?
-      get() = property.resourceLookup?.resolveAsIcon(property)
+      get() {
+        property.resourceLookup?.let { return it.resolveAsIcon(property) }
+        val value = property.value
+        val color = value?.let { parseColor(value) } ?: return null
+        // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon
+        return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
+      }
   }
 }

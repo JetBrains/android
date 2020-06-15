@@ -17,16 +17,25 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.statechart.StateChart
+import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
+import com.android.tools.profilers.event.FakeEventService
+import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +48,8 @@ class CpuThreadTrackRendererTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
+  var grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
+                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
   private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
@@ -51,13 +61,58 @@ class CpuThreadTrackRendererTest {
 
   @Test
   fun renderComponentsForThreadTrack() {
-    val mockCapture = Mockito.mock(CpuCapture::class.java)
+    // Mock a recorded Atrace.
+    profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    val threadInfo = CpuThreadInfo(1, "Thread-1")
+    val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
+    val captureNode = CaptureNode(StubCaptureNodeModel())
+    val mockCapture = Mockito.mock(AtraceCpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range())
-    val threadTrackModel = TrackModel(CpuThreadTrackModel(profilers, Range(), mockCapture, 1), ProfilerTrackRendererType.CPU_THREAD, "Foo")
+    Mockito.`when`(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
+    Mockito.`when`(mockCapture.getCaptureNode(1)).thenReturn(captureNode)
+    val threadTrackModel = TrackModel.newBuilder(
+      CpuThreadTrackModel(
+        Range(),
+        mockCapture,
+        threadInfo,
+        DefaultTimeline(),
+        multiSelectionModel
+      ),
+      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer()
     val component = renderer.render(threadTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
     assertThat(component.components[1]).isInstanceOf(HTreeChart::class.java)
+
+    // Verify trace event chart selection is updated.
+    val traceEventChart = component.components[1] as HTreeChart<CaptureNode>
+    assertThat(traceEventChart.selectedNode).isNull()
+    multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, mockCapture)))
+    assertThat(traceEventChart.selectedNode).isSameAs(captureNode)
+    multiSelectionModel.clearSelection()
+    assertThat(traceEventChart.selectedNode).isNull()
+  }
+
+  @Test
+  fun noThreadStateChartForImportedTrace() {
+    // Mock an imported ART trace
+    val mockCapture = Mockito.mock(CpuCapture::class.java)
+    Mockito.`when`(mockCapture.range).thenReturn(Range())
+    Mockito.`when`(mockCapture.type).thenReturn(Cpu.CpuTraceType.ART)
+    Mockito.`when`(mockCapture.getCaptureNode(1)).thenReturn(CaptureNode(StubCaptureNodeModel()))
+    val threadTrackModel = TrackModel.newBuilder(
+      CpuThreadTrackModel(
+        Range(),
+        mockCapture,
+        CpuThreadInfo(1, "Thread-1"),
+        DefaultTimeline(),
+        MultiSelectionModel()
+      ),
+      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
+    val component = CpuThreadTrackRenderer().render(threadTrackModel)
+    assertThat(component.componentCount).isEqualTo(1)
+    assertThat(component.components[0]).isInstanceOf(HTreeChart::class.java)
   }
 }

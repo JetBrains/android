@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
-import com.android.tools.adtui.model.Range;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +22,24 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Model for {@link CpuAnalysisTab}. Each tab has unique rendering requirements as such this container holds a list of data that can be
  * used for the tab. An example of a tab that uses the list may be the Flame chart with multiselect or in the "Full Trace".
+ *
+ * @param <T> type of the analysis object, e.g. {@link com.android.tools.profilers.cpu.CpuThreadTrackModel}.
  */
 public class CpuAnalysisTabModel<T> {
+  /**
+   * The order the enum values are defined determine the order they are displayed to ensure consistent ordering across the board.
+   */
   public enum Type {
     /**
      * Summary tab used to display high level information about the current capture / selection.
      */
-    SUMMARY("Summary");
+    SUMMARY("Summary"),
+    TOP_DOWN("Top Down"),
+    FLAME_CHART("Flame Chart"),
+    BOTTOM_UP("Bottom Up"),
+    EVENTS("Events"),
+    OCCURRENCES("Occurrences"),
+    LOGS("Logs");
 
     /**
      * The display name to show in the tab header.
@@ -40,25 +50,26 @@ public class CpuAnalysisTabModel<T> {
     }
 
     private final String myName;
+
     Type(@NotNull String name) {
       myName = name;
     }
   }
 
-  private final Type myType;
-  private final List<T> myDataSeries = new ArrayList<>();
-  public CpuAnalysisTabModel(@NotNull Type type) {
-    myType = type;
+  private final Type myTabType;
+  private final List<T> myDataSeries;
+
+  public CpuAnalysisTabModel(@NotNull Type tabType) {
+    myTabType = tabType;
+    myDataSeries = new ArrayList<>();
   }
 
-  public Type getType() {
-    return myType;
+  @NotNull
+  public Type getTabType() {
+    return myTabType;
   }
 
-  public void addData(T data) {
-    myDataSeries.add(data);
-  }
-
+  @NotNull
   public List<T> getDataSeries() {
     return myDataSeries;
   }

@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class VectorDrawablesOptionsModelImpl extends GradleDslBlockModel implements VectorDrawablesOptionsModel {
-  @NonNls private static final String GENERATED_DENSITIES = "generatedDensities";
-  @NonNls private static final String USE_SUPPORT_LIBRARY = "useSupportLibrary";
+  @NonNls public static final String GENERATED_DENSITIES = "mGeneratedDensities";
+  @NonNls public static final String USE_SUPPORT_LIBRARY = "mUseSupportLibrary";
 
-  // This block element has requires no special handling.
+  // This block element requires no special handling.
   public VectorDrawablesOptionsModelImpl(@NotNull VectorDrawablesOptionsDslElement element) {
     super(element);
   }
@@ -34,12 +34,12 @@ public class VectorDrawablesOptionsModelImpl extends GradleDslBlockModel impleme
   @NotNull
   @Override
   public ResolvedPropertyModel generatedDensities() {
-    return getModelForProperty(GENERATED_DENSITIES, true);
+    return getModelForProperty(GENERATED_DENSITIES);
   }
 
   @NotNull
   @Override
   public ResolvedPropertyModel useSupportLibrary() {
-    return getModelForProperty(USE_SUPPORT_LIBRARY, true);
+    return getModelForProperty(USE_SUPPORT_LIBRARY);
   }
 }

@@ -14,9 +14,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
@@ -45,9 +43,9 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jetifier-core" type="repository">
-        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta08" />
+        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta09" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta08/jetifier-core-1.0.0-beta08.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -55,11 +53,23 @@
     </orderEntry>
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="jaxb-runtime" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-compilerCommon" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon:26.6.0.3" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon/26.6.0.3/compilerCommon-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/27.0.0.0/studio.compilerCommon-27.0.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="precompiled-db-compilerCommon-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon_test:27.0.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/27.0.0.0/studio.compilerCommon_test-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

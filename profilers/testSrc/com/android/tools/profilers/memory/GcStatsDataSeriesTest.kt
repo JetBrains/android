@@ -52,17 +52,17 @@ class GcStatsDataSeriesTest {
       myService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
         // Space out the data by 1 second
                                  ProfilersTestData.generateMemoryGcData(
+                                   ProfilersTestData.SESSION_DATA.pid,
                                    TimeUnit.SECONDS.toMicros(i.toLong()),
                                    Memory.MemoryGcData.newBuilder().setDuration(TimeUnit.MICROSECONDS.toNanos(i.toLong())).build())
-                                   .setPid(ProfilersTestData.SESSION_DATA.pid)
                                    .build())
     }
   }
 
   @Test
   fun testGetData() {
-    val model = myStage!!.gcStatsModel
-    val viewRange = myStage!!.studioProfilers.timeline.viewRange
+    val model = myStage.gcStatsModel
+    val viewRange = myStage.timeline.viewRange
 
     // Request full range
     viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())

@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.TextFieldWithColorPickerKt;
@@ -189,6 +189,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     myValueField = new JTextField();
     // this panel just holds the value field component within the swing form, so we strip any UI from it and use a very simple LayoutManager
     myValueFieldContainer = new JPanel();
+    myValueFieldContainer.setFocusable(false);
     myValueFieldContainer.setLayout(new BoxLayout(myValueFieldContainer, BoxLayout.Y_AXIS));
     myValueFieldContainer.setUI(null);
     myValueFieldContainer.setBorder(JBUI.Borders.empty());
@@ -314,12 +315,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (name.isEmpty() ||
         // If the value is already populated, the user probably don't want to change it
         // (e.g extracting a string resources), so we focus the name field
-        myValueFieldContainer.isVisible() && !myValueField.getText().isEmpty()
+        myValueField.isVisible() && !myValueField.getText().isEmpty()
         || name.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
       return myNameField;
     }
-    else if (myValueFieldContainer.isVisible()) {
-      return myValueFieldContainer;
+    else if (myValueField.isVisible()) {
+      return myValueField;
     }
     else if (myModuleCombo.isVisible()) {
       return myModuleCombo;
@@ -363,7 +364,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   }
 
   @Nullable
-  private SourceProvider getSourceProvider() {
+  private IdeaSourceProvider getSourceProvider() {
     return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 
@@ -380,7 +381,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (module == null) {
       return null;
     }
-    PsiDirectory resDirectory = CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module, true);
+    PsiDirectory resDirectory = CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module);
     return resDirectory != null ? resDirectory.getVirtualFile() : null;
   }
 

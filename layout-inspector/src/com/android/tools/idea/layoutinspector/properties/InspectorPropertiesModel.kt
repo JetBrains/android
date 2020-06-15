@@ -18,8 +18,6 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
-import com.android.tools.profiler.proto.Common
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
@@ -37,7 +35,7 @@ import kotlin.reflect.KProperty
  */
 class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> = ContainerUtil.createConcurrentList()
-  private val provider = PropertiesProvider(this)
+  private var provider: PropertiesProvider? = null
 
   var structuralUpdates = 0
     private set
@@ -46,8 +44,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     private set
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
-  var layoutInspector by Delegates.observable<LayoutInspector?>(null, ::inspectorChanged)
-  var client: InspectorClient? = null
+  var layoutInspector: LayoutInspector? by Delegates.observable(null, ::inspectorChanged)
 
   @Suppress("UNUSED_PARAMETER")
   private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
@@ -55,9 +52,8 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     newInspector?.layoutInspectorModel?.selectionListeners?.add(::handleNewSelection)
     oldInspector?.layoutInspectorModel?.modificationListeners?.remove(::handleModelChange)
     newInspector?.layoutInspectorModel?.modificationListeners?.add(::handleModelChange)
-    // TODO: stop the existing client polling, and detach from agent
-    client = newInspector?.client
-    client?.register(Common.Event.EventGroupIds.PROPERTIES, ::loadProperties)
+    oldInspector?.layoutInspectorModel?.connectionListeners?.remove(::handleConnectionChange)
+    newInspector?.layoutInspectorModel?.connectionListeners?.add(::handleConnectionChange)
   }
 
   override fun deactivate() {
@@ -74,8 +70,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?) {
-    if (newView != null) {
-      provider.requestProperties(newView)
+    val currentProvider = provider
+    if (newView != null && currentProvider != null) {
+      currentProvider.requestProperties(newView)
     }
     else {
       properties = PropertiesTable.emptyTable()
@@ -88,18 +85,21 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     if (structuralChange) {
       structuralUpdates++
     }
-    val selection = layoutInspector?.layoutInspectorModel?.selection
-    if (selection != null && client?.isConnected == true) {
-      provider.requestProperties(selection)
-    } else {
-      properties = PropertiesTable.emptyTable()
-      firePropertiesGenerated()
-    }
+    handleNewSelection(null, layoutInspector?.layoutInspectorModel?.selection)
   }
 
-  private fun loadProperties(event: LayoutInspectorEvent) {
+  private fun handleConnectionChange(client: InspectorClient?) {
+    provider?.resultListeners?.remove(::updateProperties)
+    provider = client?.provider
+    provider?.resultListeners?.add(::updateProperties)
+  }
+
+  private fun updateProperties(from: PropertiesProvider, view: ViewNode, table: PropertiesTable<InspectorPropertyItem>) {
     val selectedView = layoutInspector?.layoutInspectorModel?.selection
-    properties = provider.loadProperties(event, selectedView)
+    if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {
+      return
+    }
+    properties = table
     firePropertiesGenerated()
   }
 

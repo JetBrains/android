@@ -27,12 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 
 public class SigningConfigModelImpl extends GradleDslBlockModel implements SigningConfigModel {
-  @NonNls private static final String STORE_FILE = "storeFile";
-  @NonNls private static final String STORE_PASSWORD = "storePassword";
-  @NonNls private static final String STORE_TYPE = "storeType";
-  @NonNls private static final String KEY_ALIAS = "keyAlias";
-  @NonNls private static final String KEY_PASSWORD = "keyPassword";
-
+  @NonNls public static final String STORE_FILE = "mStoreFile";
+  @NonNls public static final String STORE_PASSWORD = "mStorePassword";
+  @NonNls public static final String STORE_TYPE = "mStoreType";
+  @NonNls public static final String KEY_ALIAS = "mKeyAlias";
+  @NonNls public static final String KEY_PASSWORD = "mKeyPassword";
 
   public SigningConfigModelImpl(@NotNull SigningConfigDslElement dslElement) {
     super(dslElement);
@@ -54,15 +53,13 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   @Override
   @NotNull
   public ResolvedPropertyModel storeFile() {
-    return GradlePropertyModelBuilder.create(myDslElement, STORE_FILE).asMethod(true)
-      .addTransform(FILE_TRANSFORM).buildResolved();
+    return getFileModelForProperty(STORE_FILE);
   }
 
   @Override
   @NotNull
   public PasswordPropertyModel storePassword() {
-    return GradlePropertyModelBuilder.create(myDslElement, STORE_PASSWORD).asMethod(true)
-      .buildPassword();
+    return getPasswordModelForProperty(STORE_PASSWORD);
   }
 
   @Override
@@ -80,7 +77,6 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   @Override
   @NotNull
   public PasswordPropertyModel keyPassword() {
-    return GradlePropertyModelBuilder.create(myDslElement, KEY_PASSWORD).asMethod(true)
-      .buildPassword();
+    return getPasswordModelForProperty(KEY_PASSWORD);
   }
 }

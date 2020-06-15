@@ -22,6 +22,8 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.sdklib.devices.Storage
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import java.math.RoundingMode
 import java.text.NumberFormat
 
@@ -66,3 +68,6 @@ fun getMessageWithDetails(message: String, details: String?): String =
     val dotIfNeeded = if (details.trim().endsWith(".")) "" else "."
     "$message: $details$dotIfNeeded"
   }
+
+internal fun invokeLater(modalityState: ModalityState = ModalityState.defaultModalityState(), block: () -> Unit): Unit =
+  ApplicationManager.getApplication().invokeLater(block, modalityState)

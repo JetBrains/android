@@ -31,7 +31,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -47,7 +46,7 @@ public class LayoutLibraryLoader {
   private LayoutLibraryLoader() {
   }
 
-  @Nullable
+  @NotNull
   private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
     final String fontFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.FONTS)));
@@ -86,10 +85,10 @@ public class LayoutLibraryLoader {
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
     library =
       LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
-    if (library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "icu/", enumMap, layoutLog)) {
-      return library;
+    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "icu/", enumMap, layoutLog)) {
+      throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
-    return null;
+    return library;
   }
 
   @NotNull
@@ -107,18 +106,14 @@ public class LayoutLibraryLoader {
 
   /**
    * Loads and initializes layoutlib.
-   * Returns null if it fails to initialize layoutlib.
    */
-  @Nullable
+  @NotNull
   public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
     LayoutLibrary library = ourLibraryCache.get(target);
     if (library == null || library.isDisposed()) {
       library = loadImpl(target, enumMap);
-
-      if (library != null) {
-        ourLibraryCache.put(target, library);
-      }
+      ourLibraryCache.put(target, library);
     }
 
     return library;

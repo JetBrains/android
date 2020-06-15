@@ -123,31 +123,6 @@ public class Scout {
     ConnectToParentStart,
     ConnectToParentEnd;
 
-    /** Returns the equivalent {@link AnchorTarget.Type} for the source of this connection. */
-    public AnchorTarget.Type getSrcAnchorType(boolean isRtl) {
-      switch (this) {
-        case ConnectTopToTop:
-        case ConnectTopToBottom:
-        case ConnectToParentTop:
-          return AnchorTarget.Type.TOP;
-        case ConnectBottomToTop:
-        case ConnectBottomToBottom:
-        case ConnectToParentBottom:
-          return AnchorTarget.Type.BOTTOM;
-        case ConnectStartToStart:
-        case ConnectStartToEnd:
-        case ConnectToParentStart:
-          return isRtl? AnchorTarget.Type.RIGHT : AnchorTarget.Type.LEFT;
-        case ConnectEndToStart:
-        case ConnectEndToEnd:
-        case ConnectToParentEnd:
-          return isRtl ? AnchorTarget.Type.LEFT : AnchorTarget.Type.RIGHT;
-        case ConnectBaseLineToBaseLine:
-          return AnchorTarget.Type.BASELINE;
-      }
-      return null;
-    }
-
     /** Returns the equivalent {@link AnchorTarget.Type} for the destination of this connection. */
     public AnchorTarget.Type getDstAnchorType(boolean isRtl) {
       switch (this) {
@@ -245,15 +220,6 @@ public class Scout {
       }
     }
     return false;
-  }
-
-  public static void inferConstraints(List<NlComponent> components) {
-    for (NlComponent component : components) {
-      if (component.getParent() == null) {
-        inferConstraints(component);
-        return;
-      }
-    }
   }
 
   /**
@@ -378,28 +344,6 @@ public class Scout {
       constraintSet.calculateError();
       System.out.println("Error in set (v1): " + Double.toString(constraintSet.error()));
     }
-  }
-
-  /**
-   * Do a prioritized search in the constraint set space and commit
-   * the set with minimum error that was found
-   *
-   * @param component the root element to infer from
-   */
-  public static void findConstraintSetAndCommit(NlComponent component) {
-    ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
-    list.add(0, component);
-    if (list.size() == 1) {
-      return;
-    }
-    //TODO: Handle nested constraint layouts
-    NlComponent[] widgets = list.toArray(new NlComponent[list.size()]);
-    ScoutWidget[] scoutWidgets = ScoutWidget.create(widgets, false);
-    ConstraintSetGenerator generator = new ConstraintSetGenerator(scoutWidgets);
-    ConstraintSet set = generator.findConstraintSet();
-    set.applySet();
-    System.out.println("Error in set (v2): " + Double.toString(set.error()));
-    commit(list, "Infering constraints");
   }
 
   private static void commit(@NotNull List<NlComponent> list, String label) {

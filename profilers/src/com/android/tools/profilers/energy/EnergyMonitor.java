@@ -14,14 +14,14 @@
 package com.android.tools.profilers.energy;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.TooltipModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,7 +52,7 @@ public class EnergyMonitor extends ProfilerMonitor {
   }
 
   @Override
-  public ProfilerTooltip buildTooltip() {
+  public TooltipModel buildTooltip() {
     return new EnergyMonitorTooltip(this);
   }
 

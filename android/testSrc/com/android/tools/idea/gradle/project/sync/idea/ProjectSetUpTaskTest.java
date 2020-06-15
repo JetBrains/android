@@ -15,29 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.BuildEvent;
-import com.intellij.build.events.FinishBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
-import java.util.List;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
@@ -64,18 +57,27 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     verifyZeroInteractions(mySyncState);
   }
 
-  public void testOnFailureCreatesFinishBuildEvent() {
+  public void testOnFailureDoesNotCreateFinishBuildEvent() {
     SyncViewManager syncViewManager = mock(SyncViewManager.class);
-    ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, syncViewManager);
 
     // Invoke method to test.
     mySetupTask.onFailure(myTaskId, "sync failed", null);
 
-    // Verify that FinishBuildEvent is created.
-    verify(syncViewManager, times(1)).onEvent(eq(myTaskId), eventCaptor.capture());
-    List<BuildEvent> capturedEvents = eventCaptor.getAllValues();
-    assertThat(capturedEvents).hasSize(1);
-    assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);
+    // Verify that no events were created.
+    verify(syncViewManager, never()).onEvent(eq(myTaskId), any());
+  }
+
+  public void testOnFailureUsesErrorDetails() {
+    SyncViewManager syncViewManager = mock(SyncViewManager.class);
+    new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, syncViewManager);
+
+    // Invoke method to test.
+    mySetupTask.onFailure(myTaskId, "sync failed", "IllegalStateException: very bad thing happened\notherline:32");
+
+    // Verify that no events were created.
+    verify(syncViewManager, never()).onEvent(eq(myTaskId), any());
+    verify(mySyncState).syncFailed(eq("sync failed\nIllegalStateException: very bad thing happened\notherline:32\n\n" +
+                                      "Consult IDE log for more details (Help | Show Log)"), any(), any());
   }
 }

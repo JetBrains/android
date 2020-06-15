@@ -37,6 +37,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +49,7 @@ import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class TransportFileManager {
+public final class TransportFileManager implements TransportFileCopier {
   private static class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
       .setReleaseDir("plugins/android/resources/transport")
@@ -59,8 +62,8 @@ public final class TransportFileManager {
     @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
 
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
-      .setReleaseDir("plugins/android/resources/transport/agent")
-      .setDevDir("../../bazel-bin/tools/base/transport/agent/android")
+      .setReleaseDir("plugins/android/resources/transport/native/agent")
+      .setDevDir("../../bazel-bin/tools/base/transport/native/agent/android")
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();
@@ -221,49 +224,55 @@ public final class TransportFileManager {
 
   /**
    * Copies a file from host (where Studio is running) to the device.
-   * If executable, then the abi is taken into account.
+   * If executable, then the abi is taken into account, which may result in multiple files copied.
+   *
+   * Returns a list of the on-device paths of copied files.
    */
-  protected void copyFileToDevice(@NotNull DeployableFile hostFile)
+  @Override
+  public List<String> copyFileToDevice(@NotNull DeployableFile hostFile)
     throws AdbCommandRejectedException, IOException {
-    final File dir = hostFile.getDir();
+    final Path dirPath = hostFile.getDir().toPath();
+    List<String> paths = new ArrayList<>();
 
     if (!hostFile.isExecutable()) {
-      File file = new File(dir, hostFile.getFileName());
-      pushFileToDevice(file, hostFile.getFileName(), hostFile.isExecutable());
-      return;
+      Path path = dirPath.resolve(hostFile.getFileName());
+      paths.add(pushFileToDevice(path, hostFile.getFileName(), hostFile.isExecutable()));
+      return paths;
     }
 
     if (!hostFile.isAbiDependent()) {
       Abi abi = getBestAbi(hostFile);
-      File file = new File(dir, abi + "/" + hostFile.getFileName());
-      pushFileToDevice(file, hostFile.getFileName(), true);
-    }
-    else {
+      Path path = dirPath.resolve(abi + "/" + hostFile.getFileName());
+      paths.add(pushFileToDevice(path, hostFile.getFileName(), true));
+    } else {
       String format = hostFile.getOnDeviceAbiFileNameFormat();
       assert format != null;
       for (Abi abi : getBestAbis(hostFile)) {
-        File file = new File(dir, abi + "/" + hostFile.getFileName());
-        pushFileToDevice(file, String.format(format, abi.getCpuArch()), true);
+        Path path = dirPath.resolve(abi + "/" + hostFile.getFileName());
+        paths.add(pushFileToDevice(path, String.format(format, abi.getCpuArch()), true));
       }
     }
+    return paths;
   }
 
-  private void pushFileToDevice(File file, String fileName, boolean executable)
+  private String pushFileToDevice(Path localPath, String fileName, boolean executable)
     throws AdbCommandRejectedException, IOException {
+    // Refrain from using platform independent utility to concatenate path (ex: Paths.get) because this file path is intended for Android
+    // file system which uses UNIX fashioned path whereas the host (the machine that executes this code) may be a Windows machine.
+    String deviceFilePath = DEVICE_DIR + fileName;
     try {
       // TODO: Handle the case where we don't have file for this platform.
-      if (file == null) {
+      if (!Files.exists(localPath)) {
         throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
       }
       /*
        * If copying the agent fails, we will attach the previous version of the agent
        * Hence we first delete old agent before copying new one
        */
-      String deviceFilePath = DEVICE_DIR + fileName;
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
       myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf("/")), new NullOutputReceiver());
-      myDevice.pushFile(file.getAbsolutePath(), deviceFilePath);
+      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')), new NullOutputReceiver());
+      myDevice.pushFile(localPath.toString(), deviceFilePath);
 
       if (executable) {
         /*
@@ -278,6 +287,7 @@ public final class TransportFileManager {
     catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
       throw new RuntimeException(e);
     }
+    return deviceFilePath;
   }
 
   /**

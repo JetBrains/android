@@ -16,8 +16,10 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuFramesModel;
-import com.intellij.util.Function;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.ProcessModel;
 import trebuchet.model.ThreadModel;
@@ -28,20 +30,12 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * This class builds {@link AtraceFrame} using a {@link AtraceFrameFilterConfig}
+ * This class builds {@link AtraceFrame}s for each {@code AtraceFrame.FrameThread} types.
  */
 public class AtraceFrameManager {
 
   @NotNull
   private final Function<Double, Long> myBootClockSecondsToMonoUs;
-
-  /**
-   * Container to hold UI and thread threads for processing.
-   */
-  @NotNull
-  private final ProcessModel myProcessModel;
-
-  private final int myRenderThreadId;
 
   private final List<AtraceFrame> myMainThreadFrames;
   private final List<AtraceFrame> myRenderThreadFrames;
@@ -55,14 +49,8 @@ public class AtraceFrameManager {
    */
   public AtraceFrameManager(@NotNull ProcessModel process, @NotNull Function<Double, Long> bootClockSecondsToMonoUs, int renderThreadId) {
     myBootClockSecondsToMonoUs = bootClockSecondsToMonoUs;
-    myProcessModel = process;
-    myRenderThreadId = renderThreadId;
-    myMainThreadFrames =
-      getFramesList(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, myProcessModel.getId(), CpuFramesModel.SLOW_FRAME_RATE_US,
-                    AtraceFrame.FrameThread.MAIN);
-    myRenderThreadFrames =
-      getFramesList(AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS, myRenderThreadId, CpuFramesModel.SLOW_FRAME_RATE_US,
-                    AtraceFrame.FrameThread.RENDER);
+    myMainThreadFrames = buildFramesList(AtraceFrame.FrameThread.MAIN, process, process.getId());
+    myRenderThreadFrames = buildFramesList(AtraceFrame.FrameThread.RENDER, process, renderThreadId);
     findAssociatedFrames();
   }
 
@@ -93,17 +81,16 @@ public class AtraceFrameManager {
   }
 
   @NotNull
-  private List<AtraceFrame> getFramesList(String identifierRegEx,
-                                          int threadId,
-                                          long longFrameTimingUs,
-                                          AtraceFrame.FrameThread frameThread) {
+  private List<AtraceFrame> buildFramesList(AtraceFrame.FrameThread frameThread,
+                                            ProcessModel processModel,
+                                            int threadId) {
     List<AtraceFrame> frames = new ArrayList<>();
-    Optional<ThreadModel> activeThread = myProcessModel.getThreads().stream().filter((thread) -> thread.getId() == threadId).findFirst();
+    Optional<ThreadModel> activeThread = processModel.getThreads().stream().filter((thread) -> thread.getId() == threadId).findFirst();
     if (!activeThread.isPresent()) {
       return frames;
     }
-    new SliceStream(activeThread.get().getSlices()).matchPattern(Pattern.compile(identifierRegEx)).enumerate((sliceGroup) -> {
-      AtraceFrame frame = new AtraceFrame(activeThread.get().getId(), myBootClockSecondsToMonoUs, longFrameTimingUs, frameThread);
+    new SliceStream(activeThread.get().getSlices()).matchPattern(Pattern.compile(frameThread.getIdentifierRegEx())).enumerate((sliceGroup) -> {
+      AtraceFrame frame = new AtraceFrame(activeThread.get().getId(), myBootClockSecondsToMonoUs, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
       double startTime = sliceGroup.getStartTime();
       double endTime = sliceGroup.getEndTime();
       frame.addSlice(sliceGroup, new Range(startTime, endTime));
@@ -114,25 +101,53 @@ public class AtraceFrameManager {
   }
 
   /**
-   * @return This function return a list of frames that match the given filter.
+   * Returns a list of frames for a frame type.
+   */
+  @VisibleForTesting
+  List<AtraceFrame> getFramesList(@NotNull AtraceFrame.FrameThread thread) {
+    switch (thread) {
+      case MAIN:
+        return myMainThreadFrames;
+      case RENDER:
+        return myRenderThreadFrames;
+      default:
+        return new ArrayList<>();
+    }
+  }
+
+  /**
+   * Returns a series of frames where gaps between frames are filled with empty frames. This allows the caller to determine the
+   * frame length by looking at the delta between a valid frames series and the empty frame series that follows it. The delta between
+   * an empty frame series and the following frame is idle time between frames.
+   *
+   * This only supports {@code AtraceFrame.FrameThread.MAIN} and {@code AtraceFrame.FrameThread.RENDER}. Will return an empty list for
+   * {@code AtraceFrame.FrameThread.OTHER}.
    */
   @NotNull
-  public List<AtraceFrame> buildFramesList(@NotNull AtraceFrameFilterConfig filter) {
-    if (filter.getThreadId() == myProcessModel.getId() &&
-        filter.getIdentifierRegEx() == AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS &&
-        filter.getLongFrameTimingUs() ==
-        CpuFramesModel.SLOW_FRAME_RATE_US) {
-      return myMainThreadFrames;
+  public List<SeriesData<AtraceFrame>> getFrames(@NotNull AtraceFrame.FrameThread thread) {
+    List<SeriesData<AtraceFrame>> framesSeries = new ArrayList<>();
+    List<AtraceFrame> framesList = getFramesList(thread);
+    // Look at each frame converting them to series data.
+    // The last frame is handled outside the for loop as we need to add an entry for the frame as well as an entry for the frame ending.
+    // Single frames are handled in the last frame case.
+    for (int i = 1; i < framesList.size(); i++) {
+      AtraceFrame current = framesList.get(i);
+      AtraceFrame past = framesList.get(i - 1);
+      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(past.getTotalRangeSeconds().getMin()), past));
+
+      // Need to get the time delta between two frames.
+      // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
+      if (past.getTotalRangeSeconds().getMax() < current.getTotalRangeSeconds().getMin()) {
+        framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(past.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+      }
     }
-    if (filter.getThreadId() == myRenderThreadId &&
-        filter.getIdentifierRegEx() == AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS &&
-        filter.getLongFrameTimingUs() ==
-        CpuFramesModel.SLOW_FRAME_RATE_US) {
-      return myRenderThreadFrames;
+
+    // Always add the last frame, and a null frame following to properly setup the series for the UI.
+    if (!framesList.isEmpty()) {
+      AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
+      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMin()), lastFrame));
+      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
     }
-    return getFramesList(filter.getIdentifierRegEx(), filter.getThreadId(), filter.getLongFrameTimingUs(),
-                         filter.getThreadId() == myProcessModel.getId()
-                         ? AtraceFrame.FrameThread.MAIN
-                         : (filter.getThreadId() == myRenderThreadId ? AtraceFrame.FrameThread.RENDER : AtraceFrame.FrameThread.OTHER));
+    return framesSeries;
   }
 }

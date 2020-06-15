@@ -19,6 +19,8 @@ import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDIN
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.renameElementAtCaretUsingAndroidHandler
 import com.google.common.collect.Lists
 import com.intellij.ide.DataManager
 import com.intellij.openapi.application.runWriteAction
@@ -86,7 +88,9 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
       assertTrue(it.presentation.isEnabled && it.presentation.isVisible)
     }
 
-    myProjectRule.fixture.renameElementAtCaret(newName)
+    if (!myProjectRule.fixture.renameElementAtCaretUsingAndroidHandler(newName)) {
+      myProjectRule.fixture.renameElementAtCaret(newName)
+    }
     // Save the renaming changes to disk.
     saveAllDocuments()
   }
@@ -156,9 +160,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
     val editor = myProjectRule.fixture.editor
     val text = editor.document.text
-    val offset = text.indexOf("uniqueName")
-    assertTrue(offset > 0)
-    editor.caretModel.moveToOffset(offset)
+    myProjectRule.fixture.moveCaret("unique|Name")
     val layoutFile = myProjectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     val layoutText = VfsUtilCore.loadText(layoutFile)
     // Rename name to newName in DummyVo.java.
@@ -179,9 +181,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
     val editor = myProjectRule.fixture.editor
     val text = editor.document.text
-    val offset = text.indexOf("getUniqueValue")
-    assertTrue(offset > 0)
-    editor.caretModel.moveToOffset(offset)
+    myProjectRule.fixture.moveCaret("get|UniqueValue")
     val layoutFile = myProjectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     val layoutText = VfsUtilCore.loadText(layoutFile)
     // Rename name to newName in DummyVo.java.
@@ -189,5 +189,25 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check results.
     assertEquals(text.replace("getUniqueValue", "getNewValue"), VfsUtilCore.loadText(file))
     assertEquals(layoutText.replace("uniqueValue", "newValue"), VfsUtilCore.loadText(layoutFile))
+  }
+
+  /**
+   * Checks renaming of resources referenced from data binding expression.
+   */
+  @Test
+  @RunsInEdt
+  fun assertRenameResource() {
+    val file = myProjectRule.project.baseDir
+      .findFileByRelativePath("app/src/main/res/values/strings.xml")
+    myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
+    val text = myProjectRule.fixture.editor.document.text
+    myProjectRule.fixture.moveCaret("hello|_world")
+    val layoutFile = myProjectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val layoutText = VfsUtilCore.loadText(layoutFile)
+    // Rename name to "hello" in strings.xml.
+    checkAndRename("hello")
+    // Check results.
+    assertEquals(text.replace("hello_world", "hello"), VfsUtilCore.loadText(file))
+    assertEquals(layoutText.replace("hello_world", "hello"), VfsUtilCore.loadText(layoutFile))
   }
 }

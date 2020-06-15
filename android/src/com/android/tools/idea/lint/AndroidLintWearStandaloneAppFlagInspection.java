@@ -15,21 +15,28 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.TAG_APPLICATION;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.tools.lint.checks.WearStandaloneAppDetector.QFX_EXTRA_MISSING_META_DATA;
+import static com.android.tools.lint.checks.WearStandaloneAppDetector.WEARABLE_STANDALONE_ATTR;
+import static com.android.tools.lint.checks.WearStandaloneAppDetector.WEAR_STANDALONE_APP_ISSUE;
+import static com.android.xml.AndroidManifest.NODE_APPLICATION;
+import static com.android.xml.AndroidManifest.NODE_METADATA;
+
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.checks.WearStandaloneAppDetector.*;
-import static com.android.xml.AndroidManifest.NODE_APPLICATION;
-import static com.android.xml.AndroidManifest.NODE_METADATA;
 
 public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspectionBase {
   public AndroidLintWearStandaloneAppFlagInspection() {
@@ -39,13 +46,13 @@ public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspe
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     Integer id = LintFix.getData(fixData, Integer.class);
     if (id != null && id == QFX_EXTRA_MISSING_META_DATA) {
-      return new AndroidLintQuickFix[]{
+      return new LintIdeQuickFix[]{
         new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'", true) {
           @Override
           public void apply(@NotNull PsiElement startElement,

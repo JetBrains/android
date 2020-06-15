@@ -1,0 +1,33 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+ext.someVar = "Present"
+ext.rootBool = scriptBool
+buildscript {
+    ext.scriptVar1 = 1
+    ext {
+        scriptVar2 = "2"
+        scriptBool = true
+        agpVersionX = "3.4.x"
+    }
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.14.4'
+    }
+}
+
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+}
+
+ext {
+    rootBool3 = rootBool
+    rootBool2 = rootBool3
+    rootFloat = 3.14
+    listProp = [15,16,45]
+    mapProp = [key1: "val1", key2: "val2"]
+    boolRoot = true
+    dependencyVersion = "28.0.0"
+}

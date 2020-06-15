@@ -16,33 +16,32 @@
 package com.android.build.attribution.data
 
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import org.gradle.tooling.events.task.TaskFinishEvent
 
 /**
  * A cache object to unify [TaskData] objects and share them between different analyzers.
  */
-data class TaskContainer(private val taskCache: Cache<String, TaskData> = CacheBuilder.newBuilder().build<String, TaskData>()) {
+class TaskContainer {
+  private val taskCache = HashMap<String, TaskData>()
 
   fun getTask(taskPath: String): TaskData? {
-    return taskCache.getIfPresent(taskPath)
+    return taskCache[taskPath]
   }
 
-  fun getTask(event: TaskFinishEvent): TaskData {
-    return taskCache.get(event.descriptor.taskPath) {
-      TaskData.createTaskData(event)
+  fun getTask(event: TaskFinishEvent, pluginContainer: PluginContainer): TaskData {
+    return taskCache.getOrPut(event.descriptor.taskPath) {
+      TaskData.createTaskData(event, pluginContainer)
     }
   }
 
   fun updateTasksData(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     // Set the task type
-    taskCache.asMap().values.forEach { task ->
+    taskCache.values.forEach { task ->
       task.setTaskType(androidGradlePluginAttributionData.taskNameToClassNameMap[task.taskName])
     }
   }
 
   fun clear() {
-    taskCache.invalidateAll()
+    taskCache.clear()
   }
 }

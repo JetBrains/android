@@ -53,7 +53,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
@@ -61,12 +60,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
@@ -203,7 +197,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                                                    .setUncompressedSize(uncompressed)
                                                    .build()));
                           }
-                        }, SameThreadExecutor.INSTANCE);
+                        }, MoreExecutors.directExecutor());
   }
 
   private void createUIComponents() {

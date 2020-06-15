@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import static com.android.tools.idea.npw.platform.Language.KOTLIN;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
@@ -89,8 +91,8 @@ public class ProjectWithKotlinTestUtil {
       editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
       // As default, "All modules containing Kotlin files" option is selected for now.
-      ConfigureKotlinDialogFixture.find(ideFrameFixture)
-                                  .clickOk();
+      ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+                                  .clickOkAndWaitDialogDisappear();
       ideFrameFixture.requestProjectSync();
     }
 
@@ -127,7 +129,9 @@ public class ProjectWithKotlinTestUtil {
                                .clickOk();
 
     String fileName = name + KOTLIN_EXTENSION;
-    Wait.seconds(5).expecting(fileName + " file should be opened")
+
+    // The flakiness here is 1/1000. Increase the timeout from 5s to 10s to stabilize it.
+    Wait.seconds(10).expecting(fileName + " file should be opened")
         .until(() -> fileName.equals(ideFrameFixture.getEditor().getCurrentFileName()));
   }
 
@@ -145,14 +149,14 @@ public class ProjectWithKotlinTestUtil {
 
     waitForPackageNameToShow("android.com", configAndroid);
 
-    configAndroid.setSourceLanguage("Kotlin");
+    configAndroid.setSourceLanguage(KOTLIN);
 
     if (hasCppSupport) {
       newProjectWizard.clickNext();
     }
 
     try {
-      newProjectWizard.clickFinish(Wait.seconds(20), Wait.seconds(10), Wait.seconds(120));
+      newProjectWizard.clickFinish(Wait.seconds(30), Wait.seconds(120));
     } catch (WaitTimedOutError setupTimeout) {
       // We do not care about timeouts if the IDE is indexing and syncing the project,
       // so we don't actually want to throw an error in case  we get a timeout from
@@ -177,7 +181,7 @@ public class ProjectWithKotlinTestUtil {
     }
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(240));
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(300));
 
     // TODO remove the following hack: b/110174414
     File androidSdk = IdeSdks.getInstance().getAndroidSdkPath();

@@ -71,7 +71,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
                         @NotNull String file) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, FILES);
-    GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, name);
+    GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, GradleNameElement.empty());
     fileDslLiteral.setElementType(REGULAR);
     fileDslLiteral.setValue(file);
     methodCall.addNewArgument(fileDslLiteral);

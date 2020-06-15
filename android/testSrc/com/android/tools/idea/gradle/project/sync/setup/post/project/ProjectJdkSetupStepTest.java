@@ -65,7 +65,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     myIndicator = new EmptyProgressIndicator();
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myComponentStack = new ComponentStack(getProject());
-    myComponentStack.registerComponentImplementation(ProjectRootManager.class, myProjectRootManager);
+    myComponentStack.registerComponentInstance(ProjectRootManager.class, myProjectRootManager);
     when(myProjectRootManager.getProjectSdk()).thenReturn(myProjectSdk);
     when(myProjectSdk.getHomePath()).thenReturn("somePath");
   }
@@ -73,7 +73,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      myComponentStack.restoreComponents();
+      myComponentStack.restore();
       myIdeSdks = null;
       myJdks = null;
       myIdeInfo = null;

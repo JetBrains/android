@@ -15,27 +15,39 @@
  */
 package com.android.tools.idea.sqlite.model
 
-import com.android.tools.idea.sqlite.SqliteService
-import com.intellij.openapi.Disposable
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
 
 /**
  * Representation of a database instance.
  */
-data class SqliteDatabase(
-  val virtualFile: VirtualFile,
-  val sqliteService: SqliteService
-) : Disposable {
+sealed class SqliteDatabase {
+  /**
+   * Human readable name of the database.
+   */
+  abstract val name: String
 
-  // TODO(b/139525976)
-  val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "")
-             ?: virtualFile.path
-
-  override fun dispose() {
-    sqliteService.closeDatabase().get()
-  }
+  /**
+   * A connection to the database.
+   */
+  abstract val databaseConnection: DatabaseConnection
 }
+
+/**
+ * [SqliteDatabase] accessed through live connection.
+ */
+data class LiveSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
+
+/**
+ * File based-[SqliteDatabase]. This database is accessed through a [VirtualFile].
+ * The [DatabaseConnection] gets closed when the file is deleted.
+ */
+data class FileSqliteDatabase(
+  override val name: String,
+  override val databaseConnection: DatabaseConnection,
+  val virtualFile: VirtualFile
+) : SqliteDatabase()
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
@@ -44,7 +56,7 @@ data class SqliteSchema(val tables: List<SqliteTable>)
  *
  * @see [https://www.sqlite.org/lang_createview.html] for isView
  **/
-data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val isView: Boolean)
+data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val rowIdName: RowIdName?, val isView: Boolean)
 
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)
@@ -53,4 +65,32 @@ data class SqliteRow(val values: List<SqliteColumnValue>)
 data class SqliteColumnValue(val column: SqliteColumn, val value: Any?)
 
 /** Representation of a Sqlite table column */
-data class SqliteColumn(val name: String, val type: JDBCType)
+data class SqliteColumn(val name: String, val type: JDBCType, val inPrimaryKey: Boolean)
+
+/**
+ *  Representation of a SQLite statement that may contain positional parameters.
+ *
+ *  If the statement doesn't contain parameters, [parametersValues] is an empty list.
+ *  If it does contain parameters, [parametersValues] contains their values, assigned by order.
+ */
+data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any?>) {
+  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any?>())
+
+  /**
+   * Assigns [parametersValues] to corresponding parameters in [sqliteStatementText].
+   * Returns the resulting string.
+   */
+  fun assignValuesToParameters(): String {
+    var renderedStatement = sqliteStatementText
+    parametersValues.forEach {
+      // TODO(b/143946270) doesn't handle statements like: `SELECT * FROM comments WHERE text LIKE "?" AND id > ?`
+      renderedStatement = renderedStatement.replaceFirst("?", it.toString())
+    }
+
+    return  renderedStatement
+  }
+}
+
+enum class RowIdName(val stringName: String) {
+  ROWID("rowid"), OID("oid"), _ROWID_("_rowid_")
+}

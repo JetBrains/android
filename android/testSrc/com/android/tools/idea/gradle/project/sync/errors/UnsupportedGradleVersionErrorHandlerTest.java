@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import java.util.List;
@@ -108,6 +109,7 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
     assertThat(link).isInstanceOf(OpenFileHyperlink.class);
     OpenFileHyperlink openFileHyperlink = (OpenFileHyperlink)link;
     assertTrue(openFileHyperlink.toHtml().contains("Open Gradle wrapper properties"));
-    assertThat(openFileHyperlink.getFilePath()).isEqualTo(GradleWrapper.find(project).getPropertiesFilePath().getAbsolutePath());
+    assertThat(openFileHyperlink.getFilePath()).isEqualTo(
+      FileUtils.toSystemIndependentPath(GradleWrapper.find(project).getPropertiesFilePath().getAbsolutePath()));
   }
 }

@@ -20,7 +20,6 @@ import static com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDe
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.android.tools.idea.util.SwingWorker;
 import com.intellij.ide.JavaUiBundle;
 import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
 import com.intellij.openapi.application.Application;
@@ -35,6 +34,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.SwingWorker;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;

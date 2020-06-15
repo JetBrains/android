@@ -18,16 +18,32 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement {
-  @NonNls public static final String BUILD_TYPES_BLOCK_NAME = "buildTypes";
+public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
+  public static final PropertiesElementDescription<BuildTypesDslElement> BUILD_TYPES =
+    new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new);
 
-  public BuildTypesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, BUILD_TYPES_BLOCK_NAME);
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return BuildTypeDslElement.BUILD_TYPE;
+  }
+
+  @NotNull private static final List<String> implicitBuildTypes = Arrays.asList("debug", "release");
+
+  @Override
+  public boolean implicitlyExists(@NotNull String name) {
+    return implicitBuildTypes.contains(name);
+  }
+
+  public BuildTypesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @NotNull

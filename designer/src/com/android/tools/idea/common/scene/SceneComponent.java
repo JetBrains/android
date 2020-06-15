@@ -23,7 +23,6 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.*;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
@@ -31,6 +30,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import java.awt.Rectangle;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -401,8 +401,8 @@ public class SceneComponent {
     myAnimatedDrawX.setValue(dx);
     myAnimatedDrawY.setValue(dy);
     if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
-      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), dy));
     }
     myScene.needsRebuildList();
   }
@@ -421,8 +421,8 @@ public class SceneComponent {
     myAnimatedDrawX.setTarget(dx, time);
     myAnimatedDrawY.setTarget(dy, time);
     if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
-      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), dy));
     }
     else {
       myScene.needsRebuildList();
@@ -437,8 +437,8 @@ public class SceneComponent {
     myAnimatedDrawWidth.setValue(width);
     myAnimatedDrawHeight.setValue(height);
     if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
-      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
+      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), width));
+      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), height));
     }
     myScene.needsRebuildList();
   }
@@ -457,8 +457,8 @@ public class SceneComponent {
     myAnimatedDrawWidth.setTarget(width, time);
     myAnimatedDrawHeight.setTarget(height, time);
     if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
-      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
+      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), width));
+      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getSceneManager(), height));
     }
   }
 
@@ -520,7 +520,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getBaseline() {
-    return Coordinates.pxToDp(getScene().getDesignSurface(), NlComponentHelperKt.getBaseline(myNlComponent));
+    return Coordinates.pxToDp(getScene().getSceneManager(), NlComponentHelperKt.getBaseline(myNlComponent));
   }
 
   public void setSelected(boolean selected) {
@@ -608,9 +608,7 @@ public class SceneComponent {
     if (componentId.equalsIgnoreCase(myNlComponent.getId())) {
       return this;
     }
-    int count = myChildren.size();
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = myChildren.get(i);
+    for (SceneComponent child : myChildren) {
       SceneComponent found = child.getSceneComponent(componentId);
       if (found != null) {
         return found;
@@ -712,9 +710,7 @@ public class SceneComponent {
       needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
 
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
+    for (SceneComponent child : myChildren) {
       needsRebuildDisplayList |= child.layout(sceneTransform, time);
     }
     return needsRebuildDisplayList;
@@ -740,7 +736,7 @@ public class SceneComponent {
     return rectangle;
   }
 
-  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @JdkConstants.InputEventMask int modifiersEx) {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }
@@ -751,15 +747,13 @@ public class SceneComponent {
     int num = targets.size();
     for (int i = 0; i < num; i++) {
       Target target = targets.get(i);
-      target.addHit(sceneTransform, picker);
+      target.addHit(sceneTransform, picker, modifiersEx);
     }
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
+    for (SceneComponent child : myChildren) {
       if (child instanceof TemporarySceneComponent) {
         continue;
       }
-      child.addHit(sceneTransform, picker);
+      child.addHit(sceneTransform, picker, modifiersEx);
     }
   }
 

@@ -29,12 +29,59 @@ interface TableView {
   val component: JComponent
 
   /**
-   * Clears the data from the UI and updates the view.
+   * Removes data for both columns and rows and updates the view.
    */
   fun resetView()
+  /**
+   * Removes data for rows and updates the view.
+   */
+  fun removeRows()
+
+  /**
+   * Updates the UI to show the number of rows loaded per page.
+   */
+  fun showPageSizeValue(maxRowCount: Int)
+
   fun startTableLoading()
   fun showTableColumns(columns: List<SqliteColumn>)
   fun showTableRowBatch(rows: List<SqliteRow>)
   fun stopTableLoading()
-  fun reportError(message: String, t: Throwable)
+  fun reportError(message: String, t: Throwable?)
+
+  /**
+   * Enables or disables the button to fetch the previous page of rows.
+   */
+  fun setFetchPreviousRowsButtonState(enable: Boolean)
+
+  /**
+   * Enables or disables the button to fetch the next page of rows.
+   */
+  fun setFetchNextRowsButtonState(enable: Boolean)
+
+  /**
+   * Enable or disable editing of table cells.
+   */
+  fun setEditable(isEditable: Boolean)
+
+  fun addListener(listener: Listener)
+  fun removeListener(listener: Listener)
+
+  interface Listener {
+    fun loadPreviousRowsInvoked()
+    fun loadNextRowsInvoked()
+    fun loadFirstRowsInvoked()
+    fun loadLastRowsInvoked()
+    fun refreshDataInvoked()
+    fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?)
+
+    /**
+     * Invoked when the user changes the number of rows to display per page.
+     */
+    fun rowCountChanged(rowCount: Int)
+
+    /**
+     * Invoked when the user wants to order the data by a specific column
+     */
+    fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
+  }
 }

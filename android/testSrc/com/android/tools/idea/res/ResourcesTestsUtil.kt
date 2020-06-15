@@ -20,12 +20,16 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.SdkConstants.DOT_AAR
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.SelectiveResourceFolder
+import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.FilenameConstants.EXPLODED_AAR
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository
 import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
+import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
@@ -48,6 +52,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.function.Predicate
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -138,15 +143,17 @@ fun createTestModuleRepository(
  *
  * @param moduleName name given to the new module.
  * @param project current working project.
+ * @param packageName the module's package name (this will be recorded in its Android manifest)
  * @param createResources code that will be invoked on the module resources folder, to add desired resources. VFS will be refreshed after
  *                        the function is done.
  * @return The instance of the created module added to the project.
  */
-fun addAndroidModule(moduleName: String, project: Project, createResources: (moduleResDir: File) -> Unit): Module {
+fun addAndroidModule(moduleName: String, project: Project, packageName: String, createResources: (moduleResDir: File) -> Unit): Module {
   val root = project.basePath
   val moduleDir = File(FileUtil.toSystemDependentName(root!!), moduleName)
   val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
 
+  createAndroidManifest(moduleDir, packageName)
   val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, ModuleTypeId.JAVA_MODULE) }
   Facets.createAndAddAndroidFacet(module)
 
@@ -156,6 +163,20 @@ fun addAndroidModule(moduleName: String, project: Project, createResources: (mod
   createResources(moduleResDir)
   VfsUtil.markDirtyAndRefresh(false, true, true, moduleDir.toVirtualFile(refresh = true))
   return module
+}
+
+/**
+ * Creates a minimal AndroidManifest.xml with the given [packageName] in the given [dir].
+ */
+private fun createAndroidManifest(dir: File, packageName: String) {
+  dir.mkdirs()
+  dir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML).writeText(
+    // language=xml
+    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$packageName">
+      </manifest>
+    """.trimIndent()
+  )
 }
 
 /**
@@ -180,13 +201,7 @@ fun addAarDependency(
 
   // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
   // See AndroidResourceUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
-  aarDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML).writeText(
-    // language=xml
-    """
-      <manifest package="$packageName">
-      </manifest>
-    """.trimIndent()
-  )
+  createAndroidManifest(aarDir, packageName)
 
   val resDir = aarDir.resolve(SdkConstants.FD_RES)
   resDir.mkdir()
@@ -233,3 +248,31 @@ fun addBinaryAarDependency(module: Module) {
  * Exposes protected method [LocalResourceRepository.isScanPending] for usage in tests.
  */
 fun checkIfScanPending(repository: LocalResourceRepository, psiFile: PsiFile) = repository.isScanPending(psiFile)
+
+fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
+  val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
+  assertThat(list).hasSize(1)
+  return list[0]
+}
+
+fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String,
+                  filter: Predicate<ResourceItem>): ResourceItem {
+  val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
+  var found: ResourceItem? = null
+  for (item in list) {
+    if (filter.test(item)) {
+      assertThat(found).isNull();
+      found = item
+    }
+  }
+  return found!!
+}
+
+class DefinedInOrUnder internal constructor(fileOrDirectory: VirtualFile) : Predicate<ResourceItem> {
+  private val myFileOrDirectory = fileOrDirectory.toPathString()
+
+  override fun test(item: ResourceItem): Boolean {
+    return item.source!!.startsWith(myFileOrDirectory)
+  }
+}
+

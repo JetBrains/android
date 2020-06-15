@@ -49,8 +49,4 @@ class TestBuildOutputInstantReader(private val myLines: List<String>) : BuildOut
   override fun pushBack(numberOfLines: Int) {
     currentIndex -= numberOfLines
   }
-
-  override fun getCurrentLine(): String {
-    return myLines[currentIndex]
-  }
 }

@@ -31,10 +31,10 @@ import com.intellij.openapi.project.Project
 class GradleProjectSystemProvider(val project: Project) : AndroidProjectSystemProvider {
   override val id = "com.android.tools.idea.GradleProjectSystem"
 
-  // We specify a getter instead of setting this value at instantiation because we don't necessarily want to make
-  // a new instance of GradleProjectSystem every time we instantiate the provider extension.
-  override val projectSystem
-    get() = GradleProjectSystem(project)
+  // This is supposed to be called only while initializing the project system, but it may be called from multiple threads
+  // at the same time due to lazy initialization. We do not want to initialize multiple instances of GradleProjectSystem
+  // which subscribe to various events. To prevent this from happening we instantiate GradleProjectSystem via a thread-safe lazy property.
+  override val projectSystem by lazy { GradleProjectSystem(project) }
 
   override fun isApplicable() = GradleProjectInfo.getInstance(project).isBuildWithGradle
 }

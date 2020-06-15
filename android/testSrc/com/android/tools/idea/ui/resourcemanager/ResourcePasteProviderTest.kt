@@ -26,6 +26,8 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.command.impl.UndoManagerImpl
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.actions.PasteAction
@@ -38,6 +40,7 @@ import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Producer
+import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +50,20 @@ import java.awt.datatransfer.Transferable
 
 private val DEFAULT_RESOURCE_URL = ResourceUrl.create("namespace", ResourceType.DRAWABLE,
                                                       "my_resource")
+
+@Language("Kotlin")
+private const val DEFAULT_KOTLIN_FILE_CONTENT = "package com.example.myapplication\n" +
+                                          "\n" +
+                                          "import android.os.Bundle\n" +
+                                          "import androidx.appcompat.app.AppCompatActivity\n" +
+                                          "\n" +
+                                          "class MainActivity : AppCompatActivity() {\n" +
+                                          "\n" +
+                                          "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
+                                          "        super.onCreate(savedInstanceState)\n" +
+                                          "        setContentView(R.layout.activity_main)\n" +
+                                          "    }\n" +
+                                          "}"
 
 private fun ResourcePasteProvider.paste(dataContext: DataContext) {
   runInEdtAndWait { runUndoTransparentWriteAction { performPaste(dataContext) } }
@@ -67,7 +84,31 @@ internal class ResourcePasteProviderTest {
 
   @After
   fun tearDown() {
-    runInEdtAndWait { EditorFactory.getInstance().releaseEditor(editor) }
+    runInEdtAndWait {
+      EditorFactory.getInstance().releaseEditor(editor)
+      with(UndoManager.getGlobalInstance() as UndoManagerImpl) {
+        // For AndroidProjectRule, have to manually clear the UndoManager.
+        dropHistoryInTests()
+        flushCurrentCommandMerger()
+      }
+    }
+  }
+
+  @Test
+  fun pasteOnKotlinMethodArgument() {
+    testPasteOnKotlinFile(stringToMoveCaret = "activity_main", expectedChange = "setContentView(namespace.R.drawable.my_resource")
+  }
+
+  @Test
+  fun pasteOnKotlinMethodCall() {
+    testPasteOnKotlinFile(stringToMoveCaret = "ContentView",
+                          expectedChange = "setContentView(R.layout.activity_main,namespace.R.drawable.my_resource)")
+  }
+
+  @Test
+  fun pasteOnKotlinUnknownElement() {
+    testPasteOnKotlinFile(stringToMoveCaret = "super.onCreate",
+                          expectedChange = "namespace.R.drawable.my_resourcesuper.onCreate(savedInstanceState)")
   }
 
   @Test
@@ -246,6 +287,14 @@ internal class ResourcePasteProviderTest {
     return runInEdtAndGet { editorFactory.createEditor(document, project) }
   }
 
+  private fun psiKtFile(content: String): PsiFile {
+    val fileSystem = MockVirtualFileSystem()
+    val activityFile: VirtualFile = fileSystem.file("/main/MainActivity.kt", content).refreshAndFindFileByPath("/main/MainActivity.kt")!!
+    return runReadAction {
+      PsiManager.getInstance(project).findFile(activityFile)!!
+    }
+  }
+
   private fun psiFile(content: String): PsiFile {
     val fileSystem = MockVirtualFileSystem()
     val layoutFile: VirtualFile = fileSystem.file("/layout/layout.xml", content).refreshAndFindFileByPath("/layout/layout.xml")!!
@@ -273,5 +322,18 @@ internal class ResourcePasteProviderTest {
     override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = true
 
     override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(RESOURCE_URL_FLAVOR)
+  }
+
+  private fun testPasteOnKotlinFile(fileContents: String = DEFAULT_KOTLIN_FILE_CONTENT, stringToMoveCaret: String, expectedChange: String) {
+    val psiKtFile = psiKtFile(fileContents)
+    editor = createEditor(psiKtFile)
+    runInEdtAndWait { editor.caretModel.moveToOffset(editor.document.text.indexOf(stringToMoveCaret)) }
+    val dataContext = createDataContext(editor, psiKtFile)
+
+    val resourcePasteProvider = ResourcePasteProvider()
+    resourcePasteProvider.paste(dataContext)
+
+    Truth.assertThat(editor.document.text).contains(expectedChange)
+    Truth.assertThat(runInEdtAndGet { editor.selectionModel.selectedText!! }).isEqualTo("namespace.R.drawable.my_resource")
   }
 }

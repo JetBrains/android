@@ -21,6 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.StringHelper;
@@ -28,6 +29,7 @@ import com.android.utils.TraceUtils;
 import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -210,7 +212,27 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     return null;
   }
 
+  /**
+   * Obtains the render issues for the given layout
+   * @param file the layout file
+   * @param logOperation optional {@link LogOperation} to intercept rendering errors
+   */
+  @NotNull
   private List<RenderErrorModel.Issue> getRenderOutput(@NotNull VirtualFile file, @Nullable LogOperation logOperation) {
+    return getRenderOutput(file, logOperation, false);
+  }
+
+  /**
+   * Obtains the render issues for the given layout
+   * @param file the layout file
+   * @param logOperation optional {@link LogOperation} to intercept rendering errors
+   * @param useDumbMode when true, the render error model will be generated in dumb mode
+   */
+  @NotNull
+  private List<RenderErrorModel.Issue> getRenderOutput(
+    @NotNull VirtualFile file,
+    @Nullable LogOperation logOperation,
+    boolean useDumbMode) {
     assertNotNull(file);
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
@@ -244,17 +266,28 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    // The error model must be created on a background thread.
-    Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
-      () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+    if (useDumbMode) {
+      DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
+    }
 
-    return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
+    try {
+      // The error model must be created on a background thread.
+      Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
+        () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+
+      return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
+    }
+    finally {
+      if (useDumbMode) {
+        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
+      }
+    }
   }
 
   public void testPanel() {
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"), null);
-    assertSize(2, issues);
+    assertSize(3, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
@@ -271,11 +304,15 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
       "<BR/>" +
       "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(2));
   }
 
   public void testDataBindingAttributes() {
     List<RenderErrorModel.Issue> issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "db.xml", "res/layout/db.xml"), null);
-    assertSize(2, issues);
+    assertSize(3, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
@@ -292,12 +329,16 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
       "<BR/>" +
       "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(2));
   }
 
   public void testTypo() {
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null);
-    assertSize(1, issues);
+    assertSize(2, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
@@ -307,6 +348,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
       "<BR/>",
       issues.get(0));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
 
   public void testBrokenCustomView() {
@@ -371,7 +416,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
+    assertSize(2, issues);
     assertNotNull(target.get());
     boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
@@ -400,6 +445,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
 
   public void testMismatchedBinary() throws Exception {
@@ -477,7 +526,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
+    assertSize(2, issues);
     assertHtmlEquals(
       "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
       "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>" +
@@ -487,6 +536,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "Widgets possibly involved: Button, TextView<BR/>" +
       "<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
 
   public void testWrongClassFormat() {
@@ -500,7 +553,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
+    assertSize(2, issues);
 
     String incompatible = "";
     String modules = "";
@@ -526,6 +579,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       incompatible +
       "<A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>" +
       modules, issues.get(0));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
 
   public void testSecurity() throws Exception {
@@ -596,7 +653,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
+    assertSize(2, issues);
 
     assertNotNull(target.get());
     boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
@@ -610,21 +667,21 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
         "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
         "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
         "<BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
@@ -657,6 +714,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
 
   public void testFidelityErrors() {
@@ -673,12 +734,15 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logger.error("Error", "An error", null);
     };
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(2, issues);
+    assertSize(3, issues);
     // The ERROR should go first in the list (higher priority)
     assertHtmlEquals("An error<BR/><BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
                      "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"runnable:0\">(Ignore for this session)</A>" +
                      "<BR/></DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
+    assertHtmlEquals("Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+                     "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+                     "It can later be enabled again using the Settings > Experimental dialog.", issues.get(2));
   }
 
   //
@@ -721,7 +785,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
+    assertSize(2, issues);
     assertHtmlEquals("The following classes could not be instantiated:<DL><DD>-&NBS" +
                      "P;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
                      "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"runn" +
@@ -738,6 +802,9 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
                      "utton#<init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
                      "REF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>", issues.get(0));
+    assertHtmlEquals("Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+                     "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+                     "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
 
   public void testAppCompatException() {
@@ -779,9 +846,36 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
+    assertSize(2, issues);
     assertHtmlEquals("Select <I>Theme.AppCompat</I> or a descendant in the theme selector.", issues.get(0));
+    assertHtmlEquals("Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+                     "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+                     "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
+
+  /**
+   * Regression test for b/149357583
+   *
+   * The {@link RenderErrorContributor} should not throw an {@link com.intellij.openapi.project.IndexNotReadyException} when executed in dumb mode.
+   */
+  public void testDumbModeRenderErrorContributor() {
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null, true);
+    assertSize(2, issues);
+    assertHtmlEquals(
+      "The following classes could not be found:<DL>" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
+      "<BR/>",
+      issues.get(0));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
+  }
+
 
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);

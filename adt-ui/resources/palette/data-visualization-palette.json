@@ -1,0 +1,498 @@
+[
+  {
+    "name": "Gray",
+    "light": [
+      "97b1c0",
+      "a6bcc9",
+      "b6c8d3",
+      "c6d4dd",
+      "d6e0e6"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "97b1c0",
+      "86a5b6",
+      "7699ad",
+      "668da3",
+      "5a8096"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "Light Blue",
+    "light": [
+      "a2dffe",
+      "aee4fe",
+      "b8e7fe",
+      "c2eafe",
+      "cdeefe"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "74a1b8",
+      "6496af",
+      "558aa5",
+      "4c7c94",
+      "446e83"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Orange",
+    "light": [
+      "f79c6e",
+      "f8a981",
+      "f9b694",
+      "fac3a8",
+      "fbd1bb"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "ab6d4d",
+      "9b6246",
+      "89573e",
+      "784c36",
+      "66412e"
+    ],
+    "darkModeLightText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Green",
+    "light": [
+      "74e288",
+      "88e79a",
+      "9eebac",
+      "b3efbe",
+      "c8f4d0"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "529d5f",
+      "4a8c55",
+      "417c4b",
+      "386b41",
+      "305a37"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Light Purple",
+    "light": [
+      "a78bd9",
+      "b49bdf",
+      "bfaae4",
+      "cbbae9",
+      "d6c9ee"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "746196",
+      "675686",
+      "5b4c76",
+      "4f4267",
+      "433857"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Pink",
+    "light": [
+      "e66f9a",
+      "ea86aa",
+      "ed9bb9",
+      "f1b1c9",
+      "f5c7d8"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "a04e6c",
+      "944763",
+      "86415a",
+      "783a51",
+      "6b3348"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Turquoise",
+    "light": [
+      "52e5cf",
+      "6de9d6",
+      "87edde",
+      "a2f1e5",
+      "bcf5ed"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "3a9f90",
+      "328b7d",
+      "2a7469",
+      "225e55",
+      "1a4740"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Tan",
+    "light": [
+      "dfcc9f",
+      "e3d2ab",
+      "e7d8b6",
+      "ebdec2",
+      "eee4cd"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "9b8e6f",
+      "8d8062",
+      "7e7358",
+      "6f654d",
+      "605743"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Pacific Blue",
+    "light": [
+      "0093d4",
+      "0ab6ff",
+      "3dc5ff",
+      "70d4ff",
+      "a3e3ff"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "026793",
+      "025c83",
+      "025174",
+      "024764",
+      "013c55"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Teal",
+    "light": [
+      "158F7F",
+      "1dc3ad",
+      "3ce2cc",
+      "71eada",
+      "a6f2e8"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "158F7F",
+      "137c6e",
+      "106a5e",
+      "0d594f",
+      "0b473f"
+    ],
+    "darkModeLightText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Purple",
+    "light": [
+      "824bdf",
+      "9263e3",
+      "a47de8",
+      "b697ed",
+      "c9b1f1"
+    ],
+    "lightModeDarkText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "824bdf",
+      "6e2fda",
+      "5f23c7",
+      "531fad",
+      "471a93"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Dark Orange",
+    "light": [
+      "c1571a",
+      "e26c28",
+      "e78750",
+      "eda378",
+      "f2bfa1"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "c1571a",
+      "af4f18",
+      "9d4715",
+      "8b3f13",
+      "793711"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Indigo",
+    "light": [
+      "3F67A6",
+      "5980c0",
+      "7e9cce",
+      "a3b9dc",
+      "c8d5ea"
+    ],
+    "lightModeDarkText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "3F67A6",
+      "385b94",
+      "315081",
+      "2a446f",
+      "23395c"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Lime",
+    "light": [
+      "adac38",
+      "c6c44e",
+      "d1cf71",
+      "dcdb93",
+      "e7e6b6"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "adac38",
+      "a2a034",
+      "969431",
+      "8b892d",
+      "7f7e29"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "Magenta",
+    "light": [
+      "b8388e",
+      "ca53a3",
+      "d576b6",
+      "e09ac8",
+      "ebbddb"
+    ],
+    "lightModeDarkText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "b8388e",
+      "a4327e",
+      "902c6f",
+      "7d2660",
+      "692051"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "Vivid Blue",
+    "light": [
+      "1a7aff",
+      "3d8eff",
+      "61a3ff",
+      "85b8ff",
+      "a8ccff"
+    ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dark": [
+      "1a7aff",
+      "0068fa",
+      "005bdb",
+      "004fbd",
+      "00429e"
+    ],
+    "darkModeLightText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+]

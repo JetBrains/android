@@ -29,8 +29,12 @@ import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.Rectangle
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JTable
 
 private const val X = "x"
 private const val Y = "y"
@@ -48,7 +52,25 @@ class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
     val view = properties.first?.view ?: return
     val table = PTable.create(DimensionTableModel(view), null, RendererProvider())
+    table.component.addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent) {
+        scrollSelectedRowIntoView(table)
+      }
+    })
     inspector.addComponent(table.component)
+  }
+
+  private fun scrollSelectedRowIntoView(pTable: PTable) {
+    pTable.component.scrollRectToVisible(findSelectedRect(pTable))
+  }
+
+  private fun findSelectedRect(pTable: PTable): Rectangle {
+    val table = pTable.component as? JTable ?: return pTable.component.bounds
+    val row = table.selectedRow
+    if (row < 0) {
+      return table.bounds
+    }
+    return table.getCellRect(row, 1, true)
   }
 
   private class DimensionTableModel(view: ViewNode): PTableModel {
@@ -61,6 +83,15 @@ class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
         Item(Y, view.bounds.y.toString()),
         Item(WIDTH, view.bounds.width.toString()),
         Item(HEIGHT, view.bounds.height.toString()))
+    }
+
+    override fun addItem(item: PTableItem): PTableItem {
+      // Not supported
+      return item
+    }
+
+    override fun removeItem(item: PTableItem) {
+      // Not supported
     }
   }
 
@@ -99,6 +130,8 @@ class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
         textRenderer.font = UIUtil.getLabelFont()
         textRenderer.append(item.value ?: "")
       }
+      textRenderer.foreground = if (isSelected && hasFocus) UIUtil.getTableSelectionForeground(true) else table.foregroundColor
+      textRenderer.background = if (isSelected && hasFocus) UIUtil.getTableSelectionBackground(true) else table.backgroundColor
       return textRenderer
     }
 

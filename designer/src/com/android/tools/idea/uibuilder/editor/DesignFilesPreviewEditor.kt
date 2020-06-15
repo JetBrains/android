@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
 
@@ -45,10 +46,13 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   override fun createEditorPanel(): DesignerEditorPanel {
     val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
-      NlDesignSurface.build(myProject, this).apply {
-        setCentered(true)
-        setScreenMode(SceneMode.SCREEN_ONLY, false)
-      }
+      NlDesignSurface.builder(myProject, this)
+        .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
+        .build()
+        .apply {
+          setCentered(true)
+          setScreenMode(SceneMode.RENDER, false)
+        }
     }
 
     return DesignerEditorPanel(this, myProject, myFile, workBench, surface, { emptyList() },
@@ -67,4 +71,11 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   else null
 
   override fun getName() = "Design"
+}
+
+fun AndroidEditorSettings.GlobalState.preferredDrawableSurfaceState() = when(preferredDrawableEditorMode) {
+  AndroidEditorSettings.EditorMode.CODE -> DesignSurface.State.DEACTIVATED
+  AndroidEditorSettings.EditorMode.SPLIT -> DesignSurface.State.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> DesignSurface.State.FULL
+  else -> DesignSurface.State.SPLIT // default
 }

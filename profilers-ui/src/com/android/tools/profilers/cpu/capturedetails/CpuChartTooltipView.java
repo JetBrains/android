@@ -15,31 +15,34 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.intellij.util.ui.JBUI;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-
 class CpuChartTooltipView extends CpuChartTooltipViewBase {
-  public CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart,
-                             @NotNull CpuProfilerStageView stageView) {
-    super(chart, stageView);
+
+  private final Range myDataRange;
+
+  CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart,
+                      @NotNull Range dataRange,
+                      @NotNull JLayeredPane tooltipRoot) {
+    super(chart, tooltipRoot);
+    myDataRange = dataRange;
   }
 
   @Override
   protected void showTooltip(@NotNull CaptureNode node) {
-    Range dataRange = myStageView.getTimeline().getDataRange();
-    long start = (long)(node.getStart() - dataRange.getMin());
-    long end = (long)(node.getEnd() - dataRange.getMin());
+    long start = (long)(node.getStart() - myDataRange.getMin());
+    long end = (long)(node.getEnd() - myDataRange.getMin());
     long totalDuration = node.getDuration();
 
     getTooltipContainer().removeAll();

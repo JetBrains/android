@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import javax.swing.JComboBox;
@@ -39,21 +40,21 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
+  public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
     new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class))
-      .selectApiLevel(api);
+      .selectApiLevel(minSdkApi);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
+  public ConfigureAndroidModuleStepFixture<W> setSourceLanguage(@NotNull Language language) {
     // TODO: Some Modules (ie New Benchmark Module) have a label ending with ":" - Unify UI
     JLabel languageLabel = (JLabel)robot().finder().find(
       target(), c -> c.isShowing() && c instanceof JLabel && String.valueOf(((JLabel)c).getText()).startsWith("Language")
     );
 
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), languageLabel.getText(), JComboBox.class, true))
-      .selectItem(sourceLanguage);
+      .selectItem(language.toString());
     return this;
   }
 }

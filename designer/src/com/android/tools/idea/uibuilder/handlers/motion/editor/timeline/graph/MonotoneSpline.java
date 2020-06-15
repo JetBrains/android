@@ -253,6 +253,7 @@ public class MonotoneSpline extends Interpolator {
         double ty1 = mTangent[i][1];
         double ty2 = mTangent[i + 1][1];
         double iy = length(h, x, y1, y2, ty1, ty2);
+        sum+= iy+ix;
 
       } else if (t < mT[i + 1]) {
         double h = mT[i + 1] - mT[i];
@@ -267,14 +268,14 @@ public class MonotoneSpline extends Interpolator {
         double ty1 = mTangent[i][1];
         double ty2 = mTangent[i + 1][1];
         double iy = length(h, x, y1, y2, ty1, ty2);
-
+        sum+= iy+ix;
       }
     }
-    return 0;
+    return sum;
   }
 
   @Override
-  double[] getTimePoints() {
+  public double[] getTimePoints() {
     return mT;
   }
 
@@ -313,21 +314,8 @@ public class MonotoneSpline extends Interpolator {
         3 * h * t1 * x2 - 2 * h * t2 * x - 4 * h * t1 * x + h * t1;
   }
 
-  public static void main(String[] a) {
-    System.out.println("testing ");
-    double[] t = {0, .5, .71};
-    double[][] y = {{0, 0}, {100, 40}, {20, 90}, {100, 100}};
-    MonotoneSpline m = new MonotoneSpline(t, y);
 
-    dumbLength(m, 0.1);
-    dumbLength(m, 0.01);
-    dumbLength(m, 0.001);
-    dumbLength(m, 0.0001);
-    dumbLength(m, 0.00001);
-
-  }
-
-  static void dumbLength(MonotoneSpline m, double delta) {
+  public static double dumbLength(MonotoneSpline m, double delta) {
     double sum = 0;
     double last_x = 0, last_y = 0;
     for (float t = 0; t <= 1; t += delta) {
@@ -341,5 +329,6 @@ public class MonotoneSpline extends Interpolator {
 
     }
     System.out.println("dum sum = " + sum);
+    return sum;
   }
 }

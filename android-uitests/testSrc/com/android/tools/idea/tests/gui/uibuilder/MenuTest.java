@@ -132,9 +132,9 @@ public final class MenuTest {
                       "        android:orderInCategory=\"101\"\n" +
                       "        android:title=\"@string/action_settings\"\n" +
                       "        app:showAsAction=\"never\" />\n" +
-                      "</menu>\n";
+                      "</menu>";
 
-    assertEquals(expected, myEditor.getCurrentFileContents());
+    assertEquals(expected, myEditor.getCurrentFileContents().trim());
   }
 
   @Test

@@ -321,12 +321,4 @@
             line="96"/>
     </issue>
 
-    <issue
-        id="ImplicitExecutor"
-        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/profilers/memory/CaptureObjectLoader.java"
-            line="45"/>
-    </issue>
-
 </issues>

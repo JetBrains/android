@@ -15,12 +15,26 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+
 import com.android.build.OutputFile;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.InstantAppProjectBuildOutput;
+import com.android.builder.model.InstantAppVariantBuildOutput;
+import com.android.builder.model.ProjectBuildOutput;
+import com.android.builder.model.TestVariantBuildOutput;
+import com.android.builder.model.TestedTargetVariant;
+import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
 import com.android.tools.apk.analyzer.AndroidApplicationInfo;
@@ -43,19 +57,19 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
 /**
  * Provides the information on APKs to install for run configurations in Gradle projects.
@@ -131,7 +145,10 @@ public class GradleApkProvider implements ApkProvider {
     List<ApkInfo> apkList = new ArrayList<>();
 
     int projectType = androidModel.getAndroidProject().getProjectType();
-    if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP || projectType == PROJECT_TYPE_TEST) {
+    if (projectType == PROJECT_TYPE_APP ||
+        projectType == PROJECT_TYPE_INSTANTAPP ||
+        projectType == PROJECT_TYPE_TEST ||
+        projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
       String pkgName = projectType == PROJECT_TYPE_TEST
                        ? myApplicationIdProvider.getTestPackageName()
                        : myApplicationIdProvider.getPackageName();
@@ -140,7 +157,7 @@ public class GradleApkProvider implements ApkProvider {
         return Collections.emptyList();
       }
 
-      switch(myOutputKindProvider.compute()) {
+      switch (myOutputKindProvider.compute()) {
         case Default:
           // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
           // apps (assuming the androidModel is the base split).
@@ -154,9 +171,17 @@ public class GradleApkProvider implements ApkProvider {
           break;
 
         case AppBundleOutputModel:
-          ApkInfo apkInfo = DynamicAppUtils.collectAppBundleOutput(myFacet.getModule(), myOutputModelProvider, pkgName);
-          if (apkInfo != null) {
-            apkList.add(apkInfo);
+          Module baseAppModule = myFacet.getModule();
+          if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
+            // If it's instrumented test for dynamic feature module, the base-app module is retrieved,
+            // and then Apks from bundle are able to be extracted.
+            baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
+          }
+          if (baseAppModule != null) {
+            ApkInfo apkInfo = DynamicAppUtils.collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
+            if (apkInfo != null) {
+              apkList.add(apkInfo);
+            }
           }
           break;
       }
@@ -188,7 +213,7 @@ public class GradleApkProvider implements ApkProvider {
   private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull AndroidModuleModel androidModel,
                                                          @NotNull IDevice device) {
     IdeAndroidProject project = androidModel.getAndroidProject();
-    return DynamicAppUtils.getDependentFeatureModules(myFacet.getModule().getProject(), project)
+    return DynamicAppUtils.getDependentFeatureModulesForBase(myFacet.getModule().getProject(), project)
       .stream()
       .map(module -> {
         // Find the output APK of the module
@@ -327,6 +352,11 @@ public class GradleApkProvider implements ApkProvider {
             // Get the output from the test artifact
             for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
               if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
+                int apiWithSplitApk = AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION.getApiLevel();
+                if (!device.getVersion().isGreaterOrEqualThan(apiWithSplitApk)) {
+                  // b/119663247
+                  throw new ApkProvisionException("Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
+                }
                 outputs.addAll(testVariantBuildOutput.getOutputs());
               }
             }

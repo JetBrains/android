@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
@@ -55,10 +56,7 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -74,14 +72,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -229,7 +220,7 @@ public class BuildVariantView {
     List<Module> gradleModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getModel() != null) {
+      if (androidFacet != null && AndroidModel.isRequired(androidFacet) && AndroidModel.get(androidFacet) != null) {
         gradleModules.add(module);
         continue;
       }

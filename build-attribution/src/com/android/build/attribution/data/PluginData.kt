@@ -26,24 +26,23 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
     SCRIPT
   }
 
-  constructor(pluginIdentifier: PluginIdentifier?) : this(getPluginType(pluginIdentifier), getPluginName(pluginIdentifier))
+  constructor(pluginIdentifier: PluginIdentifier?, projectPath: String) : this(getPluginType(pluginIdentifier),
+                                                                               getPluginName(pluginIdentifier, projectPath))
 
-  fun equals(pluginIdentifier: PluginIdentifier?): Boolean {
-    if (pluginIdentifier == null) {
-      return pluginType == PluginType.UNKNOWN
-    }
-    return pluginType == getPluginType(pluginIdentifier) && displayName == getPluginName(pluginIdentifier)
-  }
-
-  override fun toString(): String {
-    return when (pluginType) {
-      PluginType.UNKNOWN -> "unknown plugin"
-      PluginType.PLUGIN -> "plugin $displayName"
-      PluginType.SCRIPT -> "script $displayName"
-    }
-  }
+  override fun toString(): String = toString(pluginType, displayName)
 
   companion object {
+    fun toString(pluginIdentifier: PluginIdentifier?, projectPath: String): String = toString(getPluginType(pluginIdentifier),
+                                                                                              getPluginName(pluginIdentifier, projectPath))
+
+    fun toString(pluginType: PluginType, displayName: String): String {
+      return when (pluginType) {
+        PluginType.UNKNOWN -> "unknown plugin"
+        PluginType.PLUGIN -> "plugin $displayName"
+        PluginType.SCRIPT -> "script $displayName"
+      }
+    }
+
     private fun getPluginType(pluginIdentifier: PluginIdentifier?): PluginType {
       return when (pluginIdentifier) {
         is BinaryPluginIdentifier -> PluginType.PLUGIN
@@ -52,12 +51,15 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
       }
     }
 
-    private fun getPluginName(pluginIdentifier: PluginIdentifier?): String {
+    private fun getPluginName(pluginIdentifier: PluginIdentifier?, projectPath: String): String {
       if (pluginIdentifier == null) {
         return ""
       }
       if (pluginIdentifier.displayName.startsWith("com.android.internal.")) {
         return pluginIdentifier.displayName.replace("com.android.internal.", "com.android.")
+      }
+      if (pluginIdentifier is ScriptPluginIdentifier) {
+        return "$projectPath:${pluginIdentifier.displayName}"
       }
       return pluginIdentifier.displayName
     }

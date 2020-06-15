@@ -56,6 +56,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -325,7 +326,7 @@ public class AndroidJavaDocRenderer {
         if (androidModel != null) {
           hasGradleModel = true;
           String facetModuleName = reachableFacet.getModule().getName();
-          assert reachableFacet.requiresAndroidModel();
+          assert AndroidModel.isRequired(reachableFacet);
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
           Variant selectedVariant = androidModel.getSelectedVariant();
           Set<SourceProvider> selectedProviders = new HashSet<>();
@@ -778,8 +779,14 @@ public class AndroidJavaDocRenderer {
       builder.addHtml("<hr>");
       builder.addBold(styleValue.getName()).add(":").newline();
 
+      Set<String> visitedStyleValues = new HashSet<>();
       Set<String> masked = new HashSet<>();
       while (styleValue != null) {
+        if (!visitedStyleValues.add(styleValue.asReference().getQualifiedName())) {
+          // We have detected a loop in the styles inheritance
+          break;
+        }
+
         // Make sure the contents for the style are always generated in the same order. Helps with testing and the
         // user will know where to find attributes.
         ImmutableList<StyleItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());

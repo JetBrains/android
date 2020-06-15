@@ -14,10 +14,9 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
-import com.android.SdkConstants.TAG_INCLUDE
-import com.google.common.annotations.VisibleForTesting
+import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.resources.ResourceType
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
@@ -28,30 +27,29 @@ import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
-import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.uibuilder.model.createChild
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.awt.BasicStroke
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.Graphics2D
-import java.awt.Image
-import java.awt.Rectangle
+import java.awt.*
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
+import javax.swing.ImageIcon
 
 private const val THUMBNAIL_MAX_DIMENSION = 60f
 private const val THUMBNAIL_BORDER_THICKNESS = 1f
 private const val THUMBNAIL_OUTER_RADIUS = 5f
 private const val THUMBNAIL_INNER_RADIUS = 3f
 private val THUMBNAIL_BORDER_STROKE = BasicStroke(THUMBNAIL_BORDER_THICKNESS)
+private val INCLUDE_ICON_WIDTH = 45
+private val INCLUDE_ICON_HEIGHT = 60
 
 sealed class Destination(protected open val parent: NlComponent) : Comparable<Destination> {
   /**
@@ -69,10 +67,11 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
   abstract fun addToGraph()
 
   abstract val label: String
-  abstract val thumbnail: Image
+  abstract fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon): Image
   abstract val typeLabel: String
   abstract val destinationOrder: DestinationOrder
   abstract val inProject: Boolean
+  abstract val iconWidth: Int
 
   // open for testing
   open var component: NlComponent? = null
@@ -92,14 +91,21 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
   }
 
   abstract class ScreenShapedDestination(parent: NlComponent) : Destination(parent) {
-    override val thumbnail: Image by lazy {
-      val model = parent.model
-      val screenSize = model.configuration.deviceState?.orientation?.let { model.configuration.device?.getScreenSize(it) }
-                       ?: error("No device in configuration!")
-      val ratio = THUMBNAIL_MAX_DIMENSION / maxOf(screenSize.height, screenSize.width)
-      val thumbnailDimension = Dimension((screenSize.width * ratio - 2 * THUMBNAIL_BORDER_THICKNESS).toInt(),
-                                         (screenSize.height * ratio - 2 * THUMBNAIL_BORDER_THICKNESS).toInt())
+    override val iconWidth
+      get() = thumbnailDimension.width
 
+    private val thumbnailDimension: Dimension
+      get() {
+        val model = parent.model
+        val screenSize = model.configuration.deviceState?.orientation?.let { model.configuration.cachedDevice?.getScreenSize(it) }
+                         ?: error("No device in configuration!")
+        val ratio = THUMBNAIL_MAX_DIMENSION / maxOf(screenSize.height, screenSize.width)
+        return Dimension((screenSize.width * ratio - 2 * THUMBNAIL_BORDER_THICKNESS).toInt(),
+                         (screenSize.height * ratio - 2 * THUMBNAIL_BORDER_THICKNESS).toInt())
+      }
+
+    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon): Image {
+      val model = parent.model
 
       val result = BufferedImage(thumbnailDimension.width + 2 * THUMBNAIL_BORDER_THICKNESS.toInt(),
                                  thumbnailDimension.height + 2 * THUMBNAIL_BORDER_THICKNESS.toInt(), BufferedImage.TYPE_INT_ARGB)
@@ -110,7 +116,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       val oldClip = graphics.clip
       graphics.clip = roundRect
       graphics.setRenderingHints(HQ_RENDERING_HINTS)
-      drawThumbnailContents(model, thumbnailDimension, graphics)
+      drawThumbnailContents(model, thumbnailDimension, graphics, iconCallback)
 
       graphics.clip = oldClip
       graphics.color = PLACEHOLDER_BORDER
@@ -123,10 +129,11 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       roundRect.arcwidth = THUMBNAIL_OUTER_RADIUS
       graphics.draw(roundRect)
 
-      return@lazy result
+      return result
     }
 
-    abstract fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D)
+    abstract fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D,
+                                       iconCallback: (VirtualFile, Dimension) -> ImageIcon)
 
     protected fun drawBackground(thumbnailDimension: Dimension, graphics: Graphics2D) {
       graphics.color = PLACEHOLDER_BACKGROUND
@@ -139,19 +146,16 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
   data class RegularDestination @JvmOverloads constructor(
     override val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val destinationClass: PsiClass,
     val idBase: String = destinationClass.name ?: tag, private val layoutFile: XmlFile? = null,
-    override val inProject: Boolean = true)
+    override val inProject: Boolean = true, val dynamicModuleName: String? = null)
     : ScreenShapedDestination(parent) {
 
-    override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D) {
+    override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D,
+                                       iconCallback: (VirtualFile, Dimension) -> ImageIcon) {
       if (layoutFile != null) {
-        val refinableImage = ThumbnailManager.getInstance(model.facet).getThumbnail(layoutFile, model.configuration, thumbnailDimension)
-        // TODO: wait for rendering nicely
-        val image = refinableImage.terminalImage
-
-        if (image != null) {
-          StartupUiUtil.drawImage(graphics, image, Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), image.width,
-                                                      image.height), null)
-        }
+        val icon = iconCallback(layoutFile.virtualFile, thumbnailDimension)
+        StartupUiUtil.drawImage(graphics, iconToImage(icon),
+                                Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), thumbnailDimension.width,
+                                   thumbnailDimension.height), null)
       }
       else {
         drawBackground(thumbnailDimension, graphics)
@@ -181,8 +185,9 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       val newComponent = createComponent(tag) ?: return
 
       newComponent.assignId(idBase)
-      newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, destinationClass.qualifiedName)
-      newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
+      newComponent.setAndroidAttribute(ATTR_NAME, destinationClass.qualifiedName)
+      newComponent.setAttribute(AUTO_URI, ATTR_MODULE_NAME, dynamicModuleName)
+      newComponent.setAndroidAttribute(ATTR_LABEL, label)
       if (parent.startDestinationId == null) {
         newComponent.setAsStartDestination()
       }
@@ -204,11 +209,14 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       component = newComponent
     }
 
+    override val iconWidth = INCLUDE_ICON_WIDTH
+
     override val label = graph
 
     // TODO: update
-    override val thumbnail: Image by lazy {
-      iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED).getScaledInstance(45, 60, Image.SCALE_SMOOTH)
+    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon): Image {
+      return iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED).getScaledInstance(
+        INCLUDE_ICON_WIDTH, INCLUDE_ICON_HEIGHT, Image.SCALE_SMOOTH)
     }
 
     override val typeLabel: String
@@ -232,7 +240,8 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
 
     override val label = "placeholder"
 
-    override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D) {
+    override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D,
+                                       iconCallback: (VirtualFile, Dimension) -> ImageIcon) {
       drawBackground(thumbnailDimension, graphics)
       graphics.color = PLACEHOLDER_BORDER
       graphics.drawLine(0, 0, thumbnailDimension.width, thumbnailDimension.height)

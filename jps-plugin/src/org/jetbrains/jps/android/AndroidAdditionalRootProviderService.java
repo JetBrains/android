@@ -1,5 +1,9 @@
 package org.jetbrains.jps.android;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.builders.AdditionalRootsProviderService;
 import org.jetbrains.jps.builders.BuildTarget;
@@ -8,11 +12,6 @@ import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.ModuleBuildTarget;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky

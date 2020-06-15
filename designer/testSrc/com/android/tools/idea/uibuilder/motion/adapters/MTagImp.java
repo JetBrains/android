@@ -40,7 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * MTag implementation based on parsing a XML file.
  */
-public class MTagImp implements MTag {
+public class MTagImp implements MTag, MTag.TagWriter {
 
   private static final boolean DEBUG = false;
   String name;
@@ -56,11 +56,6 @@ public class MTagImp implements MTag {
   @Override
   public String getTagName() {
     return name;
-  }
-
-  @Override
-  public void deleteTag() {
-
   }
 
   @Override
@@ -251,6 +246,39 @@ public class MTagImp implements MTag {
     out.println(space + "</" + name + ">");
   }
 
+  @Override
+  public void setAttribute(String type, String attribute, String value) {
+    Attribute attr = mAttrList.get(attribute);
+    if (attr == null) {
+      attr = new Attribute();
+      attr.mNamespace = type;
+      attr.mAttribute = attribute;
+      mAttrList.put(attribute, attr);
+    }
+    attr.mValue = value;
+  }
+
+  @Override
+  public TagWriter deleteTag() {
+    parent.mChildren.remove(this);
+    return this;
+  }
+
+  @Override
+  public MTag commit(String commandName) {
+    return this;
+  }
+
+  @Override
+  public void addCommitListener(CommitListener listener) {
+
+  }
+
+  @Override
+  public void removeCommitListener(CommitListener listener) {
+
+  }
+
   public static void main(String[] str) {
     String dir = "/media/hoford/hofordssd/dtools/design-tools/examples/Dev/app/src/main/res/xml";
     String file = "motion_testscene_08_scene.xml";
@@ -414,6 +442,11 @@ public class MTagImp implements MTag {
     }
 
     @Override
+    public TagWriter deleteTag() {
+      return null;
+    }
+
+    @Override
     public MTag commit(@Nullable String commandName) {
       printFormal(" > ", System.out);
       MTagImp.RootTag rootTag = null;
@@ -448,11 +481,14 @@ public class MTagImp implements MTag {
 
   @Override
   public TagWriter getChildTagWriter(String name) {
-    return new TagWriterImp(name, this);
+    MTagImp imp = new MTagImp();
+    imp.name = name;
+    mChildren.add(imp);
+    return imp;
   }
 
   @Override
   public TagWriter getTagWriter() {
-    return null;
+    return this;
   }
 }

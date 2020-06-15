@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 import com.android.ddmlib.IDevice;
@@ -61,6 +61,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
+  private final Logger myLogger = Logger.getInstance(AndroidLaunchTasksProvider.class);
   private final AndroidRunConfigurationBase myRunConfig;
   private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
@@ -95,8 +96,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     launchTasks.add(new DismissKeyguardTask());
 
+    final boolean useApplyChanges = shouldApplyChanges() || shouldApplyCodeChanges();
+    final boolean startNewAndroidApplication = !useApplyChanges && !shouldDeployAsInstant();
     String packageName;
-    boolean launchApp = true;
     try {
       packageName = myApplicationIdProvider.getPackageName();
       launchTasks.addAll(getDeployTasks(device, packageName));
@@ -114,11 +116,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (shouldApplyChanges() || shouldApplyCodeChanges()) {
-        launchApp = false;
-      }
-
-      if (launchApp && !shouldDeployAsInstant()) {
+      if (startNewAndroidApplication) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
@@ -130,13 +128,20 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       }
     }
     catch (ApkProvisionException e) {
-      Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
-      launchStatus.terminateLaunch("Unable to determine application id: " + e, launchApp);
+      if (useApplyChanges) {
+        // ApkProvisionException should not happen for apply-changes launch. Log it at higher level.
+        myLogger.error(e);
+      } else {
+        myLogger.warn(e);
+      }
+      launchStatus.terminateLaunch("Unable to determine application id: " + e,
+                                   /*destroyProcess=*/startNewAndroidApplication);
       return Collections.emptyList();
     }
     catch (IllegalStateException e) {
-      Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
-      launchStatus.terminateLaunch(e.getMessage(), launchApp);
+      myLogger.error(e);
+      launchStatus.terminateLaunch(e.getMessage(),
+                                   /*destroyProcess=*/startNewAndroidApplication);
       return Collections.emptyList();
     }
 

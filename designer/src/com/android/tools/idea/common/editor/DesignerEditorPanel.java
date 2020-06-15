@@ -30,6 +30,7 @@ import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,6 +46,8 @@ import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -63,6 +66,7 @@ import org.jetbrains.annotations.TestOnly;
 public class DesignerEditorPanel extends JPanel implements Disposable {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
+  private static final String ACCESSORY_PROPORTION = "AndroidStudio.AccessoryProportion";
 
   @NotNull private final DesignerEditor myEditor;
   @NotNull private final Project myProject;
@@ -107,7 +111,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myProject = project;
     myFile = file;
     myWorkBench = workBench;
-    myWorkBench.setOpaque(true);
 
     myContentPanel = new AdtPrimaryPanel(new BorderLayout());
     mySurface = surface.apply(this);
@@ -258,15 +261,26 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     if (Disposer.isDisposed(model)) {
       return;
     }
+    model.getType().setTypePrerequisites(model);
 
     CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
 
     if (myAccessoryPanel != null) {
       boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
-      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, 1f, 0.5f, 1f);
+      float initialProportion = PropertiesComponent.getInstance().getFloat(ACCESSORY_PROPORTION, 0.5f);
+      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, initialProportion, 0.1f, 0.9f);
       splitter.setHonorComponentsMinimumSize(true);
       splitter.setFirstComponent(mySurface);
       splitter.setSecondComponent(myAccessoryPanel);
+      mySurface.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          if (myAccessoryPanel.isVisible()) {
+            float proportion = splitter.getProportion();
+            PropertiesComponent.getInstance().setValue(ACCESSORY_PROPORTION, proportion, 0.5f);
+          }
+        }
+      });
       myContentPanel.add(splitter, BorderLayout.CENTER);
     }
     else {

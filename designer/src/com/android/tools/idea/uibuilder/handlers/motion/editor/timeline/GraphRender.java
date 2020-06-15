@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.MonotoneSpline;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Oscillator;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
@@ -66,6 +67,15 @@ public class GraphRender {
     return false;
   }
 
+  public String getValue(MTag kf, String keyProp) {
+    MTag[] tag = kf.getChildTags();
+    if (tag != null && tag.length > 0) {
+      String value = tag[0].getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE);
+      return value;
+    }
+    return kf.getAttributeValue(keyProp);
+  }
+
   /**
    * Return false if we do not know how to render it
    *
@@ -98,13 +108,15 @@ public class GraphRender {
       pos[i] = Integer.parseInt(kf.getAttributeValue("framePosition")) / 100.0;
       offset[i] = parse(0, kf.getAttributeValue("waveOffset"));
       period[i] = parse(0, kf.getAttributeValue("wavePeriod"));
-      amp[i] = parse(0, kf.getAttributeValue(row.mKeyProp));
+      amp[i] = parse(0, getValue(kf, row.mKeyProp));
 
       String str = kf.getAttributeValue("waveShape");
       if (str == null) {
         str = "sin";
       }
-      curveType = Math.max(curveType, ourWaveTypeMap.get(str));
+      if (ourWaveTypeMap.containsKey(str)) {
+        curveType = Math.max(curveType, ourWaveTypeMap.get(str));
+      }
     }
 
     mCycle = new Cycle();
@@ -167,11 +179,11 @@ public class GraphRender {
     int gw = w - mTimelineStructure.mTimeLineInsetLeft - mTimelineStructure.mTimeLineInsetRight;
     Color c = g.getColor();
 
-    g.setColor(new Color(0xF2F7FC));
+    g.setColor(MEUI.Graph.ourG_Background);
     g.fillRect(x + 1, y, w - 1, h);
     g.setColor(MEUI.ourBorder);
     g.drawRect(x, y, w, h - 1);
-    g.setColor(MEUI.ourGraphColor);
+    g.setColor(MEUI.Graph.ourG_line);
 
     if (mCycle != null) {
       mCycle.plot(g, gx, y, gw, h);
@@ -377,7 +389,13 @@ public class GraphRender {
         xpos[i] = (float)(i / (xpos.length - 1.0f));
         double amp = mMonotoneSpline.getPos(xpos[i], 0);
         double off = mMonotoneSpline.getPos(xpos[i], 1);
-        ypos[i] = mOscillator.getValue(xpos[i]) * amp + off;
+        try {
+          ypos[i] = mOscillator.getValue(xpos[i]) * amp + off;
+        }
+        catch (Exception e) {
+          ypos[i] = Math.random(); // visual hint that it is broken
+        }
+
         yMax[i] = (float)(amp + off);
         yMin[i] = (float)(-amp + off);
         mMaxY = Math.max(mMaxY, (float)ypos[i]);
@@ -398,7 +416,7 @@ public class GraphRender {
     }
 
     void plot(Graphics g, int x, int y, int w, int h) {
-      g.setColor(MEUI.ourGraphColor);
+      g.setColor(MEUI.Graph.ourG_line);
 
       for (int i = 0; i < xpos.length; i++) {
         int xp = (int)(w * xpos[i] + x);

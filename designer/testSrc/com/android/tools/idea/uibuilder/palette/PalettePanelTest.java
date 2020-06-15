@@ -47,6 +47,7 @@ import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
@@ -54,7 +55,6 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
-import com.android.tools.idea.util.FutureUtils;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
@@ -75,9 +75,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.testFramework.PlatformTestUtil;
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -88,11 +86,7 @@ import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-import javax.swing.TransferHandler;
+import javax.swing.*;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,11 +119,11 @@ public class PalettePanelTest extends LayoutTestCase {
     myPopupMenuComponent = mock(JPopupMenu.class);
     myActionManager = mock(ActionManager.class);
     myGradleDependencyManager = mock(GradleDependencyManager.class);
-    replaceApplicationService(BrowserLauncher.class, myBrowserLauncher);
-    replaceApplicationService(CopyPasteManager.class, myCopyPasteManager);
-    replaceApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
-    //replaceApplicationService(ActionManager.class, myActionManager); // ActionManager is too complex to be mocked in a heavy test
-    replaceProjectService(GradleDependencyManager.class, myGradleDependencyManager);
+    registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
+    registerApplicationService(CopyPasteManager.class, myCopyPasteManager);
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    //registerApplicationService(ActionManager.class, myActionManager);  // ActionManager is too complex to be mocked in a heavy test
+    registerProjectService(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
@@ -428,7 +422,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testPopupMenuWithPreferences() {
     ActionManager actionManager = mock(ActionManager.class);
-    registerApplicationComponentImplementation(ActionManager.class, actionManager);
+    registerApplicationService(ActionManager.class, actionManager);
 
     setUpPreferenceDesignSurface();
     ItemList itemList = myPanel.getItemList();
@@ -443,7 +437,7 @@ public class PalettePanelTest extends LayoutTestCase {
     WindowManager windowManager = mock(WindowManagerEx.class);
     IdeFrame frame = mock(IdeFrame.class);
     StatusBarEx statusBar = mock(StatusBarEx.class);
-    replaceApplicationService(WindowManager.class, windowManager);
+    registerApplicationComponent(WindowManager.class, windowManager);
     when(windowManager.getIdeFrame(getProject())).thenReturn(frame);
     when(frame.getStatusBar()).thenReturn(statusBar);
     return statusBar;

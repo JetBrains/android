@@ -16,9 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * The main interface to tags
@@ -29,8 +31,6 @@ public interface MTag {
   public String toString();
 
   public String getTagName();
-
-  void deleteTag();
 
   void setClientData(String type, Object motionAttributes);
 
@@ -68,6 +68,19 @@ public interface MTag {
 
   public String getTreeId();
 
+  default boolean isSameTreeIdHierarchy(MTag other) {
+    if (!Objects.equals(getTagName(), other.getTagName()) ||
+        !Objects.equals(getTreeId(), other.getTreeId())) {
+      return false;
+    }
+    MTag parent = getParent();
+    MTag otherParent = other.getParent();
+    if (parent == null || otherParent == null) {
+      return parent == null && otherParent == null;
+    }
+    return parent.isSameTreeIdHierarchy(otherParent);
+  }
+
   public void print(String space);
 
   public String toXmlString();
@@ -92,6 +105,7 @@ public interface MTag {
 
   interface TagWriter extends MTag {
     void setAttribute(String type, String attribute, String value);
+    TagWriter deleteTag();
 
     /**
      * Commit is responsible for saving the tag writer
@@ -109,5 +123,12 @@ public interface MTag {
 
   interface CommitListener {
     void commit(MTag tag);
+  }
+
+  public static String serializeTag(MTag tag) {
+    ByteArrayOutputStream buff = new ByteArrayOutputStream();
+    PrintStream pout = new PrintStream(buff);
+    tag.printFormal("",pout);
+    return  buff.toString();
   }
 }

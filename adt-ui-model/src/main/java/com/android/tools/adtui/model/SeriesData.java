@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.model;
 
+import java.util.Objects;
+
 /**
  * This class stores key-value ({@link #x} as a key) data.
  */
@@ -25,5 +27,19 @@ public class SeriesData<T> {
   public SeriesData(long newX, T newValue) {
     x = newX;
     value = newValue;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof SeriesData) {
+      SeriesData other = (SeriesData) obj;
+      return x == other.x && value.equals(other.value);
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(x, value);
   }
 }

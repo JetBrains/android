@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
+import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.Properties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-
-import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class GradleProperties {
   @NonNls private static final String JVM_ARGS_PROPERTY_NAME = "org.gradle.jvmargs";
@@ -65,7 +68,25 @@ public class GradleProperties {
   }
 
   public void save() throws IOException {
-    savePropertiesToFile(myProperties, myPath, getHeaderComment());
+    // Sort properties before saving, this way files are more stable and easy to read
+    savePropertiesToFile(getSortedProperties(), myPath, getHeaderComment());
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Properties getSortedProperties() {
+    Properties sorted = new Properties() {
+      @NotNull
+      @Override
+      public synchronized Enumeration<Object> keys() {
+        // Change enumeration to lexicographical order, this way file content is more stable and easier to read
+        ArrayList<Object> list = Collections.list(super.keys());
+        list.sort(Comparator.comparing(Object::toString));
+        return Collections.enumeration(list);
+      }
+    };
+    myProperties.forEach((key, value) -> sorted.setProperty((String)key, (String)value));
+    return sorted;
   }
 
   @NotNull

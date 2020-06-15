@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.fileTypes.FileTypeManager;
@@ -48,7 +49,7 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
   public void setUpProject(@NotNull Project project) {
     // Check build script
     File projectPath = getBaseDirPath(project);
-    File projectBuildPath = getGradleBuildFilePath(projectPath);
+    File projectBuildPath = findGradleBuildFile(projectPath);
     if (projectBuildPath.exists()) {
       checkIsNotIgnored("Build script for project " + project.getName(), projectBuildPath, project);
     }

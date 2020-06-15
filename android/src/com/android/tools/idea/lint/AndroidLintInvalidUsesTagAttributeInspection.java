@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.ReplaceStringQuickFix;
 import com.android.tools.lint.checks.AndroidAutoDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.Lists;
@@ -23,13 +26,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidUsesTagAttributeInspection() {
@@ -38,19 +38,19 @@ public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintIns
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
+                                         @Nullable LintFix fixData) {
     final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
     XmlAttributeValue attributeValue = attribute == null ? null : attribute.getValueElement();
     if (attributeValue != null && attributeValue.getTextLength() != 0) {
       String value = StringUtil.unquoteString(attributeValue.getText());
       String regexp = "(" + value + ")";
       String[] suggestions = AndroidAutoDetector.getAllowedAutomotiveAppTypes();
-      List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.length);
+      List<LintIdeQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.length);
       for (String suggestion : suggestions) {
         fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", null, regexp, suggestion));
       }
-      return fixes.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+      return fixes.toArray(LintIdeQuickFix.EMPTY_ARRAY);
     }
     else {
       return super.getQuickFixes(startElement, endElement, message, fixData);

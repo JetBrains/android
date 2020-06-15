@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
@@ -29,6 +30,7 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.OutputStream
 
 /**
@@ -55,7 +57,7 @@ import java.io.OutputStream
  */
 class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
-  private val targetApplicationId: String,
+  val targetApplicationId: String,
   val captureLogcat: Boolean = true,
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
@@ -87,7 +89,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
   /**
    * Adds a target device to this handler.
    */
-  @WorkerThread
+  @AnyThread
   fun addTargetDevice(device: IDevice) {
     myMonitorManager.add(device)
 
@@ -103,9 +105,17 @@ class AndroidProcessHandler @JvmOverloads constructor(
   }
 
   /**
-   * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
+   * Detaches a given device from target devices. No-op if the given device is not associated with this handler.
    */
   @WorkerThread
+  fun detachDevice(device: IDevice) {
+    myMonitorManager.getMonitor(device)?.detachAndClose()
+  }
+
+  /**
+   * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
+   */
+  @AnyThread
   fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
 
   /**
@@ -122,18 +132,42 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
   }
 
+  /**
+   * Initiates a termination of managed processes. This method returns without waiting for processes' termination.
+   * It just moves the process handler's state to to-be-destroyed state and [isProcessTerminating] becomes true
+   * after the method call. Upon the processes termination, the state moves to destroyed and [isProcessTerminated]
+   * becomes true. You can listen state changes by registering a lister by [addProcessListener]. When processes are
+   * being destroyed, [com.intellij.execution.process.ProcessListener.processWillTerminate] is called with
+   * willBeDestroyed = true.
+   */
+  @AnyThread
   override fun destroyProcessImpl() {
-    myMonitorManager.close()
-    notifyProcessTerminated(0)
+    AppExecutorUtil.getAppExecutorService().submit {
+      myMonitorManager.close()
+      notifyProcessTerminated(0)
+    }
   }
 
+  /**
+   * Initiates a detach of managed processes. This method returns without waiting for processes' to be detached.
+   * It just moves the process handler's state to to-be-destroyed state and [isProcessTerminating] becomes true
+   * after the method call. Upon the processes are detached, the state moves to destroyed and [isProcessTerminated]
+   * becomes true. You can listen state changes by registering a lister by [addProcessListener]. When processes are
+   * being destroyed, [com.intellij.execution.process.ProcessListener.processWillTerminate] is called with
+   * willBeDestroyed = false.
+   */
+  @AnyThread
   override fun detachProcessImpl() {
-    myMonitorManager.detachAndClose()
-    notifyProcessDetached()
+    AppExecutorUtil.getAppExecutorService().submit {
+      myMonitorManager.detachAndClose()
+      notifyProcessDetached()
+    }
   }
 
+  @AnyThread
   override fun detachIsDefault() = false
 
+  @AnyThread
   override fun getProcessInput(): OutputStream? = null
 
   /**
@@ -141,20 +175,24 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * Note the global Stop button prefers the result of this method over content descriptor internal state,
    * but the tool window Stop button prefers the content descriptor internal state over this method.
    */
+  @AnyThread
   override fun canKillProcess(): Boolean {
     val activeTarget = ExecutionTargetManager.getInstance(project).activeTarget
     if (activeTarget === DefaultExecutionTarget.INSTANCE || activeTarget !is AndroidExecutionTarget) {
       return false
     }
-    return activeTarget.iDevice?.let { myMonitorManager.isAssociated(it) } ?: false
+    return activeTarget.iDevice?.let { isAssociated(it) } ?: false
   }
 
+  @AnyThread
   override fun killProcess() {
     destroyProcess()
   }
 
+  @AnyThread
   override fun getExecutor() = getUserData(AndroidSessionInfo.KEY)?.executor
 
+  @AnyThread
   override fun isRunningWith(runConfiguration: RunConfiguration, executionTarget: ExecutionTarget): Boolean {
     val sessionInfo = getUserData(AndroidSessionInfo.KEY) ?: return false
     if (sessionInfo.runConfiguration !== runConfiguration) {
@@ -162,7 +200,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
 
     if (executionTarget is AndroidExecutionTarget) {
-      return executionTarget.iDevice?.let { myMonitorManager.isAssociated(it) } ?: false
+      return executionTarget.iDevice?.let { isAssociated(it) } ?: false
     }
 
     return sessionInfo.executionTarget.id == executionTarget.id

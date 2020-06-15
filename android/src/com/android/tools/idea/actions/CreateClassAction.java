@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.intellij.ide.IdeView;
@@ -22,6 +23,19 @@ import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.java.JavaBundle;
 import com.intellij.openapi.actionSystem.*;
+import com.google.common.collect.Streams;
+import com.intellij.ide.IdeBundle;
+import com.intellij.ide.IdeView;
+import com.intellij.ide.actions.CreateFromTemplateAction;
+import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -32,20 +46,25 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNameHelper;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.util.IncorrectOperationException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 public final class CreateClassAction extends AnAction {
   private final JavaDirectoryService myJavaDirectoryService;
@@ -131,14 +150,17 @@ public final class CreateClassAction extends AnAction {
       return ide.getOrChooseDirectory();
     }
 
-    // TODO(b/140548468): Consider all source providers.
-    Collection<File> files = SourceProviderManager.getInstance(facet).getMainSourceProvider().getJavaDirectories();
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
+    Collection<VirtualFile> files =
+      Stream.of(sourceProviderManager.getSources(), sourceProviderManager.getUnitTestSources(), sourceProviderManager.getAndroidTestSources())
+        .flatMap(it -> it.getJavaDirectories().stream())
+        .collect(Collectors.toList());
 
     if (files.size() != 1) {
       return ide.getOrChooseDirectory();
     }
 
-    VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(files.iterator().next());
+    VirtualFile file = files.iterator().next();
 
     if (file == null) {
       return ide.getOrChooseDirectory();

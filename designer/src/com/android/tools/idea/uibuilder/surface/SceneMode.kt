@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.visual.ColorBlindModeView
 import com.android.tools.idea.uibuilder.visual.VisualizationView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
@@ -25,12 +26,13 @@ enum class SceneMode(val displayName: String,
                      val primary: (NlDesignSurface, LayoutlibSceneManager) -> ScreenView,
                      val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null,
                      val visibleToUser: Boolean = true) {
-  SCREEN_ONLY("Design", ::ScreenView),
-  BLUEPRINT_ONLY("Blueprint", ::BlueprintView),
-  BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView),
-  SCREEN_COMPOSE_ONLY("Compose", { surface, manager -> ScreenView(surface, manager, true, false) }, visibleToUser = false),
-  RESIZABLE_PREVIEW("Preview", ::ScreenView, visibleToUser = false),
-  VISUALIZATION("Visualization", ::VisualizationView, visibleToUser = false);
+  RENDER("Design", ::ScreenView),
+  BLUEPRINT("Blueprint", ::BlueprintView),
+  RENDER_AND_BLUEPRINT("Design + Blueprint", ::ScreenView, ::BlueprintView),
+  COMPOSE("Compose", { surface, manager -> ScreenView(surface, manager, true, false) }, visibleToUser = false),
+  RESIZABLE_PREVIEW("Preview", { surface, manager -> ScreenView(surface, manager, true, true) }, visibleToUser = false),
+  VISUALIZATION("Visualization", ::VisualizationView, visibleToUser = false),
+  COLOR_BLIND("Color Blind Mode", ::ColorBlindModeView, visibleToUser = false);
 
   operator fun next(): SceneMode {
     val values = values().filter { it.visibleToUser }
@@ -46,7 +48,7 @@ enum class SceneMode(val displayName: String,
   companion object {
 
     @VisibleForTesting
-    val DEFAULT_SCREEN_MODE = BOTH
+    val DEFAULT_SCREEN_MODE = RENDER_AND_BLUEPRINT
 
     @VisibleForTesting
     val SCREEN_MODE_PROPERTY = "NlScreenMode"
@@ -71,11 +73,20 @@ enum class SceneMode(val displayName: String,
         DEFAULT_SCREEN_MODE
       }
 
+      // Blacklist SCREEN_COMPOSE_ONLY as default mode.
+      // SCREEN_COMPOSE_ONLY should not be saved as default mode but it was for a while. This is just a
+      // workaround to avoid setting that mode for users that had it saved at one point.
+      // b/144829328
+      if (cachedSceneMode == COMPOSE) {
+        cachedSceneMode = DEFAULT_SCREEN_MODE
+      }
+
       return cachedSceneMode!!
     }
 
     @Synchronized  fun savePreferredMode(mode: SceneMode) {
-      if (cachedSceneMode == mode) {
+      // See comment about SCREEN_COMPOSE_ONLY on loadPreferredMode
+      if (cachedSceneMode == mode || mode == COMPOSE) {
         return
       }
 

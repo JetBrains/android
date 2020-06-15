@@ -27,24 +27,20 @@ public class VariantOnlySyncOptions implements Serializable {
   @NotNull public final String myVariantName;
   @Nullable public final String myAbiName;
 
-  public final boolean myShouldGenerateSources;
-
   public VariantOnlySyncOptions(@NotNull File buildId,
                                 @NotNull String gradlePath,
                                 @NotNull String variantName) {
-    this(buildId, gradlePath, variantName, null, false);
+    this(buildId, gradlePath, variantName, null);
   }
 
   public VariantOnlySyncOptions(@NotNull File buildId,
                                 @NotNull String gradlePath,
                                 @NotNull String variantName,
-                                @Nullable String abiName,
-                                boolean shouldGenerateSources) {
+                                @Nullable String abiName) {
     myBuildId = buildId;
     myGradlePath = gradlePath;
     myVariantName = variantName;
     myAbiName = abiName;
-    myShouldGenerateSources = shouldGenerateSources;
   }
 
   @Override
@@ -59,13 +55,12 @@ public class VariantOnlySyncOptions implements Serializable {
     return Objects.equals(myBuildId, options.myBuildId) &&
            Objects.equals(myGradlePath, options.myGradlePath) &&
            Objects.equals(myVariantName, options.myVariantName) &&
-           Objects.equals(myAbiName, options.myAbiName) &&
-           Objects.equals(myShouldGenerateSources, options.myShouldGenerateSources);
+           Objects.equals(myAbiName, options.myAbiName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myBuildId, myGradlePath, myVariantName, myAbiName, myShouldGenerateSources);
+    return Objects.hash(myBuildId, myGradlePath, myVariantName, myAbiName);
   }
 
   @Override
@@ -75,7 +70,6 @@ public class VariantOnlySyncOptions implements Serializable {
            ", myGradlePath='" + myGradlePath + '\'' +
            ", myVariantName='" + myVariantName + '\'' +
            ", myAbiName='" + myAbiName + '\'' +
-           ", myShouldGenerateSources='" + myShouldGenerateSources + '\'' +
            '}';
   }
 }

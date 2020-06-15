@@ -19,7 +19,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

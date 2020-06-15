@@ -20,7 +20,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ShortcutSet
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.AbstractAction

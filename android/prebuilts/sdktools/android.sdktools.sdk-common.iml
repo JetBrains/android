@@ -2,8 +2,8 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
     <orderEntry type="module" module-name="android.sdktools.builder-model" exported="" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
@@ -29,22 +29,23 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="aia-proto" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-sdk-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:sdk-common:26.6.0.3" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdk-common:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/sdk-common/26.6.0.3/sdk-common-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdk-common/27.0.0.0/studio.android.sdktools.sdk-common-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="studio.android.sdktools.sdk-common_test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:sdk-common_test:26.6.0.3" />
+      <library name="precompiled-sdk-common-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdk-common_test:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/sdk-common_test/26.6.0.3/sdk-common_test-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdk-common_test/27.0.0.0/studio.android.sdktools.sdk-common_test-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

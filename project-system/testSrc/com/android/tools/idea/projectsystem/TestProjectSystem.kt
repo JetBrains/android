@@ -32,6 +32,7 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 
@@ -39,10 +40,20 @@ import java.util.concurrent.CountDownLatch
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem @JvmOverloads constructor(val project: Project,
-                                                  availableDependencies: List<GradleCoordinate> = listOf(),
-                                                  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
-  : AndroidProjectSystem, AndroidProjectSystemProvider {
+class TestProjectSystem @JvmOverloads constructor(
+  val project: Project,
+  availableDependencies: List<GradleCoordinate> = listOf(),
+  private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
+  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS
+)
+  : AndroidProjectSystem {
+
+  /**
+   * Injects this project system into the [project] it was created for.
+   */
+  fun useInTests() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
+  }
 
   private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
   private val availablePreviewDependencies: List<GradleCoordinate>
@@ -67,12 +78,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
    * @return the set of dependencies added to the given module.
    */
   fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
-
-  override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
-
-  override val projectSystem = this
-
-  override fun isApplicable(): Boolean = true
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
@@ -138,6 +143,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
       override fun getPackageName(): String? = null
 
+      override fun getManifestOverrides() = ManifestOverrides()
+
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }
@@ -200,4 +207,10 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       override fun getAllLightRClasses() = emptyList<PsiClass>()
     }
   }
+
+  override fun getSourceProvidersFactory(): SourceProvidersFactory = sourceProvidersFactoryStub
+}
+
+private class SourceProvidersFactoryStub : SourceProvidersFactory {
+  override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? = null
 }

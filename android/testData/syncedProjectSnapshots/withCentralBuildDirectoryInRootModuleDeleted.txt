@@ -2,10 +2,12 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
     MODULE              : app
         - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testWithCentralBuildDirectoryInRootModuleDeleted
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -18,8 +20,14 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/central/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/central/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -114,10 +122,12 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
         ORDER_ENTRY         : <Module source>
     MODULE              : testWithCentralBuildDirectoryInRootModuleDeleted
         - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithCentralBuildDirectoryInRootModuleDeleted
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testWithCentralBuildDirectoryInRootModuleDeleted.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testWithCentralBuildDirectoryInRootModuleDeleted.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

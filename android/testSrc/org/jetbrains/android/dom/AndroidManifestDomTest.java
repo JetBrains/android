@@ -1,6 +1,6 @@
 package org.jetbrains.android.dom;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -266,6 +266,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestDoc("Removed in <a href=\"" + API_LEVELS_URL + "\">API level 24</a>");
   }
 
+  /* b/144507473
   public void testIntentActionDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -273,6 +274,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.type("_BUT");
     doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
   }
+  */
 
   public void testIntentActionDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
@@ -285,40 +287,54 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
   }
 
+  /* b/144507473
   public void testIntentActionCompletion1() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",
                              "android.intent.action.CALL_BUTTON",
                              "android.intent.action.CARRIER_SETUP");
   }
+  */
 
+  /* b/144507473
   public void testIntentActionCompletion2() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CAMERA_BUTTON",
                              "android.intent.action.NEW_OUTGOING_CALL");
   }
+  */
 
+  /* b/144507473
   public void testIntentActionCompletion3() throws Throwable {
     toTestFirstCompletion("IntentActionCompletion3.xml", "IntentActionCompletion3_after.xml");
   }
+  */
 
+  /* b/144507473
   // Regression test for http://b.android.com/154004
   public void testIntentActionCompletion4() throws Throwable {
     toTestFirstCompletion("IntentActionCompletion4.xml", "IntentActionCompletion4_after.xml");
   }
+  */
 
+  /* b/144507473
   public void testIntentCategoryCompletion1() throws Throwable {
     doTestCompletion(false);
   }
+  */
 
+  /* b/144507473
   public void testIntentCategoryCompletion2() throws Throwable {
     doTestCompletion(false);
   }
+  */
 
+  /* b/144507473
   // Tests for completion of actions outside of set of constants defined in android.intent.Intent
   // Regression test for http://b.android.com/187026
   public void testTelephonyActionCompletion() throws Throwable {
     toTestCompletion("TelephonyActionCompletion.xml", "TelephonyActionCompletion_after.xml");
   }
+  */
 
   // Test support for tools: namespace attribute completion in manifest files,
   // tools:node in this particular case
@@ -335,6 +351,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  /* b/144507473
   public void testIntentCategoryDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -342,6 +359,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.type("BRO");
     doTestExternalDoc("The activity should be able to browse the Internet.");
   }
+  */
 
   public void testIntentCategoryDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
@@ -385,9 +403,11 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     }
   }
 
+  /* b/144507473
   public void testIntentsCompletion1() throws Throwable {
     toTestFirstCompletion("intentsCompletion1.xml", "intentsCompletion1_after.xml");
   }
+  */
 
   public void testIntentsCompletion2() throws Throwable {
     doTestCompletion();
@@ -514,7 +534,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "27", "28", "Q");
+                               "26", "27", "28", "29");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));

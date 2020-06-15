@@ -1,0 +1,6 @@
+rootProject.name='AS36'
+include ':app'
+include ':libs:java_lib'
+include ':libs:android_library'
+include ':features:dynamicfeature'
+include ':features:dynamicfeature2'

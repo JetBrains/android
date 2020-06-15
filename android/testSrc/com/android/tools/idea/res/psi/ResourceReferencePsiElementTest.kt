@@ -18,14 +18,17 @@ package com.android.tools.idea.res.psi
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.compiled.ClsFieldImpl
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 
 class ResourceReferencePsiElementTest : AndroidTestCase() {
@@ -81,7 +84,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
-  fun testAndroidLightFieldKotlin() {
+  fun testResourceLightFieldKotlin() {
     val file = myFixture.addFileToProject(
       "/src/p1/p2/Foo.kt",
       //language=kotlin
@@ -96,7 +99,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
        """.trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(AndroidLightField::class.java)
+    assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
@@ -104,7 +107,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
-  fun testAndroidLightFieldJava() {
+  fun testResourceLightFieldJava() {
     val file = myFixture.addFileToProject(
       "/src/p1/p2/Foo.java",
       //language=java
@@ -119,15 +122,43 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
        """.trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(AndroidLightField::class.java)
+    assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary"))
   }
 
+  fun testResourceLightFieldFlattenableResourceName() {
+    myFixture.addFileToProject(
+      "res/values/flattenColors.xml",
+      //language=XML
+      """
+       <resources>
+         <color name="foo.bar">#3700B3</color>
+       </resources>""".trimIndent())
+    val file = myFixture.addFileToProject(
+      "/src/p1/p2/Foo.java",
+      //language=java
+      """
+       package p1.p2;
+       public class Foo {
+         public static void example() {
+           int colorPrimary = R.color.foo${caret}_bar;
+         }
+       }
+       """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    assertThat(fakePsiElement).isNotNull()
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "foo.bar"))
+  }
+
   fun testResourceReferencePsiElementDeclaration() {
-    myFixture.configureByFile("/res/values/colors.xml")
+    myFixture.configureByFile("res/values/colors.xml")
     myFixture.moveCaret("colorPri|mary")
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement::class.java)
@@ -137,7 +168,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary"))
   }
 
-  fun testLazyValueResourceElementWrapperLayoutResAuto() {
+  fun testResourceReferenceInLayoutResAuto() {
     val file = myFixture.addFileToProject(
       "res/layout/layout.xml",
       //language=XML
@@ -152,15 +183,13 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
                 android:textColor="@color/col${caret}orPrimary"/>
         </LinearLayout>""".trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(LazyValueResourceElementWrapper::class.java)
-    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    val fakePsiElement = getRelevantFakeElement(myFixture.elementAtCaret, LazyValueResourceElementWrapper::class.java)
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary"))
   }
 
-  fun testFileResourceElementWrapperLayoutAndroid() {
+  fun testFileResourceReferenceInLayoutAndroid() {
     val file = myFixture.addFileToProject(
       "res/layout/layout.xml",
       //language=XML
@@ -175,15 +204,13 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:textColor="@android:color/secondary${caret}_text_dark"/>
       </LinearLayout>""".trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(PsiFile::class.java)
-    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    val fakePsiElement = getRelevantFakeElement(myFixture.elementAtCaret, PsiFile::class.java)
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "secondary_text_dark"))
   }
 
-  fun testXMLAttributeValueIdLayout() {
+  fun testIdDeclarationInLayout() {
     val file = myFixture.addFileToProject(
       "res/layout/layout.xml",
       //language=XML
@@ -198,11 +225,24 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:layout_height="match_parent"/>
       </LinearLayout>""".trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(XmlAttributeValue::class.java)
-    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    val fakePsiElement = getRelevantFakeElement(myFixture.elementAtCaret, XmlAttributeValue::class.java)
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "textview"))
+  }
+
+  fun testAttrValueResourceAndroid() {
+    val file = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+       <resources>
+         <attr name="android:text${caret}Style"/>
+       </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttributeValue>()!!
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    assertThat(fakePsiElement).isNotNull()
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
   }
 
   fun testDrawableFile() {
@@ -296,9 +336,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
        """.trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.moveCaret("attr/butto|n_text")
-    val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(LazyValueResourceElementWrapper::class.java)
-    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    val fakePsiElement = getRelevantFakeElement(myFixture.elementAtCaret, LazyValueResourceElementWrapper::class.java)
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "button_text"))
   }
 
@@ -316,13 +354,13 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
        }
        """.trimIndent())
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val androidLightField = myFixture.elementAtCaret
-    assertThat(androidLightField).isInstanceOf(AndroidLightField::class.java)
+    val resourceLightField = myFixture.elementAtCaret
+    assertThat(resourceLightField).isInstanceOf(ResourceLightField::class.java)
 
-    myFixture.configureByFile("/res/values/colors.xml")
+    myFixture.configureByFile("res/values/colors.xml")
     myFixture.moveCaret("colorPri|mary")
-    val resourceReferencePsiElement = myFixture.elementAtCaret
-    assertThat(resourceReferencePsiElement).isInstanceOf(ResourceReferencePsiElement::class.java)
+    val resourceNameElement = myFixture.elementAtCaret
+    assertThat(resourceNameElement).isInstanceOf(ResourceReferencePsiElement::class.java)
 
     val layoutFile = myFixture.addFileToProject(
       "res/layout/layout.xml",
@@ -338,15 +376,31 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:textColor="@color/col${caret}orPrimary"/>
       </LinearLayout>""".trimIndent())
     myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
-    val lazyValueResourceElementWrapper = myFixture.elementAtCaret
-    assertThat(lazyValueResourceElementWrapper).isInstanceOf(LazyValueResourceElementWrapper::class.java)
 
-    val listOfElements = listOf(androidLightField, resourceReferencePsiElement, lazyValueResourceElementWrapper)
+    val resourceReferenceElement = myFixture.elementAtCaret
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      assertThat(resourceReferenceElement).isInstanceOf(ResourceReferencePsiElement::class.java)
+    } else {
+      assertThat(resourceReferenceElement).isInstanceOf(LazyValueResourceElementWrapper::class.java)
+    }
+
+    val listOfElements = listOf(resourceLightField, resourceNameElement, resourceReferenceElement)
     for (element in listOfElements) {
-      val resourceReferencePsiElement = ResourceReferencePsiElement.create(element)
+      val referencePsiElement = ResourceReferencePsiElement.create(element)
       for (compareElement in listOfElements) {
-        assertThat(resourceReferencePsiElement?.isEquivalentTo(compareElement)).isTrue()
+        assertThat(referencePsiElement?.isEquivalentTo(compareElement)).isTrue()
       }
+    }
+  }
+
+  private fun getRelevantFakeElement(elementAtCaret: PsiElement, oldElementType: Class<*>): ResourceReferencePsiElement? {
+    return if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement::class.java)
+      elementAtCaret as ResourceReferencePsiElement
+    }
+    else {
+      assertThat(elementAtCaret).isInstanceOf(oldElementType)
+      ResourceReferencePsiElement.create(elementAtCaret)
     }
   }
 }

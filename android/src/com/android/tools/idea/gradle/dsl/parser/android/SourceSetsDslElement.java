@@ -19,17 +19,25 @@ import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.model.android.SourceSetModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class SourceSetsDslElement extends GradleDslElementMap {
-  @NonNls public static final String SOURCE_SETS_BLOCK_NAME = "sourceSets";
+public final class SourceSetsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
+  public static final PropertiesElementDescription<SourceSetsDslElement> SOURCE_SETS =
+    new PropertiesElementDescription<>("sourceSets", SourceSetsDslElement.class, SourceSetsDslElement::new);
 
-  public SourceSetsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, SOURCE_SETS_BLOCK_NAME);
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return SourceSetDslElement.SOURCE_SET;
+  }
+
+  public SourceSetsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override
@@ -44,5 +52,10 @@ public final class SourceSetsDslElement extends GradleDslElementMap {
       result.add(new SourceSetModelImpl(dslElement));
     }
     return result;
+  }
+
+  @Override
+  public boolean implicitlyExists(@NotNull String name) {
+    return true;
   }
 }

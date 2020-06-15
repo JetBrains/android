@@ -16,6 +16,7 @@
 package com.android.tools.idea.res.psi;
 
 import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -36,10 +37,12 @@ public class GoToAndroidResourceContributor extends GoToSymbolProvider {
   protected void addNames(@NotNull Module module, @NotNull Set<String> result) {
     LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(module);
     if (resources != null) {
-      resources.accept(item -> {
-        result.add(item.getName());
-        return ResourceVisitor.VisitResult.CONTINUE;
-      });
+      for (SingleNamespaceResourceRepository repository : resources.getLeafResourceRepositories()) {
+        repository.accept(item -> {
+          result.add(item.getName());
+          return ResourceVisitor.VisitResult.CONTINUE;
+        });
+      }
     }
   }
 
@@ -47,15 +50,17 @@ public class GoToAndroidResourceContributor extends GoToSymbolProvider {
   protected void addItems(@NotNull Module module, @NotNull String name, @NotNull List<NavigationItem> result) {
     LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(module);
     if (resources != null) {
-      resources.accept(item -> {
-        if (item.getName().equals(name)) {
-          VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
-          if (file != null) {
-            result.add(new ResourceNavigationItem(item, file, module.getProject()));
+      for (SingleNamespaceResourceRepository repository : resources.getLeafResourceRepositories()) {
+        repository.accept(item -> {
+          if (item.getName().equals(name)) {
+            VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
+            if (file != null) {
+              result.add(new ResourceNavigationItem(item, file, module.getProject()));
+            }
           }
-        }
-        return ResourceVisitor.VisitResult.CONTINUE;
-      });
+          return ResourceVisitor.VisitResult.CONTINUE;
+        });
+      }
     }
   }
 

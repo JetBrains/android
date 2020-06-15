@@ -45,17 +45,19 @@ public class LibraryFilePaths {
   private static class ArtifactPaths {
     @Nullable final File myJavaDoc;
     @Nullable final File mySources;
+    @Nullable final File myPom;
 
-    private ArtifactPaths(@Nullable File javadoc, @Nullable File sources) {
+    private ArtifactPaths(@Nullable File javadoc, @Nullable File sources, @Nullable File pom) {
       myJavaDoc = javadoc;
       mySources = sources;
+      myPom = pom;
     }
   }
 
   public void populate(@NotNull SourcesAndJavadocArtifacts artifacts) {
     for (SourcesAndJavadocArtifact artifact : artifacts.getArtifacts()) {
       myPathsMap.computeIfAbsent(idToString(artifact.getId()),
-                                 k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources()));
+                                 k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources(), artifact.getMavenPom()));
     }
   }
 
@@ -102,7 +104,11 @@ public class LibraryFilePaths {
   }
 
   @Nullable
-  public static File findPomPathForLibrary(@NotNull File libraryPath) {
+  public File findPomPathForLibrary(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).myPom;
+    }
     return findArtifactFilePathInRepository(libraryPath, ".pom", false);
   }
 

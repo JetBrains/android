@@ -18,7 +18,7 @@
               <text value="Evaluate"/>
             </properties>
           </component>
-          <component id="9e09b" class="javax.swing.JComboBox" binding="mySchemaComboBox">
+          <component id="9e09b" class="javax.swing.JComboBox" binding="myDatabaseComboBox">
             <constraints border-constraint="Before"/>
             <properties/>
           </component>

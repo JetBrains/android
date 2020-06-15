@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
@@ -39,8 +40,10 @@ class ResourceLookupTest {
   @Test
   fun testSingleColorIcon() {
     val model = InspectorPropertiesModel()
-    val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, "Hello Folks")
-    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000", true, null, title, model)
+    val inspectorModel = model.layoutInspector?.layoutInspectorModel
+    val title = ViewNode(1, "TextView", null, 30, 60, 0, 0, 300, 100, null, "Hello Folks", 0)
+    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
+                                         PropertySection.DECLARED, null, title, inspectorModel?.resourceLookup)
     val lookup = ResourceLookup(projectRule.project)
     val icon = lookup.resolveAsIcon(property)
     Truth.assertThat(icon).isEqualTo(JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))

@@ -32,7 +32,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  *
  * @see AndroidLightClassBase
  * @see ProjectSystemPsiElementFinder
- * @see LightResourceClassService
+ * @see com.android.tools.idea.projectsystem.LightResourceClassService
  */
 class AndroidLightPackage private constructor(
   manager: PsiManager,
@@ -69,12 +69,14 @@ class AndroidLightPackage private constructor(
   /**
    * Project service responsible for interning instances of [AndroidLightPackage] with a given name.
    */
-  class InstanceCache(private val project: Project) {
+  class InstanceCache(project: Project) {
+    private val psiManager = PsiManager.getInstance(project)
+
     /**
      * Cache of [PsiPackage] instances for a given package name.
      */
     private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
 
-    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
+    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(psiManager, name) }
   }
 }

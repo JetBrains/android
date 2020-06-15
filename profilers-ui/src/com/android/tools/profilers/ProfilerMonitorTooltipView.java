@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers;
 
-public abstract class ProfilerMonitorTooltipView<M extends ProfilerMonitor> extends ProfilerTooltipView {
+import com.android.tools.adtui.TooltipView;
+
+public abstract class ProfilerMonitorTooltipView<M extends ProfilerMonitor> extends TooltipView {
   private final M myMonitor;
 
   public ProfilerMonitorTooltipView(M monitor) {

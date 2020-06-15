@@ -50,7 +50,6 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.LayoutLog;
@@ -76,6 +75,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
@@ -314,11 +314,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throws ClassNotFoundException {
     myUsed = true;
     return myClassLoader.loadClass(name, constructorSignature, constructorArgs);
-  }
-
-  @Override
-  public boolean supports(int ideFeature) {
-    return ideFeature <= Features.LAST_FEATURE;
   }
 
   /**

@@ -74,7 +74,6 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
     if (myModel != null && myRoot != null) {
       TreePath selectionPath = myTree.getSelectionPath();
       sortTree(myRoot);
-      myTree.collapseRow(0);
       myTree.setSelectionPath(selectionPath);
       myTree.scrollPathToVisible(selectionPath);
       myModel.reload();

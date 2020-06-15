@@ -15,34 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel.stripID;
-
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentDelegate;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentDelegate;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -64,27 +69,30 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayoutInterface, MotionDesignSurfaceEdits {
   private static final boolean DEBUG = false;
-  private static final boolean TEMP_HACK_FORCE_APPLY = true;
+  private static final boolean TEMP_HACK_FORCE_APPLY = false;
   private final Project myProject;
-  private final DesignSurface myDesignSurface;
-  NlComponentTag myMotionLayoutTag;
-  NlComponent myMotionLayoutNlComponent;
+  private final NlDesignSurface myDesignSurface;
+  private final ResourceNotificationManager.ResourceChangeListener myResourceListener;
+  private final NlComponentTag myMotionLayoutTag;
+  private final NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
-  HashSet<String> myLayoutSelectedId = new HashSet<>();
+  VirtualFile myMotionSceneFile;
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
-  private SmartPsiElementPointer<XmlTag> mSelectedConstraintTag;
-  private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
 
   MotionLayoutComponentHelper myMotionHelper;
-  private String mSelectedConstraintId;
+  private String mSelectedStartConstraintId;
+  private String mSelectedEndConstraintId;
+  private float mLastProgress = 0;
 
   private final List<AccessorySelectionListener> myListeners;
   private NlComponent mySelection;
   private NlComponent myMotionLayout;
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
-  private MotionSceneTag myLastSelectedTag;
+  private MTag[] myLastSelectedTags;
+  private boolean mShowPath = true;
+  private boolean myUpdatingSelectionInLayoutEditor = false;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -96,8 +104,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI, "applyMotionScene", null);
           });
         }
-      }
-      else {
+      } else {
         WriteCommandAction.runWriteCommandAction(myProject, () -> {
           myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI, "applyMotionScene", "false");
         });
@@ -105,76 +112,114 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
   }
 
-  public MotionAccessoryPanel(@NotNull DesignSurface surface,
+  public MotionAccessoryPanel(@NotNull NlDesignSurface surface,
                               @NotNull NlComponent parent,
                               @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     if (DEBUG) {
-      Debug.log("MotionAccessoryPanel created ");
+      Debug.log("MotionAccessoryPanel created: " + this + "  parent: " + parent);
     }
     myDesignSurface = surface;
     myProject = surface.getProject();
     myMotionLayoutNlComponent = parent;
     myMotionLayoutTag = new NlComponentTag(parent, null);
     mVisibility = visibility;
-    myMotionHelper = new MotionLayoutComponentHelper(myMotionLayoutNlComponent);
+    MotionLayoutComponentHelper.clearCache();
+    myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
     myListeners = new ArrayList<>();
+    myResourceListener = createResourceChangeListener();
 
-    myDesignSurface.getSelectionModel().addListener((model, selection) -> handleSelectionChanged(model, selection));
+    mMotionEditor.myTrack.init(myDesignSurface);
+    SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
+    ImmutableList<NlComponent> dsSelection = designSurfaceSelection.getSelection();
+    designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
+    mMotionEditor.addCommandListener(new MotionEditor.Command() {
+
+      @Override
+      public void perform(Action action, MTag[] tag) {
+        switch (action) {
+          case DELETE: {
+            for (int i = 0; i < tag.length; i++) {
+              tag[i].getTagWriter().deleteTag().commit("delete " + tag[i].getTagName());
+            }
+          }
+          break;
+          case COPY:
+            CharSequence[] buff = new CharSequence[tag.length];
+            for (int i = 0; i < tag.length; i++) {
+              buff[i] = MTag.serializeTag(tag[i]);
+            }
+            break;
+        }
+      }
+    });
     mMotionEditor.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         if (DEBUG) {
-          Debug.log("Selection changed " + selection);
+          Debug.logStack("Selection changed " + selection, 23);
         }
-        mSelectedConstraintTag = null;
         mLastSelection = selection;
-        myLastSelectedTag = computeSelectedTagForPropertyPanel(tag);
+        myLastSelectedTags = tag;
         switch (selection) {
-          case CONSTRAINT_SET: {
+          case CONSTRAINT_SET:
             String id = tag[0].getAttributeValue("id");
             if (DEBUG) {
               Debug.log("id of constraint set " + id);
             }
             if (id != null) {
-              mSelectedConstraintId = stripID(id);
-              myMotionHelper.setState(mSelectedConstraintId);
+              mSelectedStartConstraintId = Utils.stripID(id);
+              mSelectedEndConstraintId = null;
+              myMotionHelper.setState(mSelectedStartConstraintId);
             }
             if (TEMP_HACK_FORCE_APPLY) {
               applyMotionSceneValue(true);
             }
-          }
-          break;
-          case TRANSITION:
-            String start = stripID(tag[0].getAttributeValue("constraintSetStart"));
-            String end = stripID(tag[0].getAttributeValue("constraintSetEnd"));
-            myMotionHelper.setTransition(start, end);
             break;
-          case LAYOUT: {
+          case TRANSITION:
+            mSelectedStartConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetStart"));
+            mSelectedEndConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetEnd"));
+            myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
+            myMotionHelper.setProgress(mLastProgress);
+            if (flags == MotionEditorSelector.Listener.CONTROL_FLAG) {
+              mShowPath = !mShowPath;
+            }
+            myMotionHelper.setShowPaths(mShowPath);
+
+            break;
+          case LAYOUT:
             if (TEMP_HACK_FORCE_APPLY) {
               applyMotionSceneValue(false);
             }
             selectOnDesignSurface(tag);
+            if (DEBUG) {
+              Debug.log("LAYOUT myMotionHelper.setState(null); ");
+            }
             myMotionHelper.setState(null);
-            mSelectedConstraintId = null;
-          }
-          break;
-          case CONSTRAINT: {
+            mSelectedStartConstraintId = null;
+            break;
+          case CONSTRAINT:
             // TODO: This should always be a WrapMotionScene (remove this code when bug is fixed):
-            XmlTag xmlTag = null;
             selectOnDesignSurface(tag);
             if (tag[0] instanceof MotionSceneTag) {
-              xmlTag = ((MotionSceneTag)tag[0]).getXmlTag();
+              MotionSceneTag msTag = ((MotionSceneTag)tag[0]);
+              id = Utils.stripID(msTag.getAttributeValue("id"));
+              MTag[] layoutViews = myMotionLayoutTag.getChildTags();
+              for (int i = 0; i < layoutViews.length; i++) {
+                MTag view = layoutViews[i];
+                String vid = Utils.stripID(view.getAttributeValue("id"));
+                if (vid.equals(id)) {
+                  updateSelectionInLayoutEditor((NlComponentTag)view);
+                }
+              }
+            } else if (tag[0] instanceof NlComponentTag) {
+              updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
-            else if (tag[0] instanceof NlComponentTag) {
-              xmlTag = ((NlComponentTag)tag[0]).mComponent.getTag();
-            }
-            if (xmlTag == null) {
-              return;
-            }
-            mSelectedConstraintTag = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlTag);
-          }
-          break;
+            break;
           case LAYOUT_VIEW:
+            if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
+              updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
+            }
+            break;
           case KEY_FRAME_GROUP:
             // The NelePropertiesModel should be handling the properties in these cases...
             break;
@@ -188,44 +233,141 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       @Override
       public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
         switch (cmd) {
-          case MOTION_PROGRESS:
+          case MOTION_PROGRESS: {
             myMotionHelper.setProgress(pos);
-            break;
-          case MOTION_PLAY:
-            break;
-          case MOTION_STOP:
-            break;
+            mLastProgress = pos;
+          }  break;
+          case MOTION_SCRUB:
+            surface.setAnimationScrubbing(true);
+            //noinspection fallthrough
+          case MOTION_PLAY: {
+            LayoutlibSceneManager manager = surface.getSceneManager();
+            manager.updateSceneView();
+            manager.requestLayoutAndRender(false);
+            surface.setRenderSynchronously(true);
+          }  break;
+          case MOTION_STOP: {
+            surface.setRenderSynchronously(false);
+            surface.setAnimationScrubbing(false);
+            LayoutlibSceneManager manager = surface.getSceneManager();
+            manager.requestLayoutAndRender(false);
+          } break;
         }
       }
     });
-    myMotionScene = getMotionScene(myMotionLayoutNlComponent);
-    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
-    MTag []cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
-    if (DEBUG) {
-      Debug.log(" select constraint set "+cSet[0].getAttributeValue("id"));
+    MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
+
+    myMotionScene = motionScene;
+
+    myMotionSceneFile = (motionScene == null) ? null : motionScene.mVirtualFile;
+    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
+    if (myMotionScene == null) {
+      return;
     }
-    if (cSet!= null && cSet.length > 0) {
-      mMotionEditor.selectTag(cSet[0]);
+    MTag[] cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
+    if (DEBUG) {
+      Debug.log(" select constraint set " + cSet[0].getAttributeValue("id"));
+    }
+    if (cSet != null && cSet.length > 0) {
+      mMotionEditor.selectTag(cSet[0], 0);
     }
     parent.putClientProperty(TIMELINE, this);
     if (DEBUG) {
       Debug.log("harness " + parent);
     }
     AndroidFacet facet = parent.getModel().getFacet();
-    ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
+    ResourceNotificationManager.getInstance(myProject).addListener(myResourceListener, facet, null, null);
+    handleSelectionChanged(designSurfaceSelection, dsSelection);
+  }
+
+  @NotNull
+  private ResourceNotificationManager.ResourceChangeListener createResourceChangeListener() {
+    return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-        myLastSelectedTag = null; // this is from the model that will be replaced below
-        myMotionScene = getMotionScene(myMotionLayoutNlComponent);
-        mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
+        boolean hasMotionSelection = myLastSelectedTags != null && mLastSelection != null;
+        mLastSelection = null;
+        myLastSelectedTags = null;
+        MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
+        if (motionScene != null) {
+          myMotionScene = motionScene;
+          myMotionSceneFile = motionScene.mVirtualFile;
+          mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
+
+          if (myLastSelectedTags == null && hasMotionSelection) {
+            // The previous selection could not be restored.
+            // Select something in the MotionScene to avoid the properties panel reverting back to the MotionLayout.
+            selectSomething(motionScene);
+          }
+        }
         fireSelectionChanged(Collections.singletonList(mySelection));
+        if (motionScene != null) {
+          LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
+        }
       }
-    }, facet, myMotionScene.getXmlTag().getContainingFile().getVirtualFile(), null);
+    };
+  }
+
+  private void updateSelectionInLayoutEditor(@NotNull NlComponentTag tag) {
+    updateSelectionInLayoutEditor(Collections.singletonList(tag.mComponent));
+  }
+
+  private void updateSelectionInLayoutEditor(@NotNull List<NlComponent> selected) {
+    myUpdatingSelectionInLayoutEditor = true;
+    try {
+      myDesignSurface.getSelectionModel().setSelection(selected);
+    }
+    finally {
+      myUpdatingSelectionInLayoutEditor = false;
+    }
+  }
+
+  private void selectSomething(@NotNull MotionSceneTag motionScene) {
+    MTag[] sets = motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
+    if (sets.length == 0) {
+      // Nothing to select...
+      return;
+    }
+    mLastSelection = MotionEditorSelector.Type.CONSTRAINT_SET;
+    myLastSelectedTags = new MTag[]{sets[0]};
+  }
+
+  private String getSetupError() {
+    GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
+    NlDependencyManager dep = NlDependencyManager.getInstance();
+    if (dep == null) return null;
+    if (myMotionLayout == null) return null;
+    if (myMotionLayout.getModel() == null) return null;
+
+    GradleVersion v = dep.getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
+    NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
+    String error = "Version ConstraintLayout library must be version 2.0.0 beta3 or later";
+    if (v == null) { // if you could not get the version assume it is the ok
+      return null;
+    }
+    if (v.getMajor() < 2) {
+      return error;
+    }
+    if (v.getMinor() == 0 && v.getMicro() == 0) {
+      if ("alpha".equals(v.getPreviewType())) {
+        return error;
+      }
+      if (v.getPreview() < 3) {
+        return error;
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
+    return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
   }
 
   private void selectOnDesignSurface(MTag[] tag) {
     if (DEBUG) {
-      Debug.log("Selection changed ");
+      Debug.log("Selection changed " + ((tag.length > 0) ? tag[0] : "empty"));
     }
     if (true) return;
     ArrayList<NlComponent> list = new ArrayList<>();
@@ -235,76 +377,50 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         list.add(((NlComponentTag)mTag).mComponent);
       }
     }
+    if (list.isEmpty()) {
+      list.add(myMotionLayoutNlComponent);
+    }
 
     if (DEBUG) {
       Debug.log(" set section " + tag.length + " " + tag[0].getTagName());
     }
-    if (list.size() > 0) {
-      myDesignSurface.getSelectionModel().setSelection(list);
-    }
-    else {
-      myDesignSurface.getSelectionModel().setSelection(Arrays.asList(myMotionLayoutNlComponent));
-    }
-  }
-
-  @Nullable
-  private MotionSceneTag computeSelectedTagForPropertyPanel(MTag[] tag) {
-    MTag firstTag = tag != null && tag.length > 0 ? tag[0] : null;
-    MotionSceneTag sceneTag = firstTag instanceof MotionSceneTag ? (MotionSceneTag)firstTag : null;
-    if (sceneTag == null || !sceneTag.getXmlTag().isValid()) {
-      return null;
-    }
-    return sceneTag;
-  }
-
-  @Nullable
-  @Override
-  public Object getSelectedAccessory() {
-    return myLastSelectedTag;
+    updateSelectionInLayoutEditor(list);
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    // Prevent repeated section of the same objectS
-    if (selection.size() == myLayoutSelectedId.size()) {
-      int count = 0;
-      for (NlComponent component : selection) {
-        if (myLayoutSelectedId.contains(component.getId())) {
-          count++;
-        }
-      }
-      if (count == selection.size()) {
-        return;
-      }
+    if (myUpdatingSelectionInLayoutEditor) {
+      // We initiated the selection change in the layout editor.
+      // There is no need to adjust the selection here.
+      return;
     }
-    myLayoutSelectedId.clear();
+    if (DEBUG) {
+      Debug.log(" handleSelectionChanged ");
+    }
+    String[] ids = new String[selection.size()];
+    int count = 0;
     for (NlComponent component : selection) {
-      if (myLayoutSelectedId.add(component.getId())) ;
+      ids[count++] = Utils.stripID(component.getId());
     }
+    mMotionEditor.selectById(ids);
 
-    if (selection.size() > 0) {
-      for (NlComponent component : selection) {
-        String tagName = component.getTagName();
-        String id = component.getId();
-        MTag tag = mMotionEditor.getMeModel().findTag(tagName, id);
-        if (tag != null) {
-          if (tag instanceof NlComponentTag) {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag});
-          }
-          else {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.CONSTRAINT, new MTag[]{tag});
-          }
-        }
-      }
-    }
-    //    mMotionEditorSelector.notifyListeners(type, tags);
     fireSelectionChanged(selection);
   }
 
-  MotionSceneTag getMotionScene(NlComponent motionLayout) {
+  @Nullable
+  MotionSceneTag.Root getMotionScene(NlComponent motionLayout) {
     String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
+    if (ref == null) {
+      System.err.println("getAttribute(layoutDescription ) returned null");
+      return null;
+    }
     int index = ref.lastIndexOf("@xml/");
+    if (index < 0) {
+      System.err.println("layoutDescription  did not have \"@xml/\"");
+      return null;
+    }
     String fileName = ref.substring(index + 5);
-    if (fileName == null || fileName.isEmpty()) {
+    if (fileName.isEmpty()) {
+      System.err.println("layoutDescription \""+ref+"\"");
       return null;
     }
 
@@ -316,14 +432,20 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (resourcesXML.isEmpty()) {
       return null;
     }
-    VirtualFile directory = resourcesXML.get(0);
-    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+    VirtualFile virtualFile = null;
+    for (VirtualFile dir : resourcesXML) {
+      virtualFile = dir.findFileByRelativePath(fileName + ".xml");
+      if (virtualFile != null) {
+        break;
+      }
+    }
+    if (virtualFile == null) {
+      System.err.println("virtualFile == null");
+      return null;
+    }
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
-
-    MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
-
-    return motionSceneModel;
+    return MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile, mMotionEditor.myTrack);
   }
 
   @NotNull
@@ -348,41 +470,25 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       return;
     }
 
-    NlComponent component = selection.get(0);
-    if (component != mySelection) {
-      myNlComponentDelegate.clearCaches();
-    }
-
-    mySelection = component;
-    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-      component = component.getParent();
-      if (component != null && !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-        return; // not found
-      }
-    }
-
-    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-      component = component.getParent();
-      if (component != null && !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-        return; // not found
-      }
-    }
-    // component is a motion layout
-    if (myMotionLayout != component) {
-      myMotionLayout = component;
-    }
+    mySelection = selection.get(0);
+    myMotionLayout = MotionUtils.getMotionLayoutAncestor(mySelection);
 
     fireSelectionChanged(selection);
   }
 
   @Override
   public void deactivate() {
+    mMotionEditor.stopAnimation();
     myMotionLayout = null;
+    MotionLayoutComponentHelper.clearCache();
+    AndroidFacet facet = myMotionLayoutNlComponent.getModel().getFacet();
+    ResourceNotificationManager.getInstance(myProject).removeListener(myResourceListener, facet, null, null);
   }
 
   @Override
   public void updateAfterModelDerivedDataChanged() {
-    myMotionHelper = new MotionLayoutComponentHelper(myMotionLayoutNlComponent);
+    MotionLayoutComponentHelper.clearCache();
+    myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
 
     // ok, so I found out why the live edit wasn't working -- actually everything was working, but...
     // live edit works by editing the layoutParams of the view. Which is ok as normally this is
@@ -394,10 +500,17 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // Additionally we need to correctly reset the state of the motionhelper if we recreate it.
     if (mLastSelection == MotionEditorSelector.Type.LAYOUT) {
       myMotionHelper.setState(null);
-      mSelectedConstraintId = null;
-    }
-    else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
-      myMotionHelper.setState(mSelectedConstraintId);
+      mSelectedStartConstraintId = null;
+    } else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
+      myMotionHelper.setState(mSelectedStartConstraintId);
+    } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId == null) {
+      myMotionHelper.setState(mSelectedStartConstraintId);
+    } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null) {
+      myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
+      myMotionHelper.setProgress(mLastProgress);
+    } else {
+      myMotionHelper.setState(null);
+      mSelectedStartConstraintId = null;
     }
 
     // Ok, so to handle the "layout" mode, we need a few things.
@@ -425,11 +538,39 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myListeners.remove(listener);
   }
 
-  private void fireSelectionChanged(@NotNull List<NlComponent> components) {
-    List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
-    copy.forEach(listener -> listener.selectionChanged(this, components));
+  @Override
+  public void requestSelection() {
+    fireSelectionChanged(Collections.singletonList(mySelection));
   }
 
+  private void fireSelectionChanged(@NotNull List<NlComponent> components) {
+    boolean forLayout = mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW;
+    MotionEditorSelector.Type type = forLayout ? null : mLastSelection;
+    MTag[] tags = forLayout ? null : myLastSelectedTags;
+    List<NlComponent> selectedComponents = forLayout ? convertToLayoutSelection() : components;
+    List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
+    copy.forEach(listener -> listener.selectionChanged(this, type, tags, selectedComponents));
+  }
+
+  private List<NlComponent> convertToLayoutSelection() {
+    List<NlComponent> views = new ArrayList<>();
+    if (myLastSelectedTags != null) {
+      for (MTag tag : myLastSelectedTags) {
+        if (tag instanceof NlComponentTag) {
+          NlComponent component = ((NlComponentTag)tag).getComponent();
+          if (component != null) {
+            views.add(component);
+          }
+        }
+      }
+    }
+    if (views.isEmpty()) {
+      if (myMotionLayoutNlComponent != null) {
+        views.add(myMotionLayoutNlComponent);
+      }
+    }
+    return views;
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // MotionLayoutInterface
@@ -457,13 +598,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   @Override
-  public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
-    return mSelectedConstraintTag;
-  }
-
-  @Override
   public String getSelectedConstraintSet() {
-    return mSelectedConstraintId;
+    return mSelectedStartConstraintId;
   }
 
   // TODO: merge with the above parse function
@@ -505,7 +641,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     for (int i = 0; i < children.length; i++) {
       XmlAttribute attribute = children[i].getAttribute("android:id");
       if (attribute != null) {
-        String childId = stripID(attribute.getValue());
+        String childId = Utils.stripID(attribute.getValue());
         if (childId.equalsIgnoreCase(constraintSetId)) {
           return children[i];
         }
@@ -555,5 +691,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     }
     return found;
+  }
+
+  public MotionSceneTag getMotionScene() {
+    return myMotionScene;
   }
 }

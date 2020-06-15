@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
+import com.android.utils.usLocaleCapitalize
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.*
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import java.awt.Component
 import java.awt.event.ItemEvent
 import java.awt.event.MouseEvent
@@ -158,6 +163,7 @@ private class FilterAction internal constructor(val viewModel: ResourceExplorerT
     add(ShowLibrariesAction(viewModel))
     add(ShowFrameworkAction(viewModel))
     add(ShowThemeAttributesAction(viewModel))
+    addRelatedTypeFilterActions(viewModel)
   }
 }
 
@@ -194,6 +200,98 @@ private class ShowThemeAttributesAction internal constructor(val viewModel: Reso
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowThemeAttributes = state
     ResourceManagerTracking.logShowThemeAttributesToggle(state)
+  }
+}
+
+/** Maximum number of [TypeFilter]s that can be displayed. Any additional will be collapsed on a different 'Other' menu. */
+private const val FILTERS_DISPLAY_LIMIT = 7
+/** Pattern to identify [String]s as XmlTags. Eg: 'animated-vector' */
+private val TAG_NAME_PATTERN = Regex("([a-z]+-)+([a-z]+)")
+
+/**
+ * Action to toggle several [TypeFilter]s in the [ResourceExplorerToolbarViewModel.typeFiltersModel].
+ *
+ * @param displayName The name by which the [typeFilters] are grouped. Also used for the action's name.
+ * @param typeFilters Related [TypeFilter]s, they will all be toggled together.
+ */
+private class TypeFilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel,
+                                                    displayName: String,
+                                                    private val typeFilters: List<TypeFilter>)
+  : ToggleAction(fixFilterDisplayNameForActionText(displayName),
+                 "Filter ${viewModel.resourceType.displayName}s by File extension or Xml root tag.",
+                 null) {
+  override fun isSelected(e: AnActionEvent): Boolean {
+    return typeFilters.any { viewModel.typeFiltersModel.isEnabled(viewModel.resourceType, it) }
+  }
+
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    typeFilters.forEach { typeFilter ->
+      viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state)
+    }
+    // TODO: Update tracking.
+  }
+}
+
+/**
+ * Action that clears all [TypeFilter]s under the same Resource Type in the [viewModel].
+ */
+private class ResetTypeFiltersAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : AnAction("Clear ${viewModel.resourceType.displayName} Filters",
+             "Clear enabled filters for ${viewModel.resourceType.displayName}s.",
+             StudioIcons.Common.CLOSE) {
+  override fun actionPerformed(e: AnActionEvent) {
+    viewModel.typeFiltersModel.clearAll(viewModel.resourceType)
+  }
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = viewModel.typeFiltersModel.getActiveFilters(viewModel.resourceType).isNotEmpty()
+  }
+}
+
+/**
+ * Adjust the given [displayName] from [TypeFilter] to match the desired format for [AnAction] text. Particularly, XmlTags should be
+ * converted to Title Case.
+ */
+private fun fixFilterDisplayNameForActionText(displayName: String): String {
+  return if (displayName.matches(TAG_NAME_PATTERN)) {
+    // Fix the name for XmlTags. Eg: "animated-vector" should say "Animated Vector"
+    displayName.split('-').joinToString(" ") { it.usLocaleCapitalize() }
+  }
+  else {
+    // Anything else just make sure it's capitalized on the first letter.
+    displayName.usLocaleCapitalize()
+  }
+}
+
+private fun DefaultActionGroup.addRelatedTypeFilterActions(viewModel: ResourceExplorerToolbarViewModel) {
+  // Group the supported filters by their display name. So that one menu-item applies to the related filters.
+  val supportedFilters = viewModel.typeFiltersModel.getSupportedFilters(viewModel.resourceType).groupBy { it.displayName }
+  if (StudioFlags.EXTENDED_TYPE_FILTERS.get() && supportedFilters.isNotEmpty()) {
+    addSeparator()
+    addSeparator("By ${viewModel.resourceType.displayName} Type")
+    val visibleFilters = supportedFilters.entries.take(FILTERS_DISPLAY_LIMIT)
+    val remainingFilters = supportedFilters.entries.drop(FILTERS_DISPLAY_LIMIT)
+    addVisibleTypeFilters(viewModel, visibleFilters)
+    addOtherMenuTypeFilters(viewModel, remainingFilters)
+    add(ResetTypeFiltersAction(viewModel))
+  }
+}
+
+private fun DefaultActionGroup.addVisibleTypeFilters(viewModel: ResourceExplorerToolbarViewModel,
+                                                     groupedFilters: List<Map.Entry<String, List<TypeFilter>>>) {
+  groupedFilters.forEach { filters ->
+    add(TypeFilterAction(viewModel, filters.key, filters.value))
+  }
+}
+
+private fun DefaultActionGroup.addOtherMenuTypeFilters(viewModel: ResourceExplorerToolbarViewModel,
+                                                       groupedFilters: List<Map.Entry<String, List<TypeFilter>>>) {
+  if (groupedFilters.isNotEmpty()) {
+    val otherMenuGroup = DefaultActionGroup("Other", true)
+    groupedFilters.forEach { filters ->
+      otherMenuGroup.add(TypeFilterAction(viewModel, filters.key, filters.value))
+    }
+    add(otherMenuGroup)
   }
 }
 

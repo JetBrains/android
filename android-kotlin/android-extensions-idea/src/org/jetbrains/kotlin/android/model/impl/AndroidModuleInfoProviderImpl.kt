@@ -6,11 +6,11 @@
 package org.jetbrains.kotlin.android.model.impl
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
@@ -29,19 +29,18 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
 
     override fun getApplicationPackage() = androidFacet?.let { Manifest.getMainManifest(it) }?.`package`?.toString()
 
-    override fun getMainSourceProvider(): AndroidModuleInfoProvider.SourceProviderMirror? {
-        return androidFacet?.let { SourceProviderManager.getInstance(it).mainIdeaSourceProvider }?.let(::SourceProviderMirrorImpl)
-    }
-
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        return IdeaSourceProvider.getCurrentSourceProviders(androidFacet ?: return emptyList()).map(::SourceProviderMirrorImpl)
+        return SourceProviderManager.getInstance(androidFacet ?: return emptyList()).currentSourceProviders.map(::SourceProviderMirrorImpl)
     }
 
     override fun getMainAndFlavorSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        return IdeaSourceProvider.getMainAndFlavorSourceProviders(androidFacet ?: return emptyList()).map(::SourceProviderMirrorImpl)
+        @Suppress("DEPRECATION")
+        return SourceProviderManager.getInstance(androidFacet ?: return emptyList())
+          .mainAndFlavorSourceProviders
+          .map(::SourceProviderMirrorImpl)
     }
 
-    private class SourceProviderMirrorImpl(val sourceProvider: IdeaSourceProvider) :
+    private class SourceProviderMirrorImpl(val sourceProvider: NamedIdeaSourceProvider) :
         AndroidModuleInfoProvider.SourceProviderMirror {
         override val name: String
             get() = sourceProvider.name

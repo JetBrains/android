@@ -19,8 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import java.awt.Dimension;
+import java.awt.*;
 
 public class MECreateOnSwipeTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateOnSwipe {
@@ -35,23 +34,26 @@ public class MECreateOnSwipeTest extends BaseMotionEditorTest {
 
   public void testCreateOnSwipeLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,128,234\n" +
-                    "1,JLabel,5,2,118,15\n" +
-                    "1,JSeparator,5,20,118,2\n" +
-                    "1,JLabel,5,25,118,15\n" +
-                    "1,MEComboBox,5,43,118,24\n" +
-                    "1,JLabel,5,70,118,15\n" +
-                    "1,MEComboBox,5,88,118,24\n" +
-                    "1,JLabel,5,115,118,15\n" +
-                    "1,MEComboBox,5,133,118,24\n" +
-                    "1,JLabel,5,160,118,15\n" +
-                    "1,MEComboBox,5,178,118,24\n" +
-                    "1,JButton,5,208,118,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,6,2,86,5\n" +
+                    "1,JSeparator         ,0,10,99,0\n" +
+                    "1,JLabel             ,6,14,86,5\n" +
+                    "1,MEComboBox         ,7,20,85,8\n" +
+                    "1,JLabel             ,6,31,86,5\n" +
+                    "1,MEComboBox         ,7,38,85,8\n" +
+                    "1,JLabel             ,6,49,86,5\n" +
+                    "1,MEComboBox         ,7,55,85,8\n" +
+                    "1,JLabel             ,6,66,86,5\n" +
+                    "1,MEComboBox         ,7,73,85,8\n" +
+                    "1,JButton            ,6,86,86,8\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateOnSwipeAction() {
@@ -61,17 +63,17 @@ public class MECreateOnSwipeTest extends BaseMotionEditorTest {
     panel.getAction(motionSceneUi, motionSceneUi);
     panel.access_populateDialog();
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE ONSWIPE\n" +
-      "1,JSeparator,\n" +
-      "1,JLabel,In Transition\n" +
-      "1,MEComboBox,base_state->dial,base_state->half_people,half_people->people\n" +
-      "1,JLabel,Drag Direction\n" +
-      "1,MEComboBox,Up,Down,Left,Right\n" +
-      "1,JLabel,Anchor Side\n" +
-      "1,MEComboBox,Top,Left,Bottom,Right\n" +
-      "1,JLabel,Anchor ID\n" +
-      "1,MEComboBox,(none),number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE ONSWIPE\n" +
+                  "1,JSeparator,\n" +
+                  "1,JLabel,In Transition\n" +
+                  "1,MEComboBox,base_state->dial,base_state->half_people,half_people->people\n" +
+                  "1,JLabel,Drag Direction\n" +
+                  "1,MEComboBox,dragUp,dragDown,dragLeft,dragRight\n" +
+                  "1,JLabel,Anchor Side\n" +
+                  "1,MEComboBox,Top,Left,Bottom,Right\n" +
+                  "1,JLabel,Anchor ID\n" +
+                  "1,MEComboBox,(none),number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     MTag tag = panel.create();
     String created = "\n" +

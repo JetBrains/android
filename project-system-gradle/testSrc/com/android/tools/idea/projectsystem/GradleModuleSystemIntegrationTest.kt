@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB
 import com.google.common.truth.Truth.assertThat
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
@@ -32,7 +33,7 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
  */
 class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
-  fun testGetAvailableDependencyWithRequiredVersionMatching() {
+  fun ignoredTestGetAvailableDependencyWithRequiredVersionMatching() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
@@ -90,7 +91,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetRegisteredExistingDependency() {
+  fun ignoredTestGetRegisteredExistingDependency() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
@@ -142,7 +143,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetResolvedMatchingDependencies() {
+  fun ignoredTestGetResolvedMatchingDependencies() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
@@ -171,7 +172,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetResolvedAarDependencies() {
+  fun ignoredTestGetResolvedAarDependencies() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
 
@@ -188,6 +189,14 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     // guava is a dependency with a JAR.
     assertThat(myModules.appModule.getModuleSystem().getResolvedDependency(
       GradleCoordinate("com.google.guava", "guava", "+"))).isNotNull()
+  }
+
+  @Throws(Exception::class)
+  fun testGetDynamicFeatureModules() {
+    loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES)
+    val moduleSystem = myModules.appModule.getModuleSystem()
+    val dynamicFeatureModuleNames = moduleSystem.getDynamicFeatureModules().map { it.name }
+    assertThat(dynamicFeatureModuleNames).containsExactly("dynamicfeature", "instantdynamicfeature").inOrder()
   }
 
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =

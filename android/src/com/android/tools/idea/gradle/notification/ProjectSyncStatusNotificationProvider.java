@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.notification;
 
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -169,8 +170,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
               return null;
             }
 
-            // TODO: Add check for file.getName().equals(SdkConstants.FN_BUILD_GRADLE_KTS) when Kotlin support is added to PSD
-            if (!file.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
+            if (!isDefaultGradleBuildFile(virtualToIoFile(file))) {
               return null;
             }
 

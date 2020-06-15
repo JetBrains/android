@@ -15,44 +15,42 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
-import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.idea.common.model.scaledAndroidLength
+import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.common.scene.inlineDrawRect
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawActivity
-import com.android.tools.idea.naveditor.scene.growRectangle
-import com.intellij.util.ui.JBUI
-import java.awt.geom.Rectangle2D
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one activity in the navigation editor.
  */
 
-@NavCoordinate
-private val ACTIVITY_PADDING = JBUI.scale(8f)
-@NavCoordinate
-private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26f)
+private val ACTIVITY_PADDING = scaledAndroidLength(8f)
+private val ACTIVITY_TEXT_HEIGHT = scaledAndroidLength(26f)
 
 object ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 
     val sceneView = sceneContext.surface?.focusedSceneView ?: return
-    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    addHeader(list, sceneView, drawRectangle, component)
+    val drawRectangle = component.inlineDrawRect(sceneView)
+    addHeader(list, sceneContext, drawRectangle, component)
 
-    @SwingCoordinate val imageRectangle = drawRectangle.let { Rectangle2D.Float(it.x, it.y, it.width, it.height) }
+    val scale = sceneContext.inlineScale
+    val padding = ACTIVITY_PADDING * scale
+    val textHeight = ACTIVITY_TEXT_HEIGHT * scale
 
-    @SwingCoordinate val padding = Coordinates.getSwingDimension(sceneView, ACTIVITY_PADDING)
-    growRectangle(imageRectangle, -padding, -padding)
+    val x = drawRectangle.x + padding
+    val y = drawRectangle.y + padding
+    val width = drawRectangle.width - padding * 2
+    val height = drawRectangle.height - padding - textHeight
+    val imageRectangle = SwingRectangle(x, y, width, height)
 
-    @SwingCoordinate val textHeight = Coordinates.getSwingDimension(sceneView, ACTIVITY_TEXT_HEIGHT)
-    imageRectangle.height -= (textHeight - padding)
-
-    val scale = sceneContext.scale.toFloat()
     val frameColor = frameColor(component)
     val frameThickness = frameThickness(component)
     val textColor = textColor(component)

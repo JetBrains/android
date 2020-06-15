@@ -39,19 +39,33 @@ public class TimeLineRow extends JPanel {
   private boolean mCellHasFocus;
   TimelineStructure mTimelineStructure;
   MTag mSelectedKeyFrame;
-  private static final int TITLE_HEIGHT = MEUI.scale(20);
-  private static final int ROW_HEIGHT = MEUI.scale(20);
-  private static final int GRAPH_HEIGHT = MEUI.scale(50);
+  private int myTitleHeight = MEUI.scale(20);
+  private int myRowHeight = MEUI.scale(20);
+  private int myGraphHeight = MEUI.scale(50);
   boolean mShowTitle = false;
-  static final int iconOffset = MEUI.scale(10);
-  static final int refOffset = MEUI.scale(30);
-  static final int nameOffset = MEUI.scale(50);
-  static final int typeOffset = MEUI.scale(90);
+
   int[] mXPoint = new int[4];
   int[] mYPoint = new int[4];
   private boolean mHasGraph = true;
   private boolean mGraphOpen = false;
   GraphRender mGraph = new GraphRender();
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+
+    myTitleHeight = MEUI.scale(20);
+    myRowHeight = MEUI.scale(20);
+    myGraphHeight = MEUI.scale(50);
+
+    if (mShowTitle) {
+      setSize(MEUI.size(100, 40));
+      setPreferredSize(MEUI.size(100, getNewHeight()));
+    } else {
+      setSize(MEUI.size(100, 20));
+      setPreferredSize(MEUI.size(100, getNewHeight()));
+    }
+  }
 
   TimeLineRow(TimelineStructure timelineStructure) {
     setPreferredSize(MEUI.size(100, 20));
@@ -70,21 +84,21 @@ public class TimeLineRow extends JPanel {
       g.fillRect(0, 0, w, titley);
       if (mSelected) {
         g.setColor(MEUI.ourMySelectedLineColor);
-        g.fillRect(0, titley, w, ROW_HEIGHT);
+        g.fillRect(0, titley, w, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
-        g.fillRect(0, titley + ROW_HEIGHT, w, h - (titley + ROW_HEIGHT));
+        g.fillRect(0, titley + myRowHeight, w, h - (titley + myRowHeight));
       } else {
         g.setColor(MEUI.ourSecondaryPanelBackground);
 
-        g.fillRect(0, titley, w, ROW_HEIGHT);
+        g.fillRect(0, titley, w, myRowHeight);
       }
 
     } else {
       if (mSelected) {
         g.setColor(MEUI.ourMySelectedLineColor);
-        g.fillRect(0, 0, w, ROW_HEIGHT);
+        g.fillRect(0, 0, w, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
-        g.fillRect(0, ROW_HEIGHT, w, h - ROW_HEIGHT);
+        g.fillRect(0, myRowHeight, w, h - myRowHeight);
       } else {
         g.setColor(MEUI.ourSecondaryPanelBackground);
         g.fillRect(0, 0, w, h);
@@ -105,7 +119,7 @@ public class TimeLineRow extends JPanel {
     if (mShowTitle) {
       g.setColor(MEUI.ourTextColor);
       g.drawString(mRow.mRef + ":" + mRow.mName, sx, fontAscent);
-      sy += TITLE_HEIGHT;
+      sy += myTitleHeight;
     }
     ((Graphics2D) g)
       .setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -115,12 +129,20 @@ public class TimeLineRow extends JPanel {
     sy += fontAscent;
     g.setColor((mSelected) ? MEUI.ourMySelectedTextColor : MEUI.ourTextColor);
     sx = MEUI.scale(22);
+    int rowTypeEnd  = 0;
     if (mRow.mType != null) {
       g.drawString(mRow.mType, sx, sy);
+      rowTypeEnd  =  sx + metrics.stringWidth(mRow.mType);
     }
     if (mRow.mKeyProp != null) {
       sx = MEUI.ourLeftColumnWidth - metrics.stringWidth(mRow.mKeyProp) - 3;
-      g.drawString(mRow.mKeyProp, sx, sy);
+      if (sx < rowTypeEnd){
+        g.setClip(0,0,MEUI.ourLeftColumnWidth ,getHeight());
+        g.drawString(mRow.mKeyProp, rowTypeEnd, sy);
+        g.setClip(null);
+      } else {
+        g.drawString(mRow.mKeyProp, sx, sy);
+      }
     }
     sy -= metrics.getAscent();
     int rad = 4;
@@ -147,7 +169,7 @@ public class TimeLineRow extends JPanel {
         }
       }
 
-      int ypos = sy + ROW_HEIGHT / 2;
+      int ypos = sy + myRowHeight / 2;
       int x = mTimelineStructure.floatToPosition(pos) + MEUI.ourLeftColumnWidth;
       drawDiamond(g, x, ypos);
       if (keyFrame == mSelectedKeyFrame && mSelected) {
@@ -155,16 +177,17 @@ public class TimeLineRow extends JPanel {
       }
     }
     if (mHasGraph && mGraphOpen) {
-      int gy = ROW_HEIGHT + ((mShowTitle) ? TITLE_HEIGHT : 0);
-      mGraph.draw(g, mTimelineStructure, MEUI.ourLeftColumnWidth, gy, w - MEUI.ourLeftColumnWidth, GRAPH_HEIGHT);
+      int gy = myRowHeight + ((mShowTitle) ? myTitleHeight : 0);
+      mGraph.draw(g, mTimelineStructure, MEUI.ourLeftColumnWidth, gy, w - MEUI.ourLeftColumnWidth, myGraphHeight);
     }
+    g.setColor(MEUI.myGridColor);
     drawTicks(g, mTimelineStructure, h);
   }
 
   public void drawArrow(Graphics g, int y) {
 
     int x = 2;
-    int size = ROW_HEIGHT / 3;
+    int size = myRowHeight / 3;
     y += size;
     if (mGraphOpen) {
       mXPoint[0] = x;
@@ -214,24 +237,16 @@ public class TimeLineRow extends JPanel {
     mSelectedKeyFrame = selectedKeyFrame;
     mShowTitle = showTitle;
     mHasGraph = mGraph.setUp(model, row);
-    if (mShowTitle) {
-      setSize(MEUI.size(100, 40));
-      setPreferredSize(MEUI.size(100, getNewHeight()));
-      return;
-    }
-    setSize(MEUI.size(100, 20));
-    setPreferredSize(MEUI.size(100, getNewHeight()));
-    revalidate();
-
+    updateUI();
   }
 
   private int getNewHeight() {
-    int ret = ROW_HEIGHT;
+    int ret = myRowHeight;
     if (mShowTitle) {
-      ret += TITLE_HEIGHT;
+      ret += myTitleHeight;
     }
     if (mGraphOpen & mHasGraph) {
-      ret += GRAPH_HEIGHT;
+      ret += myGraphHeight;
     }
     return ret;
   }

@@ -145,6 +145,19 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     public List<String> getLibraryClassesRoots() {
       return Collections.emptyList();
     }
+
+    @Nullable
+    @Override
+    public String getMinVersion() {
+      String minStr = super.getMinVersion();
+      try {
+        int min = Integer.parseInt(minStr);
+        return Integer.toString(Math.min(28, min));
+      }
+      catch (NumberFormatException e) {
+        return minStr;
+      }
+    }
   }
 
   private final Module[] myModules;

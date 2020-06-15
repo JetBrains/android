@@ -16,10 +16,8 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.SdkConstants
-import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -45,17 +43,12 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val flagRule = RestoreFlagRule(StudioFlags.DATA_BINDING_INSPECTIONS_ENABLED)
-
   private val fixture: JavaCodeInsightTestFixture by lazy {
     projectRule.fixture as JavaCodeInsightTestFixture
   }
 
   @Before
   fun setUp() {
-    StudioFlags.DATA_BINDING_INSPECTIONS_ENABLED.override(true)
-
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
 
@@ -96,6 +89,21 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
         public @interface BindingConversion {
         }
 
+      """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/InverseMethod.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        @Target(ElementType.METHOD)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface InverseMethod {
+          String value();
+        }
       """.trimIndent())) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
@@ -1019,6 +1027,311 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_height="120dp"
             android:gravity="center"
             android:onClick="@{model.array.length}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_escapeCharactersWithinDoubleQuoteBindingExpression() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{`\`  &quot;World&quot; \u123f \215`}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_escapeCharactersWithinSingleQuoteBindingExpression() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text='@{"\`  \&quot;World\&quot; \u123f \215"}'/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_resourcesWithPackageNameAfterSlash() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{@id/android:list}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_resourcesWithTextType() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{@text/list}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_chainedTernaryOperation() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+      <data>
+        <variable name="cond1" type="boolean"/>
+        <variable name="cond2" type="boolean"/>
+      </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{cond1 ? cond2 ? `1` : `2` : `3`}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_fieldWithoutSetterNotInvertible() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+
+      public class Model {
+        public int getNumber() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@={<error descr="The expression 'model.number' cannot be inverted, so it cannot be used in a two-way binding">model.number</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_methodCallNotInvertible() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+
+      public class Model {
+        public int calculateString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@={<error descr="The expression 'model.calculateString()' cannot be inverted, so it cannot be used in a two-way binding">model.calculateString()</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_methodCallNotInvertibleWithoutInverseMethod() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+
+      public class Model {
+        public String calculateString(int v) {}
+        public int getValue() {}
+        public void setValue(int v) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@={<error descr="The expression 'model.calculateString(model.value)' cannot be inverted, so it cannot be used in a two-way binding">model.calculateString(model.value)</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_methodCallInvertibleWhenAnnotatingWithInverseMethod() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+      import ${dataBindingMode.inverseMethod};
+
+      public class Model {
+        public CharSequence calculateString(int v) {}
+        public int getValue() {}
+        public void setValue(int v) {}
+        @InverseMethod("calculateString")
+        public static int calculateInt(CharSequence s) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@={model.calculateString(model.value)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_methodCallInvertibleWhenAnnotatedByInverseMethod() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+      import ${dataBindingMode.inverseMethod};
+
+      public class Model {
+        @InverseMethod("calculateInt")
+        public CharSequence calculateString(int v) {}
+        public int getValue() {}
+        public void setValue(int v) {}
+        public static int calculateInt(CharSequence s) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@={model.calculateString(model.value)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_bindingExpressionGetterNotMatched() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+
+      public class Model {
+        public int getNumber() {}
+        public void setNumber(int x) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@={<error descr="Cannot find a getter for <TextView android:text> that accepts parameter type 'int'">model.number</error>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)

@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
+import com.intellij.ui.PortField;
+import com.intellij.ui.RawCommandLineEditor;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
@@ -52,8 +55,12 @@ public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper>
     super(robot, target, dialogWrapper);
   }
 
-  public void clickOk() {
-    findAndClickOkButton(this);
+  public void clickYes() {
+    findAndClickButton(this, "Yes");
+  }
+
+  public void clickNo() {
+    findAndClickButton(this, "No");
   }
 
   public void enableHttpsProxy() {
@@ -64,5 +71,51 @@ public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper>
   public void setDoNotShowThisDialog(boolean selected) {
     JCheckBox checkBox = robot().finder().find(Matchers.byText(JCheckBox.class, "Do not show this dialog in the future"));
     new JCheckBoxFixture(robot(), checkBox).setSelected(selected);
+  }
+
+  @NotNull
+  public String getHttpHost() {
+    JTextField hostField = robot().finder().find(Matchers.byName(JTextField.class, "httpHost"));
+    return hostField.getText();
+  }
+
+  public int getHttpPort() {
+    PortField portField = robot().finder().find(Matchers.byName(PortField.class, "httpPort"));
+    return portField.getNumber();
+  }
+
+  @NotNull
+  public String getHttpUser() {
+    JTextField userField = robot().finder().find(Matchers.byName(JTextField.class, "httpUser"));
+    return userField.getText();
+  }
+
+  @NotNull
+  public String getHttpExceptions() {
+    RawCommandLineEditor userField = robot().finder().find(Matchers.byName(RawCommandLineEditor.class, "httpExceptions"));
+    return userField.getText();
+  }
+
+  @NotNull
+  public String getHttpsHost() {
+    JTextField hostField = robot().finder().find(Matchers.byName(JTextField.class, "httpsHost"));
+    return hostField.getText();
+  }
+
+  public int getHttpsPort() {
+    PortField portField = robot().finder().find(Matchers.byName(PortField.class, "httpsPort"));
+    return portField.getNumber();
+  }
+
+  @NotNull
+  public String getHttpsUser() {
+    JTextField userField = robot().finder().find(Matchers.byName(JTextField.class, "httpsUser"));
+    return userField.getText();
+  }
+
+  @NotNull
+  public String getHttpsExceptions() {
+    RawCommandLineEditor userField = robot().finder().find(Matchers.byName(RawCommandLineEditor.class, "httpsExceptions"));
+    return userField.getText();
   }
 }

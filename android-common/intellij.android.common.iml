@@ -18,7 +18,7 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
@@ -34,6 +34,10 @@
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
     <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.java.impl" />
+    <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
   </component>
 </module>

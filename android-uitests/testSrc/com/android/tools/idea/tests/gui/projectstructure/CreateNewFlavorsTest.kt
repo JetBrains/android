@@ -16,37 +16,37 @@
 package com.android.tools.idea.tests.gui.projectstructure
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateNewFlavorsTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   @Before
   fun setUp() {
     StudioFlags.NEW_PSD_ENABLED.override(true)
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = true
   }
 
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD // Restore the default.
   }
 
   /**
@@ -69,7 +69,7 @@ class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   @Throws(Exception::class)
   fun createNewFlavors() {
@@ -104,12 +104,23 @@ class CreateNewFlavorsTest {
       .open("/app/build.gradle")
       .currentFileContents
 
-    val dimenDemo = "dimension = '$DIMEN_NAME'"
+    val dimenDemo = "dimension '$DIMEN_NAME'"
     val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdkVersion 24\n            targetSdkVersion 24\n        }"
-    val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode = 2\n            versionName = '2.3'\n        }"
+    val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode 2\n            versionName '2.3'\n        }"
 
     assertThat(gradleFileContents).contains(flavor1)
     assertThat(gradleFileContents).contains(flavor2)
+
+    // For b/143102526:
+    // Additional check: Check if able to add new Product Flavor specific Activity.
+    ide.invokeMenuPath("File", "New", "Activity", "Empty Activity")
+    NewActivityWizardFixture.find(ide)
+      .configureActivityStep
+      .selectLauncherActivity()
+      .setTargetSourceSet(FLAVOR1)
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(120))
   }
 }
 

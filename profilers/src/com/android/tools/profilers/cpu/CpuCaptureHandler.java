@@ -32,19 +32,25 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   @NotNull private final CpuCaptureParser myCaptureParser;
   @NotNull private Range myParseRange = new Range();
   @NotNull private final IdeProfilerServices myServices;
-  @NotNull private final String myConfiguration;
+  @NotNull private final ProfilingConfiguration myConfiguration;
   @NotNull private final File myCaptureFile;
   private boolean myIsParsing = false;
+  private final boolean myIsImportedTrace;
 
   public CpuCaptureHandler(@NotNull IdeProfilerServices services,
                            @NotNull File captureFile,
-                           @NotNull String configuration,
-                           @Nullable String captureProcessNameHint) {
+                           @NotNull ProfilingConfiguration configuration,
+                           @Nullable String captureProcessNameHint,
+                           int captureProcessIdHint) {
     myCaptureParser = new CpuCaptureParser(services);
-    myCaptureParser.setProcessNameHint(captureProcessNameHint);
+    myCaptureParser.setProcessNameHint(captureProcessNameHint, captureProcessIdHint);
     myCaptureFile = captureFile;
     myServices = services;
     myConfiguration = configuration;
+    // The only way we know if the file we are parsing is imported is by looking at if we have a process id or not.
+    // this value is used when parsing the capture to determine which metrics we send.
+    myIsImportedTrace = captureProcessIdHint == 0;
+    myCaptureParser.trackCaptureMetadata(CpuCaptureParser.IMPORTED_TRACE_ID, new CpuCaptureMetadata(configuration));
   }
 
   /**
@@ -64,7 +70,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   @NotNull
   @Override
   public String getConfigurationText() {
-    return myConfiguration;
+    return myConfiguration.getName();
   }
 
   /**
@@ -96,7 +102,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   public void parse(Consumer<CpuCapture> captureCompleted) {
     myIsParsing = true;
     myParseRange.set(0, 0);
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(myCaptureFile);
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(myCaptureFile, myIsImportedTrace);
     if (capture == null) {
       // User aborted the capture, or the model received an invalid file (e.g. from tests) canceled. Log and return early.
       myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
@@ -106,13 +112,10 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {
-      if (parsedCapture != null) {
-        myServices.getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
-      }
-      else if (capture.isCancelled()) {
+      if (capture.isCancelled()) {
         myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
       }
-      else {
+      else if (parsedCapture == null) {
         myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
       }
       myIsParsing = false;

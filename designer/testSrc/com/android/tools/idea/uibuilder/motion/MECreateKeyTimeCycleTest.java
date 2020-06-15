@@ -21,8 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
-import java.awt.Dimension;
+import java.awt.*;
 
 public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
   static class CreatorAccess extends CreateKeyTimeCycle {
@@ -41,33 +40,32 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
 
   public void testCreateKeyTimeCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,182,362\n" +
-                    "1,JLabel,5,2,172,15\n" +
-                    "1,JSeparator,5,20,172,2\n" +
-                    "1,JRadioButton,5,25,52,23\n" +
-                    "1,JRadioButton,67,25,110,23\n" +
-                    "1,JPanel,5,51,172,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JSeparator,5,78,172,2\n" +
-                    "1,JLabel,5,83,172,15\n" +
-                    "1,PromptedTextField,5,101,172,19\n" +
-                    "1,JLabel,5,123,172,15\n" +
-                    "1,PromptedTextField,5,141,172,19\n" +
-                    "1,JLabel,5,163,172,15\n" +
-                    "1,MEComboBox,5,181,172,24\n" +
-                    "1,JLabel,5,208,172,15\n" +
-                    "1,PromptedTextField,5,226,172,19\n" +
-                    "1,JLabel,5,248,172,15\n" +
-                    "1,PromptedTextField,5,266,172,19\n" +
-                    "1,JLabel,5,288,172,15\n" +
-                    "1,MEComboBox,5,306,172,24\n" +
-                    "1,JButton,5,336,172,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,4,2,90,4\n" +
+                    "1,JSeparator         ,0,8,99,0\n" +
+                    "1,JRadioButton       ,4,11,42,6\n" +
+                    "1,JRadioButton       ,57,11,37,6\n" +
+                    "1,JPanel             ,5,19,89,6\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JSeparator         ,0,28,99,0\n" +
+                    "1,JLabel             ,4,31,90,4\n" +
+                    "1,PromptedTextField  ,5,36,89,5\n" +
+                    "1,JLabel             ,4,44,90,4\n" +
+                    "1,MEComboBox         ,5,50,89,6\n" +
+                    "1,JLabel             ,4,59,90,4\n" +
+                    "1,PromptedTextField  ,5,64,89,5\n" +
+                    "1,JLabel             ,4,72,90,4\n" +
+                    "1,MEComboBox         ,5,77,89,6\n" +
+                    "1,JButton            ,4,89,90,7\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,4)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateKeyTimeCycleAction() {
@@ -81,36 +79,33 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
     panel.access_populateDialog();
 
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE KEY TIME CYCLE\n" +
-      "1,JSeparator,\n" +
-      "1,JRadioButton,\n" +
-      "1,JRadioButton,\n" +
-      "1,JPanel,\n" +
-      "2,PromptedTextField,tag or regex\n" +
-      "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-      "1,JSeparator,\n" +
-      "1,JLabel,TAG/ID\n" +
-      "1,PromptedTextField,ID or constraintTag\n" +
-      "1,JLabel,Position\n" +
-      "1,PromptedTextField,0-100\n" +
-      "1,JLabel,Wave Shape\n" +
-      "1,MEComboBox,sin,square,triangle,sawtooth,reverseSawtooth,cos,bounce\n" +
-      "1,JLabel,Wave Period\n" +
-      "1,PromptedTextField,1\n" +
-      "1,JLabel,Wave Offset\n" +
-      "1,PromptedTextField,float\n" +
-      "1,JLabel,Attribute to cycle\n" +
-      "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE KEY TIME CYCLE\n" +
+                  "1,JSeparator,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JPanel,\n" +
+                  "2,PromptedTextField,tag or regex\n" +
+                  "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JSeparator,\n" +
+                  "1,JLabel,Position\n" +
+                  "1,PromptedTextField,0-100\n" +
+                  "1,JLabel,Wave Shape\n" +
+                  "1,MEComboBox,sin,square,triangle,sawtooth,reverseSawtooth,cos,bounce\n" +
+                  "1,JLabel,Wave Period\n" +
+                  "1,PromptedTextField,1\n" +
+                  "1,JLabel,Attribute to cycle\n" +
+                  "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate,Custom:letterSpacing\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyTimeCycle\n" +
-      "   android:alpha=\"0\"\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"test32\"\n" +
-      "   motion:wavePeriod=\"1\" />\n";
+                     "<KeyTimeCycle\n" +
+                     "   android:alpha=\"0.5\"\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:motionTarget=\"@+id/number\"\n" +
+                     "   motion:waveOffset=\"0.5\"\n" +
+                     "   motion:wavePeriod=\"1\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }

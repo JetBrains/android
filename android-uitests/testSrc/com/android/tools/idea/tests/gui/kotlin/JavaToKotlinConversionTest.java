@@ -19,8 +19,12 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
@@ -63,12 +67,21 @@ public class JavaToKotlinConversionTest {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
 
+    openJavaAndPressConvertToKotlin(ideFrameFixture);
+
+    KotlinIsNotConfiguredDialogFixture.find(ideFrameFixture.robot())
+      .clickOkAndWaitDialogDisappear();
+
+    ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+      .clickOkAndWaitDialogDisappear();
+
+    // We need to wait for sync because otherwise Studio will not understand that we have added Kotlin support
+    ideFrameFixture.waitForGradleProjectSyncToFinish();
+
+    // Doing it twice because after the first time we have only added Kotlin support to the project
+    openJavaAndPressConvertToKotlin(ideFrameFixture);
+
     EditorFixture editor = ideFrameFixture.getEditor();
-
-    editor.open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .waitUntilErrorAnalysisFinishes();
-
-    ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
 
     Wait.seconds(10).expecting("Wait for kt file is generated.")
       .until(() -> "MyActivity.kt".equals(editor.getCurrentFileName()));
@@ -77,5 +90,13 @@ public class JavaToKotlinConversionTest {
 
     ideFrameFixture.invokeMenuPath("Build", "Rebuild Project");
     ideFrameFixture.waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(120));
+  }
+
+  private static void openJavaAndPressConvertToKotlin(@NotNull IdeFrameFixture ideFrameFixture) {
+    // Wait for indexing to finish
+    DumbService.getInstance(ideFrameFixture.getProject()).waitForSmartMode();
+
+    ideFrameFixture.getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
+    ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
   }
 }

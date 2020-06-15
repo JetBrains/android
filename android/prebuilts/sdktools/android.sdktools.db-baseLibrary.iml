@@ -6,9 +6,19 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-baseLibrary" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:baseLibrary:26.6.0.3" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrary:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/baseLibrary/26.6.0.3/baseLibrary-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrary/27.0.0.0/studio.baseLibrary-27.0.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="precompiled-db-baseLibrary-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrary_test:27.0.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrary_test/27.0.0.0/studio.baseLibrary_test-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

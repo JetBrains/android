@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class UnitTestsModelImpl extends GradleDslBlockModel implements UnitTestsModel {
-  @NonNls private static final String RETURN_DEFAULT_VALUES = "returnDefaultValues";
+  @NonNls public static final String RETURN_DEFAULT_VALUES = "mReturnDefaultValues";
 
   public UnitTestsModelImpl(@NotNull UnitTestsDslElement dslElement) {
     super(dslElement);
@@ -32,6 +32,6 @@ public class UnitTestsModelImpl extends GradleDslBlockModel implements UnitTests
   @Override
   @NotNull
   public ResolvedPropertyModel returnDefaultValues() {
-    return getModelForProperty(RETURN_DEFAULT_VALUES, true);
+    return getModelForProperty(RETURN_DEFAULT_VALUES);
   }
 }

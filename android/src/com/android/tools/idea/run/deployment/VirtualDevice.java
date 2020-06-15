@@ -27,6 +27,9 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -40,19 +43,20 @@ final class VirtualDevice extends Device {
   private final Snapshot mySnapshot;
 
   @NotNull
-  static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
-                                          @NotNull ConnectedDevice connectedDevice,
-                                          @NotNull KeyToConnectionTimeMap map) {
-    Key key = virtualDevice.getKey();
+  static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
+                                          @NotNull KeyToConnectionTimeMap map,
+                                          @Nullable VirtualDevice virtualDevice) {
+    Device device = virtualDevice == null ? connectedDevice : virtualDevice;
+    Key key = device.getKey();
 
     return new Builder()
-      .setName(virtualDevice.getName())
+      .setName(device.getName())
       .setValid(connectedDevice.isValid())
       .setValidityReason(connectedDevice.getValidityReason())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
-      .setSnapshot(virtualDevice.mySnapshot)
+      .setSnapshot(device.getSnapshot())
       .build();
   }
 
@@ -149,14 +153,23 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     AndroidDevice device = getAndroidDevice();
 
     if (!isConnected()) {
-      device.launch(project, snapshot == null ? null : snapshot.getDirectoryName());
+      device.launch(project, getEmulatorCommandArguments());
     }
 
     futures.getDevices().add(device);
+  }
+
+  @NotNull
+  private List<String> getEmulatorCommandArguments() {
+    if (mySnapshot == null) {
+      return Collections.emptyList();
+    }
+
+    return Arrays.asList("-snapshot", mySnapshot.getDirectory().toString(), "-id", getKey().toString());
   }
 
   @Override

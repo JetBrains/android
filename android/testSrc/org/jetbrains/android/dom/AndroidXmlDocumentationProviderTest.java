@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.navigation.CtrlMouseHandler;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -37,7 +38,8 @@ public class AndroidXmlDocumentationProviderTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(f);
     final PsiReference ref = myFixture.getFile().findReferenceAt(myFixture.getEditor().getCaretModel().getOffset());
     assertThat(ref).isNotNull();
-    assertThat(CtrlMouseHandler.getInfo(ref.resolve(), ref.getElement())).isEqualTo("value resource 'myString' [strings.xml]");
+    String expectedResult = StudioFlags.RESOLVE_USING_REPOS.get() ? "@string/myString" : "value resource 'myString' [strings.xml]";
+    assertThat(CtrlMouseHandler.getInfo(ref.resolve(), ref.getElement())).isEqualTo(expectedResult);
   }
 
   public void testAndroidAttributeDocumentation() {

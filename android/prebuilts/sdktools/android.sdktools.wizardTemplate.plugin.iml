@@ -10,10 +10,20 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-intellij.android.wizardTemplate.plugin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:wizardTemplate.plugin:26.6.0.3" />
+      <library name="precompiled-wizardTemplate.plugin" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/wizardTemplate.plugin/26.6.0.3/wizardTemplate.plugin-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/27.0.0.0/studio.intellij.android.wizardTemplate.plugin-27.0.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="precompiled-wizardTemplate.plugin-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin_test:27.0.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/27.0.0.0/studio.intellij.android.wizardTemplate.plugin_test-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

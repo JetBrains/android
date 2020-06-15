@@ -24,6 +24,9 @@ import com.android.SdkConstants.GRADLE_COMPILE_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PROJECT_OUT
 import com.google.common.collect.SetMultimap
 import freemarker.template.TemplateBooleanModel
 import freemarker.template.TemplateMethodModelEx
@@ -86,7 +89,7 @@ class FmHasDependencyMethod(private val myParamMap: Map<String, Any>) : Template
     }
 
     fun findCorrespondingModule(): Boolean? {
-      val modulePath = myParamMap[TemplateMetadata.ATTR_PROJECT_OUT] as? String ?: return null
+      val modulePath = myParamMap[ATTR_PROJECT_OUT] as? String ?: return null
       val module = findModule(modulePath) ?: return null
       val facet = AndroidFacet.getInstance(module) ?: return null
       // TODO: b/23032990
@@ -111,8 +114,8 @@ class FmHasDependencyMethod(private val myParamMap: Map<String, Any>) : Template
       // No dependencies: Base it off of the minApi and buildApi versions:
       // If building with Lollipop, and targeting anything earlier than Lollipop, use appcompat.
       // (Also use it if minApi is less than ICS.)
-      val buildApiObject = myParamMap[TemplateMetadata.ATTR_BUILD_API]
-      val minApiObject = myParamMap[TemplateMetadata.ATTR_MIN_API_LEVEL]
+      val buildApiObject = myParamMap[ATTR_BUILD_API]
+      val minApiObject = myParamMap[ATTR_MIN_API_LEVEL]
       return (buildApiObject is Int && minApiObject is Int &&
               minApiObject >= 8 && (buildApiObject >= 21 && minApiObject < 21 || minApiObject < 14)).toTemplateBooleanModel()
     }

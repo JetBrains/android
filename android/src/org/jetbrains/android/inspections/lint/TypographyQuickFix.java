@@ -1,5 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.lint.checks.TypographyDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.openapi.application.ApplicationManager;
@@ -7,15 +9,14 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
+import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class TypographyQuickFix implements AndroidLintQuickFix {
+public class TypographyQuickFix implements LintIdeQuickFix {
   private final Issue myIssue;
   private final String myMessage;
 

@@ -45,13 +45,13 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
 
     val titleLine = getTitleLine()
     addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT], titleLine)
-    addEditor(inspector, getDesignProperty(properties, ATTR_TEXT), titleLine)
+    addEditor(inspector, properties.getOrNull(TOOLS_URI, ATTR_TEXT) ?: properties[ANDROID_URI, ATTR_TEXT].designProperty, titleLine)
     addEditor(inspector, properties[ANDROID_URI, ATTR_CONTENT_DESCRIPTION], titleLine)
 
     val textAppearanceLabel = addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_APPEARANCE], titleLine)
     textAppearanceLabel.makeExpandable(initiallyExpanded = false)
 
-    val fontFamily = getOptionalProperty(properties, ATTR_FONT_FAMILY)
+    val fontFamily = properties.getOrNull(ANDROID_URI, ATTR_FONT_FAMILY) ?: properties.getOrNull(AUTO_URI, ATTR_FONT_FAMILY)
     if (fontFamily != null) {
       addEditor(inspector, fontFamily, textAppearanceLabel)
     }
@@ -104,14 +104,6 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     val editor = ToggleButtonPropertyEditor(model)
     model.lineModel = line
     return model to editor
-  }
-
-  private fun getDesignProperty(properties: PropertiesTable<NelePropertyItem>, attribute: String): NelePropertyItem {
-    return properties.getOrNull(TOOLS_URI, attribute) ?: properties[ANDROID_URI, attribute].designProperty
-  }
-
-  private fun getOptionalProperty(properties: PropertiesTable<NelePropertyItem>, attribute: String): NelePropertyItem? {
-    return properties.getOrNull(ANDROID_URI, attribute) ?: properties.getOrNull(AUTO_URI, attribute) ?: return null
   }
 
   companion object {

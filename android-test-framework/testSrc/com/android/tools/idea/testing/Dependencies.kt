@@ -96,7 +96,7 @@ object Dependencies {
       val classesJar = aarDir.resolve(SdkConstants.FN_CLASSES_JAR)
       val jarDir = FileUtil.createTempDirectory(name, "_exploded_jar")
       ZipUtil.extract(classesJar, jarDir, null)
-      val classesRoots = listOf(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
+      val classesRoots = listOfNotNull(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
       val library = PsiTestUtil.addProjectLibrary(fixture.module, "$name.aar", classesRoots, emptyList())
       ModuleRootModificationUtil.addDependency(fixture.module, library, DependencyScope.PROVIDED, true)
     }

@@ -16,13 +16,18 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -79,6 +84,8 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.pickFirsts().getListValue("pickFirst3").setValue("pickFirstX");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -102,17 +109,24 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("pickFirsts", packagingOptions.pickFirsts());
 
     packagingOptions.excludes().addListValue().setValue("exclude");
-    packagingOptions.merges().addListValue().setValue("merge");
-    packagingOptions.pickFirsts().addListValue().setValue("pickFirst");
+    packagingOptions.merges().addListValue().setValue("merge1");
+    packagingOptions.merges().addListValue().setValue("merge2");
+    packagingOptions.pickFirsts().addListValue().setValue("pickFirst1");
+    packagingOptions.pickFirsts().addListValue().setValue("pickFirst2");
+    packagingOptions.pickFirsts().addListValue().setValue("pickFirst3");
 
     applyChangesAndReparse(buildModel);
+    // TODO(b/144280051): we emit Dsl with syntax errors here
+    if(!isGroovy()) {
+      verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+    }
     android = buildModel.android();
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
     assertEquals("excludes", ImmutableList.of("exclude"), packagingOptions.excludes());
-    assertEquals("merges", ImmutableList.of("merge"), packagingOptions.merges());
-    assertEquals("pickFirsts", ImmutableList.of("pickFirst"), packagingOptions.pickFirsts());
+    assertEquals("merges", ImmutableList.of("merge1", "merge2"), packagingOptions.merges());
+    assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
   }
 
   @Test
@@ -133,6 +147,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.pickFirsts().addListValue().setValue("pickFirst2");
 
     applyChangesAndReparse(buildModel);
+    // TODO(b/144280051): we emit Dsl with syntax errors here
+    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -161,6 +178,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.pickFirsts().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
 
     android = buildModel.android();
     assertNotNull(android);
@@ -189,6 +207,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.pickFirsts().getListValue("pickFirst3").delete();
 
     applyChangesAndReparse(buildModel);
+    // TODO(b/144280051): we emit Dsl with syntax errors here
+    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -217,12 +238,15 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     packagingOptions.pickFirsts().getListValue("pickFirst").delete();
 
     applyChangesAndReparse(buildModel);
+    // TODO(b/144280051): we emit Dsl with syntax errors here
+    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
     assertMissingProperty("excludes", packagingOptions.excludes());
     assertEmpty("merges", packagingOptions.merges().toList());
-    assertMissingProperty("pickFirsts", packagingOptions.pickFirsts());
+    assertEmpty("pickFirsts", packagingOptions.pickFirsts().toList());
   }
 }

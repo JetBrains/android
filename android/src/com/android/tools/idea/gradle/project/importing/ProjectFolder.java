@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 import static com.intellij.openapi.util.io.FileUtil.*;
 
@@ -48,7 +48,7 @@ public abstract class ProjectFolder {
 
     @Override
     public void createTopLevelBuildFile() throws IOException {
-      File buildFile = getGradleBuildFilePath(myPath);
+      File buildFile = findGradleBuildFile(myPath);
       if (buildFile.isFile()) {
         return;
       }

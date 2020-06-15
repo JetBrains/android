@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.concurrency.AndroidIoManager;
-import com.android.utils.SdkUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
-import com.intellij.AppTopics;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -32,30 +29,12 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.util.messages.MessageBusConnection;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,16 +63,12 @@ public final class ResourceFolderRegistry implements Disposable {
 
   public ResourceFolderRegistry(@NotNull Project project) {
     myProject = project;
-    MessageBusConnection connection = project.getMessageBus().connect(this);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         removeStaleEntries();
       }
     });
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener());
-    connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener());
-    EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(), this);
   }
 
   @NotNull
@@ -171,7 +146,7 @@ public final class ResourceFolderRegistry implements Disposable {
     reset();
   }
 
-  private void dispatchToRepositories(@NotNull VirtualFile file,
+  void dispatchToRepositories(@NotNull VirtualFile file,
                                       @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
@@ -263,144 +238,6 @@ public final class ResourceFolderRegistry implements Disposable {
     public CachedRepositories(@Nullable ResourceFolderRepository namespaced, @Nullable ResourceFolderRepository nonNamespaced) {
       this.namespaced = namespaced;
       this.nonNamespaced = nonNamespaced;
-    }
-  }
-
-  /**
-   * {@link BulkFileListener} which handles {@link VFileEvent}s for resource folder.
-   * When an event happens on a file within a folder with a corresponding
-   * {@link ResourceFolderRepository}, the event is delegated to it.
-   */
-  private class MyVfsListener implements BulkFileListener {
-    @UiThread
-    @Override
-    public void before(@NotNull List<? extends VFileEvent> events) {
-      for (VFileEvent event : events) {
-        if (event instanceof VFileMoveEvent) {
-          onFileOrDirectoryRemoved(((VFileMoveEvent)event).getFile());
-        }
-        else if (event instanceof VFileDeleteEvent) {
-          onFileOrDirectoryRemoved(((VFileDeleteEvent)event).getFile());
-        }
-        else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
-          onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
-        }
-      }
-    }
-
-    @Override
-    public void after(@NotNull List<? extends VFileEvent> events) {
-      for (VFileEvent event : events) {
-        if (event instanceof VFileCreateEvent) {
-          VFileCreateEvent createEvent = (VFileCreateEvent)event;
-          onFileOrDirectoryCreated(createEvent.getParent(), createEvent.getChildName());
-        }
-        else if (event instanceof VFileCopyEvent) {
-          VFileCopyEvent copyEvent = (VFileCopyEvent)event;
-          onFileOrDirectoryCreated(copyEvent.getNewParent(), copyEvent.getNewChildName());
-        }
-        else if (event instanceof VFileMoveEvent) {
-          VFileMoveEvent moveEvent = (VFileMoveEvent)event;
-          onFileOrDirectoryCreated(moveEvent.getNewParent(), moveEvent.getFile().getName());
-        }
-        else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
-          VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
-          VirtualFile parent = renameEvent.getFile().getParent();
-          if (parent != null) {
-            onFileOrDirectoryCreated(parent, (String)renameEvent.getNewValue());
-          }
-        }
-        else if (event instanceof VFileContentChangeEvent) {
-          onFileContentChanged(((VFileContentChangeEvent)event).getFile());
-        }
-      }
-    }
-
-    private void onFileOrDirectoryCreated(@NotNull VirtualFile parent, @NotNull String childName) {
-      VirtualFile created = parent.findChild(childName);
-      if (created == null) {
-        return;
-      }
-
-      CachedRepositories cachedRepositories;
-      if (created.isDirectory()) {
-        cachedRepositories = getCached(parent);
-      }
-      else {
-        VirtualFile grandParent = parent.getParent();
-        cachedRepositories = grandParent == null ? null : getCached(grandParent);
-      }
-
-      if (cachedRepositories != null) {
-        onFileOrDirectoryCreated(created, cachedRepositories.namespaced);
-        onFileOrDirectoryCreated(created, cachedRepositories.nonNamespaced);
-      }
-    }
-
-    private void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
-      if (repository == null) {
-        return;
-      }
-
-      if (!created.isDirectory()) {
-        repository.onFileCreated(created);
-      }
-      else {
-        // ResourceFolderRepository doesn't handle event on a whole folder so we pass all the children.
-        for (VirtualFile child : created.getChildren()) {
-          if (!child.isDirectory()) {
-            // There is no need to visit subdirectories because Android does not support them.
-            // If a base resource directory is created (e.g res/), a whole
-            // ResourceFolderRepository will be created separately so we don't need to handle
-            // this case here.
-            repository.onFileCreated(child);
-          }
-        }
-      }
-    }
-
-    private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
-      dispatchToRepositories(file, ResourceFolderRepository::onFileOrDirectoryRemoved);
-    }
-
-    private void onFileContentChanged(@NotNull VirtualFile file) {
-      if (file.isDirectory()) {
-        return;
-      }
-
-      if (SdkUtils.hasImageExtension(file.getName())) {
-        dispatchToRepositories(file, ResourceFolderRepository::onBitmapFileUpdated);
-      }
-    }
-  }
-
-  private final class MyFileDocumentManagerListener implements FileDocumentManagerListener {
-    @Override
-    public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
-      dispatchToRepositories(file, ResourceFolderRepository::scheduleScan);
-    }
-  }
-
-  private final class MyDocumentListener implements DocumentListener {
-    private final FileDocumentManager myFileDocumentManager = FileDocumentManager.getInstance();
-    private final PsiDocumentManager myPsiDocumentManager = PsiDocumentManager.getInstance(myProject);
-
-    @Override
-    public void documentChanged(@NotNull DocumentEvent event) {
-      if (myProject.isDisposed()) {
-        return;
-      }
-
-      Document document = event.getDocument();
-      PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
-      if (psiFile == null) {
-        VirtualFile virtualFile = myFileDocumentManager.getFile(document);
-        if (virtualFile != null) {
-          dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan);
-        }
-      }
     }
   }
 }

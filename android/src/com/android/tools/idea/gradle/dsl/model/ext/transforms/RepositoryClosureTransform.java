@@ -36,16 +36,10 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropert
  */
 public class RepositoryClosureTransform extends DefaultTransform {
   @NotNull
-  private GradleDslElement myParent;
-  @NotNull
   private String myElementName;
-  @NotNull
-  private String myDefaultValue;
 
-  public RepositoryClosureTransform(@NotNull GradleDslElement parent, @NotNull String elementName, @NotNull String defaultValue) {
-    myParent = parent;
+  public RepositoryClosureTransform(@NotNull String elementName) {
     myElementName = elementName;
-    myDefaultValue = defaultValue;
   }
 
   @Override
@@ -64,12 +58,7 @@ public class RepositoryClosureTransform extends DefaultTransform {
     else if (isPropertiesElementOrMap(e)) {
       element = ((GradlePropertiesDslElement)e).getElement(myElementName);
     }
-
-    if (element != null) {
-      return element;
-    }
-
-    return new GradleDslGlobalValue(myParent, myDefaultValue, myElementName);
+    return element;
   }
 
   @NotNull
@@ -80,7 +69,7 @@ public class RepositoryClosureTransform extends DefaultTransform {
                                   @NotNull String name) {
     GradleDslElement transformedElement = transform(oldElement);
 
-    if (transformedElement instanceof GradleDslGlobalValue) {
+    if (transformedElement == null) {
       return super.bind(holder, null, value, myElementName);
     }
     return super.bind(holder, transformedElement, value, myElementName);

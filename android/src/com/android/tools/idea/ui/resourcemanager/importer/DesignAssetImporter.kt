@@ -112,7 +112,8 @@ class DesignAssetImporter {
  * If the facet has no res/ directory, it will try to create one.
  */
 fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
-  val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
+  val resDirectories =
+    SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider.resDirectoryUrls.map { File(VfsUtil.urlToPath(it)) }
   if (resDirectories.isEmpty()) {
     val projectPath = androidFacet.module.project.basePath
     if (projectPath != null) {

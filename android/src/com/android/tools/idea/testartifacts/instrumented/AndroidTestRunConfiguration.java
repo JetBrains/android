@@ -24,7 +24,9 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
@@ -41,6 +43,7 @@ import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -54,6 +57,7 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
@@ -136,7 +140,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel()) {
+    if (!AndroidModel.isRequired(facet)) {
       // Non Gradle projects always require an application
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
@@ -213,7 +217,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    if (!facet.requiresAndroidModel() && !configuration.getState().PACK_TEST_CODE) {
+    if (!AndroidModel.isRequired(facet) && !configuration.getState().PACK_TEST_CODE) {
       final int count = getTestSourceRootCount(module);
       if (count > 0) {
         final String shortMessage = "Test code not included into APK";
@@ -247,7 +251,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (facet.getModel() != null && facet.getModel() instanceof AndroidModuleModel) {
+    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
       return createGradleApkProvider(facet, applicationIdProvider, true, targetDevices);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);
@@ -315,8 +319,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected ConsoleProvider getConsoleProvider() {
     return (parent, handler, executor) -> {
-      AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-      ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+      final ConsoleView consoleView;
+      if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get() && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
+        consoleView = new AndroidTestSuiteView();
+        consoleView.attachToProcess(handler);
+      } else {
+        AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
+        consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+      }
       Disposer.register(parent, consoleView);
       return consoleView;
     };
@@ -592,5 +602,19 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected LaunchOptions.Builder getLaunchOptions() {
     // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
     return super.getLaunchOptions().setForceStopRunningApp(false);
+  }
+
+  /**
+   * Returns a test execution option specified by the facet or HOST is returned by default.
+   *
+   * @param facet Android facet to retrieve test execution option
+   */
+  public TestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
+    return Optional.ofNullable(facet)
+      .map(f -> AndroidModuleModel.get(f))
+      .map(model -> model.getArtifactForAndroidTest())
+      .map(testArtifact -> testArtifact.getTestOptions())
+      .map(testOptions -> testOptions.getExecution())
+      .orElse(TestOptions.Execution.HOST);
   }
 }

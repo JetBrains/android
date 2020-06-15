@@ -10,9 +10,9 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
@@ -23,15 +23,22 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/.idea/libraries:javassist",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
     # do not sort: must match IML order
     deps = [
@@ -48,6 +55,8 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
         "//tools/idea/xml/impl:intellij.xml.impl[module]",
+        "//tools/idea/plugins/gradle/tooling-extension-api:intellij.gradle.toolingExtension[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
     ],
 )
 
@@ -57,7 +66,7 @@ iml_module(
     iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
-    test_coverage = False,  # TODO(b/136028658): too flaky for use in covergae runs
+    test_coverage = True,
     test_data = [
         "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//prebuilts/studio/jdk",
@@ -80,14 +89,20 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/.idea/libraries:javassist",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
@@ -95,17 +110,22 @@ iml_module(
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_tags = [
-        "slow",
+        "cpu:3",
+        "block-network",
         "no_test_mac",
     ],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",

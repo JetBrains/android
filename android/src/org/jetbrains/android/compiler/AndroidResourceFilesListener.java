@@ -19,7 +19,7 @@ import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
-import com.android.tools.idea.res.PsiProjectListener;
+import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
@@ -77,7 +77,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     for (VFileEvent event : events) {
       VirtualFile file = event.getFile();
 
-      if (file != null && PsiProjectListener.isRelevantFile(file)) {
+      if (file != null && AndroidFileChangeListener.isRelevantFile(file)) {
         result.add(file);
       }
     }
@@ -157,6 +157,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       return result;
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     private List<AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap(AndroidFacet facet, VirtualFile file) {
       VirtualFile parent = file.getParent();
@@ -165,7 +166,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         return Collections.emptyList();
       }
       Module module = facet.getModule();
-      VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
+      VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
       List<AndroidAutogeneratorMode> modes = new ArrayList<>();
 
       if (Comparing.equal(manifestFile, file)) {

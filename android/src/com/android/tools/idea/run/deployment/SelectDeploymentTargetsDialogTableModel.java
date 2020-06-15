@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.project.Project;
+import com.google.common.base.Strings;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -25,8 +27,11 @@ import org.jetbrains.annotations.NotNull;
 
 final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
   static final int SELECTED_MODEL_COLUMN_INDEX = 0;
-  static final int ICON_MODEL_COLUMN_INDEX = 1;
-  private static final int NAME_MODEL_COLUMN_INDEX = 2;
+  static final int TYPE_MODEL_COLUMN_INDEX = 1;
+  private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
+  private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
+  private static final int SNAPSHOT_MODEL_COLUMN_INDEX = 4;
+  private static final int ISSUE_MODEL_COLUMN_INDEX = 5;
 
   @NotNull
   private final List<Device> myDevices;
@@ -34,11 +39,18 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
   @NotNull
   private final JTable myTable;
 
-  SelectDeploymentTargetsDialogTableModel(@NotNull Project project, @NotNull JTable table) {
-    myDevices = ServiceManager.getService(project, AsyncDevicesGetter.class).get();
+  @NotNull
+  private final Multiset<String> myDeviceNameMultiset;
+
+  SelectDeploymentTargetsDialogTableModel(@NotNull List<Device> devices, @NotNull JTable table) {
+    myDevices = devices;
     myDevices.sort(new DeviceComparator());
 
     myTable = table;
+
+    myDeviceNameMultiset = devices.stream()
+      .map(Device::getName)
+      .collect(Collectors.toCollection(() -> HashMultiset.create(myDevices.size())));
   }
 
   @NotNull
@@ -53,7 +65,7 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return 3;
+    return 6;
   }
 
   @NotNull
@@ -62,10 +74,16 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
         return "";
-      case ICON_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
         return "Type";
-      case NAME_MODEL_COLUMN_INDEX:
-        return "Device name";
+      case DEVICE_MODEL_COLUMN_INDEX:
+        return "Device";
+      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
+        return "Serial Number";
+      case SNAPSHOT_MODEL_COLUMN_INDEX:
+        return "Snapshot";
+      case ISSUE_MODEL_COLUMN_INDEX:
+        return "Issue";
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -77,9 +95,12 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
         return Boolean.class;
-      case ICON_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
         return Icon.class;
-      case NAME_MODEL_COLUMN_INDEX:
+      case DEVICE_MODEL_COLUMN_INDEX:
+      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
+      case SNAPSHOT_MODEL_COLUMN_INDEX:
+      case ISSUE_MODEL_COLUMN_INDEX:
         return Object.class;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -91,8 +112,11 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
         return true;
-      case ICON_MODEL_COLUMN_INDEX:
-      case NAME_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
+      case DEVICE_MODEL_COLUMN_INDEX:
+      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
+      case SNAPSHOT_MODEL_COLUMN_INDEX:
+      case ISSUE_MODEL_COLUMN_INDEX:
         return false;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -105,13 +129,33 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
         return myTable.isRowSelected(myTable.convertRowIndexToView(modelRowIndex));
-      case ICON_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getIcon();
-      case NAME_MODEL_COLUMN_INDEX:
-        return Devices.getText(myDevices.get(modelRowIndex), myDevices);
+      case DEVICE_MODEL_COLUMN_INDEX:
+        return myDevices.get(modelRowIndex).getName();
+      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
+        return getSerialNumber(myDevices.get(modelRowIndex));
+      case SNAPSHOT_MODEL_COLUMN_INDEX:
+        Object snapshot = myDevices.get(modelRowIndex).getSnapshot();
+        return snapshot == null ? "" : snapshot.toString();
+      case ISSUE_MODEL_COLUMN_INDEX:
+        return Strings.nullToEmpty(myDevices.get(modelRowIndex).getValidityReason());
       default:
         throw new AssertionError(modelColumnIndex);
     }
+  }
+
+  @NotNull
+  private Object getSerialNumber(@NotNull Device device) {
+    if (!(device instanceof PhysicalDevice)) {
+      return "";
+    }
+
+    if (myDeviceNameMultiset.count(device.getName()) != 1) {
+      return device.getKey().getDeviceKey();
+    }
+
+    return "";
   }
 
   @Override

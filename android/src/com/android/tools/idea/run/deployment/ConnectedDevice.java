@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DeviceNameProperties;
-import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -29,20 +25,22 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class ConnectedDevice extends Device {
-  static class Builder extends Device.Builder {
-    Builder() {
-      myName = "Connected Device";
+final class ConnectedDevice extends Device {
+  static final class Builder extends Device.Builder {
+    @NotNull
+    Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
     }
 
     @NotNull
-    final Builder setValid(boolean valid) {
+    Builder setValid(boolean valid) {
       myValid = valid;
       return this;
     }
 
     @NotNull
-    final Builder setValidityReason(@Nullable String validityReason) {
+    Builder setValidityReason(@Nullable String validityReason) {
       myValidityReason = validityReason;
       return this;
     }
@@ -66,77 +64,69 @@ class ConnectedDevice extends Device {
     }
   }
 
-  @VisibleForTesting
-  ConnectedDevice(@NotNull Builder builder) {
+  private ConnectedDevice(@NotNull Builder builder) {
     super(builder);
   }
 
-  @Nullable
-  Key getVirtualDeviceKey() {
-    IDevice device = getDdmlibDevice();
-    assert device != null;
-
-    String avd = device.getAvdName();
-
-    if (avd == null) {
-      return null;
-    }
-
-    // TODO Get the snapshot from the virtual device
-    return new Key(avd);
+  boolean isVirtualDevice() {
+    return getAndroidDevice().isVirtual();
   }
 
-  @NotNull
-  String getPhysicalDeviceName(@NotNull DeviceNamePropertiesFetcher fetcher) {
-    return getName(fetcher.get(Objects.requireNonNull(getDdmlibDevice())));
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static String getName(@NotNull DeviceNameProperties properties) {
-    String manufacturer = properties.getManufacturer();
-    String model = properties.getModel();
-
-    if (manufacturer == null && model == null) {
-      return "Unknown Device";
-    }
-
-    if (manufacturer == null) {
-      return model;
-    }
-
-    if (model == null) {
-      return manufacturer + " Device";
-    }
-
-    return manufacturer + ' ' + model;
+  boolean isPhysicalDevice() {
+    return !getAndroidDevice().isVirtual();
   }
 
   @NotNull
   @Override
-  final Icon getIcon() {
+  Icon getIcon() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  final boolean isConnected() {
+  boolean isConnected() {
     throw new UnsupportedOperationException();
   }
 
   @Nullable
   @Override
-  final Snapshot getSnapshot() {
-    throw new UnsupportedOperationException();
+  Snapshot getSnapshot() {
+    return null;
   }
 
   @NotNull
   @Override
-  final Future<AndroidVersion> getAndroidVersion() {
+  Future<AndroidVersion> getAndroidVersion() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof ConnectedDevice)) {
+      return false;
+    }
+
+    Device device = (Device)object;
+
+    return getName().equals(device.getName()) &&
+           isValid() == device.isValid() &&
+           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getKey().equals(device.getKey()) &&
+           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
+           getAndroidDevice().equals(device.getAndroidDevice());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(),
+                        isValid(),
+                        getValidityReason(),
+                        getKey(),
+                        getConnectionTime(),
+                        getAndroidDevice());
   }
 }

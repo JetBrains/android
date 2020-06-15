@@ -43,15 +43,13 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.SearchTextField;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
@@ -60,11 +58,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import javax.swing.AbstractButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -77,7 +71,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Mock private JPopupMenu myPopupMenu;
   @Mock private KeyboardFocusManager myKeyboardFocusManager;
 
-  @SuppressWarnings("MagicConstant")
   private KeyStroke myCommandF = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
@@ -90,8 +83,8 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     initMocks(this);
     SearchTextField.FindAction globalFindAction = new SearchTextField.FindAction();
     globalFindAction.registerCustomShortcutSet(new CustomShortcutSet(myCommandF), null);
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ActionManager.class, myActionManager, getTestRootDisposable());
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, new PropertiesComponentMock(), getTestRootDisposable());
+    registerApplicationService(ActionManager.class, myActionManager);
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
     when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));
@@ -104,6 +97,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myDefinition = PalettePanelToolContent.getDefinition();
+    //noinspection unchecked
     myWorkBench = (WorkBench<String>)mock(WorkBench.class);
     when(myWorkBench.getName()).thenReturn("DESIGNER");
     when(myWorkBench.getContext()).thenReturn("");
@@ -675,6 +669,19 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     dispatcher.dispatchKeyEvent(
       new KeyEvent(panel.getComponent(), KeyEvent.KEY_PRESSED, 0, myCommandF.getModifiers(), myCommandF.getKeyCode(), 'F'));
     assertThat(myToolWindow.getSearchField().isVisible()).isTrue();
+  }
+
+  public void testActionsEnabledAtStartup() {
+    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
+    dumbService.setDumb(true);
+    try {
+      ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
+      myToolWindow.updateActions();
+      assertThat(button.isEnabled()).isTrue();
+    }
+    finally {
+      dumbService.setDumb(false);
+    }
   }
 
   private static void fireFocusLost(@NotNull JComponent component) {

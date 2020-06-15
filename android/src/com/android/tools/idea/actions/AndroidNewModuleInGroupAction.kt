@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 
 import com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath
 import com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY
+import com.intellij.openapi.actionSystem.ActionPlaces.MAIN_MENU
 import com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY
 
 class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a new module to the project", null) {
@@ -33,7 +34,8 @@ class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a n
 
     val moduleGroups = e.getData(ARRAY_DATA_KEY)
     val modules = e.getData(MODULE_CONTEXT_ARRAY)
-    e.presentation.isVisible = !moduleGroups.isNullOrEmpty() || !modules.isNullOrEmpty()
+    // Note: Hide if shown from the main menu, we already have "New Module...", otherwise assume right click on Project View.
+    e.presentation.isVisible = e.place != MAIN_MENU && (!moduleGroups.isNullOrEmpty() || !modules.isNullOrEmpty())
   }
 
   override fun getModulePath(e: AnActionEvent): String? {

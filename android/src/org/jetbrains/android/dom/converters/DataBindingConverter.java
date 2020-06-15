@@ -215,46 +215,61 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       return;
     }
 
-    int idx = 0;   // For iterating over the nameParts.
-    // Check if the first namePart is an alias.
-    String alias = nameParts.get(idx);
-    String importedType = resolveType ? getImport(alias, context) : null;
+    // Sometimes, the root reference represents a shortcut, e.g.
+    // "MyMap" -> "java.util.Map" (if <import type="java.util.Map" alias="MyMap" />)
+    // "Integer" -> "java.lang.Integer"
+    // This expansion, if it happens, is useful to store so we can expand it later for later parts
+    // of the chain, e.g. "MyMap.Entry" -> "java.util.Map.Entry"
+    PsiReference rootReference = null;
+
+    // Check if the first namePart is an import alias.
+    String rootName = nameParts.get(0);
+    String importedType = resolveType ? getImport(rootName, context) : null;
     if (importedType != null) {
-      // Found an import matching the first namePart. Add a reference from this to the type.
-      idx++;
-      TextRange range = new TextRange(offset, offset += alias.length());
-      offset++;  // Skip the next dot or dollar separator (if any)
-      result.add(new AliasedReference(element, range, importedType, module));
+      // Found an import matching the first namePart.
+      TextRange range = new TextRange(offset, offset += rootName.length());
+      rootReference = new AliasedReference(element, range, importedType, module);
     }
     else {
       //  Check primitives and java.lang.
       if (nameParts.size() == 1) {
-        if (!alias.isEmpty()) {
-          if (Character.isLowerCase(alias.charAt(0))) {
-            PsiPrimitiveType primitive = PsiJavaParserFacadeImpl.getPrimitiveType(alias);
+        if (!rootName.isEmpty()) {
+          if (Character.isLowerCase(rootName.charAt(0))) {
+            PsiPrimitiveType primitive = PsiJavaParserFacadeImpl.getPrimitiveType(rootName);
             if (primitive != null) {
-              result.add(new PsiReferenceBase.Immediate<>(element, true, element));
+              rootReference = new PsiReferenceBase.Immediate<>(element, true, element);
             }
           }
           else {
             // java.lang
             PsiClass psiClass = JavaPsiFacade.getInstance(context.getProject())
-                .findClass(JAVA_LANG + alias, GlobalSearchScope.moduleWithLibrariesScope(module));
+                .findClass(JAVA_LANG + rootName, GlobalSearchScope.moduleWithLibrariesScope(module));
             if (psiClass != null) {
-              TextRange range = new TextRange(offset, offset += alias.length());
-              result.add(new ClassReference(element, range, psiClass));
+              TextRange range = new TextRange(offset, offset += rootName.length());
+              rootReference = new ClassReference(element, range, psiClass);
             }
           }
-          idx++;
         }
       }
     }
 
-    for (; idx < nameParts.size(); idx++, offset++) {
-      String packageName = nameParts.get(idx);
+    if (rootReference != null) {
+      result.add(rootReference);
+      // Expand first reference if possible, e.g. "Integer" -> "java.lang.Integer"
+      nameParts.set(0, rootReference.getCanonicalText());
+      offset++; // Move past the next character which should be a "." or "$"
+    }
+
+    // Skip the first result if we already added it above
+    for (int i = result.size(); i < nameParts.size(); i++, offset++) {
+      String packageName = nameParts.get(i);
       if (!packageName.isEmpty()) {
         TextRange range = new TextRange(offset, offset += packageName.length());
-        result.add(new AliasedReference(element, range, String.join(".", nameParts.subList(0, idx + 1)), module));
+        String qualifiedNameSoFar = String.join(".", nameParts.subList(0, i + 1));
+        result.add(new AliasedReference(element, range, qualifiedNameSoFar, module));
+      }
+      else {
+        break; // Hitting an empty package breaks all remaining references
       }
     }
   }

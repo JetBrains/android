@@ -2,6 +2,7 @@ package org.jetbrains.android.augment;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryRClass;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiType;
@@ -64,16 +65,16 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
       return null;
     }
 
-    return new AndroidLightField(name,
-                                 this,
-                                 PsiType.INT,
-                                 AndroidLightField.FieldModifier.NON_FINAL,
-                                 null);
+    return new ResourceLightField(name,
+                                  this,
+                                  PsiType.INT,
+                                  AndroidLightField.FieldModifier.NON_FINAL,
+                                  null);
   }
 
   @NotNull
   @Override
-  protected Object[] getFieldsDependencies() {
-    return new Object[] {mySource.getResourceRepository()};
+  protected ModificationTracker getFieldsDependencies() {
+    return () -> mySource.getResourceRepository().getModificationCount();
   }
 }

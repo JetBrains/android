@@ -263,7 +263,12 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     // We need to create a file with EventSystemEnabled == false to get the PsiFile to return a null virtual file.
     PsiFile psiFile = PsiFileFactory.getInstance(getProject())
       .createFileFromText(FN_SETTINGS_GRADLE_KTS, FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
-    // This should
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  public void testIsGradleFileWithRenamedKts() {
+    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+      .createFileFromText("app.gradle.kts", FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
     assertTrue(myGradleFiles.isGradleFile(psiFile));
   }
 

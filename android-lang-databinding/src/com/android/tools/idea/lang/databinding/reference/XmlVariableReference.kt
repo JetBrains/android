@@ -21,6 +21,8 @@ import com.android.tools.idea.databinding.index.VariableData
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClassType
@@ -54,7 +56,7 @@ internal class XmlVariableReference(element: PsiElement,
     // Create the string for parameters in the format of "psiType1, psiType2, ... lastPsiType,"
     val parametersString = if (index == -1) "" else name.substring(index + 1, name.lastIndexOf('>')).trim() + ","
     val psiClass =
-      JavaPsiFacade.getInstance(element.project).findClass(qualifiedName, module.getModuleWithDependenciesAndLibrariesScope(false))
+      JavaPsiFacade.getInstance(element.project).findClass(qualifiedName, module.getModuleSystem().getResolveScope(ScopeType.MAIN))
       ?: return null
 
     // Parse and resolve type parameters recursively
@@ -86,6 +88,5 @@ internal class XmlVariableReference(element: PsiElement,
     return JavaPsiFacade.getElementFactory(psiClass.project).createType(psiClass, *(parameters.toTypedArray()))
   }
 
-  override val isStatic: Boolean
-    get() = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 }

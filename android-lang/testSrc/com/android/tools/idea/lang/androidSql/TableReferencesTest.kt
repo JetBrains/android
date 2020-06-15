@@ -370,9 +370,9 @@ class TableReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
-        .containsExactly(
-          "people" to myFixture.findClass("com.example.User"),
-          "Address" to myFixture.findClass("com.example.Address"))
+      .containsExactly(
+        "people" to myFixture.findClass("com.example.User"),
+        "Address" to myFixture.findClass("com.example.Address"))
   }
 
   fun testCodeCompletion_escaping() {
@@ -395,10 +395,10 @@ class TableReferencesTest : RoomLightTestCase() {
     val lookupElements = myFixture.completeBasic()
 
     assertThat(lookupElements.map { it.lookupString to it.psiElement })
-        .containsExactly(
-          "`funny people`" to userClass,
-          "Address" to myFixture.findClass("com.example.Address"),
-          "`Order`" to myFixture.findClass("com.example.Order")) // ORDER is a keyword in SQL.
+      .containsExactly(
+        "`funny people`" to userClass,
+        "Address" to myFixture.findClass("com.example.Address"),
+        "`Order`" to myFixture.findClass("com.example.Order")) // ORDER is a keyword in SQL.
 
     myFixture.lookup.currentItem = lookupElements.find { it.psiElement === userClass }
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
@@ -450,7 +450,7 @@ class TableReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      .isNotNull()
   }
 
   fun testUsages_tableNameOverride() {
@@ -469,7 +469,7 @@ class TableReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      .isNotNull()
   }
 
   fun testUsages_tableNameOverride_escaping() {
@@ -488,7 +488,7 @@ class TableReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      .isNotNull()
   }
 
   fun testUsages_tableNameOverride_spaces() {
@@ -507,7 +507,7 @@ class TableReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      .isNotNull()
   }
 
   fun testUsages_keyword() {
@@ -526,7 +526,7 @@ class TableReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      .isNotNull()
   }
 
   fun testQualifiedColumns() {
@@ -667,7 +667,7 @@ class TableReferencesTest : RoomLightTestCase() {
   }
 
   fun testViews() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -688,7 +688,7 @@ class TableReferencesTest : RoomLightTestCase() {
   }
 
   fun testAliasRenaming() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -719,12 +719,12 @@ class TableReferencesTest : RoomLightTestCase() {
           List<Integer> getIds();
         }
     """.trimIndent())
-    }
+  }
 
-    fun testAliasRenaming_join() {
-      myFixture.addRoomEntity("com.example.User","id" ofType "int")
+  fun testAliasRenaming_join() {
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-      myFixture.configureByText("UserDao.java", """
+    myFixture.configureByText("UserDao.java", """
         package com.example;
 
         import androidx.room.Dao;
@@ -738,9 +738,9 @@ class TableReferencesTest : RoomLightTestCase() {
         }
     """.trimIndent())
 
-      myFixture.renameElementAtCaret("u1")
+    myFixture.renameElementAtCaret("u1")
 
-      myFixture.checkResult("""
+    myFixture.checkResult("""
         package com.example;
 
         import androidx.room.Dao;
@@ -753,10 +753,10 @@ class TableReferencesTest : RoomLightTestCase() {
           List<Integer> getIds();
         }
     """.trimIndent())
-    }
+  }
 
   fun testWithTableRenaming_noColumns() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -790,7 +790,7 @@ class TableReferencesTest : RoomLightTestCase() {
   }
 
   fun testWithTableRenaming_columns() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -824,7 +824,7 @@ class TableReferencesTest : RoomLightTestCase() {
   }
 
   fun testViews_inDao() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.addClass("""
       package com.example;
@@ -835,7 +835,7 @@ class TableReferencesTest : RoomLightTestCase() {
       public class Ids {
         public int id;
       }
-    """.trimIndent() )
+    """.trimIndent())
 
     myFixture.configureByText("SomeDao.java", """
         package com.example;
@@ -858,7 +858,7 @@ class TableReferencesTest : RoomLightTestCase() {
   }
 
   fun testViews_inTheViewItself() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("Ids.java", """
       package com.example;
@@ -869,7 +869,7 @@ class TableReferencesTest : RoomLightTestCase() {
       public class Ids {
         public int id;
       }
-    """.trimIndent() )
+    """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
       .containsExactly("User" to myFixture.findClass("com.example.User"))

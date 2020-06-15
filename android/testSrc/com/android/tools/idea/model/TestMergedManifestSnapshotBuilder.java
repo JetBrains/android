@@ -54,6 +54,7 @@ public class TestMergedManifestSnapshotBuilder {
   @Nullable private Actions myActions;
   @Nullable private ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private AndroidVersion myMinSdk;
+  private boolean myIsValid;
 
 
   private TestMergedManifestSnapshotBuilder(@NotNull Module module) {
@@ -192,6 +193,12 @@ public class TestMergedManifestSnapshotBuilder {
   }
 
   @NotNull
+  public TestMergedManifestSnapshotBuilder setIsValid(boolean isValid) {
+    myIsValid = isValid;
+    return this;
+  }
+
+  @NotNull
   public MergedManifestSnapshot build() {
     return new MergedManifestSnapshot(myModule,
                                       myName, myId, myVersionCode, myTheme,
@@ -209,6 +216,7 @@ public class TestMergedManifestSnapshotBuilder {
                                       myAliases != null ? myAliases : ImmutableList.of(),
                                       myServices != null ? myServices : ImmutableList.of(),
                                       myActions,
-                                      myLoggingRecords != null ? myLoggingRecords : ImmutableList.of());
+                                      myLoggingRecords != null ? myLoggingRecords : ImmutableList.of(),
+                                      myIsValid);
   }
 }

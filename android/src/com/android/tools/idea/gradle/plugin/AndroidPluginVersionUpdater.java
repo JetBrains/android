@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.util.BuildFileProcessor.getComposite
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -29,13 +28,10 @@ import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.UNSURE;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -54,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
-  @NotNull private final GradleSyncState mySyncState;
   @NotNull private final TextSearch myTextSearch;
 
   @NotNull
@@ -63,53 +58,50 @@ public class AndroidPluginVersionUpdater {
   }
 
   public AndroidPluginVersionUpdater(@NotNull Project project) {
-    this(project, GradleSyncState.getInstance(project), new TextSearch(project));
+    this(project, new TextSearch(project));
   }
 
-  @VisibleForTesting
   @NonInjectable
+  @VisibleForTesting
   AndroidPluginVersionUpdater(@NotNull Project project,
-                              @NotNull GradleSyncState syncState,
                               @NotNull TextSearch textSearch) {
     myProject = project;
-    mySyncState = syncState;
     myTextSearch = textSearch;
   }
 
-  @Slow
-  public boolean canDetectPluginVersionToUpdate(@NotNull GradleVersion pluginVersion) {
-    final boolean[] foundPlugin = new boolean[1];
-    BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
-      if (foundPlugin[0]) {
-        return true;
-      }
-
-      DependenciesModel dependencies = buildModel.buildscript().dependencies();
-      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-        ThreeState result = isUpdatablePluginVersion(pluginVersion, dependency);
-        if (result == YES) {
-          foundPlugin[0] = true;
-          break;
-        }
-        else if (result == NO) {
-          break;
-        }
-      }
-      return true;
-    });
-    return foundPlugin[0];
+  /**
+   * @param pluginVersion the Android Gradle plugin version to update to
+   * @param gradleVersion the Gradle version to update to
+   * @return whether or not the update of the Android Gradle plugin OR Gradle version was successful.
+   */
+  public boolean updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
+    UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion, null);
+    return result.isPluginVersionUpdated() || result.isGradleVersionUpdated();
   }
 
-  public UpdateResult updatePluginVersionAndSync(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    return updatePluginVersionAndSync(pluginVersion, gradleVersion, null);
-  }
-
-  public UpdateResult updatePluginVersionAndSync(
+  /**
+   * Updates the plugin version and, optionally, the Gradle version used by the project.
+   *
+   * @param pluginVersion    the plugin version to update to.
+   * @param gradleVersion    the version of Gradle to update to (optional.)
+   * @param oldPluginVersion the version of plugin from which we update. Used because of b/130738995.
+   * @return the result of the update operation.
+   */
+  public UpdateResult updatePluginVersion(
     @NotNull GradleVersion pluginVersion,
     @Nullable GradleVersion gradleVersion,
     @Nullable GradleVersion oldPluginVersion
   ) {
-    UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion, oldPluginVersion);
+    UpdateResult result = new UpdateResult();
+    runWriteCommandAction(myProject, "Update plugin version", null,
+                          () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, oldPluginVersion, result));
+
+    // Update Gradle version only if plugin is successful updated, to avoid leaving the project
+    // in a inconsistent state.
+    if (result.isPluginVersionUpdated() && gradleVersion != null) {
+      runWriteCommandAction(myProject, "Update Gradle wrapper version", null,
+                            () -> updateGradleWrapperVersion(gradleVersion, result));
+    }
 
     Throwable pluginVersionUpdateError = result.getPluginVersionUpdateError();
     Throwable gradleVersionUpdateError = result.getGradleVersionUpdateError();
@@ -123,41 +115,10 @@ public class AndroidPluginVersionUpdater {
       logUpdateError(msg, gradleVersionUpdateError);
     }
 
-    handleUpdateResult(result);
+    if (result.getPluginVersionUpdateError() != null) {
+      myTextSearch.execute();
+    }
     return result;
-  }
-
-  @VisibleForTesting
-  void handleUpdateResult(@NotNull UpdateResult result) {
-    Throwable versionUpdateError = result.getPluginVersionUpdateError();
-    boolean gradleVersionFailed = false;
-    if (versionUpdateError == null) {
-      versionUpdateError = result.getGradleVersionUpdateError();
-      gradleVersionFailed = versionUpdateError != null;
-    }
-
-    if (versionUpdateError != null) {
-      String message = String.format("Failed to update %s version", gradleVersionFailed ? "Gradle" : "Android Gradle Plugin");
-      mySyncState.syncFailed(message, versionUpdateError, null);
-      if (!gradleVersionFailed) {
-        myTextSearch.execute();
-      }
-    }
-    else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
-      // Update successful. Sync project.
-      if (!mySyncState.lastSyncFailed()) {
-        mySyncState.syncSucceeded();
-      }
-
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);
-      request.cleanProject = true;
-      getGradleSyncInvoker().requestProjectSync(myProject, request);
-    }
-  }
-
-  @NotNull
-  protected GradleSyncInvoker getGradleSyncInvoker() {
-    return GradleSyncInvoker.getInstance();
   }
 
   private static void logUpdateError(@NotNull String msg, @NotNull Throwable error) {
@@ -166,32 +127,6 @@ public class AndroidPluginVersionUpdater {
       msg += ": " + cause;
     }
     Logger.getInstance(AndroidPluginVersionUpdater.class).warn(msg);
-  }
-
-  /**
-   * Updates the plugin version and, optionally, the Gradle version used by the project.
-   *
-   * @param pluginVersion    the plugin version to update to.
-   * @param gradleVersion    the version of Gradle to update to (optional.)
-   * @param oldPluginVersion the version of plugin from which we update. Used because of b/130738995.
-   * @return the result of the update operation.
-   */
-  @NotNull
-  public UpdateResult updatePluginVersion(
-    @NotNull GradleVersion pluginVersion,
-    @Nullable GradleVersion gradleVersion,
-    @Nullable GradleVersion oldPluginVersion) {
-    UpdateResult result = new UpdateResult();
-    runWriteCommandAction(myProject, "Update plugin version", null,
-                          () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, oldPluginVersion, result));
-
-    // Update Gradle version only if plugin is successful updated, to avoid leaving the project
-    // in a inconsistent state.
-    if (result.isPluginVersionUpdated() && gradleVersion != null) {
-      runWriteCommandAction(myProject, "Update Gradle wrapper version", null,
-                            () -> updateGradleWrapperVersion(gradleVersion, result));
-    }
-    return result;
   }
 
   @NotNull

@@ -119,7 +119,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       .build();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.RENDER, false);
     mySurface.setName(PREVIEW_DESIGN_SURFACE);
 
     myRenderingQueue =
@@ -326,7 +326,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       createContentPanel();
       List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
-      myWorkBench.init(myContentPanel, mySurface, tools);
+      myWorkBench.init(myContentPanel, mySurface, tools, false);
     }
     initNeleModel();
   }
@@ -351,7 +351,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         .findAny()
         .orElse(null);
       MotionLayoutComponentHelper helper = transitionLayout != null ?
-                                           new MotionLayoutComponentHelper(transitionLayout) :
+                                           MotionLayoutComponentHelper.create(transitionLayout) :
                                            null;
       long maxTimeMs = helper != null ? helper.getMaxTimeMs() : -1;
 
@@ -411,7 +411,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       .thenAcceptAsync(model -> {
         // Set the default density to XXXHDPI for adaptive icon preview
         if (model.getType() == AdaptiveIconFileType.INSTANCE) {
-          Device device = model.getConfiguration().getDevice();
+          Device device = model.getConfiguration().getCachedDevice();
           if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
             NlModelHelperKt.overrideConfigurationDensity(model, Density.XXXHIGH);
           }
@@ -487,10 +487,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
       if (!model.getType().isEditable()) {
         mySceneMode = mySurface.getSceneMode();
-        mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+        mySurface.setScreenMode(SceneMode.RENDER, false);
         myWorkBench.setMinimizePanelsVisible(false);
       }
-      else if (mySceneMode != null && mySurface.getSceneMode() == SceneMode.SCREEN_ONLY) {
+      else if (mySceneMode != null && mySurface.getSceneMode() == SceneMode.RENDER) {
         mySurface.setScreenMode(mySceneMode, false);
         myWorkBench.setMinimizePanelsVisible(true);
       }

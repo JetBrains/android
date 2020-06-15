@@ -617,11 +617,3 @@ val CONSTRAINT_ATTRIBUTES = listOf(
   SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
   SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
 )
-
-class WidgetEmptySection : WidgetSection() {
-  init {
-    preferredSize = JBDimension(0, 0)
-  }
-
-  override fun configureUi() = Unit
-}

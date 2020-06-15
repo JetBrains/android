@@ -2,7 +2,7 @@ android {
   compileOptions {
     encoding 'UTF8'
     incremental true
-    sourceCompatibility 1.6
+    sourceCompatibility JavaVersion.VERSION_1_6
     targetCompatibility 1.6
   }
 }

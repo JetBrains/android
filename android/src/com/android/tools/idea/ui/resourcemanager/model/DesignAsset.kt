@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.model
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
@@ -23,15 +24,23 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
+import com.android.tools.idea.res.SampleDataResourceItem
+import com.android.tools.idea.res.getDrawableResources
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 val externalResourceNamespace = ResourceNamespace.fromPackageName("external.design.resource")
 private val LOG = Logger.getInstance(Asset::class.java)
+
+/** [DataKey] to pass an array of [DesignAsset]s. */
+val RESOURCE_DESIGN_ASSETS_KEY: DataKey<Array<DesignAsset>> = DataKey.create("Design Assets Key")
 
 /** The base interface for displaying resources in the Resource Explorer. */
 interface Asset {
@@ -39,11 +48,55 @@ interface Asset {
   val name: String
   val resourceItem: ResourceItem
 
+  /**
+   * The [ResourceUrl] for this [Asset]. Eg: @color/my_resource.
+   *
+   * Returns the appropriate [ResourceUrl] according to its [ResourceNamespace] and whether this [Asset] represents a theme attribute.
+   */
+  val resourceUrl: ResourceUrl
+    get() = kotlin.run {
+      val resourceReference = resourceItem.referenceToSelf
+      val namespace = if (resourceReference.namespace == ResourceNamespace.TOOLS) {
+        SdkConstants.TOOLS_NS_NAME
+      }
+      else {
+        resourceReference.namespace.packageName
+      }
+      return if (type != ResourceType.ATTR && resourceItem.type == ResourceType.ATTR) {
+        // This Attribute resource is being used as a theme attribute
+        ResourceUrl.createThemeReference(namespace, resourceReference.resourceType, resourceReference.name)
+      }
+      else {
+        ResourceUrl.create(namespace, resourceReference.resourceType, resourceReference.name)
+      }
+    }
+
+  /**
+   * A light-weight object to represent [Asset] instances, use for maps that may outlive the current Module. E.g. Cache<AssetKey, V>
+   */
+  val key: AssetKey
+    get() = AssetKey(name, type, null)
+
   companion object {
-
-    fun fromResourceItem(resourceItem: ResourceItem): Asset? = fromResourceItem(resourceItem, resourceItem.type)
-
-    fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType): Asset? {
+    /**
+     * Returns an [Asset] implementation for the given [ResourceItem].
+     *
+     * @param resourceItem The backing resource object for the [Asset] interface
+     * @param resourceType The [ResourceType] to return under [Asset.type], defaults to the type of [ResourceItem.getType], useful to
+     *  represent resources of a different [ResourceType]. Eg: Theme attributes and sample data.
+     */
+    fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType = resourceItem.type): Asset {
+      if (resourceItem is SampleDataResourceItem) {
+        val imageFile = resourceItem.getDrawableResources().getOrNull(0)?.value?.let { drawablePath ->
+          LocalFileSystem.getInstance().findFileByPath(drawablePath)
+        } ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
+        return DesignAsset(
+          file = imageFile,
+          qualifiers = resourceItem.configuration.qualifiers.toList(),
+          type = ResourceType.DRAWABLE,
+          name = resourceItem.name,
+          resourceItem = resourceItem)
+      }
       val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
         file = file,
@@ -54,6 +107,14 @@ interface Asset {
     }
   }
 }
+
+/**
+ * A light-weight class to represent [Asset] instances.
+ *
+ * It's intended to be used to differentiate between different resource assets without depending on potentially large [ResourceItem]
+ * instances.
+ */
+data class AssetKey(val name: String, val type: ResourceType, val path: String?)
 
 /**
  * An [Asset] with the basic information to display a resource in the explorer. Unlike [DesignAsset], it can't point to a source file.
@@ -89,6 +150,9 @@ data class DesignAsset(
     }
     return ""
   }
+
+  override val key: AssetKey
+    get() = AssetKey(name, type, file.path)
 }
 
 /**

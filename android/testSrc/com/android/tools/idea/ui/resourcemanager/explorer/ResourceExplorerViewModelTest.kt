@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -49,6 +50,7 @@ class ResourceExplorerViewModelTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
   }
 
   @After
@@ -76,7 +78,7 @@ class ResourceExplorerViewModelTest {
   @Test
   fun testChangeFacet() {
     runInEdtAndWait {
-      addAndroidModule("app2", projectRule.project, {})
+      addAndroidModule("app2", projectRule.project, "com.example.app2") {}
     }
 
     val modules = ModuleManager.getInstance(projectRule.project).modules
@@ -101,6 +103,27 @@ class ResourceExplorerViewModelTest {
   }
 
   @Test
+  fun testResManagerViewModelSavedState() {
+    val viewModel = createViewModel(projectRule.module)
+    val oldResourceTypeIndex = viewModel.resourceTypeIndex
+    val newResourceTypeIndex = viewModel.resourceTypeIndex + 1
+    Truth.assertThat(oldResourceTypeIndex).isEqualTo(0)
+    Truth.assertThat(newResourceTypeIndex).isNotEqualTo(oldResourceTypeIndex)
+    viewModel.resourceTypeIndex = newResourceTypeIndex
+    Truth.assertThat(viewModel.resourceTypeIndex).isEqualTo(newResourceTypeIndex)
+
+    val oldThemeAttributesValue = viewModel.filterOptions.isShowThemeAttributes
+    val newThemeAttributesValue = !oldThemeAttributesValue
+    viewModel.filterOptions.isShowThemeAttributes = newThemeAttributesValue
+    Truth.assertThat(viewModel.filterOptions.isShowThemeAttributes).isEqualTo(newThemeAttributesValue)
+    Truth.assertThat(newThemeAttributesValue).isNotEqualTo(oldThemeAttributesValue)
+
+    val newViewModel = createViewModel(projectRule.module)
+    Truth.assertThat(newViewModel.resourceTypeIndex).isEqualTo(newResourceTypeIndex)
+    Truth.assertThat(newViewModel.filterOptions.isShowThemeAttributes).isEqualTo(newThemeAttributesValue)
+  }
+
+  @Test
   fun updateOnFileNameChanged() {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
@@ -112,7 +135,9 @@ class ResourceExplorerViewModelTest {
                        .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }
                        .map {
-                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
+                         // ResourceValue.getValue() implementations can return strings with different separators on Windows
+                         FileUtil.getRelativePath(FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+                                                  FileUtil.toSystemIndependentName(it), '/')
                        })
       .containsExactly("res/drawable/png.png", "res/drawable/vector_drawable.xml")
 
@@ -132,7 +157,9 @@ class ResourceExplorerViewModelTest {
                        .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }
                        .map {
-                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
+                         // ResourceValue.getValue() implementations can return strings with different separators on Windows
+                         FileUtil.getRelativePath(FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+                                                  FileUtil.toSystemIndependentName(it), '/')
                        })
       .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
   }

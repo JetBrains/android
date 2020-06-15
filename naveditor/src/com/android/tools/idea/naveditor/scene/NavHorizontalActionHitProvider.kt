@@ -16,15 +16,15 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
+import com.android.tools.idea.common.scene.inlineDrawRect
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.model.popUpTo
 
-class NavHorizontalActionHitProvider : DefaultHitProvider() {
+object NavHorizontalActionHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
 
@@ -32,9 +32,8 @@ class NavHorizontalActionHitProvider : DefaultHitProvider() {
       return
     }
 
-    @AndroidDpCoordinate val componentRect = component.fillDrawRect2D(0, null)
-    @SwingCoordinate val swingRect = Coordinates.getSwingRectDip(sceneTransform, componentRect)
-    @SwingCoordinate val iconRect = getHorizontalActionIconRect(swingRect)
+    val swingRect = component.inlineDrawRect(sceneTransform)
+    @SwingCoordinate val iconRect = getHorizontalActionIconRect(swingRect, sceneTransform.inlineScale)
 
     picker.addRect(component, 0, iconRect.x.toInt(),
                    iconRect.y.toInt(),

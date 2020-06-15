@@ -24,6 +24,8 @@ public enum TestGroup {
   FAT_BAZEL,
   UNRELIABLE,
   PERFORMANCE,
+  /** Not treated specially by {@link TestGroupFilter}, but meant not to be run along with {@link DEFAULT}. */
+  EXCLUDED,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
   DEFAULT,
 }

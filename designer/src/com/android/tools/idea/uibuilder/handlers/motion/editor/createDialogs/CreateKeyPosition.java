@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -62,32 +63,40 @@ public class CreateKeyPosition extends BaseCreateKey {
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Position"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mPosition = newTextField(POS_PROMPT, 15), gbc);
 
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Type"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mType = comboBox, gbc);
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("PercentX"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mPercentX = newTextField(PERCENT_PROMPT, 15), gbc);
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("PercentY"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mPercentY = newTextField(PERCENT_PROMPT, 15), gbc);
 
@@ -97,6 +106,7 @@ public class CreateKeyPosition extends BaseCreateKey {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");
@@ -157,7 +167,7 @@ public class CreateKeyPosition extends BaseCreateKey {
     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
-      mKeyFrameSet = toCommit = mSelectedTransition.getChildTagWriter("KeyFrameSet");
+      mKeyFrameSet = toCommit = mSelectedTransition.getChildTagWriter(MotionSceneAttrs.Tags.KEY_FRAME_SET);
       keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     } else {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
@@ -201,6 +211,7 @@ public class CreateKeyPosition extends BaseCreateKey {
     }
 
     MTag ret = toCommit.commit("Create KeyPosition");
+    Track.createKeyPosition(mMotionEditor.myTrack);
     mMotionEditor.dataChanged();
     super.create();
     return ret;

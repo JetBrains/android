@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import java.util.concurrent.Callable;
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -30,16 +28,19 @@ final class Worker<V> {
   @NotNull
   private V myResult;
 
-  Worker(@NotNull V defaultResult) {
-    myResult = defaultResult;
+  Worker(@NotNull V result) {
+    myResult = result;
   }
 
   @NotNull
-  V get(@NotNull Callable<V> task) {
-    Application application = ApplicationManager.getApplication();
-
+  V perform(@NotNull AsyncSupplier<V> task) {
     if (myResultFuture == null) {
-      myResultFuture = application.executeOnPooledThread(task);
+      myResultFuture = task.get();
+    }
+
+    if (myResultFuture.isCancelled()) {
+      myResultFuture = task.get();
+      return myResult;
     }
 
     if (!myResultFuture.isDone()) {
@@ -48,7 +49,7 @@ final class Worker<V> {
 
     try {
       myResult = myResultFuture.get();
-      myResultFuture = application.executeOnPooledThread(task);
+      myResultFuture = task.get();
 
       return myResult;
     }
@@ -57,7 +58,10 @@ final class Worker<V> {
       throw new RuntimeException(exception);
     }
     catch (ExecutionException exception) {
-      throw new RuntimeException(exception);
+      Logger.getInstance(Worker.class).warn(exception);
+      myResultFuture = task.get();
+
+      return myResult;
     }
   }
 }

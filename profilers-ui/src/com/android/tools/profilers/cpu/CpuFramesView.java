@@ -105,7 +105,7 @@ public class CpuFramesView {
     });
 
     // Handle Tooltip
-    myFrames.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuFrameTooltip(myStage)));
+    myFrames.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuFrameTooltip(myStage.getTimeline())));
     myFrames.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
@@ -136,9 +136,8 @@ public class CpuFramesView {
    * Marks the frame that the user is over to be highlighted.
    */
   private void frameHighlighted(@NotNull CpuFramesModel.FrameState model) {
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<AtraceFrame>> modelList =
-      model.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
+    List<SeriesData<AtraceFrame>> modelList = model.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (modelList.isEmpty()) {
       myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
       return;
@@ -181,13 +180,13 @@ public class CpuFramesView {
       return;
     }
     CpuFramesModel.FrameState state = myFrames.getModel().getElementAt(selectedIndex);
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
     List<SeriesData<AtraceFrame>> process = state.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (process.isEmpty() || process.get(0).value == AtraceFrame.EMPTY) {
       return;
     }
     // Select the range of this frame.
-    myStage.getStudioProfilers().getTimeline().getSelectionRange()
+    myStage.getTimeline().getSelectionRange()
            .set(process.get(0).x, process.get(0).x + process.get(0).value.getDurationUs());
     // Select the thread associated with this frame.
     myStage.setSelectedThread(state.getThreadId());

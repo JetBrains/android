@@ -106,7 +106,7 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
         .filter { library.moduleVersion != null }
       addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies).also {
         library.binaryPath?.let { file ->
-          it.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(file))
+          it.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(coordinates.toString(), file))
         }
       })
     } else {

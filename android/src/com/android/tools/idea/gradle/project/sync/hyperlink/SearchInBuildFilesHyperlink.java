@@ -59,7 +59,7 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
     findModel.setOpenInNewTabVisible(true);
     findModel.setOpenInNewTabEnabled(true);
     findModel.setOpenInNewTab(true);
-    findModel.setFileFilter(SdkConstants.FN_BUILD_GRADLE);
+    findModel.setFileFilter(SdkConstants.FN_BUILD_GRADLE + "," + SdkConstants.FN_BUILD_GRADLE_KTS);
 
     findManager.getFindInProjectModel().copyFrom(findModel);
     final FindModel findModelCopy = findModel.clone();

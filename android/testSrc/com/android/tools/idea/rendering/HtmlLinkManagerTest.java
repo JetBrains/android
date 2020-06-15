@@ -15,22 +15,16 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.JavaProjectTestCase;
-import com.intellij.testFramework.ServiceContainerUtil;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class HtmlLinkManagerTest extends PlatformTestCase {
   public void testRunnable() {
@@ -68,7 +62,7 @@ public class HtmlLinkManagerTest extends PlatformTestCase {
       .addAll(TestRepositories.PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(getProject(), ProjectSystemUtil.getEP_NAME(), testProjectSystem, getTestRootDisposable());
+    testProjectSystem.useInTests();
 
     // try multiple invalid links
     HtmlLinkManager.handleAddDependency("addDependency:", myModule);

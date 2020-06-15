@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql
 
+import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
@@ -27,8 +28,13 @@ import com.intellij.psi.PsiManager
 
 class ColumnReferencesTest : RoomLightTestCase() {
 
+  override fun setUp() {
+    super.setUp()
+    AndroidSqlContext.Provider.EP_NAME.getPoint(null).registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
+  }
+
   fun testDefaultColumnName() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -44,6 +50,19 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "name"))
+  }
+
+  fun testColumnNameInsideAlterQuery() {
+    val file = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "ALTER TABLE User RENAME COLUMN n<caret>ame TO newName")
+    val schema = file.setTestSqlSchema {
+      table {
+        name = "User"
+        column { name = "name" }
+      }
+    }
+
+    val column = (myFixture.referenceAtCaret as AndroidSqlColumnPsiReference).resolveColumn(HashSet())
+    assertThat(column).isEqualTo(schema.getTable("User").getColumn("name"))
   }
 
   fun testCaseInsensitive_unquoted() {
@@ -84,8 +103,8 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
   fun testNameOverride() {
     myFixture.addRoomEntity(
-        "com.example.User",
-        FieldDefinition("fullName", "String", columnName = "full_name"))
+      "com.example.User",
+      FieldDefinition("fullName", "String", columnName = "full_name"))
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -197,7 +216,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       """
     )
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    val file = myFixture.addClass("""
         package com.example;
 
         import androidx.room.Dao;
@@ -207,7 +226,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
         public interface UserDao {
           @Query("SELECT private<caret>Field FROM User") List<Integer> getIds();
         }
-    """.trimIndent())
+    """.trimIndent()).containingFile
+
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     myFixture.renameElementAtCaret("field")
 
@@ -359,7 +380,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testCodeCompletion_select() {
-    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -389,7 +410,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testCodeCompletion_update() {
-    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -419,7 +440,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testCodeCompletion_insert() {
-    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -449,7 +470,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testCodeCompletion_delete() {
-    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -479,7 +500,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testCodeCompletion_caseSensitivity() {
-    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "firstName" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -525,11 +546,11 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("id", myFixture.findField("com.example.User", "id")),
-            Pair("name", myFixture.findField("com.example.User", "name")),
-            Pair("city", myFixture.findField("com.example.Address", "city"))
-        )
+      .containsExactly(
+        Pair("id", myFixture.findField("com.example.User", "id")),
+        Pair("name", myFixture.findField("com.example.User", "name")),
+        Pair("city", myFixture.findField("com.example.Address", "city"))
+      )
   }
 
   fun testCodeCompletion_escaping() {
@@ -551,9 +572,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     val lookupElements = myFixture.completeBasic()
 
     assertThat(lookupElements.map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("`check`", checkField), // CHECK is a SQL keyword.
-            Pair("id", myFixture.findField("com.example.User", "id")))
+      .containsExactly(
+        Pair("`check`", checkField), // CHECK is a SQL keyword.
+        Pair("id", myFixture.findField("com.example.User", "id")))
 
     myFixture.lookup.currentItem = lookupElements.find { it.psiElement === checkField }
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
@@ -572,7 +593,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testUsages() {
-    myFixture.addRoomEntity("com.example.User",  "name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -587,7 +608,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      .isNotNull()
   }
 
   fun testUsages_privateFields() {
@@ -615,13 +636,13 @@ class ColumnReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == AndroidSqlLanguage.INSTANCE }!!).isNotNull()
 
     assertThat(
-        myFixture.findUsages(myFixture.findField("com.example.User", "name"))
-            .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      myFixture.findUsages(myFixture.findField("com.example.User", "name"))
+        .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
+      .isNotNull()
   }
 
   fun testUsages_caseInsensitive() {
-    myFixture.addRoomEntity("com.example.User",  "name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -636,15 +657,15 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(
-        myFixture.findUsages(myFixture.findField("com.example.User", "name"))
-            .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      myFixture.findUsages(myFixture.findField("com.example.User", "name"))
+        .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
+      .isNotNull()
   }
 
   fun testUsages_nameOverride() {
     myFixture.addRoomEntity(
-        "com.example.User",
-        FieldDefinition("id", "int"), FieldDefinition("fullName", "String", columnName = "full_name")
+      "com.example.User",
+      FieldDefinition("id", "int"), FieldDefinition("fullName", "String", columnName = "full_name")
     )
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
@@ -660,9 +681,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(
-        myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
-            .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
+        .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
+      .isNotNull()
   }
 
   fun testUsages_caseInsensitive_kotlin() {
@@ -701,7 +722,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
   fun testUsages_nameOverride_kotlin() {
     myFixture.configureByText("User.kt",
-      """
+                              """
         package com.example
 
         import androidx.room.ColumnInfo
@@ -772,8 +793,8 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
   fun testUsages_nameOverride_escaping() {
     myFixture.addRoomEntity(
-        "com.example.User",
-        FieldDefinition("fullName", "String", columnName = "user's name")
+      "com.example.User",
+      FieldDefinition("fullName", "String", columnName = "user's name")
     )
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
@@ -789,9 +810,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(
-        myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
-            .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      myFixture.findUsages(myFixture.findField("com.example.User", "fullName"))
+        .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
+      .isNotNull()
   }
 
   fun testUsages_keyword() {
@@ -810,9 +831,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(
-        myFixture.findUsages(myFixture.findField("com.example.Item", "desc"))
-            .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
-        .isNotNull()
+      myFixture.findUsages(myFixture.findField("com.example.Item", "desc"))
+        .find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
+      .isNotNull()
   }
 
   fun testUsages_readAction() {
@@ -858,9 +879,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("id", myFixture.findField("com.example.User", "id")),
-            Pair("name", myFixture.findField("com.example.User", "name")))
+      .containsExactly(
+        Pair("id", myFixture.findField("com.example.User", "id")),
+        Pair("name", myFixture.findField("com.example.User", "name")))
   }
 
   fun testAliases() {
@@ -935,9 +956,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("bid", myFixture.findField("com.example.Book", "bid")),
-            Pair("title", myFixture.findField("com.example.Book", "title")))
+      .containsExactly(
+        Pair("bid", myFixture.findField("com.example.Book", "bid")),
+        Pair("title", myFixture.findField("com.example.Book", "title")))
   }
 
   fun testJoin_completion() {
@@ -957,10 +978,10 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("uid", myFixture.findField("com.example.User", "uid")),
-            Pair("bid", myFixture.findField("com.example.Book", "bid")),
-            Pair("title", myFixture.findField("com.example.Book", "title")))
+      .containsExactly(
+        Pair("uid", myFixture.findField("com.example.User", "uid")),
+        Pair("bid", myFixture.findField("com.example.Book", "bid")),
+        Pair("title", myFixture.findField("com.example.Book", "title")))
   }
 
   fun testWithClause_newTable_completion() {
@@ -979,8 +1000,8 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("uid", myFixture.findField("com.example.User", "uid")))
+      .containsExactly(
+        Pair("uid", myFixture.findField("com.example.User", "uid")))
   }
 
   fun testWithClause_subquery() {
@@ -999,8 +1020,8 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("uid", myFixture.findField("com.example.User", "uid")))
+      .containsExactly(
+        Pair("uid", myFixture.findField("com.example.User", "uid")))
   }
 
   fun testFromSubquery_allColumns() {
@@ -1020,11 +1041,11 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("uid", myFixture.findField("com.example.User", "uid")),
-            Pair("name", myFixture.findField("com.example.User", "name")),
-            Pair("bid", myFixture.findField("com.example.Book", "bid")),
-            Pair("title", myFixture.findField("com.example.Book", "title")))
+      .containsExactly(
+        Pair("uid", myFixture.findField("com.example.User", "uid")),
+        Pair("name", myFixture.findField("com.example.User", "name")),
+        Pair("bid", myFixture.findField("com.example.Book", "bid")),
+        Pair("title", myFixture.findField("com.example.Book", "title")))
   }
 
   fun testFromSubquery_allTableColumns() {
@@ -1044,9 +1065,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("uid", myFixture.findField("com.example.User", "uid")),
-            Pair("name", myFixture.findField("com.example.User", "name")))
+      .containsExactly(
+        Pair("uid", myFixture.findField("com.example.User", "uid")),
+        Pair("name", myFixture.findField("com.example.User", "name")))
   }
 
   fun testFromSubquery_specificColumns() {
@@ -1066,9 +1087,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.completeBasic().map { Pair(it.lookupString, it.psiElement) })
-        .containsExactly(
-            Pair("uid", myFixture.findField("com.example.User", "uid")),
-            Pair("title", myFixture.findField("com.example.Book", "title")))
+      .containsExactly(
+        Pair("uid", myFixture.findField("com.example.User", "uid")),
+        Pair("title", myFixture.findField("com.example.Book", "title")))
   }
 
   fun testWhereSubquery_selectedTablesInOuterQueries() {
@@ -1319,7 +1340,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testAliasRenaming() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -1353,7 +1374,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testWithTableRenaming_columns() {
-    myFixture.addRoomEntity("com.example.User","id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -1892,7 +1913,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     myFixture.configureByText("UserDao.java",
       //language=JAVA
-      """
+                              """
         package com.example;
 
         import androidx.room.Dao;

@@ -18,7 +18,9 @@ package com.android.tools.idea.sdk;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.regex.Pattern;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -53,9 +55,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testInvalidSdkDirectory() throws Exception {
-    File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn(DUMMY_PATH);
-    when(mockFile.isDirectory()).thenReturn(false);
+    File mockFile = createFileMock(DUMMY_PATH, false);
 
     ValidationResult result = validateAndroidSdk(mockFile, false);
     assertFalse(result.success);
@@ -90,10 +90,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testInvalidNdkDirectory() throws Exception {
-    File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn(DUMMY_PATH);
-    when(mockFile.getAbsolutePath()).thenReturn(DUMMY_PATH);
-    when(mockFile.isDirectory()).thenReturn(false);
+    File mockFile = createFileMock(DUMMY_PATH, false);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
     assertFalse(result.success);
@@ -105,10 +102,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testUnReadableNdkDirectory() throws Exception {
-    File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn(DUMMY_PATH);
-    when(mockFile.getAbsolutePath()).thenReturn(DUMMY_PATH);
-    when(mockFile.isDirectory()).thenReturn(true);
+    File mockFile = createFileMock(DUMMY_PATH, true);
     when(mockFile.canRead()).thenReturn(false);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
@@ -169,5 +163,19 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(tmpDir, true);
     assertTrue(result.message, result.success);
+  }
+
+  private static File createFileMock(@NotNull String path, boolean isDirectory) {
+    File mockFile = mock(File.class);
+
+    when(mockFile.getPath()).thenReturn(path);
+    when(mockFile.getAbsolutePath()).thenReturn(path);
+    when(mockFile.isDirectory()).thenReturn(isDirectory);
+    String[] pathParts = path.split(Pattern.quote(String.valueOf(File.separatorChar)));
+    // PathValidator may access name and parent. Despite this is not required it will enable better error message generation.
+    when(mockFile.getName()).thenReturn(pathParts[pathParts.length - 1]);
+    when(mockFile.getParent()).thenReturn("parent");
+
+    return mockFile;
   }
 }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import static com.android.tools.lint.checks.WearStandaloneAppDetector.INVALID_WEAR_FEATURE_ATTRIBUTE;
+
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import org.jetbrains.android.inspections.lint.RemoveAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.checks.WearStandaloneAppDetector.INVALID_WEAR_FEATURE_ATTRIBUTE;
 
 public class AndroidLintInvalidWearFeatureAttributeInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidWearFeatureAttributeInspection() {
@@ -31,8 +31,8 @@ public class AndroidLintInvalidWearFeatureAttributeInspection extends AndroidLin
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[] {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
+    return new LintIdeQuickFix[]{
       new RemoveAttributeQuickFix()
     };
   }

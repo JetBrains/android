@@ -26,7 +26,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 

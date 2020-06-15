@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.testing.moveCaret
@@ -98,15 +98,15 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
     moduleWithDependency: Boolean,
     moduleWithoutDependency: Boolean
   ) {
-    val scope = resourceReferencePsiElement.getUserData(AndroidUsagesTargetProvider.RESOURCE_CONTEXT_SCOPE)
+    val scope = resourceReferencePsiElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_SCOPE)
     assertThat(scope!!.contains(MAIN_MODULE_COLOR_FILE)).isEqualTo(mainModule)
     assertThat(scope.contains(MODULE_WITH_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithDependency)
     assertThat(scope.contains(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithoutDependency)
   }
 
   private fun checkContextElement(targetElement: ResourceReferencePsiElement) {
-    val elementInFile = myFixture.file!!.findReferenceAt(myFixture.editor.caretModel.offset)!!.element
-    val contextElement = targetElement.getUserData(AndroidUsagesTargetProvider.RESOURCE_CONTEXT_ELEMENT)
+    val elementInFile = myFixture.file.findElementAt(myFixture.editor.caretModel.offset)
+    val contextElement = targetElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT)
     assertThat(contextElement).isEqualTo(elementInFile)
   }
 

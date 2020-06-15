@@ -97,8 +97,8 @@ public class PreviewProviderTest extends LayoutTestCase {
     File goldenFile = new File(getTestDataPath() + separator + "palette" + separator + "TextView.png");
     BufferedImage goldenImage = ImageIO.read(goldenFile);
     ImageDiffUtil.assertImageSimilar("TextView.png", goldenImage, imageAndSize.image, MAX_PERCENT_DIFFERENT);
-    assertThat(imageAndSize.dimension.height).isEqualTo(41);
-    assertThat(imageAndSize.dimension.width).isEqualTo(120);
+    assertThat(imageAndSize.dimension.height).isEqualTo(42);
+    assertThat(imageAndSize.dimension.width).isEqualTo(119);
   }
 
   // b/110835489

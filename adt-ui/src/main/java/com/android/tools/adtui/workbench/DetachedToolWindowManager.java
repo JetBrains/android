@@ -47,8 +47,8 @@ import org.jetbrains.annotations.Nullable;
 public class DetachedToolWindowManager implements Disposable {
   private final Project myProject;
   private final MyFileEditorManagerListener myEditorManagerListener;
-  private final Map<FileEditor, WorkBench> myWorkBenchMap;
-  private final HashMap<String, DetachedToolWindow> myToolWindowMap;
+  private final Map<FileEditor, WorkBench<?>> myWorkBenchMap;
+  private final HashMap<String, DetachedToolWindow<?>> myToolWindowMap;
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
   private FileEditor myLastSelectedEditor;
 
@@ -76,7 +76,7 @@ public class DetachedToolWindowManager implements Disposable {
     return myEditorManagerListener;
   }
 
-  public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench workBench) {
+  public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench<?> workBench) {
     if (fileEditor != null) {
       myWorkBenchMap.put(fileEditor, workBench);
       if (fileEditor == myLastSelectedEditor) {

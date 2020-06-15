@@ -15,6 +15,11 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.ATTR_LOCALE;
+import static com.android.SdkConstants.TAG_ISSUES;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.Lint;
@@ -28,7 +33,12 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.templateLanguages.TemplateLanguage;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlToken;
+import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.spellchecker.inspections.BaseSplitter;
 import com.intellij.spellchecker.inspections.PlainTextSplitter;
 import com.intellij.spellchecker.inspections.Splitter;
@@ -43,14 +53,16 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.dom.converters.*;
+import org.jetbrains.android.dom.converters.AndroidPackageConverter;
+import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
+import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.converters.ConstantFieldConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -208,8 +220,8 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         // ? If so, skip it.
         AndroidFacet facet = AndroidFacet.getInstance(file);
         VirtualFile virtualFile = file.getVirtualFile();
-        if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
-          AndroidModel androidModel = facet.getModel();
+        if (facet != null && AndroidModel.isRequired(facet) && virtualFile != null) {
+          AndroidModel androidModel = AndroidModel.get(facet);
           if (androidModel != null && androidModel.isGenerated(virtualFile)) {
             return false;
           }

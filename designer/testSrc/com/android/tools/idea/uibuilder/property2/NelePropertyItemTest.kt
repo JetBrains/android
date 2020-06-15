@@ -51,7 +51,7 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.MinApiLayoutTestCase
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -70,7 +70,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.TwoColorsIcon
+import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
@@ -113,7 +113,7 @@ class NelePropertyItemTest {
 
   @After
   fun tearDown() {
-    componentStack!!.restoreComponents()
+    componentStack!!.restore()
     componentStack = null
   }
 
@@ -224,7 +224,7 @@ class NelePropertyItemTest {
     assertThat(property.type).isEqualTo(NelePropertyType.COLOR_STATE_LIST)
     assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
     assertThat(property.isReference).isTrue()
-    val colorIcon = TwoColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
+    val colorIcon = ColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
     val colorButton = property.colorButton!!
     assertThat(colorButton.actionIcon).isEqualTo(colorIcon)
     val browseButton = property.browseButton!!
@@ -339,7 +339,7 @@ class NelePropertyItemTest {
     val components = property.components
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
-    waitUntilEventsProcessed(property.model)
+    waitUntilLastSelectionUpdateCompleted(property.model)
 
     assertThat(property.value).isNull()
     assertThat(property.defaultValue).isEqualTo("@android:style/TextAppearance.Material.Small")
@@ -376,7 +376,7 @@ class NelePropertyItemTest {
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)  // Platform dependent !!!
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "16sp")
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "@dimen/text_size_button_material")
-    waitUntilEventsProcessed(util.model)
+    waitUntilLastSelectionUpdateCompleted(util.model)
 
     assertThat(emptyProperty.tooltipForValue).isEmpty()
     assertThat(hardcodedProperty.tooltipForValue).isEmpty()
@@ -487,6 +487,7 @@ class NelePropertyItemTest {
     assertThat(srcCompat.editingSupport.validation("@color/translucentRed")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(srcCompat.editingSupport.validation("@android:drawable/btn_minus")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(srcCompat.editingSupport.validation("#XYZ")).isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
+    assertThat(srcCompat.editingSupport.validation("@+drrawable/x")).isEqualTo(Pair(ERROR, "Invalid syntax"))
     assertThat(srcCompat.editingSupport.validation("?android:attr/no_color")).isEqualTo(
       Pair(ERROR, "Cannot resolve theme reference: 'android:attr/no_color'"))
     assertThat(srcCompat.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
@@ -605,7 +606,7 @@ class NelePropertyItemTest {
     property.value = "@android:style/TextAppearance.Material.Display2"
 
     val fileManager = mock(FileEditorManager::class.java)
-    componentStack!!.registerComponentImplementation(FileEditorManager::class.java, fileManager)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))
@@ -621,7 +622,7 @@ class NelePropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
     `when`(undoManager.isUndoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
@@ -634,7 +635,7 @@ class NelePropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
     `when`(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())

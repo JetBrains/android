@@ -22,12 +22,11 @@ import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link AndroidDevice} represents either a connected {@link IDevice}, or the
@@ -84,10 +83,10 @@ public interface AndroidDevice {
   ListenableFuture<IDevice> launch(@NotNull Project project);
 
   /**
-   * @param snapshot if the snapshot is null, the -snapshot argument is not passed to the emulator command
+   * @param arguments additional arguments to pass to the emulator command
    */
   @NotNull
-  ListenableFuture<IDevice> launch(@NotNull Project project, @Nullable String snapshot);
+  ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments);
 
   /**
    * Returns the {@link IDevice} corresponding to this device if it is running or has been launched.

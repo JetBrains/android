@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.DetectMissingPrefix;
 import org.jetbrains.android.inspections.lint.AddMissingPrefixQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class AndroidLintMissingPrefixInspection extends AndroidLintInspectionBas
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new AddMissingPrefixQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
+    return new LintIdeQuickFix[]{new AddMissingPrefixQuickFix()};
   }
 }

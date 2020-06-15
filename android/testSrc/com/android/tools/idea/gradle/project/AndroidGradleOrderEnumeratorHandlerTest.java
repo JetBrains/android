@@ -35,7 +35,7 @@ import org.junit.Assert;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
-import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE;
+import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -141,7 +141,7 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
   }
 
   public void testAndroidModulesRecursiveAndJavaModulesNot() throws Exception {
-    loadProject(PSD_SAMPLE);
+    loadProject(PSD_SAMPLE_GROOVY);
 
     Module appModule = getModule("app");
     Module libModule = getModule("jav");

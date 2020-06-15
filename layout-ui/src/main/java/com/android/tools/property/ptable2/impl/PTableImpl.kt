@@ -24,6 +24,7 @@ import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
@@ -31,24 +32,30 @@ import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
+import com.intellij.ui.TableActions
 import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics
 import java.awt.Rectangle
+import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.EventObject
+import javax.swing.AbstractAction
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
+import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.TableCellEditor
@@ -56,6 +63,7 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.text.JTextComponent
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
@@ -63,7 +71,6 @@ import kotlin.properties.Delegates
 private const val LEFT_FRACTION = 0.40
 private const val MAX_LABEL_WIDTH = 240
 private const val EXPANSION_RIGHT_PADDING = 4
-private const val NOOP = "noop"
 private const val COLUMN_COUNT = 2
 
 /**
@@ -97,7 +104,7 @@ class PTableImpl(
   override val gridLineColor: Color
     get() = gridColor
   override var wrap = false
-  var isPaintingTable = false
+  var rendererShouldUpdateCellHeight = false
     private set
 
   init {
@@ -134,12 +141,12 @@ class PTableImpl(
   }
 
   override fun paint(g: Graphics) {
-    isPaintingTable = true
+    rendererShouldUpdateCellHeight = true
     try {
       super.paint(g)
     }
     finally {
-      isPaintingTable = false
+      rendererShouldUpdateCellHeight = false
     }
   }
 
@@ -155,8 +162,20 @@ class PTableImpl(
     return super.getValueAt(row, 0) as PTableItem
   }
 
+  override fun depth(item: PTableItem): Int {
+    return model.depth(item)
+  }
+
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  override fun toggle(item: PTableGroupItem) {
+    val index = model.toggle(item)
+    if (index >= 0) {
+      val row = convertRowIndexToView(index)
+      scrollCellIntoView(row, 0, true)
+    }
   }
 
   override fun getExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
@@ -241,10 +260,19 @@ class PTableImpl(
   }
 
   private fun tableChangedWithoutNextEditedRow(event: TableModelEvent) {
-    if (isEditing) {
+    val wasEditing = isEditing
+    val wasEditingColumn = editingColumn
+    var editing: PTableItem? = null
+    if (wasEditing) {
+      editing = item(editingRow)
       removeEditor()
     }
     super.tableChanged(event)
+    if (editing != null) {
+      val row = model.indexOf(editing)
+      val newEditingRow = if (row >= 0) convertRowIndexToView(row) else -1
+      startEditing(newEditingRow, wasEditingColumn)
+    }
   }
 
   private fun tableChangedWithNextEditedRow(event: TableModelEvent, nextEditedRow: Int) {
@@ -298,12 +326,35 @@ class PTableImpl(
   }
 
   override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
-    tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
+    val editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
+    val cellEditor = editor.editorComponent
+    if (cellEditor is PTableVariableHeightCellEditor) {
+      cellEditor.updateRowHeight = {
+        setRowHeight(row, cellEditor.preferredSize.height)
+        scrollCellIntoView(row, column, false)
+      }
+    }
+    tableCellEditor.editor = editor
     return tableCellEditor
   }
 
   override fun getToolTipText(event: MouseEvent): String? {
     return customToolTipHook(event)
+  }
+
+  private fun scrollCellIntoView(row: Int, column: Int, updateRowHeight: Boolean) {
+    if (updateRowHeight) {
+      // The value renderer may be of variable height. Give it a chance to update before scrolling:
+      rendererShouldUpdateCellHeight = true
+      try {
+        val renderer = getCellRenderer(row, 1)
+        prepareRenderer(renderer, row, 1)
+      }
+      finally {
+        rendererShouldUpdateCellHeight = false
+      }
+    }
+    scrollCellIntoView(row, column)
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
@@ -323,38 +374,45 @@ class PTableImpl(
 
   private fun customizeKeyMaps() {
 
-    // Disable the builtin actions from the TableUI by always returning false for isEnabled.
-    // This will make sure the event is bubbled up to the parent component.
-    registerActionKey({}, KeyStrokes.ENTER, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.SPACE, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.LEFT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.NUM_LEFT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.RIGHT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.NUM_RIGHT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.PAGE_UP, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.PAGE_DOWN, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    // Override the builtin table actions
+    actionMap.put(TableActions.Left.ID, MyKeyAction { modifyGroup(expand = false) })
+    actionMap.put(TableActions.Right.ID, MyKeyAction { modifyGroup(expand = true) })
+    actionMap.put(TableActions.ShiftLeft.ID, MyKeyAction { modifyGroup(expand = false) })
+    actionMap.put(TableActions.ShiftRight.ID, MyKeyAction { modifyGroup(expand = true) })
+    actionMap.put(TableActions.Up.ID, MyKeyAction { nextRow(moveUp = true) })
+    actionMap.put(TableActions.Down.ID, MyKeyAction { nextRow(moveUp = false) })
+    actionMap.put(TableActions.ShiftUp.ID, MyKeyAction { nextRow(moveUp = true) })
+    actionMap.put(TableActions.ShiftDown.ID, MyKeyAction { nextRow(moveUp = false) })
+    actionMap.put(TableActions.PageUp.ID, MyKeyAction { nextPage(moveUp = true) })
+    actionMap.put(TableActions.PageDown.ID, MyKeyAction { nextPage(moveUp = false) })
+    actionMap.put(TableActions.ShiftPageUp.ID, MyKeyAction { nextPage(moveUp = true) })
+    actionMap.put(TableActions.ShiftPageDown.ID, MyKeyAction { nextPage(moveUp = false) })
+    actionMap.put(TableActions.CtrlHome.ID, MyKeyAction {  moveToFirstRow() })
+    actionMap.put(TableActions.CtrlEnd.ID, MyKeyAction {  moveToLastRow() })
+    actionMap.put(TableActions.CtrlShiftHome.ID, MyKeyAction {  moveToFirstRow() })
+    actionMap.put(TableActions.CtrlShiftEnd.ID, MyKeyAction {  moveToLastRow() })
 
-    // Setup the actions for when the table has focus i.e. we are not editing a property
-    registerActionKey({ smartEnter(toggleOnly = false) }, KeyStrokes.ENTER, "smartEnter")
-    registerActionKey({ smartEnter(toggleOnly = true) }, KeyStrokes.SPACE, "toggleEditor")
-    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.LEFT, "collapse")
-    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.NUM_LEFT, "collapse")
-    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.RIGHT, "expand")
-    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.NUM_RIGHT, "expand")
-    registerActionKey({ nextPage(moveUp = true) }, KeyStrokes.PAGE_UP, "pageUp")
-    registerActionKey({ nextPage(moveUp = false) }, KeyStrokes.PAGE_DOWN, "pageDown")
-    registerActionKey({ moveToFirstRow() }, KeyStrokes.HOME, "firstRow")
-    registerActionKey({ moveToLastRow() }, KeyStrokes.END, "lastRow")
-    registerActionKey({ moveToFirstRow() }, KeyStrokes.CMD_HOME, "firstRow")
-    registerActionKey({ moveToLastRow() }, KeyStrokes.CMD_END, "lastRow")
+    // Setup additional actions for the table
+    registerKey(KeyStrokes.ENTER) { smartEnter(toggleOnly = false) }
+    registerKey(KeyStrokes.SPACE) { smartEnter(toggleOnly = true) }
+    registerKey(KeyStrokes.NUM_LEFT) { modifyGroup(expand = false) }
+    registerKey(KeyStrokes.NUM_RIGHT) { modifyGroup(expand = true) }
+    registerKey(KeyStrokes.HOME) { moveToFirstRow() }
+    registerKey(KeyStrokes.END) { moveToLastRow() }
 
     // Disable auto start editing from JTable
     putClientProperty("JTable.autoStartsEdit", java.lang.Boolean.FALSE)
   }
 
+  private fun registerKey(key: KeyStroke, action: () -> Unit) {
+    val name = key.toString().replace(" ", "-")
+    registerActionKey(action, key, name, { true }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+  }
+
   private fun toggleTreeNode(row: Int) {
     val index = convertRowIndexToModel(row)
     model.toggle(index)
+    scrollCellIntoView(row, 0, true)
   }
 
   private fun selectRow(row: Int) {
@@ -371,6 +429,7 @@ class PTableImpl(
     selectRow(row)
   }
 
+  @Suppress("SameParameterValue")
   private fun quickEdit(row: Int, column: Int) {
     val editor = getCellEditor(row, column)
 
@@ -406,6 +465,7 @@ class PTableImpl(
     // Do not remove the editor i.e. do not call the super method.
     if (tableCellEditor.editor.cancelEditing()) {
       super.editingCanceled(event)
+      requestFocus()
     }
   }
 
@@ -451,6 +511,12 @@ class PTableImpl(
 
   // ========== Keyboard Actions ===============================================
 
+  private class MyKeyAction(private val action: () -> Unit) : AbstractAction() {
+    override fun actionPerformed(event: ActionEvent) {
+      action()
+    }
+  }
+
   /**
    * Expand/Collapse if it is a group property, start editing otherwise.
    *
@@ -464,7 +530,7 @@ class PTableImpl(
 
     val item = item(row)
     when {
-      model.isGroupItem(item) -> toggleAndSelect(row)
+      model.isGroupItem(item) && !tableModel.isCellEditable(item(row), PTableColumn.NAME) -> toggleAndSelect(row)
       toggleOnly -> quickEdit(row, 1)
       else -> {
         if (!startEditing(row, 0) {}) {
@@ -479,7 +545,7 @@ class PTableImpl(
    */
   private fun modifyGroup(expand: Boolean) {
     val row = selectedRow
-    if (isEditing || row == -1) {
+    if (row == -1) {
       return
     }
 
@@ -496,10 +562,31 @@ class PTableImpl(
   /**
    * Scroll the selected row up/down.
    */
+  private fun nextRow(moveUp: Boolean) {
+    val selectedRow = selectedRow
+    if (isEditing) {
+      removeEditor()
+      requestFocus()
+    }
+    if (moveUp) {
+      selectRow(max(0, selectedRow - 1))
+    }
+    else {
+      selectRow(min(selectedRow + 1, rowCount - 1))
+    }
+    if (selectedColumn < 0) {
+      selectColumn(0)
+    }
+  }
+
+  /**
+   * Scroll the selected row up/down.
+   */
   private fun nextPage(moveUp: Boolean) {
     val selectedRow = selectedRow
-    if (isEditing || selectedRow == -1) {
-      return
+    if (isEditing) {
+      removeEditor()
+      requestFocus()
     }
 
     // PTable may be in a scrollable component, so we need to use visible height instead of getHeight()
@@ -510,26 +597,29 @@ class PTableImpl(
     }
     val movement = visibleHeight / rowHeight
     if (moveUp) {
-      selectRow(Math.max(0, selectedRow - movement))
+      selectRow(max(0, selectedRow - movement))
     }
     else {
-      selectRow(Math.min(selectedRow + movement, rowCount - 1))
+      selectRow(min(selectedRow + movement, rowCount - 1))
+    }
+    if (selectedColumn < 0) {
+      selectColumn(0)
     }
   }
 
   private fun moveToFirstRow() {
-    val selectedRow = selectedRow
-    if (isEditing || selectedRow == -1) {
-      return
+    if (isEditing) {
+      removeEditor()
+      requestFocus()
     }
 
     selectRow(0)
   }
 
   private fun moveToLastRow() {
-    val selectedRow = selectedRow
-    if (isEditing || selectedRow == -1) {
-      return
+    if (isEditing) {
+      removeEditor()
+      requestFocus()
     }
 
     selectRow(rowCount - 1)
@@ -548,9 +638,19 @@ class PTableImpl(
         return
       }
 
+      // Ignore a toggle if the cell is editable. Allow the TableUI to start editing instead:
+      if (tableModel.isCellEditable(item(row), PTableColumn.NAME)) {
+        val editor = editorComponent ?: return
+        val newEvent = SwingUtilities.convertMouseEvent(this@PTableImpl, event, editor)
+        editor.dispatchEvent(newEvent)
+        return
+      }
+
       val rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false)
+      rectLeftColumn.width = UIUtil.getTreeExpandedIcon().iconWidth
       if (rectLeftColumn.contains(event.x, event.y)) {
         toggleTreeNode(row)
+        event.consume()
       }
     }
   }
@@ -564,7 +664,8 @@ class PTableImpl(
 
     override fun keyTyped(event: KeyEvent) {
       val row = selectedRow
-      if (isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
+      val type = Character.getType(event.keyChar).toByte()
+      if (isEditing || row == -1 || type == Character.CONTROL || type == Character.OTHER_SYMBOL || type == Character.SPACE_SEPARATOR) {
         return
       }
       autoStartEditingAndForwardKeyEventToEditor(row, event)

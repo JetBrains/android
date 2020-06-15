@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -226,6 +227,9 @@ public class MockupTest extends MockupTestCase {
     when(screenView.getSize(anyObject())).thenReturn(new Dimension(1000, 2000));
     when(screenView.getScale()).thenReturn(2.);
     when(screenView.getSurface()).thenReturn(mockSurface);
+    LayoutlibSceneManager mockSceneManager = mock(LayoutlibSceneManager.class);
+    when(screenView.getSceneManager()).thenReturn(mockSceneManager);
+    when(mockSceneManager.getSceneScalingFactor()).thenReturn(1f);
     final Mockup mockup = Mockup.create(model.getComponents().get(0));
     assertNotNull(mockup);
     assertEquals(new Rectangle(10, 10, 120, 50), mockup.getBounds());

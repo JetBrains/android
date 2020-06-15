@@ -1,0 +1,161 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.lint.common
+
+import com.android.SdkConstants.DOT_GRADLE
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.lint.client.api.LintDriver
+import com.android.tools.lint.detector.api.Issue
+import com.android.utils.SdkUtils.endsWithIgnoreCase
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileTypes.FileTypes
+import com.intellij.openapi.fileTypes.StdFileTypes
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Pair
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlFile
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.plugins.groovy.GroovyFileType
+import java.io.File
+
+/**
+ * Extension point for the general lint support to look up services it does not
+ * directly depend upon.
+ */
+abstract class LintIdeSupport {
+  companion object {
+    private val EP_NAME = ExtensionPointName.create<LintIdeSupport>("com.android.tools.idea.lint.common.lintIdeSupport")
+
+    private val INSTANCE: LintIdeSupport // these are all stateless
+    init {
+      val extensions = EP_NAME.extensions
+      when (extensions.size) {
+        1 -> INSTANCE = extensions[0]
+        0 -> INSTANCE = object : LintIdeSupport() { }
+        else -> error("Multiple lint customizer extensions found: ${extensions.toList()}")
+      }
+    }
+
+    @JvmStatic
+    fun get(): LintIdeSupport = INSTANCE
+  }
+
+  open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
+
+  open fun getBaselineFile(module: Module): File? {
+    val dir = module.getModuleDir() ?: return null
+    val lintBaseline = File(dir, "lint_baseline.xml")
+    if (lintBaseline.exists()) {
+      return lintBaseline
+    }
+    val baseline = File(dir, "baseline.xml")
+    if (baseline.exists()) {
+      return baseline
+    }
+    return null
+  }
+
+  open fun getSeverityOverrides(module: Module): Map<String, Int>? = null
+  open fun askForAttributeValue(attributeName: String, context: PsiElement): String? = null
+  /** Whether or not the given file should be annotated on the fly in the editor */
+  open fun canAnnotate(file: PsiFile, module: Module): Boolean {
+    val fileType = file.fileType
+    if (fileType === StdFileTypes.JAVA
+        || fileType === KotlinFileType.INSTANCE
+        || fileType === StdFileTypes.PROPERTIES) {
+      return true
+    }
+    if (fileType === StdFileTypes.XML) {
+      return true
+    }
+    else if (fileType === FileTypes.PLAIN_TEXT) {
+      val name = file.name
+      return name == "proguard-project.txt" || name == "proguard-android.txt" || name == "proguard.cfg"
+    }
+    else if (fileType === GroovyFileType.GROOVY_FILE_TYPE && endsWithIgnoreCase(file.name, DOT_GRADLE)) {
+      return true
+    }
+    return false
+  }
+
+  /** Whether or not the given project should be analyzed in batch mode */
+  open fun canAnalyze(project: Project): Boolean {
+    return true
+  }
+
+  // Creating projects
+  /** Creates a set of projects for the given IntelliJ modules */
+  open fun createProject(client: LintIdeClient,
+                         files: List<VirtualFile>?,
+                         vararg modules: Module): List<com.android.tools.lint.detector.api.Project> {
+    return LintIdeProject.create(client, files, *modules)
+  }
+
+  open fun createProjectForSingleFile(client: LintIdeClient,
+                                      file: VirtualFile?,
+                                      module: Module): Pair<com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project> {
+    return LintIdeProject.createForSingleFile(client, file, module)
+  }
+
+  /**
+   * Creates a lint client
+   */
+  open fun createClient(project: Project, lintResult: LintResult = LintIgnoredResult()): LintIdeClient {
+    return LintIdeClient(project, lintResult)
+  }
+
+  /**
+   * Creates a lint client for batch inspections
+   */
+  open fun createBatchClient(lintResult: LintBatchResult): LintIdeClient {
+    return LintIdeClient(lintResult.project, lintResult)
+  }
+
+  /**
+   * Creates a lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
+   */
+  open fun createEditorClient(lintResult: LintEditorResult): LintIdeClient {
+    return LintIdeClient(lintResult.getModule().project, lintResult)
+  }
+
+  // Gradle
+  open fun updateToLatest(module: Module, gc: GradleCoordinate) {
+  }
+
+  open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null
+  // Analytics
+  open fun canRequestFeedback(): Boolean = false
+
+  open fun requestFeedbackFix(issue: Issue): LocalQuickFix = error("Not supported")
+  open fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = error("Not supported")
+  // Editor session
+  open fun logSession(lint: LintDriver, lintResult: LintEditorResult) {}
+
+  open fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {}
+
+  // XML processing
+  open fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String = ""
+}
+
+fun Module.getModuleDir(): File? {
+  return File(moduleFilePath).parentFile
+}

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.lang.proguardR8.parser
 
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes
 import com.intellij.lexer.FlexAdapter
+import com.intellij.psi.tree.TokenSet
 
 /**
  * Implements parser for ProguardR8
@@ -24,6 +26,16 @@ import com.intellij.lexer.FlexAdapter
  * @see _ProguardR8Lexer.flex
  */
 class ProguardR8Lexer(private val acceptJavaIdentifiers: Boolean = false) : FlexAdapter(_ProguardR8Lexer()) {
+
+  companion object {
+    fun isJavaIdentifier(name: String): Boolean {
+      val lexer = ProguardR8Lexer(acceptJavaIdentifiers = true)
+      lexer.start(name)
+      return lexer.tokenType == ProguardR8PsiTypes.JAVA_IDENTIFIER && lexer.tokenEnd == name.length
+    }
+
+    val wildcardsTokenSet = TokenSet.create(ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS, ProguardR8PsiTypes.ASTERISK)
+  }
 
   override fun getFlex(): _ProguardR8Lexer {
     return super.getFlex() as _ProguardR8Lexer

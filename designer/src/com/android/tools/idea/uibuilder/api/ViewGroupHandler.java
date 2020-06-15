@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
@@ -112,11 +113,16 @@ public class ViewGroupHandler extends ViewHandler {
    * Creates a new complete interaction for this view
    *
    * @param screenView the associated screen view
-   * @param layout     the layout creating the interaction
+   * @param x          mouse down (x)
+   * @param y          mouse down (y)
+   * @param component  the component target of the interaction
    * @return a new interaction, or null if this view does not handle full interactions and use other Handlers
    */
   @Nullable
-  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
+  public Interaction createInteraction(@NotNull ScreenView screenView,
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y,
+                                       @NotNull NlComponent component) {
     return null;
   }
 
@@ -288,7 +294,4 @@ public class ViewGroupHandler extends ViewHandler {
     void show(@NotNull AccessoryPanel.Type type, boolean show);
   }
 
-  public NlComponentDelegate getNlComponentDelegate() {
-    return null;
-  }
 }

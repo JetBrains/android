@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.structure.model.pom.MavenPoms
+import com.intellij.openapi.project.Project
 import java.io.File
 
-internal class PsPomDependencies : PsPomDependencyCache {
-  private val cache: MutableMap<File, List<PsArtifactDependencySpec>> = mutableMapOf()
+internal class PsPomDependencies(private val ideProject: Project) : PsPomDependencyCache {
+  private val cache: MutableMap<String, List<PsArtifactDependencySpec>> = mutableMapOf()
 
-  override fun getPomDependencies(libraryPath: File): List<PsArtifactDependencySpec> =
-    cache.getOrPut(libraryPath, { MavenPoms.findDependenciesInPomFile(libraryPath)})
+  override fun getPomDependencies(libraryName: String, libraryPath: File): List<PsArtifactDependencySpec> =
+    cache.getOrPut(libraryName, {
+      val pomFilePath = LibraryFilePaths.getInstance(ideProject).findPomPathForLibrary(libraryName, libraryPath)
+      MavenPoms.findDependenciesInPomFile(pomFilePath)
+    })
 }

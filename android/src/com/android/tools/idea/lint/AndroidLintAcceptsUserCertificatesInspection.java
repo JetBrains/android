@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.NetworkSecurityConfigDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintAcceptsUserCertificatesInspection extends AndroidLintInspectionBase {
   public AndroidLintAcceptsUserCertificatesInspection() {
     super(AndroidBundle.message("android.lint.inspections.accepts.user.certificates"),
-        NetworkSecurityConfigDetector.ACCEPTS_USER_CERTIFICATES);
+          NetworkSecurityConfigDetector.ACCEPTS_USER_CERTIFICATES);
   }
 }

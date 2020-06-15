@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.ThrottledProgress;
 import com.google.common.util.concurrent.Futures;

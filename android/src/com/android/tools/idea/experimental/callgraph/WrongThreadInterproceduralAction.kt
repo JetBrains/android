@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.experimental.callgraph
 
-import com.android.tools.idea.lint.LintIdeClient
-import com.android.tools.idea.lint.LintIdeRequest
+import com.android.tools.idea.lint.common.LintBatchResult
+import com.android.tools.idea.lint.common.LintIdeClient
+import com.android.tools.idea.lint.common.LintIdeRequest
+import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
@@ -53,7 +55,7 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
           // The Lint check won't run unless explicitly enabled by default..
           val wasEnabledByDefault = WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault()
           val detectorIssue = WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(true)
-          val client = LintIdeClient.forBatch(project, mutableMapOf(), scope, setOf(detectorIssue))
+          val client = LintIdeSupport.get().createBatchClient(LintBatchResult(project, mutableMapOf(), scope, setOf(detectorIssue)))
           try {
             val files = ArrayList<VirtualFile>()
             scope.accept { files.add(it) }

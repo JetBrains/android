@@ -16,34 +16,29 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -53,11 +48,15 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * The service is meant to be called on the EDT thread, where
  * long running operations either raise events or return a Future.
  */
-@Service
-public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem> {
-  private static final Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);
+@UiThread
+public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem>, Disposable {
+  @NotNull
+  public static AdbDeviceFileSystemService getInstance(Project project) {
+    return ServiceManager.getService(project, AdbDeviceFileSystemService.class);
+  }
 
-  @NotNull private final Function<Void, File> myAdbProvider;
+  public static Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);
+
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private final List<AdbDeviceFileSystem> myDevices = new ArrayList<>();
@@ -67,29 +66,19 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
   @Nullable private DeviceChangeListener myDeviceChangeListener;
   @Nullable private DebugBridgeChangeListener myDebugBridgeChangeListener;
   @Nullable private File myAdb;
+  @NotNull private SettableFuture<Void> myStartServiceFuture = SettableFuture.create();
 
-  @NotNull
-  public static AdbDeviceFileSystemService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AdbDeviceFileSystemService.class);
+  public AdbDeviceFileSystemService() {
+    myEdtExecutor = new FutureCallbackExecutor(EdtExecutorService.getInstance());
+    myTaskExecutor = new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE);
   }
 
-  public AdbDeviceFileSystemService(@NotNull Project project) {
-    this(aVoid -> AndroidSdkUtils.getAdb(project),
-         EdtExecutorService.getInstance(),
-         PooledThreadExecutor.INSTANCE,
-         project);
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  public AdbDeviceFileSystemService(@NotNull Function<Void, File> adbProvider,
-                             @NotNull Executor edtExecutor,
-                             @NotNull Executor taskExecutor,
-                             @NonNull Disposable parent) {
-    myAdbProvider = adbProvider;
-    myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
-    Disposer.register(parent, this);
+  @Override
+  public void dispose() {
+    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
+    AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
+    myBridge = null;
+    myDevices.clear();
   }
 
   public enum State {
@@ -123,14 +112,22 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
     return myTaskExecutor;
   }
 
-  @Override
+  /**
+   * Starts the service using an ADB File.
+   *
+   * <p>If this method is called when the service is starting or is already started, the returned future completes immediately.
+   * <p>To restart the service using a different ADB file, call {@link AdbDeviceFileSystemService#restart(Supplier)}
+   */
   @NotNull
-  public ListenableFuture<Void> start() {
-    checkState(State.Initial);
+  @Override
+  public ListenableFuture<Void> start(@NotNull Supplier<File> adbSupplier) {
+    if (myState == State.SetupRunning || myState == State.SetupDone) {
+      return myStartServiceFuture;
+    }
 
-    final File adb = myAdbProvider.apply(null);
+    final File adb = adbSupplier.get();
     if (adb == null) {
-      LOGGER.error("ADB not found");
+      LOGGER.warn("ADB not found");
       return Futures.immediateFailedFuture(new FileNotFoundException("Android Debug Bridge not found."));
     }
 
@@ -148,14 +145,15 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
     assert myAdb != null;
 
     myState = State.SetupRunning;
-    SettableFuture<Void> futureResult = SettableFuture.create();
-    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(myAdb);
-    myEdtExecutor.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
+    myStartServiceFuture = SettableFuture.create();
+
+    ListenableFuture<AndroidDebugBridge> debugBridgeFuture = AdbService.getInstance().getDebugBridge(myAdb);
+    myEdtExecutor.addCallback(debugBridgeFuture, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
         LOGGER.info("Successfully obtained debug bridge");
         myState = State.SetupDone;
-        futureResult.set(null);
+        myStartServiceFuture.set(null);
       }
 
       @Override
@@ -163,22 +161,22 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
         LOGGER.warn("Unable to obtain debug bridge", t);
         myState = State.Initial;
         if (t.getMessage() != null) {
-          futureResult.setException(t);
+          myStartServiceFuture.setException(t);
         }
         else {
-          futureResult.setException(new RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, myAdb), t));
+          myStartServiceFuture.setException(new RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, myAdb), t));
         }
       }
     });
 
-    return futureResult;
+    return myStartServiceFuture;
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> restart() {
+  public ListenableFuture<Void> restart(@NotNull Supplier<File> adbSupplier) {
     if (myState == State.Initial) {
-      return start();
+      return start(adbSupplier);
     }
 
     checkState(State.SetupDone);
@@ -210,14 +208,6 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
     return futureResult;
   }
 
-  @Override
-  public void dispose() {
-    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
-    AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
-    myBridge = null;
-    myDevices.clear();
-  }
-
   @NotNull
   @Override
   public ListenableFuture<List<AdbDeviceFileSystem>> getDevices() {
@@ -246,7 +236,7 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
           myBridge = bridge;
           if (myBridge.hasInitialDeviceList()) {
             Arrays.stream(myBridge.getDevices())
-              .map(d -> new AdbDeviceFileSystem(AdbDeviceFileSystemService.this, d))
+              .map(d -> new AdbDeviceFileSystem(d, myEdtExecutor, myTaskExecutor))
               .forEach(myDevices::add);
           }
         }
@@ -261,7 +251,7 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
       myEdtExecutor.execute(() -> {
         DeviceFileSystem deviceFileSystem = findDevice(device);
         if (deviceFileSystem == null) {
-          AdbDeviceFileSystem newDevice = new AdbDeviceFileSystem(AdbDeviceFileSystemService.this, device);
+          AdbDeviceFileSystem newDevice = new AdbDeviceFileSystem(device, myEdtExecutor, myTaskExecutor);
           myDevices.add(newDevice);
           myListeners.forEach(x -> x.deviceAdded(newDevice));
         }

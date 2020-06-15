@@ -22,11 +22,11 @@ import javax.swing.Icon
 class ProguardR8FileType private constructor() : LanguageFileType(ProguardR8Language.INSTANCE) {
 
   override fun getName(): String {
-    return "ProGuard/R8 File"
+    return "Shrinker Config File"
   }
 
   override fun getDescription(): String {
-    return "ProGuard/R8 Rules"
+    return "Shrinker Config"
   }
 
   override fun getDefaultExtension(): String {

@@ -72,7 +72,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -161,7 +160,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JPanel myTextAssetRowPanel;
   private ImageAssetBrowser myImageAssetBrowser;
   private ClipartIconButton myClipartAssetButton;
-  private TextAssetEditor myTextAssetEditor;
+  private MultiLineTextAssetEditor myTextAssetEditor;
   private JBLabel myOutputNameLabel;
   private JLabel myAssetTypeLabel;
   private JBLabel myImagePathLabel;
@@ -196,12 +195,12 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @NotNull private final BindingsManager myActiveAssetBindings = new BindingsManager();
   @NotNull private final ListenerManager myListeners = new ListenerManager();
 
-  @NotNull private final ImmutableMap<AssetType, AssetComponent> myAssetPanelMap;
+  @NotNull private final ImmutableMap<AssetType, AssetComponent<?>> myAssetPanelMap;
 
   @NotNull private final ObjectProperty<BaseAsset> myActiveAsset;
   @NotNull private final StringProperty myOutputName;
   @NotNull private final AbstractProperty<AssetType> myAssetType;
-  private AbstractProperty<Color> myForegroundColor;
+  private ColorProperty myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
   private AbstractProperty<Shape> myShape;
   private BoolProperty myCropped;
@@ -219,6 +218,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("name");
     myIconGenerator = createIconGenerator(facet.getModule().getProject(), iconType, minSdkVersion, renderer);
+
+    myTextAssetEditor.getAsset().setDefaultText("Aa");
 
     DefaultComboBoxModel<ActionBarIconGenerator.Theme> themesModel = new DefaultComboBoxModel<>(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
@@ -268,7 +269,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     initializeListenersAndBindings();
 
     Disposer.register(disposableParent, this);
-    for (AssetComponent assetComponent : myAssetPanelMap.values()) {
+    for (AssetComponent<?> assetComponent : myAssetPanelMap.values()) {
       Disposer.register(this, assetComponent);
     }
     Disposer.register(this, myIconGenerator);
@@ -279,7 +280,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @NotNull
   public PersistentState getState() {
     PersistentState state = new PersistentState();
-    for (Map.Entry<AssetType, AssetComponent> entry : myAssetPanelMap.entrySet()) {
+    for (Map.Entry<AssetType, AssetComponent<?>> entry : myAssetPanelMap.entrySet()) {
       state.setChild(toLowerCamelCase(entry.getKey()), entry.getValue().getAsset().getState());
     }
     state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), myDefaultOutputName);
@@ -287,7 +288,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     File file = myImageAssetBrowser.getAsset().imagePath().getValueOrNull();
     state.set(IMAGE_ASSET_PROPERTY, file == null ? null : file.getPath());
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
-    state.setChild(TEXT_ASSET_PROPERTY, myTextAssetEditor.getState());
+    state.setChild(TEXT_ASSET_PROPERTY, myTextAssetEditor.getAsset().getState());
     switch (myIconType) {
       case LAUNCHER_LEGACY:
         // Notice that the foreground colors that are owned by the asset components have already been stored.
@@ -310,7 +311,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
   @Override
   public void loadState(@NotNull PersistentState state) {
-    for (Map.Entry<AssetType, AssetComponent> entry : myAssetPanelMap.entrySet()) {
+    for (Map.Entry<AssetType, AssetComponent<?>> entry : myAssetPanelMap.entrySet()) {
       PersistentStateUtil.load(entry.getValue().getAsset(), state.getChild(toLowerCamelCase(entry.getKey())));
     }
     myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, myDefaultOutputName));
@@ -318,7 +319,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     String path = state.get(IMAGE_ASSET_PROPERTY);
     myImageAssetBrowser.getAsset().imagePath().setNullableValue(path == null ? null : new File(path));
     PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
-    PersistentStateUtil.load(myTextAssetEditor, state.getChild(TEXT_ASSET_PROPERTY));
+    PersistentStateUtil.load(myTextAssetEditor.getAsset(), state.getChild(TEXT_ASSET_PROPERTY));
     switch (myIconType) {
       case LAUNCHER_LEGACY:
         // Notice that the foreground colors that are owned by the asset components have already been loaded.
@@ -360,7 +361,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
-    myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
+    myForegroundColor = new ColorProperty(myForegroundColorPanel);
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
 
     myCropped = new SelectedProperty(myCropRadioButton);
@@ -375,14 +376,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
     // Update foreground layer asset type depending on asset type radio buttons.
     myAssetType.addListener(() -> {
-      AssetComponent assetComponent = myAssetPanelMap.get(myAssetType.get());
+      AssetComponent<?> assetComponent = myAssetPanelMap.get(myAssetType.get());
       myActiveAsset.set(assetComponent.getAsset());
     });
 
     // If any of our underlying asset panels change, we should pass that on to anyone listening to
     // us as well.
     ActionListener assetPanelListener = e -> fireAssetListeners();
-    for (AssetComponent assetComponent : myAssetPanelMap.values()) {
+    for (AssetComponent<?> assetComponent : myAssetPanelMap.values()) {
       assetComponent.addAssetListener(assetPanelListener);
     }
 
@@ -401,16 +402,16 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       myActiveAssetBindings.bindTwoWay(paddingPercent, asset.paddingPercent());
       OptionalValueProperty<Color> assetColor = asset.color();
       if (assetColor.getValueOrNull() == null) {
-        assetColor.setValue(myForegroundColor.get());
+        assetColor.setNullableValue(myForegroundColor.getValueOrNull());
       }
-      myActiveAssetBindings.bindTwoWay(myForegroundColor, ObjectProperty.wrap(assetColor));
+      myActiveAssetBindings.bindTwoWay(myForegroundColor, assetColor);
 
       getIconGenerator().sourceAsset().setValue(asset);
       onAssetModified.run();
     });
 
-    ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER_LEGACY));
-    ObservableBool isActionBarIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.ACTIONBAR));
+    ObservableBool isLauncherIcon = new BoolValueProperty(myIconType == AndroidIconType.LAUNCHER_LEGACY);
+    ObservableBool isActionBarIcon = new BoolValueProperty(myIconType == AndroidIconType.ACTIONBAR);
     ObservableBool isCustomTheme = myTheme.isEqualTo(ActionBarIconGenerator.Theme.CUSTOM);
     ObservableValue<Boolean> isClipartOrText =
         myActiveAsset.transform(asset -> myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset);

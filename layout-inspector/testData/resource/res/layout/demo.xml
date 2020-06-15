@@ -16,4 +16,22 @@
       framework:backgroundTint="?android:attr/colorBackgroundFloating"
       framework:textAppearance="@style/MyTextStyle.Extra"
       framework:textColor="@color/textRedIndirect"/>
+
+  <TextView
+      framework:layout_width="wrap_content"
+      framework:layout_height="wrap_content"
+      framework:text="TextView without an ID"/>
+
+  <FrameLayout
+      framework:id="@+id/frameLayout"
+      framework:layout_width="wrap_content"
+      framework:layout_height="wrap_content">
+
+    <TextView
+        framework:layout_width="wrap_content"
+        framework:layout_height="wrap_content"
+        framework:text="TextView without an ID"/>
+
+  </FrameLayout>
+
 </RelativeLayout>

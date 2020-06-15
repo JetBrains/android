@@ -30,7 +30,7 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.layoutlib.bridge.MockView;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
-import com.android.tools.idea.rendering.InconvertibleClassError;
+import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -56,6 +56,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import com.intellij.util.ArrayUtil;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -235,7 +239,7 @@ public class ViewLoader {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        myModuleClassLoader = ModuleClassLoader.get(myLayoutLibrary, myModule);
+        myModuleClassLoader = ModuleClassLoaderManager.get().get(myLayoutLibrary.getClassLoader(), myModule);
       }
       finally {
         RenderSecurityManager.exitSafeRegion(token);
@@ -549,7 +553,7 @@ public class ViewLoader {
         // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
         // regenerated. Clear the ModuleClassLoader and reload the R class.
         myLoadedClasses.clear();
-        ModuleClassLoader.clearCache(myModule);
+        ModuleClassLoaderManager.get().clearCache(myModule);
         myModuleClassLoader = null;
         aClass = getModuleClassLoader().loadClass(className);
         idManager.resetDynamicIds();
@@ -580,6 +584,6 @@ public class ViewLoader {
    * Returns true if this ViewLoaded has loaded the given class.
    */
   public boolean hasLoadedClass(@NotNull String classFqn) {
-    return myLoadedClasses.containsKey(classFqn);
+    return myModuleClassLoader != null && myModuleClassLoader.isClassLoaded(classFqn);
   }
 }

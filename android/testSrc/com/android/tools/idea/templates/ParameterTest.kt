@@ -15,21 +15,36 @@
  */
 package com.android.tools.idea.templates
 
-import org.mockito.Mockito
-
-import javax.imageio.metadata.IIOMetadataNode
-
-import com.android.tools.idea.templates.Parameter.Constraint.*
-import com.android.tools.idea.templates.Template.*
+import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
+import com.android.tools.idea.templates.Template.ATTR_DEFAULT
+import com.android.tools.idea.templates.Template.ATTR_HELP
+import com.android.tools.idea.templates.Template.ATTR_ID
+import com.android.tools.idea.templates.Template.ATTR_NAME
+import com.android.tools.idea.templates.Template.ATTR_SUGGEST
+import com.android.tools.idea.templates.Template.ATTR_TYPE
+import com.android.tools.idea.wizard.template.Constraint
+import com.android.tools.idea.wizard.template.Constraint.ACTIVITY
+import com.android.tools.idea.wizard.template.Constraint.APP_PACKAGE
+import com.android.tools.idea.wizard.template.Constraint.CLASS
+import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
+import com.android.tools.idea.wizard.template.Constraint.LAYOUT
+import com.android.tools.idea.wizard.template.Constraint.MODULE
+import com.android.tools.idea.wizard.template.Constraint.NAVIGATION
+import com.android.tools.idea.wizard.template.Constraint.NONEMPTY
+import com.android.tools.idea.wizard.template.Constraint.PACKAGE
+import com.android.tools.idea.wizard.template.Constraint.UNIQUE
+import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
+import org.mockito.Mockito
+import javax.imageio.metadata.IIOMetadataNode
 
 /**
  * Tests for parameter checking except for uniqueness/existence. For those, see [UniqueParameterTest]
  */
 class ParameterTest: AndroidTestCase() {
-  private lateinit var myParameter: Parameter
-  private lateinit var myConstraintUnderTest: Parameter.Constraint
+  private lateinit var parameter: Parameter
+  private lateinit var constraintUnderTest: Constraint
 
   private val mockMetadata = Mockito.mock(TemplateMetadata::class.java)
 
@@ -46,22 +61,21 @@ class ParameterTest: AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
-    myParameter = Parameter(mockMetadata, elem)
+    parameter = Parameter(mockMetadata, elem)
   }
 
-  private fun setConstraint(c: Parameter.Constraint) {
-    myConstraintUnderTest = c
-    myParameter.constraints.add(c)
+  private fun setConstraint(c: Constraint) {
+    constraintUnderTest = c
+    parameter.constraints.add(c)
   }
 
-  private fun assertViolates(packageName: String?, value: String?, c: Parameter.Constraint = myConstraintUnderTest) {
-    assertThat(myParameter.validateStringType(project, myModule, null, packageName, value)).contains(c)
+  private fun assertViolates(packageName: String?, value: String?, c: Constraint = constraintUnderTest) {
+    assertThat(parameter.validateStringType(project, myModule, null, packageName, value)).contains(c)
   }
 
-  private fun assertPasses(packageName: String?, value: String?, c: Parameter.Constraint = myConstraintUnderTest) {
-    assertThat(myParameter.validateStringType(project, myModule, null, packageName, value)).doesNotContain(c)
+  private fun assertPasses(packageName: String?, value: String?, c: Constraint = constraintUnderTest) {
+    assertThat(parameter.validateStringType(project, myModule, null, packageName, value)).doesNotContain(c)
   }
-
 
   fun testNonEmpty() {
     setConstraint(NONEMPTY)
@@ -130,7 +144,7 @@ class ParameterTest: AndroidTestCase() {
   }
 
   fun testModule() {
-    myParameter.constraints.add(MODULE)
+    parameter.constraints.add(MODULE)
     setConstraint(UNIQUE)
 
     assertViolates(null, myModule.name)

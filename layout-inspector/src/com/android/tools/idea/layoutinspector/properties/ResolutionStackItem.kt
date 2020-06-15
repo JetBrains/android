@@ -34,7 +34,7 @@ class ResolutionStackItem(
   "",               // The name of the PTableItem is empty, such that is isn't repeated in the properties table.
   property.type,
   value,
-  property.isDeclared,
+  property.group,
   reference,
   property.view,
-  property.model)
+  property.resourceLookup)

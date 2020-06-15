@@ -25,6 +25,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.Result;
@@ -53,8 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +63,7 @@ import org.jetbrains.annotations.NotNull;
  * folders into mipmap folders (created if necessary) as well as updating resource references in XML
  * and Java files
  */
-class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
+class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
   private final ResourceUrl myUrl;
 
   MigrateDrawableToMipmapFix(@NotNull ResourceUrl url) {
@@ -146,7 +146,8 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
                 if (myUrl.name.equals(name)) {
                   if (ResourceType.DRAWABLE.getName().equals(item.getName())) {
                     item.setName(ResourceType.MIPMAP.getName());
-                  } else if (ResourceType.DRAWABLE.getName().equals(item.getAttributeValue(ATTR_TYPE))) {
+                  }
+                  else if (ResourceType.DRAWABLE.getName().equals(item.getAttributeValue(ATTR_TYPE))) {
                     item.setAttribute(ATTR_TYPE, ResourceType.MIPMAP.getName());
                   }
                 }
@@ -179,7 +180,8 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
             XmlAttributeValue value = (XmlAttributeValue)reference;
             XmlAttribute attribute = (XmlAttribute)value.getParent();
             attribute.setValue(ResourceUrl.create(ResourceType.MIPMAP, myUrl.name, false).toString());
-          } else if (reference instanceof PsiReferenceExpression) {
+          }
+          else if (reference instanceof PsiReferenceExpression) {
             // Convert R.drawable.foo references to R.mipmap.foo
             PsiReferenceExpression inner = (PsiReferenceExpression)reference;
             PsiExpression qualifier = inner.getQualifierExpression();
@@ -197,7 +199,6 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
             }
           }
         }
-
       }
     };
     action.execute();

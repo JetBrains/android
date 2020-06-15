@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class MavenCredentialsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String CREDENTIALS_BLOCK_NAME = "credentials";
+  public static final PropertiesElementDescription<MavenCredentialsDslElement> CREDENTIALS =
+    new PropertiesElementDescription<>("credentials", MavenCredentialsDslElement.class, MavenCredentialsDslElement::new);
 
-  public MavenCredentialsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CREDENTIALS_BLOCK_NAME));
+  public MavenCredentialsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

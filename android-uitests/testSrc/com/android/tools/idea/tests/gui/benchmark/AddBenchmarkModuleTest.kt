@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
+import com.android.tools.idea.npw.platform.Language.JAVA
+import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
@@ -38,7 +40,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Java as the source lanaguage.
+   * 4. Select Java as the source language.
    * 5. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
@@ -53,11 +55,11 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addJavaBenchmarkModule() {
-    val ideFrame = guiTest.importSimpleApplication()
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
-      .setSourceLanguage("Java")
+      .setSourceLanguage(JAVA)
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
@@ -87,7 +89,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Kotlin as the source lanaguage.
+   * 4. Select Kotlin as the source language.
    * 5. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
@@ -102,11 +104,11 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addKotlinBenchmarkModule() {
-    val ideFrame = guiTest.importSimpleApplication()
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
-      .setSourceLanguage("Kotlin")
+      .setSourceLanguage(KOTLIN)
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()

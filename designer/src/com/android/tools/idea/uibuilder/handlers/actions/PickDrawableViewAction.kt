@@ -49,9 +49,8 @@ class PickDrawableViewAction(private val namespace: String?, private val attribu
       defaultResourceType = null,
       showColorStateLists = true,
       showSampleData = false,
-      file = tag.containingFile.virtualFile,
-      xmlFile = null,
-      tag = tag)
+      file = tag.containingFile.virtualFile
+    )
 
     if (dialog.showAndGet()) {
       if (dialog.resourceName != null) {

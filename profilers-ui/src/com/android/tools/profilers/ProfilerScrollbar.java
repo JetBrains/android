@@ -19,16 +19,18 @@ import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBScrollBar;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.util.concurrent.TimeUnit;
+import javax.swing.BoundedRangeModel;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
-
 /**
- * A custom toolbar that synchronizes with the data+view ranges from the {@link ProfilerTimeline}.
+ * A custom toolbar that synchronizes with the data+view ranges from the {@link StreamingTimeline}.
  * This control sets the timeline into streaming mode if users drags the thumb all the way to the right.
  */
 public final class ProfilerScrollbar extends JBScrollBar {
@@ -53,13 +55,13 @@ public final class ProfilerScrollbar extends JBScrollBar {
    */
   private static final float STREAMING_POSITION_THRESHOLD_PX = 10;
 
-  @NotNull private final ProfilerTimeline myTimeline;
+  @NotNull private final StreamingTimeline myTimeline;
   private final AspectObserver myAspectObserver;
 
   private boolean myUpdating;
   private boolean myCheckStream;
 
-  public ProfilerScrollbar(@NotNull ProfilerTimeline timeline,
+  public ProfilerScrollbar(@NotNull StreamingTimeline timeline,
                            @NotNull JComponent zoomPanComponent) {
     super(HORIZONTAL);
 
@@ -93,7 +95,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
         myTimeline.zoom(getZoomWheelDelta() * count, anchor);
       }
       else if (isScrollable()) {
-        myTimeline.pan(getPanWheelDelta() * count);
+        myTimeline.panView(getPanWheelDelta() * count);
       }
       myCheckStream = count > 0;
     });

@@ -45,7 +45,7 @@ public class ServiceBundle {
     @XmlElement(name = "service", type = Service.class)
   })
   private List<Service> myServices = new ArrayList<>();
-// @formatter:on
+  // @formatter:on
 
   /**
    * Parse a bundle XML.
@@ -98,7 +98,7 @@ public class ServiceBundle {
       @XmlElement(name = "resource", type = String.class)
     })
     private List<String> myResources = new ArrayList<>();
-// @formatter:on
+    // @formatter:on
 
     public List<String> getResources() {
       return ImmutableList.copyOf(myResources);

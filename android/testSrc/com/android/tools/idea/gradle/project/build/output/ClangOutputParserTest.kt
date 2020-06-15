@@ -392,6 +392,25 @@ class ClangOutputParserTest {
   }
 
   @Test
+  fun `windows - path with invalid character is ignored`() {
+    Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
+    assertParser("""
+      > Task :app:externalNativeBuildDebug
+    * Build multiple targets ...
+    * ninja: Entering directory `C:\src\HelloWorld\app\.cxx\cmake\debug\arm64-v8a'
+    * [1/1] Building CXX object HelloWorld.cpp.o
+    * In file included from ../../../../HelloWorld.cpp:14:
+    * ../../path;with;invalid;char;.h:72:1: error: C++ requires a type specifier for all declarations
+    * blah;
+    * ^
+    * 1 error generated.
+      > Task :app:externalNativeBuildDebug FAILED
+    """.trimIndent().replace("\n", "\r\n")) {
+      assertDiagnosticMessages()
+    }
+  }
+
+  @Test
   fun `windows - absolute paths are resolved correctly`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
     assertParser("""
@@ -497,7 +516,8 @@ class ClangOutputParserTest {
         // Record the current line and check if it's not supposed to be consumed by parsing it to the block.
         unconsumedLineIndices.add(reader.currentIndex)
         // Assert the reader is consistent with respect to the "current" line so there is no surprises for parsers after this parser.
-        Truth.assertThat(line).named("current line in reader").isEqualTo(reader.currentLine)
+        reader.pushBack()
+        Truth.assertThat(line).named("current line in reader").isEqualTo(reader.readLine())
       }
     }
     block(consumer.messageEvents.map { it as MessageEventImpl }, unconsumedLineIndices)

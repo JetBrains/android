@@ -29,6 +29,7 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.hint.ImplementationViewComponent;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -90,8 +91,9 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
     addCaretListener(textEditor, designEditor);
     editorPanel.getSurface().setFileEditorDelegate(textEditor);
-    FileEditor splitEditor = new DesignToolsSplitEditor(textEditor, designEditor, "Design", project);
+    DesignToolsSplitEditor splitEditor = new DesignToolsSplitEditor(textEditor, designEditor, "Design", project);
     editorPanel.getWorkBench().setFileEditor(splitEditor);
+    DataManager.registerDataProvider(editorPanel, splitEditor);
     return splitEditor;
   }
 

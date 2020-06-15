@@ -15,9 +15,21 @@
  */
 package com.android.tools.adtui.treegrid;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.awt.event.KeyEvent.KEY_PRESSED;
+import static java.awt.event.KeyEvent.KEY_RELEASED;
+import static java.awt.event.KeyEvent.KEY_TYPED;
+import static java.awt.event.KeyEvent.VK_DOWN;
+import static java.awt.event.KeyEvent.VK_ENTER;
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_RIGHT;
+import static java.awt.event.KeyEvent.VK_UNDEFINED;
+import static java.awt.event.KeyEvent.VK_UP;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ArrayUtilRt;
@@ -31,15 +43,29 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.GraphicsEnvironment;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ToolTipManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.google.common.truth.Truth.assertThat;
-import static java.awt.event.KeyEvent.*;
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
-
-public class TreeGridTest extends PlatformTestCase {
+public class TreeGridTest extends LightPlatformTestCase {
   private TreeGrid<String> myGrid;
   private JList<String> myGroup1;
   private JList<String> myGroup2;

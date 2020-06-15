@@ -17,7 +17,9 @@
 
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -32,7 +34,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       moduleTypeId = $moduleTypeId
       externalName = $externalName
       moduleFileDirectoryPath = $moduleFileDirectoryPath
-      externalConfigPath = $linkedExternalProjectPath""".replaceIndent("        ")
+      externalConfigPath = $linkedExternalProjectPath""".replaceIndent("    ")
     is GradleModuleModel -> "\n" + """
       moduleName = $moduleName
       taskNames = ${taskNames.take(3)}...
@@ -42,7 +44,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       buildFilePath = $buildFilePath
       gradleVersion = $gradleVersion
       agpVersion = $agpVersion
-      isKaptEnabled = $isKaptEnabled""".replaceIndent("        ")
+      isKaptEnabled = $isKaptEnabled""".replaceIndent("    ")
     is ExternalProject -> "\n" + """
       externalSystemId = $externalSystemId
       id = $id
@@ -59,7 +61,20 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       sourceSets = $sourceSets
       artifacts = ${artifacts.take(3)}...
       artifactsByConfiguration = ${artifactsByConfiguration.entries.take(3)}...
-      """.replaceIndent("        ")
+      """.replaceIndent("    ")
+    is JavaModuleModel -> "\n" + """
+      isBuildable = ${isBuildable}
+      languageLevel = ${javaLanguageLevel}
+      buildFolderPath = ${buildFolderPath}
+      isAndroidModuleWithoutVariants = ${isAndroidModuleWithoutVariants}
+      contentRoots = ${contentRoots}
+      javaModuleDependencies = ${javaModuleDependencies}
+      jarLibraryDependencies = ${jarLibraryDependencies}
+      artifactsByConfiguration = ${artifactsByConfiguration}
+      syncIssues = ${syncIssues}
+      configurations = ${configurations}
+      """.replaceIndent("    ")
+    is AndroidModuleModel -> format()
     else -> toString()
   }
 
@@ -73,4 +88,99 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
   }
 
   this@dump.dumpNode()
+}
+
+fun AndroidModuleModel.format(): String = "\n" + """
+    androidProject = ${androidProject.format()}
+    selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
+    selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
+    selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}
+    features = ${features.format()}
+    modelVersion = $modelVersion
+    mainArtifact = ${mainArtifact.format()}
+    defaultSourceProvider = ${defaultSourceProvider.format()}
+    activeSourceProviders = ${activeSourceProviders.format()}
+    unitTestSourceProviders = ${unitTestSourceProviders.format()}
+    androidTestSourceProviders = ${androidTestSourceProviders.format()}
+    allSourceProviders = ${allSourceProviders.format()}
+    applicationId = $applicationId
+    allApplicationIds = $allApplicationIds
+    isDebuggable = $isDebuggable
+    minSdkVersion = $minSdkVersion
+    runtimeMinSdkVersion = $runtimeMinSdkVersion
+    targetSdkVersion = $targetSdkVersion
+    versionCode = $versionCode
+    projectSystemId = $projectSystemId
+    buildTypes = ${buildTypes.format()}
+    productFlavors = ${productFlavors.format()}
+    moduleName = $moduleName
+    rootDirPath = $rootDirPath
+    selectedVariant = ${selectedVariant.format()}
+    buildTypeNames = ${buildTypeNames.format()}
+    productFlavorNames = ${productFlavorNames.format()}
+    variantNames = ${variantNames.format()}
+    javaLanguageLevel = $javaLanguageLevel
+    overridesManifestPackage = ${overridesManifestPackage()}
+    extraGeneratedSourceFolderPaths = ${extraGeneratedSourceFolderPaths.format()}
+    syncIssues = ${syncIssues?.format()}
+    artifactForAndroidTest = ${artifactForAndroidTest?.format()}
+    testExecutionStrategy = $testExecutionStrategy
+    buildTypeSourceProvider = ${buildTypeSourceProvider.format()}
+    flavorSourceProviders = ${flavorSourceProviders.format()}
+    multiFlavorSourceProvider = ${multiFlavorSourceProvider?.format()}
+    variantSourceProvider = ${variantSourceProvider?.format()}
+    dataBindingMode = $dataBindingMode
+    classJarProvider = $classJarProvider
+    namespacing = $namespacing
+    desugaring = $desugaring
+    resValues = $resValues
+    """.replaceIndent("    ")
+
+private fun Any.format(prefix: String = "      "): String {
+  val text = this.toString()
+  return buildString {
+    try {
+      var prefix = prefix
+      text.forEachIndexed { index, c ->
+        val n = text.getOrElse(index + 1) { '#' }
+        val p = text.getOrElse(index - 1) { '#' }
+        when {
+          c == '{' && n != '}' -> {
+            appendln("{")
+            prefix += "  "
+            append(prefix)
+          }
+          c == '}' && p != '{' -> {
+            appendln()
+            prefix = prefix.substring(2)
+            append(prefix)
+            append("}")
+          }
+          c == '[' && n != ']' -> {
+            appendln("[")
+            prefix += "  "
+            append(prefix)
+          }
+          c == ']' && p != '[' -> {
+            appendln()
+            prefix = prefix.substring(2)
+            append(prefix)
+            append("]")
+          }
+          c == ' ' && p == ',' -> {
+            appendln()
+            append(prefix)
+          }
+          c == '\n' -> {
+            appendln()
+            append(prefix)
+          }
+          else -> append(c)
+        }
+      }
+    } catch (t: Throwable) {
+      appendln("**********")
+      appendln(t)
+    }
+  }
 }

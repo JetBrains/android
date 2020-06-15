@@ -16,10 +16,10 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
-import com.android.build.attribution.BuildAttributionManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
@@ -28,6 +28,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -66,6 +67,7 @@ class NoncacheableTasksAnalyzerTest {
   }
 
   @Test
+  @Ignore("b/144419681")
   fun testNoncacheableTasksAnalyzer() {
     setUpProject()
 
@@ -74,26 +76,27 @@ class NoncacheableTasksAnalyzerTest {
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
-    assertThat(buildAttributionManager.analyzersProxy.getNoncacheableTasks()).hasSize(1)
-    val noncacheableTask = buildAttributionManager.analyzersProxy.getNoncacheableTasks()[0]
+    assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).hasSize(1)
+    val noncacheableTask = buildAttributionManager.analyzersProxy.getNonCacheableTasks()[0]
 
     assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:dummy")
     assertThat(noncacheableTask.taskType).isEqualTo("org.gradle.api.DefaultTask")
-    assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script :app:build.gradle")
   }
 
   @Test
+  @Ignore("b/144419681")
   fun testNoncacheableTasksAnalyzerWithSuppressedWarning() {
     setUpProject()
 
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNoncacheableTaskWarning("org.gradle.api.DefaultTask",
-                                                                                                      "build.gradle")
+                                                                                                      ":app:build.gradle")
 
     myProjectRule.invokeTasks("assembleDebug")
 
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
-    assertThat(buildAttributionManager.analyzersProxy.getNoncacheableTasks()).isEmpty()
+    assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).isEmpty()
   }
 }

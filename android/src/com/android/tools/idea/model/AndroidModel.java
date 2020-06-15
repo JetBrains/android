@@ -16,15 +16,15 @@
 package com.android.tools.idea.model;
 
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.lint.detector.api.Desugaring;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -35,43 +35,39 @@ import org.jetbrains.annotations.Nullable;
  * A common interface for Android module models.
  */
 public interface AndroidModel {
+
+  Key<AndroidModel> KEY = Key.create(AndroidModel.class.getName());
+
+  @Nullable
+  static AndroidModel get(@NotNull AndroidFacet facet) {
+    return facet.getUserData(KEY);
+  }
+
   @Nullable
   static AndroidModel get(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? facet.getModel() : null;
+    return facet == null ? null : get(facet);
   }
-  /**
-   * @return the default source provider.
-   * @see org.jetbrains.android.facet.SourceProviderManager
-   */
-  @Deprecated
-  @NotNull
-  SourceProvider getDefaultSourceProvider();
 
   /**
-   * @return the currently active (non-test) source providers for this Android module in overlay order (meaning that later providers
-   * override earlier providers when they redefine resources).
-   * {@link org.jetbrains.android.facet.IdeaSourceProvider#getCurrentSourceProviders}
+   * Sets the model used by this AndroidFacet. This method is meant to be called from build-system specific code that sets up the project
+   * during sync.
+   *
+   * <p>NOTE: Please consider using {@link AndroidProjectRule#withAndroidModel()} or similar methods to configure a test project before using
+   * this method.
    */
-  @Deprecated
-  @NotNull
-  List<SourceProvider> getActiveSourceProviders();
+  static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
+    facet.putUserData(KEY, androidModel);
+    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
+  }
 
   /**
-   * @return the currently active test source providers for this Android module in overlay order.
-   * {@link org.jetbrains.android.facet.IdeaSourceProvider#getCurrentTestSourceProviders}
+   * Returns {@code true} if {@code facet} has been configured from and is kept in sync with an external model of the project.
    */
-  @Deprecated
-  @NotNull
-  List<SourceProvider> getTestSourceProviders();
-
-  /**
-   * @return all of the non-test source providers, including those that are not currently active.
-   * {@link org.jetbrains.android.facet.IdeaSourceProvider#getAllSourceProviders(AndroidFacet)}
-   */
-  @Deprecated
-  @NotNull
-  List<SourceProvider> getAllSourceProviders();
+  static boolean isRequired(@NotNull AndroidFacet facet) {
+    //noinspection deprecation  This is one of legitimate usages of this property.
+    return !facet.getProperties().ALLOW_USER_CONFIGURATION;
+  }
 
   /**
    * @return the current application ID.

@@ -19,7 +19,7 @@ package com.android.tools.idea.whatsnew.assistant;
 import com.android.repository.Revision;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
-import com.android.tools.idea.util.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.GeneralSettings;
 import java.io.File;

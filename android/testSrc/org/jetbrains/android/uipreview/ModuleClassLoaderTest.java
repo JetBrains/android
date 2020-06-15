@@ -19,7 +19,7 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.android.builder.model.AndroidProject;
+import com.android.AndroidProjectTypes;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
@@ -29,10 +29,13 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -52,8 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
+import javax.tools.*;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -92,7 +94,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     generateRClass("test", new File(outputDir, "R.class"));
 
     ApplicationManager.getApplication().runReadAction(() -> {
-      ModuleClassLoader loader = ModuleClassLoader.get(layoutLibrary, module);
+      ModuleClassLoader loader = ModuleClassLoaderManager.get().get(null, module);
       try {
         Class<?> rClass = loader.loadClass("test.R");
         String value = (String)rClass.getDeclaredField("ID").get(null);
@@ -141,7 +143,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     rClassRegistry.addLibrary(repositories.get(0), ResourceIdManager.get(module), "test", namespace);
 
     ApplicationManager.getApplication().runReadAction(() -> {
-      ModuleClassLoader loader = ModuleClassLoader.get(layoutLibrary, module);
+      ModuleClassLoader loader = ModuleClassLoaderManager.get().get(null, module);
       try {
         Class<?> rClass = loader.loadClass("test.R");
         rClass.getDeclaredField("ID");
@@ -153,16 +155,16 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
         fail("Unexpected exception " + e.getLocalizedMessage());
       }
     });
-
   }
 
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet
-      .setModel(AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
+    AndroidModel.set(myFacet,
+                     AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug",
+                                               new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     File srcDir = new File(Files.createTempDir(), "src");
     File rSrc = new File(srcDir, "com/google/example/R.java");
@@ -189,9 +191,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     VirtualFile notModifiedClass = VfsUtil.findFileByIoFile(new File(notModifiedSrc.getParent(), "NotModified.class"), true);
     assertThat(notModifiedClass).isNotNull();
 
-    ModuleClassLoader loader = ModuleClassLoader.get(
-      new LayoutLibrary() {
-      }, myModule);
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().get(null, myModule);
     loader.loadClassFile("com.google.example.R", rClass);
     loader.loadClassFile("com.google.example.R$string", rStringClass);
     loader.loadClassFile("com.google.example.Modified", modifiedClass);
@@ -224,24 +224,29 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
-    VirtualFile defaultManifest = SourceProviderManager.getInstance(myFacet).getMainManifestFile();
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(myFacet);
+    VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
-    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
-    myFacet.setModel(
-      AndroidModuleModel.create(androidProject.getName(),
-                                Projects.getBaseDirPath(getProject()),
-                                androidProject,
-                                "debug",
-                                new IdeDependenciesFactory()));
+    androidProject.setProjectType(AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+    AndroidModel.set(myFacet,
+                     AndroidModuleModel.create(androidProject.getName(),
+                                               Projects.getBaseDirPath(getProject()),
+                                               androidProject,
+                                               "debug",
+                                               new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     WriteAction.run(() -> {
-      File sourceProviderManifestFile = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
-      FileUtil.createIfDoesntExist(sourceProviderManifestFile);
-      VirtualFile manifestFile = VfsUtil.findFileByIoFile(sourceProviderManifestFile, true);
+      VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();
+      if (manifestFile == null) {
+        String manifestUrl = Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrls());
+        VirtualFile manifestDirectory =
+          Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestDirectories());
+        manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl));
+      }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();
       byte[] defaultManifestContent = defaultManifest.contentsToByteArray();
       assertNotNull(defaultManifestContent);
@@ -249,7 +254,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     });
     assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
-    ModuleClassLoader loader = ModuleClassLoader.get(new LayoutLibrary() {}, myModule);
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().get(null, myModule);
     loader.loadClass("p1.p2.R");
   }
 }

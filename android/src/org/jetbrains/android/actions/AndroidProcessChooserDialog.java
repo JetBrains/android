@@ -409,7 +409,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           collectProcessNames(xmlElement, result);
         }
       }
-      final AndroidModel androidModel = facet.getModel();
+      final AndroidModel androidModel = AndroidModel.get(facet);
       if (androidModel != null) {
         result.addAll(androidModel.getAllApplicationIds());
       }

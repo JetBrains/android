@@ -16,26 +16,36 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.DefaultTimeline;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
+import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.EventStreamServer;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
-import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
+import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
+import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
+import com.android.tools.profilers.event.UserEventTooltip;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -45,7 +55,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,10 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * This class holds the models and capture data for the {@link com.android.tools.profilers.cpu.CpuCaptureStageView}.
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
-public class CpuCaptureStage extends Stage {
-  @VisibleForTesting
-  static final String DEFAULT_ANALYSIS_NAME = "Full trace";
-
+public class CpuCaptureStage extends Stage<Timeline> {
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -118,32 +126,46 @@ public class CpuCaptureStage extends Stage {
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
-  private final TrackGroupListModel myTrackGroupListModel = new TrackGroupListModel();
-  private final CpuCaptureMinimapModel myMinimapModel;
+  private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
+  private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
+
+  private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
 
   // Accessible only when in state analyzing
   private CpuCapture myCapture;
 
   /**
+   * The track groups share a timeline based on the minimap selection.
+   * <p>
+   * Data range: capture range;
+   * View range: minimap selection;
+   * Tooltip range: all track groups share the same mouse-over range, different from the minimap or profilers;
+   * Selection range: union of all selected trace events;
+   */
+  private final Timeline myTrackGroupTimeline = new DefaultTimeline();
+
+  /**
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
    */
   @Nullable
-  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, long traceId) {
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull ProfilingConfiguration configuration, long traceId) {
     File captureFile = getAndSaveCapture(profilers, traceId);
     if (captureFile == null) {
       return null;
     }
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
-    return new CpuCaptureStage(profilers, configurationName, captureFile, captureProcessNameHint);
+    return new CpuCaptureStage(profilers, configuration, captureFile, captureProcessNameHint, profilers.getSession().getPid());
   }
 
   /**
    * Create a capture stage based on a file, this is used for both importing traces as well as cached traces loaded from trace ids.
    */
   @NotNull
-  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
-    return new CpuCaptureStage(profilers, configurationName, captureFile, null);
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
+                                       @NotNull ProfilingConfiguration configuration,
+                                       @NotNull File captureFile) {
+    return new CpuCaptureStage(profilers, configuration, captureFile, null, 0);
   }
 
   /**
@@ -151,13 +173,13 @@ public class CpuCaptureStage extends Stage {
    */
   @VisibleForTesting
   CpuCaptureStage(@NotNull StudioProfilers profilers,
-                  @NotNull String configurationName,
+                  @NotNull ProfilingConfiguration configuration,
                   @NotNull File captureFile,
-                  @Nullable String captureProcessNameHint) {
+                  @Nullable String captureProcessNameHint,
+                  int captureProcessIdHint) {
     super(profilers);
-
-    myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint);
-    myMinimapModel = new CpuCaptureMinimapModel(profilers);
+    myCpuCaptureHandler =
+      new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configuration, captureProcessNameHint, captureProcessIdHint);
   }
 
   public State getState() {
@@ -175,18 +197,41 @@ public class CpuCaptureStage extends Stage {
   }
 
   @NotNull
-  public TrackGroupListModel getTrackGroupListModel() {
-    return myTrackGroupListModel;
+  public List<TrackGroupModel> getTrackGroupModels() {
+    return myTrackGroupModels;
+  }
+
+  @NotNull
+  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+    return myMultiSelectionModel;
   }
 
   @NotNull
   public CpuCaptureMinimapModel getMinimapModel() {
+    assert myState == State.ANALYZING;
     return myMinimapModel;
   }
 
   @NotNull
   public List<CpuAnalysisModel> getAnalysisModels() {
     return myAnalysisModels;
+  }
+
+  /**
+   * @return the capture timeline, different from the profiler's session timeline.
+   */
+  @NotNull
+  public Timeline getCaptureTimeline() {
+    return getCapture().getTimeline();
+  }
+
+  /**
+   * @return the track group timeline specific to the capture stage.
+   */
+  @NotNull
+  @Override
+  public Timeline getTimeline() {
+    return myTrackGroupTimeline;
   }
 
   private void setState(State state) {
@@ -203,6 +248,7 @@ public class CpuCaptureStage extends Stage {
   @Override
   public void enter() {
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(this.getClass());
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
@@ -214,7 +260,8 @@ public class CpuCaptureStage extends Stage {
           onCaptureParsed(capture);
           setState(State.ANALYZING);
         }
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         // Logging if an exception happens since setState may trigger various callbacks.
         Logger.getInstance(CpuCaptureStage.class).error(ex);
       }
@@ -231,88 +278,142 @@ public class CpuCaptureStage extends Stage {
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
+  public void removeCpuAnalysisModel(int index) {
+    myAnalysisModels.remove(index);
+    myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
+  }
+
   private void onCaptureParsed(@NotNull CpuCapture capture) {
-    myMinimapModel.setMaxRange(capture.getRange());
+    myTrackGroupTimeline.getDataRange().set(capture.getRange());
+    myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, myTrackGroupTimeline.getViewRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
-    buildAnalysisTabs(capture);
+    addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
+    if (getStudioProfilers().getSession().getPid() == 0) {
+      // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
+      // correct trace type associated with the imported file.
+      insertImportedTraceEvent(capture);
+    }
   }
 
-  private void buildAnalysisTabs(@NotNull CpuCapture capture) {
-    CpuAnalysisModel fullTraceModel = new CpuAnalysisModel(DEFAULT_ANALYSIS_NAME);
-    CpuAnalysisTabModel<CpuCapture> summaryModel = new CpuAnalysisTabModel<>(CpuAnalysisTabModel.Type.SUMMARY);
-    summaryModel.addData(capture);
-    fullTraceModel.getTabs().add(summaryModel);
-    addCpuAnalysisModel(fullTraceModel);
+  private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
+    Cpu.CpuTraceInfo importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(CpuCaptureParser.IMPORTED_TRACE_ID)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()))
+      .setConfiguration(
+        Cpu.CpuTraceConfiguration
+          .newBuilder()
+          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(capture.getType())))
+      .build();
+    // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
+    EventStreamServer streamServer =
+      getStudioProfilers().getSessionsManager().getEventStreamServer(getStudioProfilers().getSession().getStreamId());
+    if (streamServer != null) {
+      streamServer.getEventDeque().offer(
+        Common.Event.newBuilder()
+          .setGroupId(importedTraceInfo.getTraceId())
+          .setTimestamp(importedTraceInfo.getToTimestamp())
+          .setIsEnded(true)
+          .setKind(Common.Event.Kind.CPU_TRACE)
+          .setCpuTrace(
+            Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
+          .build());
+    }
   }
 
+  /**
+   * The order of track groups dictates their default order in the UI.
+   */
   private void initTrackGroupList(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
-    myTrackGroupListModel.clear();
+    myTrackGroupModels.clear();
 
-    // Interaction events, e.g. user interaction, app lifecycle.
-    initInteractionTrackGroup(selectionRange);
+    // Interaction events, e.g. user interaction, app lifecycle. Recorded trace only.
+    if (getStudioProfilers().getSession().getPid() != 0) {
+      myTrackGroupModels.add(createInteractionTrackGroup(selectionRange));
+    }
 
-    // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
     if (capture instanceof AtraceCpuCapture) {
-      initDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture);
+      // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
+      myTrackGroupModels.add(createDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture));
+      // CPU per-core usage and event etc. Systrace only.
+      myTrackGroupModels.add(createCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture));
     }
 
     // Thread states and trace events.
-    initThreadsTrackGroup(selectionRange, capture);
-
-    // CPU per-core frequency and etc.
-    initCpuCoresTrackGroup();
+    myTrackGroupModels.add(createThreadsTrackGroup(selectionRange, capture));
   }
 
-  private void initInteractionTrackGroup(@NotNull Range selectionRange) {
-    TrackGroupModel interaction = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Interaction"));
+  private TrackGroupModel createInteractionTrackGroup(@NotNull Range selectionRange) {
+    TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
+    EventModel<UserEvent> userEventEventModel =
+      new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers())));
+    LifecycleEventModel lifecycleEventModel =
+      new LifecycleEventModel(
+        new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
+        new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true)));
     interaction.addTrackModel(
-      new TrackModel<>(
-        new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers()))),
-        ProfilerTrackRendererType.USER_INTERACTION,
-        "User"));
+      TrackModel.newBuilder(userEventEventModel, ProfilerTrackRendererType.USER_INTERACTION, "User")
+        .setDefaultTooltipModel(new UserEventTooltip(getTimeline(), userEventEventModel)));
     interaction.addTrackModel(
-      new TrackModel<>(
-        new LifecycleEventModel(
-          new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
-          new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
-        ProfilerTrackRendererType.APP_LIFECYCLE,
-        "Lifecycle"));
+      TrackModel.newBuilder(lifecycleEventModel, ProfilerTrackRendererType.APP_LIFECYCLE, "Lifecycle")
+        .setDefaultTooltipModel(new LifecycleTooltip(getTimeline(), lifecycleEventModel)));
+    return interaction;
   }
 
-  private void initDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
-    TrackGroupModel display = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Display"));
-    AtraceFrameFilterConfig filterConfig =
-      new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, atraceCapture.getMainThreadId(),
-                                  CpuFramesModel.SLOW_FRAME_RATE_US);
+  private TrackGroupModel createDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
+    TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
+    CpuFramesModel.FrameState mainFrames =
+      new CpuFramesModel.FrameState("Main", atraceCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, atraceCapture, selectionRange);
+    CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(myTrackGroupTimeline);
+    mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
     display.addTrackModel(
-      new TrackModel<>(
-        new CpuFramesModel.FrameState("Main", filterConfig, atraceCapture, selectionRange),
-        ProfilerTrackRendererType.FRAMES,
-        "Frames"));
-    display.addTrackModel(
-      new TrackModel<>(
-        new StateChartModel<EventAction>(),
-        ProfilerTrackRendererType.SURFACEFLINGER,
-        "Surfaceflinger"));
-    display.addTrackModel(
-      new TrackModel<>(
-        new StateChartModel<EventAction>(),
-        ProfilerTrackRendererType.VSYNC,
-        "Vsync"));
+      TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
+    return display;
   }
 
-  private void initThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
-    Set<CpuThreadInfo> threadInfos = capture.getThreads();
-    String threadsTitle = String.format(Locale.US, "Threads (%d)", threadInfos.size());
-    TrackGroupModel threads = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(threadsTitle));
+  private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
+    // Collapse threads for ART and SimplePerf traces.
+    boolean collapseThreads = !(capture instanceof AtraceCpuCapture);
+    List<CpuThreadInfo> threadInfos =
+      capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
+    String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
+    TrackGroupModel threads = TrackGroupModel.newBuilder()
+      .setTitle(threadsTitle)
+      .setTitleInfo("This section contains thread info. Double-click on the thread name to expand/collapse it.")
+      .setTrackSelectable(true)
+      .build();
     for (CpuThreadInfo threadInfo : threadInfos) {
+      String title = threadInfo.getName();
+      // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
+      // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
-        new TrackModel<>(
-          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo.getId()),
+        TrackModel.newBuilder(
+          new CpuThreadTrackModel(selectionRange, capture, threadInfo, getTimeline(), myMultiSelectionModel),
           ProfilerTrackRendererType.CPU_THREAD,
-          threadInfo.getName()));
+          title)
+          .setCollapsible(true)
+          .setCollapsed(collapseThreads));
     }
+    return threads;
   }
 
-  private void initCpuCoresTrackGroup() {}
+  private TrackGroupModel createCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
+    int cpuCount = atraceCapture.getCpuCount();
+    String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
+    TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();
+    for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
+      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(getTimeline(), atraceCapture.getMainThreadId());
+      final int coreId = cpuId;
+      AtraceDataSeries<CpuThreadSliceInfo> dataSeries =
+        new AtraceDataSeries<>(atraceCapture, capture -> capture.getCpuThreadSliceInfoStates(coreId));
+      kernelTooltip.setCpuSeries(cpuId, dataSeries);
+      cores.addTrackModel(
+        TrackModel.newBuilder(
+          new CpuCoreTrackModel(dataSeries, selectionRange, atraceCapture),
+          ProfilerTrackRendererType.CPU_CORE,
+          "CPU " + cpuId)
+          .setDefaultTooltipModel(kernelTooltip));
+    }
+    return cores;
+  }
 }

@@ -17,13 +17,37 @@ package com.android.build.attribution.data
 
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
+import java.util.Objects
 
-data class TaskData(val taskName: String,
-                    val projectPath: String,
-                    val originPlugin: PluginData,
-                    val executionTime: Long,
-                    val executionMode: TaskExecutionMode,
-                    val executionReasons: List<String>) {
+/**
+ * Represents an executed task in a gradle build.
+ * A task is uniquely identified by a combination of [taskName], [projectPath] and [originPlugin].
+ *
+ * @param taskName the name of the executed task, ex: mergeDebugResources
+ * @param projectPath the path of the project that this task was executed in
+ * @param originPlugin the plugin that registed the task
+ * @param executionStartTime the timestamp when the task started executing
+ * @param executionEndTime the timestamp when the task finished executing
+ * @param executionMode whether the task was fully executed, incrementally executed, fetch from cache, or was up to date
+ * @param executionReasons the reasons why the task needed to run
+ */
+class TaskData(val taskName: String,
+               val projectPath: String,
+               val originPlugin: PluginData,
+               val executionStartTime: Long,
+               val executionEndTime: Long,
+               val executionMode: TaskExecutionMode,
+               val executionReasons: List<String>) {
+  /**
+   * The execution duration of the task in milliseconds.
+   */
+  val executionTime: Long = executionEndTime - executionStartTime
+  /**
+   * Indicates whether the task is on the critical path of the current build.
+   * This field is set later at the end of the build as it's determined by the critical path analyzer
+   */
+  var isOnTheCriticalPath: Boolean = false
+
   enum class TaskExecutionMode {
     FROM_CACHE,
     UP_TO_DATE,
@@ -31,6 +55,10 @@ data class TaskData(val taskName: String,
     FULL
   }
 
+  /**
+   * The class name of the task.
+   * This field is set later at the end of the build as it's coming from AGP.
+   */
   var taskType: String = UNKNOWN_TASK_TYPE
     private set
 
@@ -42,6 +70,17 @@ data class TaskData(val taskName: String,
 
   fun getTaskPath(): String {
     return "$projectPath:$taskName"
+  }
+
+  override fun equals(other: Any?): Boolean {
+    return other is TaskData &&
+           taskName == other.taskName &&
+           projectPath == other.projectPath &&
+           originPlugin == other.originPlugin
+  }
+
+  override fun hashCode(): Int {
+    return Objects.hash(taskName, projectPath, originPlugin)
   }
 
   companion object {
@@ -60,14 +99,15 @@ data class TaskData(val taskName: String,
       return TaskExecutionMode.FULL
     }
 
-    fun createTaskData(taskFinishEvent: TaskFinishEvent): TaskData {
+    fun createTaskData(taskFinishEvent: TaskFinishEvent, pluginContainer: PluginContainer): TaskData {
       val result = taskFinishEvent.result as TaskSuccessResult
       val taskPath = taskFinishEvent.descriptor.taskPath
       val lastColonIndex = taskPath.lastIndexOf(':')
       return TaskData(taskPath.substring(lastColonIndex + 1),
                       taskPath.substring(0, lastColonIndex),
-                      PluginData(taskFinishEvent.descriptor.originPlugin),
-                      result.endTime - result.startTime,
+                      pluginContainer.getPlugin(taskFinishEvent.descriptor.originPlugin, taskPath.substring(0, lastColonIndex)),
+                      result.startTime,
+                      result.endTime,
                       getTaskExecutionMode(result.isFromCache, result.isUpToDate, result.isIncremental),
                       result.executionReasons ?: emptyList())
     }

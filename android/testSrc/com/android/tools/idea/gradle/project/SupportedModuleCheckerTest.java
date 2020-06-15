@@ -15,23 +15,26 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.notification.NotificationType.ERROR;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SupportedModuleChecker}.
@@ -73,8 +76,8 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);
     doCreateRealModuleIn("lib2", myProject, StdModuleTypes.JAVA);
 
-    doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA)
-      .setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId());  // This module is the only one supported.
+    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA);
+    ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
 
     myModuleChecker.checkForSupportedModules(project);
 

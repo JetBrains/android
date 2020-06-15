@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -88,8 +90,8 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
         () -> {
           Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
           JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
-          PsiClass aClass = facade
-            .findClass(myMode.bindingAdapter, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+          GlobalSearchScope moduleScope = ProjectSystemUtil.getModuleSystem(myFacet).getResolveScope(ScopeType.MAIN);
+          PsiClass aClass = facade.findClass(myMode.bindingAdapter, moduleScope);
           if (aClass == null) {
             return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, modificationTracker);
           }

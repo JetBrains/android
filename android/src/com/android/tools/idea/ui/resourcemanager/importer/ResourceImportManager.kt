@@ -24,6 +24,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.util.AndroidResourceUtil
 import java.io.File
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
@@ -77,7 +78,9 @@ fun Sequence<File>.findAllDesignAssets(importersProvider: ImportersProvider): Se
  */
 fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<ResourceAssetSet> =
   groupBy { it.name }
-    .map { (name, assets) -> ResourceAssetSet(ValueResourceNameValidator.normalizeName(name), assets) }
+    .map { (name, assets) ->
+      ResourceAssetSet(ValueResourceNameValidator.normalizeName(AndroidResourceUtil.getValidResourceFileName(name)), assets)
+    }
 
 /**
  * Displays a file picker which filters files depending on the files supported by the [DesignAssetImporter]

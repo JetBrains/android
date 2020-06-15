@@ -25,6 +25,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Ignore
 import org.junit.runner.Description
+import java.io.File
 
 /**
  * A rule that can target an Android+Gradle project.
@@ -33,18 +34,6 @@ import org.junit.runner.Description
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
 class AndroidGradleProjectRule : NamedExternalResource() {
-  /**
-   * A class representing the root of a Gradle project that has not been completely loaded.
-   */
-  interface ProjectRoot {
-    /**
-     * Creates a new file if one doesn't exist or overwrites it if it does.
-     *
-     * @param relativePath Path relative to [CodeInsightTestFixture.getTestDataPath].
-     */
-    fun addOrOverwriteFile(relativePath: String, contents: String): VirtualFile
-  }
-
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
@@ -84,23 +73,30 @@ class AndroidGradleProjectRule : NamedExternalResource() {
    *   is actually loaded.
    */
   @JvmOverloads
-  fun load(projectPath: String, preLoad: (ProjectRoot.() -> Unit)? = null) {
+  fun load(projectPath: String, preLoad: ((projectRoot: File) -> Unit)? = null) {
     if (preLoad != null) {
       val rootFile = delegateTestCase.prepareProjectForImport(projectPath)
 
-      val projectRoot = object : ProjectRoot {
-        override fun addOrOverwriteFile(relativePath: String, contents: String): VirtualFile {
-          return VfsTestUtil.createFile(rootFile.toVirtualFile()!!, relativePath, contents)
-        }
-      }
-
+      preLoad(rootFile)
       delegateTestCase.importProject()
-      projectRoot.preLoad()
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {
       delegateTestCase.loadProject(projectPath)
     }
+  }
+
+  /**
+   * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
+   * [CodeInsightTestFixture.setTestDataPath] method before calling this method.
+   *
+   * @param chosenModuleName If specified, which module will be used.
+   * @param gradleVersion If specified, which Gradle version will be used.
+   * @param agpVersion If specified, which AGP version will be used.
+   */
+  @JvmOverloads
+  fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null) {
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion)
   }
 
   fun requestSyncAndWait() {
@@ -118,4 +114,6 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   fun invokeTasks(vararg tasks: String): GradleInvocationResult {
     return delegateTestCase.invokeTasks(project, *tasks)
   }
+
+  fun resolveTestDataPath(relativePath: String): File = delegateTestCase.resolveTestDataPath(relativePath)
 }

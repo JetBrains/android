@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
+
 import com.android.annotations.NonNull;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -24,6 +27,14 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.event.MouseWheelEvent;
+import java.util.EventObject;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -80,6 +91,50 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof MouseWheelEvent;
+    MouseWheelEvent mouseEvent = (MouseWheelEvent) event;
+    begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+  }
+
+  @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseWheelEvent) {
+      MouseWheelEvent mouseWheelEvent = (MouseWheelEvent)event;
+      int x = mouseWheelEvent.getX();
+      int y = mouseWheelEvent.getY();
+      int scrollAmount = mouseWheelEvent.getScrollType() == WHEEL_UNIT_SCROLL ? mouseWheelEvent.getUnitsToScroll()
+                                                                              : (mouseWheelEvent.getWheelRotation() < 0 ? -1 : 1);
+      DesignSurface surface = mySceneView.getSurface();
+
+      SceneView sceneView = surface.getSceneView(x, y);
+      if (sceneView == null) {
+        mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
+        return;
+      }
+
+      final NlComponent component = Coordinates.findComponent(sceneView, x, y);
+      if (component == null) {
+        // There is no component consuming the scroll
+        mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
+        return;
+      }
+
+      if (!canScroll(scrollAmount)) {
+        JScrollPane scrollPane = surface.getScrollPane();
+        JViewport viewport = scrollPane.getViewport();
+        Dimension extentSize = viewport.getExtentSize();
+        Dimension viewSize = viewport.getViewSize();
+        if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+          mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
+          return;
+        }
+      }
+      scroll(x, y, scrollAmount);
+    }
+  }
+
+  @Override
   public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
     short currentScrollSign = (short)(scrollAmount < 0 ? -1 : 0);
 
@@ -102,18 +157,36 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiersEx, boolean canceled) {
-    if (canceled) {
-      // Make sure we reset the scroll to where it was
-      myHandler.update(0);
-      mySceneView.getSceneManager().requestLayoutAndRender(false);
-      return;
-    }
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
 
+  @Override
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     // Reset scroll multiplier back to 1
     myScrollMultiplier = 1;
     myHandler.commit(myScrolledAmount);
     myScrolledAmount = 0;
+  }
+
+  @Override
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    // Make sure we reset the scroll to where it was
+    myHandler.update(0);
+    mySceneView.getSceneManager().requestLayoutAndRender(false);
+  }
+
+  @Nullable
+  @Override
+  public Cursor getCursor() {
+    return null;
   }
 
   public boolean canScroll(int scrollAmount) {

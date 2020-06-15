@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.util
 
-import com.android.tools.idea.concurrent.executeOnPooledThread
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableRunnable
@@ -198,5 +199,30 @@ class SyncUtilTest {
     }
     latch2.await(1, TimeUnit.SECONDS)
     assertEquals(2, callCount.get())
+  }
+
+  @Test
+  fun alreadyDisposed() {
+    val callCount = AtomicInteger(0)
+    val syncManager = TestSyncManager(project)
+
+    stopDumbMode() // Not in dumb mode so callbacks should be immediately called
+    project.runWhenSmartAndSynced(
+      callback = Consumer {
+        callCount.incrementAndGet()
+      },
+      syncManager = syncManager)
+    assertEquals(callCount.get(), 1)
+
+    val disposedDisposable = Disposer.newDisposable()
+    Disposer.dispose(disposedDisposable)
+    assertTrue(Disposer.isDisposed(disposedDisposable))
+    project.runWhenSmartAndSynced(
+      parentDisposable = disposedDisposable,
+      callback = Consumer {
+        callCount.incrementAndGet()
+      },
+      syncManager = syncManager)
+    assertEquals(callCount.get(), 1)
   }
 }

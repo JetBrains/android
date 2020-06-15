@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallErrorHandler.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
@@ -32,6 +31,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
@@ -39,9 +39,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isI
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
-import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -53,6 +51,7 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
@@ -67,16 +66,16 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -86,23 +85,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ModuleSdkData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import java.io.File;
@@ -114,7 +107,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
-import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.build.BuildEnvironment;
@@ -130,8 +122,6 @@ import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -142,7 +132,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
-  @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
@@ -153,22 +142,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(),
-         new IdeDependenciesFactory());
+    this(new CommandLineArgs(), new ProjectFinder(), new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
+         new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
-  @VisibleForTesting
   @NonInjectable
+  @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
-                               @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
                                @NotNull VariantSelector variantSelector,
                                @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
                                @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
-    myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
@@ -195,106 +181,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-    if (isAndroidGradleProject()) {
-      DataNode<ModuleData> moduleNode = doCreateModule(gradleModule, projectDataNode);
-      populateModuleSdk(moduleNode);
-      return moduleNode;
-    }
-    else {
-      return nextResolver.createModule(gradleModule, projectDataNode);
-    }
-  }
 
-  private static void populateModuleSdk(@NotNull DataNode<ModuleData> moduleNode) {
-    ModuleSdkData moduleSdkData = new ModuleSdkData(null);
-    moduleNode.createChild(ModuleSdkData.KEY, moduleSdkData);
-  }
+    if (androidProject != null) {
+      Project project = myProjectFinder.findProject(resolverCtx);
 
-  // A copy from BaseGradleProjectResolverExtension.
-  @NotNull
-  private static String[] getIdeModuleGroup(String moduleName, IdeaModule gradleModule) {
-    String[] moduleGroup;
-    final String gradlePath = gradleModule.getGradleProject().getPath();
-    final String rootName = gradleModule.getProject().getName();
-    final boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
-    moduleGroup = isRootModule
-                  ? new String[]{moduleName}
-                  : (rootName + gradlePath).split(":");
-    return moduleGroup;
-  }
-
-  @NotNull
-  private DataNode<ModuleData> doCreateModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
-    String moduleName = gradleModule.getName();
-    if (moduleName == null) {
-      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
-    }
-
-    String projectPath = projectDataNode.getData().getLinkedExternalProjectPath();
-    String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
-
-    String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
-    ProjectSystemId owner = GradleConstants.SYSTEM_ID;
-    String typeId = StdModuleTypes.JAVA.getId();
-
-    ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleConfigPath, moduleConfigPath);
-    moduleData.setIdeModuleGroup(getIdeModuleGroup(moduleName, gradleModule));
-    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    if (externalProject != null) {
-      moduleData.setDescription(externalProject.getDescription());
-    }
-    return projectDataNode.createChild(ProjectKeys.MODULE, moduleData);
-  }
-
-  @Override
-  public boolean requiresTaskRunning() {
-    Project project = myProjectFinder.findProject(resolverCtx);
-    // This tells IDEAs infrastructure to allow AGP to run tasks if we are running compound sync.
-    return project != null && shouldGenerateSources(project);
-  }
-
-  @Override
-  public void buildFinished(@Nullable GradleConnectionException exception) {
-    if (exception != null) {
-      // We don't actually want to report the errors that are coming from the task running phase of the Gradle process, these will be
-      // reporting during a build. This may result in extra red symbols in the IDE however since we can already get in to a state with
-      // red symbols (via generated source) this is something that we can accept.
-      // This this allows us to make sync only fail if configuration or model building has failed. So configured project iff Setup IDE.
-      LOG.info("Exception thrown during task execution", exception);
-    }
-
-    Project project = myProjectFinder.findProject(resolverCtx);
-    if (project == null) {
-      return;
-    }
-
-    // We only want to notify the sourceGeneration listeners if source generation has been requested.
-    if (!shouldGenerateSources(project)) {
-      return;
-    }
-
-    // Since this is running in the Gradle connection thread we need to pass back to the UI thread to call the listeners as they may
-    // require reading or writing and we want to provide the same context as the other listeners.
-    // If we start these from the connection thread deadlocks can occur.
-    Runnable runnable = () -> {
-      // Since this is run on the UI thread we need to check whether the project has been disposed.
-      if (!project.isDisposed()) {
-        GradleSyncState.getInstance(project).sourceGenerationFinished();
-
-        GradleSyncListener syncListener = project.getUserData(GradleSyncExecutor.LISTENER_KEY);
-        if (syncListener == null) {
-          return;
-        }
-
-        syncListener.sourceGenerationFinished(project);
+      // Before anything, check to see if what we have is compatible with this version of studio.
+      GradleVersion currentAgpVersion = GradleVersion.tryParse(androidProject.getModelVersion());
+      GradleVersion latestVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
+      if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
+        throw new AgpUpgradeRequiredException(project, currentAgpVersion);
       }
-    };
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      runnable.run();
     }
-    else {
-      ApplicationManager.getApplication().invokeAndWait(runnable, myModality);
-    }
+
+    return nextResolver.createModule(gradleModule, projectDataNode);
   }
 
   private void populateSourcesAndJavadocModel(@NotNull IdeaModule gradleModule) {
@@ -327,7 +226,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     boolean androidProjectWithoutVariants = false;
     // This stores the sync issues that should be attached to a Java module if we have a AndroidProject without variants.
-    String moduleName = gradleModule.getName();
+    String moduleName = ideModule.getData().getInternalName();
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
 
@@ -373,14 +272,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
-    File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
+    File gradleSettingsFile = findGradleSettingsFile(moduleRootDirPath);
     if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
         // if the module has artifacts, it is a Java library module.
         // https://code.google.com/p/android/issues/detail?id=226802
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, emptyList(), false);
+      createJavaProject(gradleModule, ideModule, emptyList(), false, false, kaptGradleModel);
       return;
     }
 
@@ -418,8 +317,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         issues = androidProject.getSyncIssues();
       }
 
-      // This is a Java lib module.
-      createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants);
+      // This is a Java lib module or Jar/Aar wrapped module.
+      // The module is buildable only if JavaPlugin is applied. For Jar/Aar wrapped module, this could be false.
+      createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants,
+                        gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin"), kaptGradleModel);
       // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
       if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
         nextResolver.populateModuleContentRoots(gradleModule, ideModule);
@@ -435,10 +336,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  @NotNull Collection<SyncIssue> syncIssues,
-                                 boolean androidProjectWithoutVariants) {
+                                 boolean androidProjectWithoutVariants,
+                                 boolean isBuildable,
+                                 @Nullable KaptGradleModel kaptGradleModel) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     JavaModuleModel javaModuleModel =
-      myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, syncIssues, androidProjectWithoutVariants);
+      myIdeaJavaModuleModelFactory
+        .create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants, isBuildable, kaptGradleModel);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
@@ -487,15 +391,39 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     for (KaptSourceSetModel sourceSetModel : kaptGradleModel.getSourceSets()) {
-      Variant variant = androidModuleModel.findVariantByName(sourceSetModel.getSourceSetName());
       File kotlinGenSourceDir = sourceSetModel.getGeneratedKotlinSourcesDirFile();
-      if (variant != null && kotlinGenSourceDir != null) {
-        AndroidArtifact mainArtifact = variant.getMainArtifact();
-        if (mainArtifact instanceof IdeBaseArtifact) {
-          ((IdeBaseArtifact)mainArtifact).addGeneratedSourceFolder(kotlinGenSourceDir);
-        }
+      IdeBaseArtifact artifact = findArtifact(sourceSetModel, androidModuleModel);
+      if (artifact != null && kotlinGenSourceDir != null) {
+        artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
       }
     }
+  }
+
+  @Nullable
+  private static IdeBaseArtifact findArtifact(@NotNull KaptSourceSetModel sourceSetModel, @NotNull AndroidModuleModel androidModel) {
+    String sourceSetName = sourceSetModel.getSourceSetName();
+    if (!sourceSetModel.isTest()) {
+      IdeVariant variant = androidModel.findVariantByName(sourceSetName);
+      return variant == null ? null : variant.getMainArtifact();
+    }
+
+    // Check if it's android test source set.
+    String androidTestSuffix = "AndroidTest";
+    if (sourceSetName.endsWith(androidTestSuffix)) {
+      String variantName = sourceSetName.substring(0, sourceSetName.length() - androidTestSuffix.length());
+      IdeVariant variant = androidModel.findVariantByName(variantName);
+      return variant == null ? null : variant.getAndroidTestArtifact();
+    }
+
+    // Check if it's unit test source set.
+    String unitTestSuffix = "UnitTest";
+    if (sourceSetName.endsWith(unitTestSuffix)) {
+      String variantName = sourceSetName.substring(0, sourceSetName.length() - unitTestSuffix.length());
+      IdeVariant variant = androidModel.findVariantByName(variantName);
+      return variant == null ? null : variant.getUnitTestArtifact();
+    }
+
+    return null;
   }
 
   /**
@@ -666,9 +594,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
     }
-    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(null, error, projectPath, buildFilePath);
-    assert userFriendlyError != null;
-    return userFriendlyError;
+    return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath);
   }
 
   private static boolean isUsingUnsupportedGradleVersion(@Nullable String errorMessage) {
@@ -710,7 +636,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     if (project != null) {
       isSingleVariantSync = shouldOnlySyncSingleVariant(project);
-      shouldGenerateSources = shouldGenerateSources(project);
       if (isSingleVariantSync) {
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
         selectedVariants = variantCollector.collectSelectedVariants();
@@ -723,15 +648,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     SyncActionOptions options = new SyncActionOptions();
     options.setModuleIdWithVariantSwitched(moduleWithVariantSwitched);
     options.setSingleVariantSyncEnabled(isSingleVariantSync);
-    options.setShouldGenerateSources(shouldGenerateSources);
     options.setSelectedVariants(selectedVariants);
     options.setCachedSourcesAndJavadoc(cachedSourcesAndJavadoc);
     return new AndroidExtraModelProvider(options);
-  }
-
-  private static boolean shouldGenerateSources(@NotNull Project project) {
-    Boolean generateSourcesRequested = project.getUserData(GradleSyncExecutor.SOURCE_GENERATION_KEY);
-    return generateSourcesRequested != null && generateSourcesRequested;
   }
 
   private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {

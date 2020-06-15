@@ -4,8 +4,9 @@ package org.jetbrains.android.compiler;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.build.BuildConfigGenerator;
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.openapi.application.ApplicationManager;
@@ -15,34 +16,48 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.tools.AndroidIdl;
 import org.jetbrains.android.compiler.tools.AndroidRenderscript;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
-
 /**
  * @author Eugene.Kudelevsky
  */
+@SuppressWarnings("deprecation")
 public class AndroidAutogenerator {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidAutogenerator");
 
@@ -74,7 +89,7 @@ public class AndroidAutogenerator {
   public static boolean supportsAutogeneration(@NotNull AndroidFacet facet) {
     // This is a cheap way to figure out that a module has the Android-Gradle facet.
     // Don't generate anything if a module has an Android-Gradle facet.
-    return !facet.requiresAndroidModel();
+    return !AndroidModel.isRequired(facet);
   }
 
   public static void run(@NotNull AndroidAutogeneratorMode mode,
@@ -122,6 +137,7 @@ public class AndroidAutogenerator {
 
     final BuildconfigAutogenerationItem item = ApplicationManager.getApplication().runReadAction(
       new Computable<BuildconfigAutogenerationItem>() {
+        @SuppressWarnings("deprecation")
         @Nullable
         @Override
         public BuildconfigAutogenerationItem compute() {
@@ -475,7 +491,8 @@ public class AndroidAutogenerator {
             return null;
           }
 
-          final IAndroidTarget target = facet.getAndroidTarget();
+          final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+          final IAndroidTarget target = androidPlatform == null ? null : androidPlatform.getTarget();
           if (target == null) {
             context.addMessage(CompilerMessageCategory.ERROR,
                                AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
@@ -584,10 +601,11 @@ public class AndroidAutogenerator {
     for (final VirtualFile file : files) {
       final RenderscriptAutogenerationItem item =
         ApplicationManager.getApplication().runReadAction(new Computable<RenderscriptAutogenerationItem>() {
+          @SuppressWarnings("deprecation")
           @Nullable
           @Override
           public RenderscriptAutogenerationItem compute() {
-            final AndroidPlatform platform = facet.getAndroidPlatform();
+            final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
             if (platform == null) {
               context.addMessage(CompilerMessageCategory.ERROR,
                                  AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);

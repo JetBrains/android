@@ -48,7 +48,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
                                                         private val controlTypeProvider: ControlTypeProvider<P>,
                                                         private val editorProvider: EditorProvider<P>,
                                                         private val fontSize: UIUtil.FontSize,
-                                                        private val defaultRenderer: PTableCellRenderer) : PTableCellRenderer {
+                                                        private var defaultRenderer: PTableCellRenderer) : PTableCellRenderer {
   private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
   private val leftSpacing = JBUI.scale(LEFT_STANDARD_INDENT) + JBUI.scale(MIN_SPACING) + UIUtil.getTreeCollapsedIcon().iconWidth
   private val depthIndent = JBUI.scale(DEPTH_INDENT)
@@ -69,8 +69,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     return editor
   }
 
-  fun updateUI() {
+  fun updateUI(newDefaultRenderer: PTableCellRenderer) {
     // After a LaF change: regenerate the editors to reflect the UI changes.
+    defaultRenderer = newDefaultRenderer
     componentCache.clear()
   }
 
@@ -114,6 +115,8 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
 
     override val isCustomHeight: Boolean
       get() = editor is PTableVariableHeightCellEditor && editor.isCustomHeight
+
+    override var updateRowHeight = {}
   }
 
   private data class ControlKey(val type: ControlType, val hasBrowseButton: Boolean)

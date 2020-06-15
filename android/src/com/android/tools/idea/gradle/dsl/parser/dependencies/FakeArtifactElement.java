@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -90,15 +89,12 @@ public class FakeArtifactElement extends FakeElement {
     if (spec == null) {
       throw new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value);
     }
-    assert value instanceof String || value instanceof RawText || value == null;
+    assert value instanceof String || value instanceof ReferenceTo || value == null;
     boolean shouldQuote = false;
     String strValue = null;
     if (value instanceof ReferenceTo) {
-      strValue = "${" + ((ReferenceTo)value).getText() + "}";
+      strValue = "${" + resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, ((ReferenceTo)value).getText(), true) + "}";
       shouldQuote = true;
-    }
-    else if (value instanceof RawText) {
-      strValue = ((RawText)value).getText();
     }
     else if (value != null) {
       strValue = (String)value;

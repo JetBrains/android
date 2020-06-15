@@ -20,6 +20,8 @@ import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
@@ -33,8 +35,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,14 +46,14 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     Integer apiLevel = LintFix.getData(fixData, Integer.class);
     if (apiLevel != null) {
       int api = apiLevel;
-      List<AndroidLintQuickFix> list = new ArrayList<>();
+      List<LintIdeQuickFix> list = new ArrayList<>();
       PsiFile file = startElement.getContainingFile();
       boolean isXml = false;
       if (file instanceof XmlFile) {
@@ -81,13 +81,14 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       Project project = startElement.getProject();
       if (!isXml && requiresApiAvailable(project)) {
         list.add(new AddTargetApiQuickFix(api, true, startElement, filter));
-      } else {
+      }
+      else {
         // Discourage use of @TargetApi if @RequiresApi is available; see for example
         // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
         list.add(new AddTargetApiQuickFix(api, false, startElement, filter));
       }
 
-      return list.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+      return list.toArray(LintIdeQuickFix.EMPTY_ARRAY);
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);
@@ -96,7 +97,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
   public static boolean requiresApiAvailable(Project project) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-    return facade.findClass(REQUIRES_API_ANNOTATION.oldName(),scope) != null ||
+    return facade.findClass(REQUIRES_API_ANNOTATION.oldName(), scope) != null ||
            facade.findClass(REQUIRES_API_ANNOTATION.newName(), scope) != null;
   }
 }

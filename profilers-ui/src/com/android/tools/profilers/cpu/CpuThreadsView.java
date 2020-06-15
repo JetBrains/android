@@ -169,7 +169,7 @@ final class CpuThreadsView {
       }
     });
 
-    MouseAdapter adapter = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)) {
+    MouseAdapter adapter = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage.getTimeline())) {
       @Override
       public void mouseMoved(MouseEvent e) {
         super.mouseMoved(e);

@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.gradle.project.sync.setup.Facets
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.intellij.facet.FacetManager
@@ -32,6 +33,11 @@ class NavEditorProviderTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     provider = NavEditorProvider()
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
   }
 
   fun testDoNotAcceptNonLayoutFile() {

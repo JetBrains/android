@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -33,12 +31,9 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
@@ -46,13 +41,13 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -60,7 +55,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -101,7 +95,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     initMocks(this);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.setModel(myAndroidModel);
+    AndroidModel.set(androidFacet, myAndroidModel);
 
     Project project = getProject();
     when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
@@ -153,8 +147,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -202,8 +194,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -252,8 +242,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -272,8 +260,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -308,71 +294,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(mySetupStepToInvoke, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
-  }
-
-  public void testCompoundSyncEnabled() {
-    try {
-      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
-      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
-
-      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
-
-      GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
-      GradleModuleModel gradleModel = mock(GradleModuleModel.class);
-      gradleFacet.setGradleModuleModel(gradleModel);
-      when(gradleModel.getRootFolderPath()).thenReturn(new File(""));
-      when(gradleModel.getGradlePath()).thenReturn(":");
-
-      String variantToSelect = "release";
-      when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-      when(myAndroidModel.variantExists(variantToSelect)).thenReturn(false);
-      when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
-
-      myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
-
-      // Check the BuildAction has its property set to generate sources and the sync request not
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, false);
-      verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
-    }
-    finally {
-      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
-      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
-    }
-  }
-
-  public void testCompoundSyncDisabled() {
-    try {
-      StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
-
-      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
-
-      GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
-      GradleModuleModel gradleModel = mock(GradleModuleModel.class);
-      gradleFacet.setGradleModuleModel(gradleModel);
-      when(gradleModel.getRootFolderPath()).thenReturn(new File(""));
-      when(gradleModel.getGradlePath()).thenReturn(":");
-
-      String variantToSelect = "release";
-      when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-      when(myAndroidModel.variantExists(variantToSelect)).thenReturn(false);
-      when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
-
-      myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
-
-      // Check the BuildAction has its property set to not generate sources and the sync request does
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect);
-      verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
-    }
-    finally {
-      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
-    }
   }
 
   // app module depends on library module.
@@ -406,7 +328,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -449,8 +371,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -494,7 +414,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -543,8 +463,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -583,7 +501,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -648,8 +566,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -701,7 +617,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -769,8 +685,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
@@ -824,7 +738,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -893,8 +807,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
-    setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
@@ -32,6 +31,10 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.AnchoredButton;
+import java.awt.Container;
+import java.awt.Point;
+import java.util.List;
+import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
@@ -39,19 +42,12 @@ import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
-import static org.fest.swing.awt.AWT.translate;
-
 /**
  * Fixture for the layout editor preview window
  */
 public class NlPreviewFixture extends ToolWindowFixture {
   private final NlDesignSurfaceFixture myDesignSurfaceFixture;
   private final ComponentDragAndDrop myDragAndDrop;
-  private java.awt.Robot myAwtRobot;
 
   public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
@@ -141,41 +137,6 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
   public void waitForScreenMode(@NotNull SceneMode mode) {
     Wait.seconds(1).expecting("the design surface to be in mode " + mode).until(() -> myDesignSurfaceFixture.isInScreenMode(mode));
-  }
-
-  /**
-   * Returns an HEX string corresponding to the value of the color of the pixel at point p in the design surface reference frame
-   */
-  @NotNull
-  public String getPixelColor(@NotNull Point p) {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
-
-    SceneView view = surface.getFocusedSceneView();
-
-    Point centerLeftPoint = translate(surface, p.x, p.y);
-
-    if (myAwtRobot == null) {
-      try {
-        myAwtRobot = new java.awt.Robot();
-      }
-      catch (AWTException e) {
-        e.printStackTrace();
-      }
-    }
-    return Integer.toHexString(myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB());
-  }
-
-  @NotNull
-  public Point getAdaptiveIconTopLeftCorner() {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
-
-    Dimension contentDimension = surface.getContentSize(null);
-    return new Point(surface.getContentOriginX() , surface.getContentOriginY() + (contentDimension.height - contentDimension.width + 1) / 2);
-  }
-
-  @NotNull
-  public String getAdaptiveIconPathDescription() {
-    return myDesignSurfaceFixture.target().getAdaptiveIconShape().getPathDescription();
   }
 
   @NotNull

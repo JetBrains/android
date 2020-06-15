@@ -18,11 +18,16 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The model for a JTree that updates for a given range. It uses a CpuTreeNode as it's backing tree.
@@ -37,9 +42,11 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
   private final Range myCurrentRange;
   private final AspectObserver myAspectObserver;
   private final AspectModel<Aspect> myAspectModel;
+  private final boolean myIsRootNodeIdValid;
 
   public CpuTreeModel(@NotNull Range range, @NotNull T node) {
     super(new DefaultMutableTreeNode(node));
+    myIsRootNodeIdValid = !node.getId().isEmpty();
     myRange = range;
     myCurrentRange = new Range();
     myAspectModel = new AspectModel<>();
@@ -51,6 +58,13 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
   @NotNull
   public AspectModel<Aspect> getAspect() {
     return myAspectModel;
+  }
+
+  /**
+   * @return True if the root node has a valid Id. Otherwise False.
+   */
+  public boolean isRootNodeIdValid() {
+    return myIsRootNodeIdValid;
   }
 
   public void rangeChanged() {

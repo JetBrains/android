@@ -232,11 +232,23 @@ abstract class BasePerspectiveConfigurable protected constructor(
     myTree.model =
       createTreeModel(
         object : NamedContainerConfigurableBase<PsModule>("root") {
+          private val hasRootGradleModule = context.project.modules.any { it.gradlePath == ":" }
           override fun getChildrenModels(): Collection<PsModule> = extraModules + context.project.modules
-            .filter { it.gradlePath == null || GradleUtil.isDirectChild(it.gradlePath, ":") }
+            .filter { filterRootLevelModules(it) }
           override fun createChildConfigurable(model: PsModule) = this@BasePerspectiveConfigurable.createChildConfigurable(model)
           override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
           override fun dispose() = Unit
+
+          private fun filterRootLevelModules(module: PsModule): Boolean {
+            return when {
+              // Fake modules should always be displayed under the tree root.
+              module.gradlePath == null -> true
+              // If gradle root is among modules add it to the tree root node
+              hasRootGradleModule -> module.gradlePath == ":"
+              // otherwise flatten the Gradle root project and add its children directly under the tree root.
+              else -> GradleUtil.isDirectChild(module.gradlePath, ":")
+            }
+          }
         }.also { Disposer.register(this, it) })
     myRoot = myTree.model.root as MyNode
     uiDisposed = false

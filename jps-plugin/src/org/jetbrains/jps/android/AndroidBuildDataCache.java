@@ -1,7 +1,18 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.io.FileUtil;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.android.util.ValueResourcesFileParser;
 import org.jetbrains.annotations.NotNull;
@@ -12,9 +23,6 @@ import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 import org.jetbrains.jps.model.module.JpsDependencyElement;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.model.module.JpsModuleDependency;
-
-import java.io.*;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky

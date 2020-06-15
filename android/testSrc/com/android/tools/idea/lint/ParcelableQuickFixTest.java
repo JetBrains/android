@@ -19,6 +19,7 @@ import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.IMPLEMENT
 import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.REIMPLEMENT;
 import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.REMOVE;
 
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonManagerImpl;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -35,7 +36,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 
 public class ParcelableQuickFixTest extends AndroidTestCase {

@@ -24,8 +24,9 @@ import com.android.tools.idea.databinding.util.findImportTag
 import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
-import com.android.tools.idea.lang.databinding.model.PsiCallable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess.ALL_MEMBERS
+import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess.STATICS_ONLY
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
@@ -38,6 +39,9 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbResourcesExpr
+import com.android.tools.idea.lang.databinding.resolveScopeWithResources
+import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -47,6 +51,7 @@ import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
@@ -57,6 +62,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter
+import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -73,6 +79,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbInferredFormalParameter::class.java),
                                         InferredFormalParameterReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLambdaParameters::class.java), LambdaParametersReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbResourcesExpr::class.java), ResourceReferenceProvider())
   }
 
   /**
@@ -141,7 +148,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
 
           bindingData.findImport(simpleName)?.let { import ->
             xmlFile.findImportTag(simpleName)?.let { importTag ->
-              return arrayOf(XmlImportReference(element, importTag, import, module))
+              return arrayOf(XmlImportReference(element, importTag, import))
             }
           }
 
@@ -165,7 +172,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         val langClass = simpleName.takeUnless { name -> name.contains('.') }
           ?.let { name -> javaPsiFacade.findClass(JAVA_LANG + name, GlobalSearchScope.moduleWithLibrariesScope(module)) }
         if (langClass != null) {
-          return arrayOf(PsiClassReference(element, langClass, true))
+          return arrayOf(PsiClassReference(element, langClass, STATICS_ONLY))
         }
 
         val psiPackage = javaPsiFacade.findPackage(simpleName)
@@ -178,7 +185,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           val contextClass = LayoutBindingTypeUtil.parsePsiType(SdkConstants.CLASS_CONTEXT, element)
             ?.let { psiType -> (psiType as? PsiClassType)?.resolve() }
           if (contextClass != null) {
-            return arrayOf(PsiClassReference(element, contextClass, false))
+            return arrayOf(PsiClassReference(element, contextClass, ALL_MEMBERS))
           }
         }
       }
@@ -200,27 +207,25 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // Resolve fully qualified methods / fields, e.g. "variable.value" or "variable.method"
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
 
-
       // Find the reference to a field or its getter e.g. "var.field" may reference "var.field", "var.isField()" or "var.getField()".
-      val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
-      when (getterOrField?.type) {
-        PsiCallable.Type.METHOD -> {
-          val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
-          if (methodsByName.isNotEmpty()) {
-            return arrayOf(
-              PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0]), PsiMethodReference.Kind.METHOD_CALL))
-          }
+      when (val getterOrField =
+        psiModelClass.findGetterOrField(fieldText, modelResolvable.memberAccess)) {
+        is PsiModelMethod -> {
+          val getterReference = PsiMethodReference(refExpr, getterOrField, PsiMethodReference.Kind.METHOD_CALL)
+          // Find the reference to setter method that has the same pattern and type.
+          // e.g. `String getName()` and `setName(String)`
+          val setterReference = getterOrField.returnType
+            ?.let { type -> psiModelClass.findSetter(fieldText, type) }
+            ?.let { setterMethod -> PsiMethodReference(refExpr, setterMethod, PsiMethodReference.Kind.METHOD_REFERENCE) }
+          return if (setterReference != null) arrayOf(getterReference, setterReference) else arrayOf(getterReference)
         }
-        PsiCallable.Type.FIELD -> {
-          val fieldsByName = psiClass.findFieldByName(getterOrField.name, true)
-          if (fieldsByName != null) {
-            return arrayOf(PsiFieldReference(refExpr, PsiModelField(psiModelClass, fieldsByName)))
-          }
+        is PsiModelField -> {
+          return arrayOf(PsiFieldReference(refExpr, getterOrField))
         }
       }
 
       // Find the reference to a listener method without parentheses. e.g. "var.onClick".
-      val methods = psiModelClass.findMethods(fieldText, staticOnly = false)
+      val methods = psiModelClass.findMethods(fieldText, modelResolvable.memberAccess)
       if (methods.isNotEmpty()) {
         return methods.map { modelMethod ->
           PsiMethodReference(refExpr, modelMethod, PsiMethodReference.Kind.METHOD_REFERENCE)
@@ -228,14 +233,9 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       }
 
       // Find the reference to an inner class.
-      val module = ModuleUtilCore.findModuleForPsiElement(refExpr)
-      if (module != null) {
-        val innerName = "${psiClass.qualifiedName}.$fieldText"
-        val innerClass = JavaPsiFacade.getInstance(refExpr.project).findClass(innerName,
-                                                                              module.getModuleWithDependenciesAndLibrariesScope(false))
-        if (innerClass != null) {
-          return arrayOf(PsiClassReference(refExpr, innerClass, true))
-        }
+      val innerClass = psiClass.findInnerClassByName(fieldText, true)
+      if (innerClass != null && innerClass.hasModifierProperty(PsiModifier.PUBLIC)) {
+        return arrayOf(PsiClassReference(refExpr, innerClass, STATICS_ONLY))
       }
 
       // Find the reference to get() method if [psiModelClass] is an instance of [java.util.Map] and we can not find any other references.
@@ -261,8 +261,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val fieldText = refExpr.id.text
       if (fieldText.isBlank()) return PsiReference.EMPTY_ARRAY
 
-      val module = ModuleUtilCore.findModuleForPsiElement(refExpr) ?: return PsiReference.EMPTY_ARRAY
-      val scope = module.getModuleWithDependenciesAndLibrariesScope(false)
+      val scope = refExpr.resolveScopeWithResources ?: refExpr.resolveScope
 
       fun fieldMatchesPackage(field: String, aPackage: PsiPackage) = aPackage.name!!.substringAfterLast('.') == field
 
@@ -278,7 +277,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           val classes = aPackage.findClassByShortName(fieldText, scope)
           if (classes.isNotEmpty()) {
             return classes
-              .map { aClass -> PsiClassReference(refExpr, aClass, true) }
+              .map { aClass -> PsiClassReference(refExpr, aClass, STATICS_ONLY) }
               .toTypedArray()
           }
         }
@@ -301,7 +300,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
       val callExpr = element as PsiDbCallExpr
       val methodExpr = callExpr.refExpr.expr ?: return PsiReference.EMPTY_ARRAY
-      val psiModelClass = methodExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
+      val modelClassResolvable = methodExpr.toModelClassResolvable() ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = modelClassResolvable.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
       val methodArgs: MutableList<PsiModelClass?> = mutableListOf()
       callExpr.expressionList?.exprList?.forEach { expr -> methodArgs.add(expr.toModelClassResolvable()?.resolvedType) }
@@ -310,14 +310,19 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       if (!methodArgs.contains(null)) {
         @Suppress("NAME_SHADOWING") // We reframe List<PsiModelClass?> as List<PsiModelClass>
         val methodArgs = methodArgs.requireNoNulls()
-        val method = psiModelClass.getMethod(callExpr.refExpr.id.text, methodArgs, staticOnly = false, allowProtected = false)
+        val method = psiModelClass.getMethod(
+          callExpr.refExpr.id.text,
+          methodArgs,
+          modelClassResolvable.memberAccess,
+          allowProtected = false
+        )
         if (method is PsiModelMethod) {
           return arrayOf(PsiMethodReference(callExpr, method))
         }
       }
 
       // As a fallback, see if we can find a method by just its name
-      return psiModelClass.findMethods(callExpr.refExpr.id.text, staticOnly = false)
+      return psiModelClass.findMethods(callExpr.refExpr.id.text, modelClassResolvable.memberAccess)
         .map { modelMethod -> PsiMethodReference(callExpr, modelMethod) }
         .toTypedArray()
     }
@@ -339,8 +344,9 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val funRefExpr = element as PsiDbFunctionRefExpr
       val classExpr = funRefExpr.expr
       val methodExpr = funRefExpr.id
-      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
-      return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
+      val modelClassResolvable = classExpr.toModelClassResolvable() ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = modelClassResolvable.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
+      return psiModelClass.findMethods(methodExpr.text, modelClassResolvable.memberAccess)
         .map { modelMethod -> PsiMethodReference(element, modelMethod) }
         .toTypedArray()
     }
@@ -431,6 +437,65 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))
+    }
+  }
+
+  /**
+   * Provides references for [PsiDbLiteralExpr]
+   *
+   * From db.bnf:
+   * ```
+   * resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
+   * ```
+   *
+   * From _DbLexer.flex:
+   * ```
+   * RESOURCE_REFERENCE="@" (({IDENTIFIER} | "android") ":")? {RESOURCE_TYPE} "/" "android:"? {IDENTIFIER}
+   * ```
+   *
+   * Example: `@string/str`, `@android:text/text1`, `string/android:id(parameters)`
+   */
+  private class ResourceReferenceProvider : PsiReferenceProvider() {
+    companion object {
+      /**
+       * Maps resource type keywords from data binding expressions to their references.
+       * If a keyword is not in the keys of the map, it should be mapped to itself.
+       *
+       * Example: `text` in `@text/zero` -> `string` in `<string name="zero">there are <b>zero</b></string>`
+       */
+      private val DATA_BINDING_RESOURCE_TO_XML_DECLARATION = mutableMapOf<String, String>().apply {
+        put("colorStateList", "color");
+        put("dimenOffset", "dimen");
+        put("dimenSize", "dimen");
+        put("intArray", "array");
+        put("stateListAnimator", "animator");
+        put("stringArray", "array");
+        put("text", "string");
+        put("typedArray", "array");
+      }
+    }
+
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      val facet = AndroidFacet.getInstance(element) ?: return PsiReference.EMPTY_ARRAY
+      val xmlContext = element.containingFile.context?.parent as? XmlAttribute ?: return PsiReference.EMPTY_ARRAY
+      val resourceReferenceText = element.firstChild.text
+      val resourceValue = ResourceValue.parse(resourceReferenceText, false, true, false)
+                          ?: return PsiReference.EMPTY_ARRAY
+
+      val dataBindingResourceType = resourceValue.resourceType ?: return PsiReference.EMPTY_ARRAY
+
+      // Change type keywords for the resource value before resolving it with [AndroidResourceToPsiResolver]
+      val xmlDeclaration = DATA_BINDING_RESOURCE_TO_XML_DECLARATION[dataBindingResourceType]
+      if (xmlDeclaration != null) {
+        resourceValue.setResourceType(xmlDeclaration)
+      }
+      val resolvedResource = AndroidResourceToPsiResolver.getInstance().resolveReference(resourceValue, xmlContext, facet)
+                               .getOrNull(0)?.element?.navigationElement ?: return PsiReference.EMPTY_ARRAY
+      // Restore the keywords after getting the resource.
+      if (xmlDeclaration != null) {
+        resourceValue.setResourceType(dataBindingResourceType)
+      }
+      return arrayOf(PsiResourceReference(element, resolvedResource, resourceValue))
     }
   }
 

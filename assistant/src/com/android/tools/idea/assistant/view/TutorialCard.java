@@ -30,6 +30,7 @@ import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -41,6 +42,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
@@ -69,6 +71,9 @@ public class TutorialCard extends CardViewPanel {
   private final boolean myHideChooserAndNavigationBar;
   private boolean myAdjustmentListenerInitialized;
   private int myStepIndex;
+
+  // The card will not draw anything when it's not visible. This boolean checks if the card is drawn for the first time.
+  private boolean myFirstTimeDrawn = false;
 
   TutorialCard(@NotNull FeaturesPanel featuresPanel,
                @NotNull TutorialData tutorial,
@@ -99,7 +104,13 @@ public class TutorialCard extends CardViewPanel {
     if (myBundle.isStepByStep()) {
       add(new StepByStepFooter(), BorderLayout.SOUTH);
     }
-    redraw();
+
+    if (!tutorial.shouldLoadLazily()) {
+      // Draw now. Cards initially visible will not go through the {@link #setVisibility} calls.
+      // Else, card can be loaded later. Draw when visibility changes.
+      myFirstTimeDrawn = true;
+      redraw();
+    }
   }
 
   /**
@@ -107,6 +118,11 @@ public class TutorialCard extends CardViewPanel {
    */
   @Override
   public void setVisible(boolean aFlag) {
+    if (aFlag && !myFirstTimeDrawn) {
+      // First time the card is visible.
+      myFirstTimeDrawn = true;
+      redraw();
+    }
     super.setVisible(aFlag);
     initScrollValues();
   }
@@ -173,7 +189,11 @@ public class TutorialCard extends CardViewPanel {
     if (myTutorial.getDescription() != null && !myTutorial.getDescription().isEmpty()) {
       TutorialDescription description = new TutorialDescription();
       StringBuilder sb = new StringBuilder();
-      sb.append("<p class=\"description\">").append(myTutorial.getDescription());
+      String descriptionContent = myTutorial.getDescription();
+      if (myTutorial.hasLocalHTMLPaths()) {
+        descriptionContent = UIUtils.addLocalHTMLPaths(getClass().getClassLoader(), descriptionContent);
+      }
+      sb.append("<p class=\"description\">").append(descriptionContent);
       if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
         sb.append("<br><br><a href=\"").append(myTutorial.getRemoteLink()).append("\" target=\"_blank\">")
           .append(myTutorial.getRemoteLinkLabel()).append("</a>");
@@ -190,15 +210,20 @@ public class TutorialCard extends CardViewPanel {
 
     boolean hideStepIndex = myBundle.hideStepIndex();
     if (myBundle.isStepByStep()) {
-      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject, hideStepIndex), c);
-      c.gridy++;
+      List<? extends StepData> steps = myTutorial.getSteps();
+      if (!steps.isEmpty()) {
+        contents.add(new TutorialStep(steps.get(myStepIndex), myStepIndex, myListener,
+                                      myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths()), c);
+        c.gridy++;
+      }
     }
     else {
       // Add each of the tutorial steps in order.
       int numericLabel = 0;
 
       for (StepData step : myTutorial.getSteps()) {
-        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject, hideStepIndex);
+        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener,
+                                                    myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths());
         contents.add(stepDisplay, c);
         c.gridy++;
         numericLabel++;
@@ -225,7 +250,7 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setViewportBorder(BorderFactory.createEmptyBorder());
     myContentsScroller.setOpaque(false);
     myContentsScroller.getViewport().setOpaque(false);
-    myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
     // Reset the scroll bars after render, see b/77530149
     // We must use SwingUtilities.invokeLater here instead of Application.invokeLater because the latter causes initScrollValues
@@ -241,6 +266,13 @@ public class TutorialCard extends CardViewPanel {
       super();
       setOpaque(false);
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIUtils.getSeparatorColor()));
+    }
+
+    // Set the pane to be as small as possible: this will make long lines wrap properly instead of forcing the pane to extend as
+    // long as the line. When a line can't be wrapped (e.g. a long word or an image), the horizontal scrollbar should appear.
+    @Override
+    public Dimension getPreferredSize() {
+      return getMinimumSize();
     }
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import com.android.utils.FileUtils;
 import org.junit.Test;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class CDepSimplePackageIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("mathfu");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/com.github.jomof/mathfu/1.1.0-rev3/mathfu-headers.zip/include/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/jomof/.cdep/exploded");
   }
 }

@@ -27,6 +27,8 @@ import com.intellij.openapi.module.Module;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +41,7 @@ public final class AsyncDevicesGetterTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
+  private Function<ConnectedDevice, String> myGetName;
   private AsyncDevicesGetter myGetter;
 
   @Before
@@ -46,7 +49,10 @@ public final class AsyncDevicesGetterTest {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myGetter = new AsyncDevicesGetter(myRule.getProject(), () -> false, new KeyToConnectionTimeMap(clock));
+    // noinspection unchecked
+    myGetName = Mockito.mock(Function.class);
+
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), () -> false, new KeyToConnectionTimeMap(clock), myGetName);
   }
 
   @Test
@@ -68,18 +74,21 @@ public final class AsyncDevicesGetterTest {
 
     AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
 
-    ConnectedDevice googlePixel3ConnectedDevice = new TestConnectedDevice.Builder()
+    ConnectedDevice googlePixel3ConnectedDevice = new ConnectedDevice.Builder()
+      .setName("Physical Device")
       .setKey(new Key("86UX00F4R"))
       .setAndroidDevice(googlePixel3AndroidDevice)
-      .setPhysicalDeviceName("Google Pixel 3")
       .build();
 
-    AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(myGetName.apply(googlePixel3ConnectedDevice)).thenReturn("Google Pixel 3");
 
-    ConnectedDevice pixel3ApiQConnectedDevice = new TestConnectedDevice.Builder()
-      .setKey(new Key("emulator-5554"))
+    AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(pixel3ApiQAndroidDevice.isVirtual()).thenReturn(true);
+
+    ConnectedDevice pixel3ApiQConnectedDevice = new ConnectedDevice.Builder()
+      .setName("Virtual Device")
+      .setKey(new Key("Pixel_3_API_Q"))
       .setAndroidDevice(pixel3ApiQAndroidDevice)
-      .setVirtualDeviceKey(new Key("Pixel_3_API_Q"))
       .build();
 
     // Act
@@ -109,6 +118,32 @@ public final class AsyncDevicesGetterTest {
       .build();
 
     assertEquals(Arrays.asList(expectedPixel3ApiQDevice, expectedGooglePixel3Device, expectedPixel2ApiQDevice), actualDevices);
+  }
+
+  @Test
+  public void getImplDeveloperBuiltTheirOwnSystemImage() {
+    // Arrange
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(androidDevice.isVirtual()).thenReturn(true);
+
+    ConnectedDevice connectedDevice = new ConnectedDevice.Builder()
+      .setName("Virtual Device")
+      .setKey(new Key("emulator-5554"))
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    // Act
+    Object actualDevices = myGetter.getImpl(Collections.emptyList(), Collections.singletonList(connectedDevice));
+
+    // Assert
+    Object expectedDevice = new VirtualDevice.Builder()
+      .setName("Virtual Device")
+      .setKey(new Key("emulator-5554"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    assertEquals(Collections.singletonList(expectedDevice), actualDevices);
   }
 
   @Test

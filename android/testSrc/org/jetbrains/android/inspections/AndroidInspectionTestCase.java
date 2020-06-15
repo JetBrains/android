@@ -17,6 +17,7 @@ package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestModificationListener;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.siyeh.ig.LightJavaInspectionTestCase;
@@ -45,5 +46,6 @@ public abstract class AndroidInspectionTestCase extends LightJavaInspectionTestC
     // since we're using a shared project from a light project fixture, we might end up
     // with a stale merged manifest from another test case.
     Futures.getUnchecked(MergedManifestManager.getMergedManifest(myFixture.getModule()));
+    MergedManifestModificationListener.ensureSubscribed(myFixture.getProject());
   }
 }

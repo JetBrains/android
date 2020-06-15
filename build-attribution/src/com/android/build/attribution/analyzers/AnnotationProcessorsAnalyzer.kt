@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.AnnotationProcessorData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
@@ -74,6 +75,4 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
   }
-
-  data class AnnotationProcessorData constructor(val className: String, val compilationDuration: Duration)
 }

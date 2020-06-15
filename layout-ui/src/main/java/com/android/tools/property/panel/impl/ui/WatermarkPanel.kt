@@ -28,7 +28,6 @@ import javax.swing.SwingConstants
 
 private const val LABEL_SPACING = 16
 private const val HORIZONTAL_MARGIN = 16
-private const val FILL_WIDTH = 16
 
 /**
  * A panel to show a watermark message.
@@ -59,8 +58,7 @@ class WatermarkPanel: AdtSecondaryPanel() {
     }
 
   private fun createFiller(): JComponent {
-    val width = JBUI.scale(FILL_WIDTH)
-    return Box.Filler(Dimension(width, 0), Dimension(width, Int.MAX_VALUE), Dimension(width, Int.MAX_VALUE))
+    return Box.Filler(Dimension(0, 0), Dimension(0, Int.MAX_VALUE), Dimension(0, Int.MAX_VALUE))
   }
 
   private fun setupLabel(label: JBLabel): JBLabel {

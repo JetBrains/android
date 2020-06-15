@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -92,7 +93,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
  * {@link AndroidModelImpl}. See {@link #getBlockElement(List, GradlePropertiesDslElement)} for all the block elements currently supported
  * by this parser.
  */
-public class GroovyDslParser implements GradleDslParser {
+public class GroovyDslParser extends GroovyDslNameConverter implements GradleDslParser {
   @NotNull private final GroovyFile myPsiFile;
   @NotNull private final GradleDslFile myDslFile;
 
@@ -132,14 +133,14 @@ public class GroovyDslParser implements GradleDslParser {
       }
 
       void process(GroovyPsiElement e) {
-        parse(e, myDslFile);
+        parsePsi(e, myDslFile);
       }
     }));
   }
 
   @Override
   @Nullable
-  public PsiElement convertToPsiElement(@NotNull Object literal) {
+  public PsiElement convertToPsiElement(@NotNull GradleDslSimpleExpression context, @NotNull Object literal) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     try {
       return GroovyDslUtil.createLiteral(myDslFile, literal);
@@ -256,33 +257,33 @@ public class GroovyDslParser implements GradleDslParser {
   public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
                                                     @NotNull GradlePropertiesDslElement parentElement,
                                                     @Nullable GradleNameElement nameElement) {
-    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, parentElement, nameElement);
+    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, this, parentElement, nameElement);
   }
 
-  private void parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
+  private void parsePsi(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
     boolean success = false;
     if (psiElement instanceof GrMethodCallExpression) {
-      success = parse((GrMethodCallExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrMethodCall((GrMethodCallExpression)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrAssignmentExpression) {
-      success = parse((GrAssignmentExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrAssignment((GrAssignmentExpression)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrApplicationStatement) {
-      success = parse((GrApplicationStatement)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrApplication((GrApplicationStatement)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrVariableDeclaration) {
-      success = parse((GrVariableDeclaration)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrVariableDeclaration((GrVariableDeclaration)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrReferenceExpression) {
-      success = parse((GrReferenceExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrReference((GrReferenceExpression)psiElement, gradleDslFile);
     }
     if (!success) {
       gradleDslFile.notification(INCOMPLETE_PARSING).addUnknownElement(psiElement);
     }
   }
 
-  private boolean parse(@NotNull GrReferenceExpression element, @NotNull GradlePropertiesDslElement dslElement) {
-    GradleNameElement name = GradleNameElement.from(element);
+  private boolean parseGrReference(@NotNull GrReferenceExpression element, @NotNull GradlePropertiesDslElement dslElement) {
+    GradleNameElement name = GradleNameElement.from(element, this);
 
     if (name.isQualified()) {
       GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), dslElement, null);
@@ -301,7 +302,7 @@ public class GroovyDslParser implements GradleDslParser {
     return true;
   }
 
-  private boolean parse(@NotNull GrMethodCallExpression expression, @NotNull GradlePropertiesDslElement dslElement) {
+  private boolean parseGrMethodCall(@NotNull GrMethodCallExpression expression, @NotNull GradlePropertiesDslElement dslElement) {
     GrReferenceExpression referenceExpression = findChildOfType(expression, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
@@ -311,10 +312,10 @@ public class GroovyDslParser implements GradleDslParser {
     if (expression.getChildren().length > 1 &&
         referenceExpression.getChildren().length == 1 &&
         referenceExpression.getChildren()[0] instanceof GrMethodCallExpression) {
-      return parse((GrMethodCallExpression)referenceExpression.getChildren()[0], dslElement);
+      return parseGrMethodCall((GrMethodCallExpression)referenceExpression.getChildren()[0], dslElement);
     }
 
-    GradleNameElement name = GradleNameElement.from(referenceExpression);
+    GradleNameElement name = GradleNameElement.from(referenceExpression, this);
     if (name.isEmpty()) {
       return false;
     }
@@ -365,41 +366,41 @@ public class GroovyDslParser implements GradleDslParser {
       return false;
     }
     for (GradlePropertiesDslElement element : blockElements) {
-      parse(closableBlock, element);
+      parseGrClosableBlock(closableBlock, element);
     }
     return true;
   }
 
-  private void parse(@NotNull GrClosableBlock closure, @NotNull final GradlePropertiesDslElement blockElement) {
+  private void parseGrClosableBlock(@NotNull GrClosableBlock closure, @NotNull final GradlePropertiesDslElement blockElement) {
     closure.acceptChildren(new GroovyElementVisitor() {
       @Override
       public void visitMethodCallExpression(@NotNull GrMethodCallExpression methodCallExpression) {
-        parse(methodCallExpression, blockElement);
+        parseGrMethodCall(methodCallExpression, blockElement);
       }
 
       @Override
       public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
-        parse(applicationStatement, blockElement);
+        parseGrApplication(applicationStatement, blockElement);
       }
 
       @Override
       public void visitAssignmentExpression(@NotNull GrAssignmentExpression expression) {
-        parse(expression, blockElement);
+        parseGrAssignment(expression, blockElement);
       }
 
       @Override
       public void visitReferenceExpression(@NotNull GrReferenceExpression referenceExpression) {
-        parse(referenceExpression, blockElement);
+        parseGrReference(referenceExpression, blockElement);
       }
 
       @Override
       public void visitVariableDeclaration(@NotNull GrVariableDeclaration variableDeclaration) {
-        parse(variableDeclaration, blockElement);
+        parseGrVariableDeclaration(variableDeclaration, blockElement);
       }
     });
   }
 
-  private boolean parse(@NotNull GrApplicationStatement statement, @NotNull GradlePropertiesDslElement blockElement) {
+  private boolean parseGrApplication(@NotNull GrApplicationStatement statement, @NotNull GradlePropertiesDslElement blockElement) {
     GrReferenceExpression referenceExpression = getChildOfType(statement, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
@@ -415,7 +416,7 @@ public class GroovyDslParser implements GradleDslParser {
       return false;
     }
 
-    GradleNameElement name = GradleNameElement.from(referenceExpression);
+    GradleNameElement name = GradleNameElement.from(referenceExpression, this);
     if (name.isEmpty()) {
       return false;
     }
@@ -499,7 +500,7 @@ public class GroovyDslParser implements GradleDslParser {
     return propertyElement;
   }
 
-  private boolean parse(@NotNull GrVariableDeclaration declaration, @NotNull GradlePropertiesDslElement blockElement) {
+  private boolean parseGrVariableDeclaration(@NotNull GrVariableDeclaration declaration, @NotNull GradlePropertiesDslElement blockElement) {
     if (declaration.getVariables().length == 0) {
       return false;
     }
@@ -513,7 +514,7 @@ public class GroovyDslParser implements GradleDslParser {
         return false;
       }
 
-      GradleNameElement name = GradleNameElement.from(variable);
+      GradleNameElement name = GradleNameElement.from(variable, this);
       GradleDslElement variableElement =
         createExpressionElement(blockElement, declaration, name, init);
 
@@ -523,14 +524,14 @@ public class GroovyDslParser implements GradleDslParser {
     return true;
   }
 
-  private boolean parse(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
+  private boolean parseGrAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     PsiElement operationToken = assignment.getOperationToken();
     if (!operationToken.getText().equals("=")) {
       return false; // TODO: Add support for other operators like +=.
     }
 
     GrExpression left = assignment.getLValue();
-    GradleNameElement name = GradleNameElement.from(left);
+    GradleNameElement name = GradleNameElement.from(left, this);
     if (name.isEmpty()) {
       return false;
     }
@@ -550,11 +551,52 @@ public class GroovyDslParser implements GradleDslParser {
       return false;
     }
 
-    GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-    propertyElement.setUseAssignment(true);
-    propertyElement.setElementType(REGULAR);
+    Matcher matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name());
+    if (matcher.find()) {
+      String property = modelNameForParent(matcher.group(0), blockElement);
+      GradleDslElement element = blockElement.getElement(property);
+      if (element instanceof GradlePropertiesDslElement) {
+        blockElement = (GradlePropertiesDslElement) element;
+      }
+      else {
+        return false;
+      }
+      String index;
+      if (matcher.find()) {
+        index = matcher.group(1);
+      }
+      else {
+        return false;
+      }
+      while (matcher.find()) {
+        blockElement = GradleDslSimpleExpression.dereferencePropertiesElement(blockElement, index);
+        if (blockElement == null) {
+          return false;
+        }
+        index = matcher.group(1);
+      }
+      // now we're ready.
+      // TODO(xof): figure out how to get the Psi element for this name.
+      name = GradleNameElement.create(ensureUnquotedText(index));
+      if (blockElement instanceof GradleDslExpressionMap) {
+        GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
+        propertyElement.setUseAssignment(true);
+        propertyElement.setElementType(REGULAR);
 
-    blockElement.setParsedElement(propertyElement);
+        blockElement.setParsedElement(propertyElement);
+      }
+      // TODO(xof): handle list setting
+      else {
+        return false;
+      }
+    }
+    else {
+      GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
+      propertyElement.setUseAssignment(true);
+      propertyElement.setElementType(REGULAR);
+
+      blockElement.setParsedElement(propertyElement);
+    }
     return true;
   }
 
@@ -662,7 +704,7 @@ public class GroovyDslParser implements GradleDslParser {
       if (nameLabel == null) {
         continue;
       }
-      GradleNameElement argName = GradleNameElement.from(nameLabel.getNameElement());
+      GradleNameElement argName = GradleNameElement.from(nameLabel.getNameElement(), this);
       if (argName.isEmpty()) {
         continue;
       }
@@ -690,7 +732,7 @@ public class GroovyDslParser implements GradleDslParser {
                                              @NotNull GrClosableBlock closableBlock,
                                              @NotNull GradleNameElement propertyName) {
     GradleDslClosure closureElement = new GradleDslClosure(parentElement, closableBlock, propertyName);
-    parse(closableBlock, closureElement);
+    parseGrClosableBlock(closableBlock, closureElement);
     return closureElement;
   }
 }

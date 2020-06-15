@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
 import com.google.common.html.HtmlEscapers
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.ExpandableItemsHandler
@@ -46,7 +47,7 @@ class CollapsibleLabelPanel(
   val model: CollapsibleLabelModel,
   fontSize: UIUtil.FontSize,
   fontStyle: Int,
-  vararg actions: AnAction
+  actions: List<AnAction> = emptyList()
 ) : JPanel(BorderLayout()) {
   val label = ExpandableLabel(model.name, this, fontSize, fontStyle)
 
@@ -82,8 +83,13 @@ class CollapsibleLabelPanel(
     add(label, BorderLayout.CENTER)
     model.addValueChangedListener(ValueChangedListener { valueChanged() })
     if (actions.isNotEmpty()) {
+      val dataManager = DataManager.getInstance();
       val buttons = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
-      actions.forEach { buttons.add(FocusableActionButton(it)) }
+      actions.forEach {
+        val button = FocusableActionButton(it)
+        buttons.add(button)
+        model.registerAction(it, it.templatePresentation, dataManager.getDataContext(button))
+      }
       add(buttons, BorderLayout.EAST)
     }
     valueChanged()

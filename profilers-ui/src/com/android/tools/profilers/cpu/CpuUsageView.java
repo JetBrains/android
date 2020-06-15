@@ -73,8 +73,7 @@ abstract class CpuUsageView extends JBPanel {
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
-    myRangeSelectionComponent =
-      new RangeSelectionComponent(myStage.getRangeSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
+    myRangeSelectionComponent = new RangeSelectionComponent(myStage.getRangeSelectionModel(), myStage.getTimeline().getViewRange(), true);
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     // After a capture is set we update the selection to be the length of the capture. The selection we update is on the range
     // instead of the selection model, or selection component. So here we listen to a selection capture event and give focus
@@ -106,7 +105,7 @@ abstract class CpuUsageView extends JBPanel {
   }
 
   protected String formatCaptureLabel(@NotNull CpuTraceInfo info) {
-    Range range = myStage.getStudioProfilers().getTimeline().getDataRange();
+    Range range = myStage.getTimeline().getDataRange();
     long min = (long)(info.getRange().getMin() - range.getMin());
     long max = (long)(info.getRange().getMax() - range.getMin());
     return String.format("%s - %s", TimeFormatter.getFullClockString(min), TimeFormatter.getFullClockString(max));
@@ -121,7 +120,9 @@ abstract class CpuUsageView extends JBPanel {
       add(createAxisPanel(), new TabularLayout.Constraint(0, 0));
       add(createLegendPanel(), new TabularLayout.Constraint(0, 0));
       add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
-      add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
+      if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+        add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
+      }
       add(createLineChartPanel(), new TabularLayout.Constraint(0, 0));
     }
 
@@ -176,6 +177,7 @@ abstract class CpuUsageView extends JBPanel {
           .setIconMapper(info -> info.getDurationUs() != Long.MAX_VALUE ? StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK : null)
           .setLabelProvider(info -> info.getDurationUs() == Long.MAX_VALUE ? "In progress" : "")
           .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+          .setBackgroundClickable(myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled())
           .setClickHander(traceInfo -> {
             if (traceInfo.getDurationUs() != Long.MAX_VALUE) {
               myStage.setAndSelectCapture(traceInfo.getTraceId());

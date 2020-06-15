@@ -213,13 +213,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void dispose() {
-    if (myBridge != null) {
       AndroidDebugBridge.removeDeviceChangeListener(this);
       AndroidDebugBridge.removeClientChangeListener(this);
       AndroidDebugBridge.removeDebugBridgeChangeListener(this);
-
       myBridge = null;
-    }
 
     if (myDeviceCombo != null) {
       Disposer.dispose(myDeviceCombo);
@@ -229,6 +226,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
+    if (bridge == null) return;
+
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> UIUtil.invokeLaterIfNeeded(() -> {
       myBridge = bridge;
       updateDeviceCombo();

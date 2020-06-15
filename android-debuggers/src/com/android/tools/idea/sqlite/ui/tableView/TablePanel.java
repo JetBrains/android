@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.sqlite.ui.tableView;
 
-import com.intellij.ui.table.JBTable;
 import javax.swing.JPanel;
 
 public class TablePanel {
   private JPanel myRoot;
-  private JBTable myTable;
+  private JPanel myControlsPanel;
 
   public JPanel getRoot() {
     return myRoot;
   }
 
-  public JBTable getTable() {
-    return myTable;
+  public JPanel getControlsPanel() {
+    return myControlsPanel;
   }
 }

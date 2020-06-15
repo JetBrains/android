@@ -1063,7 +1063,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
     assertEquals(
-      "DrawEmptyDesigner,130x251\n", list.generateSortedDisplayList()
+      "DrawEmptyDesigner,130.0x251.0\n", list.generateSortedDisplayList()
     )
     assertTrue(sceneManager.isEmpty)
 
@@ -1090,7 +1090,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
     assertEquals(
-      "DrawEmptyDesigner,130x251\n", list.generateSortedDisplayList()
+      "DrawEmptyDesigner,130.0x251.0\n", list.generateSortedDisplayList()
     )
     assertTrue(sceneManager.isEmpty)
   }

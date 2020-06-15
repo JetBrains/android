@@ -32,8 +32,9 @@ COMMON_DATA = [
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/templates",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+    "//tools/data-binding:data_binding_runtime.zip",
+    "//tools/idea/bin:log.xml",
     "//tools/idea/java/jdkAnnotations",
-    "//tools/idea:config",
     "//tools/idea:platform-build-info",
     "//tools/vendor/google/testing/display:xvfb",
 ]
@@ -43,7 +44,6 @@ COMMON_TAGS = [
     "no_mac",
     "no_windows",
     "cpu:3",
-    "slow",
 ]
 
 # managed by go/iml_to_build
@@ -52,29 +52,38 @@ iml_module(
     iml_files = ["intellij.android.guiTests.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
+        "//tools/idea/.idea/libraries:javassist",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/platform/platform-main:intellij.platform.main",
+        "//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.20.1:jar",
         "//tools/idea/plugins/github:intellij.vcs.github",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
-        "//tools/idea/plugins/yaml:intellij.yaml",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
         "//tools/adt/idea/android:intellij.android.core.tests",
+        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
         "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
         "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
-        "//tools/idea/plugins/stats-collector:intellij.statsCollector",
         "//tools/idea/plugins/stream-debugger:intellij.java.debugger.streams",
         "//tools/idea/plugins/editorconfig:intellij.editorconfig",
         "//tools/idea/plugins/changeReminder:intellij.vcs.changeReminder",
         "//tools/idea/plugins/sh:intellij.sh",
         "//tools/idea/plugins/gradle-maven:intellij.gradle.java.maven",
+        "//tools/idea/.idea/libraries:jgoodies-common",
+        "//tools/idea/.idea/libraries:commons-net",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
@@ -121,7 +130,7 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//prebuilts/studio/layoutlib/data:layoutlib[test]",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
     ],
 )
 
@@ -140,7 +149,6 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//tools/data-binding:data_binding_runtime.zip",
     ] + glob([
         "testData/DatabindingMethodsTest/**",
     ]),
@@ -182,7 +190,7 @@ java_test(
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/tools/common/m2/repository/com/android/support/support-annotations/28.0.0",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-annotations/28.0.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -316,7 +324,7 @@ java_test(
     name = "AndroidProfilerTest",
     data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
-    tags = COMMON_TAGS,
+    tags = COMMON_TAGS + ["manual"],  # flaky: b/140095413
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -335,6 +343,15 @@ java_test(
         ],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
+    tags = COMMON_TAGS,
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "TerminateAdbIfNotUsedTest",
+    data = COMMON_DATA + glob(["testData/simple/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.adb.TerminateAdbIfNotUsedTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -460,6 +477,7 @@ java_test(
 # sanity test
 java_test(
     name = "AddKotlinTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/LinkProjectWithKotlin/**",
     ]),
@@ -483,6 +501,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
@@ -504,6 +524,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
@@ -523,6 +545,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -538,10 +562,13 @@ java_test(
 # sanity test
 java_test(
     name = "FlavorsExecutionTest",
+    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleFlavoredApplication/**",
@@ -549,8 +576,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/128711988
-        "qa_sanity_unreliable",  # b/128711988
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -643,6 +668,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateNewProjectWithCpp1Test",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -658,6 +684,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateNewProjectWithCpp2Test",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -673,6 +700,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateNewProjectWithCpp3Test",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -703,6 +731,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateCppKotlinProjectTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
@@ -739,8 +768,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/119685470
-        "qa_sanity_unreliable",  # b/119685470
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -755,8 +782,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/119685470
-        "qa_sanity_unreliable",  # b/119685470
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -794,7 +819,6 @@ java_test(
         "qa_sanity",
         "qa_sanity_unreliable",  # b/76023451
         "qa_unreliable",  # b/76023451
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -818,7 +842,6 @@ java_test(
         "qa_unreliable",  # b/119505019
         "requires-network",
         "requires_emulator",  # Run together with emulators because the test needs to run alone
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -854,7 +877,6 @@ java_test(
         "block-network",
         "no_mac",
         "no_windows",
-        "slow",
         "no-remote",
         "requires-fakeroot",
         "qa_sanity",
@@ -906,7 +928,6 @@ java_test(
         "qa_unreliable",  # b/79937083
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -941,7 +962,6 @@ java_test(
         "qa_unreliable",  # b/128932526
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -969,9 +989,10 @@ java_test(
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",
+        "qa_sanity_unreliable",  # b/145991485
+        "qa_unreliable",  # b/145991485
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1003,7 +1024,6 @@ java_test(
         "qa_unreliable",  # b/77635374
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1021,6 +1041,19 @@ java_test(
         "qa_sanity",
         "qa_unreliable",
         "qa_sanity_unreliable",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "NewComposeProjectTest",
+    size = "large",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1047,22 +1080,6 @@ java_test(
         "testData/NoUnusedResourceApp/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.UnusedResourceEvaluationTest"],
-    tags = COMMON_TAGS + [
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
-    name = "DataBindingTest",
-    data = COMMON_DATA + [
-        "//tools/data-binding:data_binding_runtime.zip",
-    ] + glob([
-        "testData/DatabindingMethodsTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
     ],
@@ -1188,11 +1205,11 @@ java_test(
 
 # fast test
 java_test(
-    name = "NameWithSpaceTest",
+    name = "NameWithSpaceAndDollarTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceAndDollarTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
         "qa_unreliable",  # b/111889561
@@ -1209,6 +1226,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/sdk:platforms/android-23",
         "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platforms/android-25",
@@ -1232,6 +1251,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/sdk:platforms/android-25",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
@@ -1254,6 +1275,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1275,6 +1298,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1296,6 +1321,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1317,6 +1344,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1331,16 +1360,18 @@ java_test(
 
 # fast test
 java_test(
-    name = "LayoutEditorTest",
+    name = "AdaptiveIconsTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutEditorTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.assetstudio.AdaptiveIconsTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
     ],
@@ -1355,6 +1386,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -1376,6 +1409,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -1397,6 +1432,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -1537,13 +1574,11 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1568,13 +1603,11 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1609,7 +1642,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1644,7 +1676,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1679,7 +1710,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1714,7 +1744,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1749,7 +1778,6 @@ java_test(
         "qa_unreliable",  # b/137669728
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1784,7 +1812,6 @@ java_test(
         "qa_unreliable",  # b/137669728
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1819,7 +1846,6 @@ java_test(
         "qa_unreliable",  # b/138743860
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1860,6 +1886,132 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "CreateAPKProjectTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/ApkDebug/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateAPKProjectTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires-fakeroot",
+        "requires_emulator",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "InstantAppRunFromCmdLineTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/TopekaInstantApp/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.InstantAppRunFromCmdLineTest",
+    ],
+    # do not sort: the beginning of this list is copied from COMMON_TAGS
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
+        "no-remote",
+        "requires-fakeroot",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires_emulator",
+        "cpu:100",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ImportAndRunInstantAppTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/InstantAppsService/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.ImportAndRunInstantAppTest",
+    ],
+    # do not sort: the beginning of this list is copied from COMMON_TAGS
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
+        "slow",
+        "no-remote",
+        "requires-fakeroot",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires_emulator",
+        "cpu:100",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "InstrumentationTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/KotlinInstrumentation/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.InstrumentationTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires-fakeroot",
+        "requires_emulator",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1933,6 +2085,8 @@ java_test(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",

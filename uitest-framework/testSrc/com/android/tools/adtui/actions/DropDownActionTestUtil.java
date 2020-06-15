@@ -15,8 +15,10 @@
  */
 package com.android.tools.adtui.actions;
 
+import com.intellij.openapi.actionSystem.DataContext;
+
 public class DropDownActionTestUtil {
   public static void updateActions(DropDownAction action) {
-    action.updateActions();
+    action.updateActions(DataContext.EMPTY_CONTEXT);
   }
 }

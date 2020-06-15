@@ -17,6 +17,7 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.AntialiasingType;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
@@ -35,7 +36,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,24 +55,16 @@ public class TabbedToolbar extends JPanel {
   private int myPreferredHeight;
 
   /**
-   * Creates a toolbar with a label as the left most element.
-   * The result is: [title] [tab][tab]                (X)(-)
-   */
-  public TabbedToolbar(String title) {
-    this(new JLabel(title));
-  }
-
-  /**
    * Creates a toolbar where the label can be replaces by a custom component.
    */
   public TabbedToolbar(@NotNull JComponent title) {
     // Set layout explicitly to remove default hgap/vgap.
     myTabsPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
 
-    //     px     Fit                *                      Fit
-    // [Padding][Title][(Tab)(Tab)(Tab)              ][(Action)(Action)]
-    setLayout(new TabularLayout("5px,Fit,*,Fit", "*"));
-    add(title, new TabularLayout.Constraint(0, 1));
+    //    Fit    px                *                      Fit
+    // [Title][Padding][(Tab)(Tab)(Tab)              ][(Action)(Action)]
+    setLayout(new TabularLayout("Fit,5px,*,Fit", "*"));
+    add(title, new TabularLayout.Constraint(0, 0));
     add(myTabsPanel, new TabularLayout.Constraint(0, 2));
     add(myActionPanel, new TabularLayout.Constraint(0, 3));
   }
@@ -104,8 +96,8 @@ public class TabbedToolbar extends JPanel {
     TabLabel tab = new TabLabel(name, closedListener);
     tab.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        super.mouseClicked(e);
+      public void mousePressed(MouseEvent e) {
+        super.mousePressed(e);
         selectTab(tab, selectedListener);
         // Need to repaint to adjust blue label for selected tab.
         repaint();
@@ -128,14 +120,9 @@ public class TabbedToolbar extends JPanel {
       }
     });
     myTabsPanel.add(tab);
-
-    // If this is the first tab added select it by default.
-    if (myActiveTab == 0) {
-      selectTab(tab, selectedListener);
-    }
-
     // Cache preferred height of control so we can properly adjust child elements sizes.
     myPreferredHeight = getPreferredSize().height;
+    selectTab(tab, selectedListener);
   }
 
   /**
@@ -143,11 +130,18 @@ public class TabbedToolbar extends JPanel {
    */
   public void clearTabs() {
     myTabsPanel.removeAll();
+    myPreferredHeight = 0; // Clear preferred height to prevent growing forever.
   }
 
   private void selectTab(@NotNull TabLabel tab, @NotNull TabListener listener) {
     myActiveTab = tab.hashCode();
     listener.doAction();
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public JComponent getTabsPanel() {
+    return myTabsPanel;
   }
 
 
@@ -167,7 +161,7 @@ public class TabbedToolbar extends JPanel {
     TabLabel(String name, @Nullable TabListener onClosed) {
       setLayout(new BorderLayout());
       // Add spacing to match mocks.
-      setBorder(JBUI.Borders.empty(2, 10));
+      setBorder(JBUI.Borders.empty(5, 10));
       add(new JLabel(name), BorderLayout.CENTER);
       if (onClosed != null) {
         CommonButton closeButton = new CommonButton(StudioIcons.Common.CLOSE);

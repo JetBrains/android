@@ -17,7 +17,6 @@ package com.android.tools.idea.refactoring.modularize;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
@@ -28,6 +27,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -68,8 +68,9 @@ import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,7 +102,8 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
+          if (!SourceProviderManager.getInstance(facet).getCurrentSourceProviders().isEmpty() &&
+              !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
             suitableModules.add(module);
           }
         }
@@ -186,7 +188,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           element.accept(new JavaReferenceVisitor(facet, element));
 
           // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
-          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProvider.getManifestFiles(facet));
+          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProviderUtil.getManifestFiles(facet));
 
           ReferencesSearch.search(element, manifestScope).forEach(reference -> {
             PsiElement tag = reference.getElement();
@@ -394,16 +396,13 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         if (target instanceof PsiClass) {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
-            for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
-              if (sourceProvider.containsFile(source)) {
-                // This is a local source file, therefore a candidate to be moved
-                if (myClassRefSet.add((PsiClass)target)) {
-                  myVisitQueue.add(target);
-                }
-                if (target != mySource) { // Don't add self-references
-                  myGraphBuilder.markReference(mySource, target);
-                }
-                return; // We had a reference match, nothing further to do
+            if (IdeaSourceProviderUtil.containsFile(SourceProviderManager.getInstance(myFacet).getSources(), source)) {
+              // This is a local source file, therefore a candidate to be moved
+              if (myClassRefSet.add((PsiClass)target)) {
+                myVisitQueue.add(target);
+              }
+              if (target != mySource) { // Don't add self-references
+                myGraphBuilder.markReference(mySource, target);
               }
             }
           }

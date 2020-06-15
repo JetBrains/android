@@ -28,17 +28,17 @@ public class ApiLevelComboBoxFixture extends JComboBoxFixture {
     super(robot, target);
   }
 
-  public void selectApiLevel(@NotNull String apiLevel) {
+  public void selectApiLevel(int minSdkApi) {
     GuiTask.execute(() -> {
       for (int i = 0; i < target().getItemCount(); i++) {
         Object value = target().getItemAt(i);
-        if (String.valueOf(value).startsWith("API " + apiLevel + ":")) {
+        if (String.valueOf(value).startsWith("API " + minSdkApi + ":")) {
           // The comboBox fixture is un-reliable selecting the right API. Select by value instead.
           target().setSelectedItem(value);
           return;
         }
       }
-      throw new LocationUnavailableException("Unable to find SDK " + apiLevel + " in drop-down");
+      throw new LocationUnavailableException("Unable to find SDK " + minSdkApi + " in drop-down");
     });
   }
 }

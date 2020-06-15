@@ -1,13 +1,8 @@
 package icons;
 
 import com.intellij.openapi.util.IconLoader;
+import javax.swing.Icon;
 
-import javax.swing.*;
-
-/**
- * Note: This file should be auto generated once build/scripts/icons.gant is part of CE.
- * https://youtrack.jetbrains.com/issue/IDEA-103558
- */
 public class AndroidIcons {
   private static Icon load(String path) {
     return IconLoader.getIcon(path, AndroidIcons.class);
@@ -40,9 +35,6 @@ public class AndroidIcons {
 
   public static class Ddms {
     public static final Icon Emulator2 = load("/icons/ddms/emulator_02.png"); // 16x16
-    /**
-     * The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon.
-     */
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
     public static final Icon EmulatorDevice = load("/icons/ddms/emulator_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
@@ -51,17 +43,23 @@ public class AndroidIcons {
 
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
-    public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
+    // Template thumbnails
+    public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
+    public static final Icon AutomotiveModule = load("/icons/wizards/automotive_module.png"); // 256x256
+    public static final Icon BenchmarkModule = load("/icons/wizards/benchmark_module.png"); // 256x256
+    public static final Icon DynamicFeatureModule = load("/icons/wizards/dynamic_feature_module.png"); // 256x256
+    public static final Icon EclipseModule = load("/icons/wizards/eclipse_module.png"); // 256x256
+    public static final Icon GradleModule = load("/icons/wizards/gradle_module.png"); // 256x256
+    public static final Icon InstantDynamicFeatureModule = load("/icons/wizards/instant_dynamic_feature_module.png"); // 256x256
+    public static final Icon MobileModule = load("/icons/wizards/mobile_module.png"); // 256x256
+    public static final Icon ThingsModule = load("/icons/wizards/things_module.png"); // 256x256
+    public static final Icon TvModule = load("/icons/wizards/tv_module.png"); // 256x256
+    public static final Icon WearModule = load("/icons/wizards/wear_module.png"); // 256x256
     public static final Icon NavigationDrawer = load("/icons/wizards/navigation/navigation_drawer.png"); // 256x256
     public static final Icon BottomNavigation = load("/icons/wizards/navigation/bottom_navigation.png"); // 256x256
     public static final Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png"); // 256x256
     public static final Icon CppConfiguration = load("/icons/wizards/cpp_configure.png"); // 256x256
     public static final Icon NoActivity = load("/icons/wizards/no_activity.png"); // 256x256
-  }
-
-  public static class RunIcons {
-    public static final Icon Replay = load("/icons/run/play2.png"); // TODO: update blaze and remove this
-    public static final Icon Restart = load("/icons/run/restart.png");
   }
 
   public static class SherpaIcons {

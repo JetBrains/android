@@ -24,7 +24,6 @@ import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.Context;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Scope;
-
 import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.android.util.AndroidResourceUtil;

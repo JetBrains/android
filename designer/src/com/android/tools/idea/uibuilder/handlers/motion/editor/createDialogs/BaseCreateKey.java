@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
+import java.awt.CardLayout;
+import java.awt.GridBagConstraints;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -24,9 +26,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
-import java.awt.CardLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 
 /**
  * Base class of creating of KeyFrame objects
@@ -40,27 +39,33 @@ public class BaseCreateKey extends BaseCreatePanel {
     int y = 0;
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
-    gbc.insets = MEUI.insets(2, 5, 1, 5);
+    gbc.ipadx = MEUI.scale(60);
+    gbc.insets = MEUI.dialogTitleInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel(title), gbc);
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
-    JRadioButton b1, b2;
+    JRadioButton tagButton, idButton;
     grid(gbc, 0, y, 1, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
-    add(b1 = new JRadioButton("TAG"), gbc);
-    grid(gbc, 1, y++, 1, 1);
+    add(tagButton = new JRadioButton("TAG"), gbc);
+
+    grid(gbc, 1, y, 1, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
-    add(b2 = new JRadioButton("ID"), gbc);
+    add(idButton = new JRadioButton("ID"), gbc);
+
     ButtonGroup group = new ButtonGroup();
-    group.add(b1);
-    group.add(b2);
+    group.add(tagButton);
+    group.add(idButton);
     CardLayout cardLayout = new CardLayout();
     JPanel cardpanel = new JPanel(cardLayout);
     cardpanel.add(mMatchTag = newTextField("tag or regex", 15), "tag");
@@ -69,20 +74,25 @@ public class BaseCreateKey extends BaseCreatePanel {
       "button1",
     };
     mViewList = MEUI.makeComboBox(opt);
-    b1.addActionListener((e) -> {
+    tagButton.addActionListener((e) -> {
       cardLayout.show(cardpanel, "tag");
       mUseTag = true;
     });
-    b2.addActionListener((e) -> {
+    idButton.addActionListener((e) -> {
       cardLayout.show(cardpanel, "id");
       mUseTag = false;
     });
     cardpanel.add(mMatchTag, "tag");
     cardpanel.add(mViewList, "id");
-    grid(gbc, 0, y++, 2, 1);
+    grid(gbc, 0, ++y, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;
+    gbc.insets = MEUI.dialogControlInsets();
     add(cardpanel, gbc);
-    return y;
+
+    cardLayout.show(cardpanel, "id");
+    idButton.setSelected(true);
+
+    return ++y;
   }
 
   void populateTags(String[] layoutViewNames) {
@@ -92,7 +102,8 @@ public class BaseCreateKey extends BaseCreatePanel {
   public String getMotionTarget() {
     if (mUseTag) {
       return mMatchTag.getText();
-    } else {
+    }
+    else {
       return "@+id/" + mViewList.getSelectedItem();
     }
   }

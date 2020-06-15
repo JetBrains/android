@@ -30,7 +30,7 @@ open class ProductFlavorsFixture constructor(
   fun clickAddFlavorDimension(): InputNameDialogFixture {
     clickToolButton("Add")
     val listFixture = JListFixture(robot(), getList())
-    listFixture.clickItem("Add Flavor Dimension")
+    listFixture.dragAndClickItem("Add Flavor Dimension")
     return InputNameDialogFixture.find(robot, "Create New Flavor Dimension") {
       Thread.sleep(500) // MasterDetailsComponent has up to 500ms delay before acting on selection change.
       waitForIdle()
@@ -40,7 +40,7 @@ open class ProductFlavorsFixture constructor(
   fun clickAddProductFlavor(): InputNameDialogFixture {
     clickToolButton("Add")
     val listFixture = JListFixture(robot(), getList())
-    listFixture.clickItem("Add Product Flavor")
+    listFixture.dragAndClickItem("Add Product Flavor")
     return InputNameDialogFixture.find(robot, "Create New Product Flavor") {
       Thread.sleep(500) // MasterDetailsComponent has up to 500ms delay before acting on selection change.
       waitForIdle()

@@ -47,7 +47,7 @@ import java.util.List;
  * Note: The methods on this interface are marked with whether or not they require read access.
  * Read access can be obtained using {@link Application#runReadAction(Computable)}, among other ways.
  */
-public interface GradleDslParser {
+public interface GradleDslParser extends GradleDslNameConverter {
   /**
    * Instructs the parser perform its parsing operation. This method REQUIRES read access.
    */
@@ -58,7 +58,7 @@ public interface GradleDslParser {
    * This method does REQUIRE read access.
    */
   @Nullable
-  PsiElement convertToPsiElement(@NotNull Object literal);
+  PsiElement convertToPsiElement(@NotNull GradleDslSimpleExpression context, @NotNull Object literal);
 
   /**
    * Sets up various properties of the GradleDslLiteral based on the new PsiElement to be set.
@@ -124,7 +124,7 @@ public interface GradleDslParser {
 
     @Override
     @Nullable
-    public PsiElement convertToPsiElement(@NotNull Object literal) {
+    public PsiElement convertToPsiElement(@NotNull GradleDslSimpleExpression context, @NotNull Object literal) {
       return null;
     }
 

@@ -37,11 +37,15 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable protected GradleDslElement myElement;
+  @Nullable protected GradleDslElement myDefaultElement;
   @NotNull private GradleDslElement myPropertyHolder;
   // Indicates whether this property represents a method call or an assignment. This is needed to remove the braces when creating
   // properties for example "android.defaultConfig.proguardFiles" requires "proguardFiles "file.txt", "file.pro"" whereas
   // assignments require "prop = ["file.txt", "file.pro"]". If the method syntax is required #markAsMethodCall should be used.
   private boolean myIsMethodCall;
+
+  // Indicates whether this property, if list-like, is a List or a Set
+  private boolean myIsSet;
 
   // The list of transforms to be checked for this property model. Only the first transform that has its PropertyTransform#condition
   // return true will be used.
@@ -81,8 +85,21 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myIsMethodCall = true;
   }
 
+  public void markAsSet() {
+    myIsSet = true;
+  }
+
   public void addTransform(@NotNull PropertyTransform transform) {
     myTransforms.add(0, transform);
+  }
+
+  @Nullable
+  public GradleDslElement getDefaultElement() {
+    return myDefaultElement;
+  }
+
+  public void setDefaultElement(@NotNull GradleDslElement defaultElement) {
+    myDefaultElement = defaultElement;
   }
 
   @Override
@@ -437,6 +454,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return getValue(STRING_TYPE);
   }
 
+  @Nullable
+  @Override
+  public String valueAsString() {
+    return getValue(STRING_TYPE);
+  }
+
   @NotNull
   @Override
   public String forceString() {
@@ -526,7 +549,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable
   private <T> T extractValue(@NotNull TypeReference<T> typeReference, boolean resolved) {
     GradleDslElement element = getElement();
-    // If we don't have an element, no value have yet been set.
+    // If we don't have an element, no value has yet been set, but we might have a default.
+    if (element == null) {
+      element = getDefaultElement();
+    }
+    // If we still don't have an element, we have no value.
     if (element == null) {
       return null;
     }
@@ -591,7 +618,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   private void makeEmptyList() {
-    bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myName, myIsMethodCall));
+    bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myName, myIsMethodCall, myIsSet));
   }
 
   private void bindToNewElement(@NotNull GradleDslExpression newElement) {
@@ -606,7 +633,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, myName);
     element.setElementType(myPropertyType);
-    element.setUseAssignment(!myIsMethodCall);
+    element.setUseAssignment(!myIsMethodCall); // TODO(b/141970574): myElement.useAssignment
     // We need to ensure the parent will be modified so this change takes effect.
     element.setModified();
     myElement = element;

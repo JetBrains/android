@@ -27,7 +27,7 @@ import com.google.common.truth.Truth
 class PsModuleTypeTest : DependencyTestCase() {
 
   fun testProjectTypeDetection() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -38,7 +38,7 @@ class PsModuleTypeTest : DependencyTestCase() {
   }
 
   fun testFallbackProjectTypeDetection() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)

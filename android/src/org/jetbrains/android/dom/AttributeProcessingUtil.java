@@ -75,14 +75,13 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -123,7 +122,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
-import org.jetbrains.android.dom.navigation.ConcreteDestinationElement;
 import org.jetbrains.android.dom.navigation.NavDestinationElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
@@ -192,7 +190,7 @@ public class AttributeProcessingUtil {
   @Nullable
   private static String getNamespaceUriByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
-      if (!facet.getConfiguration().isAppProject() || facet.requiresAndroidModel()) {
+      if (!facet.getConfiguration().isAppProject() || AndroidModel.isRequired(facet)) {
         return AUTO_URI;
       }
       Manifest manifest = Manifest.getMainManifest(facet);
@@ -485,10 +483,6 @@ public class AttributeProcessingUtil {
     NavigationSchema schema = NavigationSchema.get(facet.getModule());
     for (PsiClass psiClass : schema.getStyleablesForTag(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
-      if (element instanceof ConcreteDestinationElement) {
-        registerAttribute(new AttributeDefinition(ResourceNamespace.TOOLS, ATTR_LAYOUT, null, ImmutableList.of(AttributeFormat.REFERENCE)),
-                          new XmlName(ATTR_LAYOUT, TOOLS_URI), null, element, callback);
-      }
     }
   }
 

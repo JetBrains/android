@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.resources.ResourceRepository;
+import com.google.common.base.Verify;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -60,7 +63,14 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
           LOG.debug("Recomputing inner classes of " + this.getClass());
         }
         PsiClass[] innerClasses = doGetInnerClasses();
-        return CachedValueProvider.Result.create(innerClasses, getInnerClassesDependencies());
+
+        ModificationTracker dependencies = getInnerClassesDependencies();
+        // When ResourceRepositoryManager's caches are dropped, new instances of repositories are created and the old ones
+        // stop incrementing their modification count. We need to make sure the CachedValue doesn't hold on to any particular repository
+        // instance and instead reads the modification count of the "current" instance.
+        Verify.verify(!(dependencies instanceof ResourceRepository), "Resource repository leaked in a CachedValue.");
+
+        return CachedValueProvider.Result.create(innerClasses, dependencies);
       });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(project);
@@ -84,7 +94,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
    * {@link #doGetInnerClasses()}.
    */
   @NotNull
-  protected abstract Object[] getInnerClassesDependencies();
+  protected abstract ModificationTracker getInnerClassesDependencies();
 
   @Nullable
   @Override

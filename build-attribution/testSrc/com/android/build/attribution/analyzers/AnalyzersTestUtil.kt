@@ -16,10 +16,14 @@
 package com.android.build.attribution.analyzers
 
 import org.gradle.tooling.events.BinaryPluginIdentifier
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.PluginIdentifier
 import org.gradle.tooling.events.ScriptPluginIdentifier
+import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
+import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
@@ -27,7 +31,6 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import java.time.Duration
 
 fun createBinaryPluginIdentifierStub(pluginName: String): BinaryPluginIdentifier {
   val pluginIdentifier = Mockito.mock(BinaryPluginIdentifier::class.java)
@@ -39,6 +42,27 @@ fun createScriptPluginIdentifierStub(pluginName: String): ScriptPluginIdentifier
   val pluginIdentifier = Mockito.mock(ScriptPluginIdentifier::class.java)
   `when`(pluginIdentifier.displayName).thenReturn(pluginName)
   return pluginIdentifier
+}
+
+fun createOperationDescriptorStub(name: String,
+                                  displayName: String = name,
+                                  parent: OperationDescriptor? = null): OperationDescriptor {
+  val descriptor = Mockito.mock(OperationDescriptor::class.java)
+  `when`(descriptor.name).thenReturn(name)
+  `when`(descriptor.displayName).thenReturn(displayName)
+  `when`(descriptor.parent).thenReturn(parent)
+  return descriptor
+}
+
+fun createFinishEventStub(displayName: String, startTime: Long, endTime: Long, descriptor: OperationDescriptor? = null): FinishEvent {
+  val event = Mockito.mock(FinishEvent::class.java)
+  val result = Mockito.mock(SuccessResult::class.java)
+  `when`(result.startTime).thenReturn(startTime)
+  `when`(result.endTime).thenReturn(endTime)
+  `when`(event.displayName).thenReturn(displayName)
+  `when`(event.result).thenReturn(result)
+  `when`(event.descriptor).thenReturn(descriptor)
+  return event
 }
 
 fun createTaskOperationDescriptorStub(taskPath: String,
@@ -72,8 +96,20 @@ fun createTaskFinishEventStub(taskPath: String,
   return taskFinishEvent
 }
 
+fun createProjectConfigurationStartEventStub(projectPath: String): ProjectConfigurationStartEvent {
+  val projectConfigurationStartEvent = Mockito.mock(ProjectConfigurationStartEvent::class.java)
+
+  val project = Mockito.mock(ProjectIdentifier::class.java)
+  `when`(project.projectPath).thenReturn(projectPath)
+
+  val descriptor = Mockito.mock(ProjectConfigurationOperationDescriptor::class.java)
+  `when`(descriptor.project).thenReturn(project)
+
+  `when`(projectConfigurationStartEvent.descriptor).thenReturn(descriptor)
+  return projectConfigurationStartEvent
+}
+
 fun createProjectConfigurationFinishEventStub(projectPath: String,
-                                              pluginApplicationResult: List<Pair<PluginIdentifier, Duration>>,
                                               projectConfigurationStartTime: Long,
                                               projectConfigurationEndTime: Long): ProjectConfigurationFinishEvent {
   val projectConfigurationFinishEvent = Mockito.mock(ProjectConfigurationFinishEvent::class.java)
@@ -85,10 +121,6 @@ fun createProjectConfigurationFinishEventStub(projectPath: String,
   `when`(descriptor.project).thenReturn(project)
 
   val result = Mockito.mock(ProjectConfigurationSuccessResult::class.java)
-  `when`(result.pluginApplicationResults).thenReturn(
-    pluginApplicationResult.map {
-      org.gradle.tooling.events.configuration.internal.DefaultPluginApplicationResult(it.first, it.second)
-    }.toMutableList())
   `when`(result.startTime).thenReturn(projectConfigurationStartTime)
   `when`(result.endTime).thenReturn(projectConfigurationEndTime)
 

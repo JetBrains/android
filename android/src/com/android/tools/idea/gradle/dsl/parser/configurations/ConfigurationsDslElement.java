@@ -17,14 +17,31 @@ package com.android.tools.idea.gradle.dsl.parser.configurations;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
-public class ConfigurationsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String CONFIGURATIONS_BLOCK_NAME = "configurations";
+public class ConfigurationsDslElement extends GradleDslBlockElement implements GradleDslNamedDomainContainer {
+  public static final PropertiesElementDescription<ConfigurationsDslElement> CONFIGURATIONS =
+    new PropertiesElementDescription<>("configurations", ConfigurationsDslElement.class, ConfigurationsDslElement::new);
 
-  public ConfigurationsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CONFIGURATIONS_BLOCK_NAME));
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return ConfigurationDslElement.CONFIGURATION;
+  }
+
+  @Override
+  public boolean implicitlyExists(@NotNull String name) {
+    // TODO(xof): this is potentially quite complicated, and dependent on the state of the Dsl.  Since our main use at the moment is
+    //  to create configurations to work around a *lack* of implicit creation, return false here, but we should probably account for
+    //  the basic artifacts ("", "test", "androidTest") plus the built-in build types ("release", "debug") plus the built-in configuration
+    //  kinds ("api", "compile", "implementation", etc.)  There is code in the Project System that compiles valid configurations, though
+    //  from a complete Dsl model, rather than the partial one we have here...
+    return false;
+  }
+
+  public ConfigurationsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

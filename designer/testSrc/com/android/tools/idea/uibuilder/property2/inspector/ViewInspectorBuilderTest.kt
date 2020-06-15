@@ -150,7 +150,6 @@ import com.android.tools.idea.util.AndroidTestPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -167,9 +166,6 @@ class ViewInspectorBuilderTest {
   fun setUp() {
     projectRule.fixture.testDataPath = AndroidTestPaths.adtSources().resolve("designer/testData/property/").toString()
     addManifest(projectRule.fixture)
-
-    // Hack to make the namespace of the library attributes AUTO_URI. Fix this in a later CL.
-    AndroidFacet.getInstance(projectRule.module)?.properties?.ALLOW_USER_CONFIGURATION = false
   }
 
   @Test

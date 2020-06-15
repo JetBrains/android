@@ -122,7 +122,9 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
     @Override
     public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
-      myProjectToListenerMap.remove(myProject);
+      if (id.equals(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE)) {
+        myProjectToListenerMap.remove(myProject);
+      }
     }
 
     /**
@@ -141,6 +143,9 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
         ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE);
         if (window == null) {
+          return;
+        }
+        if (!WhatsNewBundleCreator.BUNDLE_ID.equals(window.getHelpId())) {
           return;
         }
         if (isOpen && !window.isVisible()) {

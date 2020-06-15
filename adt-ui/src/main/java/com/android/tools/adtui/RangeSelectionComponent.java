@@ -15,9 +15,11 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.ui.AdtUiCursors;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -29,7 +31,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Consumer;
 import javax.swing.SwingUtilities;
@@ -39,21 +40,18 @@ import org.jetbrains.annotations.NotNull;
  * A component for performing/rendering selection.
  */
 public final class RangeSelectionComponent extends AnimatedComponent {
-
-  // TODO: support using different colors for selection, border and handle
-  private static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x330478DA, true), new Color(0x4C2395F5, true));
-
-  private static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
-
   private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x260478DA, true), new Color(0x3374B7FF, true));
 
-  private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0xD6D6D6);
+  private static final int DEFAULT_DRAG_BAR_HEIGHT = 26;
 
-  private static final int HANDLE_HEIGHT = 40;
+  private static final float HANDLE_WIDTH = 3.0f;
 
-  private static final int DRAG_BAR_HEIGHT = 26;
+  // Make the handle hitbox slightly larger than it actual is to make it easier to click on.
+  @VisibleForTesting
+  static final float HANDLE_HITBOX_WIDTH = 10.0f;
 
-  static final int HANDLE_WIDTH = 5;
+  // Minimum distance to keep handles separate from each other. This keeps handles from overlapping when selection range is too small.
+  private static final float MIN_HANDLE_DISTANCE = 2.0f;
 
   private static final double SELECTION_MOVE_PERCENT = 0.01;
 
@@ -68,13 +66,21 @@ public final class RangeSelectionComponent extends AnimatedComponent {
   private int myMouseMovedX;
 
   public enum Mode {
-    /** The default mode: nothing is happening */
+    /**
+     * The default mode: nothing is happening
+     */
     NONE,
-    /** User is currently creating / sizing a new selection. */
+    /**
+     * User is currently creating / sizing a new selection.
+     */
     CREATE,
-    /** User is over the drag bar, or moving a selection. */
+    /**
+     * User is over the drag bar, or moving a selection.
+     */
     MOVE,
-    /** User is adjusting the min. */
+    /**
+     * User is adjusting the min.
+     */
     ADJUST_MIN,
     /** User is adjusting the max. */
     ADJUST_MAX
@@ -107,6 +113,8 @@ public final class RangeSelectionComponent extends AnimatedComponent {
    * Whether point selection should be replaced by a small range.
    */
   private boolean myIsPointSelectionReplaced;
+
+  private int myDragBarHeight = DEFAULT_DRAG_BAR_HEIGHT;
 
   public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange) {
     this(model, viewRange, false);
@@ -288,20 +296,37 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     // If we do not clamp the selection to the screen then during painting java attempts to fill a rectangle several
     // thousand pixels off screen in both directions. This results in lots of computation that isn't required as well as,
     // lots of artifacts in the selection itself.
-    return  Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
+    return Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
   }
 
+  /**
+   * l                r
+   * ++|+|<--Drag Bar-->|+|++
+   * ++|+|              |+|++
+   * ++|+|              |+|++
+   * s                  e
+   * <p>
+   * l: left handle
+   * r: right handle
+   * s: selection start
+   * e: selection end
+   * +: handle hit box
+   */
   private Mode getModeAtCurrentPosition(int x, int y) {
+    if (myModel.getSelectionRange().isEmpty()) {
+      return Mode.CREATE;
+    }
+
     Dimension size = getSize();
     double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
     double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
-    if (startXPos - HANDLE_WIDTH < x && x < startXPos) {
+    if (startXPos - HANDLE_HITBOX_WIDTH < x && x < startXPos + HANDLE_WIDTH) {
       return Mode.ADJUST_MIN;
     }
-    else if (endXPos < x && x < endXPos + HANDLE_WIDTH) {
+    else if (endXPos - HANDLE_WIDTH < x && x < endXPos + HANDLE_HITBOX_WIDTH) {
       return Mode.ADJUST_MAX;
     }
-    else if (startXPos <= x && x <= endXPos && y <= DRAG_BAR_HEIGHT) {
+    else if (startXPos + HANDLE_WIDTH <= x && x <= endXPos - HANDLE_WIDTH && y <= myDragBarHeight) {
       return Mode.MOVE;
     }
     return Mode.CREATE;
@@ -368,6 +393,13 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     return myMode != Mode.MOVE && myMode != Mode.ADJUST_MIN && myMode != Mode.ADJUST_MAX;
   }
 
+  /**
+   * @param dragBarHeight height of the bar for drag-to-move in pixels.
+   */
+  public void setDragBarHeight(int dragBarHeight) {
+    myDragBarHeight = dragBarHeight;
+  }
+
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     // Draws if the selection range is fully visible or partially visible; and hide if it is empty or not visible.
@@ -377,42 +409,36 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     }
     float startXPos = rangeToX(selectionRange.getMin(), dim);
     float endXPos = rangeToX(selectionRange.getMax(), dim);
+    float handleDistance = endXPos - startXPos - HANDLE_WIDTH * 2;
+    if (handleDistance < MIN_HANDLE_DISTANCE) {
+      // When handles are too close to each other, keep a minimum distance and adjust handle position from the mid-point.
+      // |h|<-min->|h|
+      // s           e
+      //
+      // s: start
+      // e: end
+      // h: handle length
+      // min: min distance between handles
+      handleDistance = MIN_HANDLE_DISTANCE;
+      startXPos = (startXPos + endXPos) / 2 - HANDLE_WIDTH - MIN_HANDLE_DISTANCE / 2;
+      endXPos = startXPos + HANDLE_WIDTH * 2 + MIN_HANDLE_DISTANCE;
+    }
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g.setColor(DEFAULT_SELECTION_COLOR);
-    Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
+
+    // Draw selection area.
+    g.setColor(StudioColorsKt.getContentSelectionBackground());
+    Rectangle2D.Float rect = new Rectangle2D.Float(startXPos + HANDLE_WIDTH, 0, handleDistance, dim.height);
     g.fill(rect);
 
     if (myMouseMovedX > startXPos && myMouseMovedX < endXPos && myIsMouseOverComponent) {
       g.setColor(DRAG_BAR_COLOR);
-      g.fill(new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, DRAG_BAR_HEIGHT));
+      g.fill(new Rectangle2D.Float(startXPos + HANDLE_WIDTH, 0, handleDistance, myDragBarHeight));
     }
 
-    // Draw vertical lines, one for each endsValue.
-    g.setColor(DEFAULT_SELECTION_BORDER);
-    Path2D.Float path = new Path2D.Float();
-    path.moveTo(startXPos, 0);
-    path.lineTo(startXPos, dim.height);
-    path.moveTo(endXPos - 1, dim.height);
-    path.lineTo(endXPos - 1, 0);
-    g.draw(path);
-
-    drawHandle(g, startXPos, dim.height, 1.0f);
-    drawHandle(g, endXPos, dim.height, -1.0f);
-  }
-
-  private static void drawHandle(Graphics2D g, float x, float height, float direction) {
-    float up = (height - HANDLE_HEIGHT) * 0.5f;
-    float down = (height + HANDLE_HEIGHT) * 0.5f;
-    float width = HANDLE_WIDTH * direction;
-
-    g.setColor(DEFAULT_HANDLE);
-    Path2D.Float path = new Path2D.Float();
-    path.moveTo(x, up);
-    path.lineTo(x, down);
-    path.quadTo(x - width, down, x - width, down - HANDLE_WIDTH);
-    path.lineTo(x - width, up + HANDLE_WIDTH);
-    path.quadTo(x - width, up, x, up);
-    g.fill(path);
+    // Draw handles.
+    g.setColor(StudioColorsKt.getSelectionBackground());
+    g.fill(new Rectangle2D.Float(startXPos, 0, HANDLE_WIDTH, dim.height));
+    g.fill(new Rectangle2D.Float(endXPos - HANDLE_WIDTH, 0, HANDLE_WIDTH, dim.height));
   }
 }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
-import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
+import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -42,10 +43,9 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -62,8 +62,8 @@ import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +107,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-    ResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+    ResourceItem item = getSingleItem(resources, ResourceType.ID, "btn_title_refresh");
 
     long generation = resources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -125,7 +125,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       assertTrue(generation < resources.getModificationCount());
       // Should still be defined:
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+      ResourceItem newItem = getSingleItem(resources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item
       assertNotSame(item, newItem);
@@ -250,7 +250,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     File rootDir = androidProject.getRootDir();
     AndroidModuleModel androidModel =
       AndroidModuleModel.create(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
-    myFacet.setModel(androidModel);
+    AndroidModel.set(myFacet, androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
@@ -258,18 +258,17 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     variant.getMainArtifact().getDependencies().addLibrary(library);
 
     // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
-    Collection<File> resourceDirs =
-      IdeaSourceProvider.getAllSourceProviders(myFacet)
+    Collection<String> resourceDirUrls =
+      SourceProviderManager.getInstance(myFacet).getAllSourceProviders()
         .stream()
-        .flatMap(provider -> provider.getResDirectories().stream())
+        .flatMap(provider -> provider.getResDirectoryUrls().stream())
         .collect(Collectors.toList());
-    refreshForVfs(resourceDirs);
+    refreshForVfs(resourceDirUrls);
   }
 
-  private static void refreshForVfs(Collection<File> freshFiles) {
-    for (File file : freshFiles) {
-      String path = FileUtil.toSystemIndependentName(file.getPath());
-      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+  private static void refreshForVfs(Collection<String> freshFileUrls) {
+    for (String fileUrl : freshFileUrls) {
+      VirtualFile virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(fileUrl);
       VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile);
     }
   }

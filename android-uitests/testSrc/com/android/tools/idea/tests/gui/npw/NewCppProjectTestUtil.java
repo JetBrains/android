@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -93,7 +94,7 @@ public class NewCppProjectTestUtil {
     runAppOnEmulator(ideFrame);
   }
 
-  protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) throws IOException {
+  protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
     guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -101,7 +102,7 @@ public class NewCppProjectTestUtil {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage("Java")
+      .setSourceLanguage(JAVA)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()
@@ -109,7 +110,7 @@ public class NewCppProjectTestUtil {
       .selectToolchain(toolChain)
       .wizard()
       // the QA tests don't care that much about timeouts occurring. Be generous with the timeouts
-      .clickFinish(Wait.seconds(30), Wait.seconds(30), Wait.seconds(180));
+      .clickFinish(Wait.seconds(60), Wait.seconds(240));
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     guiTest.waitForBackgroundTasks();

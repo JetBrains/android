@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -33,6 +34,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import java.io.File
+import java.nio.file.Paths
 
 abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) : AndroidTestCase() {
   // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
@@ -110,5 +112,11 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
         }
         else AndroidTestBase.getAndroidPluginHome()
       }
+
+    @JvmStatic
+    fun findVirtualProjectFile(project: Project, relativePath: String): VirtualFile? {
+      val path = Paths.get(project.basePath!!, relativePath).normalize()
+      return VfsUtil.findFileByIoFile(File(path.toString()), true)
+    }
   }
 }

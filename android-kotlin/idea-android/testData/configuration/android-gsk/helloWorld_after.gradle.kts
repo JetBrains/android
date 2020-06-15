@@ -14,7 +14,6 @@ buildscript {
 apply {
     plugin("com.android.application")
     plugin("kotlin-android")
-    plugin("kotlin-android-extensions")
 }
 
 android {

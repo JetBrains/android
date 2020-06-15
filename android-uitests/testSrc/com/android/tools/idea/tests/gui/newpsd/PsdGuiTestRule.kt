@@ -30,6 +30,6 @@ class PsdGuiTestRule : GuiTestRule() {
         url 'file:$testRepositoryPath/'
       }
     """
-    AndroidGradleTests.updateGradleVersionsAndRepositories(projectPath, repositories, null)
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, repositories, null, null)
   }
 }

@@ -28,9 +28,11 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -39,13 +41,19 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.intellij.openapi.project.Project;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.*;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EventObject;
 import java.util.List;
 import java.util.function.Predicate;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -146,6 +154,14 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof DropTargetDragEvent;
+    DropTargetDragEvent dropEvent = (DropTargetDragEvent) event;
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    begin(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+  }
+
+  @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     super.begin(x, y, modifiersEx);
     moveTo(x, y, modifiersEx, false);
@@ -153,8 +169,40 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof DropTargetDragEvent) {
+      DropTargetDragEvent dragEvent = (DropTargetDragEvent) event;
+      Point location = dragEvent.getLocation();
+      NlDropEvent nlDropEvent = new NlDropEvent(dragEvent);
+
+      SceneView sceneView = myDesignSurface.getSceneView(location.x, location.y);
+      if (sceneView == null) {
+        nlDropEvent.reject();
+        return;
+      }
+
+      //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+      update(location.x, location.y, interactionInformation.getModifiersEx());
+
+      if (acceptsDrop()) {
+        DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+        setType(dragType);
+        NlModel model = sceneView.getModel();
+        InsertType insertType = model.determineInsertType(dragType, getTransferItem(), true /* preview */);
+
+        // This determines the icon presented to the user while dragging.
+        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+        // that reflects the users choice i.e. controlled by the modifier key.
+        nlDropEvent.accept(insertType);
+      }
+      else {
+        nlDropEvent.reject();
+      }
+    }
+  }
+
+  @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    super.update(x, y, modifiersEx);
     moveTo(x, y, modifiersEx, false);
   }
 
@@ -165,12 +213,31 @@ public class DragDropInteraction extends Interaction {
   public boolean acceptsDrop() { return myDoesAcceptDropAtLastPosition; }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
-    super.end(x, y, modifiersEx, canceled);
-    moveTo(x, y, modifiersEx, !canceled);
-    canceled |= myDragHandler == null;
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof DropTargetDropEvent;
+    DropTargetDropEvent dropEvent = (DropTargetDropEvent) event;
+    NlDropEvent nlDropEvent = new NlDropEvent(dropEvent);
+    Point location = dropEvent.getLocation();
+
+    InsertType insertType = finishDropInteraction(location.x, location.y, dropEvent.getDropAction(), dropEvent.getTransferable());
+    if (insertType != null) {
+      //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+      end(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+      nlDropEvent.accept(insertType);
+      nlDropEvent.complete();
+    }
+    else {
+      cancel(event, interactionInformation);
+      nlDropEvent.reject();
+    }
+  }
+
+  @Override
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    moveTo(x, y, modifiersEx, true);
+    boolean hasDragHandler = myDragHandler != null;
     mySceneView = myDesignSurface.getSceneView(x, y);
-    if (mySceneView != null && myDragReceiver != null && !canceled) {
+    if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
       mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
 
       // We need to clear the selection otherwise the targets for the newly component are not added until
@@ -179,13 +246,36 @@ public class DragDropInteraction extends Interaction {
       // Update the scene hierarchy to add the new targets
       mySceneView.getSceneManager().update();
       myDragReceiver.updateTargets();
-      // Select the dragged components
-      mySceneView.getSelectionModel().setSelection(myDraggedComponents);
+      // Do not select the dragged components here
+      // These components are either already selected, or they are being created will be selected later
     }
-    if (canceled && myDragHandler != null) {
+    myDesignSurface.stopDragDropInteraction();
+  }
+
+  @Override
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    if (event instanceof DropTargetDropEvent) {
+      NlDropEvent nlDropEvent = new NlDropEvent((DropTargetDropEvent)event);
+      nlDropEvent.reject();
+    }
+  }
+
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    moveTo(x, y, modifiersEx, false);
+    mySceneView = myDesignSurface.getSceneView(x, y);
+    if (myDragHandler != null) {
       myDragHandler.cancel();
     }
     myDesignSurface.stopDragDropInteraction();
+  }
+
+  @Nullable
+  @Override
+  public Cursor getCursor() {
+    return Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
@@ -285,8 +375,13 @@ public class DragDropInteraction extends Interaction {
         // TODO: Run this *after* making a copy
         myDragHandler.commit(ax, ay, modifiers, insertType);
         model.notifyModified(NlModel.ChangeType.DND_COMMIT);
-        // Select newly dropped components
-        myDesignSurface.getSelectionModel().setSelection(added);
+
+        // Do not select the created component at this point see b/124231532.
+        // The commit above is executed asynchronously and may not have completed yet.
+        // The selection should not be moved before the components are properly created and placed under its new parent.
+        // Other tools like the attributes panel may rely on the component being fully completed.
+
+        // Move the focus to the design area in case this component is created from the palette see b/69394814
         myDesignSurface.getLayeredPane().requestFocus();
       }
       mySceneView.getSurface().repaint();
@@ -377,6 +472,7 @@ public class DragDropInteraction extends Interaction {
     return myDraggedComponents.stream().allMatch(acceptsChild.and(acceptsParent));
   }
 
+  @NotNull
   @Override
   public List<Layer> createOverlays() {
     return Collections.singletonList(new DragLayer());
@@ -387,26 +483,84 @@ public class DragDropInteraction extends Interaction {
     return myDraggedComponents;
   }
 
+  // TODO: make it private after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed, and avoid to return InsertType.
+  @Nullable
+  public InsertType finishDropInteraction(int mouseX, int mouseY, int dropAction, @Nullable Transferable transferable) {
+    if (transferable == null) {
+      return null;
+    }
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false /* no placeholders */);
+    if (item == null) {
+      return null;
+    }
+    SceneView sceneView = myDesignSurface.getSceneView(mouseX, mouseY);
+    if (sceneView == null) {
+      return null;
+    }
+
+    NlModel model = sceneView.getModel();
+    DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+    InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */);
+
+    setType(dragType);
+    setTransferItem(item);
+
+    List<NlComponent> dragged = getDraggedComponents();
+    List<NlComponent> components;
+    if (insertType.isMove()) {
+      components = myDesignSurface.getSelectionModel().getSelection();
+    }
+    else {
+      components = model.createComponents(item, insertType, myDesignSurface);
+
+      if (components.isEmpty()) {
+        return null;  // User cancelled
+      }
+    }
+    if (dragged.size() != components.size()) {
+      throw new AssertionError(
+        String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
+    }
+    for (int index = 0; index < dragged.size(); index++) {
+      if (!NlComponentHelperKt.getHasNlComponentInfo(components.get(index)) ||
+          !NlComponentHelperKt.getHasNlComponentInfo(dragged.get(index))) {
+        continue;
+      }
+      NlComponentHelperKt.setX(components.get(index), NlComponentHelperKt.getX(dragged.get(index)));
+      NlComponentHelperKt.setY(components.get(index), NlComponentHelperKt.getY(dragged.get(index)));
+    }
+
+    logFinishDropInteraction(components);
+
+    dragged.clear();
+    dragged.addAll(components);
+    return insertType;
+  }
+
+  private void logFinishDropInteraction(@NotNull List<NlComponent> components) {
+    DesignSurface surface = myDesignSurface;
+    if (!(surface instanceof NlDesignSurface)) {
+      return;
+    }
+
+    NlAnalyticsManager manager = (NlAnalyticsManager)surface.getAnalyticsManager();
+    components.forEach( component -> {
+      if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
+        if (ConstraintLayoutGuidelineHandler.isVertical(component)) {
+          manager.trackAddVerticalGuideline();
+        }
+        else {
+          manager.trackAddHorizontalGuideline();
+        }
+      }
+    });
+  }
+
   /**
    * An {@link Layer} for the {@link DragDropInteraction}; paints feedback from
    * the current drag handler, if any
    */
   private class DragLayer extends Layer {
-
-    /**
-     * Constructs a new {@link DragLayer}.
-     */
-    public DragLayer() {
-    }
-
-    @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
     @Override
     public void paint(@NotNull Graphics2D gc) {
       if (myDragHandler != null) {

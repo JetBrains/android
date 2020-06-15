@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
 import static com.google.common.truth.Truth.assertAbout;
@@ -111,6 +112,7 @@ public class NewModuleTest {
     String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
     assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
     assertThat(gradleFileContents).contains("consumerProguardFiles");
+    assertAbout(file()).that(guiTest.getProjectPath("somelibrary/.gitignore")).isFile();
   }
 
   @Test
@@ -132,7 +134,7 @@ public class NewModuleTest {
     assertThat(guiTest.getProjectFileText("app/build.gradle"))
       .contains("androidx.appcompat:appcompat");
 
-    assertThat(guiTest.getProjectFileText("othermodule/build.gradle"))
+    assertThat(guiTest.getProjectFileText("otherModule/build.gradle"))
       .contains("androidx.appcompat:appcompat");
   }
 
@@ -142,7 +144,7 @@ public class NewModuleTest {
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
-      .setSourceLanguage("Kotlin")
+      .setSourceLanguage(KOTLIN)
       .enterModuleName("otherModule")
       .wizard()
       .clickNext()
@@ -151,10 +153,10 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 
-    String otherModuleBuildGradleText = guiTest.getProjectFileText("othermodule/build.gradle");
+    String otherModuleBuildGradleText = guiTest.getProjectFileText("otherModule/build.gradle");
     assertThat(otherModuleBuildGradleText).contains("implementation 'androidx.navigation:navigation-fragment-ktx:");
 
-    String navGraphText = guiTest.getProjectFileText("othermodule/src/main/res/navigation/nav_graph.xml");
+    String navGraphText = guiTest.getProjectFileText("otherModule/src/main/res/navigation/nav_graph.xml");
     assertThat(navGraphText).contains("navigation xmlns:android=");
     assertThat(navGraphText).contains("app:startDestination=\"@id/FirstFragment\"");
   }

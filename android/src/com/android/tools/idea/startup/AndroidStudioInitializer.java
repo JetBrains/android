@@ -33,7 +33,6 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
-import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
@@ -46,7 +45,6 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -90,9 +88,13 @@ public class AndroidStudioInitializer implements Runnable {
     setupAnalytics();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
-    renameSynchronizeAction();
     setupResourceManagerActions();
+    if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
+      tweakDefaultColorScheme();
+    }
+  }
 
+  private static void tweakDefaultColorScheme() {
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
     EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
@@ -102,7 +104,7 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   private static void setupResourceManagerActions() {
-    replaceAction("Images.ShowThumbnails", new ShowFileInResourceManagerAction());
+    hideAction("Images.ShowThumbnails");
     // Move the ShowServicesAction to the end of the queue by re-registering it, since it will always consume the shortcut event.
     // TODO(144579193): Remove this workaround when it's no longer necessary.
     //  Eg: When ShowServicesAction can decide whether it's enabled or not.
@@ -245,7 +247,11 @@ public class AndroidStudioInitializer implements Runnable {
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
+
+    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
+
+    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
       if (runConfigurationProducer instanceof JUnitConfigurationProducer
           && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
@@ -270,12 +276,6 @@ public class AndroidStudioInitializer implements Runnable {
   private static void hideRarelyUsedIntellijActions() {
     // Hide the Save File as Template action due to its rare use in Studio.
     hideAction("SaveFileAsTemplate");
-  }
-
-  private static void renameSynchronizeAction() {
-    // Rename the Synchronize action to Sync with File System to look better next to Sync Project with Gradle Files.
-    AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SYNCHRONIZE);
-    action.getTemplatePresentation().setText("S_ync with File System", true);
   }
 
   @NotNull

@@ -38,6 +38,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -55,6 +56,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -63,7 +65,9 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
@@ -74,7 +78,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -386,7 +393,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
+    projectSytem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -417,7 +424,7 @@ public class NlModelTest extends LayoutTestCase {
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
@@ -428,7 +435,8 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
+                                       projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -477,7 +485,8 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
+                                       projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -728,12 +737,12 @@ public class NlModelTest extends LayoutTestCase {
     model.addListener(listener1);
     model.addListener(remove1);
     model.addListener(listener2);
-    model.notifyListenersModelLayoutComplete(false);
+    model.notifyListenersModelChangedOnLayout(false);
     verify(listener1).modelChangedOnLayout(any(), anyBoolean());
     verify(remove1).modelChangedOnLayout(any(), anyBoolean());
     verify(listener2).modelChangedOnLayout(any(), anyBoolean());
 
-    model.notifyListenersModelLayoutComplete(false);
+    model.notifyListenersModelChangedOnLayout(false);
     verify(listener1, times(2)).modelChangedOnLayout(any(), anyBoolean());
     verifyNoMoreInteractions(remove1);
     verify(listener2, times(2)).modelChangedOnLayout(any(), anyBoolean());
@@ -773,7 +782,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "</LinearLayout>");
     NlModel model = createModel(modelXml);
 
-    notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
+    notifyAndCheckListeners(model, NlModel::notifyListenersModelDerivedDataChanged, listener -> listener.modelDerivedDataChanged(any()));
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
   }
 
@@ -898,5 +907,43 @@ public class NlModelTest extends LayoutTestCase {
           .height("100dp")
           .withAttribute("android:layout_weight", "1.0")
       ));
+  }
+
+  /**
+   * Regression test for b/150170004, checking that the {@link NlModel} is not activate if the {@link AndroidFacet} was disposed.
+   */
+  public void testActivateOnDisposedFacet() {
+    AndroidFacet secondFacet = new FakeAndroidFacet(myModule);
+    ComponentDescriptor root = component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight();
+    NlModel model = NlModelBuilderUtil.model(secondFacet, myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root)
+      .build();
+    AtomicInteger modelActivations = new AtomicInteger(0);
+    model.addListener(new ModelListener() {
+      @Override
+      public void modelActivated(@NotNull NlModel model) {
+        modelActivations.incrementAndGet();
+      }
+    });
+    Disposer.dispose(secondFacet);
+    model.activate(new Object());
+    // Check that the model was not activated
+    assertEquals(0, modelActivations.get());
+  }
+
+  /**
+   * {@link AndroidFacet} used for testing without depending on the fixture facet.
+   */
+  private static class FakeAndroidFacet extends AndroidFacet {
+    private FakeAndroidFacet(Module module) {
+      super(module, AndroidFacet.NAME, new AndroidFacetConfiguration());
+    }
+
+    @Override
+    public void initFacet() {
+      // We don't need this, but it causes trouble when it tries looking for project templates.
+    }
   }
 }

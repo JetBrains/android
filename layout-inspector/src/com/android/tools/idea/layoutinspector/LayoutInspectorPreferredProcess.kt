@@ -40,13 +40,15 @@ data class LayoutInspectorPreferredProcess (
   val manufacturer: String,
   val model: String,
   val serialNumber: String,
-  val packageName: String?
+  val packageName: String?,
+  val api: Int
 ) {
   constructor(device: IDevice, module: Module) : this(
     TransportServiceProxy.getDeviceManufacturer(device),
     TransportServiceProxy.getDeviceModel(device),
     device.serialNumber,
-    AndroidModuleInfo.getInstance(module)?.`package`)
+    AndroidModuleInfo.getInstance(module)?.`package`,
+    device.version.featureLevel)
 
   /**
    * Returns true if a device from the transport layer matches the device profile stored.

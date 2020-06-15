@@ -100,7 +100,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "</resources>%n"
     ));
     assertThat(Manifest.getMainManifest(myFacet).getXmlTag().getText()).isEqualTo(
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+      "<manifest package=\"p1.p2\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "    <uses-sdk android:minSdkVersion=\"25\"\n" +
       "              android:targetSdkVersion=\"25\" />\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +
@@ -194,7 +194,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "</resources>%n"
     ));
     assertThat(Manifest.getMainManifest(myFacet).getXmlTag().getText()).isEqualTo(
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+      "<manifest package=\"p1.p2\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "    <uses-sdk android:minSdkVersion=\"28\"\n" +
       "              android:targetSdkVersion=\"28\" />\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +
@@ -264,7 +264,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   private void setMinSdk(@NotNull String level) {
     String xml = String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+      "<manifest package=\"p1.p2\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "    <uses-sdk android:minSdkVersion=\"%1$s\"\n" +
       "              android:targetSdkVersion=\"%1$s\" />\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +

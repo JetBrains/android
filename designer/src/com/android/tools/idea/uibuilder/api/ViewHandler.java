@@ -193,4 +193,9 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
     return ImmutableList.of();
   }
+
+  @NotNull
+  public String generateBaseId(@NotNull NlComponent component) {
+    return component.getTagName();
+  }
 }

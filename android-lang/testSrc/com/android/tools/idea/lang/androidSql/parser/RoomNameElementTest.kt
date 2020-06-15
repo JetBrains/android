@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.parser
 
-import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
+import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlDefinedTableName
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
@@ -31,7 +31,7 @@ class RoomNameElementTest : LightJavaCodeInsightFixtureTestCase() {
    */
   private fun <T : PsiElement> parseAndFind(input: String, kclass: KClass<T>): T {
     return PsiTreeUtil.findChildOfType(
-      PsiFileFactory.getInstance(project).createFileFromText("dummy.rsql", ANDROID_SQL_FILE_TYPE, input),
+      PsiFileFactory.getInstance(project).createFileFromText("dummy.rsql", AndroidSqlFileType.INSTANCE, input),
       kclass.java
     )!!
   }
@@ -41,7 +41,7 @@ class RoomNameElementTest : LightJavaCodeInsightFixtureTestCase() {
     assertThat(parseAndFind("select * from [$123 table ą]", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("$123 table ą")
     assertThat(parseAndFind("""select * from "my table"""", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("my table")
     assertThat(parseAndFind("select * from 'Foo''s kingdom''s table'", AndroidSqlDefinedTableName::class).nameAsString)
-        .isEqualTo("Foo's kingdom's table")
+      .isEqualTo("Foo's kingdom's table")
     assertThat(parseAndFind("select * from \"some\"\"table\"", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some\"table")
     assertThat(parseAndFind("select * from `some table`", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some table")
     assertThat(parseAndFind("select * from `some``table`", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some`table")

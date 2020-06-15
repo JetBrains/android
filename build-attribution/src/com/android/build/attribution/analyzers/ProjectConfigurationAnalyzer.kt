@@ -16,61 +16,112 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.ProjectConfigurationData
+import com.android.build.attribution.data.TaskContainer
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
+import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
-import java.time.Duration
 
 /**
- * Analyzer for reporting plugins slowing down project configuration.
+ * Analyzer for attributing project configuration time.
  */
-class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
-  val pluginsSlowingConfiguration = ArrayList<ProjectConfigurationData>()
+class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
+                                   taskContainer: TaskContainer,
+                                   pluginContainer: PluginContainer) : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+  private val applyPluginEventPrefix = "Apply plugin"
+
+  /**
+   * Contains for each plugin, the sum of configuration times for this plugin over all projects
+   */
+  val pluginsConfigurationDataMap = HashMap<PluginData, Long>()
+
+  /**
+   * Contains a list of project configuration data for each configured project
+   */
   val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
 
-  override fun receiveEvent(event: ProgressEvent) {
-    if (event is ProjectConfigurationFinishEvent) {
-      val result = event.result
-      if (result is ProjectConfigurationSuccessResult) {
-        val pluginsConfigurationData = result.pluginApplicationResults.map {
-          PluginConfigurationData(PluginData(it.plugin), it.totalConfigurationTime)
-        }
+  /**
+   * Builder for configuration data of the currently being configured project
+   * If no projects are being configured currently, then it will be null
+   */
+  private var projectConfigurationBuilder: ProjectConfigurationData.Builder? = null
 
-        addProjectConfigurationData(pluginsConfigurationData, event.descriptor.project.projectPath, result.endTime - result.startTime)
-      }
-    }
+  private fun updatePluginConfigurationTime(plugin: PluginData, configurationTimeMs: Long) {
+    val currentConfigurationTime = pluginsConfigurationDataMap.getOrDefault(plugin, 0L)
+    pluginsConfigurationDataMap[plugin] = currentConfigurationTime + configurationTimeMs
+
+    projectConfigurationBuilder!!.addPluginConfigurationData(plugin, configurationTimeMs)
   }
 
-  private fun addProjectConfigurationData(pluginsConfigurationData: List<PluginConfigurationData>,
-                                          project: String,
-                                          totalConfigurationTime: Long) {
-    projectsConfigurationData.add(ProjectConfigurationData(pluginsConfigurationData, project, totalConfigurationTime))
-    analyzePluginsSlowingConfiguration(pluginsConfigurationData, project, totalConfigurationTime)
+  override fun receiveEvent(event: ProgressEvent) {
+    if (event is ProjectConfigurationStartEvent) {
+      projectConfigurationBuilder = ProjectConfigurationData.Builder(event.descriptor.project.projectPath)
+    }
+    else if (projectConfigurationBuilder != null) {
+      // project configuration finished
+      if (event is ProjectConfigurationFinishEvent && event.result is ProjectConfigurationSuccessResult) {
+        projectsConfigurationData.add(projectConfigurationBuilder!!.build(event.result.endTime - event.result.startTime))
+        projectConfigurationBuilder = null
+      }
+      else if (event is FinishEvent && event.result is SuccessResult) {
+        // plugin configuration finish event is received
+        if (event.descriptor.name.startsWith(applyPluginEventPrefix)) {
+
+          // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
+          if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
+            val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
+            val plugin = getPlugin(PluginData.PluginType.PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
+            val pluginConfigurationTime = event.result.endTime - event.result.startTime
+
+            updatePluginConfigurationTime(plugin, pluginConfigurationTime)
+
+            // check if the plugin was applied in a build script block or on beforeEvaluate / afterEvaluate, if so then we need to subtract
+            // the plugin configuration time from this configuration step to not account for it twice
+            val configurationStepDescriptor = getFirstConfigurationStepInParentEvents(event.descriptor)
+            if (configurationStepDescriptor != null) {
+              projectConfigurationBuilder!!.subtractConfigurationStepTime(configurationStepDescriptor, pluginConfigurationTime)
+            }
+          }
+        }
+        // a configuration step event received that doesn't have a parent that is a configuration step
+        else if (ProjectConfigurationData.ConfigurationStep.Type.values().any { it.isDescriptorOfType(event.descriptor) } &&
+                 getFirstConfigurationStepInParentEvents(event.descriptor.parent) == null) {
+          projectConfigurationBuilder!!.addConfigurationStepTime(event.descriptor, event.result.endTime - event.result.startTime)
+        }
+      }
+    }
   }
 
   /**
-   * Having android gradle plugin as a baseline, we report plugins that has a longer configuration time than agp as plugins slowing
-   * configuration.
+   * Iterates recursively from the top parent and down to the given descriptor, until a configuration step event is found.
    */
-  private fun analyzePluginsSlowingConfiguration(pluginsConfigurationData: List<PluginConfigurationData>,
-                                                 project: String,
-                                                 totalConfigurationTime: Long) {
-    val androidGradlePlugin = pluginsConfigurationData.find { isAndroidGradlePlugin(it.plugin) } ?: return
-
-    pluginsConfigurationData.filter {
-      it.configurationDuration > androidGradlePlugin.configurationDuration &&
-      warningsFilter.applyPluginSlowingConfigurationFilter(it.plugin.displayName)
-    }.let {
-      if (it.isNotEmpty()) {
-        pluginsSlowingConfiguration.add(ProjectConfigurationData(it, project, totalConfigurationTime))
-      }
+  private fun getFirstConfigurationStepInParentEvents(descriptor: OperationDescriptor?): OperationDescriptor? {
+    if (descriptor == null) {
+      return null
     }
+    val configurationStepDescriptor = getFirstConfigurationStepInParentEvents(descriptor.parent)
+    // if a configuration step is already found then return it
+    if (configurationStepDescriptor != null) {
+      return configurationStepDescriptor
+    }
+    // if this is a configuration step, then return it
+    if (ProjectConfigurationData.ConfigurationStep.Type.values().any { it.isDescriptorOfType(descriptor) }) {
+      return descriptor
+    }
+    return null
   }
 
   override fun onBuildStart() {
-    pluginsSlowingConfiguration.clear()
+    super.onBuildStart()
     projectsConfigurationData.clear()
+    pluginsConfigurationDataMap.clear()
+    projectConfigurationBuilder = null
   }
 
   override fun onBuildSuccess() {
@@ -78,13 +129,8 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
   }
 
   override fun onBuildFailure() {
-    pluginsSlowingConfiguration.clear()
     projectsConfigurationData.clear()
+    pluginsConfigurationDataMap.clear()
+    projectConfigurationBuilder = null
   }
-
-  data class PluginConfigurationData(val plugin: PluginData, val configurationDuration: Duration)
-
-  data class ProjectConfigurationData(val pluginsConfigurationData: List<PluginConfigurationData>,
-                                      val project: String,
-                                      val totalConfigurationTime: Long)
 }

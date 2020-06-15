@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.psi.PsiElement;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,12 +29,21 @@ import org.jetbrains.annotations.Nullable;
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement implements GradleDslExpression {
+  public static final PropertiesElementDescription<GradleDslExpressionMap> MANIFEST_PLACEHOLDERS = new PropertiesElementDescription<>(
+    FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
+  public static final PropertiesElementDescription<GradleDslExpressionMap> TEST_INSTRUMENTATION_RUNNER_ARGUMENTS =
+    new PropertiesElementDescription<>(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
+
   // This boolean controls whether of not the empty map element should be deleted on a call to delete in one of
   // its children. For non-literal maps (e.g func key: 'val', key1: 'val') #shouldBeDeleted() always returns true since we
   // never want to preserve these maps. However literal maps (e.g prop = [key: 'merge1', key1: 'merge2']) should only be deleted
   // if the #delete() method on the map element is called, not when there are no more elements left. This is due to
   // prop = [:] possibly having important semantic meaning.
   private boolean myShouldBeDeleted;
+
+  // (In KotlinScript) should this map be expressed as a function call with named arguments, or as an explicit call to mapOf()?  (The
+  // parser is ambiguous for historical reasons, so we disambiguate at construction sites.)
+  private boolean asNamedArgs;
 
   public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
@@ -82,6 +94,14 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
 
   public boolean isLiteralMap() {
     return myUseAssignment;
+  }
+
+  public boolean getAsNamedArgs() {
+    return asNamedArgs;
+  }
+
+  public void setAsNamedArgs(boolean value) {
+    asNamedArgs = value;
   }
 
   @Override

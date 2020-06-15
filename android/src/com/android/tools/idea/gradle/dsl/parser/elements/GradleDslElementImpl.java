@@ -18,16 +18,20 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ModificationAware;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import java.util.stream.Collectors;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +40,6 @@ import java.util.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.*;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 
 public abstract class GradleDslElementImpl implements GradleDslElement, ModificationAware {
   @NotNull protected GradleNameElement myName;
@@ -345,7 +348,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     if (currentElement instanceof GradleDslFile) {
       GradleDslFile file = (GradleDslFile)currentElement;
       while (file != null) {
-        ExtDslElement ext = file.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+        ExtDslElement ext = file.getPropertyElement(ExtDslElement.EXT);
         if (ext != null) {
           results.putAll(ext.getPropertyElements());
         }
@@ -359,9 +362,9 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
           results.putAll(filteredProperties);
         }
         // Add BuildScriptExt properties.
-        BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+        BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT);
         if (buildScriptElement != null) {
-          ExtDslElement buildScriptExt = buildScriptElement.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+          ExtDslElement buildScriptExt = buildScriptElement.getPropertyElement(ExtDslElement.EXT);
           if (buildScriptExt != null) {
             results.putAll(buildScriptExt.getPropertyElements());
           }
@@ -502,7 +505,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       return false;
     }
 
-    Collection<GradleDslElement> children = getChildren();
+    Collection<GradleDslElement> children = getContainedElements(true);
     if (children.isEmpty()) {
       return true;
     }
@@ -514,5 +517,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     }
 
     return true;
+  }
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    return ImmutableMap.of();
   }
 }

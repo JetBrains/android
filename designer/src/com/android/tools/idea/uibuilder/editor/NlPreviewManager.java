@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -56,13 +57,11 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.StudioIcons;
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Arrays;
-import javax.swing.JComponent;
-import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.*;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -93,15 +92,22 @@ public final class NlPreviewManager implements Disposable {
   public static class NlPreviewManagerPostStartupActivity implements StartupActivity {
     @Override
     public void runActivity(@NotNull Project project) {
-      getInstance(project).onToolWindowReady();
+      if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
+        // If the split editor is enabled, we shouldn't set up callbacks for project open events.
+        getInstance(project).onToolWindowReady();
+      }
     }
   }
 
   public NlPreviewManager(@NotNull Project project) {
     myProject = project;
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
-    final MessageBusConnection connection = project.getMessageBus().connect();
-    connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
+
+    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // If the split editor is enabled, we shouldn't be listening to file open/close events.
+      final MessageBusConnection connection = project.getMessageBus().connect();
+      connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
+    }
   }
 
   private void onToolWindowReady(){
@@ -127,6 +133,11 @@ public final class NlPreviewManager implements Disposable {
   }
 
   protected void initToolWindow() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // Only allow the Preview Tool Window initialization when the split editor flag is disabled.
+      return;
+    }
+
     myToolWindowForm = createPreviewForm();
     Disposer.register(this, myToolWindowForm);
 
@@ -218,8 +229,6 @@ public final class NlPreviewManager implements Disposable {
    */
   private HierarchyListener myHierarchyListener;
 
-  private boolean myRenderImmediately;
-
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
@@ -234,7 +243,6 @@ public final class NlPreviewManager implements Disposable {
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
-        myRenderImmediately = false;
 
         final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
 
@@ -393,26 +401,6 @@ public final class NlPreviewManager implements Disposable {
   @NotNull
   public static NlPreviewManager getInstance(@NotNull Project project) {
     return project.getService(NlPreviewManager.class);
-  }
-
-  /**
-   * Manually notify the manager that an editor is about to be shown; typically done right after
-   * switching to a file to show an update as soon as possible. This is used when we know
-   * the editor is about to be shown (because we've requested it). We don't have a way to
-   * add a listener which is called after the requested file has been opened, so instead we
-   * simply anticipate the change by calling this method first; the subsequent file open will
-   * then become a no-op since the file doesn't change.
-   */
-  public void notifyFileShown(@NotNull TextEditor editor, boolean renderImmediately) {
-    // Don't delete: should be invoked from ConfigurationAction#pickedBetterMatch when we can access designer code from there
-    // (or when ConfigurationAction moves here)
-    if (renderImmediately) {
-      myRenderImmediately = true;
-    }
-    processFileEditorChange(editor);
-    if (renderImmediately) {
-      myToolWindowUpdateQueue.sendFlush();
-    }
   }
 
   @NotNull

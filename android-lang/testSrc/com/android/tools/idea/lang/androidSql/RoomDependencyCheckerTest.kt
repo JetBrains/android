@@ -22,7 +22,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
 class RoomDependencyCheckerTest : LightJavaCodeInsightFixtureTestCase() {
   fun test_recalculateValue() {
-    val initialValue = RoomDependencyChecker.getInstance(project)?.isRoomPresent()
+    val initialValue = RoomDependencyChecker.getInstance(project).isRoomPresent()
     assertThat(initialValue).isFalse()
 
     // Emulate adding Room as dependency
@@ -35,7 +35,7 @@ class RoomDependencyCheckerTest : LightJavaCodeInsightFixtureTestCase() {
       """.trimIndent()
     )
 
-    val newValue = RoomDependencyChecker.getInstance(project)?.isRoomPresent()
+    val newValue = RoomDependencyChecker.getInstance(project).isRoomPresent()
     assertThat(newValue).isTrue()
   }
 }

@@ -16,24 +16,24 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.StageView;
 import com.google.common.annotations.VisibleForTesting;
+import java.awt.Color;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
-public class UserEventTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
+public class UserEventTooltipView extends TooltipView {
 
   private static final int HOVER_OVER_WIDTH_PX = 16;
 
@@ -46,29 +46,36 @@ public class UserEventTooltipView extends ProfilerMonitorTooltipView<EventMonito
   @VisibleForTesting
   protected JLabel myContentLabel;
 
-  protected JComponent myComponent;
+  private JComponent myComponent;
 
-  public UserEventTooltipView(StageView parent, @NotNull UserEventTooltip tooltip) {
-    super(tooltip.getMonitor());
+  @NotNull private final UserEventTooltip myTooltip;
 
-    myComponent = parent.getComponent();
+  public UserEventTooltipView(JComponent parent, @NotNull UserEventTooltip tooltip) {
+    super(tooltip.getTimeline());
+    myTooltip = tooltip;
+    myComponent = parent;
 
     // Callback on the data range so the active event time gets updated properly.
-    getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
   }
 
   @Override
   public void dispose() {
     super.dispose();
-    getMonitor().getProfilers().getTimeline().getDataRange().removeDependencies(this);
+    getTimeline().getDataRange().removeDependencies(this);
+  }
+
+  @Override
+  protected void updateTooltip() {
+    // Respond to tooltip range change.
+    timeChanged();
   }
 
   private void timeChanged() {
-    ProfilerTimeline timeline = getMonitor().getProfilers().getTimeline();
-    Range dataRange = timeline.getDataRange();
-    Range range = timeline.getTooltipRange();
+    Range dataRange = getTimeline().getDataRange();
+    Range range = getTimeline().getTooltipRange();
     if (!range.isEmpty()) {
-      showSimpleEventInfo(timeline, dataRange, range);
+      showSimpleEventInfo(getTimeline(), dataRange, range);
     }
   }
 
@@ -78,8 +85,8 @@ public class UserEventTooltipView extends ProfilerMonitorTooltipView<EventMonito
     myDurationLabel.setText("");
   }
 
-  private void showSimpleEventInfo(ProfilerTimeline timeline, Range dataRange, Range range) {
-    EventAction event = getEventAt(range.getMin());
+  private void showSimpleEventInfo(Timeline timeline, Range dataRange, Range range) {
+    EventAction event = getEventAt((long)range.getMin());
     if (event == null) {
       clearTooltipInfo();
       return;
@@ -111,9 +118,9 @@ public class UserEventTooltipView extends ProfilerMonitorTooltipView<EventMonito
   // for the time over the event icon. Otherwise we check the event time and return the first event that we encounter.
   @Nullable
   private EventAction getEventAt(double time) {
-    double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
+    double timePerPixel = getTimeline().getViewRange().getLength() / myComponent.getWidth();
     long hoverWidthAsTime = (long)timePerPixel * HOVER_OVER_WIDTH_PX;
-    List<SeriesData<EventAction<UserEvent>>> userEventSeries = getMonitor().getUserEvents().getRangedSeries().getSeries();
+    List<SeriesData<EventAction<UserEvent>>> userEventSeries = myTooltip.getUserEvents().getRangedSeries().getSeries();
     for (SeriesData<EventAction<UserEvent>> series : userEventSeries) {
       // If the series has a really small length it might be impossible to mouse over, so we add a range to make it
       // easier to mouse over.

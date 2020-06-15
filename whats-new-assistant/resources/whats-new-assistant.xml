@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="3620">
+    version="4016">
   <feature
-      name="What's New in 3.6">
+      name="What's New in 4.0">
     <tutorial
         key="whats-new"
-        label=" What's New in 3.6"
+        label=" What's New in 4.0"
         icon="stable/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes.html"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes.html#4.0"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -38,202 +38,337 @@
           from the main menu.
           ]]>
       </description>
-      <step label="Design tools">
+      <step label="Build Speed window">
         <stepElement>
           <section>
             <![CDATA[
+             <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/build-speed-chart-wna.png"
+                 width="428"
+                 alt="Build speed chart" /></center>
+
+            <br><p>When using Android Studio 4.0 with Android Gradle plugin 4.0.0 and
+            higher, the <b>Build Speed</b> window is available to help you understand and diagnose
+            issues with your build process, such as disabled optimizations and improperly configured
+            tasks.
+            </p>
             <br>
-            This version of Android Studio includes updates to several design tools, including the Layout Editor and Resource Manager.
-            <br><br>
-            <b>Color picker resource tab</b>
-            <br><br>
-            In the color picker for XML or design tools, Android Studio now populates the color resources in your app for you to quickly choose and replace color resources values.
-            <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/color_picker_resource_tab.png" width="428">
-            <br><br>
-            <b>Split view and zoom in design editors</b>
-            <br><br>
-            Design editors, such as the Layout Editor and Navigation Editor, now provide a <b>Split</b> view that enables you to see both the <b>Design</b> and <b>Code</b> views of your UI at the same time. To enable split view, click the <b>Split</b> icon <img src="https://d.android.com/studio/images/buttons/split-view-icon.png" width="19" height="19" /> in the top-right corner of the editor window.
-            <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/split-view.png" width="428">
-            <br><br>
-            <br>
-            <b>Resource Manager updates</b>
-            <br><br>
-            The Resource Manager now supports most resource types and includes improved filter and search options.
-            <br><br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/resource-manager">Learn more</a>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Android Gradle plugin 3.6.0 updates">
-        <stepElement>
-          <section>
-            <![CDATA[
-            The latest version of the Android Gradle plugin includes many updates, including optimizations for build speed, support for the Maven publishing plugin, and support for View Binding. To learn more, read the <a href="https://d.android.com/studio/releases/gradle-plugin?utm_source=android-studio-3-6&utm_medium=studio-assistant-stable#3-6-0">full release notes</a>.
-            <br><br>
-            <b>View binding</b>
-            <br><br>
-            View binding provides compile-time safety when referencing views in your code. You can
-            now replace <code><span style="font-family:monospace;">findViewById()</span></code>
-            with the auto-generated binding class reference.
-            <br><br>
-            To start using View binding, include the following in each module's
-            <code><span style="font-family:monospace;">build.gradle</span></code> file:
-            <div style="border:1px solid gray; margin-top:8px; padding-left:10px;"><pre>
-            android {
-              viewBinding.enabled = true
-            }</pre></div>
-            <br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/view-binding">Learn more</a>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Emulators">
-        <stepElement>
-          <section>
-            <![CDATA[
-            Enhancements to the emulators include the following. <a href="https://d.android.com/r/studio-wna/3.6.0/emulators">Learn more</a>
-            <br>
-            <br>
-            <ul>
-              <li>Multi-display support.
-                <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/multi-display.png" width="428">
-            <br><br>
-              </li>
-              <li>Improved location support, with options for Single Points and Routes.
-                <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/emulator-routes.png" width="428">
-            <br><br>
-              </li>
-              <li>New virtual devices and project templates for Android Automotive OS.
-                <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/automotive-project-template.png" width="428">
-              </li>
-            </ul>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Native tooling">
-        <stepElement>
-          <section>
-            <![CDATA[
-            The following updates support native (C/C++) development in Android Studio:
-            <br><br>
-            <ul>
-              <li>Extended Kotlin support, including improved error-checking and navigation between Kotlin JNI declarations and their C/C++ implementations.
-              </li>
-              <li>Overall JNI improvements, including enhanced autocompletion and inspection.
-              </li>
-            </ul>
-            <br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/native-tooling">Learn more</a>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Leak detection in Memory Profiler">
-        <stepElement>
-          <section>
-            <![CDATA[
-            When analyzing a heap dump in the Memory Profiler, you can now filter profiling data that Android Studio thinks might indicate memory leaks for Activity and Fragment instances in your app.
-            <br><br>To use this feature, first capture a heap dump or import a heap dump file into Android Studio.
-            <br><br>To display the fragments and activities that may be leaking memory, select the Activity/Fragment Leaks checkbox in the heap dump pane of the Memory Profiler.
-            <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/profiler-memory-leak-detection.png" width="428">
-            <br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/leak-detection">Learn more</a>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Push new classes with Apply Changes">
-        <stepElement>
-          <section>
-            <![CDATA[
-            You can now add a class and then deploy that code change to your running app by clicking
-            either <b>Apply Code Changes</b>&nbsp;
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/toolbar-apply-code-changes.png" width="19" height="19" />
-            or <b>Apply Changes and Restart Activity</b>&nbsp;
-            <img src="https://d.android.com/studio/releases/assistant/3.6.0/toolbar-apply-changes.png" width="19" height="19" />.
-            <br><br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/apply-changes">Learn more</a>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="APK reloading for native libraries">
-        <stepElement>
-          <section>
-            <![CDATA[
-            You no longer need to create a new project when an APK containing native code is updated outside the IDE. Android Studio detects changes in the APK and gives you the option to re-import it.
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Toggle Gradle offline mode">
-        <stepElement>
-          <section>
-            <![CDATA[
-            To enable or disable Gradle's offline mode, first select <b>View > Tool Windows > Gradle</b> from the menu bar. Then, near the top of the <b>Gradle</b> window, click <b>Toggle Offline Mode</b> <img src="https://d.android.com/studio/images/buttons/gradle-offline.png" alt="Gradle offline button in the Gradle panel."  width="19" height="19" />.
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Resumable SDK downloads">
-        <stepElement>
-          <section>
-            <![CDATA[
-            When downloading SDK components and tools using the SDK Manager, Android Studio now
-            allows you to resume downloads that were interrupted (for example, due to a network
-            issue) instead of restarting the download from the beginning. This enhancement is
-            especially helpful for large downloads, such as the Android Emulator or system images,
-            when internet connectivity is unreliable.
-            <br><br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/resumable-downloads">Learn more</a>
-            <br><br>
-           ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Attach Kotlin-only APK sources">
-        <stepElement>
-          <section>
-            <![CDATA[
-            It is now possible to attach Kotlin-only external APK sources when you profile and debug pre-built APKs.
-            <br><br>
-            <a href="https://d.android.com/r/studio-wna/3.6.0/attach-sources">Learn more</a>
-            <br><br>
+          <p><a href="https://d.android.com/studio/build/build-analyzer?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable">Learn more</a>
+          </p>
+          <br>
             ]]>
           </section>
         </stepElement>
       </step>
-      <step label="IntelliJ IDEA 2019.2">
+      <step label="Live Layout Inspector">
         <stepElement>
           <section>
             <![CDATA[
-           The core Android Studio IDE has been updated with improvements from IntelliJ IDEA through
-           the <a href="https://blog.jetbrains.com/idea/2019/07/intellij-idea-2019-2-java-13-preview-features-profiling-tools-services-tool-window-and-more/">
-           2019.2 release</a>.
-           <br><br><hr><br>
-           <em>Last updated 1/27/20</em>
-           <br><br>
+        Debug your layout with an updated Live Layout Inspector
+        that provides complete, real-time insights into your app’s UI while it’s deployed to
+        a device.
+        <br><br>
+        <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/layout-inspector-3d-view_wna.png" alt="3D visualization in Live Layout Inspector"></center>
+        <p>To open a Layout Inspector window, go to <b>View > Tool Windows > Layout Inspector</b>.
+        Along with many of the same features of the existing Layout Inspector, the Live Layout
+        Inspector also includes:
+        </p>
+        <br>
+        <ul>
+          <li>A dynamic layout hierarchy that updates as the views on the device change.
+          </li>
+          <li>A property values resolution stack to investigate where a resource property value
+          originates in the source code and navigate to its location.
+          </li>
+          <li>Advanced 3D visualization of an app's view hierarchy at runtime.
+          </li>
+        </ul>
+        <br><a href="https://d.android.com/r/studio-wna/4.0.0/layout-validation">Learn more</a>
+        <br>
+        <br>
+          ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="CPU Profiler UI Upgrades">
+        <stepElement>
+          <section>
+            <![CDATA[
+            The UI for the CPU Profiler has been overhauled to provide a more intuitive workflow. Some notable changes include:
+            <br>
+            <br>
+            <ul>
+              <li>CPU recordings are now separated from the main profiler timeline to allow for easier analysis.
+              </li>
+              <li>
+                Recorded data are organized in groups on the left side of the Profiler window. You can move groups up and
+                down to reorganize the list.
+              </li>
+              <li>For easier side-by-side analysis, you can now view all thread activity in the thread activity
+              timeline. To expand a specific thread and view its activity, double-click the thread in the
+              timeline.
+            </li>
+          </ul>
+          <br>
+          <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/cpu-profiler.png"
+                 width="428"
+                 alt="System Trace in Android Studio Profiler" /></center>
+            <br>
+          <p>Similarly, the UI for System Trace has also been updated:
+          </p>
+          <br>
+          <ul>
+            <li>Events are now uniquely colored for easier differentiation.
+            </li>
+            <li>Threads are sorted by the number of trace events within them so that the “busier” threads
+            are ranked higher in the list.
+            </li>
+            <li>You can select one or more threads to see analysis in the righthand column for those
+            selected threads only. Clicking on an event also displays analysis of the
+            selected event in the righthand column.
+            </li>
+          </ul>
+            <br><a href="https://d.android.com/r/studio-wna/4.0.0/cpu-profiler">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Java 8 library desugaring in D8 and R8">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Through a process called <em>desugaring</em>, you can now use a number of Java 8
+            language APIs without requiring a minimum API level for your app. This means that you
+            can now include standard language APIs that were available only in recent Android
+            releases (such as <code>java.util.streams</code>) in apps that support older versions of Android.
+
+           <p><a href="https://d.android.com/studio/write/java8-support?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable#library-desugaring">Learn more</a>
+            </p>
+            <br>
            ]]>
           </section>
         </stepElement>
       </step>
+      <step label="Essential support for Kotlin DSL script (KTS) files">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android Gradle plugin 4.0.0-alpha01 and higher now support Kotlin DSL build script files
+            (<code>*.kts</code>). When using Android Studio, certain IDE features, such as the
+            Project Structure dialog and build script quick fixes, now also support reading and
+            writing to Kotlin build script files.
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Smart editor features for code shrinker rules">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/shrinker-smart-editor-wna.png"
+                 width="428"
+                 alt="Smart editor features for R8 rules files." /></center>
+            <p>Android Studio now provides smart editor features when you open code shrinker
+            rules files for R8, such as syntax highlighting, code completion and error checking.
+            The editor also integrates with your Android Studio project to provide full symbol
+            completion for all classes, methods, and fields, and includes quick navigation
+            and refactoring.
+            </p>
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="New Motion Editor">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android Studio now includes a visual design editor for the
+            <a href="https://d.android.com/training/constraint-layout/motionlayout?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable">MotionLayout</a>
+            layout type, making it easier to
+            create and preview animations.
+            <br><br>
+            <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/motion_animation_preview_wna.png"
+                 width="428"
+                 alt="Motion editor provides an interactive UI for implementing MotionLayouts" /></center>
+            <br><br>
+
+            In previous releases, creating and altering these elements required manually editing constraints
+            in XML resource files. Now, the Motion Editor can generate this XML for you, with support for start and end states, keyframes,
+            transitions, and timelines.
+            <p><a href="https://d.android.com/r/studio-wna/4.0.0/motion-editor">Learn more</a>
+            </p>
+            <br>
+          ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Feature-on-feature dependencies">
+        <stepElement>
+          <section>
+            <![CDATA[
+            When you create an app with
+            <a href="https://developer.android.com/studio/projects/dynamic-delivery?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable#customize_delivery">Dynamic
+            Feature modules</a>, you can now declare that a feature module depends on another
+            feature module.
+            <br><br>
+            <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/feature-on-feature.png"
+                 width="428"
+                 alt="A dependency tree with on dynamic feature with a dependency on another." /></center>
+            <br><br>
+            For example, a feature module for taking videos can depend on another feature that
+            enables camera functionality. So, when your app requests to download the video feature,
+            the app also downloads the camera feature module.
+            <p><a href="https://d.android.com/r/studio-wna/4.0.0/feature-dependencies">Learn more</a>
+            </p>
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="'feature' and 'instantapp' plugins removed">
+        <stepElement>
+          <section>
+            <![CDATA[
+            In favor of using the Dynamic Feature plugin (<code>com.android.dynamic-feature</code>)
+            to build and package your instant apps using
+            <a href="https://developer.android.com/guide/app-bundle?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable">Android
+            App Bundles</a>, Android Gradle plugin 4.0.0-alpha01 and higher remove the Feature
+            plugin (<code>com.android.feature</code>) and the Instant App plugin
+            (<code>com.android.instantapp</code>).
+            <p>So, to use the latest Android Gradle plugin, you need to
+            <a href="https://developer.android.com/topic/google-play-instant/feature-module-migration?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable">migrate
+            your instant app to support Android App Bundles</a>. By migrating your instant apps, you
+            can leverage the benefits of app bundles and
+            <a href="https://android-developers.googleblog.com/2019/04/google-play-instant-feature-plugin.html">simplify
+            your app's modular design</a>.
+            </p>
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Kotlin Android live templates">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android Studio now includes Android
+            <a href="https://developer.android.com/studio/write/index.html?utm_source=android-studio-4-0&utm_medium=studio-assistant-stable#create_custom_code-completion_templates">live
+            templates</a> for your Kotlin classes. For example, you can now type <code>toast</code>
+            and press the <b>Tab</b> key to quickly insert a Toast. For a full list of available
+            live templates, click <b>File > Settings > Editor > Live Templates</b>.
+            <br>
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Layout Validation">
+        <stepElement>
+          <section>
+            <![CDATA[
+          Layout Validation is a visual tool for simultaneously previewing layouts on different devices and configurations, helping you detect layout errors and create more accessible apps.
+          <p>You can preview your layouts using one of the following configuration sets:
+          </p>
+          <br>
+          <ul>
+            <li>Pixel Devices
+            </li>
+            <li>Custom
+            </li>
+            <li>Color Blind
+            </li>
+            <li>Font Sizes
+            </li>
+          </ul>
+          <p>To use this feature, when viewing a layout file in the code editor,
+            click on the <b>Layout Validation</b> tab in the top-right corner of
+            the IDE window.
+          </p>
+            <br><br>
+            <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/layout-validation-pixel-devices.png"
+                 width="428"
+                 alt="The Layout Validation window." /></center>
+            <p>
+            <a href="https://d.android.com/r/studio-wna/4.0.0/layout-validation">Learn more</a>
+            </p>
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Fragment wizard and new fragment templates">
+        <stepElement>
+          <section>
+            <![CDATA[
+            A New Android Fragment wizard and new fragment templates are now available by navigating to
+            <b>File > New > Fragment > Gallery</b> or by clicking <b>Create new destination</b>
+            in the Navigation editor.
+            <br><br>
+            <center><img src="https://d.android.com/studio/releases/assistant/4.0.0/fragment-gallery-wna.png"
+                 width="428"
+                 alt="The Fragment gallery wizard." /></center>
+            <p><a href="https://d.android.com/r/studio-wna/4.0.0/fragment-wizard">Learn more</a>
+            </p>
+            <br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Dependencies metadata">
+        <stepElement>
+          <section>
+            <![CDATA[
+            When building your app using Android Gradle plugin 4.0.0 and higher, the plugin includes metadata that describes the dependencies that are compiled into your app. When uploading your app, the Play Console inspects this metadata to provide you with the following benefits:
+            <br>
+            <br>
+            <ul>
+              <li>Get alerts for known issues with SDKs and dependencies your app uses
+              </li>
+              <li>Receive actionable feedback to resolve those issues
+              </li>
+            </ul>
+            <br>
+            <a href="https://d.android.com/r/studio-wna/4.0.0/gradle-plugin-dependency-metadata">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Expanded camera support in Android emulator">
+        <stepElement>
+          <section>
+            <![CDATA[
+            When using an Android 11 image, the Android Emulator camera includes the
+            following new features:
+            <br>
+            <br>
+            <ul>
+              <li>RAW capture
+              </li>
+              <li>YUV reprocessing
+              </li>
+              <li>Level 3 devices
+              </li>
+              <li>Logical camera support
+              </li>
+            </ul>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <footerStep label="">
+        <stepElement>
+          <section>
+            <![CDATA[
+<br><em>Last updated 5/17/2020</em><br><br>
+]]>
+          </section>
+        </stepElement>
+      </footerStep>
     </tutorial>
   </feature>
 </tutorialBundle>

@@ -21,7 +21,9 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveResult;
+import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.xml.XmlElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,6 +39,15 @@ import org.jetbrains.annotations.Nullable;
  * methods in terms of {@link #resolveToDeclaration(ResourceItem, Project)}.
  */
 public interface AndroidResourceToPsiResolver {
+
+  /**
+   *  Returns the [PsiFile] "Goto Declaration" items for resources which are file based eg. drawable images, layout files.
+   *
+   *  <p>Used in Editor actions (FindUsages, Renaming...) on Android resources, as file based resource targets are not found in the
+   *  {@link ReferencesSearch}</p>
+   *
+   */
+  PsiFile[] getGotoDeclarationFileBasedTargets(ResourceReference resourceReference, PsiElement context);
 
   /**
    * Resolves the {@code resourceItem} to a {@link PsiElement} that can be considered its declaration.
@@ -57,6 +68,18 @@ public interface AndroidResourceToPsiResolver {
    */
   @NotNull
   ResolveResult[] resolveReference(@NotNull ResourceValue resourceValue, @NotNull XmlElement element, @NotNull AndroidFacet facet);
+
+  /**
+   * The same as {@link AndroidResourceToPsiResolver#resolveReference} above, it includes resources from dynamic feature modules that depend
+   * on the module of `element`.
+   *
+   * <p>This is used for the navigation graph where dynamic feature resources can be used in the app module graph.</p>
+   *
+   */
+  @NotNull
+  ResolveResult[] resolveReferenceWithDynamicFeatureModules(@NotNull ResourceValue resourceValue,
+                                                            @NotNull XmlElement element,
+                                                            @NotNull AndroidFacet facet);
 
   /**
    * Returns the {@link PsiElement}s for "go to declaration" action on XML attributes names.

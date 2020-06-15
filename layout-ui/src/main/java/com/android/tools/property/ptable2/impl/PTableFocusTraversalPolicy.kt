@@ -15,10 +15,8 @@
  */
 package com.android.tools.property.ptable2.impl
 
-import com.intellij.util.IJSwingUtilities
 import java.awt.Component
 import java.awt.Container
-import java.awt.KeyboardFocusManager
 import javax.swing.JTable
 import javax.swing.LayoutFocusTraversalPolicy
 
@@ -31,6 +29,9 @@ import javax.swing.LayoutFocusTraversalPolicy
 class PTableFocusTraversalPolicy(val table: JTable) : LayoutFocusTraversalPolicy() {
 
   override fun getComponentAfter(aContainer: Container, aComponent: Component): Component? {
+    if (!table.isEditing) {
+      return null
+    }
     val after = super.getComponentAfter(aContainer, aComponent)
     if (after != null && after != table) {
       return after
@@ -39,6 +40,9 @@ class PTableFocusTraversalPolicy(val table: JTable) : LayoutFocusTraversalPolicy
   }
 
   override fun getComponentBefore(aContainer: Container, aComponent: Component): Component? {
+    if (!table.isEditing) {
+      return null
+    }
     val before = super.getComponentBefore(aContainer, aComponent)
     if (before != null && before != table) {
       return before
@@ -65,16 +69,6 @@ class PTableFocusTraversalPolicy(val table: JTable) : LayoutFocusTraversalPolicy
       }
       if (table.isCellEditable(pos.row, pos.column)) {
         table.setRowSelectionInterval(pos.row, pos.row)
-
-        // b/37132037 Remove focus from the editor before hiding the editor.
-        // When we are transferring focus to another cell we will have to remove the current
-        // editor. The auto focus transfer in Container.removeNotify will cause another undesired
-        // focus event. This is an attempt to avoid that.
-        // The auto focus transfer is a common problem for applications see this open bug: JDK-6210779.
-        //val editor = table.editorComponent
-        //if (editor != null && IJSwingUtilities.hasFocus(editor)) {
-        //  KeyboardFocusManager.getCurrentKeyboardFocusManager().clearFocusOwner()
-        //}
 
         if (table.editCellAt(pos.row, pos.column)) {
           val component = getFocusCandidateFromNewlyCreatedEditor(forwards)

@@ -227,7 +227,14 @@ public class DecoratorUtilities {
    * @param on
    */
   public static void setTryingToConnectState(NlComponent component, AnchorTarget.Type type, boolean on) {
-    List<NlComponent> sisters = component.getParent().getChildren();
+    if (component == null) {
+      return;
+    }
+    NlComponent parent = component.getParent();
+    if (parent == null) {
+      return;
+    }
+    List<NlComponent> sisters = parent.getChildren();
     setTryingToConnectState(component, sisters, type, on);
   }
 

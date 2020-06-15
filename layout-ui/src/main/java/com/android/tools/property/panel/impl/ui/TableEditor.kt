@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TableEditingRequest
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
@@ -25,6 +26,16 @@ import com.android.tools.property.panel.impl.model.TableRowEditListener
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.ptable2.*
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableCellEditorProvider
+import com.android.tools.property.ptable2.PTableCellRendererProvider
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.JBUI
@@ -41,7 +52,8 @@ private const val MINIMUM_ROW_HEIGHT = 20
  */
 class TableEditor(val lineModel: TableLineModelImpl,
                   rendererProvider: PTableCellRendererProvider,
-                  editorProvider: PTableCellEditorProvider) {
+                  editorProvider: PTableCellEditorProvider,
+                  val actions: List<AnAction> = emptyList()) {
 
   private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI)
   val component = table.component as JTable
@@ -62,6 +74,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
       val index = component.selectedRow
       val item = if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem else null
       lineModel.selectedItem = item
+      updateActions()
     }
     HelpSupportBinding.registerHelpKeyActions(component, { lineModel.selectedItem as? PropertyItem })
 
@@ -69,11 +82,29 @@ class TableEditor(val lineModel: TableLineModelImpl,
     // Ignore the events and allow the scrollPane created in PropertiesPage to handle the events.
     component.registerActionKey({}, KeyStrokes.PAGE_UP, "pageUp", { false })
     component.registerActionKey({}, KeyStrokes.PAGE_DOWN, "pageDown", { false })
+
+    // Register all single keystroke shortcuts.
+    // Ignore the shortscuts with double keystrokes since we cannot add them to the InputMap of the table.
+    // In Intellij there are special handling of these double keystrokes that happens before the normal swing
+    // key stroke delegation. Here we do not want to take keystrokes away from the cell editors.
+    actions.forEach { action ->
+      action.shortcutSet.shortcuts
+        .filterIsInstance<KeyboardShortcut>()
+        .filter { it.secondKeyStroke == null }
+        .forEach {
+          component.registerAnActionKey({ action }, it.firstKeyStroke, action.templatePresentation.description)
+        }
+    }
   }
 
   private fun updateUI() {
     // The font height may change on a LaF change: recompute and set the row height.
     component.rowHeight = computeRowHeight()
+  }
+
+  private fun updateActions() {
+    val context = DataManager.getInstance().getDataContext(component)
+    actions.forEach { it.update(AnActionEvent.createFromAnAction(it, null, "", context)) }
   }
 
   private fun handleValueChanged() {
@@ -88,8 +119,22 @@ class TableEditor(val lineModel: TableLineModelImpl,
       TableEditingRequest.SPECIFIED_ITEM -> table.startEditing(findRowOf(item))
       TableEditingRequest.STOP_EDITING -> table.startEditing(-1)
       TableEditingRequest.BEST_MATCH -> table.startEditing(findRowOfBestMatch())
+      TableEditingRequest.SELECT -> selectItem(item)
       else -> {}
     }
+  }
+
+  private fun selectItem(item: PTableItem?) {
+    if (item != null) {
+      for (row in 0 until component.rowCount) {
+        if (component.getValueAt(row, 0) == item) {
+          component.setRowSelectionInterval(row, row)
+          return
+        }
+      }
+    }
+    // If there is no row to select transfer the focus out of the table:
+    component.transferFocusBackward()
   }
 
   private fun getToolTipText(event: MouseEvent): String? {

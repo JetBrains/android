@@ -7,15 +7,20 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.ArrayUtilRt;
-import org.jetbrains.android.util.AndroidBuildTestingManager;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.android.util.AndroidBuildTestingManager;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky

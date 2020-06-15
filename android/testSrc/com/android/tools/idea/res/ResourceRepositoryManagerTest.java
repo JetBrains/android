@@ -22,6 +22,7 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -50,7 +51,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
 
   public void testDisposal() {
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).named("module uses a model").isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).named("module uses a model").isTrue();
 
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
     repositoryManager.getAppResources();

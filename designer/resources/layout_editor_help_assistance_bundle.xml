@@ -1,0 +1,484 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2019 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle
+    name="Design Tools Help"
+    resourceRoot="/"
+    stepByStep="true">
+  <welcome>
+    <![CDATA[ - The following guides cover features of the Design Tools]]>
+  </welcome>
+  <feature
+    name="Design Tools Keyboard Shortcuts">
+    <description></description>
+    <tutorial
+        key="analytics-layout-editor-shortcuts"
+        label="Layout Editor Keyboard Shortcuts"
+        remoteLink="https://developer.android.com/training/constraint-layout"
+        remoteLinkLabel="View ConstraintLayout Guide.">
+    <description>
+      <![CDATA[
+      <table>
+        <tr>
+          <td><b>Description</b>
+          </td>
+          <td><b>Windows/Linux</b>
+          </td>
+          <td><b>Mac</b>
+          </td>
+          <hr>
+        </tr>
+        <tr>
+          <td>Design / Blueprint
+          </td>
+          <td>B
+          </td>
+          <td>B
+          </td>
+        </tr>
+        <tr>
+          <td>Portrait / Landscape
+          </td>
+          <td>O
+          </td>
+          <td>O
+          </td>
+        </tr>
+        <tr>
+          <td>Toggle Devices
+          </td>
+          <td>D
+          </td>
+          <td>D
+          </td>
+        </tr>
+        <tr>
+          <td>Force Refresh
+          </td>
+          <td>R
+          </td>
+          <td>R
+          </td>
+        </tr>
+        <tr>
+          <td>Delete Constraints
+          </td>
+          <td>Delete  ⌦
+            <p>
+            (or Command + Mouse click)
+          </td>
+          <td>Delete  ⌦
+            <p>
+            (or Ctrl + Mouse click)
+          </td>
+        </tr>
+        <tr>
+          <td>Select All Components
+          </td>
+          <td>Ctrl A
+          </td>
+          <td>Command A
+          </td>
+        </tr>
+        <tr>
+          <td>Select Multiple Components
+          </td>
+          <td>Shift  + Mouse Click
+          </td>
+          <td>Shift  + Mouse Click
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom In
+          </td>
+          <td>Ctrl +
+          </td>
+          <td>Command +
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom Out
+          </td>
+          <td>Ctrl –
+          </td>
+          <td>Command–
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom to 100%
+          </td>
+          <td>Ctrl /
+          </td>
+          <td>Command /
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom to fit
+          </td>
+          <td>Ctrl 0
+          </td>
+          <td>Command 0
+          </td>
+        </tr>
+        <tr>
+          <td>Pan
+          </td>
+          <td>Hold Space bar & drag w/ mouse
+          </td>
+          <td>Hold Space bar & drag w mouse
+          </td>
+        </tr>
+        <tr>
+          <td>Toggle Error Panel
+          </td>
+          <td>E
+          </td>
+          <td>E
+          </td>
+        </tr>
+        <tr>
+          <td>Go to XML
+          </td>
+          <td>Ctrl B
+          </td>
+          <td>Command B
+          </td>
+        </tr>
+      </table>
+      ]]>
+    </description>
+    </tutorial>
+    <tutorial
+        key="analytics-navigation-editor-shortcuts"
+        label="Navigation Editor Keyboard Shortcuts"
+        remoteLink="https://developer.android.com/training/constraint-layout"
+        remoteLinkLabel="View ConstraintLayout Guide.">
+      <description>
+        <![CDATA[
+      <table>
+        <tr>
+          <td><b>Description</b>
+          </td>
+          <td><b>Windows/Linux</b>
+          </td>
+          <td><b>Mac</b>
+          </td>
+        </tr>
+        <tr>
+          <td>Group into Nested Graph
+          </td>
+          <td>Ctrl G
+          </td>
+          <td>Command G
+          </td>
+        </tr>
+        <tr>
+          <td>Cycle through Destinations
+          </td>
+          <td>Tab (Shift + Tab)
+          </td>
+          <td>Tab (Shift + Tab)
+          </td>
+        </tr>
+        <tr>
+          <td>Select all Destinations
+          </td>
+          <td>Ctrl A
+          </td>
+          <td>Command A
+          </td>
+        </tr>
+        <tr>
+          <td>Select Multiple Destinations
+          </td>
+          <td>Shift + Mouse click
+          </td>
+          <td>Shift + Mouse click
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom In
+          </td>
+          <td>Ctrl +
+          </td>
+          <td>Command +
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom Out
+          </td>
+          <td>Ctrl –
+          </td>
+          <td>Command –
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom to 100%
+          </td>
+          <td>Ctrl /
+          </td>
+          <td>Command /
+          </td>
+        </tr>
+        <tr>
+          <td>Zoom to fit
+          </td>
+          <td>Ctrl 0
+          </td>
+          <td>Command 0
+          </td>
+        </tr>
+        <tr>
+          <td>Pan
+          </td>
+          <td>Hold Space bar & drag w/ mouse
+          </td>
+          <td>Hold Space bar & drag w mouse
+          </td>
+        </tr>
+        <tr>
+          <td>Toggle Error Panel
+          </td>
+          <td>E
+          </td>
+          <td>E
+          </td>
+        </tr>
+        <tr>
+          <td>Go to XML
+          </td>
+          <td>Ctrl B
+          </td>
+          <td>Command B
+          </td>
+        </tr>
+      </table>
+      ]]>
+      </description>
+    </tutorial>
+  </feature>
+  <feature
+      name="Guide to ConstraintLayout.">
+    <description></description>
+    <tutorial
+      key="analytics-constraintlayout-concepts"
+      label="ConstraintLayout concepts"
+      remoteLink="https://developer.android.com/training/constraint-layout"
+      remoteLinkLabel="View ConstraintLayout Guide."
+      hasLocalHTMLPaths="true"
+      loadLazily="true">
+      <description>
+        <![CDATA[
+
+<h1>What is it?</h1>
+<p>
+ConstraintLayout is a viewgroup that allows you to position and size widgets in flexible ways using constraints.
+
+<h1>Relative Positioning</h1>
+
+<p>
+Widgets can be positioned relative to one another, or to the ConstraintLayout viewgroup itself.
+Position Constraints start from a given side of the widget (start/left, end/right, top, bottom, baseline), and connect to another
+widget’s side (a target widget). A margin can also be applied as well. You can think of a target as the ideal position of
+the constrained side, taking into account eventual margins.
+</p>
+<p><div align="center"><img src="/constraintlayout/image2.png"/></div></p>
+
+<p>
+For example, we can position a widget A at a distance of 16dp from the parent’s right side and a distance of 24 dp from
+the parent’s bottom side by creating two constraints (one on the end side and one on the bottom side). The corresponding XML will be:
+</p>
+<p>
+<div align="center"><img src="/constraintlayout/text.png"/></div>
+</p>
+
+<h1>Center Positioning</h1>
+
+<p>
+Another useful way of positioning widgets with ConstraintLayout is centering them between targets. For example, to
+center a widget horizontally in the parent, we only have to connect the start and end sides (or left and right) to
+the corresponding parent’s sides:
+</p>
+<p><div align="center"><img src="/constraintlayout/image4.png"/></div></p>
+
+<p>You can center a widget not only in the parent, but between any targets:</p>
+<p><div align="center"><img src="/constraintlayout/image15.png"/></div>
+<br><i>A is centered between B and C, with B positioned relative to the parent’s start and C positioned relative to parent’s end.</i></p>
+
+<p>It is also possible to be centered on a single widget:</p>
+<p><div align="center"><img src="/constraintlayout/image12.png"/></div>
+
+<p>And even on the same side:</p>
+<p><div align="center"><img src="/constraintlayout/image11.png"/></div>
+
+]]>
+      </description>
+    </tutorial>
+    <tutorial
+        key="analytics-constraintlayout-editor"
+        label="ConstraintLayout editor"
+        remoteLink="https://developer.android.com/training/constraint-layout"
+        remoteLinkLabel="View ConstraintLayout Guide."
+        hasLocalHTMLPaths="true"
+        loadLazily="true">
+    <description>
+      <![CDATA[
+
+<h1>Creating Relative Constraints</h1>
+<p>
+You can create constraints in multiple ways. The simplest is to drag from a widget’s anchor (the circle representing a side
+of the widget) and connect it to a target, like in this example where we connect to the parent container:
+</p>
+
+<p><div align="center"><img src="/constraintlayout/image6.gif"/></div></p>
+
+<p>If you need a margin, there are several things you can do at creation. The first method is to hold the command
+key (control key on windows), while creating the constraint -- the distance to the target will be set as the margin:
+</p>
+
+<p><div align="center"><img src="/constraintlayout/image13.gif"/></div></p>
+
+<p>Another approach is to change the default margin used when creating constraints by hand:</p>
+<p><div align="center"><img src="/constraintlayout/image3.gif"/></div></p>
+
+<p>The default margin will then be used when creating the constraint:</p>
+<p><div align="center"><img src="/constraintlayout/image7.gif"/></div></p>
+
+<p>You can also drag a widget away from the target to create a margin:</p>
+<p><div align="center"><img src="/constraintlayout/image1.gif"/></div></p>
+
+<p>Finally, you can also create constraints and set margins by using the attribute panel, by selecting
+the widget you want to constrain.</p>
+<p><div align="center"><img src="/constraintlayout/image14.gif"/></div></p>
+
+<h1>Centering constraints</h1>
+
+<p>If two opposite constraints (for example, top and bottom) are set on a widget, the widget will be centered in
+the available space between the two targets. You can create opposite constraints several ways: manually (one after the other),
+by using the + action in the attribute panel, or via the centering actions available either from the contextual
+menu (right-click on the widget) and the toolbar.</p>
+<p><div align="center"><img src="/constraintlayout/image9.png"/></div></p>
+<p><div align="center"><img src="/constraintlayout/image16.png"/></div></p>
+
+<p>
+Once a widget has been constrained via opposite constraint, its applied bias can also be changed
+(the default is 50%, hence the centering behavior).
+</p>
+<p><div align="center"><img src="/constraintlayout/image8.png"/></div></p>
+
+<p>The attribute panel lets you manipulate the bias value directly by showing you sliders:</p>
+<p><div align="center"><img src="/constraintlayout/image17.png"/></div></p>
+
+<p>By moving the horizontal slider here we’ll affect the bias:</p>
+<p><div align="center"><img src="/constraintlayout/image5.png"/></div></p>
+
+<p>Resulting in the following layout:</p>
+<p><div align="center"><img src="/constraintlayout/image10.png"/></div></p>
+
+      ]]>
+    </description>
+    </tutorial>
+  </feature>
+
+  <feature
+      name="Guide to MotionLayout.">
+    <description>
+      <![CDATA[Guide to MotionLayout.]]>
+    </description>
+    <tutorial
+        key="analytics-layouteditor-motionlayout"
+        label="Guide to MotionLayout."
+        remoteLink="https://developer.android.com/training/constraint-layout/motionlayout"
+        remoteLinkLabel="View MotionLayout Guide."
+        hasLocalHTMLPaths="true"
+        loadLazily="true">
+      <description>
+        <![CDATA[
+
+      <h1>What is it?</h1>
+      <p>
+      Motion Editor is a visual design editor for the <a href="https://developer.android.com/training/constraint-layout/motionlayout">MotionLayout</a>
+       layout type, making it easier to create and preview animations.
+      This guide covers the high level components of the Motion Editor and gives you an overview of how to build animations
+      with MotionLayout
+      </p>
+      <p>
+      MotionLayout is a is a layout type that helps you manage motion and widget animation in your app. MotionLayout is a subclass
+      of ConstraintLayout and builds upon its rich layout capabilities. MotionLayout helps you animate layout changes which you specify
+      as transitions between ConstraintSets.
+      </p>
+      <p><div align="center"><img src="/motionlayout/image1.gif"/></div></p>
+
+      <h1>Overview Panel</h1>
+      <p>
+      The Motion Editor supports editing ConstraintSets and Transitions, which can be visualized in the <b>Overview Panel</b>, shown below.
+      To edit constraints in a ConstraintSet, click on the corresponding box in the overview panel. You can then edit constraints
+      the same way you would edit a ConstraintLayout.
+      </p>
+      <p><div align="center"><img src="/motionlayout/image3.gif"/>
+      <br><i>MotionLayout Scene with two ConstraintSets, start and end, and a
+      Transition between them</i></div></p>
+      <p>
+      If you want to build more elements to your graph, you can use the creation icons to quickly add a <b>ConstraintSet</b>,
+      <b>Transition</b>, or <b>OnClick/OnSwipe</b> gestures.
+      </p>
+      <p><div align="center"><img src="/motionlayout/image2.png"/></div></p>
+
+      <h1>Selection Panel</h1>
+      <p>
+      The Selection Panel provides detailed controls based on the state of the Overview Panel. It has 3 modes:
+      <ul>
+        <li>Motion Layout selected</li>
+        <li>ConstraintSet selected</li>
+        <li>Transition selected</li>
+      </ul>
+      </p>
+      <p><div align="center"><img src="/motionlayout/image9.png"/></div></p>
+
+      <h1>MotionLayout selected</h1>
+      <p>
+      The Motion Editor supports editing of the base Motion Layout. When <b>MotionLayout</b> is selected in the Overview Pane, use this panel
+      to select components and view if they are properly constrained.
+      </p>
+      <p><div align="center"><img src="/motionlayout/image7.png"/></div></p>
+
+      <h1>ConstraintSet selected</h1>
+      <p>
+      When a ConstraintSet is selected, the selection panel will display the list of components and a checkmark to indicate
+      if the component is constrained in this ConstraintSet.
+      </p>
+      <p><div align="center"><img src="/motionlayout/image5.png"/></div></p>
+
+      <h1>Transition selected</h1>
+      <p>
+      When a transition is selected, you can control the playback of the animation with the animation toolbar. When an animation is
+      selected, click Play <img src="/motionlayout/image4.png"/> above the timeline to preview the animation.
+      </p>
+      <p><div align="center"><img src="/motionlayout/image8.gif"/></div></p>
+
+      <h1>Keyframes</h1>
+      <p>
+      Keyframes are placed on the timeline for easy viewing and editing. To create a new keyframe, click on the new keyframe icon
+      <img src="/motionlayout/image10.png" /> in the top right of the selection panel.
+      This action opens a dialog where you can set attributes for the keyframe. To edit a keyframe, click on the diamond icon
+      <img src="/motionlayout/image11.png" /> to open the KeyFrame attribute panel.
+
+      <p><div align="center"><img src="/motionlayout/image6.png"/></div></p>
+]]>
+      </description>
+    </tutorial>
+  </feature>
+</tutorialBundle>

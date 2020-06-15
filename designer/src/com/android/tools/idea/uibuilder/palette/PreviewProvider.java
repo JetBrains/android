@@ -215,7 +215,7 @@ public class PreviewProvider implements Disposable {
 
     assert file instanceof XmlFile;
     renderTask.setXmlFile((XmlFile)file);
-    renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
+    renderTask.setTransparentBackground();
     renderTask.setDecorations(false);
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
     renderTask.getContext().setFolderType(ResourceFolderType.LAYOUT);

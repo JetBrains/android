@@ -38,13 +38,12 @@ public class PreSyncProjectCleanUpTest {
   public void mainConstructor() {
     PreSyncProjectCleanUp projectCleanUp = new PreSyncProjectCleanUp();
     ProjectCleanUpTask[] tasks = projectCleanUp.getCleanUpTasks();
-    assertThat(tasks).hasLength(6);
+    assertThat(tasks).hasLength(5);
     assertThat(tasks[0]).isInstanceOf(ProjectNotificationsCleanUpTask.class);
     assertThat(tasks[1]).isInstanceOf(ProjectPreferencesCleanUpTask.class);
     assertThat(tasks[2]).isInstanceOf(HttpProxySettingsCleanUpTask.class);
-    assertThat(tasks[3]).isInstanceOf(GradleSettingsCleanUpTask.class);
-    assertThat(tasks[4]).isInstanceOf(GradleDistributionCleanUpTask.class);
-    assertThat(tasks[5]).isInstanceOf(SyncIssueCleanupTask.class);
+    assertThat(tasks[3]).isInstanceOf(GradleDistributionCleanUpTask.class);
+    assertThat(tasks[4]).isInstanceOf(SyncIssueCleanupTask.class);
   }
 
   @Test

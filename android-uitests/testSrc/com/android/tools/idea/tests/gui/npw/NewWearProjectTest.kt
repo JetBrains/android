@@ -35,7 +35,7 @@ class NewWearProjectTest {
 
   @Test
   fun testBuildBlankWearActivityWithoutCompanion() {
-    createWearProject("Blank Wear Activity", Language.JAVA, false)
+    createWearProject("Blank Activity", Language.JAVA, false)
 
     guiTest.getProjectFileText("app/build.gradle").apply {
       assertThat(this).contains("compileOnly 'com.google.android.wearable")
@@ -54,7 +54,7 @@ class NewWearProjectTest {
 
   @Test
   fun testBuildBlankWearActivityWithCompanion() {
-    createWearProject("Blank Wear Activity", Language.KOTLIN, true)
+    createWearProject("Blank Activity", Language.KOTLIN, true)
 
     guiTest.getProjectFileText("mobile/build.gradle").apply {
       assertThat(this).contains("wearApp project")
@@ -78,8 +78,8 @@ class NewWearProjectTest {
       .wizard()
       .clickNext()
       .configureNewAndroidProjectStep
-      .setSourceLanguage(language.toString())
-      .selectMinimumSdkApi(FormFactor.WEAR, "28")
+      .setSourceLanguage(language)
+      .selectMinimumSdkApi(FormFactor.WEAR, 28)
       .setPairWithPhoneApp(pairWithPhone)
       .wizard()
       .clickFinish()

@@ -4,20 +4,32 @@ package org.jetbrains.android
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.StyleableResourceValue
+import com.android.ide.common.resources.ResourceItem
+import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.AndroidRClassBase
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
+import com.intellij.execution.impl.NAME_ATTR
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.compiled.ClsFieldImpl
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.augment.ManifestInnerClass
+import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
@@ -39,7 +51,25 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
                                                                                        TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED,
                                                                                        offset)) {
       is ResourceReferencePsiElement -> {
-        AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement)
+        // We take the containing file of the source element as context as ModuleUtilCore can only find the module of an AAR file, not an
+        // element in that file.
+        AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement.containingFile)
+      }
+      is StyleableAttrLightField -> {
+        if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
+          // The ResourceManager expects the resource reference name to be the entire java/kotlin field name even for styleable attrs
+          val referencePsiElement = ResourceReferencePsiElement.create(targetElement) ?: return PsiElement.EMPTY_ARRAY
+          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(referencePsiElement.resourceReference, sourceElement)
+        }
+        else {
+          // For Styleable Attr fields, we go to the reference of the attr inside the declare styleable, not necessarily the attr definition
+          val styleableAttrUrl = targetElement.styleableAttrFieldUrl
+          val styleables =
+            ResourceRepositoryManager.getInstance(sourceElement)
+              ?.allResources
+              ?.getResources(styleableAttrUrl.styleable) ?: return PsiElement.EMPTY_ARRAY
+          return findAttrElementsInStyleables(styleables, targetElement)
+        }
       }
       is AndroidLightField -> {
         return when (targetElement.containingClass.containingClass) {
@@ -70,6 +100,47 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
       }
       else -> PsiElement.EMPTY_ARRAY
     }
+  }
+
+  private fun findAttrElementsInStyleables(styleables: List<ResourceItem>, targetElement: StyleableAttrLightField): Array<PsiElement> {
+    val result = mutableListOf<PsiElement>()
+    val styleableAttrUrl = targetElement.styleableAttrFieldUrl
+    for (styleable in styleables) {
+      val resourceValue = styleable.resourceValue
+      if (resourceValue is StyleableResourceValue) {
+        for (attributeValue in resourceValue.allAttributes) {
+          if (attributeValue.asReference() == styleableAttrUrl.attr) {
+            val declaration =
+              AndroidResourceToPsiResolver.getInstance()
+                .resolveToDeclaration(styleable, targetElement.project) as? XmlAttributeValue ?: continue
+            val attributeInStyleable = findAttributeResourceInStyleableTag(declaration, attributeValue.asReference()) ?: continue
+            result.add(attributeInStyleable)
+          }
+        }
+      }
+    }
+    return result.toTypedArray()
+  }
+
+  private fun findAttributeResourceInStyleableTag(
+    styleableDeclaration: XmlAttributeValue,
+    asReference: ResourceReference
+  ): XmlAttributeValue? {
+    val resourceType = getFolderType(styleableDeclaration.containingFile)
+    if (resourceType != ResourceFolderType.VALUES) return null
+    val xmlAttribute = styleableDeclaration.parentOfType<XmlAttribute>() ?: return null
+    if (xmlAttribute.name != SdkConstants.ATTR_NAME) return null
+    val xmlTag = xmlAttribute.parentOfType<XmlTag>() ?: return null
+    if (xmlTag.name != SdkConstants.TAG_DECLARE_STYLEABLE) return null
+    val subTags = xmlTag.subTags
+    for (subTag in subTags) {
+      val attributeValue = subTag.getAttribute(NAME_ATTR)?.valueElement ?: continue
+      val resourceReferencePsiElement = ResourceReferencePsiElement.create(attributeValue)
+      if (asReference == resourceReferencePsiElement?.resourceReference) {
+        return attributeValue
+      }
+    }
+    return null
   }
 
   private fun collectManifestElements(nestedClassName: String,

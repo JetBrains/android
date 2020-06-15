@@ -24,6 +24,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
@@ -135,7 +136,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d<caret>}"/>
+            android:onClick="@{ModelWithBindableMethodsJava::d${caret}}"/>
       </layout>
     """.trimIndent())
       fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -197,7 +198,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.do<caret>}"/>
+            android:onClick="@{() -> member.do${caret}}"/>
       </layout>
     """.trimIndent())
       fixture.configureFromExistingVirtualFile(file.virtualFile)

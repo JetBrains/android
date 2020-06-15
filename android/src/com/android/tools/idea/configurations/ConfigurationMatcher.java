@@ -694,7 +694,7 @@ public class ConfigurationMatcher {
     Module module = configuration.getModule();
     if (file != null && module != null) {
       if (device == null) {
-        device = configuration.getDevice();
+        device = configuration.getCachedDevice();
       }
       if (stateName == null) {
         State deviceState = configuration.getDeviceState();

@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors.external
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
-
 public final class NdkBuildOptionsDslElement extends AbstractBuildOptionsDslElement {
-  public NdkBuildOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(NDK_BUILD_BLOCK_NAME));
+  public static final PropertiesElementDescription<NdkBuildOptionsDslElement> NDK_BUILD_OPTIONS =
+    new PropertiesElementDescription<>("ndkBuild", NdkBuildOptionsDslElement.class, NdkBuildOptionsDslElement::new);
+
+  public NdkBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

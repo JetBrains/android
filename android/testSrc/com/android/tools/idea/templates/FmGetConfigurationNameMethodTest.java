@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION;
 
 @SuppressWarnings("javadoc")
 public class FmGetConfigurationNameMethodTest extends TestCase {

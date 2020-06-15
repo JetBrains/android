@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.InvalidImeActionIdDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintInvalidImeActionIdInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidImeActionIdInspection() {
-    super(AndroidBundle.message("android.lint.inspections.invalid.imeActionId"), InvalidImeActionIdDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.invalid.ime.action.id"), InvalidImeActionIdDetector.ISSUE);
   }
 }

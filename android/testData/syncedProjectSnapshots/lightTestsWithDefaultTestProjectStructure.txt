@@ -1,0 +1,59 @@
+PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+    MODULE              : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+        LinkedProjectId     : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+        LinkedProjectPath   : <PROJECT>/unitTest
+        RootProjectPath     : <PROJECT>/unitTest
+        ModuleFile          : <PROJECT>/unitTest/LightSyncBasedTestsWithDefaultTestProjectStructureTest.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /AndroidManifest.xml
+            ResFolderRelativePath         : /res
+            - ResFoldersRelativePath      : file://<PROJECT>/unitTest/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/debug/res [-]
+            - TestResFoldersRelativePath  :  [-]
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :
+        CONENT_ENTRY        : file://<PROJECT>/unitTest
+            JavaResource        : file://<PROJECT>/unitTest/res [-]
+            JavaSource          : file://<PROJECT>/unitTest/src [-]
+            JavaSource          : file://<PROJECT>/unitTest/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/unitTest/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/unitTest/src/debug/java [-]
+            JavaSource          : file://<PROJECT>/unitTest/src/debug/renderscript [-]
+            JavaResource        : file://<PROJECT>/unitTest/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/unitTest/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/unitTest/src/debug/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/unitTest/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>

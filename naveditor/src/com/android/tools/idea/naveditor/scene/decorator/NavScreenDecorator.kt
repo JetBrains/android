@@ -18,22 +18,24 @@ package com.android.tools.idea.naveditor.scene.decorator
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
-import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
-import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
-import java.awt.geom.Rectangle2D
 import java.io.File
 
 /**
@@ -53,7 +55,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
 
   protected fun buildImage(sceneContext: SceneContext,
                            component: SceneComponent,
-                           @SwingCoordinate rectangle: Rectangle2D.Float): RefinableImage? {
+                           rectangle: SwingRectangle): RefinableImage? {
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     val className = component.nlComponent.className
 
@@ -66,8 +68,9 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
       return empty
     }
     val surface = sceneContext.surface ?: return empty
-    val configuration = if (surface.configurations.isNotEmpty()) surface.configurations.single() else return empty
-    val facet = surface.model?.facet ?: return empty
+    val model = surface.model ?: return empty
+    val facet = getFacet(component, model) ?: return empty
+    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(model.virtualFile)
 
     val resourceUrl = ResourceUrl.parse(layout) ?: return empty
     if (resourceUrl.type != ResourceType.LAYOUT) {
@@ -87,5 +90,17 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
     return manager.getThumbnail(psiFile, configuration, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
+  }
+
+  private fun getFacet(component: SceneComponent, model: NlModel): AndroidFacet? {
+    if (StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
+      component.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_MODULE_NAME)?.let {
+        val moduleManager = ModuleManager.getInstance(component.nlComponent.model.project) ?: return null
+        val module = moduleManager.findModuleByName(it) ?: return null
+        return AndroidFacet.getInstance(module)
+      }
+    }
+
+    return model.facet
   }
 }

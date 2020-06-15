@@ -32,20 +32,29 @@ import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -124,7 +133,8 @@ public class DeploymentTest {
     myProject = null;
 
     if (myAdbServer != null) {
-      myAdbServer.stop().get();
+      boolean status =  myAdbServer.awaitServerTermination(WAIT_TIME, TimeUnit.SECONDS);
+      assertThat(status).isTrue();
     }
 
     AdbService.getInstance().dispose();
@@ -136,15 +146,19 @@ public class DeploymentTest {
   @Test
   public void runOnDevices() throws Exception {
     setActiveApk(myProject, APK.BASE);
-    connectDevices();
+    List<FakeDevice> devices = connectDevices();
 
     IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
     List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
     List<DeviceBinder> deviceBinders = new ArrayList<>(deviceStates.size());
-    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot());
+    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), ideFrameFixture);
     for (DeviceState state : deviceStates) {
-      deviceBinders.add(new DeviceBinder(state));
+      DeviceBinder binder = new DeviceBinder(state);
+      deviceBinders.add(binder);
+      deviceSelector.selectDevice(binder.getIDevice()); // Ensure that the combo box has the device.
     }
+
+    assertThat(deviceBinders.size()).isEqualTo(devices.size());
 
     for (DeviceBinder deviceBinder : deviceBinders) {
       deviceSelector.selectDevice(deviceBinder.getIDevice());
@@ -152,19 +166,27 @@ public class DeploymentTest {
 
       // Run the app and wait for it to be picked up by the AndroidProcessHandler.
       ideFrameFixture.findRunApplicationButton().click();
-      waitForClient(iDevice);
+      AndroidProcessHandler processHandler = waitForClient(iDevice);
 
       // Stop the app and wait for the AndroidProcessHandler termination.
       ideFrameFixture.findStopButton().click();
-      awaitTermination(iDevice);
+      awaitTermination(processHandler, deviceBinder.getIDevice());
 
       myAdbServer.disconnectDevice(deviceBinder.getState().getDeviceId());
     }
+
+    for (FakeDevice device : devices) {
+      assertThat(device.getProcesses()).isEmpty();
+      device.shutdown();
+    }
   }
 
-  private void connectDevices() throws Exception {
+  @NotNull
+  private List<FakeDevice> connectDevices() throws Exception {
+    List<FakeDevice> devices = new ArrayList<>();
     for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
       FakeDevice device = new FakeDeviceLibrary().build(id);
+      devices.add(device);
       myHandler.connect(device, myAdbServer);
     }
 
@@ -178,53 +200,105 @@ public class DeploymentTest {
           return false;
         }
       });
+
+    return devices;
   }
 
-  private void waitForClient(@NotNull IDevice iDevice) {
+  /**
+   * A utility class to capture {@link AndroidProcessHandler} for a given target {@link IDevice}.
+   */
+  static class AndroidProcessHandlerCaptor implements Wait.Objective {
+
+    private final Project myProject;
+    private final IDevice myTargetDevice;
+    private Optional<AndroidProcessHandler> capturedAndroidDeviceHandler = Optional.empty();
+
+    public AndroidProcessHandlerCaptor(Project project, IDevice targetDevice) {
+      myProject = project;
+      myTargetDevice = targetDevice;
+    }
+
+    @Override
+    public boolean isMet() {
+      capturedAndroidDeviceHandler = RunContentManager.getInstance(myProject).getAllDescriptors().stream()
+        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
+        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
+        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
+                           DefaultRunExecutor.getRunExecutorInstance())
+        .filter(handler -> handler.isAssociated(myTargetDevice))
+        .filter(handler -> handler.getClient(myTargetDevice) != null)
+        .findAny();
+      return capturedAndroidDeviceHandler.isPresent();
+    }
+
+    public Optional<AndroidProcessHandler> getCapturedAndroidDeviceHandler() {
+      return capturedAndroidDeviceHandler;
+    }
+  }
+
+  private AndroidProcessHandler waitForClient(@NotNull IDevice iDevice) {
     Wait.seconds(WAIT_TIME)
       .expecting("launched client to appear")
       .until(() -> Arrays.stream(iDevice.getClients()).anyMatch(
         c ->
           PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
           PACKAGE_NAME.equals(c.getClientData().getPackageName())));
+
+    AndroidProcessHandlerCaptor captor = new AndroidProcessHandlerCaptor(myProject, iDevice);
+
     Wait.seconds(WAIT_TIME)
       .expecting("launched client to appear")
-      .until(() -> RunContentManager.getInstance(myProject).getAllDescriptors().stream()
-        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
-        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
-                           DefaultRunExecutor.getRunExecutorInstance())
-        .filter(handler -> handler.isAssociated(iDevice))
-        .anyMatch(handler -> handler.getClient(iDevice) != null)
-      );
+      .until(captor);
+
+    return captor.getCapturedAndroidDeviceHandler().get();
   }
 
-  private void awaitTermination(@NotNull IDevice iDevice) {
+  private void awaitTermination(@NotNull AndroidProcessHandler androidProcessHandler, @NotNull IDevice iDevice) {
+    Wait.seconds(WAIT_TIME)
+      .expecting("process handler to stop")
+      .until(() -> androidProcessHandler.isProcessTerminated());
+
     Wait.seconds(WAIT_TIME)
       .expecting("launched app to stop")
-      .until(() -> RunContentManager.getInstance(myProject).getAllDescriptors().stream()
-        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
-        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
-                           DefaultRunExecutor.getRunExecutorInstance())
-        .filter(handler -> handler.isAssociated(iDevice))
-        .allMatch(handler -> handler.isProcessTerminated()));
+      .until(() -> Arrays.stream(iDevice.getClients()).noneMatch(
+        c ->
+          PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
+          PACKAGE_NAME.equals(c.getClientData().getPackageName())));
   }
 
   private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {
-    File baseDir = new File(project.getBasePath());
-    File targetApkFile = new File(baseDir, DEPLOY_APK_NAME);
+    try {
+      VirtualFile baseDir = VfsUtil.findFileByIoFile(new File(project.getBasePath()), true);
+      assertThat(baseDir.isDirectory()).isTrue();
 
-    FileUtilRt.delete(targetApkFile);
-    assertThat(targetApkFile.exists()).isFalse();
+      VirtualFile targetApkFile = VfsUtil.refreshAndFindChild(baseDir, DEPLOY_APK_NAME);
+      if (targetApkFile != null && targetApkFile.exists()) {
+        GuiTask.execute(() -> WriteAction.run(() -> targetApkFile.delete(this)));
+        assertThat(targetApkFile.exists()).isFalse();
+      }
 
-    if (apk == APK.NONE) {
-      return;
+      if (apk == APK.NONE) {
+        return;
+      }
+
+      VirtualFile apkFile = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        try {
+          WriteAction.run(() -> {
+            VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
+            assertThat(targetApkCopy.isValid()).isTrue();
+            VirtualFileManager.getInstance().syncRefresh();
+          });
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
     }
-
-    File apkFile = TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath());
-
-    FileUtilRt.copy(apkFile, targetApkFile);
-    assertThat(targetApkFile.isFile()).isTrue();
+    finally {
+      // We need to refresh the VFS because we're modifying files here and some listeners may fire
+      // at "inappropriate" times if we don't do it now.
+      GuiTests.refreshFiles();
+      GuiTests.waitForProjectIndexingToFinish(project);
+    }
   }
 }

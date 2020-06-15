@@ -4,6 +4,6 @@
     <bitmap android:src="@drawable/myDrawable"/>
   </item>
   <item>
-    <<error>bitmap</error>/>
+    <bitmap/>
   </item>
 </transition>

@@ -338,7 +338,7 @@ public class ConfigurationManager implements Disposable {
 
     // Look up the default/fallback theme to use for this project (which depends on
     // the screen size when no particular theme is specified in the manifest).
-    return manifest.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getDevice());
+    return manifest.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice());
   }
 
   @NotNull

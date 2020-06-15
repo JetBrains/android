@@ -26,12 +26,8 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.intellij.ide.impl.OpenProjectTask;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiWhiteSpace;
@@ -39,7 +35,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,43 +72,30 @@ public final class GradleFilePsiMerger {
    * compileSdkVersions and support libraries from different versions, which is not supported.
    */
   public static String mergeGradleFiles(
-    @NotNull String source, @NotNull String dest, @Nullable Project project, @Nullable final String supportLibVersionFilter
+    @NotNull String source, @NotNull String dest, @NotNull Project project, @Nullable final String supportLibVersionFilter
   ) {
     source = source.replace("\r", "");
     dest = dest.replace("\r", "");
-    final Project project2;
-    boolean projectNeedsCleanup = false;
-    if (project != null && !project.isDefault()) {
-      project2 = project;
-    }
-    else {
-      // todo platform doesn't support dummy projects, how does it supposed to work?
-      project2 = ProjectManagerEx.getInstanceEx().openProject(Paths.get(""), OpenProjectTask.newProject());
-      assert project2 != null;
-      projectNeedsCleanup = true;
+    if (project.isDefault()) {
+      throw new UnsupportedOperationException();
     }
 
     source = source.trim();
     dest = dest.trim();
 
-    final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(
+    final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project).createFileFromText(
       SdkConstants.FN_BUILD_GRADLE, GroovyFileType.GROOVY_FILE_TYPE, source);
-    final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(
+    final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project).createFileFromText(
       SdkConstants.FN_BUILD_GRADLE, GroovyFileType.GROOVY_FILE_TYPE, dest);
 
-    String result = WriteCommandAction.writeCommandAction(project2, existingBuildFile).withName("Merged Gradle Files").compute(() -> {
+    return WriteCommandAction.writeCommandAction(project, existingBuildFile).withName("Merged Gradle Files").compute(() -> {
       // Make sure that the file we are merging in to has a trailing new line. This ensures that any added elements
       // appear at the bottom of the file, it also keeps consistency with how projects created with the Wizards look.
       addTrailingNewLine(existingBuildFile);
-      mergePsi(templateBuildFile, existingBuildFile, project2, supportLibVersionFilter);
-      PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
+      mergePsi(templateBuildFile, existingBuildFile, project, supportLibVersionFilter);
+      PsiElement formatted = CodeStyleManager.getInstance(project).reformat(existingBuildFile);
       return formatted.getText();
     });
-
-    if (projectNeedsCleanup) {
-      ApplicationManager.getApplication().runWriteAction(() -> Disposer.dispose(project2));
-    }
-    return result;
   }
 
   private static void mergePsi(@NotNull PsiElement fromRoot,

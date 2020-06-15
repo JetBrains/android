@@ -15,23 +15,27 @@
  */
 package com.android.tools.idea.lint
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.LintOptions
 import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.lint.checks.BuiltinIssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Severity
 import com.android.utils.NullLogger
-import com.google.wireless.android.sdk.stats.*
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.LintAction
+import com.google.wireless.android.sdk.stats.LintIssueId
 import com.google.wireless.android.sdk.stats.LintIssueId.LintSeverity
+import com.google.wireless.android.sdk.stats.LintPerformance
+import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import org.jetbrains.android.inspections.lint.ProblemData
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -59,8 +63,8 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     type: LintSession.AnalysisType,
     driver: LintDriver,
     severityModule: Module?,
-    warnings1: List<ProblemData>?,
-    warnings2: Map<Issue, Map<File, List<ProblemData>>>?
+    warnings1: List<LintProblemData>?,
+    warnings2: Map<Issue, Map<File, List<LintProblemData>>>?
   ) {
     if (project.isDisposed) return
 
@@ -144,8 +148,8 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     }
 
   private fun computeIssueData(
-    warnings1: List<ProblemData>?,
-    warnings2: Map<Issue, Map<File, List<ProblemData>>>?,
+    warnings1: List<LintProblemData>?,
+    warnings2: Map<Issue, Map<File, List<LintProblemData>>>?,
     severityModule: Module?
   ): Map<String, LintIssueId.Builder> {
     val map = HashMap<String, LintIssueId.Builder>(BuiltinIssueRegistry.INITIAL_CAPACITY)
@@ -182,7 +186,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     return map
   }
 
-  private fun recordIssueData(warnings: List<ProblemData>, map: HashMap<String, LintIssueId.Builder>) {
+  private fun recordIssueData(warnings: List<LintProblemData>, map: HashMap<String, LintIssueId.Builder>) {
     for (warning in warnings) {
       val issue = warning.issue
       val id = issue.id

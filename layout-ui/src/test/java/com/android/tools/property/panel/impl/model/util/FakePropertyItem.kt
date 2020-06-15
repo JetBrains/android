@@ -38,12 +38,19 @@ open class FakePropertyItem(
   override val namespaceIcon: Icon?
     get() = if (namespace == SdkConstants.TOOLS_URI) StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE else null
 
-  override var value: String? = initialValue
+  private var _value: String? = initialValue
+
+  override var value
+    get() = _value
     set(value) {
-      field = value
+      _value = value
       resolvedValue = value
       updateCount++
     }
+
+  fun emulateLateValueUpdate(oldValue: String?) {
+    _value = oldValue
+  }
 
   override var defaultValue: String? = null
 

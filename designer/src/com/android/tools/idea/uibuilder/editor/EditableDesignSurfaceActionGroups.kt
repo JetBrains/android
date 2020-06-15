@@ -23,7 +23,8 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.idea.common.editor.DesignSurfaceActionGroups
+import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.idea.uibuilder.actions.DisableToolsAttributesInPreviewAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -32,7 +33,7 @@ import javax.swing.JComponent
 /**
  * Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only work for that kind of files.
  */
-class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : DesignSurfaceActionGroups {
+class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : EditorActionsToolbarActionGroups {
 
   override val zoomControlsGroup: ActionGroup
     get() = createZoomControlsGroup(shortcutConsumer, this)
@@ -40,16 +41,20 @@ class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
 
-  override val panControlsGroup: ActionGroup
-    get() = DefaultActionGroup().apply {
-      add(PanSurfaceAction)
-    }
+  override val otherGroups: List<ActionGroup>
+    get() = listOf(
+      DefaultActionGroup().apply {
+        add(DisableToolsAttributesInPreviewAction)
+      },
+      DefaultActionGroup().apply {
+        add(PanSurfaceAction)
+      })
 }
 
 /**
  * Populates the most basic/common actions that can be used on the DesignSurface.
  */
-class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : DesignSurfaceActionGroups {
+class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : EditorActionsToolbarActionGroups {
 
   override val zoomControlsGroup: ActionGroup
     get() = createZoomControlsGroup(shortcutConsumer, this)
@@ -57,8 +62,8 @@ class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) :
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
 
-  override val panControlsGroup: ActionGroup
-    get() = DefaultActionGroup.EMPTY_GROUP
+  override val otherGroups: List<ActionGroup>
+    get() = listOf()
 }
 
 private fun createZoomControlsGroup(shortcutConsumer: JComponent, parentDisposable: Disposable) =

@@ -172,6 +172,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
   private boolean myUseSrcCompat;
 
+  /**
+   * If true, the parser will substitute 'android' and 'app' namespaced attributes with declared 'tools' attributes.
+   * <p>
+   * Eg: 'tools:visibility' will override 'android:visibility'.
+   */
+  private boolean myUseToolsNamespace;
+
   private final ImmutableMap<String, TagSnapshot> myDeclaredAaptAttrs;
 
   private int mySampleDataCounter;
@@ -245,13 +252,14 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                            @NotNull IRenderLogger logger,
                                            @Nullable Set<XmlTag> explodeNodes,
                                            @NotNull Density density,
-                                           @Nullable ResourceResolver resourceResolver) {
+                                           @Nullable ResourceResolver resourceResolver,
+                                           @NotNull Boolean useToolsNamespace) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
       return new PaddingLayoutPsiPullParser(file, logger, explodeNodes, density);
     } else {
       // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
       // the tools:parentTag
-      return new LayoutPsiPullParser(file, logger, true, resourceResolver);
+      return new LayoutPsiPullParser(file, logger, true, resourceResolver, useToolsNamespace);
     }
   }
 
@@ -293,7 +301,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resolver,
                                 int sampleDataCounter) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resolver, sampleDataCounter);
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resolver, sampleDataCounter, true);
   }
 
   /**
@@ -308,8 +316,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   protected LayoutPsiPullParser(@NotNull XmlFile file,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
-                                @Nullable ResourceResolver resourceResolver) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, 0);
+                                @Nullable ResourceResolver resourceResolver,
+                                boolean useToolsNamespace) {
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, 0, useToolsNamespace);
   }
 
   /**
@@ -346,7 +355,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver) {
-    this(root, logger, honorMergeParentTag, resourceResolver, 0);
+    this(root, logger, honorMergeParentTag, resourceResolver, 0, true);
   }
 
   /**
@@ -358,10 +367,12 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
-                                int sampleDataCounter) {
+                                int sampleDataCounter,
+                                boolean useToolsNamespace) {
     myResourceResolver = resourceResolver;
     myLogger = logger;
     mySampleDataCounter = sampleDataCounter;
+    myUseToolsNamespace = useToolsNamespace;
 
     Ref<TagSnapshot> myRootRef = new Ref<>(EMPTY_LAYOUT);
     Ref<ResourceNamespace> myLayoutNamespaceRef = new Ref<>(ResourceNamespace.RES_AUTO);
@@ -664,10 +675,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     if (namespace == null) {
       value = tag.getAttribute(localName);
     }
+    else if (!myUseToolsNamespace && namespace.equals(TOOLS_URI)) {
+      value = null;
+    }
     else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
       // tools attributes can override both android and app namespace attributes
       String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
-      if (toolsPrefix == null) {
+      if (toolsPrefix == null || !myUseToolsNamespace) {
         // tools namespace is not declared
         value = tag.getAttribute(localName, namespace);
       }

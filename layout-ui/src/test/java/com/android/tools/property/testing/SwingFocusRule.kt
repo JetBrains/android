@@ -15,10 +15,14 @@
  */
 package com.android.tools.property.testing
 
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.util.ActionCallback
+import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.openapi.wm.impl.IdeFocusManagerHeadless
+import com.intellij.openapi.wm.IdeFrame
 import org.junit.rules.ExternalResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -29,6 +33,7 @@ import sun.awt.AWTAccessor
 import sun.awt.CausedFocusEvent
 import java.awt.*
 import java.awt.peer.ComponentPeer
+import javax.swing.JComponent
 
 /**
  * Rule that provides mock peers for Swing components and keeps track of focus.
@@ -45,7 +50,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
   private var oldFocusManager : KeyboardFocusManager? = null
-  private val answer = Answer<Boolean> { invocation ->
+  private val answer = Answer { invocation ->
     val componentToGainFocus = invocation.getArgument<Component>(0)
     val temporary = invocation.getArgument<Boolean>(1)
     val cause = invocation.getArgument<CausedFocusEvent.Cause>(4)
@@ -200,10 +205,41 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
    * Some components in uses an [IdeFocusManager] instead of [KeyboardFocusManager]
    * to find out the current focus owner.
    */
-  private inner class MyIdeFocusManager(private val focusManager: MyKeyboardFocusManager) : IdeFocusManagerHeadless() {
+  private inner class MyIdeFocusManager(private val focusManager: MyKeyboardFocusManager) : IdeFocusManager() {
+
     override fun getFocusOwner(): Component? {
       return focusManager.focusOwner
     }
+
+    override fun getFocusTargetFor(comp: JComponent): JComponent? = null
+
+    override fun doWhenFocusSettlesDown(runnable: Runnable) = runnable.run()
+
+    override fun doWhenFocusSettlesDown(runnable: Runnable, modality: ModalityState) = runnable.run()
+
+    override fun doWhenFocusSettlesDown(runnable: ExpirableRunnable) = runnable.run()
+
+    override fun getFocusedDescendantFor(comp: Component): Component? = null
+
+    override fun requestDefaultFocus(forced: Boolean): ActionCallback = ActionCallback.DONE
+
+    override fun isFocusTransferEnabled(): Boolean = true
+
+    override fun setTypeaheadEnabled(enabled: Boolean) {}
+
+    override fun runOnOwnContext(context: DataContext, runnable: Runnable) = runnable.run()
+
+    override fun getLastFocusedFor(frame: Window?): Component? = null
+
+    override fun getLastFocusedFrame(): IdeFrame? = null
+
+    override fun getLastFocusedIdeWindow(): Window? = null
+
+    override fun toFront(c: JComponent?) {}
+
+    override fun requestFocus(c: Component, forced: Boolean): ActionCallback = ActionCallback.DONE
+
+    override fun dispose() {}
   }
 
   /**

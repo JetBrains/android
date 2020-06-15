@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.projectsystem
 
-import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -29,23 +29,30 @@ import com.intellij.openapi.project.Project
  * sure that sync results are broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] and the latest sync result is recorded
  * regardless of whether or not a project system method has been called.
  */
-class GradleSyncResultPublisher(val project: Project) : SyncWithSourceGenerationListener() {
+class GradleSyncResultPublisher(val project: Project) : GradleSyncListener {
   var lastSyncResult: ProjectSystemSyncManager.SyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN
     private set
 
   init {
     GradleSyncState.subscribe(project, this)
-    GradleBuildState.subscribe(project, this)
   }
 
-  override fun syncFinished(sourceGenerationRequested: Boolean, result: ProjectSystemSyncManager.SyncResult) {
-    lastSyncResult = result
-    project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(result)
+  override fun syncSucceeded(project: Project) = syncFinished(project, ProjectSystemSyncManager.SyncResult.SUCCESS)
+
+  override fun syncFailed(project: Project, errorMessage: String) = syncFinished(project, ProjectSystemSyncManager.SyncResult.FAILURE)
+
+  override fun syncSkipped(project: Project) = syncFinished(project, ProjectSystemSyncManager.SyncResult.SKIPPED)
+
+  private fun syncFinished(project: Project, result: ProjectSystemSyncManager.SyncResult) {
+    if (!project.isDisposed) {
+      lastSyncResult = result
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(result)
+    }
   }
 
   companion object {
     @JvmStatic
     fun getInstance(project: Project): GradleSyncResultPublisher =
-        ServiceManager.getService(project, GradleSyncResultPublisher::class.java)
+      ServiceManager.getService(project, GradleSyncResultPublisher::class.java)
   }
 }

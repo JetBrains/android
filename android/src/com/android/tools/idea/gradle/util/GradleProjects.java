@@ -22,6 +22,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isE
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -145,7 +146,7 @@ public final class GradleProjects {
       return true;
     }
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+    if (androidFacet != null && AndroidModel.isRequired(androidFacet)) {
       return true;
     }
     return false;

@@ -300,7 +300,7 @@ public class AndroidSdks {
     Sdk sdk = table.createSdk(tempName, AndroidSdkType.getInstance());
 
     SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target, jdk);
-    sdkModificator.setHomePath(sdkPath.getPath());
+    sdkModificator.setHomePath(toSystemIndependentName(sdkPath.getPath()));
     setUpSdkAndCommit(sdkModificator, sdkName, Arrays.asList(table.getAllJdks()), addRoots);
 
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));

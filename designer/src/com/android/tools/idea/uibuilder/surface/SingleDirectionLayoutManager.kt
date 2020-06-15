@@ -146,13 +146,19 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       return rectangle
     }
 
+    val index = sceneViews.indexOf(targetSceneView)
+    if (index == -1) {
+      // TODO(b/145552388): Temporarily workaround: It looks like there is a race condition here because we shouldn't try to find the
+      //                    bounds of a deattached SceneView.
+      rectangle.setBounds(0, 0, 0, 0)
+      return rectangle
+    }
+
     val leftBound = surfaceRect.x
     val topBound = surfaceRect.y
     val rightBound = surfaceRect.x + surfaceRect.width
     val bottomBound = surfaceRect.y + surfaceRect.height
 
-    val index = sceneViews.indexOf(targetSceneView)
-    assert(index != -1)
     val lastSceneViewIndex = sceneViews.size - 1
     if (isVertical(sceneViews, availableWidth , availableHeight)) {
       rectangle.x = leftBound

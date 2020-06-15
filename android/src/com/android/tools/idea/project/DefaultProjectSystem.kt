@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
@@ -25,6 +26,8 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -37,6 +40,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import java.nio.file.Path
 
 /**
@@ -89,4 +94,13 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   }
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
+
+  override val submodules: Collection<Module>
+    get() = getSubmodules(project, null)
+
+  override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
+    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
+      return createSourceProvidersForLegacyModule(facet)
+    }
+  }
 }

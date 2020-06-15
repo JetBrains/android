@@ -16,17 +16,22 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * The data model for all the information in the MotionScene and Layout file
  */
 public class MeModel {
+  @SuppressWarnings("SSBasedInspection")
+  public static final String[] EMPTY_STRING_ARRAY = new String[0];
   public final boolean DEBUG = false;
   public final MTag motionScene;
   public final MTag layout;
@@ -35,6 +40,8 @@ public class MeModel {
   MotionEditorSelector.Type mSelectedType;
   public MTag[] mSelected;
   private float mProgress;
+  private String[] mSelectedViewIDs = EMPTY_STRING_ARRAY;
+  public Track myTrack;
 
   void clearViewInfo() {
     MTag[] view = layout.getChildTags();
@@ -52,7 +59,7 @@ public class MeModel {
    */
   public HashMap<String, MotionAttributes> populateViewInfo(MTag constraintSet) {
     if (DEBUG) {
-      Debug.log("populateViewInfo : configuring Attributes "+constraintSet.getAttributeValue("id"));
+      Debug.log("populateViewInfo : configuring Attributes " + constraintSet.getAttributeValue("id"));
     }
     ArrayList<String> ids = new ArrayList<>();
     HashMap<String, MotionAttributes> viewBundles = new HashMap<>();
@@ -184,6 +191,14 @@ public class MeModel {
     return null;
   }
 
+  public MeModel(MTag motionScene, MTag layout, String layoutFileName, String motionSceneFileName, Track track) {
+    this.layout = layout;
+    this.motionScene = motionScene;
+    this.layoutFileName = layoutFileName;
+    this.motionSceneFileName = motionSceneFileName;
+    this.myTrack = track;
+  }
+
   public MeModel(MTag motionScene, MTag layout, String layoutFileName, String motionSceneFileName) {
     this.layout = layout;
     this.motionScene = motionScene;
@@ -191,8 +206,9 @@ public class MeModel {
     this.motionSceneFileName = motionSceneFileName;
   }
 
-  public MTag getConstraintSet(String start) {
-    MTag[] sets = motionScene.getChildTags("ConstraintSet", "id", start);
+  public MTag getConstraintSet(String id) {
+    id = Utils.stripID(id);
+    MTag[] sets = motionScene.getChildTags("ConstraintSet", "id", id);
     if (sets.length == 1) {
       return sets[0];
     }
@@ -201,8 +217,8 @@ public class MeModel {
 
   public void setSelected(MotionEditorSelector.Type type, MTag[] tags) {
     if (type == MotionEditorSelector.Type.CONSTRAINT_SET) {
-      MTag [] constraints = tags[0].getChildTags();
-      HashMap<String, MTag> constraintMap  = new HashMap<>();
+      MTag[] constraints = tags[0].getChildTags();
+      HashMap<String, MTag> constraintMap = new HashMap<>();
       for (int i = 0; i < constraints.length; i++) {
         MTag constraint = constraints[i];
         String id = constraint.getAttributeValue("id");
@@ -222,7 +238,8 @@ public class MeModel {
         view.setClientData(MotionSceneUtils.MOTION_LAYOUT_PROPERTIES, motionAttributeSet.get(id));
         view.setClientData(MotionSceneUtils.MTAG_ACCESS, constraintMap.get(id));
       }
-    } else if (type == MotionEditorSelector.Type.LAYOUT) {
+    }
+    else if (type == MotionEditorSelector.Type.LAYOUT) {
       clearViewInfo();
     }
     mSelectedType = type;
@@ -248,7 +265,7 @@ public class MeModel {
   public String[] getLayoutViewNames() {
     ArrayList<String> ret = new ArrayList<>();
     if (layout == null) {
-      return new String[0];
+      return EMPTY_STRING_ARRAY;
     }
     MTag[] allViews = layout.getChildTags();
     for (int j = 0; j < allViews.length; j++) {
@@ -257,7 +274,43 @@ public class MeModel {
       String layoutId = Utils.stripID(view.getAttributeValue("id"));
       ret.add(layoutId);
     }
-    return ret.toArray(new String[0]);
+    return ret.toArray(EMPTY_STRING_ARRAY);
+  }
+
+  /**
+   * Given a transition or a child of transition find the related start constraintSet
+   *
+   * @param transitionOrChild
+   * @return start constraintSet
+   */
+  public MTag findStartConstraintSet(MTag transitionOrChild) {
+    MTag transition = transitionOrChild;
+    while (!MotionSceneAttrs.Tags.TRANSITION.equals(transition.getTagName())) {
+      transition = transition.getParent();
+      if (transition == null) {
+        return null;
+      }
+    }
+    String start = transition.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START);
+    return getConstraintSet(start);
+  }
+
+  /**
+   * Given a transition or a child of transition find the related end constraintSet
+   *
+   * @param transitionOrChild
+   * @return end constraintSet
+   */
+  public MTag findEndConstraintSet(MTag transitionOrChild) {
+    MTag transition = transitionOrChild;
+    while (!MotionSceneAttrs.Tags.TRANSITION.equals(transition.getTagName())) {
+      transition = transition.getParent();
+      if (transition == null) {
+        return null;
+      }
+    }
+    String end = transition.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END);
+    return getConstraintSet(end);
   }
 
   public void findStartAndEndValues(MTag layout, String attribute, MTag mTag, String[] values) {
@@ -320,7 +373,7 @@ public class MeModel {
       }
       String derivedStr = cSet.getAttributeValue("deriveConstraintsFrom");
       if (derivedStr != null) {
-        MTag[] derivedTag = cSet.getParent().getChildTags("ConstraintSet", "id", derivedStr);
+        MTag[] derivedTag = cSet.getParent().getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET, MotionSceneAttrs.ATTR_ANDROID_ID, derivedStr);
         if (derivedTag != null && derivedTag.length > 0) {
           return findAttribute(layout, derivedTag[0], id, attribute);
         }
@@ -367,7 +420,7 @@ public class MeModel {
   }
 
   public MTag findTag(String type, String id) {
-    if (mSelectedType == null) {
+    if (mSelectedType == null || id == null) {
       return null;
     }
 
@@ -381,6 +434,7 @@ public class MeModel {
         break;
       case CONSTRAINT:
         tag = tag.getParent(); // for constraint we need to go up a level to the constraint set
+        // falls through
       case CONSTRAINT_SET:
         MTag[] look = tag.getChildTags("id", id);
         if (look != null && look.length > 0) {
@@ -396,5 +450,22 @@ public class MeModel {
         }
     }
     return null;
+  }
+
+  /**
+   * This caches the selected view ids to allow them to be reselected from constraintSet to MotionLayout panel
+   *
+   * @param ids
+   */
+  public void setSelectedViewIDs(List<String> ids) {
+    mSelectedViewIDs = ids.toArray(EMPTY_STRING_ARRAY);
+  }
+
+  public void setSelectedViewIDs(@NotNull String[] ids) {
+    mSelectedViewIDs = ids;
+  }
+
+  public String[] getSelectedViewIDs() {
+    return mSelectedViewIDs;
   }
 }

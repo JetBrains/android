@@ -5,6 +5,10 @@ Note: this documentation has a good chance of becoming obsolete as JetBrains mak
 For example, Kotlin plugin version 1.3.50 is enabling "ultra-light" classes by default, which might change some of the performance
 characteristics discussed here.
 
+Kotlin light classes are only loosely related to "light R classes" and similar features of Android Studio (see
+[android-light-classes.md](android-light-classes.md)). Both mechanisms borrow the name from `LightElement`, which is a supertype for PSI
+elements not backed by actual source code (i.e. not created by a `PsiParser`), but implement the idea in very different ways.
+
 Background
 ---
 When the IDE uses the Kotlin compiler to parse Kotlin files, the result is a bunch of KtElements (e.g., KtClass, KtConstructor, etc.).

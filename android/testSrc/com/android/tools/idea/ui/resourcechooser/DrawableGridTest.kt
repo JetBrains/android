@@ -37,17 +37,12 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Image
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.swing.DefaultListModel
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.*
 
 class DrawableGridTest {
 
@@ -143,16 +138,16 @@ private fun assertColor(icon: Icon,
 }
 
 class StubRenderer : DesignAssetRenderer {
-  private val future = CompletableFuture<Image?>()
+  private val future = CompletableFuture<BufferedImage?>()
   private val latch = CountDownLatch(1)
 
   override fun isFileSupported(file: VirtualFile) = true
 
   override fun getImage(file: VirtualFile,
                         module: Module?,
-                        dimension: Dimension): CompletableFuture<out Image?> = future
+                        dimension: Dimension): CompletableFuture<out BufferedImage?> = future
 
-  fun simulateRender(image: Image?) {
+  fun simulateRender(image: BufferedImage?) {
     future.complete(image)
     latch.countDown()
   }

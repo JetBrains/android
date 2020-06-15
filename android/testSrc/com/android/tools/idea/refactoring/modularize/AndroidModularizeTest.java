@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;

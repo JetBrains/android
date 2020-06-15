@@ -169,6 +169,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     doReturn(getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);
 
     // Verify generated hyperlinks
+/* b/144931471
     List<NotificationHyperlink> quickFixes = new MissingAndroidPluginErrorHandler().getQuickFixHyperlinks(spyProject, "Test Error");
     assertThat(quickFixes).hasSize(2);
     assertThat(quickFixes.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
@@ -178,6 +179,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
 
     assertNull(myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
+b/144931471 */
   }
 
   @NotNull

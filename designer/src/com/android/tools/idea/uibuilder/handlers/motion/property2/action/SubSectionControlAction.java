@@ -16,38 +16,39 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.property.panel.api.InspectorLineModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlTag;
-import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SubSectionControlAction extends AnAction {
   private final NelePropertyItem myProperty;
   private InspectorLineModel myLineModel;
+  private LookupResult myLookupResult;
 
   public SubSectionControlAction(@Nullable NelePropertyItem property) {
     myProperty = property;
+    myLookupResult = new LookupResult();
   }
 
   public void setLineModel(@NotNull InspectorLineModel lineModel) {
     myLineModel = lineModel;
-    myLineModel.setEnabled(isPresent());
+    myLineModel.setEnabled(check());
   }
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    boolean isPresent = isPresent();
+    boolean isPresent = check();
     Presentation presentation = event.getPresentation();
+    presentation.setDescription(getCommandName(isPresent));
     presentation.setIcon(isPresent ? AllIcons.Diff.GutterCheckBoxSelected : AllIcons.Diff.GutterCheckBox);
     if (myLineModel != null) {
       myLineModel.setEnabled(isPresent);
@@ -56,41 +57,66 @@ public class SubSectionControlAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    if (myProperty == null) {
-      return;
-    }
-    MotionSceneTag tag = MotionLayoutAttributesModel.getMotionTag(myProperty);
-    String subSection = MotionLayoutAttributesModel.getConstraintSection(myProperty);
-    boolean isPresent = tag != null && subSection != null && tag.getChildTags(subSection).length > 0;
-    if (tag == null || subSection == null) {
+    boolean isPresent = check();
+    String commandName = getCommandName(isPresent);
+    if (commandName == null) {
       return;
     }
     if (isPresent) {
-      XmlTag xmlTag = tag.getXmlTag();
-      if (xmlTag == null) {
-        return;
-      }
-      Project project = myProperty.getProject();
-      TransactionGuard.submitTransaction(project, () -> WriteCommandAction.runWriteCommandAction(
-        project,
-        "Remove " + subSection,
-        null,
-        () -> Arrays.stream(xmlTag.getSubTags())
-          .filter(sub -> sub.getLocalName().equals(subSection))
-          .forEach(sub -> sub.delete()),
-        xmlTag.getContainingFile()));
+      MTag.TagWriter tagWriter = myLookupResult.subTag.getTagWriter();
+      tagWriter.deleteTag();
+      tagWriter.commit(commandName);
     }
     else {
-      MotionLayoutAttributesModel.createConstraintTag(tag, subSection, myProperty, false, null);
+      MTag.TagWriter tagWriter = MotionLayoutAttributesModel.createSubTag(myLookupResult.selection,
+                                                                          myLookupResult.tag,
+                                                                          myLookupResult.subTagName);
+      tagWriter.commit(commandName);
     }
   }
 
-  private boolean isPresent() {
+  private boolean check() {
     if (myProperty == null) {
       return false;
     }
-    MotionSceneTag tag = MotionLayoutAttributesModel.getMotionTag(myProperty);
-    String subSection = MotionLayoutAttributesModel.getConstraintSection(myProperty);
-    return tag != null && (subSection == null || tag.getChildTags(subSection).length > 0);
+    MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);
+    String subTagName = MotionLayoutAttributesModel.getSubTag(myProperty);
+    if (selection == null || subTagName == null ||
+        (selection.getType() != MotionEditorSelector.Type.CONSTRAINT &&
+         selection.getType() != MotionEditorSelector.Type.TRANSITION)) {
+      return false;
+    }
+    MotionSceneTag tag = selection.getMotionSceneTag();
+    if (tag == null) {
+      return false;
+    }
+    MotionSceneTag subTag = MotionLayoutAttributesModel.getSubTag(tag, subTagName);
+    myLookupResult.selection = selection;
+    myLookupResult.tag = tag;
+    myLookupResult.subTagName = subTagName;
+    myLookupResult.subTag = subTag;
+
+    return subTag != null;
+  }
+
+  @Nullable
+  private String getCommandName(boolean isPresent) {
+    String subTagName = myLookupResult.subTagName;
+    if (subTagName == null) {
+      return null;
+    }
+    if (!isPresent) {
+      return String.format("Create %1$s tag", subTagName);
+    }
+    else {
+      return String.format("Remove %1$s tag", subTagName);
+    }
+  }
+
+  private static class LookupResult {
+    MotionSelection selection;
+    MotionSceneTag tag;
+    String subTagName;
+    MotionSceneTag subTag;
   }
 }

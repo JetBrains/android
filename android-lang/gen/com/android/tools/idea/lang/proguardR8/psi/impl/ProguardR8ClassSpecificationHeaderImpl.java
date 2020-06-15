@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
+import com.intellij.psi.PsiClass;
 
 public class ProguardR8ClassSpecificationHeaderImpl extends ASTWrapperPsiElement implements ProguardR8ClassSpecificationHeader {
 
@@ -65,6 +66,24 @@ public class ProguardR8ClassSpecificationHeaderImpl extends ASTWrapperPsiElement
   @NotNull
   public ProguardR8ClassType getClassType() {
     return findNotNullChildByClass(ProguardR8ClassType.class);
+  }
+
+  @Override
+  @NotNull
+  public List<ProguardR8SuperClassName> getSuperClassNameList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8SuperClassName.class);
+  }
+
+  @Override
+  @NotNull
+  public List<PsiClass> resolvePsiClasses() {
+    return ProguardR8PsiImplUtil.resolvePsiClasses(this);
+  }
+
+  @Override
+  @NotNull
+  public List<PsiClass> resolveSuperPsiClasses() {
+    return ProguardR8PsiImplUtil.resolveSuperPsiClasses(this);
   }
 
 }

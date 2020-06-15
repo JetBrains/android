@@ -15,8 +15,9 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.tools.adtui.stdui.StandardDimensions
+import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_UNSCALED
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes.GRAYED_ATTRIBUTES
@@ -25,9 +26,11 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.UIManager
 
 private const val INDENT_NO_HEADER = 0
 private const val INDENT_WITH_HEADER = 10
@@ -38,36 +41,58 @@ private const val INDENT_WITH_HEADER = 10
  * This renderer supports the display of headers, separators, and indented items.
  */
 open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
-  private val panel = JPanel(BorderLayout())
-  private val separator = JSeparator()
-  private val header = JBLabel()
+  private val separator = createCenteredSeparator()
+  private val headerLabel = JBLabel()
 
   init {
-    header.foreground = JBColor(0x444444, 0xCCCCCC)
-    header.border = JBUI.Borders.emptyLeft(TOP_ITEM_INDENT)
+    headerLabel.foreground = JBColor(0x444444, 0xCCCCCC)
+    headerLabel.border = JBUI.Borders.emptyLeft(TOP_ITEM_INDENT)
+    ipad.left = 0
+    ipad.right = 0
+  }
+
+  private fun createCenteredSeparator(): JComponent {
+    // Make the separator appear in the middle of the list element.
+    // Remove this when CompoBoxWithWidePopup no longer requires all elements to have this minimum height.
+    // See WideSelectionListUI.updateLayoutState
+    val separator = JPanel(BorderLayout())
+    val line = JSeparator()
+    val panel = object : JPanel(BorderLayout()) {
+      override fun updateUI() {
+        super.updateUI()
+        updateBorder(this, line)
+      }
+    }
+    panel.add(line, BorderLayout.CENTER)
+    separator.add(panel, BorderLayout.CENTER)
+    return separator
+  }
+
+  private fun updateBorder(panel: JPanel, line: JSeparator) {
+    val rowHeight = UIManager.getInt("List.rowHeight")
+    val spacing = (rowHeight - line.preferredSize.height) / 2 - JBUI.scale(OUTER_BORDER_UNSCALED)
+    panel.border = BorderFactory.createEmptyBorder(spacing, 0, spacing, 0)
   }
 
   override fun getListCellRendererComponent(
     list: JList<out EnumValue>, item: EnumValue?, index: Int, selected: Boolean, hasFocus: Boolean
   ): Component? {
     clear()
-    if (item == null) return this
-    val lineItem = super.getListCellRendererComponent(list, item, index, selected, hasFocus)
-    if (index < 0) return lineItem
-    separator.isVisible = item.separator
-    header.isVisible = item.header.isNotEmpty()
-    header.text = item.header
-    header.background = list.background
-    panel.removeAll()
-    panel.background = list.background
-    panel.add(separator, BorderLayout.NORTH)
-    panel.add(header, BorderLayout.CENTER)
-    panel.add(lineItem, BorderLayout.SOUTH)
-    return panel
+    when (item) {
+      null -> return this
+      EnumValue.SEPARATOR -> return separator
+      is HeaderEnumValue -> return getHeaderRenderer(item.header)
+      else -> return super.getListCellRendererComponent(list, item, index, selected, hasFocus)
+    }
+  }
+
+  private fun getHeaderRenderer(header: String): Component {
+    headerLabel.text = header
+    return headerLabel
   }
 
   override fun customizeCellRenderer(list: JList<out EnumValue>, item: EnumValue, index: Int, selected: Boolean, hasFocus: Boolean) {
-    border = BorderFactory.createEmptyBorder(0, indent(item, index), 0, 0)
+    ipad.left = indent(item, index)
     customize(item)
   }
 
@@ -89,7 +114,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     }
 
   companion object {
-    private val TOP_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + JBUI.scale(INDENT_NO_HEADER)
-    private val SUB_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + JBUI.scale(INDENT_WITH_HEADER)
+    private val TOP_ITEM_INDENT = JBUI.scale(INDENT_NO_HEADER)
+    private val SUB_ITEM_INDENT = JBUI.scale(INDENT_WITH_HEADER)
   }
 }

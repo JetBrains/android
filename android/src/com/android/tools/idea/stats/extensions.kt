@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.stats
 
-import com.android.builder.model.AndroidProject
+import com.android.AndroidProjectTypes
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.module.ModuleManager
@@ -75,7 +75,7 @@ private fun getApplicationId(project: Project): String? {
     val androidModel = AndroidModel.get(module)
     if (androidModel != null) {
       val faucet = AndroidFacet.getInstance(module)
-      if (faucet != null && faucet.properties.PROJECT_TYPE == AndroidProject.PROJECT_TYPE_APP) {
+      if (faucet != null && faucet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP) {
         return androidModel.applicationId
       }
     }

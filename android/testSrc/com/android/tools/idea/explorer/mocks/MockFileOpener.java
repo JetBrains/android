@@ -15,22 +15,29 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
-import com.android.tools.idea.explorer.FileOpener;
+import com.android.tools.idea.explorer.DeviceExplorerController;
 import com.android.tools.idea.explorer.FutureValuesTracker;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.jetbrains.annotations.NotNull;
 
-public class MockFileOpener implements FileOpener {
+public class MockFileOpener implements DeviceExplorerController.FileOpener {
 
-  public final FutureValuesTracker<Void> tracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Path> myOpenFileTracker = new FutureValuesTracker<>();
 
   @Override
-  public boolean canOpenFile(VirtualFile virtualFile) {
-    return true;
+  public void openFile(@NotNull Path localPath) {
+    myOpenFileTracker.produce(localPath);
   }
 
   @Override
-  public void openFile(Project project, VirtualFile virtualFile) {
-    tracker.produce(null);
+  public void openFile(@NotNull VirtualFile virtualFile) {
+    myOpenFileTracker.produce(Paths.get(virtualFile.getPath()));
+  }
+
+  @NotNull
+  public FutureValuesTracker<Path> getOpenFileTracker() {
+    return myOpenFileTracker;
   }
 }

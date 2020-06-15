@@ -22,7 +22,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -46,7 +48,7 @@ public class BuildFileProcessorTest extends AndroidGradleTestCase {
 
     myProjectSettings = new GradleProjectSettings();
     Project project = getProject();
-    String projectRootPath = getBaseDirPath(project).getPath();
+    String projectRootPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
     myProjectSettings.setExternalProjectPath(projectRootPath);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(myProjectSettings));
   }
@@ -62,7 +64,7 @@ public class BuildFileProcessorTest extends AndroidGradleTestCase {
 
     List<File> folders = getCompositeBuildFolderPaths(getProject());
     assertThat(folders).hasSize(1);
-    assertThat(folders.get(0).getPath()).isEqualTo(getProject().getBasePath());
+    assertThat(folders.get(0).getPath()).isEqualTo(FileUtils.toSystemDependentPath(getProject().getBasePath()));
   }
 
   /**

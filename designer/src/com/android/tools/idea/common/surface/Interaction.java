@@ -64,8 +64,10 @@ import java.util.List;
  * <li>Link (associate two or more widgets in some way, such as an
  *   "is required" widget linked to a text field)
  * </ul>
+ *
+ * TODO(b/142953949): Remove this class and just use Interaction2
  */
-public class Interaction {
+public abstract class Interaction implements Interaction2 {
   /** Start mouse coordinate, in Swing coordinates */
   @SwingCoordinate protected int myStartX;
 
@@ -75,13 +77,8 @@ public class Interaction {
   /** Initial AWT mask when the interaction started. */
   @InputEventMask protected int myStartMask;
 
-  /**
-   * Returns a list of overlays, from bottom to top (where the later overlays
-   * are painted on top of earlier ones if they overlap).
-   *
-   * @return A list of overlays to buildDisplayList for this interaction, if applicable.
-   * Should not be null, but can be empty.
-   */
+  @Override
+  @NotNull
   public List<Layer> createOverlays() {
     return Collections.emptyList();
   }
@@ -123,15 +120,24 @@ public class Interaction {
 
   /**
    * Handles termination of the interaction. This method is called when the
-   * interaction has terminated (either through successful completion, or because
-   * it was canceled).
+   * interaction has successful completion.
    *
    * @param x           The most recent mouse x coordinate applicable to this interaction
    * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key masks
-   * @param canceled    True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+  }
+
+  /**
+   * Handles termination of the interaction. This method is called when the
+   * interaction has be canceled.
+   *
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key masks
+   */
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
   }
 
   /**

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
@@ -26,6 +27,7 @@ import com.android.builder.model.TestedTargetVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import java.util.Collection;
@@ -37,7 +39,9 @@ import org.jetbrains.annotations.Nullable;
  * Application id provider for Gradle projects.
  */
 public class GradleApplicationIdProvider implements ApplicationIdProvider {
-  /** Default suffix for test packages (as added by Android Gradle plugin). */
+  /**
+   * Default suffix for test packages (as added by Android Gradle plugin).
+   */
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
 
   @NotNull private final AndroidFacet myFacet;
@@ -90,7 +94,31 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       }
     }
 
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
+      String applicationId = tryToGetDynamicFeatureApplicationId();
+      if (applicationId != null) {
+        return applicationId;
+      }
+    }
+
     return ApkProviderUtil.computePackageName(myFacet);
+  }
+
+  @Nullable
+  private String tryToGetDynamicFeatureApplicationId() throws ApkProvisionException {
+    Module baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
+    if (baseAppModule == null) {
+      getLogger().warn("[Instrumented test for Dynamic Features] Can't get base-app module");
+      return null;
+    }
+
+    AndroidFacet baseAppFacet = AndroidFacet.getInstance(baseAppModule);
+    if (baseAppFacet == null) {
+      getLogger().warn("[Instrumented test for Dynamic Features] Can't get base-app Android Facet");
+      return null;
+    }
+
+    return ApkProviderUtil.computePackageName(baseAppFacet);
   }
 
   @Nullable
@@ -136,7 +164,8 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return testPackageName;
     }
 
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_LIBRARY) {
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE
+        || myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_LIBRARY) {
       return ApkProviderUtil.computePackageName(myFacet) + DEFAULT_TEST_PACKAGE_SUFFIX;
     }
     else {

@@ -17,8 +17,10 @@ package com.android.tools.idea.common.model;
 
 import com.android.resources.Density;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -108,7 +110,7 @@ public class Coordinates {
   // DPI
   @AndroidCoordinate
   public static int dpToPx(@NotNull SceneView view, @AndroidDpCoordinate int androidDp) {
-    return dpToPx(view.getSurface(), androidDp);
+    return dpToPx(view.getSceneManager(), androidDp);
   }
 
   @Deprecated  // Use #pxToDp(DesignSurface, int)
@@ -121,22 +123,22 @@ public class Coordinates {
 
   @AndroidCoordinate
   public static int dpToPx(@NotNull SceneView view, @AndroidDpCoordinate float androidDp) {
-    return dpToPx(view.getSurface(), androidDp);
+    return dpToPx(view.getSceneManager(), androidDp);
   }
 
   @AndroidDpCoordinate
   public static int pxToDp(@NotNull SceneView view, @AndroidCoordinate int androidPx) {
-    return pxToDp(view.getSurface(), androidPx);
+    return pxToDp(view.getSceneManager(), androidPx);
   }
 
   @AndroidCoordinate
-  public static int dpToPx(@NotNull DesignSurface surface, @AndroidDpCoordinate float androidDp) {
-    return Math.round(androidDp * surface.getSceneScalingFactor());
+  public static int dpToPx(@NotNull SceneManager manager, @AndroidDpCoordinate float androidDp) {
+    return Math.round(androidDp * manager.getSceneScalingFactor());
   }
 
   @AndroidDpCoordinate
-  public static int pxToDp(@NotNull DesignSurface surface, @AndroidCoordinate int androidPx) {
-    return Math.round(androidPx / surface.getSceneScalingFactor());
+  public static int pxToDp(@NotNull SceneManager manager, @AndroidCoordinate int androidPx) {
+    return Math.round(androidPx / manager.getSceneScalingFactor());
   }
 
   /**
@@ -145,7 +147,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingXDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpX) {
-    return getSwingX(view, dpToPx(view.getSurface(), androidDpX));
+    return getSwingX(view, dpToPx(view.getSceneManager(), androidDpX));
   }
 
   /**
@@ -163,7 +165,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingYDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpY) {
-    return getSwingY(view, dpToPx(view.getSurface(), androidDpY));
+    return getSwingY(view, dpToPx(view.getSceneManager(), androidDpY));
   }
 
   /**
@@ -181,7 +183,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingDimensionDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpDimension) {
-    return getSwingDimension(view, dpToPx(view.getSurface(), androidDpDimension));
+    return getSwingDimension(view, dpToPx(view.getSceneManager(), androidDpDimension));
   }
 
   /**
@@ -324,8 +326,8 @@ public class Coordinates {
    * the {@link DesignSurface} coordinate system.)
    */
   @AndroidDpCoordinate
-  public static int getAndroidDimensionDip(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
-    return pxToDp(surface, getAndroidDimension(surface, swingDimension));
+  public static int getAndroidDimensionDip(@NotNull Scene scene, @SwingCoordinate int swingDimension) {
+    return pxToDp(scene.getSceneManager(), getAndroidDimension(scene.getDesignSurface(), swingDimension));
   }
 
   /**

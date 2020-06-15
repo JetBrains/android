@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.model
 
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -25,7 +25,6 @@ import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
@@ -34,7 +33,8 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
+import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.facet.isManifestFile
 
 
 /**
@@ -65,7 +65,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    *  @see [MergedManifestContributors]
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (file.name == FN_ANDROID_MANIFEST_XML) return IdeaSourceProvider.isManifestFile(facet, file)
+    if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return isManifestFile(facet, file)
 
     fun VirtualFile.couldBeNavigationFolder(): Boolean {
       return isDirectory && parent != null && ResourceFolderType.getFolderType(name) == ResourceFolderType.NAVIGATION
@@ -75,9 +75,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
     if (!file.isDirectory && !couldBeNavigationFile) return false
 
     val couldBeRelevantNavigationFolder = file.couldBeNavigationFolder() && file.children.isNotEmpty()
-    return IdeaSourceProvider.getCurrentSourceProviders(facet)
-      .asSequence()
-      .flatMap { it.resDirectories.asSequence() }
+    return SourceProviderManager.getInstance(facet).sources.resDirectories
       .any { resDir ->
         resDir == file && resDir.children.any { it.couldBeNavigationFolder() && it.children.isNotEmpty() }
         || couldBeRelevantNavigationFolder && resDir == file.parent
@@ -85,7 +83,9 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
       }
   }
 
-  override fun fileChanged(path: PathString, facet: AndroidFacet) = refreshAffectedMergedManifests(facet)
+  override fun fileChanged(path: PathString, facet: AndroidFacet) {
+    refreshAffectedMergedManifests(facet)
+  }
 
   private fun refreshAffectedMergedManifests(facet: AndroidFacet) {
     // While a freshness check for a single manifest should be fast enough to run on any thread, we want to run this off the EDT
@@ -104,8 +104,8 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
   }
 
   /**
-   * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
-   * subscribed once the initial project sync has completed.
+   * Service responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
+   * subscribed to listen for VFS changes once the initial project sync has completed.
    */
   private class SubscriptionService(val project: Project) :
     LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project)),

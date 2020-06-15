@@ -15,37 +15,27 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.DOES_NOT_EXIST;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.EMPTY_PATH;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.INTERNAL_ERROR;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.IS_PROJECT_OR_MODULE;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.MISSING_SUBPROJECTS;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.NOT_ADT_OR_GRADLE;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.NO_MODULES_SELECTED;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.OK;
-import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.PathValidationResult.ResultType.VALIDATING;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.WARNING;
+import static com.intellij.openapi.project.ProjectUtil.guessProjectDir;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.npw.AsyncValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.ui.IconProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -56,29 +46,18 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.UIUtil;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,43 +69,34 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private final ListenerManager myListeners = new ListenerManager();
   private final BindingsManager myBindings = new BindingsManager();
 
-  private final BoolProperty myCanGoForward = new BoolValueProperty();
-  private final ObjectProperty<PathValidationResult> myPageValidationResult = new ObjectValueProperty<>(PathValidationResult.ofType(OK));
+  @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private ValidatorPanel myValidatorPanel;
 
-  @NotNull private PathValidationResult myLocationValidationResult = PathValidationResult.ofType(OK);
+  private final BoolProperty myCanGoForward = new BoolValueProperty();
+
   // Facade is initialised dynamically
   @Nullable private Facade myFacade;
 
   private JPanel myPanel;
   private TextFieldWithBrowseButton mySourceLocation;
-  private JBLabel myErrorWarning;
-  private AsyncProcessIcon myValidationProgress;
   private JBScrollPane myModulesScroller;
   private ModulesTable myModulesPanel;
   private JLabel myRequiredModulesLabel;
-  private JLabel myModuleNameLabel;
-  private JTextField myModuleNameField;
-  private JLabel myPrimaryModuleState;
+
+  // TODO(qumeric): Improve logic so these don't need to all be set to null in applyValidationResult
+  @Nullable private VirtualFile myVFile;
+  @Nullable private ModuleImporter myImporter;
+  @Nullable private Collection<ModuleToImport> myModules;
 
   public SourceToGradleModuleStep(@NotNull SourceToGradleModuleModel model) {
-    super(model, AndroidBundle.message("android.wizard.module.import.source.title"));
+    super(model, message("android.wizard.module.import.source.title"));
 
-    //noinspection DialogTitleCapitalization - incorrectly detects "Gradle" as incorrectly capitalised
-    mySourceLocation.addBrowseFolderListener(AndroidBundle.message("android.wizard.module.import.source.browse.title"),
-                                             AndroidBundle.message("android.wizard.module.import.source.browse.description"),
+    mySourceLocation.addBrowseFolderListener(message("android.wizard.module.import.source.browse.title"),
+                                             message("android.wizard.module.import.source.browse.description"),
                                              getModel().getProject(),
                                              FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
 
     myBindings.bindTwoWay(new TextProperty(mySourceLocation.getTextField()), model.sourceLocation);
-
-    myBindings.bind(new VisibleProperty(myValidationProgress), myPageValidationResult.transform(PathValidationResult::isValidating));
-
-    myBindings.bind(new VisibleProperty(myErrorWarning), myPageValidationResult.transform(result -> result.getIcon() != null));
-    myBindings.bind(new TextProperty(myErrorWarning), myPageValidationResult.transform(PathValidationResult::getMessage));
-    myBindings.bind(new IconProperty(myErrorWarning), myPageValidationResult.transform(result -> Optional.ofNullable(result.getIcon())));
-
-    myErrorWarning.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
-    myPanel.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
 
     myModulesPanel.bindPrimaryModuleEntryComponents(new PrimaryModuleImportSettings(), myRequiredModulesLabel);
     myModulesPanel.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, event -> {
@@ -135,21 +105,13 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       }
     });
 
-    AsyncValidator<?> validator = new AsyncValidator<PathValidationResult>(ApplicationManager.getApplication()) {
-      @Override
-      protected void showValidationResult(@NotNull PathValidationResult result) {
-        applyValidationResult(result);
-      }
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel.registerValidator(model.sourceLocation, value -> checkPath(model.sourceLocation.get()));
 
-      @NotNull
-      @Override
-      protected PathValidationResult validate() {
-        myPageValidationResult.set(PathValidationResult.ofType(VALIDATING));
-        return checkPath(getModel().sourceLocation.get());
-      }
-    };
+    myListeners.listen(myValidatorPanel.getValidationResult(), result -> applyValidationResult(result));
 
-    myListeners.listen(model.sourceLocation, () -> validator.invalidate());
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @Override
@@ -177,7 +139,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myPanel;
+    return myRootPanel;
   }
 
   @Nullable
@@ -188,9 +150,9 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
   @NotNull
   @Override
-  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+  protected Collection<? extends ModelWizardStep<ModuleWizardStepAdapter.AdapterModel>> createDependentSteps() {
     WizardContext context = getModel().getContext();
-    ArrayList<ModelWizardStep> wrappedSteps = new ArrayList<>();
+    ArrayList<ModelWizardStep<ModuleWizardStepAdapter.AdapterModel>> wrappedSteps = new ArrayList<>();
 
     for (ModuleImporter importer : ModuleImporter.getAllImporters(context)) {
       for (ModuleWizardStep inputStep : importer.createWizardSteps()) {
@@ -201,15 +163,18 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     return wrappedSteps;
   }
 
-  private void applyValidationResult(@NotNull PathValidationResult result) {
-    myLocationValidationResult = result;
-
-    myModulesPanel.setModules(getModel().getProject(), result.myVFile, result.myModules);
+  private void applyValidationResult(@NotNull PathValidator.Result result) {
+    if (result.getSeverity().equals(Validator.Severity.ERROR)) {
+      myVFile = null;
+      myModules = null;
+      myImporter = null;
+    }
+    myModulesPanel.setModules(getModel().getProject(), myVFile, myModules);
     myModulesScroller.setVisible(myModulesPanel.getComponentCount() > 0);
 
     // Setting the active importer affects the visibility of other steps in the wizard so we need to call updateNavigationProperties
     // to make sure Finish / Next is displayed correctly
-    ModuleImporter.setImporter(getModel().getContext(), result.myImporter);
+    ModuleImporter.setImporter(getModel().getContext(), myImporter);
     assert myFacade != null;
     myFacade.updateNavigationProperties();
 
@@ -217,65 +182,66 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   }
 
   private void updateStepStatus() {
-    PathValidationResult result = myLocationValidationResult;
-
     // Validation of import location can be superseded by lack of modules selected for import
-    if (result.myStatus.severity != ERROR && myModulesPanel.getSelectedModules().isEmpty()) {
-      result = PathValidationResult.ofType(NO_MODULES_SELECTED);
+    if (myModulesPanel.getSelectedModules().isEmpty()) {
+      myCanGoForward.set(false);
+      return;
     }
 
-    myPageValidationResult.set(result);
-    myCanGoForward.set(result.myStatus.severity != ERROR && !result.isValidating() && myModulesPanel.canImport());
-  }
-
-  private void createUIComponents() {
-    myValidationProgress = new AsyncProcessIcon("validation");
+    myCanGoForward.set(myValidatorPanel.hasErrors().not().get() && myModulesPanel.canImport());
   }
 
   @NotNull
   @VisibleForTesting
-  PathValidationResult checkPath(@NotNull String path) {
+  Validator.Result checkPath(@NotNull String path) {
     if (Strings.isNullOrEmpty(path)) {
-      return PathValidationResult.ofType(EMPTY_PATH);
+      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.no.location"));
     }
-    VirtualFile vFile = VfsUtil.findFileByIoFile(new File(path), false);
-    if (vFile == null || !vFile.exists()) {
-      return PathValidationResult.ofType(DOES_NOT_EXIST);
+    myVFile = VfsUtil.findFileByIoFile(new File(path), false);
+    if (myVFile == null || !myVFile.exists()) {
+      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.invalid.location"));
     }
-    else if (isProjectOrModule(vFile)) {
-      return PathValidationResult.ofType(IS_PROJECT_OR_MODULE);
+    else if (isProjectOrModule(myVFile)) {
+      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.taken.location"));
     }
-    ModuleImporter importer = ModuleImporter.importerForLocation(getModel().getContext(), vFile);
-    if (!importer.isValid()) {
-      return PathValidationResult.ofType(NOT_ADT_OR_GRADLE);
+    myImporter = ModuleImporter.importerForLocation(getModel().getContext(), myVFile);
+    if (!myImporter.isValid()) {
+      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.cant.import"));
     }
-    Collection<ModuleToImport> modules = ApplicationManager.getApplication().runReadAction((Computable<Collection<ModuleToImport>>)() -> {
+    myModules = ApplicationManager.getApplication().runReadAction((Computable<Collection<ModuleToImport>>)() -> {
       try {
-        return importer.findModules(vFile);
+        return myImporter.findModules(myVFile);
       }
       catch (IOException e) {
         Logger.getInstance(SourceToGradleModuleStep.class).error(e);
         return null;
       }
     });
-    if (modules == null) {
-      return PathValidationResult.ofType(INTERNAL_ERROR);
+    if (myModules == null) {
+      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.error"));
     }
-    Set<String> missingSourceModuleNames = new TreeSet<String>();
-    for (ModuleToImport module : modules) {
+    Set<String> missingSourceModuleNames = new TreeSet<>();
+    for (ModuleToImport module : myModules) {
       if (module.location == null || !module.location.exists()) {
         missingSourceModuleNames.add(module.name);
       }
     }
     if (!missingSourceModuleNames.isEmpty()) {
-      return new PathValidationResult(MISSING_SUBPROJECTS, vFile, importer, modules, missingSourceModuleNames);
+      final String formattedMessage = ImportUIUtil.formatElementListString(
+        missingSourceModuleNames,
+        message("android.wizard.module.import.source.browse.bad.modules.1"),
+        message("android.wizard.module.import.source.browse.bad.modules.2"),
+        message("android.wizard.module.import.source.browse.bad.modules.more")
+      );
+      String htmlFormattedMessage =  WizardUtils.toHtmlString(formattedMessage);
+      return new Validator.Result(Validator.Severity.WARNING, htmlFormattedMessage);
     }
-    return new PathValidationResult(OK, vFile, importer, modules, null);
+    return Validator.Result.OK;
   }
 
   private boolean isProjectOrModule(@NotNull VirtualFile dir) {
     Project project = getModel().getProject();
-    if (dir.equals(project.getBaseDir())) {
+    if (dir.equals(guessProjectDir(project))) {
       return true;
     }
 
@@ -287,145 +253,4 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
     return false;
   }
-
-  static final class PathValidationResult {
-    @NotNull public final ResultType myStatus;
-    @Nullable public final VirtualFile myVFile;
-    @Nullable public final ModuleImporter myImporter;
-    @Nullable public final Collection<ModuleToImport> myModules;
-    @Nullable public final Set<String> myDetails;
-
-    private PathValidationResult(@NotNull ResultType status,
-                                 @Nullable VirtualFile vFile,
-                                 @Nullable ModuleImporter importer,
-                                 @Nullable Collection<ModuleToImport> modules,
-                                 @Nullable Set<String> details) {
-      myStatus = status;
-      myVFile = vFile;
-      myImporter = importer;
-      myModules = modules;
-      myDetails = details;
-    }
-
-    @Nullable
-    public Icon getIcon() {
-      return myStatus.getIcon();
-    }
-
-    public String getMessage() {
-      return myStatus.getMessage(myDetails);
-    }
-
-    public boolean isValidating() {
-      return myStatus == VALIDATING;
-    }
-
-    public static PathValidationResult ofType(ResultType status) {
-      return new PathValidationResult(status, null, null, null, null);
-    }
-
-    enum ResultType {
-      OK(null, null),
-      EMPTY_PATH(AndroidBundle.message("android.wizard.module.import.source.browse.no.location"), ERROR),
-      DOES_NOT_EXIST(AndroidBundle.message("android.wizard.module.import.source.browse.invalid.location"), ERROR),
-      IS_PROJECT_OR_MODULE(AndroidBundle.message("android.wizard.module.import.source.browse.taken.location"), ERROR),
-      MISSING_SUBPROJECTS(null, WARNING),
-      NO_MODULES_SELECTED(AndroidBundle.message("android.wizard.module.import.source.browse.no.modules"), ERROR),
-      NOT_ADT_OR_GRADLE(AndroidBundle.message("android.wizard.module.import.source.browse.cant.import"), ERROR),
-      INTERNAL_ERROR(AndroidBundle.message("android.wizard.module.import.source.browse.error"), ERROR),
-      VALIDATING(AndroidBundle.message("android.wizard.module.import.source.browse.validating"), null);
-
-      @Nullable/*Not an error*/ public final MessageType severity;
-      @Nullable/*No message*/ private final String message;
-
-      ResultType(@Nullable String message, @Nullable MessageType severity) {
-        this.message = message;
-        this.severity = severity;
-      }
-
-      @Nullable
-      public Icon getIcon() {
-        return severity == null ? null : severity.getDefaultIcon();
-      }
-
-      @NotNull
-      public String getMessage(@Nullable Set<String> details) {
-        if (this == MISSING_SUBPROJECTS) {
-          final String formattedMessage = ImportUIUtil.formatElementListString(
-            details,
-            AndroidBundle.message("android.wizard.module.import.source.browse.bad.modules.1"),
-            AndroidBundle.message("android.wizard.module.import.source.browse.bad.modules.2"),
-            AndroidBundle.message("android.wizard.module.import.source.browse.bad.modules.more"));
-          return WizardUtils.toHtmlString(formattedMessage);
-        }
-        else {
-          return Strings.nullToEmpty(message);
-        }
-      }
-    }
-  }
-
-  private final class PrimaryModuleImportSettings implements ModuleImportSettings {
-    @Override
-    public boolean isModuleSelected() {
-      return true;
-    }
-
-    @Override
-    public void setModuleSelected(boolean selected) {
-      // Do nothing - primary module
-    }
-
-    @Override
-    @NotNull
-    public String getModuleName() {
-      return myModuleNameField.getText();
-    }
-
-    @Override
-    public void setModuleName(@NotNull String moduleName) {
-      if (!Objects.equal(moduleName, myModuleNameField.getText())) {
-        myModuleNameField.setText(moduleName);
-      }
-    }
-
-    @Override
-    public void setModuleSourcePath(String relativePath) {
-      // Nothing
-    }
-
-    @Override
-    public void setCanToggleModuleSelection(boolean b) {
-      // Nothing
-    }
-
-    @Override
-    public void setCanRenameModule(boolean canRenameModule) {
-      myModuleNameField.setEnabled(canRenameModule);
-    }
-
-    @Override
-    public void setValidationStatus(@Nullable MessageType statusSeverity, @Nullable String statusDescription) {
-      myPrimaryModuleState.setIcon(statusSeverity == null ? null : statusSeverity.getDefaultIcon());
-      myPrimaryModuleState.setText(Strings.nullToEmpty(statusDescription));
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myPrimaryModuleState.setVisible(visible);
-      myModuleNameField.setVisible(visible);
-      myModuleNameLabel.setVisible(visible);
-    }
-
-    @Override
-    public void addActionListener(@NotNull ActionListener actionListener) {
-      myModuleNameField.getDocument().addDocumentListener(new DocumentAdapter() {
-        @Override
-        protected void textChanged(@NotNull DocumentEvent e) {
-          actionListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "changed"));
-        }
-      });
-    }
-  }
-
 }

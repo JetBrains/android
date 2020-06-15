@@ -24,17 +24,20 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.plugins.groovy.GroovyLanguage
 
 class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
-  fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
-
+  private fun doTestDescriptor() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -46,9 +49,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
                equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()))
   }
 
-  fun testProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testDescriptorGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestDescriptor()
+  }
 
+  fun testDescriptorKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestDescriptor()
+  }
+
+  private fun doTestProperties() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -84,11 +95,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("defaultSuffix"))
       assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("defaultSuffix"))
 
+      BuildEnvironment.getInstance().minSdkVersion
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(26))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
 
-      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("14"))
-      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("14"))
+      val buildEnvironmentMinSdkVersion = BuildEnvironment.getInstance().minSdkVersion
+      assertThat(minSdkVersion.resolved.asTestValue(), equalTo(buildEnvironmentMinSdkVersion))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(buildEnvironmentMinSdkVersion))
 
       assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
       assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
@@ -96,8 +109,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
-      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("19"))
-      // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
+      val buildEnvironmentTargetSdkVersion = BuildEnvironment.getInstance().targetSdkVersion
+      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo(buildEnvironmentTargetSdkVersion))
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(buildEnvironmentTargetSdkVersion))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
@@ -156,9 +170,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     }
   }
 
-  fun testSetProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testPropertiesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestProperties()
+  }
 
+  fun testPropertiesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestProperties()
+  }
+
+  private fun doTestSetProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject)
 
@@ -182,8 +204,14 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     // defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
     defaultConfig.versionNameSuffix = "newVns".asParsed()
+    // TODO(b/142454204): DslText is not language-agnostic
+    val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
+      is GroovyLanguage -> "signingConfigs.myConfig"
+      is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
+      else -> "***unknown language for signingConfig Dsl text***"
+    }
     PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).setParsedValue(
-      ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
+      ParsedValue.Set.Parsed(Unit, DslText.Reference(mySigningConfigDslText)))
     PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run {
       getEditableValues()["aa"]?.setParsedValue("EEE".asParsed())
       changeEntryKey("aa", "ee")
@@ -223,8 +251,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
-      // TODO(b/71988818)
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
@@ -243,7 +270,6 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
         // TODO(b/79142681) signingConfig resolved value is always null.
-        // TODO(b/71988818)
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
@@ -266,9 +292,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
-  fun testMapProperties_delete() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testSetPropertiesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestSetProperties()
+  }
 
+  fun testSetPropertiesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestSetProperties()
+  }
+
+  private fun doTestDeleteMapProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -302,9 +336,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
-  fun testMapProperties_editorInserting() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testDeleteMapPropertiesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestDeleteMapProperties()
+  }
 
+  fun testDeleteMapPropertiesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestDeleteMapProperties()
+  }
+
+  private fun doTestEditorInsertMapProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -339,9 +381,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
-  fun testProGuardKnownValues() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testEditorInsertMapPropertiesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestEditorInsertMapProperties()
+  }
 
+  fun testEditorInsertMapPropertiesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestEditorInsertMapProperties()
+  }
+
+  private fun doTestProGuardKnownValues() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -355,5 +405,75 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val knownValues = context.getKnownValues().get()
     assertThat(knownValues.literals.map { it.value.getText { toString() } }.toSet(),
                equalTo(setOf("other.pro", "proguard-rules.txt", "\$getDefaultProguardFile('proguard-android.txt')")))
+  }
+
+  fun testProGuardKnownValuesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestProGuardKnownValues()
+  }
+
+  fun testProGuardKnownValuesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestProGuardKnownValues()
+  }
+
+  private fun doTestSetReferences(expectedValues: List<String>) {
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val defaultConfig = appModule.defaultConfig
+    assertThat(defaultConfig, notNullValue())
+
+    defaultConfig.applicationId = ParsedValue.Set.Parsed(dslText = DslText.Reference("localMap.KTSApp"), value = null)
+    defaultConfig.applicationIdSuffix = ParsedValue.Set.Parsed(dslText = DslText.Reference("mapProp.key1"), value = null)
+    defaultConfig.maxSdkVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("valVersion"), value = null)
+    defaultConfig.minSdkVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("variable1"), value = null)
+    defaultConfig.multiDexEnabled = ParsedValue.Set.Parsed(dslText = DslText.Reference("boolRoot"), value = null)
+
+    fun verifyValues(appModule: PsAndroidModule, expectedValues: List<String>) {
+      val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.bind(defaultConfig).getValue()
+      val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(defaultConfig).getValue()
+      val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(defaultConfig).getValue()
+      val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
+      val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
+      assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.text.KTSApp"))
+      assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("val1"))
+      assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(15))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("1.3"))
+      assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(true))
+      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.applicationId()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+                 equalTo<Any>(expectedValues[0]))
+      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.applicationIdSuffix()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+                 equalTo<Any>(expectedValues[1]))
+      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.maxSdkVersion()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+                 equalTo<Any>(expectedValues[2]))
+      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.minSdkVersion()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+                 equalTo<Any>(expectedValues[3]))
+      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.multiDexEnabled()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+                 equalTo<Any>(expectedValues[4]))
+    }
+
+    verifyValues(appModule, expectedValues)
+    appModule.applyChanges()
+    verifyValues(appModule, expectedValues)
+
+  }
+
+  fun testSetReferencesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    val expectedValues = listOf("localMap.KTSApp","mapProp.key1", "valVersion", "variable1", "boolRoot")
+    doTestSetReferences(expectedValues)
+  }
+
+  fun testSetReferencesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    val expectedValues =
+      listOf("localMap[\"KTSApp\"]","(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String",
+             "project.extra[\"valVersion\"] as Int", "variable1", "rootProject.extra[\"boolRoot\"] as Boolean")
+    doTestSetReferences(expectedValues)
   }
 }

@@ -39,9 +39,9 @@
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module-library" scope="PROVIDED">
       <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:26.6.0.3" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:27.0.0.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-jre11/26.6.0.3/layoutlib-jre11-26.6.0.3.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-jre11/27.0.0.0/layoutlib-jre11-27.0.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -49,5 +49,6 @@
     </orderEntry>
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="module" module-name="intellij.lint" />
   </component>
 </module>

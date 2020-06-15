@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.CLASS_COMPOSE;
+import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -73,6 +74,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -80,18 +82,15 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -105,6 +104,12 @@ public class RenderTask {
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
 
   /**
+   * When an element in Layoutlib does not take any space, it will ask for a 0px X 0px image. This will throw an exception so we limit the
+   * min size of the returned bitmap to 1x1.
+   */
+  private static final int MIN_BITMAP_SIZE_PX = 1;
+
+  /**
    * {@link IImageFactory} that returns a new image exactly of the requested size. It does not do caching or resizing.
    */
   private static final IImageFactory SIMPLE_IMAGE_FACTORY = new IImageFactory() {
@@ -112,7 +117,8 @@ public class RenderTask {
     @Override
     public BufferedImage getImage(int width, int height) {
       @SuppressWarnings("UndesirableClassUsage")
-      BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      BufferedImage image =
+        new BufferedImage(Math.max(MIN_BITMAP_SIZE_PX, width), Math.max(MIN_BITMAP_SIZE_PX, height), BufferedImage.TYPE_INT_ARGB);
       image.setAccelerationPriority(1f);
 
       return image;
@@ -123,7 +129,7 @@ public class RenderTask {
    * Minimum downscaling factor used. The quality can go from [0, 1] but that setting is actually mapped into [MIN_DOWNSCALING_FACTOR, 1]
    * since below MIN_DOWNSCALING_FACTOR the quality is not good enough.
    */
-  private static final float MIN_DOWNSCALING_FACTOR = .7f;
+  private static final float MIN_DOWNSCALING_FACTOR = .5f;
   /**
    * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
    */
@@ -133,14 +139,8 @@ public class RenderTask {
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
   @VisibleForTesting
-  static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-                                                                                  new ThreadFactory() {
-                                                                                    @Override
-                                                                                    public Thread newThread(@NotNull Runnable runnable) {
-                                                                                      return new Thread(runnable,
-                                                                                                        "RenderTask dispose thread");
-                                                                                    }
-                                                                                  });
+  static final ExecutorService ourDisposeService =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
@@ -152,10 +152,11 @@ public class RenderTask {
   private final float myDefaultQuality;
   @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
-  @Nullable private Integer myOverrideBgColor;
+  private boolean mySetTransparentBackground = false;
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
+  private boolean myShowWithToolsAttributes = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -278,6 +279,10 @@ public class RenderTask {
     return myShowDecorations;
   }
 
+  public boolean getShowWithToolsAttributes() {
+    return myShowWithToolsAttributes;
+  }
+
   public boolean isDisposed() {
     return isDisposed.get();
   }
@@ -306,6 +311,60 @@ public class RenderTask {
         }
       });
     } catch(Throwable t) {
+      LOG.debug(t);
+    }
+  }
+
+  // Workaround for http://b/153570299
+  private void clearCallbacks() {
+    try {
+      Class<?> handlerDelegateClass = myLayoutlibCallback.findClass("android.os.Handler_Delegate");
+      Field runnablesMapField = handlerDelegateClass.getDeclaredField("sRunnablesMap");
+      runnablesMapField.setAccessible(true);
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          WeakHashMap runnablesMap = (WeakHashMap)runnablesMapField.get(null);
+          runnablesMap.clear();
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    } catch (Throwable t) {
+      LOG.debug(t);
+    }
+  }
+
+  // Workaround for http://b/143378087
+  private void clearCompose() {
+    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      // If Compose has not been loaded, we do not need to care about disposing it
+      return;
+    }
+
+    try {
+      Class<?> composeClass = myLayoutlibCallback.findClass(CLASS_COMPOSE);
+      Field emittableRootField = composeClass.getDeclaredField("EMITTABLE_ROOT_COMPONENT");
+      Field viewGroupRootField = composeClass.getDeclaredField("VIEWGROUP_ROOT_COMPONENT");
+
+      emittableRootField.setAccessible(true);
+      viewGroupRootField.setAccessible(true);
+
+      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          WeakHashMap emittable = (WeakHashMap)emittableRootField.get(null);
+          emittable.clear();
+
+          WeakHashMap viewGroup = (WeakHashMap)viewGroupRootField.get(null);
+          viewGroup.clear();
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    }
+    catch (Throwable t) {
       LOG.debug(t);
     }
   }
@@ -345,6 +404,9 @@ public class RenderTask {
       }
       myImageFactoryDelegate = null;
       myAssetRepository = null;
+
+      clearCompose();
+      clearCallbacks();
 
       return null;
     });
@@ -408,17 +470,14 @@ public class RenderTask {
   }
 
   /**
-   * Sets the overriding background color to be used, if any. The color should be a bitmask of AARRGGBB.
-   * The default is null.
+   * Sets the transparent background to be used.
    *
-   * @param overrideBgColor the overriding background color to be used in the rendering,
-   *                        in the form of a AARRGGBB bitmask, or null to use no custom background.
    * @return this (such that chains of setters can be stringed together)
    */
   @SuppressWarnings("UnusedReturnValue")
   @NotNull
-  public RenderTask setOverrideBgColor(@Nullable Integer overrideBgColor) {
-    myOverrideBgColor = overrideBgColor;
+  public RenderTask setTransparentBackground() {
+    mySetTransparentBackground = true;
     return this;
   }
 
@@ -455,6 +514,19 @@ public class RenderTask {
    */
   public RenderTask setHighQualityShadows(boolean highQualityShadows) {
     myHighQualityShadow = highQualityShadows;
+    return this;
+  }
+
+  /**
+   * Sets whether the rendering should use 'tools' namespaced attributes. Including substituting 'android' and 'app' attributes with their
+   * 'tools' variants.
+   * <p>
+   * Default is {@code true}.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setShowWithToolsAttributes(boolean showWithToolsAttributes) {
+    myShowWithToolsAttributes = showWithToolsAttributes;
     return this;
   }
 
@@ -582,10 +654,8 @@ public class RenderTask {
       }
     }
 
-    if (myOverrideBgColor != null) {
-      params.setOverrideBgColor(myOverrideBgColor.intValue());
-    } else if (requiresTransparency()) {
-      params.setOverrideBgColor(0);
+    if (mySetTransparentBackground || requiresTransparency()) {
+      params.setTransparentBackground();
     }
 
     params.setImageFactory(factory);
@@ -638,6 +708,11 @@ public class RenderTask {
     XmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
+    }
+
+    if (!myShowWithToolsAttributes) {
+      // Don't support 'showIn' when 'tools' attributes are ignored for rendering.
+      return null;
     }
 
     // Code to support editing included layout.
@@ -971,20 +1046,15 @@ public class RenderTask {
                            myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
-    boolean supportsMultipleStates = myLayoutLib.supports(Features.RENDER_ALL_DRAWABLE_STATES);
-    if (supportsMultipleStates) {
-      params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
-    }
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
 
     try {
       Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
 
       if (result != null && result.isSuccess()) {
         Object data = result.getData();
-        if (supportsMultipleStates && data instanceof List) {
+        if (data instanceof List) {
           return (List<BufferedImage>)data;
-        } else if (!supportsMultipleStates && data instanceof BufferedImage) {
-          return Collections.singletonList((BufferedImage) data);
         }
       }
     }
@@ -1003,10 +1073,6 @@ public class RenderTask {
   @NotNull
   public LayoutlibCallbackImpl getLayoutlibCallback() {
     return myLayoutlibCallback;
-  }
-
-  public boolean supportsCapability(@MagicConstant(flagsFromClass = Features.class) int capability) {
-    return myLayoutLib.supports(capability);
   }
 
   /** Returns true if this service can render a non-rectangular shape */
@@ -1062,7 +1128,7 @@ public class RenderTask {
           }
 
           return CompletableFuture.completedFuture(Collections.emptyMap());
-        });
+        }, AppExecutorUtil.getAppExecutorService());
   }
 
   /**

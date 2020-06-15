@@ -19,11 +19,12 @@ import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
@@ -38,7 +39,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -64,9 +67,9 @@ import org.jetbrains.annotations.Nullable;
 public class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository, Disposable {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceRepository.class);
 
-  @NotNull private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final AndroidFacet myAndroidFacet;
   @NotNull private final ResourceNamespace myNamespace;
+  @NotNull private final Map<ResourceType, ListMultimap<String, ResourceItem>> myResourceTable = new EnumMap<>(ResourceType.class);
 
   @NotNull
   public static SampleDataResourceRepository getInstance(@NotNull AndroidFacet facet) {
@@ -98,21 +101,15 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     loadItems();
   }
 
-  @Override
-  @NotNull
-  protected ResourceTable getFullTable() {
-    return myFullTable;
-  }
-
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
-    if (multimap == null && create) {
-      multimap = ArrayListMultimap.create();
-      myFullTable.put(namespace, type, multimap);
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    if (!namespace.equals(myNamespace)) {
+      return null;
     }
-    return multimap;
+    return myResourceTable.get(type);
   }
 
   @Override
@@ -125,6 +122,20 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   @Nullable
   public String getPackageName() {
     return ResourceRepositoryImplUtil.getPackageName(myNamespace, myAndroidFacet);
+  }
+
+  @Override
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
+    if (visitor.shouldVisitNamespace(myNamespace)) {
+      synchronized (ITEM_MAP_LOCK) {
+        if (acceptByResources(myResourceTable, visitor) == ResourceVisitor.VisitResult.ABORT) {
+          return ResourceVisitor.VisitResult.ABORT;
+        }
+      }
+    }
+
+    return ResourceVisitor.VisitResult.CONTINUE;
   }
 
   @Override
@@ -146,37 +157,39 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       return;
     }
 
-    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(myAndroidFacet.getModule()).getSampleDataDirectory());
-    myFullTable.clear();
+    List<SampleDataResourceItem> items = ImmutableList.of();
 
+    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(myAndroidFacet.getModule()).getSampleDataDirectory());
     if (sampleDataDir != null) {
-      List<SampleDataResourceItem> items = new ArrayList<>();
+      List<SampleDataResourceItem> items1 = new ArrayList<>();
       PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getModule().getProject());
       Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
       ApplicationManager.getApplication().runReadAction(() -> childrenStream
         .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
         .filter(Objects::nonNull)
-        .forEach(f -> items.addAll(loadItemsFromFile(f))));
-
-      if (!items.isEmpty()) {
-        synchronized (ITEM_MAP_LOCK) {
-          ListMultimap<String, ResourceItem> map = myFullTable.getOrPutEmpty(myNamespace, ResourceType.SAMPLE_DATA);
-          for (ResourceItem item : items) {
-            assert item.getNamespace().equals(myNamespace);
-            map.put(item.getName(), item);
-          }
-        }
-      }
+        .forEach(f -> items1.addAll(loadItemsFromFile(f))));
+      items = items1;
     }
 
-    setModificationCount(ourModificationCounter.incrementAndGet());
-    invalidateParentCaches(myNamespace, ResourceType.SAMPLE_DATA);
+    synchronized (ITEM_MAP_LOCK) {
+      myResourceTable.clear();
+      if (!items.isEmpty()) {
+        ImmutableListMultimap.Builder<String, ResourceItem> mapBuilder = ImmutableListMultimap.builder();
+        for (ResourceItem item : items) {
+          assert item.getNamespace().equals(myNamespace);
+          mapBuilder.put(item.getName(), item);
+        }
+        myResourceTable.put(ResourceType.SAMPLE_DATA, mapBuilder.build());
+      }
+      setModificationCount(ourModificationCounter.incrementAndGet());
+      invalidateParentCaches(this, ResourceType.SAMPLE_DATA);
+    }
   }
 
   @NotNull
   private List<SampleDataResourceItem> loadItemsFromFile(@NotNull PsiFileSystemItem sampleDataFile) {
     try {
-      return SampleDataResourceItem.getFromPsiFileSystemItem(sampleDataFile, myNamespace);
+      return SampleDataResourceItem.getFromPsiFileSystemItem(this, sampleDataFile);
     }
     catch (IOException e) {
       LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);

@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.android.tools.idea.io.FilePaths;
+import static com.android.ide.common.gradle.model.IdeMavenCoordinates.LOCAL_AARS;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+import kotlin.io.FilesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.io.File;
-import java.util.*;
-import java.util.Collection;
-import java.util.Objects;
-
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 
 /**
  * An IDEA module's dependency on a library (e.g. a jar file.)
@@ -41,7 +41,7 @@ public class LibraryDependency extends Dependency {
   @NotNull
   public static final String NAME_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
-  @NotNull private final Collection<File> myBinaryPaths = new LinkedHashSet<>();
+  @NotNull private final Collection<File> myBinaryPaths;
   @NotNull private final File myArtifactPath;
 
   private String myName;
@@ -50,35 +50,58 @@ public class LibraryDependency extends Dependency {
    * Creates a new {@link LibraryDependency}.
    *
    * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
+   * @param name         the name of the library to depend on.
    * @param scope        the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  @VisibleForTesting
-  public LibraryDependency(@NotNull File artifactPath, @NotNull DependencyScope scope) {
-    this(artifactPath, getNameWithoutExtension(artifactPath), scope);
-    addBinaryPath(artifactPath);
+  public static LibraryDependency create(@NotNull File basePath,
+                                         @NotNull File artifactPath,
+                                         @NotNull String artifactAddress,
+                                         @NotNull DependencyScope scope,
+                                         @NotNull Collection<File> binaryPaths) {
+    String adjustedArtifactAddress;
+    if (artifactAddress.startsWith(LOCAL_AARS)) {
+      adjustedArtifactAddress = createShortLocalArtifactAddress(basePath, artifactPath);
+    } else {
+      adjustedArtifactAddress = artifactAddress;
+    }
+    return new LibraryDependency(artifactPath, adjustedArtifactAddress, scope, binaryPaths);
   }
+
+  /**
+   * Creates a short
+   */
+  @NotNull
+  private static String createShortLocalArtifactAddress(@NotNull File basePath, @NotNull File artifactPath) {
+    File maybeRelative = FilesKt.relativeToOrSelf(artifactPath, basePath);
+    String suffix;
+    if (filesEqual(maybeRelative, artifactPath)) {
+      suffix = "";
+    }
+    else {
+      suffix = "./";
+    }
+    return suffix + toSystemIndependentName(maybeRelative.getPath()).replace(':', '.');
+  }
+
 
   /**
    * Creates a new {@link LibraryDependency}.
    *
-   * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
-   * @param name  the name of the library to depend on.
-   * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
+   * @param artifactPath     the path, in the file system, of the binary file that represents the library to depend on.
+   * @param artifactAddress  the artifact address to bu sed a a base for the library name
+   * @param scope            the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  LibraryDependency(@NotNull File artifactPath, @NotNull String name, @NotNull DependencyScope scope) {
+  @VisibleForTesting
+  public LibraryDependency(@NotNull File artifactPath,
+                           @NotNull String artifactAddress,
+                           @NotNull DependencyScope scope,
+                           @NotNull Collection<File> binaryPaths) {
     super(scope);
+    myBinaryPaths = new LinkedHashSet<>(binaryPaths);
     myArtifactPath = artifactPath;
-    setName(name);
-  }
-
-  void addBinaryPath(@NotNull File path) {
-    myBinaryPaths.add(path);
-  }
-
-  void addBinaryPath(@NotNull String path) {
-    addBinaryPath(FilePaths.toSystemDependentPath(path));
+    setName(artifactAddress);
   }
 
   @NotNull
