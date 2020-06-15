@@ -161,7 +161,7 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     AndroidDevice device = new LaunchableAndroidDevice(avd);
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()
-      .setName(AvdManagerConnection.getAvdDisplayName(avd))
+      .setName(avd.getDisplayName())
       .setKey(new Key(avd.getName(), snapshot))
       .setAndroidDevice(device)
       .setSnapshot(snapshot);
