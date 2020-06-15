@@ -21,6 +21,7 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
@@ -81,14 +82,13 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -132,7 +132,7 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
 
   private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
@@ -155,9 +155,7 @@ public class AvdManagerConnection {
     if (handler.getLocation() == null) {
       return NULL_CONNECTION;
     }
-    else {
-      return getAvdManagerConnection(handler);
-    }
+    return getAvdManagerConnection(handler);
   }
 
   @NotNull
@@ -184,11 +182,10 @@ public class AvdManagerConnection {
    * Sets a factory to be used for creating connections, so subclasses can be injected for testing.
    */
   @VisibleForTesting
-  protected synchronized static void setConnectionFactory(Function<AndroidSdkHandler, AvdManagerConnection> factory) {
+  protected synchronized static void setConnectionFactory(@NotNull Function<AndroidSdkHandler, AvdManagerConnection> factory) {
     ourCache.clear();
     ourConnectionFactory = factory;
   }
-
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
@@ -213,11 +210,13 @@ public class AvdManagerConnection {
     return true;
   }
 
+  @Nullable
   public String getSdCardSizeFromHardwareProperties() {
     assert mySdkHandler != null;
     return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.SD_CARD_STORAGE_KEY, mySdkHandler);
   }
 
+  @Nullable
   public String getInternalStorageSizeFromHardwareProperties() {
     assert mySdkHandler != null;
     return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
@@ -372,7 +371,7 @@ public class AvdManagerConnection {
   }
 
 
-  public void stopAvd(@NotNull final AvdInfo info) {
+  public void stopAvd(@NotNull AvdInfo info) {
     myAvdManager.stopAvd(info);
   }
 
@@ -391,7 +390,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
 
-    final String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
+    String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
       File skinFile = new File(skinPath);
       File baseSkinFile = new File(skinFile.getName());
@@ -440,7 +439,7 @@ public class AvdManagerConnection {
 
   @NotNull
   private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo avd, @NotNull List<String> parameters) {
-    final File emulatorBinary = getEmulatorBinary();
+    File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
@@ -475,7 +474,7 @@ public class AvdManagerConnection {
     EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
     addListeners(runner);
 
-    final ProcessHandler processHandler;
+    ProcessHandler processHandler;
     try {
       processHandler = runner.start();
     }
@@ -487,10 +486,10 @@ public class AvdManagerConnection {
     notifyIfLaunchedStandalone(project, avd);
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
-    final ProgressWindow p = hasQEMU2Installed()
-                             ? new BackgroundableProcessIndicator(project, "Launching Emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
-                                                                  "", "", false)
-                             : new ProgressWindow(false, true, project);
+    ProgressWindow p = hasQEMU2Installed()
+                       ? new BackgroundableProcessIndicator(project, "Launching Emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
+                                                            "", "", false)
+                       : new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
@@ -502,7 +501,6 @@ public class AvdManagerConnection {
         p.setText("Starting AVD...");
         for (double d = 0; d < 1; d += 1.0 / 80) {
           p.setFraction(d);
-          //noinspection BusyWait
           Thread.sleep(100);
           if (processHandler.isProcessTerminated()) {
             break;
@@ -581,9 +579,7 @@ public class AvdManagerConnection {
   /**
    * Adds necessary parameters to {@code commandLine}.
    */
-  protected void addParameters(@Nullable Project project,
-                               @NotNull AvdInfo info,
-                               @NotNull GeneralCommandLine commandLine) {
+  protected void addParameters(@Nullable Project project, @NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
     Map<String, String> properties = info.getProperties();
     String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
     String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
@@ -670,7 +666,7 @@ public class AvdManagerConnection {
     }
 
     // Extract the proxy information
-    List<String> proxyParameters = new ArrayList<String>();
+    List<String> proxyParameters = new ArrayList<>();
 
     List<Pair<String, String>> myPropList = httpInstance.getJvmProperties(false, null);
     for (Pair<String, String> kv : myPropList) {
@@ -713,6 +709,7 @@ public class AvdManagerConnection {
       androidHomeValue = System.getProperty("user.home");
     }
     File tempDir = new File(androidHomeValue, "temp");
+    //noinspection ResultOfMethodCallIgnored
     tempDir.mkdirs(); // Create if necessary
     if (!tempDir.exists()) {
       return null; // Give up
@@ -720,7 +717,8 @@ public class AvdManagerConnection {
     return tempDir;
   }
 
-  /** Create a temporary file and write some parameters into it.
+  /**
+   * Creates a temporary file and write some parameters into it.
    * This is how we pass parameters to the Emulator (other than
    * on the command line).
    * The file is marked to be deleted when Studio exits. This is
@@ -732,29 +730,27 @@ public class AvdManagerConnection {
    * if we could not create or write the file.
    */
   @Nullable
-  public static File writeTempFile(List<String> fileContents) {
+  public static File writeTempFile(@NotNull List<String> fileContents) {
     File tempFile = null;
     try {
       File tempDir = tempFileDirectory();
       if (tempDir == null) {
         return null; // Fail
       }
-      tempFile = File.createTempFile("emu", ".tmp", tempDir);
+      tempFile = FileUtil.createTempFile(tempDir, "emu", ".tmp", true);
       tempFile.deleteOnExit(); // File disappears when Studio exits
-      tempFile.setReadable(false, false); // Non-owner cannot read
-      tempFile.setReadable(true, true); // Owner can read
-
-      final FileWriter fileWriter = new FileWriter(tempFile);
-      try (BufferedWriter tempFileWriter = new BufferedWriter(fileWriter)) {
-        for (String fileLine : fileContents) {
-          tempFileWriter.write(fileLine);
-        }
+      if (!tempFile.setReadable(false, false) || // Non-owner cannot read
+          !tempFile.setReadable(true, true)) { // Owner can read
+        IJ_LOG.warn("Error setting permissions for " + tempFile.getAbsolutePath());
       }
+
+      Files.write(tempFile.toPath(), fileContents, WRITE);
     }
-    catch (IOException ex) {
+    catch (IOException e) {
       // Try to remove the temporary file
       if (tempFile != null) {
-        tempFile.delete(); // Ignore the return value
+        //noinspection ResultOfMethodCallIgnored
+        tempFile.delete();
         tempFile = null;
       }
     }
@@ -789,8 +785,8 @@ public class AvdManagerConnection {
         project,
         message,
         code.getSolution().getDescription(),
-        Messages.OK_BUTTON,
-        Messages.CANCEL_BUTTON,
+        Messages.getOkButton(),
+        Messages.getCancelButton(),
         AllIcons.General.WarningDialog);
     });
   }
@@ -1112,7 +1108,7 @@ public class AvdManagerConnection {
     private final IdDisplay myTag;
     private final int myRequiredMajorRevision;
 
-    public SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
+    SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
       myFeatureLevel = featureLevel;
       myTag = tag;
       myRequiredMajorRevision = requiredMajorRevision;
