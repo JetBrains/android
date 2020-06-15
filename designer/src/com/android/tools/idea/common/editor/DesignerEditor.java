@@ -27,10 +27,11 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
-import java.beans.PropertyChangeListener;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.beans.PropertyChangeListener;
 
 /**
  * Represents a generic designer editor. Subclasses are specific editors (e.g. navigation, layout), and should have their own ID (specified
@@ -148,7 +149,7 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public VirtualFile getFile() {
     return myFile;
