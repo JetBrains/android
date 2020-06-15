@@ -351,7 +351,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
-    Wait.seconds(10).expecting("Wait until the path " + Arrays.toString(path) + " is ready.")
+    waitAndInvokeMenuPath(10, path);
+    return this;
+  }
+
+  public IdeFrameFixture waitAndInvokeMenuPath(int timeToWait, @NotNull String... path) {
+    Wait.seconds(timeToWait).expecting("Wait until the path " + Arrays.toString(path) + " is ready.")
       .until(() -> getMenuFixture().isMenuPathEnabled(path));
     getMenuFixture().invokeMenuPath(path);
     return this;
@@ -448,7 +453,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myGradleProjectEventListener.reset();
 
     GuiTests.waitForBackgroundTasks(robot(), null);
-    invokeMenuPath("File", "Sync Project with Gradle Files");
+    waitAndInvokeMenuPath(20, "File", "Sync Project with Gradle Files");
   }
 
   @NotNull
