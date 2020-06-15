@@ -60,7 +60,7 @@ open class GradleFileModelTestCase {
   @JvmField
   var languageName: String? = null
   protected lateinit var buildFile: VirtualFile
-  private lateinit var testDataPath: String
+  protected lateinit var testDataPath: String
   private val isGroovy: Boolean get() = languageName == GradleFileModelTestCase.GROOVY_LANGUAGE
   private val buildFileName: String get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
   protected val gradleBuildModel: GradleBuildModel
@@ -85,7 +85,6 @@ open class GradleFileModelTestCase {
       buildFile = projectRule.fixture.tempDirFixture.createFile(buildFileName)
       assertTrue(buildFile.isWritable)
     }
-    testDataPath = AndroidTestBase.getTestDataPath() + "/psd"
   }
 
   @After
