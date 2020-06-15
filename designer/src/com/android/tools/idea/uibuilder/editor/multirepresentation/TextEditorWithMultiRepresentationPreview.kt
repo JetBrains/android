@@ -16,17 +16,44 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.project.Project
 
 /**
  * A generic [SeamlessTextEditorWithPreview] where a preview part of it is [MultiRepresentationPreview]. It keeps track of number of
  * representations in the preview part and if none switches to the pure text editor mode.
  */
-open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPreview>(textEditor: TextEditor, preview: P, editorName: String) :
+open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPreview>(
+  private val project: Project, textEditor: TextEditor, preview: P, editorName: String) :
   SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
     preview.onRepresentationsUpdated = { isPureTextEditor = preview.representationNames.isEmpty() }
     preview.registerShortcuts(component)
+  }
+
+  /**
+   * Returns whether this preview is active. That means that the number of [selectNotify] calls is larger than
+   * the number of [deselectNotify] calls.
+   */
+  private fun isActive(): Boolean {
+    val selectedEditors = FileEditorManager.getInstance(project).selectedEditors.filterIsInstance<TextEditorWithMultiRepresentationPreview<*>>()
+    return selectedEditors.any { it == this }
+  }
+
+  final override fun selectNotify() {
+    super.selectNotify()
+    if (!isActive()) return
+
+    preview.onActivate()
+  }
+
+  final override fun deselectNotify() {
+    super.deselectNotify()
+
+    if (isActive()) return
+
+    preview.onDeactivate()
   }
 }

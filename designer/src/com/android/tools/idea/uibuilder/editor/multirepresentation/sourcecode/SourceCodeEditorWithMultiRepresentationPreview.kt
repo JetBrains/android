@@ -17,10 +17,11 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.project.Project
 
 /**
  * A [TextEditorWithMultiRepresentationPreview] where the preview part is [SourceCodePreview] and therefore it allows to have several
  * representations for a single source code file.
  */
-internal class SourceCodeEditorWithMultiRepresentationPreview(textEditor: TextEditor, preview: SourceCodePreview) :
-  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(textEditor, preview, "Source Code Editor With Preview")
+internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
+  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview")

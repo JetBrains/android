@@ -47,7 +47,7 @@ class SourceCodeEditorProvider : FileEditorProvider, QuickDefinitionProvider, Du
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
     val multiRepresentationPreview = SourceCodePreview(psiFile)
 
-    return SourceCodeEditorWithMultiRepresentationPreview(textEditor, multiRepresentationPreview)
+    return SourceCodeEditorWithMultiRepresentationPreview(project, textEditor, multiRepresentationPreview)
   }
 
   override fun getEditorTypeId() = "android-source-code"
