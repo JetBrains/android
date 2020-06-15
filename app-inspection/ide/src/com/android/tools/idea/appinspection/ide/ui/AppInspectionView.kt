@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
@@ -27,8 +26,8 @@ import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -52,7 +51,6 @@ import java.util.concurrent.CancellationException
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
-import javax.swing.plaf.basic.BasicTabbedPaneUI
 
 class AppInspectionView(
   private val project: Project,
@@ -108,7 +106,6 @@ class AppInspectionView(
   private lateinit var currentProcess: ProcessDescriptor
 
   init {
-    component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
     val edtExecutor = EdtExecutorService.getInstance()
     processModel = AppInspectionProcessModel(edtExecutor, appInspectionDiscoveryHost, getPreferredProcesses)
     Disposer.register(this, processModel)
