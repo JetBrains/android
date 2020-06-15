@@ -49,7 +49,9 @@ class AppInspectionProcessModel(private val executor: Executor,
 
   @GuardedBy("lock")
   private val _processes = mutableSetOf<ProcessDescriptor>()
-  val processes: Set<ProcessDescriptor> = _processes
+
+  val processes: Set<ProcessDescriptor>
+    get() = synchronized(lock) { _processes.toSet() }
 
   @GuardedBy("lock")
   var selectedProcess: ProcessDescriptor? = null
