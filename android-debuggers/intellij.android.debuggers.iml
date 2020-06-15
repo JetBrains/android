@@ -23,7 +23,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="library" name="live-sql-proto" level="project" />
