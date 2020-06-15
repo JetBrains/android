@@ -353,8 +353,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected Module getModule(@NotNull String moduleName) {
-    return myModules.getModule(moduleName);
+  protected Module getModule(@NotNull String qualifiedModuleName) {
+    return myModules.getModule(qualifiedModuleName);
   }
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
