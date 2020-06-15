@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.google.common.util.concurrent.ListenableFuture
@@ -26,7 +27,12 @@ typealias TargetTerminatedListener = () -> Unit
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
  */
-interface AppInspectionTarget {
+internal interface AppInspectionTarget {
+  /**
+   * The name of the project this target belongs to.
+   */
+  val projectName: String
+
   /**
    * Creates an inspector in the connected process.
    *
@@ -38,17 +44,14 @@ interface AppInspectionTarget {
    * @param [creator] a factory lambda to instantiate a [AppInspectorClient] once inspector is successfully created on the device side.
    */
   @WorkerThread
-  fun <T : AppInspectorClient> launchInspector(
-    inspectorId: String,
-    inspectorJar: AppInspectorJar,
-    projectName: String,
-    @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
-  ): ListenableFuture<T>
+  fun launchInspector(
+    params: AppInspectorLauncher.LaunchParameters,
+    @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
+  ): ListenableFuture<AppInspectorClient>
 
   /**
-   * Adds a listener to be notified (via [executor]) of when this connection is closed.
-   *
-   * Listener fires immediately if connection is already closed.
+   * Disposes all of the clients that were launched on this target.
    */
-  fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener
+  @WorkerThread
+  fun dispose()
 }

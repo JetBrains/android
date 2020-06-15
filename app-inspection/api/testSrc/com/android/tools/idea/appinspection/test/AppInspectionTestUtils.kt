@@ -16,33 +16,21 @@
 package com.android.tools.idea.appinspection.test
 
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.JarCopierCreator
+import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
-
-/**
- * The amount of time tests will wait for async calls and events to trigger. It is used primarily in asserting latches and futures.
- *
- * These calls normally take way less than the allotted time below, on the order of tens of milliseconds. The timeout we chose is extremely
- * generous and was only chosen to fail tests faster if something goes wrong. If you hit this timeout, please don't just increase it but
- * investigate the root cause.
- */
-const val ASYNC_TIMEOUT_MS: Long = 10000
 
 const val INSPECTOR_ID = "test.inspector.1"
 const val INSPECTOR_ID_2 = "test.inspector.2"
 
 val TEST_JAR = AppInspectorJar("test")
+
+const val TEST_PROJECT = "test.project"
 
 /**
  * A collection of utility functions for inspection tests.
@@ -77,23 +65,20 @@ object AppInspectionTestUtils {
     )
     .build()
 
-  fun createDiscoveryHost(
-    executor: ExecutorService,
-    client: TransportClient,
-    jarCopierCreator: JarCopierCreator = { TestTransportJarCopier }
-  ): AppInspectionDiscoveryHost {
-    return AppInspectionDiscoveryHost(
-      executor, client, TransportStreamManager.createManager(
-        client.transportStub,
-        TimeUnit.MILLISECONDS.toNanos(250)
-      ), jarCopierCreator
-    )
-  }
-
   fun createFakeProcessDescriptor(
     device: Common.Device = FakeTransportService.FAKE_DEVICE,
     process: Common.Process = FakeTransportService.FAKE_PROCESS
-  ): ProcessDescriptor = ProcessDescriptor(Common.Stream.newBuilder().setDevice(device).setStreamId(device.deviceId).build(), process)
+  ): ProcessDescriptor {
+    val stream = Common.Stream.newBuilder().setDevice(device).setStreamId(device.deviceId).build()
+    return ProcessDescriptor(stream, process)
+  }
+
+  fun createFakeLaunchParameters(
+    descriptor: ProcessDescriptor = createFakeProcessDescriptor(),
+    inspectorId: String = INSPECTOR_ID,
+    jar: AppInspectorJar = TEST_JAR,
+    project: String = TEST_PROJECT
+  ) = AppInspectorLauncher.LaunchParameters(descriptor, inspectorId, jar, project)
 
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.

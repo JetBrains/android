@@ -21,8 +21,8 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
@@ -30,6 +30,7 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.internal.ProcessNoLongerExistsException
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
@@ -55,7 +56,7 @@ import javax.swing.JSeparator
 
 class AppInspectionView(
   private val project: Project,
-  private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+  private val apiServices: AppInspectionApiServices,
   private val ideServices: AppInspectionIdeServices,
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   getPreferredProcesses: () -> List<String>
@@ -88,11 +89,11 @@ class AppInspectionView(
   )
 
   constructor(project: Project,
-              appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+              apiServices: AppInspectionApiServices,
               ideServices: AppInspectionIdeServices,
               getPreferredProcesses: () -> List<String>) :
     this(project,
-         appInspectionDiscoveryHost,
+         apiServices,
          ideServices,
          { AppInspectorTabProvider.EP_NAME.extensionList },
          getPreferredProcesses)
@@ -111,7 +112,7 @@ class AppInspectionView(
 
   init {
     val edtExecutor = EdtExecutorService.getInstance()
-    processModel = AppInspectionProcessModel(edtExecutor, appInspectionDiscoveryHost, getPreferredProcesses)
+    processModel = AppInspectionProcessModel(edtExecutor, apiServices.processNotifier, getPreferredProcesses)
     Disposer.register(this, processModel)
     val group = DefaultActionGroup().apply { add(SelectProcessAction(processModel)) }
     val toolbar = ActionManager.getInstance().createActionToolbar("AppInspection", group, true)
@@ -138,7 +139,7 @@ class AppInspectionView(
   @UiThread
   private fun clearTabs() {
     inspectorTabs.removeAll()
-    appInspectionDiscoveryHost.disposeClients(project.name)
+    apiServices.disposeClients(project.name)
     updateUi()
   }
 
@@ -153,8 +154,8 @@ class AppInspectionView(
     getTabProviders()
       .filter { provider -> provider.isApplicable() }
       .forEach { provider ->
-        appInspectionDiscoveryHost.launchInspector(
-          AppInspectionDiscoveryHost.LaunchParameters(
+        apiServices.launcher.launchInspector(
+          AppInspectorLauncher.LaunchParameters(
             currentProcess,
             provider.inspectorId,
             provider.inspectorAgentJar,
