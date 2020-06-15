@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.transport
 
-import com.google.common.truth.Truth.*
-
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
 
 /**
  * Extends PlatformTestCase as initialization of TransportService is dependent on IJ's Application instance.
  */
-class TransportServiceTest : PlatformTestCase() {
-  private val TMP_DIR = System.getProperty("java.io.tmpdir")
+class TransportServiceTest : LightPlatformTestCase() {
 
   private lateinit var myService: TransportService
 
@@ -41,17 +38,10 @@ class TransportServiceTest : PlatformTestCase() {
   override fun setUp() {
     // Bazel tests are sandboxed so we disable VfsRoot checks.
     VfsRootAccess.allowRootAccess(testRootDisposable, "/", "C:\\")
-    // The idea.home path is needed for PlatformTestCase tests.
-    System.setProperty("idea.home", Files.createDirectories(Paths.get(TMP_DIR, "tools/idea")).toString())
 
     super.setUp()
     myService = TransportService()
-  }
-
-  @Throws(Exception::class)
-  override fun tearDown() {
-    myService.dispose()
-    super.tearDown()
+    Disposer.register(testRootDisposable, myService)
   }
 
   /**
