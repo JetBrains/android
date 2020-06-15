@@ -410,11 +410,32 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val hasSuccessfulBuild = AtomicBoolean(false)
 
+  /**
+   * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
+   * [onInit] must be called.
+   */
+  private val isFirstActivation = AtomicBoolean(true)
+
   init {
     Disposer.register(this, ticker)
 
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+  }
+
+  override val component = workbench
+
+  /**
+   * Completes the initialization of the preview. This method is only called once after the first [onActivate]
+   * happens.
+   */
+  private fun onInit() {
+    LOG.debug("onInit")
+    if (Disposer.isDisposed(this)) {
+      LOG.info("Preview was closed before the initialization completed.")
+    }
+    val psiFile = psiFilePointer.element
+    requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
 
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
@@ -471,7 +492,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     })
   }
 
-  override val component = workbench
+  override fun onActivate() {
+    LOG.debug("onActivate")
+    if (isFirstActivation.getAndSet(false)) onInit()
+  }
 
   override fun dispose() {}
 

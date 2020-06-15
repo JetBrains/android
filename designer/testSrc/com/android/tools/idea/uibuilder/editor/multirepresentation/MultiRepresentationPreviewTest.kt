@@ -39,7 +39,7 @@ import javax.swing.JPanel
 class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
   @Mock
-  private lateinit var persistenceManager : PropertiesComponent
+  private lateinit var persistenceManager: PropertiesComponent
 
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
 
@@ -60,6 +60,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
                                                     providers: List<PreviewRepresentationProvider>,
                                                     persistenceManager: PropertiesComponent) :
     MultiRepresentationPreview(psiFile, providers, { persistenceManager }) {
+    init {
+      // Do the activation since this is not embedded within an actual editor.
+      onActivate()
+    }
 
     fun forceUpdateRepresentations() {
       super.updateRepresentations()
@@ -67,14 +71,23 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   private class DummyPreviewRepresentation : PreviewRepresentation {
+    var nActivations = 0
+
     override val component = JPanel()
-    override fun updateNotifications(parentEditor: FileEditor) { }
-    override fun dispose() { }
+    override fun updateNotifications(parentEditor: FileEditor) {}
+    override fun dispose() {}
+    override fun onActivate() {
+      nActivations++
+    }
+
+    override fun onDeactivate() {
+      nActivations--
+    }
   }
 
   private open class SimpleProvider(override val displayName: String, val isAccept: Boolean) : PreviewRepresentationProvider {
     override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
-    override fun createRepresentation(psiFile: PsiFile) : PreviewRepresentation = DummyPreviewRepresentation()
+    override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = DummyPreviewRepresentation()
   }
 
   fun testNoProviders_noHistory() {
@@ -421,6 +434,45 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     Mockito.verify(representation1).updateNotifications(multiPreview)
     Mockito.verify(representation2).updateNotifications(multiPreview)
     Mockito.verify(representation3, never()).updateNotifications(any())
+  }
+
+  fun testActivationDeactivation() {
+    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Representation1")
+    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val representation1 = DummyPreviewRepresentation()
+    val representation2 = DummyPreviewRepresentation()
+
+    multiPreview = UpdatableMultiRepresentationPreview(
+      dummyFile,
+      listOf(
+        object : SimpleProvider("Representation1", true) {
+          override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation1
+        },
+        object : SimpleProvider("Representation2", true) {
+          override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation2
+        }),
+      persistenceManager)
+    multiPreview.forceUpdateRepresentations()
+
+    assertEquals(1, representation1.nActivations)
+    assertEquals(0, representation2.nActivations)
+    multiPreview.onActivate()
+    // Call a second time to ensure that the call is not passed down to the representations.
+    // Once the multi preview is active, subsequent onActivate calls are filtered out.
+    multiPreview.onActivate()
+    assertEquals(1, representation1.nActivations)
+    assertEquals(0, representation2.nActivations)
+    multiPreview.currentRepresentationName = "Representation2"
+    multiPreview.forceUpdateRepresentations()
+    // Previous representation should be de-activated, new one activated
+    assertEquals(0, representation1.nActivations)
+    assertEquals(1, representation2.nActivations)
+    multiPreview.onDeactivate()
+    // Make sure that calls after the first onDeactivate do not do anything.
+    multiPreview.onDeactivate()
+    multiPreview.onDeactivate()
+    assertEquals(0, representation1.nActivations)
+    assertEquals(0, representation2.nActivations)
   }
 }
 
