@@ -20,6 +20,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
@@ -81,7 +82,10 @@ class AppInspectionView(
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
 
-  private val noInspectorsMessage = EmptyStatePanel(AppInspectionBundle.message("select.process"))
+  private val noInspectorsMessage = EmptyStatePanel(
+    AppInspectionBundle.message("select.process"),
+    UrlData("Learn more", "https://d.android.com/r/studio-ui/db-inspector-help")
+  )
 
   constructor(project: Project,
               appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
