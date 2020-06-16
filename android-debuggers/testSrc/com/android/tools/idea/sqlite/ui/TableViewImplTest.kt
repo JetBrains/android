@@ -758,6 +758,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertTrue(tableModel1 != table.model)
   }
 
+  fun testProgressBarIsHiddenByDefault() {
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    assertFalse(progressBar.isVisible)
+  }
+
   fun testProgressBarIsVisibleWhenLoading() {
     // Act
     view.startTableLoading()
