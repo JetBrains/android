@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.util.ui.JBUI
-import sun.security.util.SecurityConstants
+import sun.awt.AWTPermissions
 import java.awt.Color
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -152,7 +153,7 @@ private fun canPickupColorFromDisplay(): Boolean {
   }
 
   return try {
-    System.getSecurityManager()?.checkPermission(SecurityConstants.AWT.READ_DISPLAY_PIXELS_PERMISSION)
+    System.getSecurityManager()?.checkPermission(AWTPermissions.READ_DISPLAY_PIXELS_PERMISSION)
     true
   }
   catch (e: SecurityException) {

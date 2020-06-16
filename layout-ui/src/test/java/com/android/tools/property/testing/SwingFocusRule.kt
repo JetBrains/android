@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 package com.android.tools.property.testing
 
 import com.intellij.openapi.actionSystem.DataContext
@@ -30,8 +31,8 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
-import sun.awt.CausedFocusEvent
 import java.awt.*
+import java.awt.event.FocusEvent
 import java.awt.peer.ComponentPeer
 import javax.swing.JComponent
 
@@ -53,8 +54,8 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
   private val answer = Answer { invocation ->
     val componentToGainFocus = invocation.getArgument<Component>(0)
     val temporary = invocation.getArgument<Boolean>(1)
-    val cause = invocation.getArgument<CausedFocusEvent.Cause>(4)
-    val event = CausedFocusEvent(componentToGainFocus, 0, temporary, focusOwner, cause)
+    val cause = invocation.getArgument<FocusEvent.Cause>(4)
+    val event = FocusEvent(componentToGainFocus, 0, temporary, focusOwner, cause)
     val oldFocusOwner = focusOwner
     focusOwner?.focusListeners?.forEach { it.focusLost(event) }
     focusOwner = componentToGainFocus
@@ -109,7 +110,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
   private fun setSinglePeer(component: Component) {
     val accessor = AWTAccessor.getComponentAccessor()
-    if (accessor.getPeer(component) == null) {
+    if (accessor.getPeer<ComponentPeer>(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
 
       if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
