@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.DOT_CLASS;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.VALUE_FALSE;
+
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FilePermission;
@@ -27,8 +30,6 @@ import java.lang.reflect.Member;
 import java.net.InetAddress;
 import java.security.Permission;
 import java.util.PropertyPermission;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A {@link SecurityManager} which is used for layout lib rendering, to
@@ -275,7 +276,6 @@ public class RenderSecurityManager extends SecurityManager {
   public void checkPackageAccess(String pkg) {
   }
 
-  @Override
   public void checkMemberAccess(Class<?> clazz, int which) {
     if (which == Member.DECLARED && isRelevant() &&
         RenderSecurityException.class.getName().equals(clazz.getName())) {
@@ -537,7 +537,6 @@ public class RenderSecurityManager extends SecurityManager {
     }
   }
 
-  @Override
   public void checkAwtEventQueueAccess() {
     if (isRelevant()) {
       throw RenderSecurityException.create("Event", null);
@@ -573,14 +572,12 @@ public class RenderSecurityManager extends SecurityManager {
     }
   }
 
-  @Override
   public void checkSystemClipboardAccess() {
     if (isRelevant()) {
       throw RenderSecurityException.create("Clipboard", null);
     }
   }
 
-  @Override
   public boolean checkTopLevelWindow(Object context) {
     if (isRelevant()) {
       throw RenderSecurityException.create("Window", null);
