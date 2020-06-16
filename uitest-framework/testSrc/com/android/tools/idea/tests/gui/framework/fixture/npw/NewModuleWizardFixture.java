@@ -57,10 +57,29 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAutomotiveModule() {
+    clickNextToStep(message("android.wizard.module.new.automotive"), message("android.wizard.module.new.automotive"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
   public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextWearModule() {
     clickNextToStep(message("android.wizard.module.new.wear"), message("android.wizard.module.new.wear"));
     return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAndroidTvModule() {
+    clickNextToStep(message("android.wizard.module.new.tv"), message("android.wizard.module.new.tv"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAndroidThingsModule() {
+    clickNextToStep(message("android.wizard.module.new.things"), message("android.wizard.module.new.things"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
   @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
     clickNextToStep(message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.config.title"));
