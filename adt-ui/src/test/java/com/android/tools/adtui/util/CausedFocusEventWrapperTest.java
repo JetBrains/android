@@ -9,7 +9,6 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import sun.awt.CausedFocusEvent;
 
 public class CausedFocusEventWrapperTest {
 
@@ -56,11 +55,6 @@ public class CausedFocusEventWrapperTest {
     if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
       Assert.assertTrue(CausedFocusEventWrapper.isFocusEventWithCause(new FocusEvent(Mockito.mock(Component.class), 0)));
     }
-    else {
-      Assert.assertFalse(CausedFocusEventWrapper.isFocusEventWithCause(new FocusEvent(Mockito.mock(Component.class), 0)));
-      Assert.assertTrue(CausedFocusEventWrapper.isFocusEventWithCause(
-        new CausedFocusEvent(Mockito.mock(Component.class), 0, false, Mockito.mock(Component.class), CausedFocusEvent.Cause.TRAVERSAL)));
-    }
   }
 
   private void assertSingleTrueValueAtKey(String key, Map<String, Boolean> res) {
@@ -83,7 +77,7 @@ public class CausedFocusEventWrapperTest {
       return Enum.valueOf(causeClass, name);
     }
     catch (ClassNotFoundException e) {
-      return CausedFocusEvent.Cause.valueOf(name);
+      throw new RuntimeException(e);
     }
   }
 }

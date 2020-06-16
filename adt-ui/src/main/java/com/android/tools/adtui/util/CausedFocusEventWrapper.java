@@ -4,12 +4,11 @@ package com.android.tools.adtui.util;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfoRt;
-import java.awt.AWTEvent;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import org.jetbrains.annotations.Nullable;
-import sun.awt.CausedFocusEvent;
 
 /**
  * This class is to hide differences in FocusEvent implementations on JDK8 and JDK9+
@@ -37,9 +36,6 @@ public class CausedFocusEventWrapper {
       catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
         Logger.getInstance(CausedFocusEventWrapper.class).error("Failed to get FocusEvent cause", ex);
       }
-    }
-    else {
-      cause = ((CausedFocusEvent)e).getCause();
     }
     return cause;
   }
@@ -70,7 +66,7 @@ public class CausedFocusEventWrapper {
       return e instanceof FocusEvent;
     }
     else {
-      return e instanceof CausedFocusEvent;
+      return e instanceof FocusEvent;
     }
   }
 
