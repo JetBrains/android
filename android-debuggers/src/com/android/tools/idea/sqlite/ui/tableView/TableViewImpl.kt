@@ -231,6 +231,7 @@ class TableViewImpl : TableView {
     layeredPane.add(tablePanel)
     layeredPane.layout = MatchParentLayoutManager()
 
+    progressBar.isVisible = false
     progressBar.isIndeterminate = true
     progressBar.putClientProperty("ProgressBar.flatEnds", java.lang.Boolean.TRUE)
     progressBar.putClientProperty("ProgressBar.stripeWidth", JBUI.scale(2))
