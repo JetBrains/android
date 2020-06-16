@@ -179,7 +179,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    * The imported trace file, it is only used when the stage was initiated in Import Trace mode, otherwise null.
    */
   @Nullable
-  private File myImportedTrace;
+  private final File myImportedTrace;
 
   /**
    * The trace info associated with the imported trace info. This is only generated and used in import mode.
@@ -191,7 +191,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    * Keep track of the {@link Common.Session} that contains this stage, otherwise tasks that happen in background (e.g. parsing a trace) can
    * refer to a different session later if the user changes the session selection in the UI.
    */
-  private Common.Session mySession;
+  @NotNull
+  private final Common.Session mySession;
 
   /**
    * Mapping trace ids to completed CpuTraceInfo's.
@@ -387,9 +388,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     myProfilerConfigModel.updateProfilingConfigurations();
     if (myIsImportTraceMode) {
+      // Legacy capture UI
       assert myImportedTrace != null;
       // When in import trace mode, immediately import the trace from the given file and set the resulting capture.
-      parseAndSelectImportedTrace(myImportedTrace);
+      // Use session ID as the trace ID.
+      parseAndSelectImportedTrace(myImportedTrace, mySession.getSessionId());
       // Set the profiler mode to EXPANDED to make sure that L3 panel is shown.
       setProfilerMode(ProfilerMode.EXPANDED);
     }
@@ -619,12 +622,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    * Parses a trace {@link File} and set the resulting {@link CpuCapture} as the current capture. If parsing fails, warn the user through an
    * error balloon.
    */
-  private void parseAndSelectImportedTrace(@NotNull File traceFile) {
+  private void parseAndSelectImportedTrace(@NotNull File traceFile, long traceId) {
     assert myIsImportTraceMode;
 
     // We pass no hints for the import mode.
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
-      traceFile, CpuCaptureParser.IMPORTED_TRACE_ID, CpuTraceType.UNSPECIFIED_TYPE, 0, "");
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile, traceId, CpuTraceType.UNSPECIFIED_TYPE, 0, "");
 
     // TODO (b/79244375): extract callback to its own method
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
@@ -639,7 +641,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         timeline.setIsPaused(true);
 
         myImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-          .setTraceId(CpuCaptureParser.IMPORTED_TRACE_ID)
+          .setTraceId(traceId)
           .setFromTimestamp((long)captureRangeNs.getMin())
           .setToTimestamp((long)captureRangeNs.getMax())
           .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
