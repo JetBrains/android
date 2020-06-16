@@ -60,7 +60,7 @@ class CpuAnalysisPanelTest {
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH), 123L)
     panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)
   }
 

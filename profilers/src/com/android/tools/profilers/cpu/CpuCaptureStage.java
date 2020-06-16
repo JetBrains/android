@@ -155,17 +155,18 @@ public class CpuCaptureStage extends Stage<Timeline> {
       return null;
     }
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
-    return new CpuCaptureStage(profilers, configuration, captureFile, captureProcessNameHint, profilers.getSession().getPid());
+    return new CpuCaptureStage(profilers, configuration, captureFile, traceId, captureProcessNameHint, profilers.getSession().getPid());
   }
 
   /**
-   * Create a capture stage based on a file, this is used for both importing traces as well as cached traces loaded from trace ids.
+   * Create a capture stage based on a file, this is used for importing traces. In the absence of a trace ID, the session ID is used.
    */
   @NotNull
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
                                        @NotNull ProfilingConfiguration configuration,
-                                       @NotNull File captureFile) {
-    return new CpuCaptureStage(profilers, configuration, captureFile, null, 0);
+                                       @NotNull File captureFile,
+                                       long sessionId) {
+    return new CpuCaptureStage(profilers, configuration, captureFile, sessionId, null, 0);
   }
 
   /**
@@ -175,11 +176,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
   CpuCaptureStage(@NotNull StudioProfilers profilers,
                   @NotNull ProfilingConfiguration configuration,
                   @NotNull File captureFile,
+                  long traceId,
                   @Nullable String captureProcessNameHint,
                   int captureProcessIdHint) {
     super(profilers);
-    myCpuCaptureHandler =
-      new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configuration, captureProcessNameHint, captureProcessIdHint);
+    myCpuCaptureHandler = new CpuCaptureHandler(
+      profilers.getIdeServices(), captureFile, traceId, configuration, captureProcessNameHint, captureProcessIdHint);
   }
 
   public State getState() {
@@ -309,7 +311,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
     Cpu.CpuTraceInfo importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setTraceId(CpuCaptureParser.IMPORTED_TRACE_ID)
+      // Use session ID as trace ID for imported traces.
+      .setTraceId(getStudioProfilers().getSession().getSessionId())
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
       .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()))
       .setConfiguration(

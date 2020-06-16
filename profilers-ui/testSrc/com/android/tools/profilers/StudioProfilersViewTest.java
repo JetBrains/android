@@ -514,7 +514,7 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void nonTimelineStageHidesRightToolbar_timelineStageShowsRightToolbar() throws Exception {
+  public void nonTimelineStageHidesRightToolbar_timelineStageShowsRightToolbar() {
     myProfilers.setStage(new HeapDumpStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
     assertThat(myView.getRightToolbar().isVisible()).isFalse();
 
@@ -523,10 +523,11 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void captureCpuStageGoesBackToCpuStagethenBackToMonitorStage() throws Exception {
+  public void captureCpuStageGoesBackToCpuStageThenBackToMonitorStage() {
     myProfilers.setStage(CpuCaptureStage.create(myProfilers,
                                                 ProfilersTestData.DEFAULT_CONFIG,
-                                                TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH)));
+                                                TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH),
+                                                ProfilersTestData.SESSION_DATA.getSessionId()));
     myView.getBackButton().doClick();
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     myView.getBackButton().doClick();
