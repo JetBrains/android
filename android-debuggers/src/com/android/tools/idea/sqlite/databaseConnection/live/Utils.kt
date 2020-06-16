@@ -93,8 +93,34 @@ fun ListenableFuture<SqliteInspectorProtocol.Response>.mapToColumns(executor: Ex
  *
  * Asynchronous errors are delivered to DatabaseInspectorProjectService that takes care of showing them.
  */
-internal fun handleError(project: Project, errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger) {
+internal fun handleError(
+  project: Project,
+  command: SqliteInspectorProtocol.Command,
+  errorContent: SqliteInspectorProtocol.ErrorContent,
+  logger: Logger
+) {
+  // Ignore race conditions for short-lived dbs.
+  // Short lived dbs can be closed after the "db open" event is received and before the next command is executed.
+  if (
+    errorContent.errorCode == SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_NO_OPEN_DATABASE_WITH_REQUESTED_ID ||
+    errorContent.errorCode == SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_DB_CLOSED_DURING_OPERATION
+  ) {
+    return
+  }
+
+  when (command.oneOfCase) {
+    SqliteInspectorProtocol.Command.OneOfCase.GET_SCHEMA,
+    SqliteInspectorProtocol.Command.OneOfCase.KEEP_DATABASES_OPEN,
+    SqliteInspectorProtocol.Command.OneOfCase.QUERY,
+    SqliteInspectorProtocol.Command.OneOfCase.TRACK_DATABASES,
+    SqliteInspectorProtocol.Command.OneOfCase.ONEOF_NOT_SET -> handleErrorContent(project, errorContent, logger)
+    null -> { }
+  }
+}
+
+private fun handleErrorContent(project: Project, errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger) {
   val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+
   when(errorContent.recoverability.oneOfCase) {
     SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
       // log when isRecoverable is set and is false.

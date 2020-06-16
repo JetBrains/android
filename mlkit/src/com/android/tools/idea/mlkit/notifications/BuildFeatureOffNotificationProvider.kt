@@ -89,7 +89,7 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
   companion object {
     private val KEY: Key<EditorNotificationPanel> = Key.create("ml.build.feature.off.notification.panel")
     private val HIDDEN_KEY = Key.create<String>("ml.build.feature.off.notification.panel.hidden")
-    private const val BANNER_MESSAGE = "TensorFlow Lite model binding build feature not enabled."
+    private const val BANNER_MESSAGE = "ML Model Binding build feature not enabled."
     private const val DIALOG_TITLE = "Enable Build Feature"
     private const val DIALOG_MESSAGE = "This operation adds the below build feature\n\n" +
                                        "buildFeatures {\n" +

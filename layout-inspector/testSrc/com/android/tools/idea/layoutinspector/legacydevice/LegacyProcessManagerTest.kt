@@ -21,7 +21,8 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
 import com.android.fakeadbserver.devicecommandhandlers.ddmsHandlers.FeaturesHandler
-import com.android.tools.idea.layoutinspector.util.ProcessManagerSync
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.layoutinspector.util.ProcessManagerAsserts
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import org.junit.After
@@ -59,7 +60,7 @@ class LegacyProcessManagerTest {
       .build()
     adbServer?.start()
     AndroidDebugBridge.enableFakeAdbServerMode(adbServer!!.port)
-    AndroidDebugBridge.initIfNeeded(true)
+    AndroidDebugBridge.init(true)
     bridge = AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
   }
 
@@ -70,6 +71,11 @@ class LegacyProcessManagerTest {
     adbServer?.close()
     adbServer = null
     bridge = null
+  }
+
+  @Test
+  fun addDevice() {
+    startDevice()
   }
 
   @Test
@@ -84,8 +90,8 @@ class LegacyProcessManagerTest {
     val device1 = adbServer!!.deviceListCopy.get().single()
     device1.stopClient(PROCESS1)
 
-    val waiter = ProcessManagerSync(manager)
-    waiter.waitUntilReady(DEVICE1, PROCESS2)
+    val waiter = ProcessManagerAsserts(manager)
+    waiter.assertDeviceWithProcesses(DEVICE1, PROCESS2)
   }
 
   @Test
@@ -94,8 +100,8 @@ class LegacyProcessManagerTest {
 
     adbServer!!.disconnectDevice(DEVICE1)
 
-    val waiter = ProcessManagerSync(manager)
-    waiter.waitUntilReady(DEVICE1)
+    val waiter = ProcessManagerAsserts(manager)
+    waiter.assertNoDevices()
   }
 
   /**
@@ -107,19 +113,33 @@ class LegacyProcessManagerTest {
    * [PROCESS5] has a package name of "<pre-initialized>" indicating it is not fully initialized and is ignored.
    */
   private fun startProcesses(): LegacyProcessManager {
-    val manager = LegacyProcessManager(disposableRule.disposable)
-    assertThat(manager.getStreams().toList()).isEmpty()
-    val device1 = adbServer!!.connectDevice(DEVICE1, MANUFACTURER, "My Model", "3.0", "27", DeviceState.HostConnectionType.USB)?.get()!!
-    device1.deviceStatus = DeviceState.DeviceStatus.ONLINE
-
+    val (device1, manager) = startDevice()
     device1.startClient(PROCESS1, 123, "com.example.myapplication", true)
     device1.startClient(PROCESS2, 234, "com.example.basic_app", true)
     device1.startClient(PROCESS3, 345, "com.example.compose_app", true)
     device1.startClient(PROCESS4, 456, "", true)
     device1.startClient(PROCESS5, 567, ClientData.PRE_INITIALIZED, true)
 
-    val waiter = ProcessManagerSync(manager)
-    waiter.waitUntilReady(DEVICE1, PROCESS1, PROCESS2)
+    val waiter = ProcessManagerAsserts(manager)
+    waiter.assertDeviceWithProcesses(DEVICE1, PROCESS1, PROCESS2)
     return manager
+  }
+
+  private fun startDevice(): Pair<DeviceState, LegacyProcessManager> {
+    val scheduler = VirtualTimeScheduler()
+    val manager = LegacyProcessManager(disposableRule.disposable, scheduler)
+    assertThat(manager.getStreams().toList()).isEmpty()
+
+    val device1 = adbServer!!.connectDevice(DEVICE1, MANUFACTURER, "My Model", "3.0", "27", DeviceState.HostConnectionType.USB)?.get()!!
+    device1.deviceStatus = DeviceState.DeviceStatus.ONLINE
+    assertThat(manager.getStreams().toList()).isEmpty()
+
+    // The LegacyProcessManager will not register the device before the properties are loaded by the thread
+    // created in: PropertyFetcher.initiatePropertiesQuery.
+    // Wait for that here while advancing the time scheduler to force another check of the properties being loaded.
+    val waiter = ProcessManagerAsserts(manager)
+    waiter.assertDeviceWithProcesses(DEVICE1) { scheduler.advanceBy(50, TimeUnit.MILLISECONDS) }
+
+    return Pair(device1, manager)
   }
 }

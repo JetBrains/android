@@ -66,17 +66,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -131,7 +129,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * A map of device to stream ids. This is needed to map devices to their transport-database streams.
    */
-  private Map<Common.Device, Long> myStreamIds;
+  private Map<Common.Device, Long> myDeviceToStreamIds;
+
+  private Map<Long, Common.Stream> myStreamIdToStreams;
 
   @NotNull private final SessionsManager mySessionsManager;
 
@@ -201,7 +201,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage = new NullMonitorStage(this);
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
-    myStreamIds = new HashMap<>();
+    myDeviceToStreamIds = new HashMap<>();
+    myStreamIdToStreams = new HashMap<>();
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -367,7 +368,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private List<Common.Device> getUpToDateDevices() {
-    return getUpToDateDevices(myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled(), myClient, myStreamIds);
+    return getUpToDateDevices(myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled(), myClient, myDeviceToStreamIds,
+                              myStreamIdToStreams);
   }
 
   /**
@@ -376,12 +378,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    *
    * @param isUnifiedPipelineEnabled The flag to control whether unified pipeline is enabled.
    * @param client                   The ProfilerClient that can call into ProfilerService.
-   * @param streamIds                A updatable cache that maps a device to its stream ID.
+   * @param deviceToStreamIds        An updatable cache that maps a device to its stream ID.
+   * @param streamIdToStreams        An updatable cache that maps a stream ID to the stream.
    */
   @NotNull
   public static List<Common.Device> getUpToDateDevices(boolean isUnifiedPipelineEnabled,
                                                        @NotNull ProfilerClient client,
-                                                       @Nullable Map<Common.Device, Long> streamIds) {
+                                                       @Nullable Map<Common.Device, Long> deviceToStreamIds,
+                                                       @Nullable Map<Long, Common.Stream> streamIdToStreams) {
     List<Common.Device> devices = new LinkedList<>();
     if (isUnifiedPipelineEnabled) {
       // Get all streams of all types.
@@ -405,8 +409,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
             // remove this once we move complete away from the legacy pipeline.
             stream = stream.toBuilder().setDevice(stream.getDevice().toBuilder().setState(Device.State.DISCONNECTED)).build();
           }
-          if (streamIds != null) {
-            streamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+          if (deviceToStreamIds != null) {
+            deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+          }
+          if (streamIdToStreams != null) {
+            streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
           }
           devices.add(stream.getDevice());
         }
@@ -417,6 +424,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       devices = response.getDeviceList();
     }
     return devices;
+  }
+
+  @NotNull
+  public Common.Stream getStream(long streamId) {
+    return myStreamIdToStreams.getOrDefault(streamId, Common.Stream.getDefaultInstance());
   }
 
   @Override
@@ -439,7 +451,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
         for (Common.Device device : devices) {
           GetEventGroupsRequest processRequest = GetEventGroupsRequest.newBuilder()
-            .setStreamId(myStreamIds.get(device))
+            .setStreamId(myDeviceToStreamIds.get(device))
             .setKind(Event.Kind.PROCESS)
             .build();
           GetEventGroupsResponse processResponse = myClient.getTransportClient().getEventGroups(processRequest);
@@ -608,7 +620,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
         if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-          mySessionsManager.beginSession(myStreamIds.get(myDevice), myDevice, myProcess);
+          mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
         }
         else {
           mySessionsManager.beginSession(myDevice, myProcess);
@@ -1023,19 +1035,35 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Returns the start timestamp, in nanoseconds, of the imported trace session. First, we try to get the trace file creation time.
-   * If there is an error to obtain it, we fallback to the input |fallbackTimesampMs| and convert that into nanoseconds.
+   * Return the start and end timestamps for the artificial session created for the given imported file.
+   *
+   * For each imported file, an artificial session is created. The start timestamp will be used as the
+   * session's ID. Therefore, this function returns a nearly unique hash as the start timestamp for each file.
+   *
+   * The range constructed by the two timestamps (after casting to microseconds) should still include the start
+   * timestamp in nanoseconds because our code base shares much of live session's logic to handle imported
+   * files. The two timestamps will construct a Range object. As the Range class uses microseconds, the
+   * range may become a point when nanoseconds are casted into microseconds if it's too short, and the
+   * nanosecond-timestamp may fall out of it. Therefore, this method makes the range one microsecond long
+   * to avoid a point-range after casting.
+   *
+   * This method avoid negative timestamps which may be counter-intuitive.
    */
-  public static long getFileCreationTimestampNs(File file, long fallbackTimesampMs) {
-    Path tracePath = Paths.get(file.getPath());
-    try {
-      BasicFileAttributes attributes = Files.readAttributes(tracePath, BasicFileAttributes.class);
-      return attributes.creationTime().to(TimeUnit.NANOSECONDS);
+  public static Pair<Long, Long> computeImportedFileStartEndTimestampsNs(File file) {
+    long hash = Hashing.sha256().hashString(file.getAbsolutePath(), StandardCharsets.UTF_8).asLong();
+    // Avoid Long.MAX_VALUE which as the end timestamp means ongoing in transport pipeline.
+    if (hash == Long.MAX_VALUE || hash == Long.MIN_VALUE || hash == Long.MIN_VALUE + 1) {
+      hash /= 2;
     }
-    catch (IOException e) {
-      getLogger().warn("File creation time could not be read. Falling back to session start time.");
+    // Avoid negative values.
+    if (hash < 0) {
+      hash = -hash;
     }
-
-    return TimeUnit.MICROSECONDS.toNanos(fallbackTimesampMs);
+    long rangeNs = TimeUnit.MICROSECONDS.toNanos(1);
+    // Make sure (hash + rangeNs) as the end timestamp doesn't overflow.
+    if (hash >= Long.MAX_VALUE - rangeNs) {
+      hash -= rangeNs;
+    }
+    return new Pair<>(hash, hash + rangeNs);
   }
 }

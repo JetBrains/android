@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.model
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.intellij.openapi.application.ApplicationManager
 
 /**
@@ -74,6 +73,7 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   override fun addDatabaseSchema(databaseId: SqliteDatabaseId, sqliteSchema: SqliteSchema) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
+    closeDatabases.remove(databaseId)
     openDatabases[databaseId] = sqliteSchema
     listeners.forEach { it.onDatabasesChanged(openDatabases.keys.toList(), closeDatabases.toList()) }
   }

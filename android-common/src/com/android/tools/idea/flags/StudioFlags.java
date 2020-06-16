@@ -436,6 +436,13 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
+  public static final Flag<Boolean> RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED = Flag.create(
+    RUNDEBUG,
+    "run.on.multiple.devices.action.enabled",
+    "Enable the Run on Multiple Devices action",
+    "To revert to the 4.0 behavior until multiple devices are properly supported for the other executors",
+    true);
+
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
     "adb.connection.status.widget.enabled",

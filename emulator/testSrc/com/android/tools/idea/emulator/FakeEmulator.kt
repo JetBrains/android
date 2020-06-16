@@ -50,6 +50,8 @@ import io.grpc.ServerCall
 import io.grpc.ServerCallHandler
 import io.grpc.ServerInterceptor
 import io.grpc.ServerInterceptors
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.StreamObserver
 import java.awt.Color
@@ -66,7 +68,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.CopyOption
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
-import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
@@ -344,7 +345,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
             .setRotation(Rotation.newBuilder().setRotation(displayRotation))
           )
 
-        responseObserver.onNext(response.build())
+        try {
+          responseObserver.onNext(response.build())
+        }
+        catch (e: StatusRuntimeException) {
+          if (e.status.code != Status.Code.CANCELLED) {
+            throw e
+          }
+        }
       }
     }
 

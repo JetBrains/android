@@ -54,21 +54,20 @@ class BasicDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
 
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
-
-  override val otherGroups: List<ActionGroup>
-    get() = listOf()
 }
 
-private fun createZoomControlsGroup() =
-  DefaultActionGroup().apply {
+fun createZoomControlsGroup(): ActionGroup {
+  return DefaultActionGroup().apply {
     add(ZoomInAction.getInstance())
     add(ZoomOutAction.getInstance())
     add(ZoomActualAction.getInstance())
     add(ZoomToFitAction.getInstance())
   }
+}
 
-private fun createZoomLabelGroup() =
-  DefaultActionGroup().apply {
+fun createZoomLabelGroup(): ActionGroup {
+  return DefaultActionGroup().apply {
     add(ZoomLabelAction)
     add(ZoomResetAction.getInstance())
   }
+}

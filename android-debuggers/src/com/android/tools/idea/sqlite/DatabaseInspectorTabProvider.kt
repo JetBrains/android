@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -68,6 +67,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       override val client = DatabaseInspectorClient(
         messenger,
+        project,
         handleError,
         openDatabase,
         onDatabasePossiblyChanged,
@@ -83,8 +83,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       }
 
       init {
-        databaseInspectorProjectService.ideServices = ideServices
-        databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands)
+        databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
         client.startTrackingDatabaseConnections()
         client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
           override fun onDispose() {
@@ -96,8 +95,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
   }
 }
 
-fun createErrorSideChannel(project: Project) : ErrorsSideChannel = {
-  handleError(project, it.content, logger<DatabaseInspectorMessenger>())
+fun createErrorSideChannel(project: Project) : ErrorsSideChannel = { command, errorResponse ->
+  handleError(project, command, errorResponse.content, logger<DatabaseInspectorMessenger>())
 }
 
 /**

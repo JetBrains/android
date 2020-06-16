@@ -27,7 +27,6 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.MockDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
@@ -56,6 +55,8 @@ import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
@@ -190,7 +191,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
   }
 
@@ -1048,7 +1049,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // update tabs
     // each invocation is repeated twice because there are two tabs open
     // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked, 3rd by dataPossiblyChanged
-    verify(mockViewFactory.tableView, times(6)).showTableColumns(mockResultSet._columns)
+    verify(mockViewFactory.tableView, times(6)).showTableColumns(mockResultSet._columns.toViewColumns())
     // invocation by setUp
     verify(mockViewFactory.tableView, times(2)).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     // 1st invocation by toggleLiveUpdatesInvoked, 2nd by dataPossiblyChanged
@@ -1215,6 +1216,22 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockSqliteView).updateDatabases(listOf(
       DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, false), null, 0),
       DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, true))
+    ))
+  }
+
+  fun testClosedDatabasesAreRemovedOnceReopened() {
+    // Prepare
+    val db1 = SqliteDatabaseId.fromLiveDatabase("db", 1)
+
+    // Act
+    mockDatabaseInspectorModel.removeDatabaseSchema(db1)
+    mockDatabaseInspectorModel.addDatabaseSchema(db1, testSqliteSchema1)
+
+    // Assert
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase (db1, false), null, 0)))
+    verify(mockSqliteView).updateDatabases(listOf(
+      DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, true), testSqliteSchema1, 0),
+      DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, false))
     ))
   }
 

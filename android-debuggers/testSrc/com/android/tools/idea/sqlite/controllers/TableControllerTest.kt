@@ -29,7 +29,6 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.MockDatabaseRepository
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
@@ -46,15 +45,19 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
-import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
+import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.toSqliteValues
+import com.android.tools.idea.sqlite.utils.toViewColumn
+import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
@@ -67,7 +70,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
-class TableControllerTest : PlatformTestCase() {
+class TableControllerTest : LightPlatformTestCase() {
   private lateinit var tableView: MockTableView
   private lateinit var mockResultSet: MockSqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
@@ -106,7 +109,7 @@ class TableControllerTest : PlatformTestCase() {
 
     val sqliteFile = sqliteUtil.createTestSqliteDatabase()
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
     authorIdColumn = ResultSetSqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
@@ -187,7 +190,8 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
-    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns)
+    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
@@ -243,7 +247,8 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
-    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.filter { it.name != sqliteTable.rowIdName?.stringName })
+    orderVerifier.verify(tableView)
+      .showTableColumns(mockResultSet._columns.filter { it.name != sqliteTable.rowIdName?.stringName }.toViewColumns())
   }
 
   fun testSetUpError() {
@@ -349,7 +354,8 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
-    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns)
+    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
@@ -431,7 +437,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -461,17 +467,21 @@ class TableControllerTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     pumpEventsAndWaitForFuture(tableController.refreshData())
 
     // Assert
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(emptyList())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
@@ -562,6 +572,10 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).setRowOffset(10)
+    orderVerifier.verify(tableView).setRowOffset(20)
   }
 
   fun `test Next ShowsLoadingUi`() {
@@ -625,6 +639,10 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).setRowOffset(5)
+    orderVerifier.verify(tableView).setRowOffset(10)
   }
 
   fun `test Next Prev`() {
@@ -666,6 +684,12 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).setRowOffset(10)
+    orderVerifier.verify(tableView).setRowOffset(20)
+    orderVerifier.verify(tableView).setRowOffset(10)
+    orderVerifier.verify(tableView).setRowOffset(0)
   }
 
   fun `test Prev ShowsLoadingUi`() {
@@ -1405,9 +1429,9 @@ class TableControllerTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1434,7 +1458,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1482,10 +1506,12 @@ class TableControllerTest : PlatformTestCase() {
     val orderVerifier = inOrder(tableView, mockDatabaseConnection)
 
     // Act
-    tableView.listeners.first().updateCellInvoked(1, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(1, targetCol.toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(mockDatabaseConnection).execute(
       SqliteStatement(
         SqliteStatementType.UPDATE,
@@ -1494,7 +1520,6 @@ class TableControllerTest : PlatformTestCase() {
         "UPDATE tableName SET c1 = 'new value' WHERE rowid = '1'"
       )
     )
-    orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
@@ -1534,7 +1559,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1", "_rowid_", "rowid", "oid"))
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1569,12 +1594,17 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     assertEquals("Can't execute update: ", tableView.errorReported.first().first)
     assertEquals("No primary keys or rowid column", tableView.errorReported.first().second?.message)
+
+    orderVerifier.verify(tableView).stopTableLoading()
+    orderVerifier.verify(tableView).revertLastTableCellEdit()
+    orderVerifier.verify(tableView).stopTableLoading()
+
     val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName")
     ))
@@ -1590,7 +1620,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1642,7 +1672,7 @@ class TableControllerTest : PlatformTestCase() {
     val updatedTargetTable = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema()).tables.find { it.name == "t1" }!!
     tableProvider.table = updatedTargetTable
 
-    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1777,7 +1807,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1813,7 +1843,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFutureException(tableController.refreshData())
 
     // Assert
-    orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toResultSetCol())
+    orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toViewColumns())
     orderVerifier.verify(tableView).updateRows(listOf(
       RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("1")))))
     ))
@@ -1829,7 +1859,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1867,12 +1897,12 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     val targetTableAfterAlterTable = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema()).tables.find { it.name == "t1" }!!
 
-    orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toResultSetCol())
+    orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toViewColumns())
     orderVerifier.verify(tableView).updateRows(listOf(
       RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.StringValue("42")))))
     ))
 
-    orderVerifier.verify(tableView).showTableColumns(targetTableAfterAlterTable.columns.toResultSetCol())
+    orderVerifier.verify(tableView).showTableColumns(targetTableAfterAlterTable.columns.toViewColumns())
     orderVerifier.verify(tableView).updateRows(listOf(
       RowDiffOperation.AddRow(SqliteRow(listOf(
         SqliteColumnValue("c1", SqliteValue.StringValue("42")),
@@ -1888,7 +1918,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1922,7 +1952,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE t1")))
     tableProvider.table = null
 
-    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), SqliteValue.StringValue("test value"))
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), SqliteValue.StringValue("test value"))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -2044,7 +2074,7 @@ class TableControllerTest : PlatformTestCase() {
     val newValue = SqliteValue.StringValue("new value")
 
     // Act
-    tableView.listeners.first().updateCellInvoked(1, targetCol.toResultSetCol(), newValue)
+    tableView.listeners.first().updateCellInvoked(1, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -2107,7 +2137,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked
-    verify(tableView, times(2)).showTableColumns(mockResultSet._columns)
+    verify(tableView, times(2)).showTableColumns(mockResultSet._columns.toViewColumns())
     // invocation by setUp
     verify(tableView, times(1)).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     // invocation by toggleLiveUpdatesInvoked
@@ -2160,7 +2190,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -2224,10 +2254,42 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
+  fun testColumnInformationFromSchema() {
+    // Prepare
+    val resultSet = mock(SqliteResultSet::class.java)
+    `when`(resultSet.getRowBatch(any(), any())).thenReturn(Futures.immediateFuture(emptyList()))
+    `when`(resultSet.totalRowCount).thenReturn(Futures.immediateFuture(0))
+    `when`(resultSet.columns).thenReturn(Futures.immediateFuture(listOf(ResultSetSqliteColumn("c1", null, null, null))))
+
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(resultSet))
+
+    val table = SqliteTable("t1", listOf(SqliteColumn("c1", SqliteAffinity.TEXT, false, true)), null, false)
+
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      mockDatabaseId,
+      { table },
+      databaseRepository,
+      SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    orderVerifier.verify(tableView).showTableColumns(listOf(ViewColumn("c1", true, false)))
+  }
+
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(databaseFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
 
@@ -2258,7 +2320,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -2297,4 +2359,6 @@ class TableControllerTest : PlatformTestCase() {
 
     return result
   }
+
+  private fun List<SqliteColumn>.toViewColumns(): List<ViewColumn> = map { ViewColumn(it.name, it.inPrimaryKey, it.isNullable) }
 }

@@ -56,12 +56,14 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.plaf.ScrollBarUI
 
+private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+private const val isToolbarHorizontal = true
+
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
-class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
   private val mainToolbar: ActionToolbar
-  private val secondaryToolbar: ActionToolbar
   private var emulatorView: EmulatorView? = null
   private val scrollPane: JScrollPane
   private val layeredPane: JLayeredPane
@@ -93,11 +95,6 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
     mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
 
-    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal).apply {
-      setReservePlaceAutoPopupIcon(false)
-      layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
-    }
-
     zoomControlsLayerPane = JPanel().apply {
       layout = BorderLayout()
       border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
@@ -123,29 +120,23 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
     }
   }
 
-  private fun addToolbars() {
+  fun getPreferredFocusableComponent(): JComponent {
+    return emulatorView ?: this
+  }
+
+  private fun addToolbar() {
     if (isToolbarHorizontal) {
       mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
-      secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
       layeredPane.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      val toolbarPanel = BorderLayoutPanel()
-      toolbarPanel.addToLeft(mainToolbar.component)
-      toolbarPanel.addToRight(secondaryToolbar.component)
-      addToTop(toolbarPanel)
+      addToTop(mainToolbar.component)
     }
     else {
       mainToolbar.setOrientation(SwingConstants.VERTICAL)
-      secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
       layeredPane.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
-      val toolbarPanel = BorderLayoutPanel()
-      (toolbarPanel.layout as BorderLayout).vgap = 1
-      toolbarPanel.addToTop(secondaryToolbar.component)
-      secondaryToolbar.component.border = IdeBorderFactory.createBorder(JBColor.PanelBackground, SideBorder.BOTTOM)
-      mainToolbar.component.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      toolbarPanel.addToCenter(mainToolbar.component)
-      addToLeft(toolbarPanel)
+      addToLeft(mainToolbar.component)
     }
   }
+
 
   fun setCropFrame(value: Boolean) {
     emulatorView?.cropFrame = value
@@ -166,11 +157,10 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
       this.emulatorView = emulatorView
       scrollPane.setViewportView(emulatorView)
       mainToolbar.setTargetComponent(emulatorView)
-      secondaryToolbar.setTargetComponent(emulatorView)
 
-      addToolbars()
+      addToolbar()
 
-      val loadingPanel = JBLoadingPanel(BorderLayout(), disposable, 200)
+      val loadingPanel = EmulatorLoadingPanel(disposable)
       this.loadingPanel = loadingPanel
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
       addToCenter(loadingPanel)
@@ -181,7 +171,7 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
       loadingPanel.repaint()
     }
     catch (e: Exception) {
-      val label = "Unable to load emulator view: $e"
+      val label = "Unable to create emulator view: $e"
       add(JLabel(label), BorderLayout.CENTER)
     }
   }
@@ -195,7 +185,6 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
     emulatorView = null
     mainToolbar.setTargetComponent(null)
-    secondaryToolbar.setTargetComponent(null)
     scrollPane.setViewportView(null)
 
     loadingPanel = null
@@ -210,9 +199,11 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
     }
   }
 
-  private fun createToolbar(toolbarId: String, @Suppress("SameParameterValue") horizontal: Boolean): ActionToolbar {
+  @Suppress("SameParameterValue")
+  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
+    toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
     makeToolbarNavigable(toolbar)
     return toolbar
   }
@@ -285,7 +276,3 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
     }
   }
 }
-
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
-private const val EMULATOR_SECONDARY_TOOLBAR_ID = "EmulatorSecondaryToolbar"
-private const val isToolbarHorizontal = true

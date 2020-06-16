@@ -44,7 +44,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.SingleRootFileViewProvider;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import icons.StudioIcons;
@@ -96,7 +95,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       myFlavorBox.addItem(namedModuleTemplate);
     }
     myLearnMoreLabel.setIcon(StudioIcons.Common.INFO);
-    myLearnMoreLabel.setHyperlinkText("This will ensure new ML Model Binding feature works correctly ", "Learn more", "");
+    myLearnMoreLabel.setHyperlinkText("This is needed to ensure ML Model Binding works correctly ", "Learn more", "");
     myLearnMoreLabel.setHyperlinkTarget("https://developer.android.com/studio/write/mlmodelbinding");
 
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
@@ -186,25 +185,23 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @VisibleForTesting
   Validator.Result checkPath(@NotNull File file) {
     if (!file.isFile()) {
-      return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
+      return new Validator.Result(Validator.Severity.ERROR, "Select a TensorFlow Lite model file to import.");
     }
     else if (file.length() > MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES) {
-      return new Validator.Result(Validator.Severity.ERROR, "This file is over the maximum supported size 200 MB.");
+      return new Validator.Result(Validator.Severity.ERROR, "This file is larger than the maximum supported size of 200 MB.");
     }
     else if (!isValidTfliteModel(file)) {
-      return new Validator.Result(Validator.Severity.ERROR, "This file is not a valid TensorFlow Lite model file.");
+      return new Validator.Result(Validator.Severity.ERROR, "This is not a valid TensorFlow Lite model file.");
     }
     else {
       VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
       VirtualFile existingFile = findExistingModelFile(file.getName());
       if (Objects.equals(virtualFile, existingFile)) {
-        return new Validator.Result(Validator.Severity.ERROR, "Model file comes from selected ml directory.");
+        return new Validator.Result(Validator.Severity.ERROR, "This model file is already part of your project.");
       }
       if (existingFile != null && existingFile.exists()) {
-        return new Validator.Result(Validator.Severity.WARNING, "File already exists and will be override.");
-      }
-      if (virtualFile != null && SingleRootFileViewProvider.isTooLargeForContentLoading(virtualFile)) {
-        return new Validator.Result(Validator.Severity.WARNING, "This file is larger than 20 MB and may be a performance impact.");
+        return new Validator.Result(Validator.Severity.WARNING, "File already exists in your project and will be overridden." +
+                                                                " If you would like to upload it as a separate file, please rename it.");
       }
     }
     return Validator.Result.OK;

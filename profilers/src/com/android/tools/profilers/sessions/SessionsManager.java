@@ -606,7 +606,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     assert !myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled();
 
     Common.Session session = Common.Session.newBuilder()
-      .setSessionId(generateUniqueSessionId())
+      .setSessionId(startTimestampNs)
       .setStartTimestamp(startTimestampNs)
       .setEndTimestamp(endTimestampNs)
       .build();
@@ -650,14 +650,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
     myImportHandlers.get(extension).accept(file);
     return true;
-  }
-
-  /**
-   * Return a unique Session ID
-   */
-  private int generateUniqueSessionId() {
-    // TODO: b/74401257 generate session ID in a proper way
-    return ++importedSessionCount;
   }
 
   /**

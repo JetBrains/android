@@ -70,8 +70,18 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private var contentManagerListener = object : ContentManagerListener {
     @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
-      if (event.operation == ContentManagerEvent.ContentOperation.add) {
-        viewSelectionChanged(getToolWindow())
+      viewSelectionChanged(getToolWindow())
+    }
+
+    @UiThread
+    override fun contentRemoved(event: ContentManagerEvent) {
+      val panel = event.content.component as? EmulatorToolWindowPanel ?: return
+      panel.emulator.shutdown()
+
+      panels.remove(panel)
+      if (panels.isEmpty()) {
+        createPlaceholderPanel()
+        hideLiveIndicator(getToolWindow())
       }
     }
   }
@@ -189,25 +199,25 @@ internal class EmulatorToolWindowManager private constructor(private val project
     emulatorCatalog.updateNow()
     emulatorCatalog.addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS)
     emulators.addAll(emulatorCatalog.emulators)
-    if (emulators.isEmpty()) {
-      createPlaceholderPanel()
+
+    // Create the panel for the last selected Emulator before other panels so that it becomes selected
+    // unless a recently launched Emulator takes over.
+    val activeEmulator = lastSelectedEmulatorId?.let { emulators.find { it.emulatorId == lastSelectedEmulatorId } }
+    lastSelectedEmulatorId = null // Not maintained when the tool window is visible.
+    if (activeEmulator != null && !activeEmulator.isShuttingDown) {
+      addEmulatorPanel(activeEmulator)
     }
-    else {
-      // Create the panel for the last selected Emulator before other panels so that it becomes selected
-      // unless a recently launched Emulator takes over.
-      val activeEmulator = lastSelectedEmulatorId?.let { emulators.find { it.emulatorId == lastSelectedEmulatorId } }
-      lastSelectedEmulatorId = null // Not maintained when the tool window is visible.
-      if (activeEmulator != null) {
-        addEmulatorPanel(activeEmulator)
-      }
-      for (emulator in emulators) {
-        if (emulator != activeEmulator) {
-          addEmulatorPanel(emulator)
-        }
+    for (emulator in emulators) {
+      if (emulator != activeEmulator && !emulator.isShuttingDown) {
+        addEmulatorPanel(emulator)
       }
     }
 
     val contentManager = toolWindow.contentManager
+    if (contentManager.contentCount == 0) {
+      createPlaceholderPanel()
+    }
+
     contentManager.addContentManagerListener(contentManagerListener)
     viewSelectionChanged(toolWindow)
   }
@@ -244,12 +254,15 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     panel.zoomToolbarIsVisible = zoomToolbarIsVisible
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(panel.component, panel.title, false)
-    content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-    content.tabName = panel.title
-    content.icon = panel.icon
-    content.popupIcon = panel.icon
-    content.putUserData(ID_KEY, panel.id)
+    val content = contentFactory.createContent(panel.component, panel.title, false).apply {
+      putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+      isCloseable = true
+      tabName = panel.title
+      icon = panel.icon
+      popupIcon = panel.icon
+      putUserData(ID_KEY, panel.id)
+      setPreferredFocusedComponent { panel.getPreferredFocusableComponent() }
+    }
 
     val index = panels.binarySearch(panel, PANEL_COMPARATOR).inv()
     assert(index >= 0)
@@ -270,25 +283,21 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController) {
-    val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort)
-    if (panel != null) {
-      panels.remove(panel)
-      val toolWindow = getToolWindow()
-      val contentManager = toolWindow.contentManager
-      val content = contentManager.getContent(panel.component)
-      contentManager.removeContent(content, true)
-      if (panels.isEmpty()) {
-        createPlaceholderPanel()
-        hideLiveIndicator(toolWindow)
-      }
-    }
+    val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort) ?: return
+
+    val toolWindow = getToolWindow()
+    val contentManager = toolWindow.contentManager
+    val content = contentManager.getContent(panel.component)
+    contentManager.removeContent(content, true)
   }
 
   private fun createPlaceholderPanel() {
     val panel = PlaceholderPanel(project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(panel, panel.title, false)
-    content.tabName = panel.title
+    val content = contentFactory.createContent(panel, panel.title, false).apply {
+      tabName = panel.title
+      isCloseable = false
+    }
     val contentManager = getContentManager()
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
@@ -353,6 +362,17 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
   }
 
+  /**
+   * Extracts and returns the port number from the serial number of an Emulator device,
+   * or zero if the serial number doesn't have an expected format, "emulator-<port_number>".
+   */
+  private val IDevice.serialPort: Int
+    get() {
+      require(isEmulator)
+      val pos = serialNumber.indexOf('-')
+      return StringUtil.parseInt(serialNumber.substring(pos + 1), 0)
+    }
+
   private inner class ToggleFrameCropAction : ToggleAction("Crop Device Frame"), DumbAware {
     override fun isSelected(event: AnActionEvent): Boolean {
       return frameIsCropped
@@ -372,17 +392,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
       zoomToolbarIsVisible = state
     }
   }
-
-  /**
-   * Extracts and returns the port number from the serial number of an Emulator device,
-   * or zero if the serial number doesn't have an expected format, "emulator-<port_number>".
-   */
-  private val IDevice.serialPort: Int
-    get() {
-      require(isEmulator)
-      val pos = serialNumber.indexOf('-')
-      return StringUtil.parseInt(serialNumber.substring(pos + 1), 0)
-    }
 
   companion object {
     private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"

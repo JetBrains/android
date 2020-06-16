@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
@@ -33,7 +33,7 @@ open class MockTableView : TableView {
 
   override fun startTableLoading() { }
 
-  override fun showTableColumns(columns: List<ResultSetSqliteColumn>) { }
+  override fun showTableColumns(columns: List<ViewColumn>) { }
 
   override fun stopTableLoading() { }
 
@@ -56,6 +56,10 @@ open class MockTableView : TableView {
   override fun updateRows(rowDiffOperations: List<RowDiffOperation>) { }
 
   override fun setEmptyText(text: String) { }
+
+  override fun setRowOffset(rowOffset: Int) { }
+
+  override fun revertLastTableCellEdit() { }
 
   override fun showPageSizeValue(maxRowCount: Int) { }
 }

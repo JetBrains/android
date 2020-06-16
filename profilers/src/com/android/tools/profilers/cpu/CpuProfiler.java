@@ -39,6 +39,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.atrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.ByteArrayInputStream;
@@ -113,18 +114,17 @@ public class CpuProfiler extends StudioProfiler {
   private void registerTraceImportHandler() {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     sessionsManager.registerImportHandler("trace", file -> {
+      // The time when the session is created. Will determine the order in sessions panel.
       long startTimestampEpochMs = System.currentTimeMillis();
-      long startTimestampNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+      Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
+      long startTimestampNs = timestampsNs.first;
 
       // Select the session if it is already imported. Do not re-import.
       if (sessionsManager.setSessionById(startTimestampNs)) {
         return;
       }
 
-      // The end timestamp is going to be updated once the capture is parsed. When starting the session (before parsing a trace), set it to
-      // be one minute from the begin time, as it is a reasonable length for a "default" timeline that can be displayed if parsing fails
-      // and before the parsing happens.
-      long endTimestampNs = startTimestampNs + TimeUnit.MINUTES.toNanos(1);
+      long endTimestampNs = timestampsNs.second;
       if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
         sessionsManager.createImportedSession(file.getName(),
                                               Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,

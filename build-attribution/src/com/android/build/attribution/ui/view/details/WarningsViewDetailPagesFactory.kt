@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescri
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.panels.taskDetailsPanel
 import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.view.ViewActionHandlers
@@ -35,8 +36,8 @@ import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import java.awt.Component
-import javax.swing.BoxLayout
+import java.awt.BorderLayout
+import java.awt.FlowLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -56,64 +57,74 @@ class WarningsViewDetailPagesFactory(
 
 
   private fun createTaskWarningTypeDetailsPage(warningTypeData: TaskIssuesGroup) = JPanel().apply {
-    layout = TabularLayout("Fit")
-    var row = 0
-    fun addRow(component: JComponent, span: Int = 1) = add(component, TabularLayout.Constraint(row++, 0, colSpan = span))
+    layout = BorderLayout()
 
-    addRow(JBLabel(warningTypeData.type.uiName).withFont(JBUI.Fonts.label().asBold()))
     val timeContribution = warningTypeData.timeContribution
-    addRow(JBLabel("Duration: ${timeContribution.durationString()} / ${timeContribution.percentageString()}"))
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(20) })
-    addRow(JBLabel(warningsCountString(warningTypeData.warningCount)).withFont(JBUI.Fonts.label().asBold()))
-    addRow(JPanel().apply {
+    val text = """
+      <b>${warningTypeData.type.uiName}</b><br/>
+      Duration: ${timeContribution.durationString()} / ${timeContribution.percentageString()}<br/>
+      <br/>
+      <b>${warningsCountString(warningTypeData.warningCount)}</b>
+    """.trimIndent()
+    add(htmlTextLabelWithFixedLines(text), BorderLayout.NORTH)
+    add(JPanel().apply {
       layout = TabularLayout("Fit,30px,Fit")
       warningTypeData.issues.forEachIndexed { index, issue ->
         add(JBLabel(issue.task.taskPath), TabularLayout.Constraint(index, 0))
         add(JBLabel(issue.task.executionTime.durationString()), TabularLayout.Constraint(index, 2))
       }
-    })
+    }, BorderLayout.CENTER)
   }
 
   private fun createWarningDetailsPage(issueData: TaskIssueUiData) = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    alignmentX = Component.LEFT_ALIGNMENT
-    add(JBLabel(issueData.task.taskPath).withFont(JBUI.Fonts.label().asBold()))
+    layout = BorderLayout()
+    add(htmlTextLabelWithFixedLines("<b>${issueData.task.taskPath}</b>"), BorderLayout.NORTH)
     add(taskDetailsPanel(
       issueData.task,
       helpLinkListener = actionHandlers::helpLinkClicked,
       generateReportClickedListener = actionHandlers::generateReportClicked
-    ))
+    ), BorderLayout.CENTER)
   }
 
   private fun createAnnotationProcessorsRootDetailsPage(annotationProcessorsReport: AnnotationProcessorsReport) = JPanel().apply {
-    layout = TabularLayout("Fit")
-    var row = 0
-    fun addRow(component: JComponent, span: Int = 1) = add(component, TabularLayout.Constraint(row++, 0, colSpan = span))
-    addRow(JBLabel("Non-incremental Annotation Processors").withFont(JBUI.Fonts.label().asBold()))
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
-    annotationProcessorsReport.nonIncrementalProcessors.forEach { addRow(JBLabel(it.className)) }
+    layout = BorderLayout()
+    val listHtml = annotationProcessorsReport.nonIncrementalProcessors.joinToString(separator = "<br/>") { it.className }
+    val pageHtml = """
+      <b>Non-incremental Annotation Processors</b><br/>
+      <br/>
+      ${listHtml}
+    """.trimIndent()
+    add(htmlTextLabelWithFixedLines(pageHtml), BorderLayout.CENTER)
   }
 
   private fun createAnnotationProcessorDetailsPage(annotationProcessorData: AnnotationProcessorUiData) = JPanel().apply {
-    layout = TabularLayout("Fit,3px,Fit,*")
-    var row = 0
-    fun addRow(component: JComponent, span: Int = 1) = add(component, TabularLayout.Constraint(row++, 3, colSpan = span))
-    fun JBLabel.with2pxShift() = withBorder(JBUI.Borders.emptyLeft(2))
+    layout = TabularLayout("Fit,3px,*")
+    fun JComponent.with2pxShift() = this.apply { border = JBUI.Borders.emptyLeft(2) }
+
+    val headerText = "<b>${annotationProcessorData.className}</b>"
+    val descriptionText = """
+      <br/>
+      This annotation processor is non-incremental and causes the JavaCompile task to always run non-incrementally.<br/>
+      Consider switching to using an incremental annotation processor.<br/>
+    """.trimIndent()
+    val recommendationText = """
+      <br/>
+      <b>Recommendation</b><br/>
+      Ensure that you are using the most recent version of this annotation processor.<br/>
+    """.trimIndent()
+    val linkPanel = JPanel().apply {
+      layout = FlowLayout(FlowLayout.LEFT, 0, 0)
+      add(HyperlinkLabel("Learn more").apply {
+        val target = BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
+        addHyperlinkListener { actionHandlers.helpLinkClicked(target) }
+        setHyperlinkTarget(target.urlTarget)
+      })
+    }
 
     add(JBLabel(warningIcon()), TabularLayout.Constraint(0, 0))
-    addRow(JBLabel(annotationProcessorData.className).withFont(JBUI.Fonts.label().asBold()).with2pxShift())
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
-    addRow(JBLabel(
-      "This annotation processor is non-incremental and causes the JavaCompile task to always run non-incrementally."
-    ).with2pxShift())
-    addRow(JBLabel("Consider switching to using an incremental annotation processor.").with2pxShift())
-    addRow(HyperlinkLabel("Learn more").apply {
-      val target = BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
-      addHyperlinkListener { actionHandlers.helpLinkClicked(target) }
-      setHyperlinkTarget(target.urlTarget)
-    })
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
-    addRow(JBLabel("Recommendation").withFont(JBUI.Fonts.label().asBold()).with2pxShift())
-    addRow(JBLabel("Ensure that you are using the most recent version of this annotation processor.").with2pxShift())
+    add(htmlTextLabelWithFixedLines(headerText).with2pxShift(), TabularLayout.Constraint(0, 2))
+    add(htmlTextLabelWithFixedLines(descriptionText).with2pxShift(), TabularLayout.Constraint(1, 2))
+    add(linkPanel, TabularLayout.Constraint(2, 2))
+    add(htmlTextLabelWithFixedLines(recommendationText).with2pxShift(), TabularLayout.Constraint(3, 2))
   }
 }

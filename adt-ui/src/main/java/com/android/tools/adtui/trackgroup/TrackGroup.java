@@ -31,6 +31,8 @@ import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.adtui.util.SwingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.MouseEventHandler;
 import icons.StudioIcons;
@@ -76,8 +78,8 @@ public class TrackGroup extends AspectObserver {
   private final JPanel myComponent;
   private final JLabel myTitleLabel;
   private final JLabel myTitleInfoIcon;
-  private final JPanel myOverlay;
-  private final JPanel myTrackTitleOverlay;
+  private final JPanel myOverlay = new JPanel();
+  private final JPanel myTrackTitleOverlay = new JPanel();
   private final DragAndDropList<TrackModel> myTrackList;
   private final CommonDropDownButton myActionsDropdown;
   private final FlatSeparator mySeparator = new FlatSeparator();
@@ -142,8 +144,14 @@ public class TrackGroup extends AspectObserver {
     myTitleLabel.setFont(TITLE_FONT);
     myTitleLabel.setBorder(JBUI.Borders.emptyLeft(16));
     myTitleInfoIcon = new JLabel(StudioIcons.Common.HELP);
-    myTitleInfoIcon.setVisible(groupModel.getTitleInfo() != null);
-    myTitleInfoIcon.setToolTipText(groupModel.getTitleInfo());
+    myTitleInfoIcon.setVisible(groupModel.getTitleHelpText() != null);
+    if (groupModel.getTitleHelpText() != null) {
+      HelpTooltip helpTooltip = new HelpTooltip().setDescription(groupModel.getTitleHelpText());
+      if (groupModel.getTitleHelpLinkUrl() != null) {
+        helpTooltip.setLink(groupModel.getTitleHelpLinkText(), () -> BrowserUtil.browse(groupModel.getTitleHelpLinkUrl()));
+      }
+      helpTooltip.installOn(myTitleInfoIcon);
+    }
 
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 1, 0, 1, 0));
@@ -156,14 +164,12 @@ public class TrackGroup extends AspectObserver {
     titlePanel.add(toolbarPanel, BorderLayout.EAST);
 
     // A panel responsible for forwarding mouse events to the tracks' content component.
-    myOverlay = new JPanel();
     myOverlay.setOpaque(false);
     MouseEventHandler trackContentMouseEventHandler = new TrackContentMouseEventHandler();
     myOverlay.addMouseListener(trackContentMouseEventHandler);
     myOverlay.addMouseMotionListener(trackContentMouseEventHandler);
 
     // A panel responsible for forwarding mouse events to the tracks' title component.
-    myTrackTitleOverlay = new JPanel();
     myTrackTitleOverlay.setOpaque(false);
     MouseEventHandler trackTitleMouseEventHandler = new TrackTitleMouseEventHandler();
     myTrackTitleOverlay.addMouseListener(trackTitleMouseEventHandler);
@@ -206,6 +212,8 @@ public class TrackGroup extends AspectObserver {
   public void setCollapsed(boolean collapsed) {
     if (collapsed) {
       myTrackList.setVisible(false);
+      myOverlay.setVisible(false);
+      myTrackTitleOverlay.setVisible(false);
       mySeparator.setVisible(false);
       myActionsDropdown.setVisible(false);
       myCollapseButton.setText("Expand Section");
@@ -213,7 +221,9 @@ public class TrackGroup extends AspectObserver {
     }
     else {
       myTrackList.setVisible(true);
-      mySeparator.setVisible(false);
+      myOverlay.setVisible(true);
+      myTrackTitleOverlay.setVisible(true);
+      mySeparator.setVisible(true);
       myActionsDropdown.setVisible(true);
       myCollapseButton.setText(null);
       myCollapseButton.setIcon(COLLAPSE_ICON);

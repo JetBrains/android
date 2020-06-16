@@ -27,7 +27,7 @@ import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.toSqliteValues
+import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -69,7 +69,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
 
     mockAppInspectionIdeServices = mock(AppInspectionIdeServices::class.java)
-    `when`(mockDatabaseInspectorProjectService.ideServices).thenReturn(mockAppInspectionIdeServices)
+    `when`(mockDatabaseInspectorProjectService.getIdeServices()).thenReturn(mockAppInspectionIdeServices)
 
     mouseEvent = mock(MouseEvent::class.java)
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))

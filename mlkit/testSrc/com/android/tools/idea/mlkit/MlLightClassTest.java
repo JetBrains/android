@@ -213,6 +213,39 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  public void testHighlighting_modelWithV2Metadata_java() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata_v2.tflite", "/ml/my_model_v2.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.ml.MyModelV2;\n" +
+      "import java.io.IOException;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            MyModelV2 myModel = MyModelV2.newInstance(this);\n" +
+      "            TensorBuffer tensorBuffer = null;\n" +
+      "            MyModelV2.Outputs output = myModel.process(tensorBuffer);\n" +
+      "            TensorBuffer data0 = output.getProbabilityAsTensorBuffer();\n" +
+      "            myModel.close();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
   public void testHighlighting_invokeConstructorThrowError_java() {
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());

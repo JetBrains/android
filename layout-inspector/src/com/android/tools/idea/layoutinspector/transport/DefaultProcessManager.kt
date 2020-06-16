@@ -52,6 +52,7 @@ class DefaultProcessManager(
   private val streamListener = object : TransportStreamListener {
     override fun onStreamConnected(streamChannel: TransportStreamChannel) {
       if (streamFilter(streamChannel.stream)) {
+        addStream(streamChannel.stream)
         streamChannel.registerStreamEventListener(
           TransportStreamEventListener(eventKind = PROCESS, executor = executor) {
             if (it.process.hasProcessStarted()) {
@@ -93,13 +94,17 @@ class DefaultProcessManager(
     processes[stream]?.get(process.pid) == process
 
   private fun addProcess(stream: Common.Stream, process: Common.Process) {
-    processes.getOrPut(stream, { ConcurrentHashMap() })[process.pid] = process
+    addStream(stream)[process.pid] = process
     fireProcessesChanged()
   }
 
   private fun removeProcess(stream: Common.Stream, processId: Int) {
     processes[stream]?.remove(processId)
     fireProcessesChanged()
+  }
+
+  private fun addStream(stream: Common.Stream): MutableMap<Int, Common.Process> {
+    return processes.getOrPut(stream, { ConcurrentHashMap() })
   }
 
   private fun removeStream(stream: Common.Stream) {

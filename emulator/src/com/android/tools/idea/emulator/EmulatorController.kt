@@ -65,7 +65,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile internal var skinDefinition: SkinDefinition? = null
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
-  private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
+  private var connectionStateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
+  private val emulatorState = AtomicReference(EmulatorState.RUNNING)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
     override fun run() {
@@ -93,15 +94,21 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   var connectionState: ConnectionState
     get() {
-      return stateInternal.get()
+      return connectionStateInternal.get()
     }
     private set(value) {
-      if (stateInternal.getAndSet(value) != value) {
+      if (connectionStateInternal.getAndSet(value) != value) {
         for (listener in connectionStateListeners) {
           listener.connectionStateChanged(this, value)
         }
       }
     }
+
+  /**
+   * Returns true if [shutdown] has been called.
+   */
+  val isShuttingDown
+    get() = emulatorState.get() != EmulatorState.RUNNING
 
   private var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
     get() {
@@ -164,8 +171,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     val token = emulatorId.grpcToken
     if (token == null) {
-      emulatorController = EmulatorControllerGrpc.newStub(channel)
-      snapshotService = SnapshotServiceGrpc.newStub(channel)
+      emulatorController = EmulatorControllerGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
+      snapshotService = SnapshotServiceGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
     }
     else {
       val credentials = TokenCallCredentials(token)
@@ -175,6 +182,24 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
     sendKeepAlive()
+  }
+
+  /**
+   * Sends a shutdown command to the emulator. Subsequent [shutdown] calls are ignored.
+   */
+  fun shutdown() {
+    if (emulatorState.compareAndSet(EmulatorState.RUNNING, EmulatorState.SHUTDOWN_REQUESTED) &&
+        connectionState == ConnectionState.CONNECTED) {
+      sendShutdown()
+    }
+  }
+
+  private fun sendShutdown() {
+    if (emulatorState.compareAndSet(EmulatorState.SHUTDOWN_REQUESTED, EmulatorState.SHUTDOWN_SENT)) {
+      alarm.cancelAllRequests()
+      val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
+      setVmState(vmRunState)
+    }
   }
 
   /**
@@ -261,7 +286,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     val responseObserver = object : DummyStreamObserver<VmRunState>() {
       override fun onNext(response: VmRunState) {
         connectionState = ConnectionState.CONNECTED
-        alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
+        if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
+          sendShutdown()
+        }
+        else {
+          alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
+        }
       }
 
       override fun onError(t: Throwable) {
@@ -272,8 +302,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("getVmState()")
     }
-    emulatorController.getVmState(Empty.getDefaultInstance(),
-                                  DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
+    emulatorController.withDeadlineAfter(3, TimeUnit.SECONDS)
+        .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
@@ -345,6 +375,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     CONNECTING,
     CONNECTED,
     DISCONNECTED
+  }
+
+  enum class EmulatorState {
+    RUNNING,
+    SHUTDOWN_REQUESTED,
+    SHUTDOWN_SENT
   }
 
   private open inner class DelegatingStreamObserver<RequestT, ResponseT>(

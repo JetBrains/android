@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
@@ -27,8 +29,12 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
+import javax.swing.Action;
+import javax.swing.table.TableModel;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,26 +48,13 @@ public final class ModifyDeviceSetDialogTest {
 
   private ModifyDeviceSetDialog myDialog;
 
-  @Before
-  public void initDialog() {
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      Project project = myRule.getProject();
-      Key key = new Key("Pixel_4_API_29");
-
-      Device device = new VirtualDevice.Builder()
-        .setName("Pixel 4 API 29")
-        .setKey(key)
-        .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-        .build();
-
-      PropertiesComponent properties = new ProjectPropertiesComponentImpl();
-      Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
-
-      DevicesSelectedService service = new DevicesSelectedService(project, p -> properties, clock);
-      service.setDeviceKeysSelectedWithDialog(Collections.singleton(key));
-
-      myDialog = new ModifyDeviceSetDialog(project, new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)), p -> service);
-    });
+  private void initDialog(@NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
+                          @NotNull TableModel tableModel,
+                          @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
+    ApplicationManager.getApplication().invokeAndWait(() -> myDialog = new ModifyDeviceSetDialog(myRule.getProject(),
+                                                                                                 runOnMultipleDevicesActionEnabledGet,
+                                                                                                 tableModel,
+                                                                                                 devicesSelectedServiceGetInstance));
   }
 
   @After
@@ -70,11 +63,89 @@ public final class ModifyDeviceSetDialogTest {
   }
 
   @Test
+  public void modifyDeviceSetDialogRunOnMultipleDevicesActionIsEnabled() {
+    // Arrange
+    TableModel model = Mockito.mock(TableModel.class);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    // Act
+    initDialog(() -> true, model, project -> service);
+
+    // Assert
+    assertEquals("Run on Multiple Devices", myDialog.getTitle());
+  }
+
+  @Test
+  public void modifyDeviceSetDialog() {
+    // Arrange
+    TableModel model = Mockito.mock(TableModel.class);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    // Act
+    initDialog(() -> false, model, project -> service);
+
+    // Assert
+    assertEquals("Modify Device Set", myDialog.getTitle());
+  }
+
+  @Test
+  public void initTableRunOnMultipleDevicesActionIsEnabled() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(new Key("Pixel_4_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    initDialog(() -> true, new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)), project -> service);
+
+    // Act
+    myDialog.getTable().setSelected(true, 0);
+
+    // Assert
+    assertTrue(myDialog.getOKAction().isEnabled());
+  }
+
+  @Test
   public void initTable() {
+    // Arrange
+    Key key = new Key("Pixel_4_API_29");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
+    Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
+
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(), project -> properties, clock, () -> false);
+    service.setDeviceKeysSelectedWithDialog(Collections.singleton(key));
+
+    initDialog(() -> false, new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)), project -> service);
+
     // Act
     myDialog.getTable().setSelected(false, 0);
 
     // Assert
-    assertTrue(myDialog.isOKActionEnabled());
+    assertTrue(myDialog.getOKAction().isEnabled());
+  }
+
+  @Test
+  public void initOkAction() {
+    // Arrange
+    TableModel model = Mockito.mock(TableModel.class);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    // Act
+    initDialog(() -> true, model, project -> service);
+
+    // Assert
+    Action action = myDialog.getOKAction();
+
+    assertFalse(action.isEnabled());
+    assertEquals("Run", action.getValue(Action.NAME));
   }
 }

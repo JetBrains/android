@@ -123,7 +123,7 @@ data class SqliteStatement(
  * The type of a [SqliteStatement].
  */
 enum class SqliteStatementType {
-  SELECT, DELETE, INSERT, UPDATE, EXPLAIN, UNKNOWN
+  SELECT, DELETE, INSERT, UPDATE, EXPLAIN, PRAGMA_QUERY, PRAGMA_UPDATE, UNKNOWN
 }
 
 enum class RowIdName(val stringName: String) {

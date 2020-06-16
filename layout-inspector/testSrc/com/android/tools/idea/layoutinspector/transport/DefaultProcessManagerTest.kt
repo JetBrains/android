@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.transport
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.layoutinspector.DEFAULT_DEVICE
 import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
-import com.android.tools.idea.layoutinspector.util.ProcessManagerSync
+import com.android.tools.idea.layoutinspector.util.ProcessManagerAsserts
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -81,6 +81,14 @@ class DefaultProcessManagerTest {
   }
 
   @Test
+  fun addDevice() {
+    transportService!!.addDevice(DEFAULT_DEVICE)
+
+    val waiter = ProcessManagerAsserts(processManager!!)
+    waiter.assertDeviceWithProcesses(DEFAULT_DEVICE.serial)
+  }
+
+  @Test
   fun addProcess() {
     startProcesses()
   }
@@ -96,8 +104,8 @@ class DefaultProcessManagerTest {
     val offlineProcess = process.toBuilder().setState(Common.Process.State.DEAD).build()
     transportService?.addProcess(stream.device, offlineProcess)
 
-    val waiter = ProcessManagerSync(processManager!!)
-    waiter.waitUntilReady(DEFAULT_DEVICE.serial, OTHER_PROCESS.pid)
+    val waiter = ProcessManagerAsserts(processManager!!)
+    waiter.assertDeviceWithProcesses(DEFAULT_DEVICE.serial, OTHER_PROCESS.pid)
   }
 
   @Test
@@ -108,14 +116,14 @@ class DefaultProcessManagerTest {
     val update = stream.device.toBuilder().setState(Common.Device.State.DISCONNECTED).build()
     transportService!!.addDevice(update)
 
-    val waiter = ProcessManagerSync(processManager!!)
-    waiter.waitUntilReady(DEFAULT_DEVICE.serial)
+    val waiter = ProcessManagerAsserts(processManager!!)
+    waiter.assertNoDevices()
   }
 
   private fun startProcesses() {
     startProcesses(DEFAULT_DEVICE, DEFAULT_PROCESS, OTHER_PROCESS)
-    val waiter = ProcessManagerSync(processManager!!)
-    waiter.waitUntilReady(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid, OTHER_PROCESS.pid)
+    val waiter = ProcessManagerAsserts(processManager!!)
+    waiter.assertDeviceWithProcesses(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid, OTHER_PROCESS.pid)
     timer!!.currentTimeNs += 1
   }
 

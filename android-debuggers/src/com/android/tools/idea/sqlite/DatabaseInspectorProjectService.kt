@@ -64,11 +64,6 @@ interface DatabaseInspectorProjectService {
   }
 
   /**
-   * IDE services useful for interacting with the app inspection tool window that contains the Database Inspector.
-   */
-  var ideServices: AppInspectionIdeServices?
-
-  /**
    * [JComponent] that contains the view of the Database Inspector.
    */
   val sqliteInspectorComponent: JComponent
@@ -123,6 +118,11 @@ interface DatabaseInspectorProjectService {
   fun databasePossiblyChanged()
 
   /**
+   * IDE services useful for interacting with the app inspection tool window that contains the Database Inspector.
+   */
+  fun getIdeServices(): AppInspectionIdeServices?
+
+  /**
    * Called when Database Inspector is connected to new process.
    *
    * @param previousState state of UI from previous session if available
@@ -130,7 +130,8 @@ interface DatabaseInspectorProjectService {
   @UiThread
   fun startAppInspectionSession(
     previousState: SavedUiState?,
-    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel
+    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
   )
 
   /**
@@ -206,7 +207,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     createController(model, databaseRepository)
   }
 
-  override var ideServices: AppInspectionIdeServices? = null
+  private var ideServices: AppInspectionIdeServices? = null
 
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
@@ -214,7 +215,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @AnyThread
   override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabaseId> = projectScope.future {
     val databaseId = async {
-      val databaseConnection = openJdbcDatabaseConnection(file, taskExecutor, workerThread)
+      val databaseConnection = openJdbcDatabaseConnection(project, file, taskExecutor, workerThread)
       val databaseId = SqliteDatabaseId.fromFileDatabase(file)
 
       databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
@@ -240,15 +241,20 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @UiThread
   override fun startAppInspectionSession(
     previousState: SavedUiState?,
-    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel
+    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
   ) {
+    ideServices = appInspectionIdeServices
     controller.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel)
+    controller.setAppInspectionServices(appInspectionIdeServices)
     controller.restoreSavedState(previousState)
   }
 
   @UiThread
   override fun stopAppInspectionSession(): SavedUiState {
+    ideServices = null
     controller.setDatabaseInspectorClientCommandsChannel(null)
+    controller.setAppInspectionServices(null)
     val savedState = controller.saveState()
 
     projectScope.launch(uiThread) {
@@ -287,5 +293,9 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @AnyThread
   override fun databasePossiblyChanged() {
     projectScope.launch(uiThread) { controller.databasePossiblyChanged() }
+  }
+
+  override fun getIdeServices(): AppInspectionIdeServices? {
+    return ideServices
   }
 }

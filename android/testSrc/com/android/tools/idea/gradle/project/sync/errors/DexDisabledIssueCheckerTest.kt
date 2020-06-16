@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.issue.BuildIssueQuickFix
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -62,38 +64,32 @@ class DexDisabledIssueCheckerTest {
 
   @Test
   fun `invoke-customs message`() {
-    verifyWithModule(INVOKE_CUSTOM, "26")
+    verifyWithModule(INVOKE_CUSTOM)
   }
 
   @Test
   fun `default-interface message`() {
-    verifyWithModule(DEFAULT_INTERFACE_METHOD, "24")
+    verifyWithModule(DEFAULT_INTERFACE_METHOD)
   }
 
   @Test
   fun `static-interface message`() {
-    verifyWithModule(STATIC_INTERFACE_METHOD, "24")
+    verifyWithModule(STATIC_INTERFACE_METHOD)
   }
 
   @Test
   fun `no task can be found in message`() {
     val quickFixes = verifyBuildIssueAndGetQuickfixes(INVOKE_CUSTOM, "Task failed")
     assertThat(quickFixes).hasSize(1)
-    assertThat(quickFixes[0]).isInstanceOf(EnableDexWithApiLevelQuickFixAll::class.java)
-    assertThat(quickFixes[0].id).endsWith("26")
+    assertThat(quickFixes[0]).isInstanceOf(SetLanguageLevel8AllQuickFix::class.java)
   }
 
-  private fun verifyWithModule(pattern: String, apiLevel: String?) {
+  private fun verifyWithModule(pattern: String) {
     val quickFixes = verifyBuildIssueAndGetQuickfixes(pattern, FAILED_TASK_MESSAGE)
     assertThat(quickFixes).hasSize(2)
-    assertThat(quickFixes.filterIsInstance<EnableDexWithApiLevelQuickFixAll>()).hasSize(1)
-    assertThat(quickFixes.filterIsInstance<EnableDexWithApiLevelQuickFixModule>()).hasSize(1)
+    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8AllQuickFix>()).hasSize(1)
+    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8ModuleQuickFix>()).hasSize(1)
     assertThat(quickFixes.map{it.id}).containsNoDuplicates()
-    if (apiLevel != null) {
-      quickFixes.forEach {
-        assertThat(it.id).endsWith(apiLevel)
-      }
-    }
   }
 
   @Test

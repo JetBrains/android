@@ -18,11 +18,15 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
+import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.SwingHelper
+import java.awt.Font
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
@@ -31,34 +35,43 @@ class BuildOverviewPageView(
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
 
+  private val buildInformationPanel = JPanel().apply {
+    layout = VerticalLayout(0, SwingConstants.LEFT)
+    val buildSummary = model.reportUiData.buildSummary
+    val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
+    val text = """
+      <b>Build finished on ${buildFinishedTime}</b><br/>
+      Total build duration was ${buildSummary.totalBuildDuration.durationString()}.<br/>
+      <br/>
+      Includes:<br/>
+      Build configuration: ${buildSummary.configurationDuration.durationString()}<br/>
+      Critical path tasks execution: ${buildSummary.criticalPathDuration.durationString()}<br/>
+    """.trimIndent()
+    add(htmlTextLabelWithFixedLines(text))
+  }
+
+  private val linksPanel = JPanel().apply {
+    name = "links"
+    layout = VerticalLayout(10, SwingConstants.LEFT)
+    add(htmlTextLabelWithFixedLines("<b>Common views into this build</b>"))
+    add(HyperlinkLabel("Tasks impacting build duration").apply {
+      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
+    })
+    add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
+      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
+    })
+    add(HyperlinkLabel("All warnings").apply {
+      addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
+    })
+  }
+
   override val component: JPanel = JPanel().apply {
     name = "build-overview"
     border = JBUI.Borders.empty(20)
-    layout = VerticalLayout(0, SwingConstants.LEFT)
+    layout = TabularLayout("Fit,50px,Fit")
 
-    val buildSummary = model.reportUiData.buildSummary
-    val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
-    add(JBLabel("Build finished on ${buildFinishedTime}").withFont(JBUI.Fonts.label().asBold()))
-    add(JBLabel("Total build duration was ${buildSummary.totalBuildDuration.durationString()}."))
-    add(JBLabel("Includes:").withBorder(JBUI.Borders.emptyTop(20)))
-    add(JBLabel("Build configuration: ${buildSummary.configurationDuration.durationString()}"))
-    add(JBLabel("Critical path tasks execution: ${buildSummary.criticalPathDuration.durationString()}"))
-
-    add(JPanel().apply {
-      name = "links"
-      border = JBUI.Borders.emptyTop(20)
-      layout = VerticalLayout(10, SwingConstants.LEFT)
-      add(JBLabel("Common views into this build").withFont(JBUI.Fonts.label().asBold()))
-      add(HyperlinkLabel("Tasks impacting build duration").apply {
-        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
-      })
-      add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
-        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
-      })
-      add(HyperlinkLabel("All warnings").apply {
-        addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
-      })
-    })
+    add(buildInformationPanel, TabularLayout.Constraint(0, 0))
+    add(linksPanel, TabularLayout.Constraint(0, 2))
   }
 
   override val additionalControls: JPanel = JPanel().apply { name = "build-overview-additional-controls" }
