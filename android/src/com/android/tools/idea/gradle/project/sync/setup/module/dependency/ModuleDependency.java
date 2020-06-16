@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * An IDEA module's dependency on another IDEA module.
  */
 public class ModuleDependency extends Dependency {
-  @Nullable private final Module myModule;
+  @NotNull private final Module myModule;
 
   /**
    * Creates a new {@link ModuleDependency}.
@@ -35,7 +35,7 @@ public class ModuleDependency extends Dependency {
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   @VisibleForTesting
-  public ModuleDependency(@NotNull DependencyScope scope, @Nullable Module module) {
+  public ModuleDependency(@NotNull DependencyScope scope, @NotNull Module module) {
     super(scope);
     myModule = module;
   }

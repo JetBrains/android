@@ -641,7 +641,7 @@ public final class MemoryClassSetView extends AspectObserver {
           Icon i = StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
           int iconHeight = i.getIconHeight();
-          i.paintIcon(this, g, width - iconWidth, (height - iconHeight) / 2);
+          i.paintIcon(this, g, width - iconWidth - 4, (height - iconHeight) / 2);
         }
 
         // paint real content last
@@ -662,6 +662,8 @@ public final class MemoryClassSetView extends AspectObserver {
           CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
           myIsLeaked = leakFilter != null &&
                        leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
+          String msg = "To investigate leak, select instance and see \"References\"";
+          setToolTipText(myIsLeaked ? msg : null);
         }
       }
     };

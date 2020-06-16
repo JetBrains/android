@@ -24,7 +24,6 @@ import com.android.tools.idea.sqlite.controllers.TableController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -38,6 +37,10 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
+import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.toViewColumn
+import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -56,12 +59,13 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Point
-import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import javax.swing.JProgressBar
 import javax.swing.JTable
 
 private const val COLUMN_DEFAULT_WIDTH = 75
+private const val AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH = 85
 
 class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: TableViewImpl
@@ -110,7 +114,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val jbScrollPane = TreeWalker(table).ancestors().filterIsInstance<JBScrollPane>().first()
 
     // Act
-    view.showTableColumns(listOf(column))
+    view.showTableColumns(listOf(column).toViewColumns())
     fakeUi.layout()
 
     // Assert
@@ -138,14 +142,14 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val jbScrollPane = TreeWalker(table).ancestors().filterIsInstance<JBScrollPane>().first()
 
     // Act
-    view.showTableColumns(columns)
+    view.showTableColumns(columns.toViewColumns())
     fakeUi.layout()
 
     // Assert
     assertEquals(JTable.AUTO_RESIZE_OFF, table.autoResizeMode)
 
     assertTrue(table.size.width > 598)
-    assertEquals(COLUMN_DEFAULT_WIDTH, table.columnModel.getColumn(1).width)
+    assertEquals(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH, table.columnModel.getColumn(1).width)
 
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
     assertTrue(jbScrollPane.horizontalScrollBar.model.maximum > 598)
@@ -200,7 +204,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -217,7 +221,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     assertEquals(1, table.columnAtPoint(Point(597, 0)))
-    verify(mockListener).toggleOrderByColumnInvoked(col)
+    verify(mockListener).toggleOrderByColumnInvoked(col.toViewColumn())
   }
 
   fun testClickOnFirstColumnHeaderDoesNotSortTable() {
@@ -234,7 +238,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -251,7 +255,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     assertEquals(0, table.columnAtPoint(Point(0, 0)))
-    verify(mockListener, times(0)).toggleOrderByColumnInvoked(col)
+    verify(mockListener, times(0)).toggleOrderByColumnInvoked(col.toViewColumn())
   }
 
   fun testColumnsAreResizableExceptForFirstColumn() {
@@ -264,7 +268,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -283,7 +287,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -305,7 +309,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -328,7 +332,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val rows = listOf(row)
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -336,7 +340,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     table.model.setValueAt("newValue", 0, 1)
 
     // Assert
-    verify(mockListener).updateCellInvoked(0, col, SqliteValue.StringValue("newValue"))
+    verify(mockListener).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("newValue"))
   }
 
   fun testColumnsAreEditableExceptForFirst() {
@@ -349,7 +353,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
     view.setEditable(true)
@@ -370,7 +374,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -393,7 +397,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -422,7 +426,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -447,7 +451,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -496,7 +500,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -545,7 +549,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -594,7 +598,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -655,7 +659,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -695,7 +699,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     view.startTableLoading()
-    view.showTableColumns(cols)
+    view.showTableColumns(cols.toViewColumns())
     view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
@@ -719,14 +723,14 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
     view.startTableLoading()
-    view.showTableColumns(listOf(column))
+    view.showTableColumns(listOf(column).toViewColumns())
     view.stopTableLoading()
 
     val tableModel1 = table.model
 
     // Act
     view.startTableLoading()
-    view.showTableColumns(listOf(column))
+    view.showTableColumns(listOf(column).toViewColumns())
     view.stopTableLoading()
 
     // Assert
@@ -740,67 +744,47 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
     view.startTableLoading()
-    view.showTableColumns(listOf(column1))
+    view.showTableColumns(listOf(column1).toViewColumns())
     view.stopTableLoading()
 
     val tableModel1 = table.model
 
     // Act
     view.startTableLoading()
-    view.showTableColumns(listOf(column2))
+    view.showTableColumns(listOf(column2).toViewColumns())
     view.stopTableLoading()
 
     // Assert
     assertTrue(tableModel1 != table.model)
   }
 
-  fun testClickOnUrlCallsListener() {
-    // Prepare
-    val mockListener = mock(TableView.Listener::class.java)
-    view.addListener(mockListener)
-    view.startTableLoading()
-
-    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" } as JEditorPane
-    loadingPanel.text = "<a href=\"\">Test url</a>"
-
-    loadingPanel.size = Dimension(10, 10)
-    loadingPanel.preferredSize = loadingPanel.size
-    val fakeUi = FakeUi(loadingPanel)
-
-    // Act
-    fakeUi.mouse.click(5, 5)
-
-    // Assert
-    verify(mockListener).cancelRunningStatementInvoked()
-
-    view.stopTableLoading()
-  }
-
-  fun testLoadingPanelIsVisibleWhenLoading() {
+  fun testProgressBarIsVisibleWhenLoading() {
     // Act
     view.startTableLoading()
 
     // Assert
-    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().firstOrNull()
-    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" }
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
-    assertTrue(loadingPanel.isVisible)
-    assertNull(table)
+    assertTrue(table.isVisible)
+    assertFalse(table.isEnabled)
+    assertTrue(progressBar.isVisible)
 
     view.stopTableLoading()
   }
 
-  fun testLoadingPanelIsRemovedWhenLoadingIsFinished() {
+  fun testProgressBarIsHiddenWhenLoadingIsFinished() {
     // Act
     view.startTableLoading()
     view.stopTableLoading()
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val loadingPanel = TreeWalker(view.component).descendants().firstOrNull { it.name == "loading-panel" }
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertTrue(table.isVisible)
-    assertNull(loadingPanel)
+    assertTrue(table.isEnabled)
+    assertFalse(progressBar.isVisible)
   }
 
   fun testDisposeWhileLoadingDoesntThrow() {
@@ -810,7 +794,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
@@ -865,6 +849,53 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertTrue(pageSizeComboBox.isEnabled)
     assertTrue(refreshButton.isEnabled)
     assertTrue(liveUpdatesCheckBox.isEnabled)
+  }
+
+  fun testDoesntSetValueIfSameValue() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val mockListener = mock(TableView.Listener::class.java)
+    view.addListener(mockListener)
+
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val row = SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1"))))
+    val rows = listOf(row)
+
+    view.startTableLoading()
+    view.showTableColumns(cols.toViewColumns())
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    // Act
+    table.model.setValueAt("val1", 0, 1)
+
+    // Assert
+    verify(mockListener, times(0)).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
+  }
+
+  fun testRevertLastTableCellEdit() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    view.showTableColumns(listOf(ViewColumn("c1", false, false)))
+    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
+    view.setEditable(true)
+
+    // Act
+    table.model.setValueAt("new value", 0, 1)
+
+    // Assert
+    assertEquals("new value", table.model.getValueAt(0, 1))
+
+    // Act
+    view.revertLastTableCellEdit()
+
+    // Assert
+    assertEquals("value", table.model.getValueAt(0, 1))
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {

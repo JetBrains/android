@@ -76,8 +76,10 @@ public class DependenciesExtractor {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
         Module module = moduleFinder.findModuleFromLibrary(library);
-        ModuleDependency dependency = new ModuleDependency(scope, module);
-        dependencies.add(dependency);
+        if (module != null) {
+          ModuleDependency dependency = new ModuleDependency(scope, module);
+          dependencies.add(dependency);
+        }
       }
     }
   }

@@ -74,9 +74,24 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
   /**
    * Returns the frame dimensions for the given display orientation.
+   *
+   * @param displayRotation the orientation of the display
+   * @param displaySize the size of the device display without rotation or scaling
    */
-  fun getRotatedFrameSize(displayRotation: SkinRotation): Dimension {
-    return layout.frameRectangle.size.rotated(displayRotation)
+  fun getRotatedFrameSize(displayRotation: SkinRotation, displaySize: Dimension = layout.displaySize): Dimension {
+    val scaleX = displaySize.getWidth() / layout.displaySize.getWidth()
+    val scaleY = displaySize.getHeight() / layout.displaySize.getHeight()
+    val frameRect = layout.frameRectangle
+    val size = if (scaleX == 1.0 && scaleY == 1.0) {
+      frameRect.size
+    }
+    else {
+      // For accuracy scale the frame margins separately from the display.
+      Dimension(-frameRect.x.scaled(scaleX) + displaySize.width + (frameRect.right - layout.displaySize.width).scaled(scaleX),
+                -frameRect.y.scaled(scaleY) + displaySize.height + (frameRect.bottom - layout.displaySize.height).scaled(scaleY))
+    }
+
+    return size.rotated(displayRotation)
   }
 
   companion object {

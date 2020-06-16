@@ -25,10 +25,16 @@ import com.android.tools.idea.layoutinspector.transport.InspectorProcessManager
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common
 import com.android.utils.HashCodes
+import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
+
+private const val MAX_RETRY_COUNT = 100
 
 /**
  * A process manager that keeps track of the available processes for the Layout Inspector.
@@ -36,7 +42,10 @@ import java.util.function.Consumer
  * This class uses the AndroidDebugBridge to listen for changes in the list of active devices,
  * and their associated processes.
  */
-class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManager, Disposable {
+class LegacyProcessManager(
+  parentDisposable: Disposable,
+  @TestOnly val scheduler: ScheduledExecutorService = JobScheduler.getScheduler()
+) : InspectorProcessManager, Disposable {
   override val processListeners = ListenerCollection.createWithDirectExecutor<() -> Unit>()
 
   /**
@@ -45,9 +54,9 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
   private val devices = ConcurrentHashMap<String, DeviceSpec>()
 
   /**
-   * Map from a [Common.Stream] to a process id to a [ProcessSpec]
+   * Map from a device serial number to a process id to a [ProcessSpec]
    */
-  private val processes = ConcurrentHashMap<Common.Stream, ConcurrentHashMap<Int, ProcessSpec>>()
+  private val processes = ConcurrentHashMap<String, ConcurrentHashMap<Int, ProcessSpec>>()
 
   private val listenerLock = Any()
 
@@ -56,9 +65,11 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
       replaceClientAndReport(client)
     }
   }
+
   private val deviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
     override fun deviceConnected(device: IDevice) {
       synchronized(listenerLock) {
+        addDevice(device)
         replaceProcesses(device)
       }
     }
@@ -89,33 +100,48 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
     AndroidDebugBridge.removeClientChangeListener(clientChangeListener)
   }
 
-  override fun getStreams(): Sequence<Common.Stream> = processes.keys.asSequence()
+  override fun getStreams(): Sequence<Common.Stream> = devices.values.asSequence().map { it.stream }
 
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> {
-    val streamProcesses = processes[stream] ?: return emptySequence()
+    val streamProcesses = processes[stream.device.serial] ?: return emptySequence()
     return streamProcesses.values.asSequence().map { it.process }
   }
 
   override fun isProcessActive(stream: Common.Stream, process: Common.Process): Boolean =
-    processes[stream]?.get(process.pid)?.process == process
+    processes[stream.device.serial]?.get(process.pid)?.process == process
 
   /**
    * Returns the client for a specified process
    */
-  fun findClientFor(stream: Common.Stream, process: Common.Process): Client? = processes[stream]?.get(process.pid)?.client
+  fun findClientFor(stream: Common.Stream, process: Common.Process): Client? = processes[stream.device.serial]?.get(process.pid)?.client
 
   /**
    * Returns the client for a specified process
    */
   fun findIDeviceFor(stream: Common.Stream): IDevice? = devices[stream.device.serial]?.device
 
-  private fun addDevice(iDevice: IDevice): DeviceSpec =
-    DeviceSpec(iDevice).also { devices[iDevice.serialNumber] = it }
+  private fun addDevice(iDevice: IDevice) {
+    // When we ask for the first property, the properties will be loaded asynchronously.
+    iDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)
+
+    // Wait for the properties to be loaded:
+    addDeviceWhenPropertiesAreLoaded(iDevice, 0)
+  }
+
+  private fun addDeviceWhenPropertiesAreLoaded(iDevice: IDevice, timesAttempted: Int) {
+    when {
+      timesAttempted > MAX_RETRY_COUNT -> return
+      iDevice.state == IDevice.DeviceState.DISCONNECTED -> return
+      iDevice.arePropertiesSet() -> devices.getOrPut(iDevice.serialNumber) { DeviceSpec(iDevice) }
+      else -> scheduler.schedule({ addDeviceWhenPropertiesAreLoaded(iDevice, timesAttempted + 1) }, 50, TimeUnit.MILLISECONDS)
+    }
+  }
 
   private fun removeDevice(iDevice: IDevice) {
-    val deviceSpec = devices.remove(iDevice.serialNumber) ?: return
-    removeOldProcesses(deviceSpec.stream, emptyArray())
-    processes.remove(deviceSpec.stream)
+    val serialNumber = iDevice.serialNumber
+    devices.remove(serialNumber)
+    removeOldProcesses(serialNumber, emptyArray())
+    processes.remove(serialNumber)
     fireProcessesChanged()
   }
 
@@ -126,10 +152,6 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
   }
 
   private fun replaceProcesses(iDevice: IDevice) {
-    if (iDevice.clients.isEmpty()) {
-      removeDevice(iDevice)
-      return
-    }
     var changes = false
     iDevice.clients.forEach { changes = replaceClient(it) or changes }
     changes = removeOldProcesses(iDevice) or changes
@@ -139,8 +161,7 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
   }
 
   private fun removeOldProcesses(device: IDevice): Boolean {
-    val deviceSpec = devices[device.serialNumber] ?: return false
-    return removeOldProcesses(deviceSpec.stream, device.clients)
+    return removeOldProcesses(device.serialNumber, device.clients)
   }
 
   /**
@@ -148,8 +169,8 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
    *
    * @return true if a change in the cached information was made, otherwise false
    */
-  private fun removeOldProcesses(stream: Common.Stream, currentClients: Array<Client>): Boolean {
-    val streamProcesses = processes[stream] ?: return false
+  private fun removeOldProcesses(serialNumber: String, currentClients: Array<Client>): Boolean {
+    val streamProcesses = processes[serialNumber] ?: return false
     val oldIds = streamProcesses.keys.toMutableSet()
     currentClients.forEach { oldIds.remove(it.clientData.pid) }
     if (oldIds.isEmpty()) {
@@ -182,8 +203,7 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
    */
   private fun addClient(processSpec: ProcessSpec): Boolean {
     val device = processSpec.client.device
-    val deviceSpec = devices[device.serialNumber] ?: addDevice(device)
-    val streamProcesses = processes.getOrPut(deviceSpec.stream, { ConcurrentHashMap() })
+    val streamProcesses = processes.getOrPut(device.serialNumber, { ConcurrentHashMap() })
     val oldProcessSpec = streamProcesses[processSpec.process.pid]
     if (oldProcessSpec == processSpec) {
       return false
@@ -199,8 +219,7 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
    */
   private fun removeClient(client: Client): Boolean {
     val device = client.device
-    val deviceSpec = devices[device.serialNumber] ?: return false
-    val streamProcesses = processes[deviceSpec.stream] ?: return false
+    val streamProcesses = processes[device.serialNumber] ?: return false
     return streamProcesses.remove(client.clientData.pid) != null
   }
 
@@ -219,8 +238,7 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
          client.clientData.packageName == ClientData.PRE_INITIALIZED) {
       return null
     }
-    val deviceSpec = devices[client.device.serialNumber]
-    val processSpec = deviceSpec?.let { processes[it.stream]?.get(client.clientData.pid) } ?: return ProcessSpec(client)
+    val processSpec = processes[client.device.serialNumber]?.get(client.clientData.pid) ?: return ProcessSpec(client)
     return if (processSpec.isUpToDate(client)) processSpec else ProcessSpec(client)
   }
 

@@ -38,6 +38,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Font
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -65,7 +66,9 @@ class WarningsPageView(
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
     cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
-    TreeSpeedSearch(this).comparator = SpeedSearchComparator(false)
+    TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
+      comparator = SpeedSearchComparator(false)
+    }
     TreeUtil.installActions(this)
     addTreeSelectionListener { e ->
       if (fireActionHandlerEvents && e.path != null && e.isAddedPath) {
@@ -76,7 +79,7 @@ class WarningsPageView(
     }
   }
 
-  val treeHeaderLabel: JLabel = JBLabel().withFont(JBUI.Fonts.label().asBold())
+  val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
 
   val detailsPanel = object : CardLayoutPanel<WarningsTreePresentableNodeDescriptor, WarningsTreePresentableNodeDescriptor, JComponent>() {
     override fun prepare(key: WarningsTreePresentableNodeDescriptor): WarningsTreePresentableNodeDescriptor = key

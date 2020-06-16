@@ -29,7 +29,11 @@ public final class Actions {
   public static void hideAction(@NotNull ActionManager actionManager, @NotNull String actionId) {
     AnAction oldAction = actionManager.getAction(actionId);
     if (oldAction != null) {
-      replaceAction(actionManager, actionId, new EmptyAction());
+      if (actionManager.isGroup(actionId)) {
+        actionManager.unregisterAction(actionId);
+      } else {
+        replaceAction(actionManager, actionId, new EmptyAction());
+      }
     }
   }
 

@@ -66,13 +66,13 @@ private class FieldTreeNode(adapter: FieldObject) : LazyMemoryObjectTreeNode<Fie
 /**
  * A tree node that lazily expands to the instance's references
  */
-internal class ReferenceTreeNode(valueObject: ValueObject) : LazyMemoryObjectTreeNode<ValueObject>(valueObject, false) {
+open class ReferenceTreeNode(valueObject: ValueObject) : LazyMemoryObjectTreeNode<ValueObject>(valueObject, false) {
   private var myReferenceObjects: List<ReferenceObject>? = null
   override fun computeChildrenCount(): Int {
     if (myReferenceObjects == null) {
       myReferenceObjects = when (val a = adapter) {
-        is InstanceObject -> a.references
-        is ReferenceObject -> a.referenceInstance.references
+        is InstanceObject -> nextReferences(a)
+        is ReferenceObject -> nextReferences(a.referenceInstance)
         else -> emptyList()
       }
     }
@@ -83,9 +83,20 @@ internal class ReferenceTreeNode(valueObject: ValueObject) : LazyMemoryObjectTre
     childCount // ensure we grab all the references
     val refObjs = myReferenceObjects!!
     if (myMemoizedChildrenCount != myChildren.size) {
-      refObjs.forEach{addChild(it, ::ReferenceTreeNode)}
+      refObjs.forEach{addChild(it, ::makeChildNode)}
     }
   }
+
+  protected open fun makeChildNode(value: ReferenceObject): ReferenceTreeNode = ReferenceTreeNode(value)
+  protected open fun nextReferences(inst: InstanceObject): List<ReferenceObject> = inst.references
+}
+
+/**
+ * A reference tree node that only expands towards the nearest GC root
+ */
+class NearestGCRootTreeNode(valueObject: ValueObject): ReferenceTreeNode(valueObject) {
+  override fun makeChildNode(value: ReferenceObject) = NearestGCRootTreeNode(value)
+  override fun nextReferences(inst: InstanceObject) = inst.references.filter { it.depth < inst.depth }
 }
 
 internal fun <T : MemoryObject?, S : T?>

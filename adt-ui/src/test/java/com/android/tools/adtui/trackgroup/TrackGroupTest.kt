@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -41,6 +42,12 @@ class TrackGroupTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
 
   @Test
   fun createTrackGroup() {
@@ -62,6 +69,8 @@ class TrackGroupTest {
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
     assertThat(trackGroup.trackList.isVisible).isFalse()
+    assertThat(trackGroup.overlay.isVisible).isFalse()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.toolTipText).isEqualTo("More actions")
     assertThat(trackGroup.separator.isVisible).isFalse()
@@ -69,12 +78,16 @@ class TrackGroupTest {
 
     trackGroup.setCollapsed(false)
     assertThat(trackGroup.trackList.isVisible).isTrue()
+    assertThat(trackGroup.overlay.isVisible).isTrue()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isTrue()
     assertThat(trackGroup.actionsDropdown.isVisible).isTrue()
-    assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.separator.isVisible).isTrue()
     assertThat(trackGroup.collapseButton.text).isNull()
 
     trackGroup.setCollapsed(true)
     assertThat(trackGroup.trackList.isVisible).isFalse()
+    assertThat(trackGroup.overlay.isVisible).isFalse()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
@@ -96,10 +109,9 @@ class TrackGroupTest {
     assertThat(noInfoTrackGroup.titleInfoIcon.isVisible).isFalse()
     assertThat(noInfoTrackGroup.titleInfoIcon.toolTipText).isNull()
 
-    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleInfo("Information").build()
+    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleHelpText("Information").build()
     val infoTrackGroup = TrackGroup(infoTrackGroupModel, TestTrackRendererFactory())
     assertThat(infoTrackGroup.titleInfoIcon.isVisible).isTrue()
-    assertThat(infoTrackGroup.titleInfoIcon.toolTipText).isEqualTo("Information")
   }
 
   @Test

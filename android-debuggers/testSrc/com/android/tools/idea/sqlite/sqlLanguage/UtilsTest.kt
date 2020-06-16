@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.sqlLanguage
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.toSqliteValues
+import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.intellij.testFramework.LightPlatformTestCase
 import junit.framework.TestCase
 import java.util.LinkedList
@@ -215,6 +215,11 @@ class UtilsTest : LightPlatformTestCase() {
     ))
     assertEquals(SqliteStatementType.INSERT, getSqliteStatementType(project, "INSERT INTO tab VALUES (42)"))
     assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "SELECT * FROM t1; EXPLAIN SELECT * FROM t1;"))
+
+    assertEquals(SqliteStatementType.PRAGMA_QUERY, getSqliteStatementType(project, "pragma table_info('sqlite_master')"))
+    assertEquals(SqliteStatementType.PRAGMA_QUERY, getSqliteStatementType(project, "PRAGMA cache_size"))
+    assertEquals(SqliteStatementType.PRAGMA_UPDATE, getSqliteStatementType(project, "PRAGMA cache_size = 2"))
+    assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "PRAGMA cache_size ="))
   }
 
   fun testGetWrappableStatement() {

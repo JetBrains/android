@@ -225,6 +225,7 @@ sealed class TasksTreePresentableNodeDescriptor {
   abstract val pageId: TasksPageId
   abstract val analyticsPageType: PageType
   abstract val presentation: BuildAnalyzerTreeNodePresentation
+  override fun toString(): String = presentation.mainText
 }
 
 /** Tasks tree node descriptor that holds task node data and presentation. */

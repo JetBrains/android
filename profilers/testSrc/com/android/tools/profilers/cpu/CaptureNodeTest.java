@@ -17,13 +17,17 @@ package com.android.tools.profilers.cpu;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 public class CaptureNodeTest {
@@ -138,6 +142,15 @@ public class CaptureNodeTest {
     List<CaptureNode> longestNodes = root.getTopKNodes(
       4, node -> node.getData().getFullName().equals("otherPackage.method4"), Comparator.comparing(CaptureNode::getDuration));
     assertThat(ContainerUtil.map(longestNodes, CaptureNode::getDuration)).containsExactly(100L, 100L, 99L, 40L);
+  }
+
+  @Test
+  public void testFilterAspect() throws Exception {
+    CaptureNode node = new CaptureNode(new SingleNameModel("Foo"));
+    CountDownLatch latch = new CountDownLatch(1);
+    node.getAspectModel().addDependency(new AspectObserver()).onChange(CaptureNode.Aspect.FILTER_APPLIED, () -> latch.countDown());
+    node.applyFilter(new Filter());
+    assertThat(latch.await(100, TimeUnit.MILLISECONDS)).isTrue();
   }
 
   /**

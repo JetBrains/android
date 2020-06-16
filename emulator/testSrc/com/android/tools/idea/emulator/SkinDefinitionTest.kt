@@ -87,11 +87,17 @@ class SkinDefinitionTest {
     val folder = getSkinFolder("pixel_3_xl")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
-    // Check the getRotatedFrameSize method.
+    // Check the getRotatedFrameSize method without scaling.
     assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(1584, 3245))
     assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE)).isEqualTo(Dimension(3245, 1584))
     assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT)).isEqualTo(Dimension(1584, 3245))
     assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(3245, 1584))
+
+    // Check the getRotatedFrameSize method with scaling.
+    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT, Dimension(1452, 2984))).isEqualTo(Dimension(1598, 3272))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE, Dimension(1452, 2984))).isEqualTo(Dimension(3272, 1598))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT, Dimension(1452, 2984))).isEqualTo(Dimension(1598, 3272))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE, Dimension(1452, 2984))).isEqualTo(Dimension(3272, 1598))
 
     // Check the createScaledLayout method without rotation or scaling.
     var layout = skin.layout
@@ -175,7 +181,7 @@ class SkinDefinitionTest {
     val frameRectangle = layout.frameRectangle
     val image = ImageUtils.createDipImage(frameRectangle.width, frameRectangle.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
-    layout.drawFrameAndMask(-frameRectangle.x, -frameRectangle.y, g)
+    layout.drawFrameAndMask(g, Rectangle(-frameRectangle.x, -frameRectangle.y, layout.displaySize.width, layout.displaySize.height))
     g.dispose()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }

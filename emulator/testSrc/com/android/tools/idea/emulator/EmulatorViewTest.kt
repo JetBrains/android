@@ -22,7 +22,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
@@ -57,7 +56,6 @@ import java.awt.Dimension
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
-import java.awt.event.KeyEvent.VK_TAB
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
@@ -110,7 +108,15 @@ class EmulatorViewTest {
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 266 height: 547")
+    if (call.completion.isCancelled) {
+      // Due to timing of connection and resizing events there could be two streamScreenshot calls
+      // instead of one. The second call cancels the first one.
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
+      dispatchAllInvocationEvents()
+      frameNumber = view.frameNumber
+    }
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 363 height: 547")
     assertAppearance(ui, "image1")
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
@@ -120,7 +126,7 @@ class EmulatorViewTest {
     container.size = Dimension(250, 200)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 178 height: 365")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 454 height: 364")
     assertAppearance(ui, "image2")
     assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
@@ -137,7 +143,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 360 height: 741")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 423 height: 740")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -155,7 +161,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.OUT)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 720 height: 1480")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 720 height: 1481")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -164,7 +170,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.FIT)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 178 height: 365")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 454 height: 364")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
@@ -176,14 +182,14 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 456 height: 222")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 456 height: 363")
     assertAppearance(ui, "image3")
 
     // Check mouse input in landscape orientation.
     ui.mouse.press(10, 153)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 39 y: 58 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 58 buttons: 1")
 
     ui.mouse.dragTo(215, 48)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
@@ -197,29 +203,29 @@ class EmulatorViewTest {
 
     // Check keyboard input.
     ui.keyboard.setFocus(view)
-    ui.keyboard.type(FakeKeyboard.Key.A)
+    ui.keyboard.type(KeyEvent.VK_A)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""text: "A"""")
 
-    ui.keyboard.pressAndRelease(FakeKeyboard.Key.BACKSPACE)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_BACK_SPACE)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
 
-    ui.keyboard.pressAndRelease(FakeKeyboard.Key.TAB)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Tab"""")
 
     // Ctrl+Tab should be ignored.
     with(ui.keyboard) {
-      press(FakeKeyboard.Key.CTRL)
-      pressAndRelease(FakeKeyboard.Key.TAB)
-      release(FakeKeyboard.Key.CTRL)
+      press(KeyEvent.VK_CONTROL)
+      pressAndRelease(KeyEvent.VK_TAB)
+      release(KeyEvent.VK_CONTROL)
     }
 
-    ui.keyboard.pressAndRelease(FakeKeyboard.Key.PAGE_DOWN)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "PageDown"""")
@@ -229,14 +235,14 @@ class EmulatorViewTest {
     // Shift+Tab should trigger a forward local focus traversal.
     with(ui.keyboard) {
       setFocus(view)
-      press(FakeKeyboard.Key.SHIFT)
-      pressAndRelease(FakeKeyboard.Key.TAB)
-      release(FakeKeyboard.Key.SHIFT)
+      press(KeyEvent.VK_SHIFT)
+      pressAndRelease(KeyEvent.VK_TAB)
+      release(KeyEvent.VK_SHIFT)
     }
     val arg1 = ArgumentCaptor.forClass(EmulatorView::class.java)
     val arg2 = ArgumentCaptor.forClass(KeyEvent::class.java)
     verify(mockFocusManager, atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
-    val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == VK_TAB && it.modifiersEx == 0 }
+    val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == KeyEvent.VK_TAB && it.modifiersEx == 0 }
     assertThat(tabEvent).isNotNull()
 
     // Check clockwise rotation.
@@ -245,19 +251,19 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 178 height: 365")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 454 height: 364")
     assertAppearance(ui, "image2")
 
     // Check mouse input in portrait orientation.
     ui.mouse.press(82, 7)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 32 y: 41 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 41 buttons: 1")
 
     // Check device frame cropping.
     view.cropFrame = true
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 195 height: 400")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 500 height: 400")
     assertAppearance(ui, "image4")
   }
 
@@ -297,13 +303,6 @@ class EmulatorViewTest {
     }
     waitForCondition(2, TimeUnit.SECONDS) { filesOpened.isNotEmpty() }
     assertThat(Pattern.matches("Screenshot_.*\\.png", filesOpened[0].name)).isTrue()
-
-    // Check EmulatorShutdownAction.
-    executeAction("android.emulator.close", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
-    assertThat(shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
-    call.completion.get()
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(view: EmulatorView, frameNumber: Int): GrpcCallRecord {

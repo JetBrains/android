@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView
 
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -186,7 +187,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .setTitle(DatabaseInspectorBundle.message("action.keep.open.tooltip.title"))
       .setDescription(DatabaseInspectorBundle.message("action.keep.open.tooltip.desc"))
       .setLink(DatabaseInspectorBundle.message("learn.more")) {
-        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/lock-connections")
+        BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/lock-connections")
       }
       .installOn(keepConnectionsOpenButton)
     northPanel.add(keepConnectionsOpenButton)
@@ -211,6 +212,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun setUpSchemaTree(tree: Tree) {
     tree.cellRenderer = SchemaTreeCellRenderer()
 
+    tree.isRootVisible = false
     tree.model = DefaultTreeModel(null)
     tree.toggleClickCount = 0
     tree.emptyText.text = DatabaseInspectorBundle.message("nothing.to.show")
@@ -356,6 +358,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
             append(userObject)
           }
         }
+      }
+
+      if (hasFocus && icon != null) {
+        icon = ColoredIconGenerator.generateWhiteIcon(icon)
       }
     }
   }

@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.model.transform
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.google.common.base.Functions
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -55,7 +56,7 @@ import kotlin.math.min
  */
 @UiThread
 class TableController(
-  private val project: Project,
+  project: Project,
   private var rowBatchSize: Int = 50,
   private val view: TableView,
   private val databaseId: SqliteDatabaseId,
@@ -69,7 +70,7 @@ class TableController(
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
   private var orderBy: OrderBy? = null
-  private var start = 0
+  private var rowOffset = 0
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
@@ -138,7 +139,7 @@ class TableController(
       currentCols = columns
 
       val table = tableSupplier()
-      view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName })
+      view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName }.toViewColumns(table))
       view.setEditable(isEditable())
 
       updateDataAndButtons()
@@ -166,8 +167,8 @@ class TableController(
       .transformAsync(taskExecutor) {
         resultSet.totalRowCount
       }.transform(edtExecutor) { rowCount ->
-        view.setFetchPreviousRowsButtonState(start > 0)
-        view.setFetchNextRowsButtonState(start+rowBatchSize < rowCount)
+        view.setFetchPreviousRowsButtonState(rowOffset > 0)
+        view.setFetchNextRowsButtonState(rowOffset + rowBatchSize < rowCount)
       }
   }
 
@@ -183,13 +184,13 @@ class TableController(
   }
 
   /**
-   * Fetches rows through the [resultSet] using [start] and [rowBatchSize].
+   * Fetches rows through the [resultSet] using [rowOffset] and [rowBatchSize].
    * The view is updated through a list of [RowDiffOperation]. Compared to just recreating the view
    * this approach has the advantage that the state is not lost. Eg. if the user is navigating the table
    * using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
-    return resultSet.getRowBatch(start, rowBatchSize).transform(edtExecutor) { newRows ->
+    return resultSet.getRowBatch(rowOffset, rowBatchSize).transform(edtExecutor) { newRows ->
       val rowDiffOperations = mutableListOf<RowDiffOperation>()
 
       // Update the cells that already exist
@@ -207,6 +208,7 @@ class TableController(
         rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
       }
 
+      view.setRowOffset(rowOffset)
       view.updateRows(rowDiffOperations)
       view.setEditable(isEditable())
 
@@ -244,11 +246,11 @@ class TableController(
   private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
 
   private inner class TableViewListenerImpl : TableView.Listener {
-    override fun toggleOrderByColumnInvoked(sqliteColumn: ResultSetSqliteColumn) {
-      if (orderBy != null && orderBy!!.column == sqliteColumn) {
-        orderBy = OrderBy(sqliteColumn, !orderBy!!.asc)
+    override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {
+      if (orderBy != null && orderBy!!.column == viewColumn) {
+        orderBy = OrderBy(viewColumn, !orderBy!!.asc)
       } else {
-        orderBy = OrderBy(sqliteColumn, true)
+        orderBy = OrderBy(viewColumn, true)
       }
 
       val order = if (orderBy!!.asc) "ASC" else "DESC"
@@ -268,7 +270,7 @@ class TableController(
         resultSet = newResultSet
         Disposer.register(this@TableController, newResultSet)
 
-        start = 0
+        rowOffset = 0
         fetchAndDisplayTableData()
       }
     }
@@ -293,25 +295,25 @@ class TableController(
     }
 
     override fun loadPreviousRowsInvoked() {
-      start = max(0, start-rowBatchSize)
+      rowOffset = max(0, rowOffset - rowBatchSize)
       updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadNextRowsInvoked() {
-      start += rowBatchSize
+      rowOffset += rowBatchSize
       updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadFirstRowsInvoked() {
-      start = 0
+      rowOffset = 0
       updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadLastRowsInvoked() {
       resultSet.totalRowCount.transformAsync(edtExecutor) { rowCount ->
-        start = (rowCount / rowBatchSize) * rowBatchSize
+        rowOffset = (rowCount / rowBatchSize) * rowBatchSize
 
-        if (start == rowCount) start -= rowBatchSize
+        if (rowOffset == rowCount) rowOffset -= rowBatchSize
         updateDataAndButtonsWithLoadingScreens()
       }
     }
@@ -332,13 +334,14 @@ class TableController(
       databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
     }
 
-    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ResultSetSqliteColumn, newValue: SqliteValue) {
+    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue) {
       val targetTable = tableSupplier()
       if (targetTable == null) {
         view.reportError("Can't update. Table not found.", null)
         return
       }
 
+      view.startTableLoading()
       val targetRow = currentRows[targetRowIndex]
       databaseRepository.updateTable(databaseId, targetTable, targetRow, targetColumn.name, newValue)
         .addCallback(edtExecutor, object : FutureCallback<Unit> {
@@ -348,11 +351,28 @@ class TableController(
           }
 
           override fun onFailure(t: Throwable) {
+            view.revertLastTableCellEdit()
+            view.stopTableLoading()
             view.reportError("Can't execute update: ", t)
           }
         })
     }
   }
 
-  private data class OrderBy(val column: ResultSetSqliteColumn, val asc: Boolean)
+  private data class OrderBy(val column: ViewColumn, val asc: Boolean)
+
+  private fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map { it.toViewColumn(table) }
+
+  /**
+   * Column information in [ResultSetSqliteColumn] can be incomplete.
+   * This method tries to overlap the information from the column with the information from the schema.
+   */
+  private fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): ViewColumn {
+    val schemaColumn = table?.columns?.firstOrNull { it.name == name }
+    return ViewColumn(
+      name,
+      schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
+      schemaColumn?.isNullable ?: isNullable ?: true
+    )
+  }
 }

@@ -33,7 +33,9 @@ import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.
 class HeapDumpInstanceObject implements InstanceObject {
   private static final String NAME_FORMATTER = "%s@%d (0x%x)";
   private static final int MAX_VALUE_TEXT_LENGTH = 1024;
-  private static final Comparator<Instance> DEPTH_COMPARATOR = Comparator.comparingInt(Instance::getDistanceToGcRoot);
+  private static final Comparator<Instance> DEPTH_THEN_ID_COMPARATOR =
+    // compare by id after depth to enforce more deterministic order
+    Comparator.comparingInt(Instance::getDistanceToGcRoot).thenComparingLong(Instance::getId);
   private static final String INVALID_STRING_VALUE = " ...<invalid string value>...";
   private static final Map<Type, ValueType> VALUE_TYPE_MAP = ImmutableMap.<Type, ValueObject.ValueType>builder()
     .put(Type.BOOLEAN, BOOLEAN)
@@ -52,7 +54,6 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final HeapDumpCaptureObject myCaptureObject;
   @NotNull private final Instance myInstance;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
-  @NotNull private final String myMemoizedLabel;
 
   HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
                          @NotNull Instance instance,
@@ -62,8 +63,6 @@ class HeapDumpInstanceObject implements InstanceObject {
     myInstance = instance;
     myClassEntry = classEntry;
 
-    myMemoizedLabel =
-      String.format(NAME_FORMATTER, myClassEntry.getSimpleClassName(), myInstance.getUniqueId(), myInstance.getUniqueId());
     if (precomputedValueType != null) {
       myValueType = precomputedValueType;
       return;
@@ -109,7 +108,10 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Override
   public String getValueText() {
     // TODO show length of array instance
-    return myMemoizedLabel;
+    return String.format(NAME_FORMATTER,
+                         myClassEntry.getSimpleClassName(),
+                         myInstance.getUniqueId(),
+                         myInstance.getUniqueId());
   }
 
   @NotNull
@@ -304,12 +306,12 @@ class HeapDumpInstanceObject implements InstanceObject {
   public List<ReferenceObject> extractReferences() {
     // Sort hard referrers to appear first.
     List<Instance> sortedReferences = new ArrayList<>(myInstance.getHardReverseReferences());
-    sortedReferences.sort(DEPTH_COMPARATOR);
+    sortedReferences.sort(DEPTH_THEN_ID_COMPARATOR);
 
     // Sort soft referrers to appear second.
     if (myInstance.getSoftReverseReferences() != null) {
       List<Instance> sortedSoftReferences = new ArrayList<>(myInstance.getSoftReverseReferences());
-      sortedSoftReferences.sort(DEPTH_COMPARATOR);
+      sortedSoftReferences.sort(DEPTH_THEN_ID_COMPARATOR);
       sortedReferences.addAll(sortedSoftReferences);
     }
 
