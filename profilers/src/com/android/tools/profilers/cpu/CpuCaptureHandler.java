@@ -31,10 +31,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   @NotNull private final CpuCaptureParser myCaptureParser;
-  @NotNull private Range myParseRange = new Range();
+  @NotNull private final Range myParseRange = new Range();
   @NotNull private final IdeProfilerServices myServices;
   @NotNull private final ProfilingConfiguration myConfiguration;
   @NotNull private final File myCaptureFile;
+  private final long myTraceId;
   private final int myCaptureProcessIdHint;
   @Nullable private final String myCaptureProcessNameHint;
 
@@ -43,17 +44,19 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
 
   public CpuCaptureHandler(@NotNull IdeProfilerServices services,
                            @NotNull File captureFile,
+                           long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
     myCaptureParser = new CpuCaptureParser(services);
     myCaptureFile = captureFile;
+    myTraceId = traceId;
     myServices = services;
     myConfiguration = configuration;
     myCaptureProcessIdHint = captureProcessIdHint;
     myCaptureProcessNameHint = captureProcessNameHint;
 
-    myCaptureParser.trackCaptureMetadata(CpuCaptureParser.IMPORTED_TRACE_ID, new CpuCaptureMetadata(configuration));
+    myCaptureParser.trackCaptureMetadata(traceId, new CpuCaptureMetadata(configuration));
   }
 
   /**
@@ -106,7 +109,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
     myIsParsing = true;
     myParseRange.set(0, 0);
     CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
-      myCaptureFile, CpuCaptureParser.IMPORTED_TRACE_ID, null, myCaptureProcessIdHint, myCaptureProcessNameHint);
+      myCaptureFile, myTraceId, null, myCaptureProcessIdHint, myCaptureProcessNameHint);
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {
