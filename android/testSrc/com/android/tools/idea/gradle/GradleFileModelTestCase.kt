@@ -48,7 +48,7 @@ import java.io.IOException
 open class GradleFileModelTestCase {
   @get:Rule
   val nameRule = TestName()
-  private val projectRule = onDisk()
+  protected val projectRule = onDisk()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
