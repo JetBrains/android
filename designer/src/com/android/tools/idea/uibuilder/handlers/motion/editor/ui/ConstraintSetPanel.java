@@ -455,8 +455,8 @@ class ConstraintSetPanel extends JPanel {
         .forEach(ids::add);
     }
 
-    //noinspection unchecked
-    Set<String> found = (Set<String>)mConstraintSetModel.getDataVector().stream()
+    //noinspection unchecked,rawtypes,RedundantCast
+    Set<String> found = (Set)mConstraintSetModel.getDataVector().stream()
       .map(row -> ((Vector)row).get(1))
       .collect(Collectors.toSet());
 
