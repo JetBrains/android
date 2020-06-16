@@ -20,9 +20,11 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -32,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import icons.StudioIcons
+import io.grpc.StatusRuntimeException
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.Future
 
@@ -110,8 +113,12 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   override fun displayTextInToolbar() = true
 
   @VisibleForTesting
-  class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
-    ToggleAction("${process.name} (${process.pid})") {
+  class ConnectAction(
+    val process: Common.Process,
+    val stream: Common.Stream,
+    val client: InspectorClient,
+    val project: Project
+  ) : ToggleAction("${process.name} (${process.pid})") {
     override fun isSelected(event: AnActionEvent): Boolean {
       return process == client.selectedProcess && stream == client.selectedStream
     }
@@ -123,7 +130,18 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
     }
 
     @VisibleForTesting
-    fun connect(): Future<*> = ApplicationManager.getApplication().executeOnPooledThread { client.attach(stream, process) }
+    fun connect(): Future<*> = ApplicationManager.getApplication().executeOnPooledThread {
+      try {
+        client.attach(stream, process)
+      }
+      catch (statusException: StatusRuntimeException) {
+        AndroidNotification.getInstance(project).showBalloon("Connection Failed",
+          "Connection failed: " +
+          if (statusException.status.description == null) statusException.status.code.toString()
+          else statusException.status.code.toString() + ": " + statusException.status.description,
+          NotificationType.WARNING)
+      }
+    }
   }
 
   private class StopAction(val client: () -> InspectorClient) : AnAction("Stop inspector") {
@@ -137,10 +155,12 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   }
 
   @VisibleForTesting
-  class DeviceAction(deviceName: String,
-                     stream: Common.Stream,
-                     client: InspectorClient,
-                     project: Project) : DropDownAction(deviceName, null, stream.device.toIcon()) {
+  class DeviceAction(
+    deviceName: String,
+    stream: Common.Stream,
+    client: InspectorClient,
+    project: Project
+  ) : DropDownAction(deviceName, null, stream.device.toIcon()) {
     override fun displayTextInToolbar() = true
 
     init {
@@ -153,13 +173,13 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
 
       val (projectProcesses, otherProcesses) = processes.partition { it.name in applicationIds }
       for (process in projectProcesses) {
-        add(ConnectAction(process, stream, client))
+        add(ConnectAction(process, stream, client, project))
       }
       if (projectProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
         add(Separator.getInstance())
       }
       for (process in otherProcesses) {
-        add(ConnectAction(process, stream, client))
+        add(ConnectAction(process, stream, client, project))
       }
 
       if (childrenCount == 0) {
