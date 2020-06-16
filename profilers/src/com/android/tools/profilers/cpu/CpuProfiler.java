@@ -23,10 +23,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
@@ -88,7 +88,8 @@ public class CpuProfiler extends StudioProfiler {
     if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
       ProfilingConfiguration importConfig =
         new ProfilingConfiguration("Imported", CpuTraceType.UNSPECIFIED_TYPE, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
-      myProfilers.setStage(CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId())));
+      myProfilers.setStage(
+        CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId()), session.getSessionId()));
     }
     else {
       myProfilers.setStage(new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(session.getSessionId())));

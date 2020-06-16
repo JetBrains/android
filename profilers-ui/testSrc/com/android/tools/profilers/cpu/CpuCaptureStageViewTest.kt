@@ -76,7 +76,7 @@ class CpuCaptureStageViewTest {
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
   }
 
   @Test
@@ -166,7 +166,7 @@ class CpuCaptureStageViewTest {
   fun showTrackGroupTooltip() {
     // Load Atrace
     val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
+                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH), 123L)
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     val trackGroups = stageView.trackGroupList.trackGroups
