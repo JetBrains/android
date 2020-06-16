@@ -48,6 +48,8 @@ abstract class BaseAnalyzer(private val taskContainer: TaskContainer, private va
     return taskContainer.getTask(event, pluginContainer)
   }
 
+  protected fun anyTask(predicate: (TaskData) -> Boolean) = taskContainer.any(predicate)
+
   /**
    * Filter to ignore certain tasks or tasks from certain plugins.
    */
