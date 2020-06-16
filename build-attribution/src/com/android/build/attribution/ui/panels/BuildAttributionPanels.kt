@@ -232,11 +232,11 @@ fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(
 fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JComponent =
   SwingHelper.createHtmlViewer(true, null, null, null).apply {
     border = JBUI.Borders.empty()
-    SwingHelper.setHtml(this, htmlBodyContent, foreground)
+    SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
 fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JComponent =
   SwingHelper.createHtmlViewer(false, null, null, null).apply {
     border = JBUI.Borders.empty()
-    SwingHelper.setHtml(this, htmlBodyContent, foreground)
+    SwingHelper.setHtml(this, htmlBodyContent, null)
   }
