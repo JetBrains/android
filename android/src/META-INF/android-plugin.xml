@@ -459,8 +459,11 @@
     <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
 
     <defaultLiveTemplates file="liveTemplates/Android.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidKotlin.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidComments.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidCommentsKotlin.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidLog.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidLogKotlin.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidParcelable.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidXML.xml"/>
     <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
