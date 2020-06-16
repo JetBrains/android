@@ -36,9 +36,11 @@ import com.android.utils.appendCapitalized
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.refactoring.BaseRefactoringProcessor
@@ -403,6 +405,17 @@ class GradleVersionUsageInfo(
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
+    // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
+    //  does all that is necessary to save files, so we do that here to mimic that.
+    val documentManager = PsiDocumentManager.getInstance(project)
+    val document = documentManager.getDocument(element!!.containingFile) ?: return
+    if (documentManager.isDocumentBlockedByPsi(document)) {
+      documentManager.doPostponedOperationsAndUnblockDocument(document)
+    }
+    FileDocumentManager.getInstance().saveDocument(document)
+    if (!documentManager.isCommitted(document)) {
+      documentManager.commitDocument(document)
+    }
   }
 }
 
