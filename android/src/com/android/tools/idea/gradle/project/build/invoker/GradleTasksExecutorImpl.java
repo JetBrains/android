@@ -385,7 +385,12 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
           GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
-            task.execute(result);
+            try {
+              task.execute(result);
+            } catch (Throwable t) {
+              // Ignore all errors, since they just get thrown into the wind. However, we must run all post invocation tasks in order to
+              // ensure all relevant locks are released.
+            }
           }
         }
       }
