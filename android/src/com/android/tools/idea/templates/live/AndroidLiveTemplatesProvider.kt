@@ -20,20 +20,15 @@ import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
 
 /**
  * Provides available live templates bundled with the plugin.
+ * FIXME-ank3: this class is not registered in android-plugin.xml, and left here as a reminder about two issues:
+ *   1) There is no "liveTemplates/AndroidTesting" template in AOSP sources (tools/adt/idea/android/resources/liveTemplates@de74306d3b).
+ *   2) Template under flag ("liveTemplates/AndroidCompose") is not registered at all. The only way to implement it is to use deprecated
+ *      DefaultLiveTemplatesProvider, so it's better to avoid conditional registration in the first place.
+ *
  */
 class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
   override fun getDefaultLiveTemplateFiles(): Array<String> {
-    val templates = mutableListOf(
-      "liveTemplates/Android",
-      "liveTemplates/AndroidKotlin",
-      "liveTemplates/AndroidComments",
-      "liveTemplates/AndroidCommentsKotlin",
-      "liveTemplates/AndroidLog",
-      "liveTemplates/AndroidLogKotlin",
-      "liveTemplates/AndroidParcelable",
-      "liveTemplates/AndroidTesting",
-      "liveTemplates/AndroidXML"
-    )
+    val templates = mutableListOf("liveTemplates/AndroidTesting")
     if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get() && StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get()) {
       templates.add("liveTemplates/AndroidCompose")
     }
