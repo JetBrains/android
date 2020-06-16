@@ -265,16 +265,17 @@ public class AndroidAnnotatorUtil {
     }
     VirtualFile layout;
     String parentName = parent.getName();
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
     if (!parentName.startsWith(FD_RES_LAYOUT)) {
       layout = IdeResourcesUtil.pickAnyLayoutFile(facet);
       if (layout == null) {
-        return null;
+        return Configuration.create(configurationManager, null, FolderConfiguration.createDefault());
       }
     } else {
       layout = virtualFile;
     }
 
-    return ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(layout);
+    return configurationManager.getConfiguration(layout);
   }
 
 
