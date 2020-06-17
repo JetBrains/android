@@ -278,4 +278,63 @@ class NewKtsModuleTest {
       contains("targetCompatibility = JavaVersion")
     }
   }
+
+  /**
+   * Verifies that adding new Java "Dynamic Feature" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Dynamic Feature" module, with Java Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewJavaDynamicFeatureWithKtsModule() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToDynamicFeature()
+      .enterFeatureModuleName("DynamicFeature")
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .clickNextToConfigureConditionalDelivery()
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("DynamicFeature/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("com.android.dynamic-feature")""")
+    }
+  }
+
+  /**
+   * Verifies that adding new Java "Instant Dynamic Feature" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Instant Dynamic Feature" module, with Java Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewJavaInstantDynamicFeatureWithKtsModule() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToInstantDynamicFeature()
+      .enterFeatureModuleName("InstantFeature")
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("InstantFeature/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("com.android.dynamic-feature")""")
+    }
+  }
 }
