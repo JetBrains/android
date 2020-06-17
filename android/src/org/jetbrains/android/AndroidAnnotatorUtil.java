@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_DRAWABLE;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.DOT_XML;
-import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -35,7 +34,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
-import com.android.tools.idea.ui.resourcemanager.rendering.ColorIconProvider;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -58,13 +56,13 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Consumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
-import com.intellij.util.ui.JBScalableIcon;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.MouseInfo;
@@ -259,23 +257,18 @@ public class AndroidAnnotatorUtil {
       return null;
     }
 
-    VirtualFile parent = virtualFile.getParent();
-    if (parent == null) {
-      return null;
-    }
-    VirtualFile layout;
-    String parentName = parent.getName();
+    VirtualFile nearestConfigurationFile;
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
-    if (!parentName.startsWith(FD_RES_LAYOUT)) {
-      layout = IdeResourcesUtil.pickAnyLayoutFile(facet);
-      if (layout == null) {
+    if (!(file instanceof XmlFile)) {
+      nearestConfigurationFile = IdeResourcesUtil.pickAnyLayoutFile(facet);
+      if (nearestConfigurationFile == null) {
         return Configuration.create(configurationManager, null, FolderConfiguration.createDefault());
       }
     } else {
-      layout = virtualFile;
+      nearestConfigurationFile = virtualFile;
     }
 
-    return configurationManager.getConfiguration(layout);
+    return configurationManager.getConfiguration(nearestConfigurationFile);
   }
 
 
