@@ -21,14 +21,23 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTEXT_COMPONENT
 import com.intellij.openapi.actionSystem.ToggleAction
 
+val neleDesignPropertySections = listOf(
+  InspectorSection.DECLARED,
+  InspectorSection.LAYOUT,
+  InspectorSection.FAVORITES,
+  InspectorSection.COMMON,
+  InspectorSection.TRANSFORMS,
+  InspectorSection.REFERENCES,
+  InspectorSection.ALL)
+
 enum class InspectorSection(val title: String) {
   DECLARED("Declared Attributes"),
   LAYOUT("Layout"),
   FAVORITES("Favorite Attributes"),
   COMMON("Common Attributes"),
   TRANSFORMS("Transforms"),
-  TRANSITION("View Transition"),
-  TRANSITION_MODIFIERS("Transition Modifiers"),
+  TRANSITION("View Transition"),                // MotionPropertyEditor only
+  TRANSITION_MODIFIERS("Transition Modifiers"), // MotionPropertyEditor only
   REFERENCES("Referenced Views"),
   ALL("All Attributes");
 

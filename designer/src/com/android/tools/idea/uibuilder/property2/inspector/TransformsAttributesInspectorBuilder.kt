@@ -40,7 +40,7 @@ class TransformsAttributesInspectorBuilder(
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
+    if (properties.isEmpty || !InspectorSection.TRANSFORMS.visible) {
       return
     }
     newPropertyInstance.properties = properties
@@ -53,7 +53,7 @@ class TransformsAttributesInspectorBuilder(
 
     val titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.title)
 
-    inspector.addComponent(TransformsPanel(properties), titleModel)
+    inspector.addComponent(TransformsPanel(model, properties), titleModel)
 
     for (attributeName in attributes) {
       val property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName)
