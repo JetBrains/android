@@ -163,8 +163,6 @@ public class NavDesignSurface extends DesignSurface {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
           true, (surface) -> new SinglePositionableContentLayoutManager(),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface));
-    setBackground(JBColor.white);
-
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;
