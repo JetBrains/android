@@ -974,6 +974,13 @@ public final class StudioFlags {
     "If enabled, the user can enable/disable the painting of debug bounds",
     false
   );
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_ELEMENT_PICKER = Flag.create(
+    COMPOSE, "preview.element.picker.enable",
+    "Enable @Preview picker",
+    "If enabled, the picker for @Preview elements will be available",
+    false
+  );
   //endregion
 
   //region Manifests

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
@@ -62,14 +63,15 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       DefaultActionGroup(
         listOfNotNull(
           Separator(),
-          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get())
+          StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.ifEnabled {
+            ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
+          },
+          StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
-          else
-            null,
-          if (StudioFlags.COMPOSE_ANIMATION_INSPECTOR.get())
+          },
+          StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
             AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }
-          else
-            null,
+          },
           DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
         )
       ),
