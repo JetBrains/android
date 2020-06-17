@@ -246,4 +246,36 @@ class NewKtsModuleTest {
       contains("""id("com.android.application")""")
     }
   }
+
+  /**
+   * Verifies that adding new Kotlin "Java or Kotlin Library" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Java or Kotlin Library" module, with Kotlin Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewPureJavaLibraryWithKtsModule() {
+    guiTest.importSimpleApplication()
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToPureLibrary()
+      .enterLibraryName("pure_lib")
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("pure_lib/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("plugins {")
+      contains("""id("java-library")""")
+      contains("java {")
+      contains("sourceCompatibility = JavaVersion")
+      contains("targetCompatibility = JavaVersion")
+    }
+  }
 }
