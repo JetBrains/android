@@ -5,6 +5,7 @@ Thumbs.db
 *.class
 *.DS_Store
 tools-base
+out
 .knownPackages
 **/stale_outputs_checked
 **/testData/KotlinDsl/.gradle
