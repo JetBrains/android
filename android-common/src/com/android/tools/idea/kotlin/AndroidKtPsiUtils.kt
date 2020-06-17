@@ -125,6 +125,18 @@ fun KtExpression.tryEvaluateConstant(): String? {
 }
 
 /**
+ * Tries to evaluate this [KtExpression] and return it's value coerced as a string.
+ *
+ * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be converted to string.
+ */
+fun KtExpression.tryEvaluateConstantAsText(): String? {
+  return ConstantExpressionEvaluator.getConstant(this, analyze())
+    ?.takeUnless { it.isError }
+    ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+    ?.toString()
+}
+
+/**
  * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`), this finds the previous element in the
  * chain (in this case `layout`).
  */
