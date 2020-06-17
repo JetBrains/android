@@ -19,7 +19,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.InplaceButton;
-import com.intellij.ui.JBProgressBar;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +53,7 @@ public class ProgressPanel extends JPanel {
       }
     };
 
-    myProgressBar = new JBProgressBar();
+    myProgressBar = new JProgressBar();
     myProgressBar.setMaximum(PROGRESS_STEPS);
 
     IconButton stopIcon = new IconButton("Cancel", AllIcons.Process.Stop, AllIcons.Process.StopHovered);
