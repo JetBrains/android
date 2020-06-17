@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -28,7 +29,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.UiTestRule
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -49,7 +49,7 @@ class EmulatorToolWindowPanelTest {
   companion object {
     @JvmField
     @ClassRule
-    val uiRule = UiTestRule.uiRule
+    val iconRule = IconLoaderRule()
   }
 
   private val projectRule = AndroidProjectRule.inMemory()

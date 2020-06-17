@@ -35,10 +35,8 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.ui.UiTestRule
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -50,12 +48,6 @@ import java.util.concurrent.TimeUnit
  */
 @RunsInEdt
 class EmulatorToolWindowManagerTest {
-  companion object {
-    @JvmField
-    @ClassRule
-    val uiRule = UiTestRule.uiRule
-  }
-
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private var nullableToolWindow: ToolWindow? = null
