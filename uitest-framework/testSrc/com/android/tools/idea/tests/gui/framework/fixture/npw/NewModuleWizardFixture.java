@@ -99,7 +99,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibrary() {
+  public ConfigureLibraryStepFixture<NewModuleWizardFixture> clickNextToPureLibrary() {
     clickNextToStep(
       message("android.wizard.module.new.java.or.kotlin.library"),
       message("android.wizard.module.new.java.or.kotlin.library")

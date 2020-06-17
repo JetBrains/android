@@ -17,12 +17,11 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
+import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.android.tools.idea.wizard.template.Language.Kotlin;
-import static com.android.tools.idea.wizard.template.impl.activities.basicActivity.BasicActivityTemplateKt.getBasicActivityTemplate;
 import static com.android.tools.idea.wizard.template.impl.activities.blankWearActivity.BlankWearActivityTemplateKt.getBlankWearActivityTemplate;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -32,7 +31,6 @@ import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
-import org.fest.swing.exception.LocationUnavailableException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,10 +73,10 @@ public class NewModuleTest {
   public void createNewJavaLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToJavaLibrary()
+      .clickNextToPureLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
-      .setSourceLanguage("Java")
+      .setSourceLanguage(Java)
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
@@ -89,10 +87,10 @@ public class NewModuleTest {
   public void createNewKotlinLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToJavaLibrary()
+      .clickNextToPureLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
-      .setSourceLanguage("Kotlin")
+      .setSourceLanguage(Kotlin)
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
     String gradleFileContents = guiTest.getProjectFileText("mylib/build.gradle");
