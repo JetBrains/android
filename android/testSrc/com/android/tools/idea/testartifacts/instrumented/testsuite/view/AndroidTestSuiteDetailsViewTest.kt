@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
@@ -78,15 +79,18 @@ class AndroidTestSuiteDetailsViewTest {
 
   private fun createTestResults(methodName: String, className: String, testCaseResult: AndroidTestCaseResult): AndroidTestResults {
     return object: AndroidTestResults {
-      override fun getRetentionSnapshot(device: AndroidDevice): File? = null
       override val methodName: String = methodName
       override val className: String = className
       override val packageName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
+      override fun getTestResultSummaryText(): String = ""
+      override fun getResultStats() = AndroidTestResultStats()
+      override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
       override fun getBenchmark(device: AndroidDevice): String = ""
+      override fun getRetentionSnapshot(device: AndroidDevice): File? = null
     }
   }
 }

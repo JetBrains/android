@@ -19,8 +19,8 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -37,6 +37,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestApplicationManager
+import com.intellij.ui.dualView.TreeTableView
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,9 +53,6 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.awt.event.MouseEvent
 import java.io.File
-import javax.swing.DefaultRowSorter
-import javax.swing.RowSorter
-import javax.swing.SortOrder
 
 /**
  * Unit tests for [AndroidTestResultsTableView].
@@ -85,12 +83,13 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
 
     // Assert columns.
+    table.getTableViewForTesting().tableHeader.columnModel
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
     assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
     assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Status")
 
     // Assert rows.
-    assertThat(table.getModelForTesting().rowCount).isEqualTo(0)
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
   }
 
   @Test
@@ -104,8 +103,8 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getModelForTesting().columnInfos[2].name).isEqualTo("deviceName1")
     assertThat(table.getModelForTesting().columnInfos[3].name).isEqualTo("deviceName2")
 
-    // Row count should be still zero until any test results come in.
-    assertThat(table.getModelForTesting().rowCount).isEqualTo(0)
+    // No rows are added until any test results come in (except for the root aggregation row).
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)
   }
 
   @Test
@@ -124,30 +123,30 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device2, testcase1OnDevice2)
 
     // No test cases are finished yet.
-    assertThat(table.getModelForTesting().rowCount).isEqualTo(2)
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseName()).isEqualTo("class1.method1")
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseName()).isEqualTo("class2.method2")
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(5)
+    assertThat(table.getTableViewForTesting().getItem(2).methodName).isEqualTo("method1")
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).methodName).isEqualTo("method2")
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
 
     // Let test case 1 and 2 finish on the device 1.
     testcase1OnDevice1.result = AndroidTestCaseResult.PASSED
     testcase2OnDevice1.result = AndroidTestCaseResult.FAILED
 
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
 
     // Let test case 1 finish on the device 2.
     testcase1OnDevice2.result = AndroidTestCaseResult.PASSED
 
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
   }
 
   @Test
@@ -165,8 +164,8 @@ class AndroidTestResultsTableViewTest {
     table.addDevice(device1)
     table.addTestCase(device1, testcase1OnDevice1)
 
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
-    assertThat(table.getModelForTesting().getItem(0).getRetentionSnapshot(device1)!!.path).isEqualTo(retentionFilePath)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(2).getRetentionSnapshot(device1)!!.path).isEqualTo(retentionFilePath)
   }
 
   @Test
@@ -184,10 +183,10 @@ class AndroidTestResultsTableViewTest {
 
     // Select the test case 1. Click on the test name column.
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
-    table.getTableViewForTesting().selectionModel.setSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.getTestCaseName() == "class1.method1" &&
+      results.methodName == "method1" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.PASSED &&
       results.getLogcat(device1) == "test logcat message" &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
@@ -195,10 +194,10 @@ class AndroidTestResultsTableViewTest {
 
     // Select the test case 2. Click on the device2 column.
     table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
-    table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.getTestCaseName() == "class2.method2" &&
+      results.methodName == "method2" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     }, eq(device2))
@@ -207,10 +206,10 @@ class AndroidTestResultsTableViewTest {
     // (Because a user may click the same row again after he/she closes the second page.)
     table.clearSelection()
     table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
-    table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
     verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
-      results.getTestCaseName() == "class2.method2" &&
+      results.methodName == "method2" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     }, eq(device2))
@@ -227,13 +226,16 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device, testcase1)
     table.addTestCase(device, testcase2)
     table.setRowFilter { results ->
-      results.getTestCaseName() == "class2.method2"
+      results.methodName == "method2"
     }
 
     val view = table.getTableViewForTesting()
     assertThat(view.rowCount).isEqualTo(1)
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(-1)
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(0)
+    assertThat(view.convertRowIndexToView(0)).isEqualTo(-1)  // Root aggregation row
+    assertThat(view.convertRowIndexToView(1)).isEqualTo(-1)  // Class1 aggregation row
+    assertThat(view.convertRowIndexToView(2)).isEqualTo(-1)  // Method1 row
+    assertThat(view.convertRowIndexToView(3)).isEqualTo(-1)  // Class2 aggregation row
+    assertThat(view.convertRowIndexToView(4)).isEqualTo(0)   // Method2 row
   }
 
   @Test
@@ -259,57 +261,6 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
-  fun sortRows() {
-    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
-    val device1 = device("deviceId1", "deviceName1")
-    val device2 = device("deviceId2", "deviceName2")
-
-    table.addDevice(device1)
-    table.addDevice(device2)
-    table.addTestCase(device1,
-                      AndroidTestCase("testid1", "Z_method1", "Z_class1", "package1", AndroidTestCaseResult.SKIPPED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid2", "A_method2", "A_class2", "package2", AndroidTestCaseResult.PASSED))
-    table.addTestCase(device2,
-                      AndroidTestCase("testid1", "Z_method1", "Z_class1", "package1", AndroidTestCaseResult.FAILED))
-    table.addTestCase(device2,
-                      AndroidTestCase("testid2", "A_method2", "A_class2", "package2", AndroidTestCaseResult.PASSED))
-
-    val view = table.getTableViewForTesting()
-    assertThat(view.rowCount).isEqualTo(2)
-    assertThat(view.rowSorter).isInstanceOf(DefaultRowSorter::class.java)
-    val sorter = view.rowSorter as DefaultRowSorter<*, *>
-    assertThat(sorter.isSortable(0)).isTrue()
-    assertThat(sorter.isSortable(1)).isTrue()
-    assertThat(sorter.isSortable(2)).isTrue()
-    assertThat(sorter.isSortable(3)).isTrue()
-
-    // Initially, rows are sorted in insertion order.
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(0)
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(1)
-
-    // Sort by test name.
-    sorter.sortKeys = listOf(RowSorter.SortKey(0, SortOrder.ASCENDING))
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(1)
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(0)
-
-    // Sort by test summary status.
-    sorter.sortKeys = listOf(RowSorter.SortKey(1, SortOrder.ASCENDING))
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(0)
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(1)
-
-    // Sort by device1 test status.
-    sorter.sortKeys = listOf(RowSorter.SortKey(2, SortOrder.ASCENDING))
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(1)
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(0)
-
-    // Sort by device2 test status.
-    sorter.sortKeys = listOf(RowSorter.SortKey(3, SortOrder.ASCENDING))
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(0)
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(1)
-  }
-
-  @Test
   fun tableShouldRetainSelectionAfterDataIsUpdated() {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
@@ -320,7 +271,7 @@ class AndroidTestResultsTableViewTest {
 
     // Select the test case 1.
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
-    table.getTableViewForTesting().selectionModel.setSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
 
     // Then, the test case 2 is added to the table.
     table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
@@ -355,7 +306,7 @@ class AndroidTestResultsTableViewTest {
 
     // Select the test case 1.
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
-    table.getTableViewForTesting().selectionModel.setSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
 
     val data = (table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
     assertThat(data).isInstanceOf(JvmMethod::class.java)
@@ -396,6 +347,9 @@ class AndroidTestResultsTableViewTest {
       override val packageName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
+      override fun getTestResultSummaryText(): String = ""
+      override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
+      override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
       override fun getBenchmark(device: AndroidDevice): String = ""
@@ -406,4 +360,11 @@ class AndroidTestResultsTableViewTest {
   private fun device(id: String, name: String): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
   }
+
+  private fun TreeTableView.getItem(index: Int): AndroidTestResults {
+    return getValueAt(index, 0) as AndroidTestResults
+  }
+
+  private val TreeTableView.selectedObject: AndroidTestResults?
+    get() = selection?.firstOrNull() as? AndroidTestResults
 }
