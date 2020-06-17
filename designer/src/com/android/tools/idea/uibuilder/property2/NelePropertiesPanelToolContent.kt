@@ -21,7 +21,7 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesView
-import com.android.tools.idea.uibuilder.property2.inspector.InspectorSection
+import com.android.tools.idea.uibuilder.property2.inspector.neleDesignPropertySections
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
@@ -90,7 +90,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
   override fun getFilterKeyListener() = filterKeyListener
 
   override fun getGearActions(): List<AnAction> =
-    InspectorSection.values().map { it.action }
+    neleDesignPropertySections.map { it.action }
 
   fun firePropertiesGenerated() = componentModel.firePropertiesGenerated()
 

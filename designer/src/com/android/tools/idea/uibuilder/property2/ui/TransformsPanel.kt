@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.adtui.common.lines3d
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -29,7 +30,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
@@ -42,7 +42,7 @@ import javax.swing.border.EmptyBorder
 /**
  * Custom panel to support direct editing of transforms (rotation, etc.)
  */
-class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(BorderLayout()) {
+class TransformsPanel(private val model: NelePropertiesModel, properties: PropertiesTable<NelePropertyItem>) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH + 80
@@ -61,6 +61,12 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
 
   private var listLabels = ArrayList<JLabel>()
   private var listValueLabels = ArrayList<JLabel>()
+
+  private val modelListener = object: PropertiesModelListener<NelePropertyItem> {
+    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      updateFromValues()
+    }
+  }
 
   init {
     val panelSize = JBUI.size(PANEL_WIDTH, PANEL_HEIGHT)
@@ -171,7 +177,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
       val value = rotationY.value.toString()
       rotationYValue.text = value
       virtualButton.setRotateY(rotationY.value.toDouble())
-      if (!rotationY.valueIsAdjusting &&!processingModelUpdate) {
+      if (!rotationY.valueIsAdjusting && !processingModelUpdate) {
         writeValue(propertyRotationY, value)
       }
       processingChange = false
@@ -186,19 +192,6 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
       }
       processingChange = false
     }
-
-    val listener = object: PropertiesModelListener<NelePropertyItem> {
-      override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
-        updateFromValues()
-      }
-      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
-        updateFromValues()
-      }
-    }
-
-    propertyRotationX?.model?.addListener(listener)
-    propertyRotationY?.model?.addListener(listener)
-    propertyRotationZ?.model?.addListener(listener)
 
     updateFromValues()
     updateUI()
@@ -222,6 +215,17 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
         label.preferredSize = columnSize
       }
     }
+  }
+
+  override fun addNotify() {
+    super.addNotify()
+    model.addListener(modelListener)
+
+  }
+
+  override fun removeNotify() {
+    super.removeNotify()
+    model.removeListener(modelListener)
   }
 
   private fun writeValue(property : NelePropertyItem?, value : String) {
@@ -256,24 +260,28 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
   }
 
   private fun updateFromProperty() {
-    propertyRotationX?.value?.toDouble()?.let {
+    valueOf(propertyRotationX)?.toDouble()?.let {
       processingModelUpdate = true
       virtualButton.setRotateX(it)
       rotationX.value = it.toInt()
       processingModelUpdate = false
     }
-    propertyRotationY?.value?.toDouble()?.let {
+    valueOf(propertyRotationY)?.toDouble()?.let {
       processingModelUpdate = true
       virtualButton.setRotateY(it)
       rotationY.value = it.toInt()
       processingModelUpdate = false
     }
-    propertyRotationZ?.value?.toDouble()?.let {
+    valueOf(propertyRotationZ)?.toDouble()?.let {
       processingModelUpdate = true
       rotationZ.value = it.toInt()
       virtualButton.setRotate(it)
       processingModelUpdate = false
     }
+  }
+
+  private fun valueOf(property: NelePropertyItem?): String? {
+    return property?.let { it.value ?: "0" }
   }
 
 }
