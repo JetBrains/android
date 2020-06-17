@@ -28,6 +28,7 @@ import com.intellij.notification.NotificationsManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -97,7 +98,7 @@ public class MemorySettingsPostSyncChecker {
       AndroidBundle.message("memory.settings.postsync.message",
                             String.valueOf(currentXmx),
                             String.valueOf(recommended)));
-    notification.setTitle(AndroidBundle.message("memory.settings.postsync.title"));
+    notification.setTitle(AndroidBundle.message("memory.settings.postsync.title", ApplicationNamesInfo.getInstance().getFullProductName()));
 
     NotificationAction saveRestartAction =
       NotificationAction.createSimple(AndroidBundle.message("memory.settings.postsync.save"), () -> {
