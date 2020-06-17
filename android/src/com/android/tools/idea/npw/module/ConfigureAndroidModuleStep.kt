@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromModule
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.validator.ProjectNameValidator
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
@@ -32,7 +33,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.components.Label
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -85,7 +85,7 @@ class ConfigureAndroidModuleStep(
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
-      row {Label("")()} // Vertical spacer
+      verticalGap()
 
       row {
         gradleKtsCheck()

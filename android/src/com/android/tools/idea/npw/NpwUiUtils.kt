@@ -24,6 +24,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.Label
 import com.intellij.ui.layout.Cell
+import com.intellij.ui.layout.LayoutBuilder
 import java.awt.Component
 import javax.swing.JLabel
 
@@ -52,3 +53,8 @@ fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String
   return label
 }
 
+fun LayoutBuilder.verticalGap() {
+  row {
+    label("")
+  }
+}

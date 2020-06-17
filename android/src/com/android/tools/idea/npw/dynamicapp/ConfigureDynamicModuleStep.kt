@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
@@ -35,7 +36,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.components.Label
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JCheckBox
@@ -83,12 +83,14 @@ class ConfigureDynamicModuleStep(
       apiLevelCombo()
     }
 
-    row {
-      labelFor("Module title (this may be visible to users)", moduleTitle)
-      moduleTitle()
-    }.visible = model.isInstant
+    if (model.isInstant) {
+      row {
+        labelFor("Module title (this may be visible to users)", moduleTitle)
+        moduleTitle()
+      }
+    }
 
-    row { Label("")()} // Vertical spacer
+    verticalGap()
 
     row {
       // TODO(qumeric): labelFor?
@@ -101,6 +103,7 @@ class ConfigureDynamicModuleStep(
       }
     }
   }
+
   override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
