@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
@@ -120,7 +121,8 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
     // Intercept windowClosing event, to show the closing confirmation dialog
     val oldIdeaListeners = removeAllWindowListeners(frame)
     frame.run {
-      title = message("android.wizard.welcome.dialog.title")
+      val keyInfix = if (IdeInfo.getInstance().isAndroidStudio) "as" else "ij"
+      title = message("android.${keyInfix}.wizard.welcome.dialog.title")
       pack()
       setLocationRelativeTo(null)
       addWindowListener(DelegatingListener(oldIdeaListeners))
