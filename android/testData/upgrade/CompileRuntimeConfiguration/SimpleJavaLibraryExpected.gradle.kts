@@ -1,0 +1,7 @@
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    api("com.google.guava:guava:29.0")
+}
