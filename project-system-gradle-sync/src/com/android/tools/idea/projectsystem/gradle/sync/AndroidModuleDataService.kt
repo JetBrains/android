@@ -59,6 +59,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -106,6 +107,13 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                            ?: createAndroidFacet(module, modelsProvider)
         // Configure that Android facet from the information in the AndroidModuleModel.
         configureFacet(androidFacet, androidModel)
+
+        // Set language level if available
+        val languageLevel = androidModel.javaLanguageLevel
+        if (languageLevel != null) {
+          modelsProvider.getModifiableRootModel(module).getModuleExtension(LanguageLevelModuleExtension::class.java).languageLevel = languageLevel
+        }
+
         moduleValidator.validate(module, androidModel)
       }
       else {
