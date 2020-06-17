@@ -55,4 +55,9 @@ class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
     JComboBoxFixture(robot(), comboBox).selectItem(language.toString())
     return this
   }
+
+  fun setUseKtsBuildFiles(select: Boolean): ConfigureLibraryStepFixture<W> {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select)
+    return this
+  }
 }
