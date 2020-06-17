@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
 import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent.EventKind;
@@ -28,6 +29,7 @@ import com.intellij.notification.NotificationsManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -92,7 +94,7 @@ public class MemorySettingsPostSyncChecker {
       AndroidBundle.message("memory.settings.postsync.message",
                             String.valueOf(currentXmx),
                             String.valueOf(recommended)));
-    notification.setTitle(AndroidBundle.message("memory.settings.postsync.title"));
+    notification.setTitle(AndroidBundle.message("memory.settings.postsync.title", ApplicationNamesInfo.getInstance().getFullProductName()));
 
     NotificationAction saveRestartAction =
       NotificationAction.createSimple(AndroidBundle.messagePointer("memory.settings.postsync.save"), () -> {
