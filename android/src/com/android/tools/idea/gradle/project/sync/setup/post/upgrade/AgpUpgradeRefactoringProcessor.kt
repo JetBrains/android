@@ -536,7 +536,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun isApplicable() =
-    current < GradleVersion(5, 0, 0) && new > GradleVersion(3, 5, 0)
+    current < GradleVersion(5, 0, 0) && new >= GradleVersion(3, 5, 0)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
