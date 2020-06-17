@@ -466,7 +466,7 @@ internal fun PsiElement.toPsiClass(): PsiClass? = when {
  *
  * We need to unbox types before comparison because Dagger considers two types as equal if they are equal after unboxing.
  */
-private val PsiType.unboxed: PsiType
+internal val PsiType.unboxed: PsiType
   get() = PsiPrimitiveType.getUnboxedType(this) ?: this
 
 /**
