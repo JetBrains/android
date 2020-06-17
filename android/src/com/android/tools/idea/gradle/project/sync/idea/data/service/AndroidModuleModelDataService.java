@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
@@ -35,7 +34,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.SystemProperties;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -121,12 +119,15 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
                               @Nullable ProjectData projectData,
                               @NotNull Project project,
                               @NotNull IdeModelsProvider modelsProvider) {
-    if (GradlePluginUpgrade.shouldRecommendPluginUpgrade(project)) {
-      GradlePluginUpgrade.recommendPluginUpgrade(project);
-    }
+    if (!imported.isEmpty()) {
+      // only suggest recommended settings for android-gradle project if the project contains android
+      if (GradlePluginUpgrade.shouldRecommendPluginUpgrade(project)) {
+        GradlePluginUpgrade.recommendPluginUpgrade(project);
+      }
 
-    MemorySettingsPostSyncChecker
+      MemorySettingsPostSyncChecker
         .checkSettings(project, new TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
+    }
 
     new ProjectStructureUsageTracker(project).trackProjectStructure();
   }
