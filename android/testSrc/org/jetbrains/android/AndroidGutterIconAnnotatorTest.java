@@ -68,6 +68,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
+    myFixture.copyFileToProject("annotator/colors-night.xml", "res/values-night/colors.xml");
     myFixture.copyFileToProject("annotator/layout.xml", "res/layout/layout1.xml");
     myFixture.copyFileToProject("annotator/layout.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject("annotator/ColorTest.java", "src/p1/p2/ColorTest.java");
@@ -141,6 +142,15 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
     // Inline color have a color picker click action
     assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
+  }
+
+  /**
+   * Regression test for https://issuetracker.google.com/151480852
+   */
+  public void testColorInValuesWithQualifiers() {
+    // Color definition in a non-default values.xml file, referencing a color which is overriden in the same file
+    HighlightInfo highlightInfo = findHighlightInfoWithGutterRenderer("res/values-night/colors.xml", "@color/color2", XmlTag.class);
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of((new Color(0xffffff))));
   }
 
   public void testColorInLayout1() {
