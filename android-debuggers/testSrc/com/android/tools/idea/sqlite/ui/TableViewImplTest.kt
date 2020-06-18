@@ -903,6 +903,17 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("value", table.model.getValueAt(0, 1))
   }
 
+  fun testNoColumnsAreShownAfterResetView() {
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val tableModel = table.model
+
+    assertEquals(0, tableModel.columnCount)
+
+    view.resetView()
+
+    assertEquals(0, tableModel.columnCount)
+  }
+
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
     val values = mutableListOf<String?>()
     for (i in 0 until table.model.rowCount) {
