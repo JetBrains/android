@@ -18,25 +18,18 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
-import icons.StudioIcons
 
 private const val APP_INSPECTION_TITLE = "App Inspection"
 
-class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<Project> {
-
-  override fun createToolWindowContent(project: Project,
-                                       toolWindow: ToolWindow) {
+internal class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
+  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val appInspectionToolWindow = AppInspectionToolWindow(toolWindow, project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(appInspectionToolWindow.component, "", false)
     toolWindow.contentManager.addContent(content)
-    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.INSPECTION)
-    Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
   }
 
@@ -47,5 +40,5 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
     toolWindow.stripeTitle = APP_INSPECTION_TITLE
   }
 
-  override fun value(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
+  override fun isApplicable(project: Project): Boolean = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
 }
