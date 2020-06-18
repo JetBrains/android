@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.MODULES_BY_GRADLE_PATH_KEY;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.intellij.facet.FacetManager;
@@ -23,16 +26,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.MODULES_BY_GRADLE_PATH_KEY;
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 
 /**
  * Tests for {@link ModuleSetupContext}.
  */
-public class ModuleSetupContextTest extends PlatformTestCase {
+public class ModuleSetupContextTest extends HeavyPlatformTestCase {
   private IdeModifiableModelsProviderImpl myModelsProvider;
 
   @Override
@@ -84,5 +84,4 @@ public class ModuleSetupContextTest extends PlatformTestCase {
 
     return module;
   }
-
 }

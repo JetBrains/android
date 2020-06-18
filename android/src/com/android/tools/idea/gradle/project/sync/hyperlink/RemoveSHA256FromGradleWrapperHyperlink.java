@@ -22,16 +22,16 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
-public class RemoveSHA256FromGradleWrapperHyperlink extends NotificationHyperlink {
+public final class RemoveSHA256FromGradleWrapperHyperlink extends NotificationHyperlink {
   public RemoveSHA256FromGradleWrapperHyperlink() {
     super("remove.SHA256.from.gradle.wrapper", "Remove " + DISTRIBUTION_SHA_256_SUM + " and sync project");
   }
@@ -47,7 +47,7 @@ public class RemoveSHA256FromGradleWrapperHyperlink extends NotificationHyperlin
           // Remove distributionSha256Sum from Gradle wrapper.
           properties.remove(DISTRIBUTION_SHA_256_SUM);
           savePropertiesToFile(properties, propertiesFilePath, null);
-          LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(propertiesFilePath));
+          LocalFileSystem.getInstance().refreshIoFiles(Collections.singletonList(propertiesFilePath));
         }
       }
       catch (IOException e) {

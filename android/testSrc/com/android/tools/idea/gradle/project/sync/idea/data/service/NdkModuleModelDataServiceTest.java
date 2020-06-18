@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
@@ -24,22 +30,16 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.mockito.Mock;
-
 import java.util.Collection;
 import java.util.Collections;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link NdkModuleModelDataService}.
  */
-public class NdkModuleModelDataServiceTest extends PlatformTestCase {
+public class NdkModuleModelDataServiceTest extends HeavyPlatformTestCase {
   @Mock private NdkModuleSetup myModuleSetup;
   @Mock private NdkModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
