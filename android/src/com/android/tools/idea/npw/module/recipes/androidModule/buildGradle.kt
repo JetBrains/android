@@ -121,7 +121,7 @@ else {
 
 private fun String.toKtsProperty(funcName: String): String = this.replace("$funcName ", "$funcName = ")
 
-private fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
+internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
   split("\n").joinToString("\n") {
     it.replace("'", "\"")
       .toKtsFunction("compileSdkVersion")
@@ -139,6 +139,7 @@ private fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
       .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))
       .replace("minifyEnabled", "isMinifyEnabled")
       .replace("release {", "getByName(\"release\") {")
+      .replace("debug {", "getByName(\"debug\") {")
   }
 }
 else {
