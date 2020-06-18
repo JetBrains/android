@@ -61,7 +61,7 @@ private const val DELETE_ROW_ACTION_TITLE = "Remove selected View reference"
 class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
+    if (properties.isEmpty || !InspectorSection.REFERENCES.visible) {
       return
     }
     if (!isApplicable(properties)) return

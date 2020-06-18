@@ -92,19 +92,22 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
     getMain().getBuilders().add(new SelectedTargetBuilder());
-    addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider));
+    addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider, enumSupportProvider));
   }
 
   private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
     private final MotionLayoutAttributesModel myModel;
     private final TableUIProvider myTableUIProvider;
     private final XmlElementDescriptorProvider myDescriptorProvider;
+    private final NeleEnumSupportProvider myEnumSupportProvider;
 
     private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
-                                   @NotNull TableUIProvider tableUIProvider) {
+                                   @NotNull TableUIProvider tableUIProvider,
+                                   @NotNull NeleEnumSupportProvider enumSupportProvider) {
       myModel = model;
       myTableUIProvider = tableUIProvider;
       myDescriptorProvider = new AndroidDomElementDescriptorProvider();
+      myEnumSupportProvider = enumSupportProvider;
     }
 
     @Override
@@ -186,8 +189,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                @NotNull MotionSelection selection,
                                @NotNull MotionLayoutAttributesModel model,
                                @NotNull PropertiesTable<NelePropertyItem> properties) {
-      InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.getTitle(), false, new ArrayList());
-      inspector.addComponent(new TransformsPanel(properties), titleModel);
+      InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.getTitle(), false, Collections.emptyList());
+      inspector.addComponent(new TransformsPanel(model, properties), titleModel);
 
       ArrayList<String> rotationAttributes = new ArrayList<>();
       rotationAttributes.add("rotationX");
@@ -202,9 +205,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       attributes.add("alpha");
       attributes.add("visibility");
 
-      NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
-      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
-      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
+      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
 
       for (String attributeName : rotationAttributes) {
         NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
@@ -230,12 +232,11 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                @NotNull String easingAttributeName,
                                @NotNull PropertiesTable<NelePropertyItem> properties,
                                @NotNull ArrayList<String> attributes) {
-      InspectorLineModel titleModel = inspector.addExpandableTitle(title.getTitle(), false, new ArrayList());
-      inspector.addComponent(new EasingCurvePanel(easingAttributeName, properties), titleModel);
+      InspectorLineModel titleModel = inspector.addExpandableTitle(title.getTitle(), false, Collections.emptyList());
+      inspector.addComponent(new EasingCurvePanel(model, easingAttributeName, properties), titleModel);
 
-      NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
-      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
-      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
+      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
 
       for (String attributeName : attributes) {
         NelePropertyItem property = properties.getOrNull(SdkConstants.AUTO_URI, attributeName);

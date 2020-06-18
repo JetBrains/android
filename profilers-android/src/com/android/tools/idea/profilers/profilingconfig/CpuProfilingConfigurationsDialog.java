@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profiler.proto.Cpu;
@@ -169,7 +169,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     @Nullable
     @Override
     public String getHelpTopic() {
-      return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/cpu-recording-configurations-help-link.html";
+      return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/cpu-recording-configurations-help-link.html";
     }
 
     private void setUpConfigurationsList() {

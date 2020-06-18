@@ -91,6 +91,13 @@ class HeapDumpStageView(profilersView: StudioProfilersView, stage: HeapDumpStage
     updateInstanceDetailsSplitter()
     showLoadingPanel()
     component.add(mainPanel)
+
+    // Also stop loading panel if the session is terminated before successful loading (b/159247100)
+    mainPanel.addHierarchyListener {
+      if (!mainPanel.isDisplayable || !mainPanel.isShowing) {
+        hideLoadingPanel()
+      }
+    }
   }
 
   override fun getToolbar() = JPanel(BorderLayout()).apply {

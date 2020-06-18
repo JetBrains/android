@@ -177,7 +177,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
       makeIntColumn("Depth",
-                    50,
+                    150,
                     ValueObject.class,
                     ValueObject::getDepth,
                     d -> 0 <= d && d < Integer.MAX_VALUE,
@@ -359,6 +359,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       .setBorder(DEFAULT_TOP_BORDER)
       .setShowVerticalLines(true)
       .setTableIntercellSpacing(new Dimension())
+      .setShowHeaderTooltips(true)
       .build();
   }
 
