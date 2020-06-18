@@ -33,7 +33,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import java.awt.Container
 import java.awt.Dimension
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
@@ -211,6 +210,8 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
+
+  override fun canZoomToFit() = true
 
   override fun getDefaultOffset() = Dimension()
 

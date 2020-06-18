@@ -128,6 +128,12 @@ import org.jetbrains.annotations.TestOnly;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
+  /**
+   * If the difference between old and new scaling values is less than threshold, the scaling will be ignored.
+   */
+  @SurfaceZoomLevel
+  protected static final double SCALING_THRESHOLD = 0.005;
+
   /** Filter got {@link #getModels()} to avoid returning disposed elements **/
   private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();
   /** Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements **/
@@ -139,7 +145,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private final Project myProject;
 
-  protected double myScale = 1;
+  @SurfaceScale private double myScale = 1;
   @NotNull protected final JScrollPane myScrollPane;
   @NotNull private final JLayeredPane myLayeredPane;
   @NotNull private final SceneViewPanel mySceneViewPanel;
@@ -199,7 +205,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  private float myMaxFitIntoScale = Float.MAX_VALUE;
+  @SurfaceScale private double myMaxFitIntoScale = Double.MAX_VALUE;
 
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
     repaint();
@@ -344,9 +350,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myZoomControlsLayerPane.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }
 
+  @SurfaceScreenScalingFactor
   @Override
-  public float getScreenScalingFactor() {
-    return 1f;
+  public double getScreenScalingFactor() {
+    return 1d;
   }
 
   @NotNull
@@ -803,8 +810,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (pointerInfo != null) {
       Point mouse = pointerInfo.getLocation();
       SwingUtilities.convertPointFromScreen(mouse, myScrollPane.getViewport());
-      double scale = magnification < 0 ? 1f / (1 - magnification) : (1 + magnification);
-      setScale(scale * getScale(), mouse.x, mouse.y);
+      double magnifiedScale = magnification < 0 ? 1f / (1 - magnification) : (1 + magnification);
+      setScale(magnifiedScale * getScale(), mouse.x, mouse.y);
     }
   }
 
@@ -845,16 +852,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     boolean scaled;
     switch (type) {
       case IN: {
-        double currentScale = myScale * getScreenScalingFactor();
+        @SurfaceZoomLevel double currentScale = myScale * getScreenScalingFactor();
         int current = (int)(Math.round(currentScale * 100));
-        double scale = (ZoomType.zoomIn(current) / 100.0) / getScreenScalingFactor();
+        @SurfaceScale double scale = (ZoomType.zoomIn(current) / 100.0) / getScreenScalingFactor();
         scaled = setScale(scale, x, y);
         break;
       }
       case OUT: {
-        double currentScale = myScale * getScreenScalingFactor();
+        @SurfaceZoomLevel double currentScale = myScale * getScreenScalingFactor();
         int current = (int)(currentScale * 100);
-        double scale = (ZoomType.zoomOut(current) / 100.0) / getScreenScalingFactor();
+        @SurfaceScale double scale = (ZoomType.zoomOut(current) / 100.0) / getScreenScalingFactor();
         scaled = setScale(scale, x, y);
         break;
       }
@@ -878,6 +885,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * @see #getFitScale(Dimension, boolean)
    */
+  @SurfaceScale
   protected double getFitScale(boolean fitInto) {
     int availableWidth = getExtentSize().width;
     int availableHeight = getExtentSize().height;
@@ -891,8 +899,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param size    dimension to fit into the view
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
+   * @see {@link #getScreenScalingFactor()}
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @SurfaceScale
   public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
 
@@ -902,11 +912,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     availableWidth -= padding.width;
     availableHeight -= padding.height;
 
-    double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
-    double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
-    double scale = Math.min(scaleX, scaleY);
+    @SurfaceScale double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
+    @SurfaceScale double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
+    @SurfaceScale double scale = Math.min(scaleX, scaleY);
     if (fitInto) {
-      double min = 1d / getScreenScalingFactor();
+      @SurfaceScale double min = 1d / getScreenScalingFactor();
       scale = Math.min(min, scale);
     }
     scale = Math.min(scale, myMaxFitIntoScale);
@@ -926,6 +936,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Override
+  @SurfaceScale
   public double getScale() {
     return myScale;
   }
@@ -951,13 +962,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Override
-  public boolean canZoomToFit() {
-    return true;
-  }
+  public abstract boolean canZoomToFit();
 
   @Override
   public boolean canZoomToActual() {
-    return (myScale > 1 && canZoomOut()) || (myScale < 1 && canZoomIn());
+    double currentScale = getScale();
+    return (currentScale > 1 && canZoomOut()) || (currentScale < 1 && canZoomIn());
   }
 
   /**
@@ -1042,14 +1052,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *
    * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
    *              (value below 0 means zoom to fit)
+   *              This value doesn't consider DPI.
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    * @return True if the scaling was changed, false if this was a noop.
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
-  public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-    double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
-    if (Math.abs(newScale - myScale) < 0.005 / getScreenScalingFactor()) {
+  public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
+    @SurfaceScale double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
+    if (Math.abs(newScale - myScale) < SCALING_THRESHOLD / getScreenScalingFactor()) {
       return false;
     }
     myCurrentZoomType = null;
@@ -1086,6 +1097,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * The minimum scale we'll allow.
    */
+  @SurfaceScale
   protected double getMinScale() {
     return 0;
   }
@@ -1093,6 +1105,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * The maximum scale we'll allow.
    */
+  @SurfaceScale
   protected double getMaxScale() {
     return 1;
   }
@@ -1753,10 +1766,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   abstract public List<NlComponent> getSelectableComponents();
 
   /**
-   * Sets the maximum value allowed for {@link ZoomType#FIT} or {@link ZoomType#FIT_INTO}. By default there is no maximum value.
+   * Sets the maximum zoom level allowed for {@link ZoomType#FIT} or {@link ZoomType#FIT_INTO}. By default there is no maximum value.
    */
-  public void setMaxFitIntoScale(float maxFitIntoScale) {
-    myMaxFitIntoScale = maxFitIntoScale;
+  public void setMaxFitIntoZoomLevel(@SurfaceZoomLevel double maxFitIntoZoomLevel) {
+    myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
   }
 
   /**
