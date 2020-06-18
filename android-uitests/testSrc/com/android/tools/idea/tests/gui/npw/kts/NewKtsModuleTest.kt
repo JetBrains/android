@@ -337,4 +337,33 @@ class NewKtsModuleTest {
       contains("""id("com.android.dynamic-feature")""")
     }
   }
+
+  /**
+   * Verifies that adding new Java "Benchmark" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Benchmark" module, with Java Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewJavaBenchmarkModuleWithKts() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToBenchmarkModule()
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("benchmark/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("com.android.library")""")
+      contains("""id("androidx.benchmark")""")
+    }
+  }
 }
