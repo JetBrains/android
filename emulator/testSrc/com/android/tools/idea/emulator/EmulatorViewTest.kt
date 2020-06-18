@@ -263,6 +263,14 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 41 buttons: 1")
+    ui.mouse.release()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 41")
+
+    // Mouse events outside of the display image should be ignored.
+    ui.mouse.press(50, 7)
+    ui.mouse.release()
 
     // Check device frame cropping.
     view.cropFrame = true
