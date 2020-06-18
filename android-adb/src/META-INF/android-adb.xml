@@ -18,7 +18,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService" />
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService" />
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider" />
-    <notificationWhitelist groupIds="ADB Logs"/>
+    <notificationAllowlist groupIds="ADB Logs"/>
 
     <projectService serviceInterface="com.android.tools.idea.device.fs.DeviceFileDownloaderService"
                     serviceImplementation="com.android.tools.idea.explorer.DeviceFileDownloaderServiceImpl" />
