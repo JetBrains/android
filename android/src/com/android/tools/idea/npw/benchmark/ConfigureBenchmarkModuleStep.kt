@@ -35,23 +35,23 @@ class ConfigureBenchmarkModuleStep(
   private val panel: DialogPanel = panel {
     row {
       cell {
-        labelFor("Module name:", moduleName, message("android.wizard.module.help.name"))
+        labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
       }
       moduleName()
     }
 
     row {
-      labelFor("Package name:", packageName)
+      labelFor("Package name", packageName)
       packageName()
     }
 
     row {
-      labelFor("Language:", languageCombo)
+      labelFor("Language", languageCombo)
       languageCombo()
     }
 
     row {
-      labelFor("Minimum SDK:", apiLevelCombo)
+      labelFor("Minimum SDK", apiLevelCombo)
       apiLevelCombo()
     }
 
