@@ -115,6 +115,7 @@ import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -154,7 +155,11 @@ public class LayoutlibSceneManager extends SceneManager {
   private String myPreviousTheme;
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
+  private final Object myFuturesLock = new Object();
+  @GuardedBy("myFuturesLock")
   private final LinkedList<CompletableFuture<Void>> myRenderFutures = new LinkedList<>();
+  @GuardedBy("myFuturesLock")
+  private final LinkedList<CompletableFuture<Void>> myPendingFutures = new LinkedList<>();
   private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
   @NotNull private final ViewEditor myViewEditor;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
@@ -168,7 +173,8 @@ public class LayoutlibSceneManager extends SceneManager {
    * True if we are currently in the middle of a render. This attribute is used to prevent listeners from triggering unnecessary renders.
    * If we try to schedule a new render while this is true, we simply re-use the last render in progress.
    */
-  private final AtomicBoolean myIsCurrentlyRendering = new AtomicBoolean(false);
+  @GuardedBy("myFuturesLock")
+  private Boolean myIsCurrentlyRendering = false;
 
   /**
    * If true, the renders using this LayoutlibSceneManager will use transparent backgrounds
@@ -608,16 +614,22 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     CompletableFuture<Void> callback = new CompletableFuture<>();
-    synchronized (myRenderFutures) {
-      myRenderFutures.add(callback);
+    synchronized (myFuturesLock) {
+      myPendingFutures.add(callback);
+      if (myIsCurrentlyRendering) {
+        return callback;
+      }
+      myIsCurrentlyRendering = true;
     }
 
-    if (myIsCurrentlyRendering.get()) {
-      return callback;
-    }
+    getRenderingQueue().queue(createRenderUpdate(trigger));
 
+    return callback;
+  }
+
+  private Update createRenderUpdate(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     // This update is low priority so the model updates take precedence
-    getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
+    return new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
         render(trigger);
@@ -627,9 +639,7 @@ public class LayoutlibSceneManager extends SceneManager {
       public boolean canEat(Update update) {
         return this.equals(update);
       }
-    });
-
-    return callback;
+    };
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -1125,7 +1135,12 @@ public class LayoutlibSceneManager extends SceneManager {
       return CompletableFuture.completedFuture(null);
     }
 
-    myIsCurrentlyRendering.set(true);
+    synchronized (myFuturesLock) {
+      // This is because at the moment render could also be called from requestLayoutAndRender in a synchronous mode
+      myIsCurrentlyRendering = true;
+      myRenderFutures.addAll(myPendingFutures);
+      myPendingFutures.clear();
+    }
     try {
       DesignSurface surface = getDesignSurface();
       logConfigurationChange(surface);
@@ -1184,26 +1199,38 @@ public class LayoutlibSceneManager extends SceneManager {
     return CompletableFuture.completedFuture(null);
   }
 
+  private boolean hasPendingRenders() {
+    synchronized(myFuturesLock) {
+      return !myPendingFutures.isEmpty();
+    }
+  }
+
   /**
    * Completes all the futures created by {@link #requestRender()} and signals the current render as finished by
-   * setting {@link #myIsCurrentlyRendering} to false.
+   * setting {@link #myIsCurrentlyRendering} to false. Also, it is calling the render callbacks associated with
+   * the current render.
    */
   private void completeRender() {
     ImmutableList<CompletableFuture<Void>> callbacks;
-    synchronized (myRenderFutures) {
+    synchronized (myFuturesLock) {
       callbacks = ImmutableList.copyOf(myRenderFutures);
       myRenderFutures.clear();
+      myIsCurrentlyRendering = false;
     }
     callbacks.forEach(callback -> callback.complete(null));
-    myIsCurrentlyRendering.set(false);
+    // If there are pending futures, we should trigger the render update
+    if (hasPendingRenders()) {
+      requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
+    }
   }
 
   /**
    * Returns if there are any pending render requests.
    */
+  @TestOnly
   public boolean isRendering() {
-    synchronized (myRenderFutures) {
-      return myIsCurrentlyRendering.get() || !myRenderFutures.isEmpty();
+    synchronized (myFuturesLock) {
+      return myIsCurrentlyRendering;
     }
   }
 
