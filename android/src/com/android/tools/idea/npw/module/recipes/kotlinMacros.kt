@@ -54,6 +54,12 @@ fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, noKtx: Boolean =
   }
 }
 
+fun RecipeExecutor.addSupportWearableDependency() {
+  addDependency("com.google.android.support:wearable:+")
+  // This is needed for the com.google.android.support:wearable as a provided dependency otherwise it's warned by lint
+  addDependency("com.google.android.wearable:wearable:+", "provided")
+}
+
 private fun RecipeExecutor.hasKotlinStdlib(): Boolean {
   val stdlibSuffixes = setOf("", "-jdk7", "-jdk8")
   return stdlibSuffixes.any { hasDependency(stdlibBaseArtifact + it) }
