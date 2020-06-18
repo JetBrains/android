@@ -29,6 +29,7 @@ import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeC
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,6 +55,9 @@ import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
+import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.io.File
@@ -265,6 +269,23 @@ class EmulatorViewTest {
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 500 height: 400")
     assertAppearance(ui, "image4")
+
+    // Check clipboard synchronization.
+    val content = StringSelection("host clipboard")
+    ClipboardSynchronizer.getInstance().setContent(content, content)
+    val event = FocusEvent(view, FocusEvent.FOCUS_GAINED, false, null)
+    for (listener in view.focusListeners) {
+      listener.focusGained(event)
+    }
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
+    assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
+    call.waitForResponse(2, TimeUnit.SECONDS)
+    emulator.clipboard = "device clipboard"
+    call.waitForResponse(2, TimeUnit.SECONDS)
+    waitForCondition(5, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
   }
 
   @Test
