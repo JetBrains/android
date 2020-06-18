@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.truth.Truth.assertThat
@@ -62,10 +64,24 @@ class AndroidTestSuiteDetailsViewTest {
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
 
-    view.setAndroidTestResults(createTestResults("method1", "class1", AndroidTestCaseResult.PASSED))
+    view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("class1.method1")
+    assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className.methodName")
+    assertThat(view.contentViewForTesting.myTestResultLabel.text)
+      .isEqualTo("<html><font color='#6cad74'>Passed</font> on deviceName</html>")
+  }
+
+  @Test
+  fun setAndroidTestResultsShouldUpdateUiComponentsNoTestResultAvailable() {
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+
+    view.setAndroidTestResults(createTestResults(null))
+
+    assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className.methodName")
+    assertThat(view.contentViewForTesting.myTestResultLabel.text).isEqualTo("No test status available on deviceName")
   }
 
   @Test
@@ -77,13 +93,13 @@ class AndroidTestSuiteDetailsViewTest {
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  private fun createTestResults(methodName: String, className: String, testCaseResult: AndroidTestCaseResult): AndroidTestResults {
+  private fun createTestResults(testCaseResult: AndroidTestCaseResult?): AndroidTestResults {
     return object: AndroidTestResults {
-      override val methodName: String = methodName
-      override val className: String = className
-      override val packageName: String = ""
+      override val methodName: String = "methodName"
+      override val className: String = "className"
+      override val packageName: String = "packageName"
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
-      override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
+      override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult ?: AndroidTestCaseResult.SCHEDULED
       override fun getTestResultSummaryText(): String = ""
       override fun getResultStats() = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats()

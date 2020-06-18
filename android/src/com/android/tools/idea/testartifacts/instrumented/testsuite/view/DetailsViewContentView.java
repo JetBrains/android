@@ -134,7 +134,7 @@ public class DetailsViewContentView {
     myDeviceInfoTableView.setAndroidDevice(androidDevice);
   }
 
-  public void setAndroidTestCaseResult(@NotNull AndroidTestCaseResult result) {
+  public void setAndroidTestCaseResult(@Nullable AndroidTestCaseResult result) {
     myAndroidTestCaseResult = result;
     refreshTestResultLabel();
   }
@@ -167,7 +167,12 @@ public class DetailsViewContentView {
   }
 
   private void refreshTestResultLabel() {
-    if (myAndroidTestCaseResult == null || myAndroidDevice == null) {
+    if (myAndroidDevice == null) {
+      myTestResultLabel.setText("No test status available");
+      return;
+    }
+    if (myAndroidTestCaseResult == null) {
+      myTestResultLabel.setText("No test status available on " + AndroidDeviceKt.getName(myAndroidDevice));
       return;
     }
     if (myAndroidTestCaseResult.isTerminalState()) {

@@ -90,6 +90,14 @@ class DetailsViewContentViewTest {
   }
 
   @Test
+  fun testResultLabelNoTestStatus() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(null)
+    view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myTestResultLabel.text).isEqualTo("No test status available on device name")
+  }
+
+  @Test
   fun logsView() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
 
