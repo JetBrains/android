@@ -20,7 +20,6 @@
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.INSPECTION"
-                      conditionClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.appinspection.ide.AppInspectionHostService"/>
   </extensions>>
