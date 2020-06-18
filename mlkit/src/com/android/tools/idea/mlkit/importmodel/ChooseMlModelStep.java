@@ -125,11 +125,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
-    Expression<File> locationFile = model.sourceLocation.transform(File::new);
-    myValidatorPanel.registerValidator(locationFile, value -> checkPath(value));
 
     SelectedItemProperty<NamedModuleTemplate> selectedFavor = new SelectedItemProperty<>(myFlavorBox);
     myValidatorPanel.registerValidator(ObjectProperty.wrap(selectedFavor), value -> checkFlavor(value));
+
+    Expression<File> locationFile = model.sourceLocation.transform(File::new);
+    myValidatorPanel.registerValidator(locationFile, value -> checkPath(value), selectedFavor);
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -141,7 +142,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  public String getBasicInformationText() {
+  private String getBasicInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
     Module module = getModel().getModule();
 
@@ -159,7 +160,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  public String getGpuInformationText() {
+  private String getGpuInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
     for (GradleCoordinate dep : MlUtils.getMissingTfliteGpuDependencies(getModel().getModule())) {
       stringBuilder.append(dep).append("\n");

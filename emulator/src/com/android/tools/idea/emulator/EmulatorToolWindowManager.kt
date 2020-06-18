@@ -159,7 +159,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private fun onDeploymentToEmulator(device: IDevice, runningEmulators: Set<EmulatorController>) {
     val serialPort = device.serialPort
     val emulator = runningEmulators.find { it.emulatorId.serialPort == serialPort } ?: return
-    onEmulatorUsed(emulator.emulatorId.avdId)
+    // Ignore standalone emulators.
+    if (emulator.emulatorId.isEmbedded) {
+      onEmulatorUsed(emulator.emulatorId.avdId)
+    }
   }
 
   private fun onEmulatorUsed(avdId: String) {
@@ -198,7 +201,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
     emulatorCatalog.updateNow()
     emulatorCatalog.addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS)
-    emulators.addAll(emulatorCatalog.emulators)
+    // Ignore standalone emulators.
+    emulators.addAll(emulatorCatalog.emulators.asSequence().filter { it.emulatorId.isEmbedded })
 
     // Create the panel for the last selected Emulator before other panels so that it becomes selected
     // unless a recently launched Emulator takes over.
@@ -346,18 +350,22 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
-    invokeLaterInAnyModalityState {
-      if (contentCreated && emulators.add(emulator)) {
-        addEmulatorPanel(emulator)
+    if (emulator.emulatorId.isEmbedded) {
+      invokeLaterInAnyModalityState {
+        if (contentCreated && emulators.add(emulator)) {
+          addEmulatorPanel(emulator)
+        }
       }
     }
   }
 
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
-    invokeLaterInAnyModalityState {
-      if (contentCreated && emulators.remove(emulator)) {
-        removeEmulatorPanel(emulator)
+    if (emulator.emulatorId.isEmbedded) {
+      invokeLaterInAnyModalityState {
+        if (contentCreated && emulators.remove(emulator)) {
+          removeEmulatorPanel(emulator)
+        }
       }
     }
   }

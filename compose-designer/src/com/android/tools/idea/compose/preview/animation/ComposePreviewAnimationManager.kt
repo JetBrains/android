@@ -15,16 +15,82 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
+import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
+
+private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
 
 /**
- * Responsible for opening the [AnimationInspectorPanel] and managing its state. When the bytecode manipulation mechanism intercepts calls
- * on `ui-tooling`, the [ComposePreviewAnimationManager] should provide methods that can be called to populate the animation inspector with
- * the intercepted data.
+ * Responsible for opening the [AnimationInspectorPanel] and managing its state. `PreviewAnimationClockMethodTransform` intercepts calls to
+ * `subscribe` and `unsubscribe` calls on `ui-tooling` and redirects them to [onAnimationSubscribed] and [onAnimationUnsubscribed],
+ * respectively. These methods will then update the [AnimationInspectorPanel] content accordingly, adding tabs for newly subscribed
+ * animations and closing tabs corresponding to unsubscribed animations.
  */
-internal object ComposePreviewAnimationManager {
+object ComposePreviewAnimationManager {
+  private var currentInspector: AnimationInspectorPanel? = null
 
-  fun createAnimationInspectorPanel(surface: NlDesignSurface): AnimationInspectorPanel {
-    return AnimationInspectorPanel(surface)
+  @get:VisibleForTesting
+  val subscribedAnimations = mutableSetOf<Any>()
+
+  fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable): AnimationInspectorPanel {
+    val animationInspectorPanel = AnimationInspectorPanel(surface)
+    Disposer.register(parent, animationInspectorPanel)
+    currentInspector = animationInspectorPanel
+    return animationInspectorPanel
   }
+
+  fun closeCurrentInspector() {
+    currentInspector?.let { Disposer.dispose(it) }
+    currentInspector = null
+    subscribedAnimations.clear()
+  }
+
+  /**
+   * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding tab in the [AnimationInspectorPanel].
+   */
+  fun onAnimationSubscribed(clock: Any?, animation: Any) {
+    currentInspector?.takeIf { it.clock != clock }?.let { it.clock = clock }
+    if (subscribedAnimations.add(animation)) {
+      // TODO(b/157895086): add animation as a tab in the animation inspector
+    }
+  }
+
+  /**
+   * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationInspectorPanel].
+   */
+  fun onAnimationUnsubscribed(animation: Any) {
+    subscribedAnimations.remove(animation)
+    if (subscribedAnimations.remove(animation)) {
+      // TODO(b/157895086): remove animation tab in the animation inspector
+    }
+    if (subscribedAnimations.isEmpty()) {
+      // No more animations. Set the clock to null, so the panel can update accordingly.
+      currentInspector?.let { it.clock = null }
+    }
+  }
+}
+
+@Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
+fun animationSubscribed(clock: Any?, animation: Any?) {
+  if (LOG.isDebugEnabled) {
+    LOG.debug("Animation subscribed: $animation")
+  }
+  if (animation == null) return
+
+  onAnimationSubscribed(clock, animation)
+}
+
+@Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
+fun animationUnsubscribed(animation: Any?) {
+  if (LOG.isDebugEnabled) {
+    LOG.debug("Animation unsubscribed: $animation")
+  }
+  if (animation == null) return
+
+  onAnimationUnsubscribed(animation)
 }

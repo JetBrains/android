@@ -41,6 +41,8 @@ class TaskContainer {
     }
   }
 
+  fun any(predicate: (TaskData) -> Boolean) = taskCache.values.any(predicate)
+
   fun clear() {
     taskCache.clear()
   }

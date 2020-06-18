@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
@@ -51,6 +52,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    AGP_UPGRADE_ASSISTANT.override(false);
+
     initMocks(this);
 
     Project project = getProject();
@@ -61,11 +64,25 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     when(myPluginInfo.getModule()).thenReturn(getModule());
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      AGP_UPGRADE_ASSISTANT.clearOverride();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testCheckUpgradeWhenUpgradeReminderIsNotDue() {
     Project project = getProject();
     // Simulate that a day has not passed since the user clicked "Remind me tomorrow".
     when(myUpgradeReminder.shouldAsk()).thenReturn(false);
 
+    // TODO(xof): this fails with a leaked SDK for me.  Why?  And does it matter?
     assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(project));
   }
 

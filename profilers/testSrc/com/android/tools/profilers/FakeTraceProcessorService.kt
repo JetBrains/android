@@ -43,9 +43,8 @@ class FakeTraceProcessorService: TraceProcessorService {
   val CORES = listOf(
     CpuCoreModel(0, listOf()), CpuCoreModel(1, listOf()), CpuCoreModel(2, listOf()), CpuCoreModel(3, listOf()))
 
-  override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
-    return PROCESSES.values.toList()
-  }
+  override fun loadTrace(traceId: Long, traceFile: File) { }
+  override fun getProcessMetadata(traceId: Long) = PROCESSES.values.toList()
 
   override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {
     // Will populate as needed. Currently no test rely on this.

@@ -22,7 +22,7 @@ MODULE              : project.app
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -36,10 +36,12 @@ MODULE              : project.app
         TestArtifact
             Dependencies
                 CompileDependencies
+                    artifacts::app      : null => artifacts::app:unspecified
                 PackageDependencies
+                    artifacts::app      : null => artifacts::app:unspecified
             - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-        ApplicationId       : com.example.basiccmakeapp.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -47,7 +49,9 @@ MODULE              : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
+                artifacts::app      : null => artifacts::app:unspecified
             PackageDependencies
+                artifacts::app      : null => artifacts::app:unspecified
         - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
@@ -80,3 +84,6 @@ MODULE              : project.app
             - AssetsDirectories : <ROOT>/app/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
+            LintModelLibrary    : LocalLibrary(:app)
+                ArtifactAddress     : artifacts::app:unspecified
+                ProjectPath         : :app

@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -31,12 +35,15 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.DisposableRule
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -132,15 +139,12 @@ class SelectProcessActionTest {
     assertThat((subChildren0[3] as ToggleAction).isSelected(mock())).isEqualTo(false)
   }
 
-  private fun buildProcesses(processCount: Int): Sequence<Common.Process> {
-    val processes1 = (1..processCount).map {
-      Common.Process.newBuilder().apply {
-        name = "process$it"
-        pid = it * 100
-      }.build()
-    }.asSequence()
-    return processes1
-  }
+  private fun buildProcesses(processCount: Int): Sequence<Common.Process> = (1..processCount).map {
+    Common.Process.newBuilder().apply {
+      name = "process$it"
+      pid = it * 100
+    }.build()
+  }.asSequence()
 
   private fun mockEvent(): AnActionEvent = mock<AnActionEvent>().also { `when`(it.presentation).thenReturn(mock())}
 
@@ -156,5 +160,17 @@ class SelectProcessActionTest {
     val children = selectProcessAction.getChildren(null)
     assertThat(children.size).isEqualTo(1)
     assertThat(children[0].templateText).isEqualTo("No devices detected")
+  }
+
+  @Test
+  fun testConnectionError() {
+    val notificationService = projectRule.mockProjectService(AndroidNotification::class.java)
+    val client: InspectorClient = mock()
+    val process: Common.Process = mock()
+    val stream: Common.Stream = mock()
+    `when`(client.attach(stream, process)).thenThrow(StatusRuntimeException(Status.CANCELLED))
+    val connectAction = SelectProcessAction.ConnectAction(process, stream, client, projectRule.project)
+    connectAction.connect()
+    verify(notificationService, timeout(1000)).showBalloon(eq("Connection Failed"), any(), eq(NotificationType.WARNING))
   }
 }

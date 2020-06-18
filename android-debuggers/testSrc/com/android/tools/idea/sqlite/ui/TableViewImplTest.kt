@@ -37,6 +37,7 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
@@ -58,9 +59,9 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Point
-import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import javax.swing.JProgressBar
 import javax.swing.JTable
 
 private const val COLUMN_DEFAULT_WIDTH = 75
@@ -757,53 +758,38 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertTrue(tableModel1 != table.model)
   }
 
-  fun testClickOnUrlCallsListener() {
-    // Prepare
-    val mockListener = mock(TableView.Listener::class.java)
-    view.addListener(mockListener)
-    view.startTableLoading()
-
-    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" } as JEditorPane
-    loadingPanel.text = "<a href=\"\">Test url</a>"
-
-    loadingPanel.size = Dimension(10, 10)
-    loadingPanel.preferredSize = loadingPanel.size
-    val fakeUi = FakeUi(loadingPanel)
-
-    // Act
-    fakeUi.mouse.click(5, 5)
-
-    // Assert
-    verify(mockListener).cancelRunningStatementInvoked()
-
-    view.stopTableLoading()
+  fun testProgressBarIsHiddenByDefault() {
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    assertFalse(progressBar.isVisible)
   }
 
-  fun testLoadingPanelIsVisibleWhenLoading() {
+  fun testProgressBarIsVisibleWhenLoading() {
     // Act
     view.startTableLoading()
 
     // Assert
-    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().firstOrNull()
-    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" }
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
-    assertTrue(loadingPanel.isVisible)
-    assertNull(table)
+    assertTrue(table.isVisible)
+    assertFalse(table.isEnabled)
+    assertTrue(progressBar.isVisible)
 
     view.stopTableLoading()
   }
 
-  fun testLoadingPanelIsRemovedWhenLoadingIsFinished() {
+  fun testProgressBarIsHiddenWhenLoadingIsFinished() {
     // Act
     view.startTableLoading()
     view.stopTableLoading()
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val loadingPanel = TreeWalker(view.component).descendants().firstOrNull { it.name == "loading-panel" }
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertTrue(table.isVisible)
-    assertNull(loadingPanel)
+    assertTrue(table.isEnabled)
+    assertFalse(progressBar.isVisible)
   }
 
   fun testDisposeWhileLoadingDoesntThrow() {
@@ -893,6 +879,28 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     verify(mockListener, times(0)).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
+  }
+
+  fun testRevertLastTableCellEdit() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    view.showTableColumns(listOf(ViewColumn("c1", false, false)))
+    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
+    view.setEditable(true)
+
+    // Act
+    table.model.setValueAt("new value", 0, 1)
+
+    // Assert
+    assertEquals("new value", table.model.getValueAt(0, 1))
+
+    // Act
+    view.revertLastTableCellEdit()
+
+    // Assert
+    assertEquals("value", table.model.getValueAt(0, 1))
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {

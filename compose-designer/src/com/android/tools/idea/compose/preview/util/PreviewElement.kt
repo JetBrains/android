@@ -103,7 +103,7 @@ internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 internal class ComposeAdapterLightVirtualFile(name: String, content: String, private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name, content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 
-  override fun getOriginFile(): VirtualFile? = originFileProvider()
+  override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
 }
 
 /**

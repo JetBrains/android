@@ -18,8 +18,10 @@ import com.android.projectmodel.Library;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -70,6 +72,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * <ul>
    *   <li>Updates the class file version with a version runnable in the current JDK
    *   <li>Replaces onDraw, onMeasure and onLayout for custom views
+   *   <li>Replaces ThreadLocal class with TrackingThreadLocal
+   *   <li>Redirects calls to PreviewAnimationClock's notifySubscribe and notifyUnsubscribe to ComposePreviewAnimationManager
    * </ul>
    * Note that it does not attempt to handle cases where class file constructs cannot
    * be represented in the target version. This is intended for uses such as for example
@@ -83,7 +87,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
    */
   private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = multiTransformOf(
     visitor -> new ViewMethodWrapperTransform(visitor),
-    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0)
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
+    visitor -> new ThreadLocalRenameTransform(visitor),
+    visitor -> new PreviewAnimationClockMethodTransform(visitor)
   );
 
   /**

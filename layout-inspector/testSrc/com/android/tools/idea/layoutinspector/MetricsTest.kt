@@ -39,7 +39,8 @@ class MetricsTest {
   @Test
   fun testAttachSuccessViaSelectProcess() {
     SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM,
-                                      inspectorRule.inspectorClient).connect().get()
+                                      inspectorRule.inspectorClient,
+                                      inspectorRule.project).connect().get()
     inspectorRule.advanceTime(110, TimeUnit.MILLISECONDS)
     inspectorRule.waitForStart()
 
@@ -66,7 +67,7 @@ class MetricsTest {
   fun testAttachFailViaSelectProcess() {
     inspectorRule.shouldConnectSuccessfully = false
 
-    SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM, inspectorRule.inspectorClient).connect().get()
+    SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM, inspectorRule.inspectorClient, inspectorRule.project).connect().get()
     inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
     inspectorRule.waitForStart()
 

@@ -24,12 +24,11 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.util.List;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.List;
 
 public class AndroidDebugBridgeUtils {
   @NotNull
@@ -66,7 +65,7 @@ public class AndroidDebugBridgeUtils {
   private static boolean doesEmulatorHaveName(@NotNull String avdName, @NotNull List<AvdInfo> avds, @NotNull IDevice device) {
     for (AvdInfo avd : avds) {
       if (avd.getName().equals(device.getAvdName())
-          && avdName.equals(AvdManagerConnection.getAvdDisplayName(avd))) {
+          && avdName.equals(avd.getDisplayName())) {
         return true;
       }
     }

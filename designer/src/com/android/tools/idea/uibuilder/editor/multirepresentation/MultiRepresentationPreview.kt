@@ -27,6 +27,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -36,6 +38,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import kotlin.streams.toList
@@ -47,6 +50,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
                                       private val providers: List<PreviewRepresentationProvider>,
                                       persistenceProvider: (Project) -> PropertiesComponent) :
   PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!) {
+  private val LOG = Logger.getInstance(MultiRepresentationPreview::class.java)
 
   constructor(file: PsiFile, epName: String) :
     this(
@@ -81,13 +85,28 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     persistenceManager.getValue("${instanceId}_selected", "")
     set(value) {
       if (field != value) {
+        currentRepresentation?.onDeactivate()
         field = value
 
         persistenceManager.setValue("${instanceId}_selected", field)
 
         onRepresentationChanged()
+        LOG.debug { "[$instanceId] Activating '$value'"}
+        currentRepresentation?.onActivate()
       }
     }
+
+  /**
+   * If [updateRepresentations] is called while this preview is not active, this flag will become true. [updateRepresentations] will
+   * be called as soon as this preview becomes active.
+   */
+  private val updateRepresentationsOnActivation = AtomicBoolean(false)
+
+  /**
+   * [AtomicBoolean] to track activations.
+   * Indicates whether the current preview is active. If false, the preview might be hidden or in the background.
+   */
+  private val isActive = AtomicBoolean(false)
 
   private fun onRepresentationChanged() = UIUtil.invokeLaterIfNeeded {
     component.removeAll()
@@ -114,6 +133,12 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
+    if (!isActive.get()) {
+      // Schedule the update for when the preview becomes active
+      updateRepresentationsOnActivation.set(true)
+      return@invokeLaterIfNeeded
+    }
+
     if (Disposer.isDisposed(this)) {
       return@invokeLaterIfNeeded
     }
@@ -133,6 +158,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       }
     }
     // Add new
+    val addedRepresentations = mutableSetOf<RepresentationName>()
     for (provider in providers.filter { it.displayName !in representations.keys }) {
       val representation = provider.createRepresentation(file)
       Disposer.register(this, representation)
@@ -140,6 +166,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
         representation.registerShortcuts(it)
       }
       representations[provider.displayName] = representation
+      addedRepresentations.add(provider.displayName)
     }
 
     // update current if it was deleted
@@ -148,6 +175,9 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     representationSelectionToolbar.isVisible = representations.size > 1
 
     onRepresentationsUpdated?.invoke()
+    if (isActive.get() && addedRepresentations.contains(currentRepresentationName)) {
+      currentRepresentation?.onActivate()
+    }
   }
 
   var onRepresentationsUpdated: (() -> Unit)? = null
@@ -219,6 +249,28 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
       add(createActionToolbar(createActionGroup()))
     }
+  }
+
+  /**
+   * Method called when this preview becomes active.
+   */
+  fun onActivate() {
+    if (isActive.getAndSet(true)) return
+    if (updateRepresentationsOnActivation.getAndSet(false)) {
+      // First activation, update the representations
+      updateRepresentations()
+    }
+    LOG.debug { "[$instanceId] Activating '$currentRepresentationName'"}
+    currentRepresentation?.onActivate()
+  }
+
+  /**
+   * Method called when this preview becomes deactivated. Updates will not be processed un the next [onActivate].
+   */
+  fun onDeactivate() {
+    if (!isActive.getAndSet(false)) return
+    LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'"}
+    currentRepresentation?.onDeactivate()
   }
 }
 

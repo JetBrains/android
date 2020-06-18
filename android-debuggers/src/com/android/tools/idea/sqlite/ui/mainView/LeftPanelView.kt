@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.DoubleClickListener
@@ -33,6 +34,7 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.ui.treeStructure.actions.CollapseAllAction
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -67,6 +69,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     rootPanel.add(centerPanel, BorderLayout.CENTER)
 
     setUpSchemaTree(tree)
+  }
+
+  fun createCollapseTreeAction(): AnAction {
+    return CollapseAllAction(tree)
   }
 
   fun updateKeepConnectionOpenButton(enabled: Boolean) {

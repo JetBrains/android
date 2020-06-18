@@ -23,7 +23,7 @@ MODULE              : project.app
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.app
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -39,12 +39,14 @@ MODULE              : project.app
         TestArtifact
             Dependencies
                 CompileDependencies
+                    artifacts::app      : null => artifacts::app:unspecified
                     artifacts::library  : null => artifacts::library:unspecified
                 PackageDependencies
+                    artifacts::app      : null => artifacts::app:unspecified
                     artifacts::library  : null => artifacts::library:unspecified
             - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-        ApplicationId       : com.example.app.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -52,8 +54,10 @@ MODULE              : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
+                artifacts::app      : null => artifacts::app:unspecified
                 artifacts::library  : null => artifacts::library:unspecified
             PackageDependencies
+                artifacts::app      : null => artifacts::app:unspecified
         - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
@@ -90,6 +94,9 @@ MODULE              : project.app
                 ArtifactAddress     : artifacts::library:unspecified
                 LintJar             : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath         : :library
+            LintModelLibrary    : LocalLibrary(:app)
+                ArtifactAddress     : artifacts::app:unspecified
+                ProjectPath         : :app
 MODULE              : project.library
     Dir                 : <ROOT>/library
     ModulePath          : library
@@ -113,7 +120,7 @@ MODULE              : project.library
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.library
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/library/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/aidl_source_output_dir/debug/out [-]
@@ -132,7 +139,7 @@ MODULE              : project.library
                     artifacts::library  : null => artifacts::library:unspecified
             - ClassOutputs      : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
-        ApplicationId       : com.example.library.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/library/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -202,7 +209,7 @@ MODULE              : project.library-remote
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.library
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/library-remote/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/aidl_source_output_dir/debug/out [-]
@@ -221,7 +228,7 @@ MODULE              : project.library-remote
                     artifacts::library-remote     : null => artifacts::library-remote:unspecified
             - ClassOutputs      : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
-        ApplicationId       : com.example.library.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/library-remote/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]

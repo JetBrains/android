@@ -22,7 +22,7 @@ MODULE              : MainActivity.app
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.mainactivity
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -78,6 +78,7 @@ MODULE              : MainActivity.app
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
+                    artifacts::app      : null => artifacts::app:unspecified
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit         : null => junit:junit:4.12
@@ -96,6 +97,7 @@ MODULE              : MainActivity.app
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
+                    artifacts::app      : null => artifacts::app:unspecified
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit         : null => junit:junit:4.12
@@ -109,7 +111,7 @@ MODULE              : MainActivity.app
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             - ClassOutputs      : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
             - ClassOutputs      : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
-        ApplicationId       : com.example.mainactivity.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/debugAndroidTest [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -133,6 +135,7 @@ MODULE              : MainActivity.app
                 androidx.test:monitor         : null => androidx.test:monitor:1.2.0
                 androidx.test:runner          : null => androidx.test:runner:1.2.0
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
+                artifacts::app      : null => artifacts::app:unspecified
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
@@ -156,6 +159,7 @@ MODULE              : MainActivity.app
                 androidx.test:core  : null => androidx.test:core:1.2.0
                 androidx.test:monitor         : null => androidx.test:monitor:1.2.0
                 androidx.test:runner          : null => androidx.test:runner:1.2.0
+                artifacts::app      : null => artifacts::app:unspecified
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
                 javax.inject:javax.inject     : null => javax.inject:javax.inject:1
@@ -302,6 +306,9 @@ MODULE              : MainActivity.app
                 - JarFiles          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 ArtifactAddress     : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates : org.hamcrest:hamcrest-core:1.3
+            LintModelLibrary    : LocalLibrary(:app)
+                ArtifactAddress     : artifacts::app:unspecified
+                ProjectPath         : :app
             LintModelLibrary    : AndroidLibrary(androidx.test.ext:junit:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar
                 ArtifactAddress     : androidx.test.ext:junit:1.1.1
@@ -423,7 +430,7 @@ MODULE              : MainActivity.lib
             CoreLibraryDesugaringEnabled  : false
             NamespacingMode     : DISABLED
         MainArtifact
-            ApplicationId       : com.example.lib
+            ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
@@ -580,7 +587,7 @@ MODULE              : MainActivity.lib
             - ClassOutputs      : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs      : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             - ClassOutputs      : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
-        ApplicationId       : com.example.lib.test
+        ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]

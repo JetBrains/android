@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.pureLibrary
 
+import com.android.SdkConstants
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.LIBS_FOLDER
 import com.android.tools.idea.npw.module.recipes.addKotlinDependencies
@@ -27,7 +28,9 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.generatePureLibrary(
-  moduleData: ModuleTemplateData, className: String
+  moduleData: ModuleTemplateData,
+  className: String,
+  useGradleKts: Boolean
 ) {
   val (projectData, srcOut) = moduleData
   val moduleOut = moduleData.rootDir
@@ -36,7 +39,8 @@ fun RecipeExecutor.generatePureLibrary(
 
   addIncludeToSettings(moduleData.name)
 
-  save(buildGradle("JavaVersion.VERSION_1_7"), moduleOut.resolve(FN_BUILD_GRADLE))
+  val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
+  save(buildGradle("JavaVersion.VERSION_1_7"), moduleOut.resolve(buildFile))
   applyPlugin("java-library")
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),

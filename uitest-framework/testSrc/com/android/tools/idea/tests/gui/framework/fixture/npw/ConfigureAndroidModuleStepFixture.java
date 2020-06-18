@@ -65,4 +65,11 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
       .selectItem(language.toString());
     return this;
   }
+
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<W> setUseKtsBuildFiles(boolean select) {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+    return this;
+  }
 }

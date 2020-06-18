@@ -104,8 +104,6 @@ public abstract class SceneView {
     }
   };
 
-  protected static final Insets NO_MARGIN = JBUI.emptyInsets();
-
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
   private final Object myLayersCacheLock = new Object();
@@ -153,7 +151,7 @@ public abstract class SceneView {
   }
 
   /**
-   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize(Dimension)} but accounts for the
    * current zoom level
    *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
@@ -171,8 +169,8 @@ public abstract class SceneView {
   }
 
   /**
-   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
-   * current zoom level
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize(Dimension)} but accounts
+   * for the current zoom level
    */
   @NotNull
   @SwingCoordinate
@@ -185,7 +183,7 @@ public abstract class SceneView {
    */
   @NotNull
   public Insets getMargin() {
-    return NO_MARGIN;
+    return JBUI.emptyInsets();
   }
 
   @NotNull

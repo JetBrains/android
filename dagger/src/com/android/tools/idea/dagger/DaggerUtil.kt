@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
@@ -101,6 +103,7 @@ private fun getDaggerBindsInstanceMethodsAndParametersForType(type: PsiType, sco
 /**
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for [element].
  */
+@WorkerThread
 fun getDaggerProvidersFor(element: PsiElement): Collection<PsiModifierListOwner> {
   val module = element.module ?: return emptyList()
   val scope = GlobalSearchScope.moduleWithDependentsScope(module)
@@ -141,6 +144,7 @@ private fun getDaggerConsumers(type: PsiType, qualifierInfo: QualifierInfo?, sco
 /**
  * Returns all Dagger consumers (see [isDaggerConsumer]) for given [element].
  */
+@WorkerThread
 fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
   val module = element.module ?: return emptyList()
   val scope = GlobalSearchScope.moduleWithDependentsScope(module)
@@ -322,12 +326,14 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
 /**
  * Returns methods of interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that return a type and have a [QualifierInfo] as a [provider].
  */
+@WorkerThread
 fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMethod> {
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(provider) ?: return emptyList()
   val components = getClassesWithAnnotation(provider.project, DAGGER_COMPONENT_ANNOTATION, provider.useScope)
   return components.flatMap {
     // Instantiating methods doesn't have parameters.
     component ->
+    ProgressManager.checkCanceled()
     component.methods.filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }.filterByQualifier(qualifierInfo)
   }
 }
@@ -335,12 +341,14 @@ fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMe
 /**
  * Returns methods of interfaces annotated [DAGGER_ENTRY_POINT_ANNOTATION] that return a type and have a [QualifierInfo] as a [provider].
  */
+@WorkerThread
 fun getDaggerEntryPointsMethodsForProvider(provider: PsiElement): Collection<PsiMethod> {
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(provider) ?: return emptyList()
   val entryPoints = getClassesWithAnnotation(provider.project, DAGGER_ENTRY_POINT_ANNOTATION, provider.useScope)
   return entryPoints.flatMap {
     // Instantiating methods doesn't have parameters.
     component ->
+    ProgressManager.checkCanceled()
     component.methods.filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }.filterByQualifier(qualifierInfo)
   }
 }
@@ -353,6 +361,7 @@ fun getDaggerEntryPointsMethodsForProvider(provider: PsiElement): Collection<Psi
  *
  * See [Dagger doc](https://dagger.dev/subcomponents.html).
  */
+@WorkerThread
 internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
 
   val components = getClassesWithAnnotation(subcomponent.project, DAGGER_COMPONENT_ANNOTATION, subcomponent.useScope) +
@@ -361,6 +370,7 @@ internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): C
   val modulesFQCN = getDaggerModulesForSubcomponent(subcomponent).map { it.qualifiedName }
 
   return components.filter { component ->
+    ProgressManager.checkCanceled()
     getModulesForComponent(component).any { module -> modulesFQCN.contains(module.qualifiedName) }
   }
 }
@@ -373,6 +383,7 @@ internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): C
  *
  * See [Dagger doc](https://dagger.dev/subcomponents.html).
  */
+@WorkerThread
 internal fun getSubcomponents(component: PsiClass): Collection<PsiClass> {
   return getModulesForComponent(component).flatMap {
     it.getAnnotation(DAGGER_MODULE_ANNOTATION)?.getClassesFromAttribute(SUBCOMPONENTS_ATTR_NAME) ?: emptyList()
@@ -410,6 +421,7 @@ private fun PsiAnnotation.isClassPresentedInAttribute(attrName: String, fqcn: St
  * Dagger-module is a class annotated [DAGGER_MODULE_ANNOTATION].
  * The "modules" attribute and "includes" have a type `Class<?>[]`.
  */
+@WorkerThread
 fun getUsagesForDaggerModule(module: PsiClass): Collection<PsiClass> {
   val componentQuery = getClassesWithAnnotation(module.project, DAGGER_COMPONENT_ANNOTATION, module.useScope)
   val subComponentQuery = getClassesWithAnnotation(module.project, DAGGER_SUBCOMPONENT_ANNOTATION, module.useScope)
@@ -425,6 +437,7 @@ fun getUsagesForDaggerModule(module: PsiClass): Collection<PsiClass> {
 /**
  * Return classes annotated [DAGGER_COMPONENT_ANNOTATION] that in a attribute [DEPENDENCIES_ATTR_NAME] have a [component] class.
  */
+@WorkerThread
 fun getDependantComponentsForComponent(component: PsiClass): Collection<PsiClass> {
   val components = getClassesWithAnnotation(component.project, DAGGER_COMPONENT_ANNOTATION, component.useScope)
   return components.filter {
@@ -459,6 +472,7 @@ private val PsiType.unboxed: PsiType
 /**
  * Returns PsiClasses from value of "modules" attribute of DAGGER_COMPONENT_ANNOTATION or DAGGER_SUBCOMPONENT_ANNOTATION annotations.
  */
+@WorkerThread
 internal fun getModulesForComponent(component: PsiClass): Collection<PsiClass> {
   val annotation = component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
                    ?: component.getAnnotation(DAGGER_SUBCOMPONENT_ANNOTATION)

@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -40,18 +41,22 @@ public final class DevicesSelectedServiceTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private PropertiesComponent myProperties;
-  private DevicesSelectedService myService;
 
   @Before
-  public void newService() {
+  public void initProperties() {
     myProperties = new ProjectPropertiesComponentImpl();
-    myService = new DevicesSelectedService(myRule.getProject(), project -> myProperties, Mockito.mock(Clock.class));
   }
 
   @Test
   public void getDeviceSelectedWithComboBoxDevicesIsEmpty() {
+    // Arrange
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
     // Act
-    Object device = myService.getDeviceSelectedWithComboBox(Collections.emptyList());
+    Object device = service.getDeviceSelectedWithComboBox(Collections.emptyList());
 
     // Assert
     assertNull(device);
@@ -60,6 +65,11 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getDeviceSelectedWithComboBoxKeyAsStringIsNull() {
     // Arrange
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new Key("Pixel_3_API_29"))
@@ -67,7 +77,7 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = myService.getDeviceSelectedWithComboBox(Collections.singletonList(device));
+    Object selectedDevice = service.getDeviceSelectedWithComboBox(Collections.singletonList(device));
 
     // Assert
     assertEquals(device, selectedDevice);
@@ -78,6 +88,11 @@ public final class DevicesSelectedServiceTest {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_2_API_29");
 
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new Key("Pixel_3_API_29"))
@@ -85,7 +100,7 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = myService.getDeviceSelectedWithComboBox(Collections.singletonList(device));
+    Object selectedDevice = service.getDeviceSelectedWithComboBox(Collections.singletonList(device));
 
     // Assert
     assertEquals(device, selectedDevice);
@@ -96,6 +111,11 @@ public final class DevicesSelectedServiceTest {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
 
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new Key("Pixel_3_API_29"))
@@ -103,7 +123,7 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = myService.getDeviceSelectedWithComboBox(Collections.singletonList(device));
+    Object selectedDevice = service.getDeviceSelectedWithComboBox(Collections.singletonList(device));
 
     // Assert
     assertEquals(device, selectedDevice);
@@ -114,6 +134,11 @@ public final class DevicesSelectedServiceTest {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
     myProperties.setValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, "2018-11-28T01:15:27.000Z");
+
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -129,7 +154,7 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = myService.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object selectedDevice = service.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
 
     // Assert
     assertEquals(connectedDevice, selectedDevice);
@@ -140,6 +165,11 @@ public final class DevicesSelectedServiceTest {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
     myProperties.setValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, "2018-11-28T01:15:27.000Z");
+
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -155,7 +185,7 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = myService.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object selectedDevice = service.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
 
     // Assert
     assertEquals(device, selectedDevice);
@@ -165,6 +195,11 @@ public final class DevicesSelectedServiceTest {
   public void getDeviceSelectedWithComboBoxSelectionTimeIsNull() {
     // Arrange
     myProperties.setValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX, "Pixel_3_API_29");
+
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -180,18 +215,88 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     // Act
-    Object selectedDevice = myService.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
+    Object selectedDevice = service.getDeviceSelectedWithComboBox(Arrays.asList(device, connectedDevice));
 
     // Assert
     assertEquals(connectedDevice, selectedDevice);
   }
 
   @Test
-  public void setDeviceKeysSelectedWithDialog() {
+  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionDisabledAndMultipleDevicesNotSelectedInComboBox() {
+    // Arrange
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
     // Act
-    myService.setDeviceKeysSelectedWithDialog(Collections.emptySet());
+    boolean selected = service.isMultipleDevicesSelectedInComboBox();
 
     // Assert
-    assertTrue(myService.isDialogSelectionEmpty());
+    assertFalse(selected);
+  }
+
+  @Test
+  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionDisabledAndMultipleDevicesSelectedInComboBox() {
+    // Arrange
+    myProperties.setValue(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX, true);
+
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
+    // Act
+    boolean selected = service.isMultipleDevicesSelectedInComboBox();
+
+    // Assert
+    assertTrue(selected);
+  }
+
+  @Test
+  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionEnabledAndMultipleDevicesNotSelectedInComboBox() {
+    // Arrange
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> null,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> true);
+
+    // Act
+    boolean selected = service.isMultipleDevicesSelectedInComboBox();
+
+    // Assert
+    assertFalse(selected);
+  }
+
+  @Test
+  public void isMultipleDevicesSelectedInComboBoxRunOnMultipleDevicesActionEnabledAndMultipleDevicesSelectedInComboBox() {
+    // Arrange
+    myProperties.setValue(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX, true);
+
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> true);
+
+    // Act
+    boolean selected = service.isMultipleDevicesSelectedInComboBox();
+
+    // Assert
+    assertFalse(selected);
+  }
+
+  @Test
+  public void setDeviceKeysSelectedWithDialog() {
+    // Arrange
+    DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(),
+                                                                project -> myProperties,
+                                                                Mockito.mock(Clock.class),
+                                                                () -> false);
+
+    // Act
+    service.setDeviceKeysSelectedWithDialog(Collections.emptySet());
+
+    // Assert
+    assertTrue(service.isDialogSelectionEmpty());
   }
 }

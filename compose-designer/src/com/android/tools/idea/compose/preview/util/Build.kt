@@ -34,7 +34,6 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.PsiClassOwnerEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 

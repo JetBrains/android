@@ -89,6 +89,21 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionUiEvent.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
   }
 
+  fun testOnBuildFailureWhenTabClosed() {
+    sendOnBuildFailure(buildSessionId)
+
+    verifyBuildAnalyzerTabNotExist()
+
+    // Verify state
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNull()
+    Truth.assertThat(buildAttributionUiManager.buildContent).isNull()
+
+    // Verify no metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).isEmpty()
+  }
+
+
   fun testShowNewReportAndOpenWithLink() {
     setNewReportData(reportUiData, buildSessionId)
     openBuildAnalyzerTabFromAction()
@@ -190,6 +205,40 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionEvents[5].studioEvent.buildAttributionUiEvent.let {
       Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId3)
       Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
+    }
+  }
+
+  fun testOnBuildFailureWhenOpened() {
+    val buildSessionId1 = UUID.randomUUID().toString()
+    val buildSessionId2 = UUID.randomUUID().toString()
+
+    setNewReportData(reportUiData, buildSessionId1)
+    sendOnBuildFailure(buildSessionId2)
+
+    verifyBuildAnalyzerTabExist()
+
+    // Verify state
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView?.component?.name).isEqualTo("Build failure empty view")
+    Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
+
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).hasSize(3)
+
+    buildAttributionEvents[0].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
+    }
+
+    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER)
+    }
+
+    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId2)
+      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.CONTENT_REPLACED)
     }
   }
 
@@ -332,6 +381,11 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
   private fun setNewReportData(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
     buildAttributionUiManager.showNewReport(reportUiData, buildSessionId)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+  }
+
+  private fun sendOnBuildFailure(buildSessionId: String) {
+    buildAttributionUiManager.onBuildFailure(buildSessionId)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 

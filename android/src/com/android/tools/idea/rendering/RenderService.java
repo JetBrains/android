@@ -62,7 +62,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -205,24 +204,18 @@ public class RenderService implements Disposable {
     Module module = facet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
-      if (!AndroidMavenUtil.isMavenizedModule(module)) {
-        RenderProblem.Html message = RenderProblem.create(ERROR);
-        logger.addMessage(message);
-        message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-           logger.getLinkManager().createRunnableLink(() -> {
-             Project project = module.getProject();
-             ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-             if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
-               ((AndroidProjectSettingsService)service).openSdkSettings();
-               return;
-             }
-             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-           }));
-      }
-      else {
-        String message = AndroidBundle.message("android.maven.cannot.parse.android.sdk.error", module.getName());
-        logger.addMessage(RenderProblem.createPlain(ERROR, message));
-      }
+      RenderProblem.Html message = RenderProblem.create(ERROR);
+      logger.addMessage(message);
+      message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
+         logger.getLinkManager().createRunnableLink(() -> {
+           Project project = module.getProject();
+           ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+           if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
+             ((AndroidProjectSettingsService)service).openSdkSettings();
+             return;
+           }
+           AndroidSdkUtils.openModuleDependenciesConfigurable(module);
+         }));
     }
     return platform;
   }

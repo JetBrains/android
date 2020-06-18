@@ -74,6 +74,19 @@ interface TableView {
 
   fun setRowOffset(rowOffset: Int)
 
+  /**
+   * Reverts the last edit operation in the table's UI.
+   *
+   * When we edit a cell we want to immediately show the new value in the UI (to avoid jumps)
+   * if the corresponding update operation fails in the database, we need to revert this UI change.
+   */
+  fun revertLastTableCellEdit()
+
+  /**
+   * Updates the sort indicator in the table's columns.
+   */
+  fun setColumnSortIndicator(orderBy: OrderBy)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
@@ -97,6 +110,38 @@ interface TableView {
      * Invoked when the user wants to cancel the SQLite statement that is currently running.
      */
     fun cancelRunningStatementInvoked()
+  }
+}
+
+/**
+ * Class used to indicate how the table is sorted
+ */
+sealed class OrderBy {
+  data class Asc(val column: ViewColumn) : OrderBy()
+  data class Desc(val column: ViewColumn) : OrderBy()
+  object NotOrdered : OrderBy()
+
+  /**
+   * Returns the next state cycling between not sorted, desc and asc.
+   * If the column changes the sorting starts from desc on the new column.
+   */
+  fun nextState(newColumn: ViewColumn): OrderBy {
+    val column = when (this) {
+      is Asc -> column
+      is Desc -> column
+      NotOrdered -> null
+    }
+
+    // start from desc if sorting on new column
+    if (column != newColumn) {
+      return Desc(newColumn)
+    }
+
+    return when(this) {
+      is NotOrdered -> Desc(newColumn)
+      is Desc -> Asc(newColumn)
+      is Asc -> NotOrdered
+    }
   }
 }
 

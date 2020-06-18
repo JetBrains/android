@@ -1774,4 +1774,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       mySceneViewPanel.setBackground(bg);
     }
   }
+
+  @NotNull
+  public final PositionableContentLayoutManager getSceneViewLayoutManager() {
+    return (PositionableContentLayoutManager)mySceneViewPanel.getLayout();
+  }
 }

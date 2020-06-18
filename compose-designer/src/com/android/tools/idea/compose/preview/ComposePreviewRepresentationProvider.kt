@@ -30,6 +30,8 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
+import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
@@ -61,6 +63,9 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       GroupSwitchAction(),
       if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
       ForceCompileAndRefreshAction(surface),
+      SwitchSurfaceLayoutManagerAction(
+        layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
+        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS),
       if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null
     )
   )

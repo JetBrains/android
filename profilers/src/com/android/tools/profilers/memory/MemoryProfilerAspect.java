@@ -19,4 +19,8 @@ public enum MemoryProfilerAspect {
   TRACKING_ENABLED,
   LIVE_ALLOCATION_STATUS,  // the status of live allocation being ready or not
   LIVE_ALLOCATION_SAMPLING_MODE,
+  // These aspects are fired at the start and end of taking heap dump, which are distinct events from
+  // parsing and analyzing the heap dump that's already saved
+  HEAP_DUMP_STARTED,
+  HEAP_DUMP_FINISHED,
 }

@@ -45,7 +45,9 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
   private fun parseUsingTraceProcessor(file: File, traceId: Long): CpuCapture {
     val traceProcessor = ideProfilerServices.traceProcessorService
 
-    val processList = traceProcessor.loadTrace(traceId, file)
+    traceProcessor.loadTrace(traceId, file)
+
+    val processList = traceProcessor.getProcessMetadata(traceId)
     check(processList.isNotEmpty()) { "Invalid trace without any process information." }
 
     val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)

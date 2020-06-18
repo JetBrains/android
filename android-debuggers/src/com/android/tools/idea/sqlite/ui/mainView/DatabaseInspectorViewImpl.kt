@@ -231,6 +231,10 @@ class DatabaseInspectorViewImpl(
 
     override fun dispose() {
     }
+
+    override fun getAdditionalActions(): List<AnAction> {
+      return listOf(leftPanelView.createCollapseTreeAction())
+    }
   }
 
   data class SqliteViewContext(val component: JComponent)

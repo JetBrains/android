@@ -127,7 +127,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public String getName() {
-    return AvdManagerConnection.getAvdDisplayName(myAvdInfo);
+    return myAvdInfo.getDisplayName();
   }
 
   @Override

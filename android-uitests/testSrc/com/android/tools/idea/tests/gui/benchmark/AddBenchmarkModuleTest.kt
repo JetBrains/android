@@ -55,6 +55,8 @@ class AddBenchmarkModuleTest {
   @Throws(Exception::class)
   fun addJavaBenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()

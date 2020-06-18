@@ -21,6 +21,7 @@ import javax.swing.Icon
 /**
  * Class representing groups available for selection in the [ComposePreviewManager].
  */
+@Suppress("DataClassPrivateConstructor")
 data class PreviewGroup private constructor(
   val displayName: String,
   val icon: Icon?,
@@ -53,8 +54,13 @@ interface ComposePreviewManager {
    * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
    * @param isRefreshing true if the view is currently refreshing.
+   * @param isInteractive true if the preview is in interactive mode and processing events.
    */
-  data class Status(val hasRuntimeErrors: Boolean, val hasSyntaxErrors: Boolean, val isOutOfDate: Boolean, val isRefreshing: Boolean) {
+  data class Status(val hasRuntimeErrors: Boolean,
+                    val hasSyntaxErrors: Boolean,
+                    val isOutOfDate: Boolean,
+                    val isRefreshing: Boolean,
+                    val isInteractive: Boolean) {
     /**
      * True if the preview has errors that will need a refresh
      */
@@ -79,7 +85,7 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * Name of a [PreviewElement] to run in interactive mode or null if not in interactive mode.
+   * Name of a [com.android.tools.idea.compose.preview.util.PreviewElement] to run in interactive mode or null if not in interactive mode.
    */
   var interactivePreviewElementInstanceId: String?
 
@@ -95,7 +101,7 @@ interface ComposePreviewManager {
  * This interface contains only temporary or experimental methods.
  */
 @ApiStatus.Experimental
-interface ComposePreviewManagerEx: ComposePreviewManager {
+interface ComposePreviewManagerEx : ComposePreviewManager {
   /**
    * If enabled, the bounds for the different `@Composable` elements will be displayed in the surface.
    */

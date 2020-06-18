@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Rotation.SkinRotation
@@ -28,11 +29,26 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.ClipboardSynchronizer
+import com.intellij.ide.DataManager
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.xml.util.XmlStringUtil
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -40,9 +56,13 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
-import java.awt.Point
+import java.awt.Rectangle
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -76,6 +96,7 @@ import javax.swing.SwingConstants
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.round
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
@@ -93,13 +114,17 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  private var screenshotFeed: Cancelable? = null
-  private var displayImage: Image? = null
-  private var displayWidth = 0
-  private var displayHeight = 0
+  @Volatile
+  private var clipboardFeed: Cancelable? = null
+  @Volatile
+  private var clipboardReceiver: ClipboardReceiver? = null
+  private var screenshotImage: Image? = null
+  private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
+  private var displayRectangle: Rectangle? = null
   private var skinLayout: SkinLayout? = null
-  private var displayRotationInternal = SkinRotation.PORTRAIT
   private val displayTransform = AffineTransform()
+  @Volatile
+  private var screenshotFeed: Cancelable? = null
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
   /** Count of received display frames. */
@@ -183,13 +208,27 @@ class EmulatorView(
       }
     })
 
+    addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent) {
+        if (connected) {
+          setDeviceClipboardAndListenToChanges()
+        }
+      }
+
+      override fun focusLost(event: FocusEvent) {
+        clipboardFeed?.cancel()
+        clipboardFeed = null
+        clipboardReceiver = null
+      }
+    })
+
     updateConnectionState(emulator.connectionState)
   }
 
   var displayRotation: SkinRotation
-    get() = displayRotationInternal
+    get() = screenshotShape.rotation
     set(value) {
-      if (value != displayRotationInternal && !cropFrame) {
+      if (value != screenshotShape.rotation && !cropFrame) {
         requestScreenshotFeed(value)
       }
     }
@@ -232,7 +271,7 @@ class EmulatorView(
     get() = screenScale.toFloat()
 
   override val scale: Double
-    get() = computeScaleToFit(realSize, displayRotationInternal)
+    get() = computeScaleToFit(realSize, screenshotShape.rotation)
 
   override fun zoom(type: ZoomType): Boolean {
     val scaledSize = computeZoomedSize(type)
@@ -284,7 +323,7 @@ class EmulatorView(
       }
       else -> throw IllegalArgumentException("Unsupported zoom type $zoomType")
     }
-    val scaledSize = computeScaledSize(newScale, displayRotationInternal)
+    val scaledSize = computeScaledSize(newScale, screenshotShape.rotation)
     val availableSize = computeAvailableSize()
     if (scaledSize.width <= availableSize.width && scaledSize.height <= availableSize.height) {
       return null
@@ -292,7 +331,7 @@ class EmulatorView(
     return scaledSize.scaled(1 / screenScale)
   }
 
-  private fun computeScaleToFitInParent() = computeScaleToFit(computeAvailableSize(), displayRotationInternal)
+  private fun computeScaleToFitInParent() = computeScaleToFit(computeAvailableSize(), screenshotShape.rotation)
 
   private fun computeAvailableSize(): Dimension {
     val insets = parent.insets
@@ -348,15 +387,14 @@ class EmulatorView(
   }
 
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
-    val skin = skinLayout ?: return // Null skinLayout means that Emulator screen is not displayed.
-    val displayPosition = computeDisplayPosition(skin)
-    val normalizedX = (x * screenScale - displayPosition.x) / displayWidth - 0.5  // X relative to display center in [-0.5, 0.5) range.
-    val normalizedY = (y * screenScale - displayPosition.y) / displayHeight - 0.5 // Y relative to display center in [-0.5, 0.5) range.
+    val displayRect = this.displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
+    val normalizedX = (x * screenScale - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
+    val normalizedY = (y * screenScale - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
     val deviceDisplayWidth = emulatorConfig.displayWidth
     val deviceDisplayHeight = emulatorConfig.displayHeight
     val displayX: Int
     val displayY: Int
-    when (displayRotationInternal) {
+    when (screenshotShape.rotation) {
       SkinRotation.PORTRAIT -> {
         displayX = ((0.5 + normalizedX) * deviceDisplayWidth).roundToInt()
         displayY = ((0.5 + normalizedY) * deviceDisplayHeight).roundToInt()
@@ -394,18 +432,74 @@ class EmulatorView(
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       remove(disconnectedStateLabel)
-      if (isVisible && screenshotFeed == null) {
-        requestScreenshotFeed()
+      if (isVisible) {
+        if (screenshotFeed == null) {
+          requestScreenshotFeed()
+        }
+        if (isFocusOwner) {
+          setDeviceClipboardAndListenToChanges()
+        }
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
-      displayImage = null
+      screenshotImage = null
       hideLongRunningOperationIndicator()
       disconnectedStateLabel.text = "Disconnected from the Emulator"
       add(disconnectedStateLabel)
     }
+
     revalidate()
     repaint()
+  }
+
+  private fun setDeviceClipboardAndListenToChanges() {
+    val text = getClipboardText()
+    if (text.isEmpty()) {
+      requestClipboardFeed()
+    }
+    else {
+      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object: DummyStreamObserver<Empty>() {
+        override fun onCompleted() {
+          requestClipboardFeed()
+        }
+
+        override fun onError(t: Throwable) {
+          if (t is StatusRuntimeException && t.status.code == Status.Code.UNIMPLEMENTED) {
+            notifyEmulatorIsOutOfDate()
+          }
+        }
+      })
+    }
+  }
+
+  private fun getClipboardText(): String {
+    val synchronizer = ClipboardSynchronizer.getInstance()
+    return if (synchronizer.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
+      synchronizer.getData(DataFlavor.stringFlavor) as String? ?: ""
+    }
+    else {
+      ""
+    }
+  }
+
+  private fun notifyEmulatorIsOutOfDate() {
+    if (emulatorOutOfDateNotificationShown) {
+      return
+    }
+    val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
+    val title = "Emulator is out of date"
+    val message = "Please update the Android Emulator"
+    val notification = NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING, null)
+    notification.collapseActionsDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
+    notification.addAction(object : NotificationAction("Check for updates") {
+      override fun actionPerformed(event: AnActionEvent, notification: Notification) {
+        notification.expire()
+        val action = ActionManager.getInstance().getAction("CheckForUpdate")
+        ActionUtil.performActionDumbAware(action, event)
+      }
+    })
+    notification.notify(project)
+    emulatorOutOfDateNotificationShown = true
   }
 
   private fun findLoadingPanel(): EmulatorLoadingPanel? {
@@ -420,6 +514,7 @@ class EmulatorView(
   }
 
   override fun dispose() {
+    clipboardFeed?.cancel()
     screenshotFeed?.cancel()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
@@ -428,55 +523,91 @@ class EmulatorView(
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
-    val displayImage = displayImage ?: return
+    val displayImage = screenshotImage ?: return
     val skin = skinLayout ?: return
-    val displayPosition = computeDisplayPosition(skin)
+    assert(screenshotShape.width != 0)
+    assert(screenshotShape.height != 0)
+    val displayRect = computeDisplayRectangle(skin)
+    displayRectangle = displayRect
 
     g as Graphics2D
     val physicalToVirtualScale = 1.0 / screenScale
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw display.
-    displayTransform.setToTranslation(displayPosition.x.toDouble(), displayPosition.y.toDouble())
-    g.drawImage(displayImage, displayTransform, null)
-
-    skin.drawFrameAndMask(displayPosition.x, displayPosition.y, g)
-  }
-
-  private fun computeDisplayPosition(skin: SkinLayout): Point {
-    return if (cropFrame) {
-      Point((realWidth - displayWidth) / 2, (realHeight - displayHeight) / 2)
+    val image = if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
+      displayImage
     }
     else {
-      val frameRect = skin.frameRectangle
-      Point((realWidth - frameRect.width) / 2 - frameRect.x, (realHeight - frameRect.height) / 2 - frameRect.y)
+      displayImage.getScaledInstance(displayRect.width, displayRect.height, Image.SCALE_SMOOTH)
+    }
+    displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
+    g.drawImage(image, displayTransform, null)
+
+    skin.drawFrameAndMask(g, displayRect)
+  }
+
+  private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
+    // The roundSlightly call below is used to avoid scaling by a factor that only slightly differs from 1.
+    return if (cropFrame) {
+      val scale = roundSlightly(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
+      val w = screenshotShape.width.scaled(scale)
+      val h = screenshotShape.height.scaled(scale)
+      Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
+    }
+    else {
+      val frameRectangle = skin.frameRectangle
+      val scale = roundSlightly(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
+      val fw = frameRectangle.width.scaled(scale)
+      val fh = frameRectangle.height.scaled(scale)
+      val w = screenshotShape.width.scaled(scale)
+      val h = screenshotShape.height.scaled(scale)
+      Rectangle((realWidth - fw) / 2 - frameRectangle.x.scaled(scale), (realHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
+    }
+  }
+
+  /** Rounds the given value to a multiple of 1.0/128. */
+  private fun roundSlightly(value: Double): Double {
+    return round(value * 128) / 128
+  }
+
+  private fun requestClipboardFeed() {
+    clipboardFeed?.cancel()
+    clipboardFeed = null
+    clipboardReceiver = null
+    if (connected) {
+      val receiver = ClipboardReceiver()
+      clipboardReceiver = receiver
+      clipboardFeed = emulator.streamClipboard(receiver)
     }
   }
 
   private fun requestScreenshotFeed() {
-    requestScreenshotFeed(displayRotationInternal)
+    requestScreenshotFeed(screenshotShape.rotation)
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
     screenshotFeed?.cancel()
     screenshotReceiver = null
     if (width != 0 && height != 0 && connected) {
-      if (screenshotReceiver == null) {
-        displayRotationInternal = emulator.emulatorConfig.initialOrientation
+      if (screenshotImage == null) {
+        screenshotShape = DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
       }
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
-      val scale = computeScaleToFit(realSize, rotation)
-      val scaledDisplaySize = rotatedDisplaySize.scaled(scale)
+      val actualSize = computeActualSize(rotation)
 
-      // Limit the size of the received screenshots to avoid wasting gRPC resources.
-      val screenshotSize = rotatedDisplaySize.scaled(scale.coerceAtMost(1.0))
+      // Limit the size of the received screenshots to the size of the device display to avoid wasting gRPC resources.
+      val scaleX = (realSize.width.toDouble() / actualSize.width).coerceAtMost(1.0)
+      val scaleY = (realSize.height.toDouble() / actualSize.height).coerceAtMost(1.0)
+      val w = rotatedDisplaySize.width.scaledDown(scaleX)
+      val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
       val imageFormat = ImageFormat.newBuilder()
         .setFormat(ImageFormat.ImgFormat.RGBA8888) // TODO: Change to RGB888 after b/150494232 is fixed.
-        .setWidth(screenshotSize.width)
-        .setHeight(screenshotSize.height)
+        .setWidth(w)
+        .setHeight(h)
         .build()
-      val receiver = ScreenshotReceiver(DisplayShape(scaledDisplaySize.width, scaledDisplaySize.height, rotation))
+      val receiver = ScreenshotReceiver(rotation, screenshotShape)
       screenshotReceiver = receiver
       screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
     }
@@ -512,9 +643,30 @@ class EmulatorView(
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
-  private inner class ScreenshotReceiver(val displayShape: DisplayShape) : DummyStreamObserver<ImageMessage>() {
+  private inner class ClipboardReceiver : DummyStreamObserver<ClipData>() {
+    var responseCount = 0
+
+    override fun onNext(response: ClipData) {
+      if (clipboardReceiver != this) {
+        return // This clipboard feed has already been cancelled.
+      }
+
+      // Skip the first response that reflect the current clipboard state.
+      if (responseCount != 0 && response.text.isNotEmpty()) {
+        invokeLaterInAnyModalityState {
+          val content = StringSelection(response.text)
+          ClipboardSynchronizer.getInstance().setContent(content, content)
+        }
+      }
+      responseCount++
+    }
+  }
+
+  private inner class ScreenshotReceiver(
+    val rotation: SkinRotation,
+    val currentScreenshotShape: DisplayShape
+  ) : DummyStreamObserver<ImageMessage>() {
     private var cachedImageSource: MemoryImageSource? = null
-    private var screenshotShape: DisplayShape? = null
     private val screenshotForSkinUpdate = AtomicReference<Screenshot>()
     private val screenshotForDisplay = AtomicReference<Screenshot>()
 
@@ -527,7 +679,7 @@ class EmulatorView(
       }
 
       if (response.format.width == 0 || response.format.height == 0) {
-        return // Ignore empty screenshot
+        return // Ignore empty screenshot.
       }
 
       val screenshot = Screenshot(response)
@@ -535,14 +687,14 @@ class EmulatorView(
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
-      if (screenshot.rotation != displayShape.rotation) {
+      if (screenshot.rotation != rotation) {
         invokeLaterInAnyModalityState {
           requestScreenshotFeed(screenshot.rotation)
         }
         return
       }
 
-      if (screenshot.shape == screenshotShape) {
+      if (screenshot.shape == currentScreenshotShape) {
         updateDisplayImageAsync(screenshot)
       }
       else {
@@ -564,8 +716,8 @@ class EmulatorView(
     @Slow
     private fun updateSkinAndDisplayImage() {
       val screenshot = screenshotForSkinUpdate.getAndSet(null) ?: return
-      screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation) ?:
-                              SkinLayout(Dimension(displayShape.width, displayShape.height))
+      screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(screenshot.width, screenshot.height, screenshot.rotation) ?:
+                              SkinLayout(Dimension(screenshot.width, screenshot.height))
       updateDisplayImageAsync(screenshot)
     }
 
@@ -597,16 +749,11 @@ class EmulatorView(
         skinLayout = SkinLayout(Dimension(w, h))
       }
 
-      displayRotationInternal = screenshot.rotation
-      displayWidth = displayShape.width
-      displayHeight = displayShape.height
       var imageSource = cachedImageSource
-      if (imageSource == null || screenshotShape?.width != w || screenshotShape?.height != h) {
+      if (imageSource == null || screenshotShape.width != w || screenshotShape.height != h) {
         imageSource = MemoryImageSource(w, h, screenshot.pixels, 0, w)
         imageSource.setAnimated(true)
-        val image = createImage(imageSource)
-        displayImage = if (w == displayWidth && h == displayHeight)
-            image else image.getScaledInstance(displayWidth, displayHeight, Image.SCALE_SMOOTH)
+        screenshotImage = createImage(imageSource)
         screenshotShape = screenshot.shape
         cachedImageSource = imageSource
       }
@@ -653,8 +800,12 @@ class EmulatorView(
   private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation)
 }
 
+private var emulatorOutOfDateNotificationShown = false
+
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
+
+private val NOTIFICATION_GROUP = NotificationGroup("Emulator Errors", NotificationDisplayType.STICKY_BALLOON, true)
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)

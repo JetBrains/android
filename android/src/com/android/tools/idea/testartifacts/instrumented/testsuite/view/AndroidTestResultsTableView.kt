@@ -24,6 +24,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCa
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
@@ -131,8 +132,9 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    */
   @UiThread
   fun refreshTable() {
-    myTableView.updateColumnSizes()
+    myModel.fireTableStructureChanged()
     myModel.fireTableDataChanged()
+    myTableView.updateColumnSizes()
   }
 
   /**
@@ -402,11 +404,12 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
  * @param device shows an individual test case result in this column for a given [device]
  */
 private class AndroidTestResultsColumn(val device: AndroidDevice) :
-  ColumnInfo<AndroidTestResultsRow, AndroidTestCaseResult?>(device.name) {
+  ColumnInfo<AndroidTestResultsRow, AndroidTestCaseResult?>(device.getName()) {
   private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
     compareValues(lhs.getTestCaseResult(device), rhs.getTestCaseResult(device))
   }
   var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
+  override fun getName(): String = device.getName()
   override fun valueOf(item: AndroidTestResultsRow): AndroidTestCaseResult? {
     return item.getTestCaseResult(device)
   }

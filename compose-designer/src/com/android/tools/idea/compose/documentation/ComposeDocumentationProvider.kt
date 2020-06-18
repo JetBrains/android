@@ -178,7 +178,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   /**
    * Returns KtNamedFunction after @sample tag in JavaDoc for given element or null if there is no such tag or function is not valid.
    *
-   * Returned function is annotated with [androidx.ui.tooling.preview.Preview] annotation.
+   * Returned function is annotated with `androidx.ui.tooling.preview.Preview` annotation.
    */
   private fun getPreviewElement(element: PsiElement): KtNamedFunction? = ReadAction.compute<KtNamedFunction?, Throwable> {
     val docComment = (element as? KtNamedFunction)?.docComment ?: return@compute null

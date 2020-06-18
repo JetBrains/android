@@ -78,6 +78,7 @@ public class LayoutLibraryLoader {
     LayoutLibrary library;
     final ILogger logger = new LogWrapper(LOG);
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
+    buildPropMap.put("debug.choreographer.vsync", "false");
     final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
     String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA));

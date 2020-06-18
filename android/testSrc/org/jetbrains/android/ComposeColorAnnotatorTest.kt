@@ -15,17 +15,21 @@
  */
 package org.jetbrains.android
 
+import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
 import com.intellij.lang.annotation.AnnotationSession
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.PlatformTestUtil
+import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import java.awt.Color
 
 /**
@@ -221,5 +225,41 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       }
     }
     assertThat(iconList.map { (it.gutterIconRenderer as ColorIconRenderer).color }).containsExactlyElementsIn(expectedColorIcons)
+  }
+}
+
+/**
+ * Tests for [AndroidKotlinResourceExternalAnnotator]
+ */
+class ComposeColorReferenceAnnotatorTest:  AndroidTestCase() {
+  override fun setUp() {
+    super.setUp()
+    (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    myFixture.stubComposableAnnotation()
+    myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
+    myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package p1.p2
+
+      import androidx.compose.Composable
+      
+      @Composable
+      fun Foobar(required: Int) {
+        val drawable = R.drawable.ic_tick
+        val color = R.color.color1
+      }
+      """.trimIndent()
+    )
+  }
+
+  // Regression test for https://issuetracker.google.com/144560843
+  fun testColorReferenceNoLayout() {
+    myFixture.configureFromTempProjectFile("src/com/example/MyViews.kt")
+    val icons = myFixture.findAllGutters()
+    val colorGutterIconRenderer = icons.firstIsInstance<AndroidAnnotatorUtil.ColorRenderer>()
+    assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
   }
 }

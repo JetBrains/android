@@ -64,11 +64,11 @@ class NlTreeCellRendererTest {
           .apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
       }
     )
-    tree.ui = object : BasicTreeUI() {
+    tree.setUI(object : BasicTreeUI() {
       override fun getLeftChildIndent() = 0
       override fun getRightChildIndent() = 0
       override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
-    }
+    })
     val renderer = NlTreeCellRenderer(badgeHandler)
     val component = renderer.getTreeCellRendererComponent(tree, button, false, false, true, 3, false) as JComponent
     val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)

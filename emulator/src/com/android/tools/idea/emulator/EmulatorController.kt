@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
+import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
@@ -159,6 +160,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     // TODO: Change 4 to 3 after b/150494232 is fixed.
     maxInboundMessageSize = config.displayWidth * config.displayHeight * 4 + 100
 
+    connectGrpc(maxInboundMessageSize)
+    sendKeepAlive()
+  }
+
+  /**
+   * Establishes a gRPC connection to the Emulator.
+   *
+   * @param maxInboundMessageSize: size of maximum inbound gRPC message, default to 4 MiB.
+   */
+  @Slow
+  fun connectGrpc(maxInboundMessageSize: Int = 4 * 1024 * 1024) {
     connectionState = ConnectionState.CONNECTING
     val channel = getRuntimeConfiguration()
       .newGrpcChannelBuilder("localhost", emulatorId.grpcPort)
@@ -181,7 +193,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
-    sendKeepAlive()
   }
 
   /**
@@ -199,6 +210,33 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       alarm.cancelAllRequests()
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
+    }
+  }
+
+  /**
+   * Sets contents of the clipboard.
+   */
+  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setClipboard(${shortDebugString(clipData)})")
+    }
+    emulatorController.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
+  }
+
+  /**
+   * Streams contents of the clipboard.
+   */
+  fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable? {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("streamClipboard(})")
+    }
+    val method = EmulatorControllerGrpc.getStreamClipboardMethod()
+    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, Empty.getDefaultInstance(), DelegatingStreamObserver(streamObserver, method))
+    return object : Cancelable {
+      override fun cancel() {
+        call.cancel("Canceled by consumer", null)
+      }
     }
   }
 
@@ -246,16 +284,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
-   * Sets a virtual machine state.
-   */
-  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setVmModel(${shortDebugString(vmState)})")
-    }
-    emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
-  }
-
-  /**
    * Retrieves a screenshot of an Emulator display.
    */
   fun getScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>) {
@@ -280,6 +308,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         call.cancel("Canceled by consumer", null)
       }
     }
+  }
+
+  /**
+   * Sets a virtual machine state.
+   */
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setVmModel(${shortDebugString(vmState)})")
+    }
+    emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
   }
 
   private fun sendKeepAlive() {
@@ -351,7 +389,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   override fun dispose() {
-    channel?.shutdownNow()
+    channel?.shutdown()
   }
 
   override fun equals(other: Any?): Boolean {

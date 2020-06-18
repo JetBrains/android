@@ -311,9 +311,8 @@ public final class GradleWrapper {
     return getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
   }
 
-  @VisibleForTesting
   @NotNull
-  static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
+  public static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     // See https://code.google.com/p/android/issues/detail?id=357944
     String folderName = isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
     String suffix = binOnly ? "bin" : "all";

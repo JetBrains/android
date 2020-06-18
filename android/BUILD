@@ -36,6 +36,7 @@ iml_module(
         "//tools/idea/plugins/java-i18n:intellij.java.i18n",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/plugins/eclipse:intellij.eclipse",
         "//tools/idea/java/plugin:intellij.java.plugin",
     ],
     visibility = ["//visibility:public"],
@@ -57,9 +58,9 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     # do not sort: must match IML order
     deps = [
@@ -77,7 +78,6 @@ iml_module(
         "//tools/analytics-library/publisher:analytics-publisher[module]",
         "//tools/idea/plugins/junit:intellij.junit[module]",
         "//tools/idea/json:intellij.json[module]",
-        "//tools/idea/plugins/maven:intellij.maven[module]",
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/.idea/libraries:StreamEx",
         "//tools/idea/platform/statistics:intellij.platform.statistics[module]",
@@ -93,7 +93,6 @@ iml_module(
         "//tools/idea/images:intellij.platform.images[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/service-container:intellij.platform.serviceContainer[module]",
-        "//tools/idea/plugins/eclipse:intellij.eclipse[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
         "//tools/idea/.idea/libraries:gson",
         "//tools/idea/plugins/groovy:intellij.groovy[module]",
@@ -341,6 +340,7 @@ iml_module(
         "//tools/idea/plugins/java-i18n:intellij.java.i18n",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/plugins/eclipse:intellij.eclipse",
         "//tools/idea/java/plugin:intellij.java.plugin",
     ],
     test_srcs = ["testSrc"],
@@ -367,8 +367,8 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     # do not sort: must match IML order
     deps = [

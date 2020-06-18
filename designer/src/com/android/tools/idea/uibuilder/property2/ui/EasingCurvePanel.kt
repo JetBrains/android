@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.ui
 import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -31,7 +32,11 @@ import javax.swing.JPanel
 /**
  * Custom panel to support direct editing of transition easing curves
  */
-class EasingCurvePanel(easingAttributeName : String, properties: PropertiesTable<NelePropertyItem>) : JPanel(BorderLayout()) {
+class EasingCurvePanel(
+  private val model: NelePropertiesModel,
+  easingAttributeName : String,
+  properties: PropertiesTable<NelePropertyItem>
+) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH
@@ -42,23 +47,18 @@ class EasingCurvePanel(easingAttributeName : String, properties: PropertiesTable
   private var processingChange: Boolean = false
   private var processingModelUpdate: Boolean = false
 
+  private val modelListener = object: PropertiesModelListener<NelePropertyItem> {
+    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      updateFromValues()
+    }
+  }
+
   init {
     val panelSize = JBUI.size(PANEL_WIDTH, PANEL_HEIGHT)
     preferredSize = panelSize
 
     easingCurvePanel.background = secondaryPanelBackground
     add(easingCurvePanel)
-
-    var listener = object: PropertiesModelListener<NelePropertyItem> {
-      override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
-        updateFromValues()
-      }
-      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
-        updateFromValues()
-      }
-    }
-
-    transitionEasing?.model?.addListener(listener)
 
     easingCurvePanel.addActionListener {
       if (!processingModelUpdate) {
@@ -93,6 +93,16 @@ class EasingCurvePanel(easingAttributeName : String, properties: PropertiesTable
     }
 
     updateFromValues()
+  }
+
+  override fun addNotify() {
+    super.addNotify()
+    model.addListener(modelListener)
+  }
+
+  override fun removeNotify() {
+    super.removeNotify()
+    model.removeListener(modelListener)
   }
 
   private fun updateFromValues() {

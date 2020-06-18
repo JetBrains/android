@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -35,7 +36,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHel
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Set;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -283,7 +282,14 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-        boolean hasMotionSelection = myLastSelectedTags != null && mLastSelection != null;
+        // When a motion editor item is selected: the MTags of the MotionEditor must be updated (they are now stale).
+        // When a layout view is selected: Ignore this notification. The properties panel is reading from XmlTags directly there is
+        // no need to update the MTags of the MotionEditor. A selection change may have side effects for the Nele property panel if
+        // this notification comes too early.
+        boolean forLayout = mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW;
+        if (forLayout) {
+          return;
+        }
         mLastSelection = null;
         myLastSelectedTags = null;
         MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
@@ -292,7 +298,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           myMotionSceneFile = motionScene.mVirtualFile;
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
 
-          if (myLastSelectedTags == null && hasMotionSelection) {
+          if (myLastSelectedTags == null) {
             // The previous selection could not be restored.
             // Select something in the MotionScene to avoid the properties panel reverting back to the MotionLayout.
             selectSomething(motionScene);

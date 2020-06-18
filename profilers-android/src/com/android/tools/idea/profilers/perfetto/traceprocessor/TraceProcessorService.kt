@@ -53,7 +53,7 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
     }
   }
 
-  override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
+  override fun loadTrace(traceId: Long, traceFile: File) {
     LOGGER.info("TPD Service: Loading trace $traceId: ${traceFile.absolutePath}")
     val requestProto = TraceProcessor.LoadTraceRequest.newBuilder()
       .setTraceId(traceId)
@@ -68,16 +68,36 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
     LOGGER.info("TPD Service: Trace $traceId loaded.")
 
     loadedTraces[traceId] = traceFile
-    val processList = mutableListOf<ProcessModel>()
+  }
 
-    for (process in response.processMetadata.processList) {
-      val threadMap = process.threadList.asSequence()
-        .map { thread -> thread.id.toInt() to ThreadModel(thread.id.toInt(), process.id.toInt(), thread.name, listOf(), listOf()) }
-        .toMap()
-        .toSortedMap()
-      processList.add(ProcessModel(process.id.toInt(), process.name, threadMap, mapOf()))
+  override fun getProcessMetadata(traceId: Long): List<ProcessModel> {
+    val query = TraceProcessor.QueryBatchRequest.newBuilder()
+      // Query metadata for all processes.
+      .addQuery(TraceProcessor.QueryParameters.newBuilder().setProcessMetadataRequest(
+        TraceProcessor.QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
+      .build()
+
+    LOGGER.info("TPD Service: Querying process metadata for trace $traceId.")
+    var response = client.queryBatchRequest(query)
+    if (response.resultList.any { it.failureReason == TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND}) {
+      // Something happened and the trace is not there anymore, let's try to reload it:
+      loadTrace(traceId, loadedTraces[traceId] ?: throw RuntimeException("Trace $traceId needs to be loaded before querying."))
+      response = client.queryBatchRequest(query)
     }
-    return processList.toList()
+
+    response.resultList.forEach {
+      if (!it.ok) {
+        LOGGER.warn("TPD Service: Query failed - ${it.failureReason} - ${it.error}")
+      }
+    }
+
+    val modelBuilder = TraceProcessorModel.Builder()
+    response.resultList
+      .filter { it.hasProcessMetadataResult() }
+      .forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
+    val model = modelBuilder.build()
+
+    return model.getProcesses()
   }
 
   override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {

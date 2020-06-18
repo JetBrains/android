@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.Image
@@ -86,19 +87,10 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 /**
  * Fake emulator for use in tests. Provides in-process gRPC services.
  */
-class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
+class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path, standalone: Boolean = false) {
 
   val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
-  private val registration = """
-      port.serial=${serialPort}
-      port.adb=${serialPort + 1}
-      avd.name=${avdId}
-      avd.dir=${avdFolder}
-      avd.id=${avdId}
-      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "${avdId}" "-no-window" "-gpu" "auto-no-window"
-      grpc.port=${grpcPort}
-      grpc.token=RmFrZSBnUlBDIHRva2Vu
-      """.trimIndent()
+  private val registration: String
   private val registrationFile = registrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
   private var grpcServer = createGrpcServer()
   private val lifeCycleLock = Object()
@@ -107,11 +99,39 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
+  @Volatile private var clipboardInternal = ""
+  var clipboard
+    get() = clipboardInternal
+    set(value) {
+      clipboardInternal = value
+      val observer = clipboardStreamObserver ?: return
+      sendStreamingResponse(observer, ClipData.newBuilder().setText(value).build())
+    }
+  @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
 
   val serialPort
     get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
+
+  init {
+    val embeddedFlags = if (standalone) {
+      ""
+    } else {
+      """ "-no-window" "-gpu" "auto-no-window""""
+    }
+
+    registration = """
+      port.serial=${serialPort}
+      port.adb=${serialPort + 1}
+      avd.name=${avdId}
+      avd.dir=${avdFolder}
+      avd.id=${avdId}
+      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "${avdId}" ${embeddedFlags}
+      grpc.port=${grpcPort}
+      grpc.token=RmFrZSBnUlBDIHRva2Vu
+      """.trimIndent()
+  }
 
   /**
    * Starts the Emulator. The Emulator is fully initialized when the method returns.
@@ -233,12 +253,29 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
+  private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
+    sendResponse(responseObserver, Empty.getDefaultInstance())
+  }
+
   private fun <T> sendResponse(responseObserver: StreamObserver<T>, response: T) {
     responseObserver.onNext(response)
     responseObserver.onCompleted()
   }
 
-  private inner class EmulatorControllerService(private val executor: ExecutorService) : EmulatorControllerGrpc.EmulatorControllerImplBase() {
+  private fun <T> sendStreamingResponse(responseObserver: StreamObserver<T>, response: T) {
+    try {
+      responseObserver.onNext(response)
+    }
+    catch (e: StatusRuntimeException) {
+      if (e.status.code != Status.Code.CANCELLED) {
+        throw e
+      }
+    }
+  }
+
+  private inner class EmulatorControllerService(
+    private val executor: ExecutorService
+  ) : EmulatorControllerGrpc.EmulatorControllerImplBase() {
 
     override fun setPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<Empty>) {
       executor.execute {
@@ -257,6 +294,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           .setBooted(true)
           .build()
         sendResponse(responseObserver, response)
+      }
+    }
+
+    override fun setClipboard(request: ClipData, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        clipboardInternal = request.text
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun streamClipboard(request: Empty, responseObserver: StreamObserver<ClipData>) {
+      executor.execute {
+        clipboardStreamObserver = responseObserver
+        val response = ClipData.newBuilder().setText(clipboardInternal).build()
+        sendStreamingResponse(responseObserver, response)
       }
     }
 
@@ -345,19 +397,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
             .setRotation(Rotation.newBuilder().setRotation(displayRotation))
           )
 
-        try {
-          responseObserver.onNext(response.build())
-        }
-        catch (e: StatusRuntimeException) {
-          if (e.status.code != Status.Code.CANCELLED) {
-            throw e
-          }
-        }
+        sendStreamingResponse(responseObserver, response.build())
       }
-    }
-
-    private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
-      sendResponse(responseObserver, Empty.getDefaultInstance())
     }
   }
 

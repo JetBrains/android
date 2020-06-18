@@ -73,7 +73,7 @@ class AnnotationProcessorsAnalyzerTest {
   fun testNonIncrementalAnnotationProcessorsAnalyzer() {
     setUpProject()
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
 
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
@@ -100,7 +100,7 @@ class AnnotationProcessorsAnalyzerTest {
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
       "com.google.auto.value.processor.AutoValueProcessor")
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
 
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
@@ -114,5 +114,29 @@ class AnnotationProcessorsAnalyzerTest {
         "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
       )
     )
+  }
+
+  @Test
+  fun noWarningsWhenApplyingKapt() {
+    setUpProject()
+
+    val rootBuildFile = FileUtils.join(File(myProjectRule.project.basePath!!), FN_BUILD_GRADLE)
+    FileUtil.writeToFile(rootBuildFile,
+                         rootBuildFile
+                           .readText()
+                           .replace("dependencies {",
+                                    "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version\""))
+    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", FN_BUILD_GRADLE), """
+
+      apply plugin: 'kotlin-android'
+      apply plugin: 'kotlin-kapt'
+    """.trimIndent())
+
+    myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
+
+    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
+                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+
+    assertThat(buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData()).isEmpty()
   }
 }
