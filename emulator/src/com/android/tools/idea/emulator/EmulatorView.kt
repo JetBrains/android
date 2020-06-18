@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Rotation.SkinRotation
@@ -28,11 +29,26 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.ClipboardSynchronizer
+import com.intellij.ide.DataManager
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.xml.util.XmlStringUtil
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -41,8 +57,12 @@ import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import java.awt.Rectangle
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -94,12 +114,17 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  private var screenshotFeed: Cancelable? = null
+  @Volatile
+  private var clipboardFeed: Cancelable? = null
+  @Volatile
+  private var clipboardReceiver: ClipboardReceiver? = null
   private var screenshotImage: Image? = null
   private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
   private var displayRectangle: Rectangle? = null
   private var skinLayout: SkinLayout? = null
   private val displayTransform = AffineTransform()
+  @Volatile
+  private var screenshotFeed: Cancelable? = null
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
   /** Count of received display frames. */
@@ -180,6 +205,20 @@ class EmulatorView(
             else -> return
           }
         emulator.sendKey(createHardwareKeyEvent(keyName))
+      }
+    })
+
+    addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent) {
+        if (connected) {
+          setDeviceClipboardAndListenToChanges()
+        }
+      }
+
+      override fun focusLost(event: FocusEvent) {
+        clipboardFeed?.cancel()
+        clipboardFeed = null
+        clipboardReceiver = null
       }
     })
 
@@ -393,8 +432,13 @@ class EmulatorView(
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       remove(disconnectedStateLabel)
-      if (isVisible && screenshotFeed == null) {
-        requestScreenshotFeed()
+      if (isVisible) {
+        if (screenshotFeed == null) {
+          requestScreenshotFeed()
+        }
+        if (isFocusOwner) {
+          setDeviceClipboardAndListenToChanges()
+        }
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
@@ -403,8 +447,59 @@ class EmulatorView(
       disconnectedStateLabel.text = "Disconnected from the Emulator"
       add(disconnectedStateLabel)
     }
+
     revalidate()
     repaint()
+  }
+
+  private fun setDeviceClipboardAndListenToChanges() {
+    val text = getClipboardText()
+    if (text.isEmpty()) {
+      requestClipboardFeed()
+    }
+    else {
+      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object: DummyStreamObserver<Empty>() {
+        override fun onCompleted() {
+          requestClipboardFeed()
+        }
+
+        override fun onError(t: Throwable) {
+          if (t is StatusRuntimeException && t.status.code == Status.Code.UNIMPLEMENTED) {
+            notifyEmulatorIsOutOfDate()
+          }
+        }
+      })
+    }
+  }
+
+  private fun getClipboardText(): String {
+    val synchronizer = ClipboardSynchronizer.getInstance()
+    return if (synchronizer.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
+      synchronizer.getData(DataFlavor.stringFlavor) as String? ?: ""
+    }
+    else {
+      ""
+    }
+  }
+
+  private fun notifyEmulatorIsOutOfDate() {
+    if (emulatorOutOfDateNotificationShown) {
+      return
+    }
+    val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
+    val title = "Emulator is out of date"
+    val message = "Please update the Android Emulator"
+    val notification = NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING, null)
+    notification.collapseActionsDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
+    notification.addAction(object : NotificationAction("Check for updates") {
+      override fun actionPerformed(event: AnActionEvent, notification: Notification) {
+        notification.expire()
+        val action = ActionManager.getInstance().getAction("CheckForUpdate")
+        ActionUtil.performActionDumbAware(action, event)
+      }
+    })
+    notification.notify(project)
+    emulatorOutOfDateNotificationShown = true
   }
 
   private fun findLoadingPanel(): EmulatorLoadingPanel? {
@@ -419,6 +514,7 @@ class EmulatorView(
   }
 
   override fun dispose() {
+    clipboardFeed?.cancel()
     screenshotFeed?.cancel()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
@@ -473,6 +569,17 @@ class EmulatorView(
   /** Rounds the given value to a multiple of 1.0/128. */
   private fun roundSlightly(value: Double): Double {
     return round(value * 128) / 128
+  }
+
+  private fun requestClipboardFeed() {
+    clipboardFeed?.cancel()
+    clipboardFeed = null
+    clipboardReceiver = null
+    if (connected) {
+      val receiver = ClipboardReceiver()
+      clipboardReceiver = receiver
+      clipboardFeed = emulator.streamClipboard(receiver)
+    }
   }
 
   private fun requestScreenshotFeed() {
@@ -536,6 +643,25 @@ class EmulatorView(
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
+  private inner class ClipboardReceiver : DummyStreamObserver<ClipData>() {
+    var responseCount = 0
+
+    override fun onNext(response: ClipData) {
+      if (clipboardReceiver != this) {
+        return // This clipboard feed has already been cancelled.
+      }
+
+      // Skip the first response that reflect the current clipboard state.
+      if (responseCount != 0 && response.text.isNotEmpty()) {
+        invokeLaterInAnyModalityState {
+          val content = StringSelection(response.text)
+          ClipboardSynchronizer.getInstance().setContent(content, content)
+        }
+      }
+      responseCount++
+    }
+  }
+
   private inner class ScreenshotReceiver(
     val rotation: SkinRotation,
     val currentScreenshotShape: DisplayShape
@@ -553,7 +679,7 @@ class EmulatorView(
       }
 
       if (response.format.width == 0 || response.format.height == 0) {
-        return // Ignore empty screenshot
+        return // Ignore empty screenshot.
       }
 
       val screenshot = Screenshot(response)
@@ -674,8 +800,12 @@ class EmulatorView(
   private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation)
 }
 
+private var emulatorOutOfDateNotificationShown = false
+
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
+
+private val NOTIFICATION_GROUP = NotificationGroup("Emulator Errors", NotificationDisplayType.STICKY_BALLOON, true)
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
