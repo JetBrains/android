@@ -33,8 +33,8 @@ import java.util.function.Function;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
-final class RunOnMultipleDevicesAction extends AnAction {
-  static final String ID = "RunOnMultipleDevices";
+public final class RunOnMultipleDevicesAction extends AnAction {
+  public static final String ID = "RunOnMultipleDevices";
 
   private final @NotNull Function<@NotNull Project, @NotNull RunManager> myRunManagerGetInstance;
   private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
