@@ -20,6 +20,7 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -562,6 +563,13 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
       }
     }
 
+    fun maybeAddUsageForConfiguration(configuration: ConfigurationModel, compileReplacement: String, psiElement: PsiElement) {
+      val name = configuration.name()
+      computeReplacementName(name, compileReplacement)?.let {
+        usages.add(ObsoleteConfigurationConfigurationUsageInfo(psiElement, current, new, configuration, it))
+      }
+    }
+
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       // if we don't have a PsiElement for the model, we don't have a file at all, and attempting to perform a refactoring is not
       // going to work
@@ -592,6 +600,14 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
           val psiElement = dependency.psiElement ?: model.buildscript().dependencies().psiElement ?: model.buildscript().psiElement
                            ?: modelPsiElement
           maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
+        }
+      model.configurations().all()
+        .forEach { configuration ->
+          // this PsiElement is used for displaying in the refactoring preview window, rather than for performing the refactoring; it is
+          // therefore appropriate and safe to pass a notional parent Psi if the element is not (yet) on file.
+          // TODO(b/159597456): here and elsewhere, encode this hierarchical logic more declaratively.
+          val psiElement = configuration.psiElement ?: model.configurations().psiElement ?: modelPsiElement
+          maybeAddUsageForConfiguration(configuration, compileReplacement, psiElement)
         }
     }
 
@@ -629,5 +645,25 @@ class ObsoleteConfigurationDependencyUsageInfo(
   override fun equals(other: Any?): Boolean {
     return super.equals(other) && other is ObsoleteConfigurationDependencyUsageInfo &&
            dependency == other.dependency && newConfigurationName == other.newConfigurationName
+  }
+}
+
+class ObsoleteConfigurationConfigurationUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val configuration: ConfigurationModel,
+  private val newConfigurationName: String
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    configuration.rename(newConfigurationName)
+  }
+
+  override fun getTooltipText() = "Rename configuration to $newConfigurationName"
+
+  // Don't need hashCode() because this is stricter than the superclass method.
+  override fun equals(other: Any?): Boolean {
+    return super.equals(other) && other is ObsoleteConfigurationConfigurationUsageInfo &&
+           configuration == other.configuration && newConfigurationName == other.newConfigurationName
   }
 }
