@@ -272,13 +272,21 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.ANDROID_TEST_SUITE_TABLE)
     addMouseListener(object: MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
-        if (e?.clickCount != 2) {
-          return
+        when (e?.clickCount) {
+          1 -> {
+            selectedObject?.let {
+              listener.onAndroidTestResultsRowSelected(
+                it,
+                (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
+            }
+          }
+          2 -> {
+            EditSourceAction().actionPerformed(
+              AnActionEvent.createFromInputEvent(
+                e, ActionPlaces.ANDROID_TEST_SUITE_TABLE, null,
+                DataManager.getInstance().getDataContext(this@AndroidTestResultsTableViewComponent)))
+          }
         }
-        EditSourceAction().actionPerformed(
-          AnActionEvent.createFromInputEvent(
-            e, ActionPlaces.ANDROID_TEST_SUITE_TABLE, null,
-            DataManager.getInstance().getDataContext(this@AndroidTestResultsTableViewComponent)))
       }
     })
   }

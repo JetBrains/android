@@ -213,6 +213,19 @@ class AndroidTestResultsTableViewTest {
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     }, eq(device2))
+
+    // Single click on the table.
+    val clickEvent = MouseEvent(table.getTableViewForTesting(), 0, 0, 0, 0, 0, /*clickCount=*/1, false)
+    table.getTableViewForTesting().mouseListeners.forEach { it.mouseClicked(clickEvent) }
+
+    // Make sure that onAndroidTestResultsRowSelected callback is invoked via mouse listener.
+    // (This is important since valueChanged() callback may not called if you click on a
+    // same row. For instance, TreeTableView doesn't.)
+    verify(mockListener, times(3)).onAndroidTestResultsRowSelected(argThat { results ->
+      results.methodName == "method2" &&
+      results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
+      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
+    }, eq(device2))
   }
 
   @Test
