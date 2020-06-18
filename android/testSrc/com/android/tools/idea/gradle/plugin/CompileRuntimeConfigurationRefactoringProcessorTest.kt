@@ -117,4 +117,12 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/UnknownPlugin"))
   }
+
+  @Test
+  fun testApplicationWith2DVariant() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariant"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariantExpected"))
+  }
 }
