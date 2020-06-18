@@ -116,7 +116,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
-        "//tools/idea/platform/platform-tests:intellij.platform.tests[module, test]",
         "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:jimfs[test]",
