@@ -176,17 +176,14 @@ public class AndroidTestSuiteDetailsView {
 
     myDeviceSelectorListView.setAndroidTestResults(myTestResults);
 
+    myContentView.setPackageName(myTestResults.getPackageName());
     if (mySelectedDevice != null) {
-      AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(mySelectedDevice);
-      if (resultForSelectedDevice != null) {
-        myContentView.setAndroidDevice(mySelectedDevice);
-        myContentView.setPackageName(myTestResults.getPackageName());
-        myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
-        myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
-        myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));
-        myContentView.setBenchmarkText(myTestResults.getBenchmark(mySelectedDevice));
-        myContentView.setRetentionSnapshot(myTestResults.getRetentionSnapshot(mySelectedDevice));
-      }
+      myContentView.setAndroidDevice(mySelectedDevice);
+      myContentView.setAndroidTestCaseResult(myTestResults.getTestCaseResult(mySelectedDevice));
+      myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
+      myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));
+      myContentView.setBenchmarkText(myTestResults.getBenchmark(mySelectedDevice));
+      myContentView.setRetentionSnapshot(myTestResults.getRetentionSnapshot(mySelectedDevice));
     }
   }
 
@@ -225,5 +222,10 @@ public class AndroidTestSuiteDetailsView {
   @Nullable
   public AndroidDevice getSelectedDeviceForTesting() {
     return mySelectedDevice;
+  }
+
+  @VisibleForTesting
+  public DetailsViewContentView getContentViewForTesting() {
+    return myContentView;
   }
 }
