@@ -29,14 +29,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The Multiple Devices item in the combo box. If this is selected the selected configuration is deployed on the last device set selected
  * with the {@link ModifyDeviceSetDialog Modify Device Set dialog.}
  */
-final class MultipleDevicesAction extends AnAction {
-  static final String ID = "MultipleDevices";
+// TODO Reduce the visibility of MultipleDevicesAction and ID
+public final class MultipleDevicesAction extends AnAction {
+  public static final String ID = "MultipleDevices";
 
   @NotNull
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
@@ -44,24 +46,23 @@ final class MultipleDevicesAction extends AnAction {
   @NotNull
   private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
-  @NotNull
-  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
 
   @VisibleForTesting
   MultipleDevicesAction() {
     this(project -> RunManager.getInstance(project).getSelectedConfiguration(),
          DevicesSelectedService::getInstance,
-         DeviceAndSnapshotComboBoxAction.getInstance());
+         DeviceAndSnapshotComboBoxAction::getInstance);
   }
 
   @VisibleForTesting
   @NonInjectable
   MultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
                         @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance,
-                        @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+                        @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance) {
     myGetSelectedConfiguration = getSelectedConfiguration;
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
-    myComboBoxAction = comboBoxAction;
+    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
   }
 
   @Override
@@ -96,7 +97,7 @@ final class MultipleDevicesAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setMultipleDevicesSelected(Objects.requireNonNull(event.getProject()), true);
+    myDeviceAndSnapshotComboBoxActionGetInstance.get().setMultipleDevicesSelected(Objects.requireNonNull(event.getProject()), true);
   }
 
   private static boolean isSupportedRunConfigurationType(@NotNull ConfigurationType type) {
