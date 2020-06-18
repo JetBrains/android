@@ -217,6 +217,7 @@ public class ModelBuilder {
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.getLayoutType()).thenCallRealMethod();
+      when(surface.canZoomToFit()).thenReturn(true);
 
       return model;
     });

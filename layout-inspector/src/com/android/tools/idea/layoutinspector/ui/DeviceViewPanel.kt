@@ -82,7 +82,7 @@ class DeviceViewPanel(
   override val scale
     get() = viewSettings.scaleFraction
 
-  override val screenScalingFactor = 1f
+  override val screenScalingFactor = 1.0
 
   override var isPanning = false
   private var isSpacePressed = false

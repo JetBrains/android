@@ -333,7 +333,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .build()
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
-      setMaxFitIntoScale(2f) // Set fit into limit to 200%
+      setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     }
   private val staticPreviewInteractionHandler = NlInteractionHandler(surface)
   private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(surface) }

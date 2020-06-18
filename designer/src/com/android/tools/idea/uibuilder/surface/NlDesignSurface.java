@@ -44,6 +44,8 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SurfaceScale;
+import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -97,8 +99,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
-  private static final double DEFAULT_MIN_SCALE = 0.1;
-  private static final double DEFAULT_MAX_SCALE = 10;
+  @SurfaceScale private static final double DEFAULT_MIN_SCALE = 0.1;
+  @SurfaceScale private static final double DEFAULT_MAX_SCALE = 10;
 
   /**
    * See {@link Builder#setDelegateDataProvider(DataProvider)}
@@ -115,8 +117,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
-    private double myMinScale = DEFAULT_MIN_SCALE;
-    private double myMaxScale = DEFAULT_MAX_SCALE;
+    @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
+    @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
     @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
     /**
      * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
@@ -238,7 +240,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      *
      * @see #setMaxScale(double)
      */
-    public Builder setMinScale(double scale) {
+    public Builder setMinScale(@SurfaceScale double scale) {
       if (scale <= 0) {
         throw new IllegalStateException("The min scale (" + scale + ") is not larger than 0");
       }
@@ -256,7 +258,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      *
      * @see #setMinScale(double)
      */
-    public Builder setMaxScale(double scale) {
+    public Builder setMaxScale(@SurfaceScale double scale) {
       myMaxScale = scale;
       return this;
     }
@@ -366,8 +368,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
-  private final double myMinScale;
-  private final double myMaxScale;
+  @SurfaceScale private final double myMinScale;
+  @SurfaceScale private final double myMaxScale;
 
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
@@ -386,8 +388,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
                           @Nullable NavigationHandler navigationHandler,
-                          double minScale,
-                          double maxScale,
+                          @SurfaceScale double minScale,
+                          @SurfaceScale double maxScale,
                           @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider,
@@ -651,7 +653,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public float getScreenScalingFactor() {
+  @SurfaceScreenScalingFactor
+  public double getScreenScalingFactor() {
     return JBUIScale.sysScale(this);
   }
 
@@ -817,21 +820,30 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
+  @SurfaceScale
   protected double getMinScale() {
     return Math.max(getFitScale(true), myMinScale);
   }
 
   @Override
+  @SurfaceScale
   protected double getMaxScale() {
     return myMaxScale;
   }
 
   @Override
   public boolean canZoomToFit() {
-    double minZoomLevel = myMinScale / getScreenScalingFactor();
-    double maxZoomLevel = myMaxScale / getScreenScalingFactor();
-    double zoomToFitLevel = Math.max(minZoomLevel, Math.min(getFitScale(true), maxZoomLevel));
-    return Math.abs(getScale() - zoomToFitLevel) > 0.01;
+    @SurfaceScale double minZoomLevel = myMinScale;
+    @SurfaceScale double maxZoomLevel = myMaxScale;
+    @SurfaceScale double zoomToFitLevel = Math.max(minZoomLevel, Math.min(getFitScale(true), maxZoomLevel));
+    return Math.abs(getScale() - zoomToFitLevel) > SCALING_THRESHOLD / getScreenScalingFactor();
+  }
+
+  @Override
+  public boolean canZoomToActual() {
+    @SurfaceScale double currentScale = getScale();
+    @SurfaceScale double scaleOfActual = 1d / getScreenScalingFactor();
+    return (currentScale > scaleOfActual && canZoomOut()) || (currentScale < scaleOfActual && canZoomIn());
   }
 
   @Override
@@ -869,7 +881,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
-    double fitScale = getFitScale(areaToCenter.getSize(), false);
+    @SurfaceScale double fitScale = getFitScale(areaToCenter.getSize(), false);
 
     if (getScale() > fitScale) {
       // Scale down to fit selection.

@@ -22,8 +22,17 @@ import com.intellij.openapi.actionSystem.DataKey
 val ZOOMABLE_KEY = DataKey.create<Zoomable>(Zoomable::class.java.name)
 
 interface Zoomable {
+  /**
+   * The scaling level of zoomable component.
+   */
   val scale: Double
-  val screenScalingFactor: Float
+
+  /**
+   * A factor gives a chance to adjust [scale] value in different visual components.
+   * The visual size is [scale] * [screenScalingFactor].
+   * This value must be positive.
+   */
+  val screenScalingFactor: Double
 
   fun zoom(type: ZoomType): Boolean
 
