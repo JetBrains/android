@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
+import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
@@ -203,6 +204,33 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Sets contents of the clipboard.
+   */
+  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setClipboard(${shortDebugString(clipData)})")
+    }
+    emulatorController.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
+  }
+
+  /**
+   * Streams contents of the clipboard.
+   */
+  fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable? {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("streamClipboard(})")
+    }
+    val method = EmulatorControllerGrpc.getStreamClipboardMethod()
+    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, Empty.getDefaultInstance(), DelegatingStreamObserver(streamObserver, method))
+    return object : Cancelable {
+      override fun cancel() {
+        call.cancel("Canceled by consumer", null)
+      }
+    }
+  }
+
+  /**
    * Sends a [KeyboardEvent] to the Emulator.
    */
   fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
@@ -246,16 +274,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
-   * Sets a virtual machine state.
-   */
-  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setVmModel(${shortDebugString(vmState)})")
-    }
-    emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
-  }
-
-  /**
    * Retrieves a screenshot of an Emulator display.
    */
   fun getScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>) {
@@ -280,6 +298,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         call.cancel("Canceled by consumer", null)
       }
     }
+  }
+
+  /**
+   * Sets a virtual machine state.
+   */
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setVmModel(${shortDebugString(vmState)})")
+    }
+    emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
   }
 
   private fun sendKeepAlive() {
