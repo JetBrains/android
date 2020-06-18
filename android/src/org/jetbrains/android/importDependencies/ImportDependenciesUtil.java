@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.importDependencies;
 
 import com.intellij.CommonBundle;
@@ -70,7 +71,7 @@ public class ImportDependenciesUtil {
               importDependenciesForMarkedModules(project, updateBackwardDependencies);
             }
             else {
-              final MessageBusConnection connection = module.getMessageBus().connect();
+              MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
               connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
                 @Override
                 public void moduleAdded(@NotNull final Project project, @NotNull final Module addedModule) {
@@ -321,9 +322,9 @@ public class ImportDependenciesUtil {
 
   @NotNull
   public static Set<VirtualFile> getLibDirs(@NotNull Pair<Properties, VirtualFile> properties) {
-    final Set<VirtualFile> resultSet = new HashSet<VirtualFile>(); 
+    final Set<VirtualFile> resultSet = new HashSet<VirtualFile>();
     final VirtualFile baseDir = properties.second.getParent();
-    
+
     String libDirPath;
     int i = 1;
     do {
@@ -337,7 +338,7 @@ public class ImportDependenciesUtil {
       i++;
     }
     while (libDirPath != null);
-    
+
     return resultSet;
   }
 

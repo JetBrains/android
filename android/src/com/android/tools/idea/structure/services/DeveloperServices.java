@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.structure.services;
 
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -24,10 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 
 /**
  * Helper class which collects developer services from all plugins and provides a simple
@@ -82,8 +81,7 @@ public final class DeveloperServices {
       }
     });
 
-    MessageBusConnection connection = module.getMessageBus().connect(module);
-    connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
+    module.getProject().getMessageBus().connect(module).subscribe(ProjectTopics.MODULES, new ModuleListener() {
       @Override
       public void moduleRemoved(@NotNull Project project, @NotNull Module moduleRemoved) {
         if (module == moduleRemoved) {
