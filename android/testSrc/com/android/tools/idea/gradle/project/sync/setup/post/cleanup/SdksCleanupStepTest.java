@@ -45,7 +45,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link SdksCleanupStep}.
  */
-public class SdksCleanupStepTest extends PlatformTestCase {
+public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   @Nullable private Sdk myJdk;
   @Nullable private Sdk mySdk;
 

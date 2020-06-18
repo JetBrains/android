@@ -24,7 +24,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
@@ -39,7 +38,7 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link DependenciesExtractor}.
  */
-public class DependenciesExtractorTest extends PlatformTestCase {
+public class DependenciesExtractorTest extends HeavyPlatformTestCase {
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
   private ModuleFinder myModuleFinder;

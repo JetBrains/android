@@ -16,15 +16,7 @@
 package com.android.tools.idea.lang.androidSql
 
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
-import com.android.tools.idea.lang.androidSql.room.Dao
-import com.android.tools.idea.lang.androidSql.room.PsiElementForFakeColumn
-import com.android.tools.idea.lang.androidSql.room.RoomDatabase
-import com.android.tools.idea.lang.androidSql.room.RoomFieldColumn
-import com.android.tools.idea.lang.androidSql.room.RoomFtsTableColumn
-import com.android.tools.idea.lang.androidSql.room.RoomRowidColumn
-import com.android.tools.idea.lang.androidSql.room.RoomSchema
-import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager
-import com.android.tools.idea.lang.androidSql.room.RoomTable
+import com.android.tools.idea.lang.androidSql.room.*
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.ENTITY
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.VIEW
 import com.android.tools.idea.testing.moveCaret
@@ -33,7 +25,7 @@ import com.intellij.codeInsight.intention.impl.QuickEditAction
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtil
-import com.intellij.openapi.project.impl.ProjectImpl
+import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
@@ -58,7 +50,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
     val mainSourceFile = myFixture.addFileToProject("MainSourcesFile.java", "")
 
     // Below we're adding a new source root, make sure we're not modifying a reusable light project.
-    assertThat((project as? ProjectImpl)?.isLight ?: false).named("project is light").isFalse()
+    assertThat((project as? ProjectEx)?.isLight ?: false).named("project is light").isFalse()
     val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
     PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true)
     val testFile = myFixture.addFileToProject("${testSrc.name}/TestFile.java", "")
