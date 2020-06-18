@@ -268,7 +268,9 @@ class TableViewImpl : TableView {
     table.isEnabled = false
 
     tableHadFocus = table.hasFocus()
-    progressBar.requestFocusInWindow()
+    if (table.hasFocus()) {
+      progressBar.requestFocusInWindow()
+    }
     layeredPane.revalidate()
     layeredPane.repaint()
 
