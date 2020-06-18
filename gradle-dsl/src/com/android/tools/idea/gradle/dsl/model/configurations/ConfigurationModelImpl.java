@@ -30,11 +30,16 @@ public class ConfigurationModelImpl extends GradleDslBlockModel implements Confi
     super(element);
   }
 
-
   @NotNull
   @Override
   public String name() {
     return myDslElement.getName();
+  }
+
+  @Override
+  public void rename(String newName) {
+    myDslElement.getNameElement().rename(newName);
+    myDslElement.setModified();
   }
 
   @NotNull

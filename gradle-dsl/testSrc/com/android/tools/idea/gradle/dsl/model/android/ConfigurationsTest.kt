@@ -182,6 +182,19 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     assertSize(0, buildModel.configurations().all())
   }
 
+  @Test
+  fun testRenameConfig() {
+    writeToBuildFile(TestFile.RENAME_CONFIG)
+
+    val buildModel = gradleBuildModel
+    val configs = buildModel.configurations().all()
+    configs.first { it.name() == "foo" }.rename("newFoo")
+    configs.first { it.name() == "bar" }.rename("newBar")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.RENAME_CONFIG_EXPECTED)
+    assertThat(buildModel.configurations().all().map { it.name() }.toSet(), equalTo(setOf("newFoo", "newBar")))
+  }
+
   private fun checkParseNonEmptyConfiguration(testFileName: TestFileName, vararg expectedConfigurations: String) {
     writeToBuildFile(testFileName)
     val buildModel = gradleBuildModel
@@ -252,6 +265,8 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     ADD_NEW_CONFIG("addNewConfig"),
     ADD_NEW_CONFIG_EXPECTED("addNewConfigExpected"),
     REMOVE_CONFIG("removeConfig"),
+    RENAME_CONFIG("renameConfig"),
+    RENAME_CONFIG_EXPECTED("renameConfigExpected"),
     MANUAL_EXAMPLE315("gradleManual541-ex315"),
     MANUAL_EXAMPLE319("gradleManual541-ex319"),
     MANUAL_EXAMPLE321("gradleManual541-ex321"),
