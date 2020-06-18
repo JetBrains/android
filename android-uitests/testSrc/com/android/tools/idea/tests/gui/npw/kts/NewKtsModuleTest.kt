@@ -154,7 +154,7 @@ class NewKtsModuleTest {
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
-  // @Test b/159103915
+  @Test
   fun addNewJavaWearWithKtsModule() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
@@ -169,9 +169,6 @@ class NewKtsModuleTest {
       .chooseActivity("Blank Activity")
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
-
-    // HACK for b/159103915 - Not enough
-    guiTest.ideFrame().editor.open("wear/src/main/res/layout/activity_main.xml", EDITOR).select("(dark_grey)").typeText("purple_200")
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
