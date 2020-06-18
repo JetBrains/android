@@ -50,6 +50,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       .withNodeType(InspectorViewNodeType())
       .withContextMenu(::showPopup)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
+      .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
 
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet?.shortcuts

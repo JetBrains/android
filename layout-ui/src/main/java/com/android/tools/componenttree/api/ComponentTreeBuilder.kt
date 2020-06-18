@@ -24,6 +24,7 @@ import com.intellij.ui.TreeSpeedSearch
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.KeyStroke
+import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
@@ -52,6 +53,7 @@ class ComponentTreeBuilder {
   private var installTreeSearch = true
   private var isRootVisible = true
   private var showRootHandles = false
+  private var horizontalScrollbar = false
   private var componentName =  "componentTree"
 
   /**
@@ -95,18 +97,22 @@ class ComponentTreeBuilder {
   fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
 
   /**
-   * Don't show the root node
+   * Don't show the root node.
    */
   fun withHiddenRoot() = apply { isRootVisible = false }
 
   /**
-   * Show the expansion icon for the root
+   * Show the expansion icon for the root.
    */
   fun withExpandableRoot() = apply { showRootHandles = true }
 
+  /**
+   * Show an horizontal scrollbar if necessary.
+   */
+  fun withHorizontalScrollBar() = apply { horizontalScrollbar = true }
 
   /**
-   * Set the component name for UI tests
+   * Set the component name for UI tests.
    */
   fun withComponentName(name: String) = apply { componentName = name }
 
@@ -127,7 +133,8 @@ class ComponentTreeBuilder {
     keyStrokes.forEach {
       tree.registerActionKey(it.value.second, it.key, it.value.first, { true }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     }
-    val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER)
+    val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
+    val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
     return Triple(scrollPane, model, selectionModel)
   }
