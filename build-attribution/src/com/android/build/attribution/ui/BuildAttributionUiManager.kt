@@ -22,8 +22,15 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
+import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.data.BuildSummary
+import com.android.build.attribution.ui.data.ConfigurationUiData
+import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
+import com.android.build.attribution.ui.data.CriticalPathTasksUiData
+import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
@@ -41,12 +48,17 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.content.impl.ContentImpl
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 interface BuildAttributionUiManager : Disposable {
   fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String)
+  fun onBuildFailure(buildSessionId: String)
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun requestOpenTabWhenDataReady(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun hasDataToShow(): Boolean
@@ -120,23 +132,62 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
+  override fun onBuildFailure(buildSessionId: String) {
+    this.reportUiData = failedBuildReportData()
+    ApplicationManager.getApplication().invokeLater {
+      uiAnalytics.newReportSessionId(buildSessionId)
+      updateReportUI()
+    }
+  }
+
+  private fun failedBuildReportData(): BuildAttributionReportUiData {
+    return object : BuildAttributionReportUiData {
+      override val successfulBuild: Boolean
+        get() = false
+      override val buildSummary: BuildSummary
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val criticalPathTasks: CriticalPathTasksUiData
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val criticalPathPlugins: CriticalPathPluginsUiData
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val issues: List<TaskIssuesGroup>
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val configurationTime: ConfigurationUiData
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val annotationProcessors: AnnotationProcessorsReport
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+    }
+  }
+
   @UiThread
   private fun updateReportUI() {
-    createNewView()
-    buildContent?.takeIf { it.isValid }?.apply { replaceContentView() } ?: run {
+    val content = buildContent
+    if (content != null && content.isValid) {
+      // Tab is open, replace UI for both successful and failed builds.
+      createNewView()
+      content.replaceContentView()
+    }
+    else if (reportUiData.successfulBuild) {
+      // Tab is closed, create new tab only in successful build case.
+      createNewView()
       createNewTab()
     }
   }
 
   private fun createNewView() {
-    buildAttributionView?.let { treeView -> Disposer.dispose(treeView) }
-    val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-    buildAttributionView = if (StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.get()) {
-      NewViewComponentContainer(reportUiData, issueReporter, uiAnalytics)
+    buildAttributionView?.let { existingView -> Disposer.dispose(existingView) }
+    if (reportUiData.successfulBuild) {
+      val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
+      buildAttributionView = if (StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.get()) {
+        NewViewComponentContainer(reportUiData, issueReporter, uiAnalytics)
+      }
+      else {
+        BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
+          .also { newView -> newView.setInitialSelection() }
+      }
     }
     else {
-      BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
-        .also { newView -> newView.setInitialSelection() }
+      buildAttributionView = BuildFailureViewComponentContainer()
     }
   }
 
@@ -200,7 +251,7 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized
+  override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized && this.reportUiData.successfulBuild
 
   override fun dispose() = cleanUp()
 }
@@ -221,6 +272,24 @@ private class NewViewComponentContainer(
   override fun getPreferredFocusableComponent(): JComponent = component
 
   override fun getComponent(): JComponent = view.wholePanel
+
+  override fun dispose() = Unit
+}
+
+private class BuildFailureViewComponentContainer : ComponentContainer {
+
+  override fun getPreferredFocusableComponent(): JComponent = component
+
+  override fun getComponent(): JComponent = JPanel().apply {
+    layout = BorderLayout(5, 5)
+    name = "Build failure empty view"
+    border = JBUI.Borders.empty(20)
+    add(JLabel(warningIcon()).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
+    add(htmlTextLabelWithFixedLines("""
+      The Build Analyzer isn't able to analyze your build as the most recent build failed.<br>
+      Please address any warnings in the Build Output window and rebuild your project.<br>
+    """.trimIndent()), BorderLayout.CENTER)
+  }
 
   override fun dispose() = Unit
 }

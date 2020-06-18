@@ -210,12 +210,11 @@ class CpuCaptureParserTest {
   @Test
   fun parsingArtFilesShouldProduceCpuCapture() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
-    val futureCapture = parser.parseForTest(
-      CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), CpuCaptureParser.IMPORTED_TRACE_ID)
+    val futureCapture = parser.parseForTest(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), 234)
 
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
-    assertThat(capture.traceId).isEqualTo(CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(capture.traceId).isEqualTo(234)
     // ART capture should be dual clock
     assertThat(capture.isDualClock).isTrue()
     assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.ART)
@@ -225,11 +224,11 @@ class CpuCaptureParserTest {
   fun parsingSimpleperfFilesShouldProduceCpuCapture() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
     val futureCapture = parser.parseForTest(
-      CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), CpuCaptureParser.IMPORTED_TRACE_ID)
+      CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), 123)
 
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
-    assertThat(capture.traceId).isEqualTo(CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(capture.traceId).isEqualTo(123)
     // Simpleperf capture should not be dual clock
     assertThat(capture.isDualClock).isFalse()
     assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
@@ -242,7 +241,7 @@ class CpuCaptureParserTest {
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
 
-    val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    val futureCapture = parser.parseForTest(traceFile)
     assertThat(futureCapture.isCompletedExceptionally).isTrue()
     try {
       futureCapture.get()
@@ -263,7 +262,7 @@ class CpuCaptureParserTest {
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace")
 
-    val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    val futureCapture = parser.parseForTest(traceFile)
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
@@ -277,7 +276,7 @@ class CpuCaptureParserTest {
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
-    val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    val futureCapture = parser.parseForTest(traceFile)
     assertThat(futureCapture.isCompletedExceptionally).isTrue()
     try {
       futureCapture.get()
@@ -300,7 +299,7 @@ class CpuCaptureParserTest {
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     // Now set a process select callback to return a process
-    val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    val futureCapture = parser.parseForTest(traceFile)
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
@@ -315,7 +314,7 @@ class CpuCaptureParserTest {
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
     services.setListBoxOptionsIndex(-1)
-    val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID, nameHint = "surfaceflinger")
+    val futureCapture = parser.parseForTest(traceFile, nameHint = "surfaceflinger")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
@@ -330,7 +329,7 @@ class CpuCaptureParserTest {
 
     services.applicationId = "displayingbitmaps"
     services.setListBoxOptionsIndex(0)
-    val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID, nameHint = "displayingbitmaps")
+    val futureCapture = parser.parseForTest(traceFile, nameHint = "displayingbitmaps")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
 
     val capture = futureCapture.get()
@@ -408,7 +407,7 @@ class CpuCaptureParserTest {
     val parser = CpuCaptureParser(services)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
-    parser.parseForTest(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), CpuCaptureParser.IMPORTED_TRACE_ID).get()
+    parser.parseForTest(CpuProfilerTestUtils.getTraceFile("valid_trace.trace")).get()
     assertThat(fakeFeatureTracker.lastImportTraceStatus).isTrue()
     assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNotNull()
   }
@@ -430,19 +429,6 @@ class CpuCaptureParserTest {
     parser.parseForTest(
       CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), traceId = 100, idHint = 33).get()
     assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
-  }
-
-  @Test
-  fun importedTracesAreNotCached() {
-    CpuCaptureParser.clearPreviouslyLoadedCaptures()
-    val parser = CpuCaptureParser(FakeIdeProfilerServices())
-
-    val traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace")
-
-    val firstFuture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
-    assertThat(parser.getCapture(CpuCaptureParser.IMPORTED_TRACE_ID)).isNull()
-    val secondFuture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
-    assertThat(firstFuture).isNotSameAs(secondFuture)
   }
 
   /**

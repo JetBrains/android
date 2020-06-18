@@ -24,7 +24,7 @@ import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
@@ -402,7 +402,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   @Nullable
   @Override
   protected String getHelpId() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/debug/index.html";
+    return AndroidWebHelpProvider.HELP_PREFIX + "studio/debug/index.html";
   }
 
   @Override

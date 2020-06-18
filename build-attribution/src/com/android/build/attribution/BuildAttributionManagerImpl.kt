@@ -77,6 +77,7 @@ class BuildAttributionManagerImpl(
 
   override fun onBuildFailure() {
     analyzersWrapper.onBuildFailure()
+    BuildAttributionUiManager.getInstance(project).onBuildFailure(UUID.randomUUID().toString())
   }
 
   override fun statusChanged(event: ProgressEvent?) {

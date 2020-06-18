@@ -34,6 +34,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.transform
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
@@ -69,7 +70,7 @@ class TableController(
 ) : DatabaseInspectorController.TabController {
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
-  private var orderBy: OrderBy? = null
+  private var orderBy: OrderBy = OrderBy.NotOrdered
   private var rowOffset = 0
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
@@ -247,32 +248,41 @@ class TableController(
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {
-      if (orderBy != null && orderBy!!.column == viewColumn) {
-        orderBy = OrderBy(viewColumn, !orderBy!!.asc)
-      } else {
-        orderBy = OrderBy(viewColumn, true)
+      orderBy = orderBy.nextState(viewColumn)
+
+      val order = when(orderBy) {
+        is OrderBy.Asc -> "ASC"
+        is OrderBy.Desc -> "DESC"
+        is OrderBy.NotOrdered -> ""
       }
 
-      val order = if (orderBy!!.asc) "ASC" else "DESC"
-      val selectOrderByStatement = sqliteStatement.transform(SqliteStatementType.SELECT) {
-        "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
+      // TODO (b/157633844) move sqlite code into repository
+      val selectOrderByStatement = when (orderBy) {
+        is OrderBy.Asc, is OrderBy.Desc -> sqliteStatement.transform(SqliteStatementType.SELECT) {
+          "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(viewColumn.name)} $order"
+        }
+        is OrderBy.NotOrdered -> sqliteStatement
       }
 
       Disposer.dispose(resultSet)
 
       view.startTableLoading()
-      databaseRepository.runQuery(databaseId, selectOrderByStatement).transform(edtExecutor) { newResultSet ->
-        if (Disposer.isDisposed(this@TableController)) {
-          newResultSet.dispose()
-          throw ProcessCanceledException()
+      databaseRepository
+        .runQuery(databaseId, selectOrderByStatement)
+        .transform(edtExecutor) { newResultSet ->
+          if (Disposer.isDisposed(this@TableController)) {
+            newResultSet.dispose()
+            throw ProcessCanceledException()
+          }
+
+          resultSet = newResultSet
+          Disposer.register(this@TableController, newResultSet)
+
+          rowOffset = 0
+          fetchAndDisplayTableData()
+        }.transform(edtExecutor) {
+          view.setColumnSortIndicator(orderBy)
         }
-
-        resultSet = newResultSet
-        Disposer.register(this@TableController, newResultSet)
-
-        rowOffset = 0
-        fetchAndDisplayTableData()
-      }
     }
 
     override fun cancelRunningStatementInvoked() {
@@ -358,8 +368,6 @@ class TableController(
         })
     }
   }
-
-  private data class OrderBy(val column: ViewColumn, val asc: Boolean)
 
   private fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map { it.toViewColumn(table) }
 

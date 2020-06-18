@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
@@ -33,9 +33,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -43,10 +46,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
@@ -59,12 +58,6 @@ public class CpuCaptureParser {
    */
   @VisibleForTesting
   static final int MAX_SUPPORTED_TRACE_SIZE = 1024 * 1024 * 100; // 100MB
-
-  /**
-   * Used as ID of imported traces. Importing a trace will happen once per session,
-   * so we can have an arbitrary ID as it's going to be unique within a session.
-   */
-  static final long IMPORTED_TRACE_ID = 42L;
 
   /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
@@ -95,7 +88,7 @@ public class CpuCaptureParser {
   /**
    * Metadata associated with parsing a capture.
    */
-  private Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
+  private final Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
 
   /**
    * If an entry exist we have already published metrics for the loaded capture. We use a static set because
@@ -202,11 +195,7 @@ public class CpuCaptureParser {
           new ProcessTraceAction(traceFile, traceId, preferredProfilerType, processIdHint, processNameHint, myServices),
           myServices.getPoolExecutor())
         .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace), myServices.getMainExecutor());
-
-    // Currently we cannot cache imported traces because all of them shares the same id.
-    if (traceId != IMPORTED_TRACE_ID) {
-      myCaptures.put(traceId, cpuCapture);
-    }
+    myCaptures.put(traceId, cpuCapture);
     return cpuCapture;
   }
 

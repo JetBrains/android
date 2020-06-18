@@ -69,7 +69,7 @@ class BuildEventsAnalyzersProxy(
   pluginContainer: PluginContainer
 ) : BuildEventsAnalysisResult {
   private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
-  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
+  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer(warningsFilter)

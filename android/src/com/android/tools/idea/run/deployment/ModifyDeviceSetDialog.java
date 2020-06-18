@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.CommonBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
@@ -94,9 +95,10 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   private void initOkAction() {
-    if (myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
-      myOKAction.setEnabled(false);
-      myOKAction.putValue(Action.NAME, "Run");
+    // Undo what happened in createDefaultActions below if we're using the new multiple devices UI
+    if (!myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
+      myOKAction.setEnabled(true);
+      myOKAction.putValue(Action.NAME, CommonBundle.getOkButtonText());
     }
   }
 
@@ -124,6 +126,18 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
 
     panel.setLayout(layout);
     return panel;
+  }
+
+  // TODO Remove this when we remove StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED
+  @Override
+  protected void createDefaultActions() {
+    super.createDefaultActions();
+
+    // Default to the old multiple devices UI. I'd do that depending on the myRunOnMultipleDevicesActionEnabledGet field (and not have
+    // initOkAction) but the field is null at this point because this method is called by DialogWrapper before the field is initialized. I
+    // could suck it up and statically reference the flag instead but I still think that mutating static state in tests is the greater evil.
+    myOKAction.setEnabled(false);
+    myOKAction.putValue(Action.NAME, "Run");
   }
 
   @Override

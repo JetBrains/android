@@ -45,6 +45,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
@@ -88,6 +89,7 @@ class TableControllerTest : LightPlatformTestCase() {
   private val mockDatabaseId = SqliteDatabaseId.fromLiveDatabase("mock", 1)
 
   private lateinit var authorIdColumn: ResultSetSqliteColumn
+  private lateinit var authorNameColumn: ResultSetSqliteColumn
   private lateinit var authorsRow1: SqliteRow
   private lateinit var authorsRow2: SqliteRow
   private lateinit var authorsRow4: SqliteRow
@@ -113,7 +115,7 @@ class TableControllerTest : LightPlatformTestCase() {
     )
 
     authorIdColumn = ResultSetSqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
-    val authorNameColumn = SqliteColumn("first_name", SqliteAffinity.TEXT, true, false)
+    authorNameColumn = ResultSetSqliteColumn("first_name", SqliteAffinity.TEXT, true, false)
     val authorLastColumn = SqliteColumn("last_name", SqliteAffinity.TEXT, true, false)
 
     authorsRow1 = SqliteRow(
@@ -478,9 +480,9 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).setRowOffset(0)
-    orderVerifier.verify(tableView).updateRows(emptyList())
-    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).toCellUpdates())
     orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
@@ -1433,11 +1435,48 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
-    orderVerifier.verify(tableView).updateRows(emptyList())
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorIdColumn.toViewColumn()))
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Asc(authorIdColumn.toViewColumn()))
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).toCellUpdates())
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.NotOrdered)
+    orderVerifier.verify(tableView).updateRows(emptyList())
+  }
+
+  fun testSortOnNewColumn() {
+    // Prepare
+    tableController = TableController(
+      project,
+      2,
+      tableView,
+      realDatabaseId,
+      { sqliteTable },
+      databaseRepository,
+      SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorNameColumn.toViewColumn())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorIdColumn.toViewColumn()))
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorNameColumn.toViewColumn()))
+    orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
   fun testSortOnSortedQuery() {
@@ -1460,10 +1499,16 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn.toViewColumn())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(emptyList())
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).toCellUpdates())
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
   }
 
   fun testUpdateCellUpdatesView() {
