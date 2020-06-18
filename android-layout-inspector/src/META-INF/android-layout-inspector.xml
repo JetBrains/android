@@ -28,7 +28,7 @@
               implementationClass="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType" fieldName="INSTANCE"/>
     <projectService serviceInterface="com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService"
       serviceImplementation="com.android.tools.idea.editors.layoutInspector.impl.AndroidLayoutInspectorServiceImpl" />
-    <notificationWhitelist groupIds="Layout Inspector"/>
+    <notificationAllowlist groupIds="Layout Inspector"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorEditor$NewVersionNotificationProvider"/>
   </extensions>
 
