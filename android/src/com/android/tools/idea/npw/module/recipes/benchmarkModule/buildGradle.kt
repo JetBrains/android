@@ -17,6 +17,7 @@
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
@@ -29,7 +30,8 @@ fun buildGradle(
   minApi: String,
   targetApiString: String,
   language: Language,
-  gradlePluginVersion: GradlePluginVersion
+  gradlePluginVersion: GradlePluginVersion,
+  useGradleKts: Boolean
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
@@ -46,7 +48,7 @@ fun buildGradle(
 
   val releaseBlock = renderIf(isNewAGP) {
     """
-      
+
     release {
       isDefault = true
     }
@@ -61,10 +63,10 @@ android {
     $buildToolsVersionBlock
 
     compileOptions {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
-    
+
     $kotlinOptionsBlock
 
     defaultConfig {
@@ -95,5 +97,5 @@ dependencies {
     // https://developer.android.com/studio/projects/android-library#Convert
 
 }
-"""
+""".gradleToKtsIfKts(useGradleKts)
 }

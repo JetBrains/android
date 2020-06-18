@@ -17,9 +17,11 @@ package com.android.tools.idea.npw.benchmark
 
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor.MOBILE
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
@@ -51,6 +53,14 @@ class ConfigureBenchmarkModuleStep(
     row {
       labelFor("Minimum SDK:", apiLevelCombo)
       apiLevelCombo()
+    }
+
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      verticalGap()
+
+      row {
+        gradleKtsCheck()
+      }
     }
   }
 
