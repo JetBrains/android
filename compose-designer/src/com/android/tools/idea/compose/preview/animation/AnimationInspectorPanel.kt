@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.preview.animation.AnimationInspectorPanel.TransitionDurationTimeline
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.intellij.openapi.Disposable
@@ -33,13 +33,22 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.awt.BasicStroke
 import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Rectangle
 import java.time.Duration
+import java.util.Dictionary
+import java.util.Hashtable
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.SwingConstants
+import javax.swing.border.LineBorder
+import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.memberFunctions
 
@@ -156,6 +165,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     init {
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
       add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
+      // TODO(b/157895086): divide timeline and animated properties panel using a horizontal splitter
       add(createAnimatedPropertiesPanel(), TabularLayout.Constraint(1, 0))
     }
 
@@ -219,12 +229,12 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     private inner class GoToStartAction
       : AnActionButton(message("animation.inspector.action.go.to.start"), StudioIcons.LayoutEditor.Motion.GO_TO_START) {
       override fun actionPerformed(e: AnActionEvent) {
-        timeline.value = 0
+        timeline.jumpToStart()
       }
 
       override fun updateButton(e: AnActionEvent) {
         super.updateButton(e)
-        e.presentation.isEnabled = timeline.value > 0
+        e.presentation.isEnabled = !timeline.isAtStart()
       }
     }
 
@@ -234,12 +244,12 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     private inner class GoToEndAction
       : AnActionButton(message("animation.inspector.action.go.to.end"), StudioIcons.LayoutEditor.Motion.GO_TO_END) {
       override fun actionPerformed(e: AnActionEvent) {
-        timeline.value = timeline.maximum
+        timeline.jumpToEnd()
       }
 
       override fun updateButton(e: AnActionEvent) {
         super.updateButton(e)
-        e.presentation.isEnabled = timeline.value < timeline.maximum
+        e.presentation.isEnabled = !timeline.isAtEnd()
       }
     }
   }
@@ -257,8 +267,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       ControllableTicker({
                            if (isPlaying) {
                              // TODO(b/157895086): remove the long -> int cast when the timeline panel is not a JSlider anymore.
-                             timeline.value += tickPeriod.toMillis().toInt()
-                             if (timeline.value >= timeline.maximum) {
+                             timeline.incrementBy(tickPeriod.toMillis().toInt())
+                             if (timeline.isAtEnd()) {
                                pause()
                              }
                            }
@@ -302,17 +312,35 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    *  Timeline panel ranging from 0 to the max duration of the animations being inspected, listing all the animations and their
    *  corresponding range as well. The timeline should respond to mouse commands, allowing users to jump to specific points, scrub it, etc.
    *
-   *  TODO(b/157896171): duration should be obtained from the animation, not hard coded.
-   *  TODO(b/157895086): The slider is a placeholder. The actual UI component is more complex and will be done in a future pass.
+   *  TODO(b/157895086): Polish the UI, e.g. fixing the "trailing" effect when dragging the slider.
    */
-  private inner class TransitionDurationTimeline : JSlider(0, 10000, 0) {
+  private inner class TransitionDurationTimeline : JPanel(BorderLayout()) {
 
     var cachedVal = -1
 
+    // TODO(b/157896171): duration should be obtained from the animation, not hard coded.
+    val duration = 10000
+
+    private val slider = object: JSlider(0, duration, 0) {
+      override fun updateUI() {
+        setUI(TimelineSliderUI())
+        updateLabelUIs()
+      }
+    }.apply {
+      setPaintTicks(true)
+      setPaintLabels(true)
+      setMajorTickSpacing(duration / 5)
+      setUI(TimelineSliderUI())
+      setLabelTable(createMsLabelTable(getLabelTable()))
+    }
+
     init {
-      addChangeListener {
-        if (this.value == cachedVal) return@addChangeListener // Ignore repeated values
-        val newValue = this.value
+      border = LineBorder(JBColor.border())
+
+      add(slider, BorderLayout.CENTER)
+      slider.addChangeListener {
+        if (slider.value == cachedVal) return@addChangeListener // Ignore repeated values
+        val newValue = slider.value
         cachedVal = newValue
 
         if (clock != null && setAnimationClockFunction != null) {
@@ -322,6 +350,88 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
           return@addChangeListener
         }
       }
+    }
+
+    fun incrementBy(increment: Int) {
+      slider.value += increment
+    }
+
+    fun jumpToStart() {
+      slider.value = 0
+    }
+
+    fun jumpToEnd() {
+      slider.value = slider.maximum
+    }
+
+    fun isAtStart() = slider.value == 0
+
+    fun isAtEnd() = slider.value == slider.maximum
+
+    /**
+     * Rewrite the labels by adding a `ms` suffix indicating the values are in milliseconds.
+     */
+    private fun createMsLabelTable(table: Dictionary<*, *>): Hashtable<Any, JBLabel> {
+      val keys = table.keys()
+      val labelTable = Hashtable<Any, JBLabel>()
+      while (keys.hasMoreElements()) {
+        val key = keys.nextElement()
+        labelTable[key] = JBLabel("$key ms")
+      }
+      return labelTable
+    }
+
+    /**
+     * Modified [JSlider] UI to simulate a timeline-like view. In general lines, the following modifications are made:
+     *   * The horizontal track is hidden, so only the vertical thumb is shown
+     *   * The vertical thumb is a vertical line that matches the parent height
+     *   * The tick lines also match the parent height
+     */
+    private inner class TimelineSliderUI : BasicSliderUI(slider) {
+
+      override fun getThumbSize(): Dimension {
+        val originalSize = super.getThumbSize()
+        return if (slider.parent == null) originalSize else Dimension(originalSize.width, slider.parent.height - labelsAndTicksHeight())
+      }
+
+      override fun calculateTickRect() {
+        // Make the vertical tick lines cover the entire panel.
+        tickRect.x = thumbRect.x
+        tickRect.y = thumbRect.y
+        tickRect.width = thumbRect.width
+        tickRect.height = thumbRect.height + labelsAndTicksHeight()
+      }
+
+      override fun calculateLabelRect() {
+        super.calculateLabelRect()
+        // Correct the label rect, so the tick rect overlaps with it.
+        labelRect.y -= labelsAndTicksHeight()
+      }
+
+      override fun paintTrack(g: Graphics) {
+        // Track should not be painted.
+      }
+
+      override fun paintFocus(g: Graphics?) {
+        // BasicSliderUI paints a dashed rect around the slider when it's focused. We shouldn't paint anything.
+      }
+
+      override fun paintThumb(g: Graphics) {
+        g as Graphics2D
+        // TODO(b/157895086): Define a color for the thumb.
+        g.color = selectionBackground
+        g.stroke = BasicStroke(3f)
+        // TODO(b/157895086): The X position is slightly shifted to the left. Centralize it with the tick marks.
+        g.drawLine(thumbRect.x, thumbRect.y, thumbRect.x, thumbRect.height + labelsAndTicksHeight());
+      }
+
+      override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
+        g as Graphics2D
+        g.color = JBColor.border()
+        g.drawLine(x, tickRect.y, x, tickRect.height);
+      }
+
+      private fun labelsAndTicksHeight() = tickLength + heightOfTallestLabel
     }
   }
 }
