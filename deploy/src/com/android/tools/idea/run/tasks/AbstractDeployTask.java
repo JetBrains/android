@@ -17,12 +17,15 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.Installer;
+import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -32,6 +35,8 @@ import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Stopwatch;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -96,14 +101,14 @@ public abstract class AbstractDeployTask implements LaunchTask {
     LogWrapper logger = new LogWrapper(LOG);
 
     // Collection that will accumulate metrics for the deployment.
-    ArrayList<DeployMetric> metrics = new ArrayList<>();
+    MetricsRecorder metrics = new MetricsRecorder();
     // VM clock timestamp used to snap metric times to wall-clock time.
     long vmClockStartNs = System.nanoTime();
     // Wall-clock start time for the deployment.
     long wallClockStartMs = System.currentTimeMillis();
 
     AdbClient adb = new AdbClient(device, logger);
-    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics, logger);
+    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger);
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
@@ -117,7 +122,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
       List<File> apkFiles = entry.getValue();
       try {
         Deployer.Result result = perform(device, deployer, applicationId, apkFiles);
-        addSubTaskDetails(metrics, vmClockStartNs, wallClockStartMs);
+        addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
+        logAgentFailures(metrics.getAgentFailures());
         if (result.skippedInstall) {
           idsSkippedInstall.add(applicationId);
         }
@@ -187,6 +193,26 @@ public abstract class AbstractDeployTask implements LaunchTask {
         mySubTaskDetails.add(detail.build());
       }
     }
+  }
+
+  private void logAgentFailures(List<Deploy.AgentExceptionLog> agentExceptionLogs) {
+    for (Deploy.AgentExceptionLog log : agentExceptionLogs) {
+      UsageTracker.log(toStudioEvent(log));
+    }
+  }
+
+  private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {
+    ApplyChangesAgentError.AgentPurpose purpose = ApplyChangesAgentError.AgentPurpose.forNumber(log.getAgentPurposeValue());
+    ApplyChangesAgentError.Builder builder = ApplyChangesAgentError.newBuilder()
+      .setEventTimeMs(TimeUnit.MILLISECONDS.convert(log.getEventTimeNs(), TimeUnit.NANOSECONDS))
+      .setAgentAttachTimeMs(TimeUnit.MILLISECONDS.convert(log.getAgentAttachTimeNs(), TimeUnit.NANOSECONDS))
+      .setAgentAttachCount(log.getAgentAttachCount())
+      .setAgentPurpose(purpose);
+    log.getFailedClassesList().stream().map(ApplyChangesAgentError.TargetClass::valueOf).forEach(builder::addTargetClasses);
+    return AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+      .setKind(AndroidStudioEvent.EventKind.APPLY_CHANGES_AGENT_ERROR)
+      .setApplyChangesAgentError(builder);
   }
 
   @Override
