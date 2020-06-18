@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
@@ -96,7 +97,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     DisposerExplorer.visitTree(disposable -> {
       if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
           disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
-          (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
+          (disposable instanceof ProjectEx && (((ProjectEx)disposable).isDefault() || ((ProjectEx)disposable).isLight())) ||
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
           disposable.toString().startsWith("services of " + ApplicationImpl.class.getName()) ||
           disposable instanceof Application ||

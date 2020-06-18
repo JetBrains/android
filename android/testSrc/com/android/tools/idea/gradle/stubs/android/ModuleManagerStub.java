@@ -19,15 +19,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.impl.ModuleEx;
 import com.intellij.openapi.module.impl.ModuleManagerImpl;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Stub implementation of {@link ModuleManagerImpl} for tests.
  */
-public class ModuleManagerStub extends ModuleManagerImpl {
-
+public final class ModuleManagerStub extends ModuleManagerImpl {
   private Module[] myModules;
 
   public ModuleManagerStub(Project project, Module[] modules) {

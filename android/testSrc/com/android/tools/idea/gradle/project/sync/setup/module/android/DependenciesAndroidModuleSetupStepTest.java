@@ -49,7 +49,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link DependenciesAndroidModuleSetupStep}.
  */
-public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
+public class DependenciesAndroidModuleSetupStepTest extends HeavyPlatformTestCase {
   @Mock private DependenciesExtractor myDependenciesExtractor;
   @Mock private AndroidModuleDependenciesSetup myDependenciesSetup;
 

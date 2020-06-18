@@ -56,7 +56,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -67,7 +67,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link PostSyncProjectSetup}.
  */
-public class PostSyncProjectSetupTest extends PlatformTestCase {
+public class PostSyncProjectSetupTest extends HeavyPlatformTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
