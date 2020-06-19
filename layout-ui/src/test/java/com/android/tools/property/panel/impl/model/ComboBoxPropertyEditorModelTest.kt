@@ -250,7 +250,7 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testFocusLossWillUpdateValue() {
     // setup
-    val (model, listener) = createModelWithListener(createEnumSupport())
+    val model = createModel()
     model.focusGained()
     model.text = "#333333"
 
@@ -258,7 +258,6 @@ class ComboBoxPropertyEditorModelTest {
     model.focusLost()
     assertThat(model.hasFocus).isFalse()
     assertThat(model.property.value).isEqualTo("#333333")
-    verify(listener).valueChanged()
   }
 
   @Test
