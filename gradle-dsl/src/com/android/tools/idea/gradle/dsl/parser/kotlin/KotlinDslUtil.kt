@@ -806,7 +806,11 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
     val psiElement: PsiElement =
       when (oldName.node.elementType) {
         IDENTIFIER -> factory.createNameIdentifierIfPossible(newName)
-        STRING_TEMPLATE -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+        STRING_TEMPLATE -> when {
+          element.parent is DependenciesDslElement && KTS_KNOWN_CONFIGURATIONS.contains(newName) ->
+            factory.createExpressionIfPossible(newName)
+          else -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+        }
         ARRAY_ACCESS_EXPRESSION -> when {
           newName.startsWith("ext.") -> {
             // TODO(b/148769031): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.
