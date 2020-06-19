@@ -65,7 +65,6 @@ class AndroidTestSuiteDetailsViewTest {
   fun setAndroidTestResultsShouldUpdateUiComponents() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
     view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
-
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
     assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className.methodName")
@@ -85,6 +84,22 @@ class AndroidTestSuiteDetailsViewTest {
   }
 
   @Test
+  fun setAndroidTestResultsWithNoMethodName() {
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, ""))
+
+    assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className")
+  }
+
+  @Test
+  fun setAndroidTestResultsWithNoClassName() {
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, "", "", ""))
+
+    assertThat(view.titleTextViewForTesting.text).isEqualTo("Test Results")
+  }
+
+  @Test
   fun clickOnCloseButtonShouldInvokeListener() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
 
@@ -93,11 +108,14 @@ class AndroidTestSuiteDetailsViewTest {
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  private fun createTestResults(testCaseResult: AndroidTestCaseResult?): AndroidTestResults {
+  private fun createTestResults(testCaseResult: AndroidTestCaseResult?,
+                                methodName: String = "methodName",
+                                className: String = "className",
+                                packageName: String = "packageName"): AndroidTestResults {
     return object: AndroidTestResults {
-      override val methodName: String = "methodName"
-      override val className: String = "className"
-      override val packageName: String = "packageName"
+      override val methodName: String = methodName
+      override val className: String = className
+      override val packageName: String = packageName
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult ?: AndroidTestCaseResult.SCHEDULED
       override fun getTestResultSummaryText(): String = ""

@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -124,10 +125,24 @@ class AndroidTestResultsTableViewTest {
 
     // No test cases are finished yet.
     assertThat(table.getTableViewForTesting().rowCount).isEqualTo(5)
-    assertThat(table.getTableViewForTesting().getItem(2).methodName).isEqualTo("method1")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(table.getTableViewForTesting().getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(table.getTableViewForTesting().getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
-    assertThat(table.getTableViewForTesting().getItem(4).methodName).isEqualTo("method2")
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package2.class2.")
+    assertThat(table.getTableViewForTesting().getItem(3).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package2.class2.method2")
+    assertThat(table.getTableViewForTesting().getItem(4).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
 
@@ -135,8 +150,19 @@ class AndroidTestResultsTableViewTest {
     testcase1OnDevice1.result = AndroidTestCaseResult.PASSED
     testcase2OnDevice1.result = AndroidTestCaseResult.FAILED
 
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
     assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
     assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
 
@@ -147,6 +173,64 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
     assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
+  }
+
+  @Test
+  fun addTestResultsWithLogcat() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", logcat="logcatA"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", logcat="logcatB"))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", logcat="logcatC"))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", logcat="logcatD"))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", logcat="logcatE"))
+    table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", logcat="logcatF"))
+
+    assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device1)).isEqualTo("logcatA\nlogcatB\nlogcatC")
+    assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device1)).isEqualTo("logcatA\nlogcatB")
+    assertThat(table.getTableViewForTesting().getItem(2).getLogcat(device1)).isEqualTo("logcatA")
+    assertThat(table.getTableViewForTesting().getItem(3).getLogcat(device1)).isEqualTo("logcatB")
+    assertThat(table.getTableViewForTesting().getItem(4).getLogcat(device1)).isEqualTo("logcatC")
+    assertThat(table.getTableViewForTesting().getItem(5).getLogcat(device1)).isEqualTo("logcatC")
+
+    assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device2)).isEqualTo("logcatD\nlogcatE\nlogcatF")
+    assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device2)).isEqualTo("logcatD\nlogcatE")
+    assertThat(table.getTableViewForTesting().getItem(2).getLogcat(device2)).isEqualTo("logcatD")
+    assertThat(table.getTableViewForTesting().getItem(3).getLogcat(device2)).isEqualTo("logcatE")
+    assertThat(table.getTableViewForTesting().getItem(4).getLogcat(device2)).isEqualTo("logcatF")
+    assertThat(table.getTableViewForTesting().getItem(5).getLogcat(device2)).isEqualTo("logcatF")
+  }
+
+  @Test
+  fun addTestResultsWithBenchmark() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", benchmark="benchmarkA"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark="benchmarkB"))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark="benchmarkC"))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", benchmark="benchmarkD"))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark="benchmarkE"))
+    table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark="benchmarkF"))
+
+    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device1)).isEqualTo("benchmarkA\nbenchmarkB\nbenchmarkC")
+    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device1)).isEqualTo("benchmarkA\nbenchmarkB")
+    assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device1)).isEqualTo("benchmarkA")
+    assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device1)).isEqualTo("benchmarkB")
+    assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device1)).isEqualTo("benchmarkC")
+    assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device1)).isEqualTo("benchmarkC")
+
+    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device2)).isEqualTo("benchmarkD\nbenchmarkE\nbenchmarkF")
+    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device2)).isEqualTo("benchmarkD\nbenchmarkE")
+    assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device2)).isEqualTo("benchmarkD")
+    assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device2)).isEqualTo("benchmarkE")
+    assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device2)).isEqualTo("benchmarkF")
+    assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device2)).isEqualTo("benchmarkF")
   }
 
   @Test

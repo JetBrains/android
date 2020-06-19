@@ -189,14 +189,24 @@ public class DetailsViewContentView {
             AndroidDeviceKt.getName(myAndroidDevice)));
           break;
 
-        case FAILED:
-          myTestResultLabel.setText(String.format(
-            Locale.US,
-            "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
-            Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse(""),
-            ColorUtil.toHtmlColor(statusColor),
-            AndroidDeviceKt.getName(myAndroidDevice)));
+        case FAILED: {
+          String errorMessage = Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse("");
+          if (StringUtil.isEmptyOrSpaces(errorMessage)) {
+            myTestResultLabel.setText(String.format(
+              Locale.US,
+              "<html><font color='%s'>Failed</font> on %s</html>",
+              ColorUtil.toHtmlColor(statusColor),
+              AndroidDeviceKt.getName(myAndroidDevice)));
+          } else {
+            myTestResultLabel.setText(String.format(
+              Locale.US,
+              "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
+              errorMessage,
+              ColorUtil.toHtmlColor(statusColor),
+              AndroidDeviceKt.getName(myAndroidDevice)));
+          }
           break;
+        }
 
         case SKIPPED:
           myTestResultLabel.setText(String.format(

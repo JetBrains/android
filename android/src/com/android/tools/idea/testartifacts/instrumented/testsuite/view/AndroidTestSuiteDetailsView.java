@@ -20,8 +20,8 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -170,7 +170,13 @@ public class AndroidTestSuiteDetailsView {
     if (myTestResults == null) {
       return;
     }
-    myTitleText.setText(AndroidTestResultsKt.getFullTestCaseName(myTestResults));
+    if (!Strings.isNullOrEmpty(myTestResults.getMethodName())) {
+      myTitleText.setText(AndroidTestResultsKt.getFullTestCaseName(myTestResults));
+    } else if (!Strings.isNullOrEmpty(myTestResults.getClassName())) {
+      myTitleText.setText(AndroidTestResultsKt.getFullTestClassName(myTestResults));
+    } else {
+      myTitleText.setText("Test Results");
+    }
     myTitleText.setIcon(AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestResultSummary()));
     myTitleText.setMinimumSize(new Dimension());
 
