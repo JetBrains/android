@@ -384,12 +384,11 @@ public class NlComponent implements NlAttributesHolder {
       transferNamespaces(this);
       prefix = IdeResourcesUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
     }
-    String previous = getAttribute(namespace, attribute);
-    if (Objects.equals(previous, value)) {
-      return;
+    String previous = myBackend.getAttribute(attribute, namespace);
+    if (!Objects.equals(previous, value)) {
+      // Handle validity
+      myBackend.setAttribute(attribute, namespace, value);
     }
-    // Handle validity
-    myBackend.setAttribute(attribute, namespace, value);
     TagSnapshot snapshot = mySnapshot;
     if (snapshot != null) {
       snapshot.setAttribute(attribute, namespace, prefix, value);
