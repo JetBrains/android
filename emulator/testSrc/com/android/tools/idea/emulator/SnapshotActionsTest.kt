@@ -148,7 +148,7 @@ class SnapshotActionsTest {
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, testRootDisposable, false)
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }
