@@ -266,13 +266,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     // If the call expression has no name, we don't know how to handle it.
     var referenceName = expression.name() ?: return
 
-    if (parent is DependenciesDslElement) {
-      // There is an extension method on String.invoke() in KotlinScript dependencies.  (Meant to be used to add dependencies to
-      // configurations which are not predefined set, but would in principle work for all configurations)
-      referenceName = unquoteString(referenceName);
-    }
-
-    val referenceExpression = expression.referenceExpression()
+    val referenceExpression = expression.calleeExpression
     var name =
       if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
 

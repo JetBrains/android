@@ -1998,6 +1998,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
 
     assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("implementation");
     artifacts.get(0).setConfigurationName("customImplementation");
 
     applyChangesAndReparse(buildModel);
@@ -2006,6 +2007,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artifacts = buildModel.dependencies().artifacts();
     assertThat(artifacts).hasSize(1);
     assertThat(artifacts.get(0).configurationName()).isEqualTo("customImplementation");
+  }
+
+  @Test
+  public void testSetConfigurationToStandard() throws IOException {
+    writeToBuildFile(TestFile.SET_CONFIGURATION_TO_STANDARD);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+
+    assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("customImplementation");
+    artifacts.get(0).setConfigurationName("implementation");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_CONFIGURATION_TO_STANDARD_EXPECTED);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("implementation");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
@@ -2130,6 +2149,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_CONFIGURATION_TO_EMPTY("setConfigurationToEmpty"),
     SET_CONFIGURATION_TO_NON_STANDARD("setConfigurationToNonStandard"),
     SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED("setConfigurationToNonStandardExpected"),
+    SET_CONFIGURATION_TO_STANDARD("setConfigurationToStandard"),
+    SET_CONFIGURATION_TO_STANDARD_EXPECTED("setConfigurationToStandardExpected"),
     SET_VERSION_REFERENCE("setVersionReference"),
     SET_VERSION_REFERENCE_EXPECTED("setVersionReferenceExpected"),
     SET_EXCLUDES_BLOCK_TO_REFERENCES("setExcludesBlockToReferences"),
