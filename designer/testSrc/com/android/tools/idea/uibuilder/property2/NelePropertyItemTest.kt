@@ -53,7 +53,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
-import com.android.tools.idea.uibuilder.property2.testutils.MinApiLayoutTestCase
+import com.android.tools.idea.uibuilder.MinApiLayoutTestCase
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
