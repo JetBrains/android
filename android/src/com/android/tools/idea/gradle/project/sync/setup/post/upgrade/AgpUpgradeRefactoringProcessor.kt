@@ -545,19 +545,20 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
 
+    fun computeReplacementName(name: String, compileReplacement: String): String? {
+      return when {
+        name == "compile" -> compileReplacement
+        name.endsWith("Compile") -> name.removeSuffix("Compile").appendCapitalized(compileReplacement)
+        name == "runtime" -> "runtimeOnly"
+        name.endsWith("Runtime") -> "${name}Only"
+        else -> null
+      }
+    }
+
     fun maybeAddUsageForDependency(dependency: DependencyModel, compileReplacement: String, psiElement: PsiElement) {
       val configuration = dependency.configurationName()
-      when {
-        configuration == "compile" -> usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, compileReplacement))
-        configuration.endsWith("Compile") -> {
-          val replacement = configuration.removeSuffix("Compile").appendCapitalized(compileReplacement)
-          usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, replacement))
-        }
-        configuration == "runtime" -> usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, "runtimeOnly"))
-        configuration.endsWith("Runtime") -> {
-          val replacement = configuration.removeSuffix("Runtime") + ("RuntimeOnly")
-          usages.add(ObsoleteConfigurationUsageInfo(psiElement, current, new, dependency, replacement))
-        }
+      computeReplacementName(configuration, compileReplacement)?.let {
+        usages.add(ObsoleteConfigurationDependencyUsageInfo(psiElement, current, new, dependency, it))
       }
     }
 
@@ -611,7 +612,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun getCommandName(): String = "Replace deprecated configurations"
 }
 
-class ObsoleteConfigurationUsageInfo(
+class ObsoleteConfigurationDependencyUsageInfo(
   element: PsiElement,
   current: GradleVersion,
   new: GradleVersion,
@@ -626,7 +627,7 @@ class ObsoleteConfigurationUsageInfo(
 
   // Don't need hashCode() because this is stricter than the superclass method.
   override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is ObsoleteConfigurationUsageInfo &&
+    return super.equals(other) && other is ObsoleteConfigurationDependencyUsageInfo &&
            dependency == other.dependency && newConfigurationName == other.newConfigurationName
   }
 }
