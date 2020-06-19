@@ -21,7 +21,6 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludeP
 /**
  * A collection of includes that represents a single logical package that has multiple include folders.
  *
- *
  * Visually, it will be a folder structure like this in the Android Project View:
  *
  * <pre>

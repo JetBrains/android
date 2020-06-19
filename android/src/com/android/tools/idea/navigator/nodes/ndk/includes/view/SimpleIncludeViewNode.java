@@ -42,17 +42,16 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 /**
- * A view class over SimpleIncludeExpressions. This is a basic single include folder.
+ * A view class over {@link SimpleIncludeValue}. This is a basic single include folder.
  */
 final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
 
-  SimpleIncludeViewNode(@NotNull VirtualFile buildFileFolder,
-                                  @NotNull SimpleIncludeValue thisInclude,
-                                  @NotNull IncludeSet allIncludes,
-                                  boolean showPackageType,
-                                  @Nullable Project project,
-                                  @NotNull ViewSettings viewSettings) {
-    super(buildFileFolder, thisInclude, allIncludes, showPackageType, project, viewSettings);
+  SimpleIncludeViewNode(@NotNull SimpleIncludeValue thisInclude,
+                        @NotNull IncludeSet allIncludes,
+                        boolean showPackageType,
+                        @Nullable Project project,
+                        @NotNull ViewSettings viewSettings) {
+    super(thisInclude, allIncludes, showPackageType, project, viewSettings);
   }
 
   @NotNull

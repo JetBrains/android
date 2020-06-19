@@ -29,7 +29,6 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import java.util.List;
 import java.util.Objects;
@@ -37,25 +36,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A base view class over ClassifiedIncludeExpression.
+ * A base view class over {@link ClassifiedIncludeValue}.
  *
- * @param <T> The concrete type of ClassifiedIncludeExpression
+ * @param <T> The concrete type of {@link ClassifiedIncludeValue}
  */
 public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends ProjectViewNode<T> implements FolderGroupNode {
-  @NotNull protected final VirtualFile myBuildFileFolder;
   private String myDescription;
   private int myHashCode;
   @NotNull protected final IncludeSet myIncludeFolders;
   protected final boolean myShowPackageType;
 
-  protected IncludeViewNode(@NotNull VirtualFile buildFileFolder,
-                            @NotNull T thisInclude,
+  protected IncludeViewNode(@NotNull T thisInclude,
                             @NotNull IncludeSet allIncludes,
                             boolean showPackageType,
                             @Nullable Project project,
                             @NotNull ViewSettings viewSettings) {
     super(project, thisInclude, viewSettings);
-    this.myBuildFileFolder = buildFileFolder;
     this.myIncludeFolders = allIncludes;
     this.myShowPackageType = showPackageType;
   }
@@ -70,20 +66,19 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
    * @param viewSettings    The Android Studio view settings
    * @return the new view node
    */
-  public static IncludeViewNode createIncludeView(@NotNull VirtualFile buildFileFolder,
-                                                  @NotNull ClassifiedIncludeValue thisInclude,
+  public static IncludeViewNode createIncludeView(@NotNull ClassifiedIncludeValue thisInclude,
                                                   @NotNull IncludeSet allIncludes,
                                                   boolean showPackageType,
                                                   @Nullable Project project,
                                                   @NotNull ViewSettings viewSettings) {
     if (thisInclude instanceof SimpleIncludeValue) {
-      return new SimpleIncludeViewNode(buildFileFolder, (SimpleIncludeValue)thisInclude, allIncludes, showPackageType, project, viewSettings);
+      return new SimpleIncludeViewNode((SimpleIncludeValue)thisInclude, allIncludes, showPackageType, project, viewSettings);
     }
     if (thisInclude instanceof PackageValue) {
-      return new PackagingViewNode(buildFileFolder, allIncludes, project, (PackageValue)thisInclude, viewSettings, showPackageType);
+      return new PackagingViewNode(allIncludes, project, (PackageValue)thisInclude, viewSettings, showPackageType);
     }
     if (thisInclude instanceof PackageFamilyValue) {
-      return new PackagingFamilyViewNode(buildFileFolder, allIncludes, project, (PackageFamilyValue)thisInclude, viewSettings,
+      return new PackagingFamilyViewNode(allIncludes, project, (PackageFamilyValue)thisInclude, viewSettings,
                                          showPackageType);
     }
     throw new RuntimeException(thisInclude.getClass().toString());
@@ -113,7 +108,7 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
       StringBuilder sb = new StringBuilder();
       writeDescription(createPresentationDataWrapper(sb));
       myDescription = sb.toString();
-      myHashCode = Objects.hash(myBuildFileFolder, myDescription);
+      myHashCode = Objects.hash(myDescription);
     }
   }
 
@@ -146,7 +141,7 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
     }
     IncludeViewNode that = (IncludeViewNode) object;
     lazyInitializeHashCodeAndDescription();
-    return Objects.equals(this.myBuildFileFolder, that.myBuildFileFolder) && Objects.equals(this.myDescription, that.myDescription);
+    return Objects.equals(this.myDescription, that.myDescription);
   }
 
   @Override
