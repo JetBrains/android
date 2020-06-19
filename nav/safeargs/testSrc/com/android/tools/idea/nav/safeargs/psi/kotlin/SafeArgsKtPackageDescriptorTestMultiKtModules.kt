@@ -21,6 +21,7 @@ import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -54,7 +55,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
   }
 
   /**
-   * Check contributed descriptors when resolving base app module.
+   * Check contributed descriptors for base app and library module by providing fully qualified package names
    *
    * Test Project structure:
    * base app module(safe arg mode is on) --> lib dep module(safe arg mode is on)
@@ -62,22 +63,34 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
   @Test
   fun multiModuleTest() {
     projectRule.requestSyncAndWait()
-    val appModule = fixture.project.findAppModule()
-    val moduleDescriptor = appModule.toDescriptor()
 
-    val classesMetadata = moduleDescriptor!!
+    // check contents for app module
+    val appModule = fixture.project.findAppModule()
+    val appModuleDescriptor = appModule.toDescriptor()
+
+    val classesMetadataInApp = appModuleDescriptor!!
       .getPackage(FqName("com.example.myapplication"))
       .memberScope
       .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
-    assertThat(classesMetadata.map { it.fqcn to it.file }).containsExactly(
-      "com.example.myapplication.FirstFragmentArgs" to "nav_graph.xml",
-      "com.example.mylibrary.FirstFragmentArgs" to "libnav_graph.xml",
-      "com.example.myapplication.FirstFragmentDirections" to "nav_graph.xml",
-      "com.example.mylibrary.FirstFragmentDirections" to "libnav_graph.xml",
+    assertThat(classesMetadataInApp.map { it.fqcn to it.file }).containsExactly(
       "com.example.myapplication.SecondFragmentArgs" to "nav_graph.xml",
+      "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml"
+    )
+
+    // check contents for library module
+    val libModule = fixture.project.findModule("mylibrary")
+    val libModuleDescriptor = libModule.toDescriptor()
+
+    val classesMetadataInLib = libModuleDescriptor!!
+      .getPackage(FqName("com.example.mylibrary"))
+      .memberScope
+      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+
+    assertThat(classesMetadataInLib.map { it.fqcn to it.file }).containsExactly(
+      "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
+      "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
       "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
-      "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml",
       "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
     )
   }

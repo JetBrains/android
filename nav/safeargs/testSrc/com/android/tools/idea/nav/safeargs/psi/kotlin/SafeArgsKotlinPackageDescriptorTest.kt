@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgSyntheticPackageProvider
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
@@ -65,7 +65,7 @@ class SafeArgsKotlinPackageDescriptorTest {
           </fragment>
           <fragment
               android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
+              android:name="test.safeargs.sub1.Fragment2"
               android:label="Fragment2" >
             <argument
                 android:name="arg2"
@@ -98,20 +98,27 @@ class SafeArgsKotlinPackageDescriptorTest {
       trace = traceMock,
       moduleInfo = moduleSourceInfo,
       lookupTracker = LookupTracker.DO_NOTHING
-    ) as SafeArgSyntheticPackageProvider
+    ) as SafeArgsSyntheticPackageProvider
 
-    val classesMetadata = fragmentProvider
+    // Check contents for Fragment1
+    val classesMetadata1 = fragmentProvider
       .getPackageFragments(FqName("test.safeargs"))
-      .first()
-      .getMemberScope()
-      .classesInScope()
+      .flatMap { it.getMemberScope().classesInScope() }
 
-    assertThat(classesMetadata.map { it.toString() }).containsExactly(
+    assertThat(classesMetadata1.map { it.toString() }).containsExactly(
       "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
       "test.safeargs.Fragment1Directions",
-      "test.safeargs.Fragment2Args: androidx.navigation.NavArgs",
-      "test.safeargs.Fragment2Directions",
       "test.safeargs.MainDirections"
+    )
+
+    // Check contents for Fragment2
+    val classesMetadata2 = fragmentProvider
+      .getPackageFragments(FqName("test.safeargs.sub1"))
+      .flatMap { it.getMemberScope().classesInScope() }
+
+    assertThat(classesMetadata2.map { it.toString() }).containsExactly(
+      "test.safeargs.sub1.Fragment2Args: androidx.navigation.NavArgs",
+      "test.safeargs.sub1.Fragment2Directions"
     )
   }
 }

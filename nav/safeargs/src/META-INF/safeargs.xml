@@ -18,7 +18,7 @@
     <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
-    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors" />
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService" />
     <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
     <projectService
         serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
