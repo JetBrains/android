@@ -179,6 +179,7 @@ class EmulatorToolWindowManagerTest {
 
     assertThat(toolWindow.isVisible).isTrue()
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.size == 2 }
     // There should be no panel for emulator1.
     assertThat(contentManager.contents).hasLength(1)
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator2.avdName)
