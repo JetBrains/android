@@ -22,27 +22,27 @@ package com.android.tools.idea.rendering.classloading;
  */
 @SuppressWarnings("ConstantConditions")
 public class PrimitiveTypeRemapper {
-  public static float remapFloat(Object thisObject, String methodName, float value) {
-    return (Float)ConstantRemapperManager.remapAny(thisObject, methodName, value);
+  public static float remapFloat(Object source, boolean isStatic, String methodName, float value) {
+    return (Float)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
   }
 
-  public static double remapDouble(Object thisObject, String methodName, double value) {
-    return (Double)ConstantRemapperManager.remapAny(thisObject, methodName, value);
+  public static double remapDouble(Object source, boolean isStatic, String methodName, double value) {
+    return (Double)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
   }
 
-  public static short remapShort(Object thisObject, String methodName, short value) {
-    return (Short)ConstantRemapperManager.remapAny(thisObject, methodName, value);
+  public static short remapShort(Object source, boolean isStatic, String methodName, short value) {
+    return (Short)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
   }
 
-  public static int remapInt(Object thisObject, String methodName, int value) {
-    return (Integer)ConstantRemapperManager.remapAny(thisObject, methodName, value);
+  public static int remapInt(Object source, boolean isStatic, String methodName, int value) {
+    return (Integer)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
   }
 
-  public static long remapLong(Object thisObject, String methodName, long value) {
-    return (Long)ConstantRemapperManager.remapAny(thisObject, methodName, value);
+  public static long remapLong(Object source, boolean isStatic, String methodName, long value) {
+    return (Long)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
   }
 
-  public static char remapChar(Object thisObject, String methodName, char value) {
-    return (Character)ConstantRemapperManager.remapAny(thisObject, methodName, value);
+  public static char remapChar(Object source, boolean isStatic, String methodName, char value) {
+    return (Character)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
   }
 }

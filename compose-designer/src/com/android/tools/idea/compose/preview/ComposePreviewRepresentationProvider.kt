@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
+import com.android.tools.idea.compose.preview.actions.LiveLiteralsAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
@@ -97,7 +98,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
           }.visibleOnlyInComposeStaticPreview()
         }
         else null
-      }
+      },
+      StudioFlags.COMPOSE_LIVE_LITERALS.ifEnabled { LiveLiteralsAction() }?.visibleOnlyInComposeStaticPreview()
     )
   )
 

@@ -13,11 +13,14 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
+import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
@@ -125,6 +128,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * of this class as well to find classes
    */
   private final WeakReference<Module> myModuleReference;
+  /**
+   * Modification count used to track the [ConstantRemapper] modifications. If this does not match the current count, the class loader is
+   * out of date since new transformations might be needed.
+   */
+  private final long myConstantRemapperModificationCount;
 
   /**
    * Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader
@@ -163,6 +171,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
+    myConstantRemapperModificationCount = ConstantRemapperManager.INSTANCE.getConstantRemapper().getModificationCount();
 
     registerResources(module);
   }
