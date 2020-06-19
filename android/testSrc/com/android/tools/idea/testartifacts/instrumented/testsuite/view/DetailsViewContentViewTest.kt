@@ -78,7 +78,17 @@ class DetailsViewContentViewTest {
     view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
     view.setAndroidDevice(device("device id", "device name"))
     assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font size='+1'></font><br><font color='#b81708'>Failed</font> on device name</html>")
+      "<html><font color='#b81708'>Failed</font> on device name</html>")
+  }
+
+  @Test
+  fun testResultLabelOnFailingWithErrorStackTrace() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
+    view.setAndroidDevice(device("device id", "device name"))
+    view.setErrorStackTrace("ErrorStackTrace")
+    assertThat(view.myTestResultLabel.text).isEqualTo(
+      "<html><font size='+1'>ErrorStackTrace</font><br><font color='#b81708'>Failed</font> on device name</html>")
   }
 
   @Test

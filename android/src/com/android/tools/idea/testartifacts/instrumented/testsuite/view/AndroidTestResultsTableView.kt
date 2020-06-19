@@ -625,7 +625,7 @@ private class AndroidTestResultsRow(override val methodName: String,
 private class AggregationRow(override val packageName: String = "",
                              override val className: String = "") : AndroidTestResults, DefaultMutableTreeNode() {
   override val methodName: String = ""
-  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
+  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = getResultStats(device).getSummaryResult()
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
   override fun getTestResultSummaryText(): String {
     val stats = getResultStats()
@@ -641,8 +641,34 @@ private class AggregationRow(override val packageName: String = "",
       (result as? AndroidTestResults)?.getResultStats(device)?.plus(acc) ?: acc
     }?:AndroidTestResultStats()
   }
-  override fun getLogcat(device: AndroidDevice): String = ""
+  override fun getLogcat(device: AndroidDevice): String {
+    return children?.fold("") { acc, result ->
+      val logcat = (result as? AndroidTestResults)?.getLogcat(device)
+      if (logcat.isNullOrBlank()) {
+        acc
+      } else {
+        if (acc.isBlank()) {
+          logcat
+        } else {
+          "${acc}\n${logcat}"
+        }
+      }
+    }?:""
+  }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
-  override fun getBenchmark(device: AndroidDevice): String = ""
+  override fun getBenchmark(device: AndroidDevice): String {
+    return children?.fold("") { acc, result ->
+      val benchmark = (result as? AndroidTestResults)?.getBenchmark(device)
+      if (benchmark.isNullOrBlank()) {
+        acc
+      } else {
+        if (acc.isBlank()) {
+          benchmark
+        } else {
+          "${acc}\n${benchmark}"
+        }
+      }
+    }?:""
+  }
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
 }
