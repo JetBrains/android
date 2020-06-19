@@ -54,15 +54,19 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchorConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
+import com.intellij.util.ArrayUtil;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -123,6 +127,11 @@ public class WidgetConstraintModel implements SelectionListener {
     {ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_START},
     {ATTR_LAYOUT_MARGIN_TOP},
     {ATTR_LAYOUT_MARGIN_BOTTOM},
+  };
+
+  private static final String[] ourMarginStringPriorToMinApi17 = {
+    ATTR_LAYOUT_MARGIN_LEFT,
+    ATTR_LAYOUT_MARGIN_RIGHT,
   };
 
   private static final String[][] ourDeleteAttributes_ltr = {
@@ -286,6 +295,11 @@ public class WidgetConstraintModel implements SelectionListener {
     commit();
   });
 
+  @TestOnly
+  Timer getTimer() {
+    return myTimer;
+  }
+
   protected void commit() {
     if (myModification != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -353,10 +367,23 @@ public class WidgetConstraintModel implements SelectionListener {
     }
     boolean rtl = ConstraintUtilities.isInRTL(myComponent);
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
+    int myMinSdkVersion = getMinSdkVersion();
 
     for (int i = 0; i < marginsAttr[type].length; i++) {
-      setDimension(marginsAttr[type][i], margin);
+      String attr = marginsAttr[type][i];
+      if (myMinSdkVersion < RtlSupportProcessor.RTL_TARGET_SDK_START || !ArrayUtil.contains(attr, ourMarginStringPriorToMinApi17)) {
+        setDimension(attr, margin);
+      }
     }
+  }
+
+  /**
+   * Return the min sdk API level. Default to 17 (RTL_TARGET_SDK_START) if not found.
+   */
+  private int getMinSdkVersion() {
+    AndroidFacet facet = myModel != null ? myModel.getFacet() : null;
+    AndroidModuleInfo info = facet != null ? AndroidModuleInfo.getInstance(facet) : null;
+    return info != null ? info.getMinSdkVersion().getApiLevel() : RtlSupportProcessor.RTL_TARGET_SDK_START;
   }
 
   /**
