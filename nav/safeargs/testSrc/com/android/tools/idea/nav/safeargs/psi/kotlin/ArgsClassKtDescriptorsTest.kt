@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgSyntheticPackageProvider
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
@@ -81,13 +81,11 @@ class ArgsClassKtDescriptorsTest {
       trace = traceMock,
       moduleInfo = moduleSourceInfo,
       lookupTracker = LookupTracker.DO_NOTHING
-    ) as SafeArgSyntheticPackageProvider
+    ) as SafeArgsSyntheticPackageProvider
 
     val classMetadata = fragmentProvider
       .getPackageFragments(FqName("test.safeargs"))
-      .first()
-      .getMemberScope()
-      .classesInScope()
+      .flatMap { it.getMemberScope().classesInScope() }
       .first()
 
     assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
