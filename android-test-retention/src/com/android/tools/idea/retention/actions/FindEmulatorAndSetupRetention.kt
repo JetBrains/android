@@ -124,6 +124,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
                 return
               }
               indicator.fraction = LOAD_SNAPSHOT_FRACTION
+              LOG.info("Snapshot loaded.")
               ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
             }
             catch (exception: Throwable) {
@@ -186,6 +187,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
             })
             currentSession.pause()
             ProgressIndicatorUtils.awaitWithCheckCanceled(pauseSignal)
+            LOG.info("Ready for debugging.")
           }
         }
       })
