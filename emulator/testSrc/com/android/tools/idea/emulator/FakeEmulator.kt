@@ -80,6 +80,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import javax.imageio.ImageIO
 import kotlin.math.roundToInt
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
@@ -92,6 +93,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
   private val registration: String
   private val registrationFile = registrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
+  private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
   private var grpcServer = createGrpcServer()
   private val lifeCycleLock = Object()
   private var startTime = 0L
@@ -99,13 +101,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
-  @Volatile private var clipboardInternal = ""
-  var clipboard
-    get() = clipboardInternal
+  private var clipboardInternal = AtomicReference("")
+  var clipboard: String
+    get() = clipboardInternal.get()
     set(value) {
-      clipboardInternal = value
-      val observer = clipboardStreamObserver ?: return
-      sendStreamingResponse(observer, ClipData.newBuilder().setText(value).build())
+      val oldValue = clipboardInternal.getAndSet(value)
+      if (value != oldValue) {
+        executor.execute {
+          clipboardStreamObserver?.let { sendStreamingResponse(it, ClipData.newBuilder().setText(value).build()) }
+        }
+      }
     }
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
 
@@ -185,8 +190,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun createGrpcServer(): Server {
-    val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
-
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
         .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
         .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
@@ -299,7 +302,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun setClipboard(request: ClipData, responseObserver: StreamObserver<Empty>) {
       executor.execute {
-        clipboardInternal = request.text
+        clipboardInternal.set(request.text)
         sendEmptyResponse(responseObserver)
       }
     }
@@ -307,7 +310,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     override fun streamClipboard(request: Empty, responseObserver: StreamObserver<ClipData>) {
       executor.execute {
         clipboardStreamObserver = responseObserver
-        val response = ClipData.newBuilder().setText(clipboardInternal).build()
+        val response = ClipData.newBuilder().setText(clipboardInternal.get()).build()
         sendStreamingResponse(responseObserver, response)
       }
     }

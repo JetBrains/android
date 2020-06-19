@@ -39,7 +39,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -286,7 +285,7 @@ class EmulatorViewTest {
     for (listener in view.focusListeners) {
       listener.focusGained(event)
     }
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    call = emulator.getNextGrpcCall(3, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
     assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
@@ -294,9 +293,7 @@ class EmulatorViewTest {
     call.waitForResponse(2, TimeUnit.SECONDS)
     emulator.clipboard = "device clipboard"
     call.waitForResponse(2, TimeUnit.SECONDS)
-    if (!SystemInfo.isWindows) { // For some unclear reason this check is flaky on Windows.
-      waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
-    }
+    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
   }
 
   @Test
@@ -360,7 +357,7 @@ class EmulatorViewTest {
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, testRootDisposable, false)
-    waitForCondition(3, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }
