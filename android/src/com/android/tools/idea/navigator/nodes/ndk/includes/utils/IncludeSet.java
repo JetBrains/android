@@ -17,15 +17,17 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.io.File;
-import java.util.stream.Collectors;
 
 /**
  * Represents a set of include folders in order with duplicates removed.
@@ -50,6 +52,7 @@ public class IncludeSet {
    * Given a GCC-style flag that may be an include flag, return the path to the referenced include.
    * If the flag should be taken from the next argument then return TAKE_NEXT_SENTINEL.
    */
+  @Nullable
   private static String analyzeFlagPattern(@NotNull String flag, @NotNull IncludeFlags checkFlag) {
     String check = checkFlag.myFlag;
     if (flag.equals("-" + check)) {
@@ -76,6 +79,7 @@ public class IncludeSet {
   /**
    * @return the list of includes in the order they were seen on the command-line.
    */
+  @NotNull
   public List<File> getIncludesInOrder() {
     return ContainerUtil.map(myIncludes, File::new);
   }
@@ -171,7 +175,7 @@ public class IncludeSet {
     if (!(obj instanceof IncludeSet)) {
       return false;
     }
-    IncludeSet that = (IncludeSet) obj;
+    IncludeSet that = (IncludeSet)obj;
     return Objects.equals(this.myIncludes, that.myIncludes);
   }
 
