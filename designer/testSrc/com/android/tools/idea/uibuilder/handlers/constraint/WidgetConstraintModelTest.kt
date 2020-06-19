@@ -22,7 +22,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito
+import java.awt.event.ActionEvent
 
 class WidgetConstraintModelTest: SceneTest() {
 
@@ -176,6 +178,32 @@ class WidgetConstraintModelTest: SceneTest() {
 
     myModel.notifyListenersModelDerivedDataChanged()
     assertThat(count).isAtLeast(1)
+  }
+
+  fun testSetLeftMarginMinApi16() {
+    val widgetModel = WidgetConstraintModel {}
+    val component = myModel.find("textView2")!!
+    widgetModel.component = component
+    widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
+    widgetModel.timer.stop()
+    widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)).isEqualTo("16dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
+  }
+
+  fun testSetLeftMarginMinApi17() {
+    val widgetModel = WidgetConstraintModel {}
+    val component = myModel.find("textView2")!!
+    widgetModel.component = component
+    widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
+    widgetModel.timer.stop()
+    widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)).isNull()
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
   }
 
   // To speed up the tests ignore all render requests
