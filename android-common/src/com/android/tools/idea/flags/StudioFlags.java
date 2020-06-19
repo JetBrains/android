@@ -977,6 +977,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_LIVE_LITERALS = Flag.create(
+    COMPOSE, "preview.live.literals",
+    "Enable the live literals",
+    "If enabled, the live literals feature is enabled",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",

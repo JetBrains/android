@@ -24,9 +24,12 @@ private const val COMPOSE_PACKAGE = "androidx.compose"
 /** Preview element name */
 const val COMPOSE_PREVIEW_ANNOTATION_NAME = "Preview"
 
+const val COMPOSABLE_ANNOTATION_NAME = "Composable"
+
+
 val COMPOSABLE_FQ_NAMES = setOf(
-  "androidx.compose.Composable",
-  "androidx.compose.runtime.Composable"
+  "androidx.compose.$COMPOSABLE_ANNOTATION_NAME",
+  "androidx.compose.runtime.$COMPOSABLE_ANNOTATION_NAME"
 )
 
 /**

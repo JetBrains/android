@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.android.tools.idea.editors.literals.LiteralUsageReference
 import com.android.tools.idea.run.util.StopWatch
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.Type
@@ -91,14 +93,29 @@ class LambdaTestClass : Receiver {
     }
     receiver(lambda())
   }
+}
 
+class StaticTestClass : Receiver {
+  override fun receive(receiver: (Any?) -> Unit) {
+    StaticBase.staticCall(receiver)
+  }
+
+  object StaticBase {
+    @JvmStatic
+    fun staticCall(receiver: (Any?) -> Unit) {
+      val s = "STATIC" + "VALUE"
+      receiver(s)
+    }
+  }
 }
 
 class LiveLiteralsTransformTest {
   /** [StringWriter] that stores the decompiled classes after they've been transformed. */
   private val afterTransformTrace = StringWriter()
+
   /** [StringWriter] that stores the decompiled classes before they've been transformed. */
   private val beforeTransformTrace = StringWriter()
+
   /** [StringWriter] all the constant accesses. */
   private val constantAccessTrace = StringWriter()
   private val constantAccessLogger = PrintWriter(constantAccessTrace)
@@ -137,7 +154,8 @@ class LiveLiteralsTransformTest {
       val classReader = ClassReader(testClassBytes)
       val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
       // Apply the live literals rewrite to all classes/methods
-      val liveLiteralsRewriter = LiveLiteralsTransform(TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))) { _, _ -> true }
+      val liveLiteralsRewriter = LiveLiteralsTransform(
+        TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))) { _, _ -> true }
       // Move the class
       val remapper = ClassRemapper(liveLiteralsRewriter, classNameRemapper)
       classReader.accept(TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)), ClassReader.EXPAND_FRAMES)
@@ -152,19 +170,24 @@ class LiveLiteralsTransformTest {
   @Before
   fun setup() {
     ConstantRemapperManager.setRemapper(object : ConstantRemapper {
-      override fun addConstant(classLoader: ClassLoader, className: String, methodName: String, initialValue: Any, newValue: Any) {
-        DefaultConstantRemapper.addConstant(classLoader, className, methodName, initialValue, newValue)
-      }
+      override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any) =
+        DefaultConstantRemapper.addConstant(classLoader, reference, initialValue, newValue)
 
-      override fun hasMethodDefined(className: String, methodName: String): Boolean =
-        DefaultConstantRemapper.hasMethodDefined(className, methodName)
+      override fun clearConstants(classLoader: ClassLoader?) = DefaultConstantRemapper.clearConstants(classLoader)
 
-      override fun remapConstant(thisObject: Any, methodName: String, initialValue: Any?): Any? {
-        val result = DefaultConstantRemapper.remapConstant(thisObject, methodName, initialValue)
-        constantAccessLogger.println("Access (${Type.getInternalName(thisObject.javaClass)}.$methodName, $initialValue) -> $result")
+      override fun remapConstant(source: Any?, isStatic: Boolean, methodName: String, initialValue: Any?): Any? {
+        val result = DefaultConstantRemapper.remapConstant(source, isStatic, methodName, initialValue)
+        val classType = normalizeClassName(source?.let {
+          if (isStatic)
+            Type.getInternalName(it as Class<*>)
+          else
+            Type.getInternalName(it.javaClass)
+        } ?: "<null>")
+        constantAccessLogger.println("Access ($classType.$methodName, $initialValue) -> $result")
         return result
       }
 
+      override fun getModificationCount(): Long = DefaultConstantRemapper.modificationCount
     })
   }
 
@@ -173,16 +196,26 @@ class LiveLiteralsTransformTest {
     ConstantRemapperManager.restoreDefaultRemapper()
   }
 
+  private fun usageReference(className: String, method: String? = null): LiteralUsageReference {
+    val normalizedMethodName = if (method.isNullOrEmpty())
+      "" // Omit method if not passed. This can happen in lambda invocations, we omit "invoke".
+    else
+      ".$method"
+    return LiteralUsageReference(
+      FqName("${normalizeClassName(className)}$normalizedMethodName"),
+      -1)
+  }
+
   @Test
   fun `regular top class instrumented successfully`() {
     val testClassLoader = setupTestClassLoader(mapOf("Test" to TestClass::class.java))
 
     DefaultConstantRemapper.addConstant(
-      testClassLoader, "Test", "<init>", "A1", "Remapped A1")
+      testClassLoader, usageReference("Test", "<init>"), "A1", "Remapped A1")
     DefaultConstantRemapper.addConstant(
-      testClassLoader, "Test", "<init>", 3.0f, 90f)
+      testClassLoader, usageReference("Test", "<init>"), 3.0f, 90f)
     DefaultConstantRemapper.addConstant(
-      testClassLoader, "Test", "<init>", "AV1", "Remapped AV1")
+      testClassLoader, usageReference("Test", "<init>"), "AV1", "Remapped AV1")
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
 
     val constantOutput = StringBuilder()
@@ -216,7 +249,7 @@ class LiveLiteralsTransformTest {
       ))
 
     DefaultConstantRemapper.addConstant(
-      testClassLoader, "Test${'$'}receive${'$'}lambda${'$'}1", "invoke", "LAMBDAVALUE", "Remapped")
+      testClassLoader, usageReference("Test${'$'}receive${'$'}lambda${'$'}1"), "LAMBDAVALUE", "Remapped")
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
 
     val constantOutput = StringBuilder()
@@ -241,11 +274,11 @@ class LiveLiteralsTransformTest {
       ))
 
     DefaultConstantRemapper.addConstant(
-      testClassLoader, newInnerClassName, "<init>", "IA3", "Remapped IA3")
+      testClassLoader, usageReference(newInnerClassName, "<init>"), "IA3", "Remapped IA3")
     DefaultConstantRemapper.addConstant(
-      testClassLoader, newOuterClassName, "<init>", 1024, 4201)
+      testClassLoader, usageReference(newOuterClassName, "<init>"), 1024, 4201)
     DefaultConstantRemapper.addConstant(
-      testClassLoader, newOuterClassName, "<init>", "OA1", "Remapped OA1")
+      testClassLoader, usageReference(newOuterClassName, "<init>"), "OA1", "Remapped OA1")
     val outerClassType = testClassLoader.load(newOuterClassName)
     val newOuterClassInstance = outerClassType.newInstance()
     val newTestClassInstance = testClassLoader.load(newInnerClassName)
@@ -267,6 +300,29 @@ class LiveLiteralsTransformTest {
       """.trimIndent(),
                  constantOutput.toString())
 
+  }
+
+  @Test
+  fun `check static is instrumented successfully`() {
+    val testClassLoader = setupTestClassLoader(
+      mapOf(
+        "Test" to StaticTestClass::class.java,
+        "Test${'$'}StaticBase" to StaticTestClass.StaticBase::class.java
+      ))
+
+    DefaultConstantRemapper.addConstant(
+      testClassLoader, usageReference("Test${'$'}StaticBase", "staticCall"), "STATICVALUE", "Remapped")
+    val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
+
+    val constantOutput = StringBuilder()
+    newTestClassInstance.receive {
+      constantOutput.append(it).append('\n')
+    }
+    assertEquals("""
+        Remapped
+
+      """.trimIndent(),
+                 constantOutput.toString())
   }
 
   private fun time(callback: () -> Unit): Duration {
@@ -291,7 +347,7 @@ class LiveLiteralsTransformTest {
     })
 
     val testClassLoader = setupTestClassLoader(mapOf("Test" to TestClass::class.java))
-    DefaultConstantRemapper.addConstant(testClassLoader, "Test", "<init>", "A1", "Remapped A1")
+    DefaultConstantRemapper.addConstant(testClassLoader, usageReference("Test", "<init>"), "A1", "Remapped A1")
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
 
     println(time {
