@@ -22,6 +22,10 @@ import com.android.SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION
 import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
@@ -81,6 +85,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -96,6 +101,9 @@ private val ERROR = EditingErrorCategory.ERROR
 class NelePropertyItemTest {
 
   @get:Rule
+  val testName = TestName()
+
+  @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
@@ -105,7 +113,7 @@ class NelePropertyItemTest {
 
   @Before
   fun setUp() {
-    MinApiLayoutTestCase.setUpManifest(projectRule.fixture)
+    MinApiLayoutTestCase.setUpManifest(projectRule.fixture, testName.methodName)
     projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("designer") + "/testData"
     projectRule.fixture.addFileToProject("/res/values/strings.xml", STRINGS)
     componentStack = ComponentStack(projectRule.project)
@@ -336,6 +344,30 @@ class NelePropertyItemTest {
     assertThat(design.isReference).isFalse()
     assertThat(design.resolvedValue).isEqualTo(HELLO_WORLD)
     assertThat(property.model.properties.getOrNull(TOOLS_URI, ATTR_TEXT) != null)
+  }
+
+  @Test
+  fun testSetMarginLeftMinApi16() {
+    val util = SupportTestUtil(projectRule, createTextView())
+    val textView = util.components.single()
+    val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NelePropertyType.STRING)
+    property.value = "16dp"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(property.value).isEqualTo("16dp")
+    assertThat(textView.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
+  }
+
+  @Test
+  fun testSetMarginRightMinApi16() {
+    val util = SupportTestUtil(projectRule, createTextView())
+    val textView = util.components.single()
+    val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NelePropertyType.STRING)
+    property.value = "16dp"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(property.value).isEqualTo("16dp")
+    assertThat(textView.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)).isEqualTo("16dp")
   }
 
   @Test
