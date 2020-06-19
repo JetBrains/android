@@ -294,6 +294,22 @@ class NelePropertyItemTest {
   }
 
   @Test
+  fun testSetValueChangesSnapshotValueImmediately() {
+    val util = SupportTestUtil(projectRule, createTextView())
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
+    val component = property.components.single()
+    property.value = HELLO_WORLD
+
+    // The value should immediately be available on the snapshot, which would eliminate flickering if the snapshot is available:
+    @Suppress("DEPRECATION")
+    assertThat(component.snapshot?.getAttribute(ATTR_TEXT, ANDROID_URI)).isEqualTo(HELLO_WORLD)
+
+    // However the XmlTag will not have this value before later:
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    assertThat(component.tag?.getAttributeValue(ATTR_TEXT, ANDROID_URI)).isEqualTo(HELLO_WORLD)
+  }
+
+  @Test
   fun testSetValueOnMultipleComponents() {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithDifferentTextValue())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)

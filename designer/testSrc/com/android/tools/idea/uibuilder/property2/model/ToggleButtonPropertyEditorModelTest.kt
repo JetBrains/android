@@ -63,7 +63,6 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     assertThat(model.property.value).isEqualTo(expected)
-    verify(listener).valueChanged()
   }
 
   private fun createTextView(propertyValue: String?): List<NlComponent> {

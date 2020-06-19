@@ -172,6 +172,10 @@ open class NelePropertiesModel(
     }
     val componentName = if (property.components.size == 1) property.components[0].tagName else "Multiple"
 
+    @Suppress("DEPRECATION")
+    property.components.forEach { it.snapshot?.setAttribute(property.name, property.namespace, null, newValue) }
+
+
     ApplicationManager.getApplication().invokeLater(Runnable {
       NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
