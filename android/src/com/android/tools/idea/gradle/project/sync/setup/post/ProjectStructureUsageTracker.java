@@ -24,9 +24,6 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.builder.model.NativeLibrary;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
@@ -37,6 +34,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleAndroidModule;
 import com.google.wireless.android.sdk.stats.GradleBuildDetails;
@@ -51,7 +49,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -159,11 +156,6 @@ public class ProjectStructureUsageTracker {
           }
           moduleName = AnonymizerUtil.anonymizeUtf8(ndkModel.getModuleName());
         }
-        else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
-          shouldReportNative = true;
-
-          buildSystemType = NDK_COMPILE;
-        }
         if (shouldReportNative) {
           GradleNativeAndroidModule.Builder nativeModule = GradleNativeAndroidModule.newBuilder();
           nativeModule.setModuleName(moduleName).setBuildSystemType(buildSystemType);
@@ -199,21 +191,6 @@ public class ProjectStructureUsageTracker {
       default:
         return UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
     }
-  }
-
-  private static boolean areNativeLibrariesPresent(@NotNull IdeAndroidProject androidProject) {
-    String modelVersion = androidProject.getModelVersion();
-    // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
-    if (modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1") || androidProject.getApiVersion() < 3) {
-      return false;
-    }
-    for (Variant variant : androidProject.getVariants()) {
-      Collection<NativeLibrary> nativeLibraries = variant.getMainArtifact().getNativeLibraries();
-      if (nativeLibraries != null && !nativeLibraries.isEmpty()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidModuleModel model) {

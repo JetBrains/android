@@ -43,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
-  @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
   @NotNull private IdeDependenciesStub myIdeLevel2DependenciesStub;
   @NotNull private String myApplicationId;
 
@@ -114,7 +113,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @Override
   @NotNull
   public Collection<NativeLibrary> getNativeLibraries() {
-    return myNativeLibraries;
+    return null;
   }
 
   /**
