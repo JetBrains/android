@@ -52,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +83,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   }
 
   @NotNull
-  private static IncludeSet distinctIncludes(@NotNull NativeIncludes nativeIncludes) {
+  private static List<File> distinctIncludes(@NotNull NativeIncludes nativeIncludes) {
     IncludeSet set = new IncludeSet();
 
     // Then include folders from the settings
@@ -101,7 +100,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
         set.addIncludesFromCompilerFlags(settings.getCompilerFlags(), workingDirectory);
       }
     }
-    return set;
+    return set.getIncludesInOrder();
   }
 
   /**
@@ -111,9 +110,9 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
     if (!LexicalIncludePaths.hasHeaderExtension(file.getName())) {
       return false;
     }
-    IncludeSet includeSet = distinctIncludes(includes);
+    Collection<File> includeSet = distinctIncludes(includes);
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    for (File include : includeSet.getIncludesInOrder()) {
+    for (File include : includeSet) {
       VirtualFile ancestor = fileSystem.findFileByIoFile(include);
       if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
         return true;
@@ -131,7 +130,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
-    Long startTime = System.currentTimeMillis();
+    long startTime = System.currentTimeMillis();
     try {
       return getChildrenImpl();
     }
@@ -153,9 +152,9 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
     if (project == null || GradleSyncState.getInstance(project).isSyncInProgress()) {
       return result;
     }
-    IncludeSet includeSet = distinctIncludes(myDependencyInfo);
+    Collection<File> includeSet = distinctIncludes(myDependencyInfo);
     List<SimpleIncludeValue> simpleIncludes = new ArrayList<>();
-    for (File includeFolder : includeSet.getIncludesInOrder()) {
+    for (File includeFolder : includeSet) {
       simpleIncludes.add(IncludeResolver
                            .getGlobalResolver(IdeSdks.getInstance().getAndroidNdkPath())
                            .resolve(includeFolder));

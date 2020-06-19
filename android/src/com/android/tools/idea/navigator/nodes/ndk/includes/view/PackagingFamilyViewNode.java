@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageFamilyValue;
-import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.intellij.ide.projectView.ViewSettings;
@@ -26,19 +28,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Presents a view over {@link PackageFamilyValue}. See class doc of {@link PackageFamilyValue} for more details. */
 public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue> {
-  protected PackagingFamilyViewNode(@NotNull IncludeSet includeFolders,
+  protected PackagingFamilyViewNode(@NotNull Collection<File> includeFolders,
                                     @Nullable Project project,
                                     @NotNull PackageFamilyValue include,
                                     @NotNull ViewSettings viewSettings,

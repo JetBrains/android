@@ -23,13 +23,14 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedInclu
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageFamilyValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
-import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -43,11 +44,11 @@ import org.jetbrains.annotations.Nullable;
 public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends ProjectViewNode<T> implements FolderGroupNode {
   private String myDescription;
   private int myHashCode;
-  @NotNull protected final IncludeSet myIncludeFolders;
+  protected final Collection<File> myIncludeFolders;
   protected final boolean myShowPackageType;
 
   protected IncludeViewNode(@NotNull T thisInclude,
-                            @NotNull IncludeSet allIncludes,
+                            Collection<File> allIncludes,
                             boolean showPackageType,
                             @Nullable Project project,
                             @NotNull ViewSettings viewSettings) {
@@ -67,7 +68,7 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
    * @return the new view node
    */
   public static IncludeViewNode createIncludeView(@NotNull ClassifiedIncludeValue thisInclude,
-                                                  @NotNull IncludeSet allIncludes,
+                                                  Collection<File> allIncludes,
                                                   boolean showPackageType,
                                                   @Nullable Project project,
                                                   @NotNull ViewSettings viewSettings) {
@@ -116,11 +117,14 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
    * The purpose of this function is to write the description of the node in the project tree. So this text as well as the icons and
    * other UI stuff that goes along with it:
    *
+   * <pre>
    *  app
    *    cpp
    *      includes
    *        NDK Components
+   * </pre>
    *
+   * <p>
    * In addition, this same text uniquely identifies the node inside the context of the Android.mk or CMakeLists.txt so it is used in
    * the hashCode function.
    */
@@ -139,7 +143,7 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
     if (object.getClass() != getClass()) {
       return false;
     }
-    IncludeViewNode that = (IncludeViewNode) object;
+    IncludeViewNode that = (IncludeViewNode)object;
     lazyInitializeHashCodeAndDescription();
     return Objects.equals(this.myDescription, that.myDescription);
   }
