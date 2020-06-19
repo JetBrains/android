@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
@@ -43,7 +44,8 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  private final Function<ClassVisitor, ClassVisitor> myTransformationProvider;
+  private final Function<ClassVisitor, ClassVisitor> myProjectClassesTransformationProvider;
+  private final Function<ClassVisitor, ClassVisitor> myNonProjectClassesTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
   @GuardedBy("myJarClassLoaderLock")
   private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
@@ -53,12 +55,31 @@ public abstract class RenderClassLoader extends ClassLoader {
    * Creates a new {@link RenderClassLoader}.
    *
    * @param parent the parent {@link ClassLoader}
+   * @param projectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
+   *                                             transformation. This transformation is only applied to classes from the user project.
+   * @param nonProjectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any
+   *                                                desired transformation. This transformation is applied to all classes except user
+   *                                                project classes.
+   */
+  public RenderClassLoader(@Nullable ClassLoader parent,
+                           @NotNull Function<ClassVisitor, ClassVisitor> projectClassesTransformationProvider,
+                           @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider) {
+    super(parent);
+    myProjectClassesTransformationProvider = projectClassesTransformationProvider;
+    myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
+  }
+
+
+  /**
+   * Creates a new {@link RenderClassLoader} with transformations that apply to both project and non project classes..
+   *
+   * @param parent the parent {@link ClassLoader}.
    * @param transformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
    *                               transformation.
    */
+  @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
-    super(parent);
-    myTransformationProvider = transformationProvider;
+    this(parent, transformationProvider, transformationProvider);
   }
 
   /**
@@ -67,7 +88,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    * @param parent the parent {@link ClassLoader}.
    */
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, Function.identity());
+    this(parent, Function.identity(), Function.identity());
   }
 
   protected abstract List<URL> getExternalJars();
@@ -110,7 +131,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
       }
-      byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
+      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
       return defineClassAndPackage(name, rewritten, 0, rewritten.length);
     }
     catch (IOException | ClassNotFoundException e) {
@@ -143,7 +164,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
+    byte[] rewritten = ClassConverter.rewriteClass(data, myProjectClassesTransformationProvider);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));

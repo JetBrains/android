@@ -85,7 +85,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
    * This way we avoid custom views breaking the rendering.
    */
-  private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = multiTransformOf(
+  private static final Function<ClassVisitor, ClassVisitor> PROJECT_DEFAULT_TRANSFORMS = multiTransformOf(
+    visitor -> new ViewMethodWrapperTransform(visitor),
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
+    visitor -> new ThreadLocalRenameTransform(visitor)
+  );
+
+  private static final Function<ClassVisitor, ClassVisitor> NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = multiTransformOf(
     visitor -> new ViewMethodWrapperTransform(visitor),
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
     visitor -> new ThreadLocalRenameTransform(visitor),
@@ -125,7 +131,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    super(parent, DEFAULT_TRANSFORMS);
+    super(parent, PROJECT_DEFAULT_TRANSFORMS, NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
 
