@@ -30,6 +30,11 @@ import static com.android.SdkConstants.TEXT_VIEW;
  * Check that connections to parent if referenced by an id still works, also check the display list sorted result.
  */
 public class ScoutArrangeTest2 extends SceneTest {
+
+  public ScoutArrangeTest2() {
+    super(false);
+  }
+
   @Override
   @NotNull
   public ModelBuilder createModel() {

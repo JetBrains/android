@@ -32,6 +32,11 @@ import static com.android.SdkConstants.*;
  * Check that connections to parent if referenced by an id still works, also check the display list sorted result.
  */
 public class ScoutConnectArrangeTest1 extends SceneTest {
+
+  public ScoutConnectArrangeTest1() {
+    super(false);
+  }
+
   @Override
   @NotNull
   public ModelBuilder createModel() {
