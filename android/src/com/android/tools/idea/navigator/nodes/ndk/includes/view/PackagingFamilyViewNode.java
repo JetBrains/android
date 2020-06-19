@@ -36,21 +36,14 @@ import java.util.List;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-/**
- * Presents a view over PackagingFamilyExpression. For example,
- *
- * NDK <- this class
- * STL <- an NDK module
- * Native App Glue <- another module
- */
+/** Presents a view over {@link PackageFamilyValue}. See class doc of {@link PackageFamilyValue} for more details. */
 public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue> {
-  protected PackagingFamilyViewNode(@NotNull VirtualFile buildFileFolder,
-                                    @NotNull IncludeSet includeFolders,
+  protected PackagingFamilyViewNode(@NotNull IncludeSet includeFolders,
                                     @Nullable Project project,
                                     @NotNull PackageFamilyValue include,
                                     @NotNull ViewSettings viewSettings,
                                     boolean showPackageType) {
-    super(buildFileFolder, include, includeFolders, showPackageType, project, viewSettings);
+    super(include, includeFolders, showPackageType, project, viewSettings);
   }
 
   @NotNull
@@ -66,7 +59,7 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
     List<AbstractTreeNode<?>> children = new ArrayList<>();
     PackageFamilyValue value = getPackageFamilyValue();
     for (ClassifiedIncludeValue child : value.myIncludes) {
-      children.add(createIncludeView(myBuildFileFolder, child, myIncludeFolders, false, getProject(), getSettings()));
+      children.add(createIncludeView(child, myIncludeFolders, false, getProject(), getSettings()));
     }
     return children;
   }

@@ -42,20 +42,14 @@ import java.util.List;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-/**
- * Presents a view over PackagingExpression. For example,
- *
- * CDep <- parent packaging family
- * protobuf <- this class
- */
+/** Presents a view over {@link PackageValue}. See the class doc of {@link PackageValue} for more details. */
 public class PackagingViewNode extends IncludeViewNode<PackageValue> {
-  protected PackagingViewNode(@NotNull VirtualFile buildFileFolder,
-                              @NotNull IncludeSet includeFolders,
+  protected PackagingViewNode(@NotNull IncludeSet includeFolders,
                               @Nullable Project project,
                               @NotNull PackageValue dependency,
                               @NotNull ViewSettings viewSettings,
                               boolean showPackageType) {
-    super(buildFileFolder, dependency, includeFolders, showPackageType, project, viewSettings);
+    super(dependency, includeFolders, showPackageType, project, viewSettings);
   }
 
   @NotNull
