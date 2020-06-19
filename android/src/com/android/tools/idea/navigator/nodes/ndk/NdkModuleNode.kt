@@ -81,7 +81,7 @@ fun getNativeSourceNodes(project: Project,
                          ndkModel: NdkModuleModel,
                          settings: ViewSettings): Collection<AbstractTreeNode<*>> {
   if (StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get()) {
-    return getContentRootBasedNativeNodes(project, ModuleManager.getInstance(project).findModuleByName(ndkModel.moduleName)!!, settings)
+    return getContentRootBasedNativeNodes(ModuleManager.getInstance(project).findModuleByName(ndkModel.moduleName)!!, settings)
   }
   else {
     return getLibraryBasedNativeNodes(ndkModel, project, settings)

@@ -16,22 +16,26 @@
 package com.android.tools.idea.navigator.nodes.ndk
 
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
+import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNodeV2
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiManager
 
 /** Gets nodes for project view and Android view populated by native content roots. */
-fun getContentRootBasedNativeNodes(project: Project,
-                                   module: Module,
+fun getContentRootBasedNativeNodes(module: Module,
                                    settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  // TODO(b/158040022): Add include node here after include paths are available from NdkModuleModel.
+  val project = module.project
   val sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(NativeSourceRootType)
   val psiManager = PsiManager.getInstance(project)
-  return sourceRoots.mapNotNull { sourceRoot -> psiManager.findDirectory(sourceRoot) }
-    .map { contentRootPsiDir -> PsiDirectoryNode(project, contentRootPsiDir, settings) }
+  val sourceRootPsiDirs = sourceRoots.mapNotNull { sourceRoot -> psiManager.findDirectory(sourceRoot) }
+
+  var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map { PsiDirectoryNode(project, it, settings) }
+  if (sourceRootNodes.size == 1) {
+    sourceRootNodes = sourceRootNodes.first().children
+  }
+  return sourceRootNodes + listOfNotNull(IncludesViewNodeV2.create(module, settings))
 }
 
