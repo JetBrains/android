@@ -38,7 +38,6 @@ import com.android.ide.common.gradle.model.IdeMavenCoordinates
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl
 import com.android.ide.common.gradle.model.IdeNativeArtifact
 import com.android.ide.common.gradle.model.IdeNativeFile
-import com.android.ide.common.gradle.model.IdeNativeLibrary
 import com.android.ide.common.gradle.model.IdeNativeSettings
 import com.android.ide.common.gradle.model.IdeNativeToolchain
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi
@@ -81,7 +80,6 @@ import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
 import com.android.ide.common.gradle.model.stubs.NativeAndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.NativeArtifactStub
 import com.android.ide.common.gradle.model.stubs.NativeFileStub
-import com.android.ide.common.gradle.model.stubs.NativeLibraryStub
 import com.android.ide.common.gradle.model.stubs.NativeSettingsStub
 import com.android.ide.common.gradle.model.stubs.NativeToolchainStub
 import com.android.ide.common.gradle.model.stubs.NativeVariantAbiStub
@@ -330,10 +328,6 @@ class ModelSerializationTest {
   @Test
   fun nativeFile() =
     assertSerializable { IdeNativeFile(NativeFileStub()) }
-
-  @Test
-  fun nativeLibrary() =
-    assertSerializable { IdeNativeLibrary(NativeLibraryStub()) }
 
   @Test
   fun nativeSettings() =
