@@ -286,7 +286,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertNotNull(baseDir);
     final File moduleFile = new File(toSystemDependentName(baseDir.getPath()), name + File.separatorChar + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
-    myFilesToDelete.add(moduleFile);
+    myFilesToDelete.add(moduleFile.toPath());
     return WriteAction.compute(() -> {
       VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
       assertNotNull(virtualFile);
