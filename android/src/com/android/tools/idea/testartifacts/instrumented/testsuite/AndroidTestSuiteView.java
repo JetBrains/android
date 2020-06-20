@@ -26,13 +26,11 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * A console view to display a test execution and result of Android instrumentation tests.
@@ -126,7 +124,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   public void scrollTo(int offset) { }
 
   @Override
-  public void attachToProcess(ProcessHandler processHandler) {
+  public void attachToProcess(@NotNull ProcessHandler processHandler) {
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY, this);
@@ -178,6 +176,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @Override
   public void allowHeavyFilters() { }
 
+  @NotNull
   @Override
   public JComponent getComponent() {
     return myRootPanel;
