@@ -58,7 +58,7 @@ public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWi
   @Override
   public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
-
+    toolWindow.setShowStripeButton(false);
     // When we initialize the ToolWindow we call to the profiler service to also make sure it is initialized.
     // The default behavior for intellij is to lazy load services so having this call here forces intellij to
     // load the AndroidProfilerService registering the data and callbacks required for initializing the profilers.
@@ -66,11 +66,6 @@ public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWi
     // we have something that impacts the TransportPipeline or should be done only once for X instances of
     // profilers or projects it will need to be handled there.
     AndroidProfilerService.getInstance(); // FIXME-ank2: too early!
-  }
-
-  @Override
-  public boolean shouldBeAvailable(@NotNull Project project) {
-    return false; // No tool window (and its stripe button) should be visible after startup.
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
