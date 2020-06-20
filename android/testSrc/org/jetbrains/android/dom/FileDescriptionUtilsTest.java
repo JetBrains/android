@@ -22,17 +22,16 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
-
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 public final class FileDescriptionUtilsTest extends AndroidTestCase {
   private static final Collection<String> ROOT_TAGS = Collections.singleton("GridLayout");
@@ -142,7 +141,7 @@ public final class FileDescriptionUtilsTest extends AndroidTestCase {
 
   @NotNull
   private XmlFile getXmlFile(@NotNull Path path) {
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(path.toString());
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByNioFile(path);
     assert virtualFile != null;
 
     XmlFile xmlFile = (XmlFile)PsiManager.getInstance(myModule.getProject()).findFile(virtualFile);
