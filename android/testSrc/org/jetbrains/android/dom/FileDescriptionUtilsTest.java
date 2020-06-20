@@ -142,7 +142,7 @@ public final class FileDescriptionUtilsTest extends AndroidTestCase {
 
   @NotNull
   private XmlFile getXmlFile(@NotNull Path path) {
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(path.toString());
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByNioFile(path);
     assert virtualFile != null;
 
     XmlFile xmlFile = (XmlFile)PsiManager.getInstance(myModule.getProject()).findFile(virtualFile);
