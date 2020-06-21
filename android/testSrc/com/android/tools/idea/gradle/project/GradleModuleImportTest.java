@@ -37,13 +37,11 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ProjectRule;
-import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -394,8 +392,7 @@ b/145809317 */
               if (!projectsStillOpen.isEmpty()) {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
-                throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         ProjectRule.getCreationPlace(project));
+                throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " + ((ProjectEx)project).getCreationTrace());
               }
             }
           }
