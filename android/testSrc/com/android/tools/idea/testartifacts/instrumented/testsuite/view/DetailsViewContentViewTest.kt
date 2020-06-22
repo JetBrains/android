@@ -127,6 +127,15 @@ class DetailsViewContentViewTest {
   }
 
   @Test
+  fun logsViewWithNoMessage() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setLogcat("")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("No logcat output for this device.")
+  }
+
+  @Test
   fun logsViewShouldClearPreviousMessage() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
 
