@@ -540,15 +540,11 @@ class EmulatorView(
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw display.
-    val image = if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
-      displayImage
-    }
-    else {
-      displayImage.getScaledInstance(displayRect.width, displayRect.height, Image.SCALE_SMOOTH)
-    }
     displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-    g.drawImage(image, displayTransform, null)
+    displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
+    g.drawImage(displayImage, displayTransform, null)
 
+    // Draw device frame and mask.
     skin.drawFrameAndMask(g, displayRect)
   }
 
