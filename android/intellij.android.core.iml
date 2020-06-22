@@ -196,7 +196,7 @@
     <orderEntry type="module" module-name="intellij.platform.statistics" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
-    <orderEntry type="module" module-name="intellij.lint" />
+    <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.webp" />
   </component>
 </module>

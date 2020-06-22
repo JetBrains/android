@@ -30,6 +30,6 @@
     <orderEntry type="module" module-name="intellij.android.room" />
     <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" />
     <orderEntry type="module" module-name="intellij.android.build-attribution" />
-    <orderEntry type="module" module-name="intellij.lint" />
+    <orderEntry type="module" module-name="intellij.android.lint" />
   </component>
 </module>

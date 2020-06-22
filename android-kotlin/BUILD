@@ -109,7 +109,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/adt/idea/lint:intellij.android.lint[module]",
     ],
 )
 
