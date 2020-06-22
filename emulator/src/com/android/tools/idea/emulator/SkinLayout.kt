@@ -19,7 +19,6 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
@@ -65,18 +64,8 @@ class SkinLayout(val displaySize: Dimension, val frameRectangle: Rectangle,
     val x = displayRectangle.x + anchoredImage.anchorPoint.x * displayRectangle.width + anchoredImage.offset.x.scaled(scaleX)
     val y = displayRectangle.y + anchoredImage.anchorPoint.y * displayRectangle.height + anchoredImage.offset.y.scaled(scaleY)
     transform.setToTranslation(x.toDouble(), y.toDouble())
-    val image = if (displayRectangle.width == displaySize.width && displayRectangle.height == displaySize.height) {
-      anchoredImage.image
-    }
-    else {
-      val w = anchoredImage.image.width.scaled(scaleX)
-      val h = anchoredImage.image.height.scaled(scaleY)
-      if (w == 0 || h == 0) {
-        return
-      }
-      anchoredImage.image.getScaledInstance(w, h, Image.SCALE_SMOOTH)
-    }
-    g.drawImage(image, transform, null)
+    transform.scale(scaleX, scaleY)
+    g.drawImage(anchoredImage.image, transform, null)
   }
 }
 
