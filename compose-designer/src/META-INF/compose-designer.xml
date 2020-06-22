@@ -38,21 +38,25 @@
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewEditorNotificationAdapter"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
+                     bundle="messages.ComposePreviewBundle" key="inspection.no.parameters.name" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
+                     bundle="messages.ComposePreviewBundle" key="inspection.no.composable.name" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
+                     bundle="messages.ComposePreviewBundle" key="inspection.top.level.function" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
+                     bundle="messages.ComposePreviewBundle" key="inspection.dimension.limit.name" groupKey="inspections.group.name"
                      language="kotlin"
                      enabledByDefault="true"
                      level="WARNING"/>

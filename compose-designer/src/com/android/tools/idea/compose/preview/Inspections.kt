@@ -30,16 +30,12 @@ import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
-private const val INSPECTIONS_GROUP_NAME = "Compose Preview"
-
 /**
  * Base class for inspection that depend on methods annotated with `@Preview`.
  */
 abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
   /** Will be true if the inspected file imports the `@Preview` annotation. This is used as a shortcut to avoid analyzing all kotlin files */
   var isPreviewFile: Boolean = false
-
-  override fun getGroupDisplayName() = INSPECTIONS_GROUP_NAME
 
   /**
    * Called for every function annotated with `@Preview` annotation.
@@ -92,8 +88,6 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
  */
 class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.no.parameters.name")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
@@ -110,8 +104,6 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
  * Inspection that checks that any function annotated with `@Preview` is also annotated with `@Composable`.
  */
 class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.no.composable.name")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
@@ -129,8 +121,6 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
  * This is to avoid `@Preview` methods to be instance methods of classes that we can not instantiate.
  */
 class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.top.level.function")
-
   private fun KtClass.hasDefaultConstructor(): Boolean =
     allConstructors.isEmpty()
       .or(allConstructors.any { it.getValueParameters().isEmpty() })
@@ -162,8 +152,6 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
  * and the height parameter doesn't go higher than [MAX_HEIGHT].
  */
 class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.dimension.limit.name")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
