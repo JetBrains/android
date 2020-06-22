@@ -61,26 +61,11 @@ public class ImportSampleProjectTest {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
       .importCodeSample();
     IdeFrameFixture ideFrameFixture = IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(20), () -> {
-      samplesWizard.selectSample("Ui/Done Bar")
+      samplesWizard.selectSample("Background tasks/Jetpack Work Manager")
         .clickNext()
         .clickFinish();
 
       return guiTest.ideFrame();
-    });
-
-    ideFrameFixture
-      .getEditor()
-      .open("Application/build.gradle")
-      .select("buildToolsVersion \"(.*)\"")
-      .enterText("27.0.3")
-      .invokeAction(EditorFixture.EditorAction.SAVE);
-
-    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), it -> {
-      ideFrameFixture.requestProjectSync();
-
-      GuiTests.findAndClickButton(
-        ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
-        "Update");
     });
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
