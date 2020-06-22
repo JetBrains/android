@@ -37,11 +37,14 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.PsiExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.kotlin.types.TypeUtils
@@ -109,6 +112,7 @@ interface ConstantEvaluator {
 object KotlinConstantEvaluator : ConstantEvaluator {
   override fun evaluate(expression: PsiElement): Any? {
     require(expression is KtExpression)
+
     return ConstantExpressionEvaluator.getConstant(expression, expression.analyze())?.getValue(TypeUtils.NO_EXPECTED_TYPE)
   }
 }
@@ -119,6 +123,17 @@ object KotlinConstantEvaluator : ConstantEvaluator {
 object PsiConstantEvaluator : ConstantEvaluator {
   private val psiEvaluator = PsiExpressionEvaluator()
   override fun evaluate(expression: PsiElement): Any? = psiEvaluator.computeConstantExpression(expression, true)
+}
+
+/**
+ * [ConstantEvaluator] for PSI elements where we only need the text.
+ */
+private object PsiTextConstantEvaluator : ConstantEvaluator {
+  override fun evaluate(expression: PsiElement): Any? = expression.text
+}
+
+data class ElementPath(val className: String, val methodName: String) {
+  override fun toString(): String = "${className}.${methodName}"
 }
 
 private fun elementPath(element: PsiElement): String {
@@ -231,27 +246,35 @@ private class LiteralReferenceSnapshotImpl(references: Collection<LiteralReferen
 }
 
 class LiteralsManager(private val uniqueIdProvider: PsiElementUniqueIdProvider = SimplePsiElementUniqueIdProvider) {
-  fun findLiterals(root: PsiElement): LiteralReferenceSnapshot {
+  private fun findLiterals(root: PsiElement,
+                           expressionType: Class<*>,
+                           constantEvaluator: ConstantEvaluator,
+                           elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
     val savedLiterals = mutableListOf<LiteralReferenceImpl>()
     ReadAction.nonBlocking {
       root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
         override fun visitElement(element: PsiElement) {
-          // We do not track literals in annotations
-          if (element is PsiAnnotation || element is KtAnnotationEntry) return
+          if (!elementFilter(element)) return
 
-          val constantEvaluator: ConstantEvaluator? = when (element) {
-            is KtExpression -> KotlinConstantEvaluator
-            is PsiExpression -> PsiConstantEvaluator
-            else -> null
-          }
-
-          if (constantEvaluator != null) {
-            val constant = constantEvaluator.evaluate(element)
-            if (constant != null) {
-              savedLiterals.add(LiteralReferenceImpl(element, uniqueIdProvider,
-                                                     constantEvaluator))
+          if (expressionType.isInstance(element)) {
+            constantEvaluator.evaluate(element)?.let {
+              savedLiterals.add(LiteralReferenceImpl(element, uniqueIdProvider, constantEvaluator))
               // Finish the expression recursion as soon as we have a valid constant.
               // This is done so for an expression like 3 + 2, we only higlight the expression and not the individual terms.
+              return
+            }
+
+            // Special case for string templates
+            if (element is KtStringTemplateExpression) {
+              // A template can generate multiple constants. For example "Hello $name!!" will generate two:
+              //  - "Hello "
+              //  - "!!"
+              // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
+              element.entries.forEach {
+                if (it is KtLiteralStringTemplateEntry) {
+                  savedLiterals.add(LiteralReferenceImpl(it, uniqueIdProvider, PsiTextConstantEvaluator))
+                }
+              }
               return
             }
           }
@@ -263,6 +286,18 @@ class LiteralsManager(private val uniqueIdProvider: PsiElementUniqueIdProvider =
 
     return LiteralReferenceSnapshotImpl(savedLiterals)
   }
+
+  fun findLiterals(root: PsiElement): LiteralReferenceSnapshot =
+    if (root.language == KotlinLanguage.INSTANCE) {
+      findLiterals(root, KtExpression::class.java, KotlinConstantEvaluator) {
+        it !is KtAnnotationEntry
+      }
+    }
+    else {
+      findLiterals(root, PsiExpression::class.java, PsiConstantEvaluator) {
+        it !is PsiAnnotation
+      }
+    }
 }
 
 /**
