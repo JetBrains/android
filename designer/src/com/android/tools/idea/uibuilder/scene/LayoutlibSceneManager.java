@@ -1498,6 +1498,7 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(false);
       }
+      myRenderTask.setSessionTimeNanos(System.nanoTime());
       return myRenderTask.executeCallbacks();
     }
   }
@@ -1520,6 +1521,7 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(null);
       }
+      myRenderTask.setSessionTimeNanos(System.nanoTime());
       return myRenderTask.triggerTouchEvent(type, x, y);
     }
   }

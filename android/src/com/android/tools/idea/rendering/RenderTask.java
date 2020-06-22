@@ -96,6 +96,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
@@ -180,6 +181,7 @@ public class RenderTask {
   @Nullable private XmlFile myXmlFile;
   @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
+  @NotNull private final AtomicLong mSessionTimeNanos = new AtomicLong(System.nanoTime());
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -702,7 +704,7 @@ public class RenderTask {
         RenderSession session = myLayoutLib.createSession(params);
 
         if (session.getResult().isSuccess()) {
-          long now = System.nanoTime();
+          long now = mSessionTimeNanos.get();
           session.setSystemBootTimeNanos(now);
           session.setSystemTimeNanos(now);
           // Advance the frame time to display the material progress bars
@@ -909,8 +911,9 @@ public class RenderTask {
     // we can safely ignore this render request and wait for the next.
     // With the current implementation, the callbacks will eventually run anyway, the timeout will allow us to detect the timeout sooner.
     return runAsyncRenderAction(() -> {
-      myRenderSession.setSystemTimeNanos(System.nanoTime());
-      return myRenderSession.executeCallbacks(System.nanoTime());
+      long now = mSessionTimeNanos.get();
+      myRenderSession.setSystemTimeNanos(now);
+      return myRenderSession.executeCallbacks(now);
     }, 500, TimeUnit.MILLISECONDS);
   }
 
@@ -930,7 +933,7 @@ public class RenderTask {
     }
 
     return runAsyncRenderAction(() -> {
-      myRenderSession.setSystemTimeNanos(System.nanoTime());
+      myRenderSession.setSystemTimeNanos(mSessionTimeNanos.get());
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
       return null;
     });
@@ -1365,5 +1368,13 @@ public class RenderTask {
     catch (IllegalAccessException | InvocationTargetException ex) {
       LOG.warn("Unexpected error while disposing compose view", ex);
     }
+  }
+
+  /**
+   * Sets desired time for the {@link RenderSession}.
+   * @param timeNanos the desired time in nano seconds
+   */
+  public void setSessionTimeNanos(long timeNanos) {
+    mSessionTimeNanos.set(timeNanos);
   }
 }
