@@ -18,17 +18,15 @@ package com.android.tools.idea.run.editor;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.util.AndroidTestPaths;
 import com.google.common.collect.ImmutableList;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.List;
-import javax.swing.JTable;
+import javax.swing.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,7 +49,7 @@ public class DynamicFeaturesParametersTest {
 
   @Before
   public void setUp() throws Exception {
-    projectRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
+    projectRule.getFixture().setTestDataPath(AndroidTestPaths.adtSources().resolve("android/testData").toString());
 
     StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.override(featureOnFeatureFlagEnabled);
   }
