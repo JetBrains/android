@@ -227,6 +227,10 @@ public class DetailsViewContentView {
 
   private void refreshLogsView() {
     myLogsView.clear();
+    if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
+      myLogsView.print("No logcat output for this device.", ConsoleViewContentType.NORMAL_OUTPUT);
+      return;
+    }
     myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT);
     myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT);
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT);
