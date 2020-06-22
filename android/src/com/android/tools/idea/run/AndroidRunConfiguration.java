@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
@@ -251,7 +252,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus,
-                                                @NotNull ApkProvider apkProvider) {
+                                                @NotNull ApkProvider apkProvider,
+                                                @NotNull ConsolePrinter consolePrinter,
+                                                @NotNull IDevice device) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
