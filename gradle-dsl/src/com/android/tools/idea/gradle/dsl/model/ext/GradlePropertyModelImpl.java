@@ -674,6 +674,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return myElement;
   }
 
+  @Override
+  @NotNull
+  public GradleDslElement getRawPropertyHolder() {
+    return myPropertyHolder;
+  }
+
   @NotNull
   protected PropertyTransform getTransform() {
     for (PropertyTransform transform : myTransforms) {
