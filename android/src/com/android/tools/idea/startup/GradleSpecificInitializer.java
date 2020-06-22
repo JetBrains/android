@@ -45,7 +45,6 @@ import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.notification.Notification;
@@ -61,10 +60,8 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -137,18 +134,11 @@ public class GradleSpecificInitializer implements Runnable {
       return;
     }
 
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-      @Override
-      public void appStarting(Project project) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
-                                         ApplicationNamesInfo.getInstance().getProductName());
-          Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
-          notification.setImportant(true);
-          Notifications.Bus.notify(notification);
-        }, ModalityState.NON_MODAL);
-      }
-    });
+    String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
+                                   ApplicationNamesInfo.getInstance().getProductName());
+    Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
+    notification.setImportant(true);
+    Notifications.Bus.notify(notification);
   }
 
   private static void setUpGradleViewToolbarActions() {
@@ -236,17 +226,9 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void addStartupWarning(@NotNull String message, @Nullable NotificationListener listener) {
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-      @Override
-      public void appStarting(Project project) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          Notification notification =
-            getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
-          notification.setImportant(true);
-          Notifications.Bus.notify(notification);
-        }, ModalityState.NON_MODAL);
-      }
-    });
+    Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+    notification.setImportant(true);
+    Notifications.Bus.notify(notification);
   }
 
   @NotNull
