@@ -39,6 +39,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.event.MouseEvent
 import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
@@ -311,8 +312,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   /**
    *  Timeline panel ranging from 0 to the max duration of the animations being inspected, listing all the animations and their
    *  corresponding range as well. The timeline should respond to mouse commands, allowing users to jump to specific points, scrub it, etc.
-   *
-   *  TODO(b/157895086): Polish the UI, e.g. fixing the "trailing" effect when dragging the slider.
    */
   private inner class TransitionDurationTimeline : JPanel(BorderLayout()) {
 
@@ -421,8 +420,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         // TODO(b/157895086): Define a color for the thumb.
         g.color = selectionBackground
         g.stroke = BasicStroke(3f)
-        // TODO(b/157895086): The X position is slightly shifted to the left. Centralize it with the tick marks.
-        g.drawLine(thumbRect.x, thumbRect.y, thumbRect.x, thumbRect.height + labelsAndTicksHeight());
+        val halfWidth = thumbRect.width / 2
+        g.drawLine(thumbRect.x + halfWidth, thumbRect.y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight());
       }
 
       override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
@@ -431,7 +430,35 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         g.drawLine(x, tickRect.y, x, tickRect.height);
       }
 
+      override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
+
       private fun labelsAndTicksHeight() = tickLength + heightOfTallestLabel
+
+      /**
+       * [Tracklistener] to allow setting [slider] value when clicking and scrubbing the timeline.
+       */
+      private inner class TimelineTrackListener : TrackListener() {
+
+        override fun mousePressed(e: MouseEvent) {
+          // We override the parent class behavior completely because it executes more operations than we need, being less performant than
+          // this method. Since it recalculates the geometry of all components, the resulting UI on mouse press is not what we aim for.
+          currentMouseX = e.getX()
+          updateThumbLocationAndSliderValue()
+        }
+
+        override fun mouseDragged(e: MouseEvent) {
+          super.mouseDragged(e)
+          updateThumbLocationAndSliderValue()
+        }
+
+        fun updateThumbLocationAndSliderValue() {
+          val halfWidth = thumbRect.width / 2
+          // Make sure the thumb X coordinate is within the slider's min and max. Also, subtract half of the width so the center is aligned.
+          val thumbX = Math.min(Math.max(currentMouseX, xPositionForValue(slider.minimum)), xPositionForValue(slider.maximum)) - halfWidth
+          setThumbLocation(thumbX, thumbRect.y)
+          slider.value = valueForXPosition(currentMouseX)
+        }
+      }
     }
   }
 }
