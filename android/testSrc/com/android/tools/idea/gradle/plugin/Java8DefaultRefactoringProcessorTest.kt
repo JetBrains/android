@@ -79,4 +79,28 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationExplicitLanguageLevel8"))
   }
+
+  @Test
+  fun testSimpleJavaLibraryNoLanguageLevel() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevelExpected"))
+  }
+
+  @Test
+  fun testSimpleJavaLibraryExplicitLanguageLevel7() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryExplicitLanguageLevel7"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryExplicitLanguageLevel7"))
+  }
+
+  @Test
+  fun testSimpleJavaLibraryExplicitLanguageLevel8() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryExplicitLanguageLevel8"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryExplicitLanguageLevel8"))
+  }
 }
