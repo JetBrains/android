@@ -34,7 +34,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.notification.Notification;
@@ -113,20 +112,12 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
    */
   private static void checkInstallPath() {
     if (PathManager.getHomePath().contains("!")) {
-      final Application app = ApplicationManager.getApplication();
-
-      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-        @Override
-        public void appStarting(Project project) {
-          app.invokeLater(() -> {
-            String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
-                                           ApplicationNamesInfo.getInstance().getProductName());
-            Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
-            notification.setImportant(true);
-            Notifications.Bus.notify(notification);
-          });
-        }
-      });
+      String message = String.format(
+        "%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
+        ApplicationNamesInfo.getInstance().getProductName());
+      Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
+      notification.setImportant(true);
+      Notifications.Bus.notify(notification);
     }
   }
 
@@ -206,20 +197,9 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   }
 
   private static void addStartupWarning(@NotNull final String message, @Nullable final NotificationListener listener) {
-    final Application app = ApplicationManager.getApplication();
-
-    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-      @Override
-      public void appStarting(Project project) {
-        app.invokeLater(() -> {
-          Notification notification =
-            getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING);
-          if (listener != null) notification.setListener(listener);
-          notification.setImportant(true);
-          Notifications.Bus.notify(notification);
-        });
-      }
-    });
+    Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+    notification.setImportant(true);
+    Notifications.Bus.notify(notification);
   }
 
   private static NotificationGroup getNotificationGroup() {
