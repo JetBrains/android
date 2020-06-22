@@ -40,11 +40,14 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.google.common.collect.ImmutableMap
 import com.intellij.testFramework.UsefulTestCase
+import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -55,6 +58,35 @@ import java.io.File
 import java.math.BigDecimal
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
+
+  @Test
+  fun testCreateExternalReferences() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    val dslFile = (gradleBuildModel as? GradleBuildModelImpl)?.dslFile!!
+    val model = GradlePropertyModelBuilder.getModelFromExternalText(extraName("prop1"), dslFile)
+    TestCase.assertNotNull(model)
+
+    val model2 = GradlePropertyModelBuilder.getModelFromExternalText("prop1", dslFile)
+    TestCase.assertNotNull(model2)
+  }
+
+  @Test
+  fun testCreateInternalReferences() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    val dslFile = (gradleBuildModel as? GradleBuildModelImpl)?.dslFile!!
+    val model = GradlePropertyModelBuilder.getModelFromInternalText(extraName("prop1"), dslFile)
+    when (isGroovy) {
+      true -> TestCase.assertNotNull(model)
+      else -> TestCase.assertNull(model)
+    }
+
+    val buildTypes = (dslFile.getElement("android") as GradlePropertiesDslElement).getElement("buildTypes")!!
+    val model2 = GradlePropertyModelBuilder.getModelFromInternalText("signingConfigs.release", buildTypes)
+    TestCase.assertNotNull(model2)
+  }
+
   @Test
   fun testPropertiesFromScratch() {
     writeToBuildFile(TestFile.PROPERTIES_FROM_SCRATCH)
@@ -3651,6 +3683,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     PROPERTIES("properties"),
+    PROPERTIES_EXTERNAL("propertiesExternal"),
     PROPERTIES_FROM_SCRATCH("propertiesFromScratch"),
     PROPERTIES_FROM_SCRATCH_EXPECTED("propertiesFromScratchExpected"),
     PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION("propertiesFromScratchArrayExpression"),
