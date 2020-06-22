@@ -120,7 +120,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         // RunInstantAppTask
         LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                         amStartOptions.toString(),
-                                                                        myLaunchOptions.isDebug(), launchStatus, myApkProvider);
+                                                                        myLaunchOptions.isDebug(), launchStatus, myApkProvider,
+                                                                        consolePrinter, device);
         if (appLaunchTask != null) {
           launchTasks.add(appLaunchTask);
         }
