@@ -116,7 +116,7 @@ class AgpUpgradeRefactoringProcessor(
   val componentRefactoringProcessors = listOf(
     GMavenRepositoryRefactoringProcessor(this),
     AgpGradleVersionRefactoringProcessor(this),
-    AgpJava8DefaultRefactoringProcessor(this),
+    Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this)
   )
 
@@ -421,7 +421,7 @@ class GradleVersionUsageInfo(
   }
 }
 
-class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
