@@ -1,5 +1,5 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package org.jetbrains.android.facet;
+package org.jetbrains.jps.android.model.impl;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
@@ -12,25 +12,38 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidImportableProperty;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NonNls;
 
 /**
  * Android-specific information saved in the IML file corresponding to an Android module.
  *
- * <p>These objects are serialized to XML by {@link org.jetbrains.android.facet.AndroidFacetConfiguration} using {@link
+ * <p>These objects are serialized to XML by {@link AndroidFacetConfiguration} using {@link
  * com.intellij.util.xmlb.XmlSerializer}.
  *
  * <p>Avoid using instances of this class if at all possible. This information should be provided by
  * {@link com.android.tools.idea.projectsystem.AndroidProjectSystem} and it is up to the project system used by the project to choose how
  * this information is obtained and persisted.
+ *
+ * @deprecated use {@link com.android.tools.idea.projectsystem.AndroidProjectSystem} instead. As a last resort,
+ * {@linkplain JpsAndroidModuleProperties} can be directly replaced with {@linkplain AndroidFacetProperties}.
  */
-public class AndroidFacetProperties {
+@Deprecated
+@ApiStatus.ScheduledForRemoval(inVersion = "2020.3")
+public class JpsAndroidModuleProperties {
 
   public static final String PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION = ";";
   @NonNls public static final String ITEM_ELEMENT = "item";
   @NonNls public static final String ARCHITECTURE_ATTRIBUTE = "architecture";
   @NonNls public static final String URL_ATTRIBUTE = "url";
   @NonNls public static final String TARGET_FILE_NAME_ATTRIBUTE = "targetFileName";
+
+  protected JpsAndroidModuleProperties(){
+    assert this instanceof AndroidFacetProperties: "should only be called from AndroidFacetProperties";
+  }
 
   public String SELECTED_BUILD_VARIANT = "";
 
