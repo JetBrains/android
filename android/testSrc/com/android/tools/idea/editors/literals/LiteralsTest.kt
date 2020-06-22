@@ -206,6 +206,46 @@ class LiteralsTest {
     """.trimIndent(), snapshot.modified.toDebugString())
   }
 
+
+  @Test
+  fun `Kotlin literals finder for string interpolation`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        private val testVal = "TEST"
+
+        fun method(name: String) {
+          println("Template ${'$'}name!!")
+        }
+
+        fun testCall() {
+            method(name = "NAME ${'$'}testVal")
+        }
+      """).configureEditor()
+    ReadAction.run<Throwable> {
+      assertFalse(file.hasErrorElementInRange(file.textRange))
+    }
+    val snapshot = literalsManager.findLiterals(file)
+    assertEquals("""
+      text='"TEST"' value='TEST' path='test.app.LiteralsTestKt.<init>'
+      text='Template ' value='Template ' path='test.app.LiteralsTestKt.method'
+      text='!!' value='!!' path='test.app.LiteralsTestKt.method'
+      text='"NAME ${'$'}testVal"' value='NAME TEST' path='test.app.LiteralsTestKt.testCall'
+    """.trimIndent(), snapshot.all.toDebugString())
+
+    projectRule.fixture.editor.executeAndSave {
+      replaceText("Template", "New modified template")
+    }
+    assertEquals("""
+      text='New modified template ' value='New modified template ' path='test.app.LiteralsTestKt.method'
+    """.trimIndent(), snapshot.modified.toDebugString())
+  }
+
+
   @Test
   fun `removed literal does not show in the modified snapshot`() {
     val literalsManager = LiteralsManager()
