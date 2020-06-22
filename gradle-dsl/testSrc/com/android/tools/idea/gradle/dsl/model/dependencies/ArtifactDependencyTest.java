@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo.createReferenceFromText;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -1330,7 +1331,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradlePropertyModel name = extModel.findProperty("name");
 
     ArtifactDependencyModel firstModel = artifacts.get(0);
-    firstModel.version().setValue(new ReferenceTo("version"));
+    firstModel.version().setValue(createReferenceFromText("version", firstModel.version()));
     ArtifactDependencyModel secondModel = artifacts.get(1);
     secondModel.name().setValue(new ReferenceTo(name));
 
