@@ -426,8 +426,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() =
-    current < GradleVersion(4, 2, 0) && new >= GradleVersion(4, 2, 0)
+  override fun isApplicable() = current < ACTIVATED_VERSION && new >= ACTIVATED_VERSION
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -480,6 +479,10 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 
       override fun getProcessedElementsHeader() = "Add explicit LanguageLevel properties"
     }
+  }
+
+  companion object {
+    val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
   }
 }
 
