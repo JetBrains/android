@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.lint",
+    name = "intellij.android.lint",
     srcs = ["src"],
-    iml_files = ["intellij.lint.iml"],
+    iml_files = ["intellij.android.lint.iml"],
     resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -73,8 +73,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.lint.tests",
-    iml_files = ["tests/intellij.lint.tests.iml"],
+    name = "intellij.android.lint.tests",
+    iml_files = ["tests/intellij.android.lint.tests.iml"],
     test_class = "com.android.tools.idea.lint.common.LintIdeTestSuite",
     test_data = [
         "//tools/adt/idea/android/testData",
@@ -119,7 +119,7 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-plugin[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/adt/idea/lint:intellij.android.lint[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

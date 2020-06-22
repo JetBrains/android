@@ -64,6 +64,6 @@ iml_module(
         "//tools/adt/idea/room:intellij.android.room[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
-        "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/adt/idea/lint:intellij.android.lint[module]",
     ],
 )
