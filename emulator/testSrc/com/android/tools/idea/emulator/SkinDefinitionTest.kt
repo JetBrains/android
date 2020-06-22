@@ -158,6 +158,18 @@ class SkinDefinitionTest {
   }
 
   @Test
+  fun testVeryTinyScale() {
+    val folder = getSkinFolder("pixel_4_xl")
+    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+
+    // Check the createScaledLayout method with scaling.
+    val layout = skin.createScaledLayout(8, 16, SkinRotation.PORTRAIT)
+    assertThat(layout.displaySize).isEqualTo(Dimension(8, 16))
+    assertThat(layout.frameRectangle).isEqualTo(Rectangle(-0, -1, 8, 18))
+    assertSkinAppearance(layout, "tiny_pixel_4_xl")
+  }
+
+  @Test
   fun testWearRound() {
     val folder = getSkinFolder("wear_round")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")

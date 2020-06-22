@@ -69,8 +69,12 @@ class SkinLayout(val displaySize: Dimension, val frameRectangle: Rectangle,
       anchoredImage.image
     }
     else {
-      anchoredImage.image.getScaledInstance(anchoredImage.image.width.scaled(scaleX), anchoredImage.image.height.scaled(scaleY),
-                                            Image.SCALE_SMOOTH)
+      val w = anchoredImage.image.width.scaled(scaleX)
+      val h = anchoredImage.image.height.scaled(scaleY)
+      if (w == 0 || h == 0) {
+        return
+      }
+      anchoredImage.image.getScaledInstance(w, h, Image.SCALE_SMOOTH)
     }
     g.drawImage(image, transform, null)
   }
@@ -86,16 +90,20 @@ class SkinLayout(val displaySize: Dimension, val frameRectangle: Rectangle,
  */
 class AnchoredImage(val image: BufferedImage, val size: Dimension, val anchorPoint: AnchorPoint, val offset: Point) {
   /**
-   * Creates another [AnchoredImage] that is result of rotating and scaling this one.
+   * Creates another [AnchoredImage] that is result of rotating and scaling this one. Returns null
+   * if the scaled image has zero width or height.
    *
    * @param rotation the rotation that is applied to the image and the display rectangle
    * @param scaleX the X-axis scale factor applied to the rotated image
    * @param scaleY the Y-axis scale factor applied to the rotated image
    */
-  fun rotatedAndScaled(rotation: SkinRotation, scaleX: Double, scaleY: Double): AnchoredImage {
+  fun rotatedAndScaled(rotation: SkinRotation, scaleX: Double, scaleY: Double): AnchoredImage? {
     val rotatedSize = size.rotated(rotation)
     val width = rotatedSize.width.scaled(scaleX)
     val height = rotatedSize.height.scaled(scaleY)
+    if (width == 0 || height == 0) {
+      return null // Degenerate image.
+    }
     val rotatedAnchorPoint = anchorPoint.rotated(rotation)
     val rotatedOffset = offset.rotated(rotation)
     val transformedOffset =
