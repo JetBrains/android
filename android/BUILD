@@ -182,7 +182,7 @@ iml_module(
     # During the transition to windows 2019, we don't have enough worker pools to have
     # separate large machines. Disable for now.
     # See 151856181
-    #    exec_properties = LARGE_MACHINE,
+    #    exec_proprties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         "gradle": {
@@ -525,7 +525,6 @@ filegroup(
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/dynamic-layout-inspector:skia-grpc-server",
         "//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
