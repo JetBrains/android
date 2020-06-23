@@ -33,11 +33,11 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.SwingHelper
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 /**
  * This class creates task detail pages from the node provided.
@@ -66,27 +66,34 @@ class TaskViewDetailPagesFactory(
     fun inlinedTaskInfo(taskUiData: TaskUiData) = JPanel().apply {
       border = JBUI.Borders.emptyTop(5)
       layout = BorderLayout(5, 5)
-      val taskInfo = SwingHelper.newLeftAlignedVerticalPanel(
-        HyperlinkLabel(taskUiData.taskPath).apply {
-          addHyperlinkListener { actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(taskUiData, TasksDataPageModel.Grouping.BY_PLUGIN)) }
-        },
-        JLabel("Type: ${taskUiData.taskType}"),
-        JLabel("Duration: ${taskUiData.executionTime.durationString()}")
-      )
+
+      val taskInfo = JPanel().apply {
+        layout = VerticalLayout(0, SwingConstants.LEFT)
+        val taskNavigationLink = HyperlinkLabel(taskUiData.taskPath).apply {
+          addHyperlinkListener {
+            actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(taskUiData, TasksDataPageModel.Grouping.BY_PLUGIN))
+          }
+        }
+        val info = htmlTextLabelWithFixedLines("""
+          Type: ${taskUiData.taskType}<br/>
+          Duration: ${taskUiData.executionTime.durationString()}
+          """.trimIndent()
+        )
+        add(taskNavigationLink)
+        add(info)
+      }
+
       val descriptions = JPanel().apply {
         layout = TabularLayout("*")
         taskUiData.issues.forEachIndexed { index, issue ->
-          val description = DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink) { actionHandlers.helpLinkClicked(issue.helpLink) }
+          val description = DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink) {
+            actionHandlers.helpLinkClicked(issue.helpLink)
+          }
           description.withBorder(JBUI.Borders.emptyTop(5))
           add(description, TabularLayout.Constraint(index, 0))
         }
       }
-
-      val warningIconPanel = JPanel().apply {
-        layout = VerticalLayout(0)
-        add(JBLabel(warningIcon()))
-      }
-      add(warningIconPanel, BorderLayout.WEST)
+      add(JLabel(warningIcon()).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
       add(taskInfo, BorderLayout.CENTER)
       add(descriptions, BorderLayout.SOUTH)
     }
