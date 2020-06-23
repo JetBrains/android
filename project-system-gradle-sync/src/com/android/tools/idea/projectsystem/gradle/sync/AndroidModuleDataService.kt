@@ -105,7 +105,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         // Create the Android facet and attache to the module.
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
                            ?: createAndroidFacet(module, modelsProvider)
-        androidModel.setModule(module)
         // Configure that Android facet from the information in the AndroidModuleModel.
         configureFacet(androidFacet, androidModel)
 

@@ -73,7 +73,7 @@ public class AndroidProjectStub implements AndroidProject {
     this(name, new FileStructure(parentDir, name));
   }
 
-  public AndroidProjectStub(@NotNull String name, @NotNull FileStructure fileStructure) {
+  private AndroidProjectStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     this.myName = name;
     myFileStructure = fileStructure;
     myBuildFolder = myFileStructure.createProjectDir("build");
@@ -201,7 +201,7 @@ public class AndroidProjectStub implements AndroidProject {
     return variant;
   }
 
-  public void addVariant(@NotNull VariantStub variant) {
+  private void addVariant(@NotNull VariantStub variant) {
     if (myFirstVariant == null) {
       myFirstVariant = variant;
     }

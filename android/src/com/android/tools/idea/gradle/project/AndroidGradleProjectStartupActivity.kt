@@ -19,7 +19,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
@@ -181,12 +180,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
   val attachModelActions = moduleToModelPairs.flatMap { (module, moduleDataNode) ->
 
     /** Returns `null` if validation fails. */
-    fun <T, V> prepare(
-      dataKey: Key<T>,
-      getFacet: Module.() -> V?,
-      attach: V.(T) -> Unit,
-      configure: T.(Module) -> Unit = { _ -> }
-    ): (() -> Unit)? {
+    fun <T, V> prepare(dataKey: Key<T>, getFacet: Module.() -> V?, attach: V.(T) -> Unit): (() -> Unit)? {
       val model =
         ExternalSystemApiUtil
           .getChildren(moduleDataNode, dataKey)
@@ -197,12 +191,11 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
       }
-      model.configure(module)
       return { facet.attach(model) }
     }
 
     listOf(
-      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule) ?: return,
+      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set) ?: return,
       prepare(JAVA_MODULE_MODEL, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
