@@ -24,6 +24,7 @@ import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -52,7 +53,7 @@ class AndroidTestApplicationLaunchTask private constructor(
   private val myWaitForDebugger: Boolean,
   private val myInstrumentationOptions: String,
   private val myTestListener: ITestRunListener,
-  private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit) : LaunchTask {
+  private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit) : AppLaunchTask() {
 
   companion object {
     private val LOG = Logger.getInstance(AndroidTestApplicationLaunchTask::class.java)

@@ -31,6 +31,8 @@ public class LaunchContext {
   private final ConsolePrinter consolePrinter;
 
   private final ProcessHandler processHandler;
+  private boolean killBeforeLaunch = false;
+  private boolean launchApp = true;
 
   /**
    * @param project        current project this launch is executing under
@@ -85,5 +87,21 @@ public class LaunchContext {
   @NotNull
   public ProcessHandler getProcessHandler() {
     return processHandler;
+  }
+
+  public void setKillBeforeLaunch(boolean killBeforeLaunch) {
+    this.killBeforeLaunch = killBeforeLaunch;
+  }
+
+  public boolean getKillBeforeLaunch() {
+    return killBeforeLaunch;
+  }
+
+  public void setLaunchApp(boolean launchApp) {
+    this.launchApp = launchApp;
+  }
+
+  public boolean getLaunchApp() {
+    return launchApp;
   }
 }

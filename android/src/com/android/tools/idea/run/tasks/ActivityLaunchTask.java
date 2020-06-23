@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-public abstract class ActivityLaunchTask implements LaunchTask {
+public abstract class ActivityLaunchTask extends AppLaunchTask {
   @VisibleForTesting
   static final String ACTIVITY_DOES_NOT_EXIST = "ACTIVITY_DOES_NOT_EXIST";
   @VisibleForTesting

@@ -125,6 +125,11 @@
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
     </action>
 
+    <group id="Android.DeployActions">
+      <action id="android.deploy.DebugWithoutBuild" class="com.android.tools.idea.run.ui.DeployAction$DebugWithoutBuildAction"/>
+      <action id="android.deploy.RunWithoutBuild" class="com.android.tools.idea.run.ui.DeployAction$RunWithoutBuildAction"/>
+    </group>
+
     <group id="Android.InstantRunActions">
       <action id="android.deploy.ApplyChanges" class="com.android.tools.idea.run.ui.ApplyChangesAction"/>
       <action id="android.deploy.CodeSwap" class="com.android.tools.idea.run.ui.CodeSwapAction"/>

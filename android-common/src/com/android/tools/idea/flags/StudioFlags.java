@@ -429,6 +429,13 @@ public final class StudioFlags {
     "Requires applychanges.structuralredefinition to be true.",
     true);
 
+  public static final Flag<Boolean> APPLY_CHANGES_FAST_RESTART_ON_SWAP_FAIL = Flag.create(
+    RUNDEBUG,
+    "applychanges.swap.fastrestartonswapfail",
+    "Allow fast restart on swap failure.",
+    "Eliminate the need to build again when auto re-run checkbox is turned on.",
+    true);
+
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",

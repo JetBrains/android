@@ -31,6 +31,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
@@ -40,7 +41,6 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
@@ -335,14 +335,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull AndroidFacet facet,
-                                                @NotNull String contributorsAmStartOptions,
-                                                boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus,
-                                                @NotNull ApkProvider apkProvider,
-                                                @NotNull ConsolePrinter consolePrinter,
-                                                @NotNull IDevice device) {
+  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                   @NotNull AndroidFacet facet,
+                                                   @NotNull String contributorsAmStartOptions,
+                                                   boolean waitForDebugger,
+                                                   @NotNull LaunchStatus launchStatus,
+                                                   @NotNull ApkProvider apkProvider,
+                                                   @NotNull ConsolePrinter consolePrinter,
+                                                   @NotNull IDevice device) {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
       runner = getDefaultInstrumentationRunner(facet);

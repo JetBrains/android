@@ -63,7 +63,15 @@ public class DeployTask extends AbstractDeployTask {
   }
 
   @Override
-  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected boolean shouldTaskLaunchApp() {
+    return true;
+  }
+
+  @Override
+  protected Deployer.Result perform(IDevice device,
+                                    Deployer deployer,
+                                    String applicationId,
+                                    List<File> files) throws DeployerException {
     // All installations default to allow debuggable APKs
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 

@@ -18,11 +18,11 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.util.LaunchStatus
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
@@ -118,7 +118,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
                                                  launchStatus: @NotNull LaunchStatus,
                                                  apkProvider: @NotNull ApkProvider,
                                                  consolePrinter: @NotNull ConsolePrinter,
-                                                 device: @NotNull IDevice): @Nullable LaunchTask? {
+                                                 device: @NotNull IDevice): @Nullable AppLaunchTask? {
       return super.getApplicationLaunchTask(applicationIdProvider, facet, contributorsAmStartOptions, waitForDebugger, launchStatus,
                                             apkProvider, consolePrinter, device)
     }

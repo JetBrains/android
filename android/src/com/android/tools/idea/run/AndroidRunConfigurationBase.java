@@ -23,7 +23,7 @@ import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
@@ -417,14 +417,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);
 
   @Nullable
-  protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                         @NotNull AndroidFacet facet,
-                                                         @NotNull String contributorsAmStartOptions,
-                                                         boolean waitForDebugger,
-                                                         @NotNull LaunchStatus launchStatus,
-                                                         @NotNull ApkProvider apkProvider,
-                                                         @NotNull ConsolePrinter consolePrinter,
-                                                         @NotNull IDevice device);
+  protected abstract AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                            @NotNull AndroidFacet facet,
+                                                            @NotNull String contributorsAmStartOptions,
+                                                            boolean waitForDebugger,
+                                                            @NotNull LaunchStatus launchStatus,
+                                                            @NotNull ApkProvider apkProvider,
+                                                            @NotNull ConsolePrinter consolePrinter,
+                                                            @NotNull IDevice device);
 
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);

@@ -43,12 +43,10 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -63,7 +61,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,15 +74,14 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
-  private final boolean myFallback;
+  protected final boolean myRerunOnSwapFailure;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
-  public AbstractDeployTask(
-    @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback) {
+  public AbstractDeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure) {
     myProject = project;
     myPackages = packages;
-    myFallback = fallback;
+    myRerunOnSwapFailure = rerunOnSwapFailure;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -117,17 +113,24 @@ public abstract class AbstractDeployTask implements LaunchTask {
                                      installer, ideService, metrics, logger, StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get(),
                                      StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get(),
                                      StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get(),
-                                     StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get());
+                                     StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get(),
+                                     getFastRerunOnSwapFailure());
     List<String> idsSkippedInstall = new ArrayList<>();
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
       try {
+        launchContext.setLaunchApp(shouldTaskLaunchApp());
         Deployer.Result result = perform(device, deployer, applicationId, apkFiles);
         addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
         logAgentFailures(metrics.getAgentFailures());
         if (result.skippedInstall) {
           idsSkippedInstall.add(applicationId);
+        }
+        if (result.needsRestart) {
+          // TODO: fall back to using the suggested action, rather than blindly rerun
+          launchContext.setKillBeforeLaunch(true);
+          launchContext.setLaunchApp(true);
         }
       }
       catch (DeployerException e) {
@@ -154,6 +157,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   abstract protected String getFailureTitle();
 
+  abstract protected boolean shouldTaskLaunchApp();
+
   abstract protected Deployer.Result perform(
     IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
@@ -173,6 +178,10 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   protected Project getProject() {
     return myProject;
+  }
+
+  protected boolean getFastRerunOnSwapFailure() {
+    return myRerunOnSwapFailure && StudioFlags.APPLY_CHANGES_FAST_RESTART_ON_SWAP_FAIL.get();
   }
 
   private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics, long startNanoTime,
@@ -233,13 +242,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
     DeployerException.Error error = e.getError();
     if (error.getResolution() != DeployerException.ResolutionAction.NONE) {
-      if (!myFallback) {
-        bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
-      } else {
+      if (myRerunOnSwapFailure) {
         bubbleError.append(String.format("\n%s will be done automatically</a>", error.getCallToAction()));
+      } else {
+        bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
       }
     }
-
 
     result.setError(bubbleError.toString());
     result.setConsoleError(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
@@ -249,7 +257,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     result.setConsoleHyperlink(error.getCallToAction(), hyperlinkInfo);
     result.setNotificationListener(new DeploymentErrorNotificationListener(error.getResolution(),
                                                                            hyperlinkInfo));
-    if (myFallback) {
+    if (myRerunOnSwapFailure) {
       result.addOnFinishedCallback(() -> hyperlinkInfo.navigate(myProject));
     }
     return result;
