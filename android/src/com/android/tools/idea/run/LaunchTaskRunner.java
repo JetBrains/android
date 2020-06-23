@@ -231,6 +231,10 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           throw new CancellationException();
         }
 
+        if (!task.shouldRun(launchContext)) {
+          continue;
+        }
+
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
         LaunchResult result = task.run(launchContext);

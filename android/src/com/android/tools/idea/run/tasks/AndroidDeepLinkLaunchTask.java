@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
-public class AndroidDeepLinkLaunchTask implements LaunchTask {
+public class AndroidDeepLinkLaunchTask extends AppLaunchTask {
 
   private static final String ID = "LAUNCH_DEEP_LINK";
 

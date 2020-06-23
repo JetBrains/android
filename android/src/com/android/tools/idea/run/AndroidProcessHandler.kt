@@ -105,6 +105,16 @@ class AndroidProcessHandler @JvmOverloads constructor(
   }
 
   /**
+   * Kills the target [Client] on the target [device] and restarts monitoring.
+   *
+   * @return true if the [device] was already being monitored, false otherwise
+   */
+  @WorkerThread
+  fun killClientAndRestartMonitor(device: IDevice): Boolean {
+    return myMonitorManager.closeAndReplace(device) != null
+  }
+
+  /**
    * Detaches a given device from target devices. No-op if the given device is not associated with this handler.
    */
   @WorkerThread

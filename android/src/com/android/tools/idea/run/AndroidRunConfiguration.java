@@ -31,7 +31,7 @@ import com.android.tools.idea.run.editor.LaunchOption;
 import com.android.tools.idea.run.editor.LaunchOptionState;
 import com.android.tools.idea.run.editor.NoLaunch;
 import com.android.tools.idea.run.editor.SpecificActivityLaunch;
-import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
@@ -247,14 +247,14 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull AndroidFacet facet,
-                                                @NotNull String contributorsAmStartOptions,
-                                                boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus,
-                                                @NotNull ApkProvider apkProvider,
-                                                @NotNull ConsolePrinter consolePrinter,
-                                                @NotNull IDevice device) {
+  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                   @NotNull AndroidFacet facet,
+                                                   @NotNull String contributorsAmStartOptions,
+                                                   boolean waitForDebugger,
+                                                   @NotNull LaunchStatus launchStatus,
+                                                   @NotNull ApkProvider apkProvider,
+                                                   @NotNull ConsolePrinter consolePrinter,
+                                                   @NotNull IDevice device) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 

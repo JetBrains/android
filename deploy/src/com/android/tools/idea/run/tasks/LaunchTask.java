@@ -44,6 +44,16 @@ public interface LaunchTask {
   int getDuration();
 
   /**
+   * Checks whether or not this LaunchTask should run.
+   *
+   * @param launchContext additional parameters shared amongst all {@link LaunchTask}
+   * @return true if {@link #run(LaunchContext)} should execute, false otherwise
+   */
+  default boolean shouldRun(@NotNull LaunchContext launchContext) {
+    return true;
+  }
+
+  /**
    * Runs this LaunchTask. This method is an entry point of this launch task and is called by
    * {@link org.jetbrains.ide.PooledThreadExecutor} so you can perform expensive operations here.
    *

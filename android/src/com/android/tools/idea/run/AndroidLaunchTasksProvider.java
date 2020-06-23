@@ -27,12 +27,14 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.ClearLogcatTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.DismissKeyguardTask;
+import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
@@ -96,7 +98,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     launchTasks.add(new DismissKeyguardTask());
 
     final boolean useApplyChanges = shouldApplyChanges() || shouldApplyCodeChanges();
-    final boolean startNewAndroidApplication = !useApplyChanges && !shouldDeployAsInstant();
+    final boolean terminateLaunchOnError = !useApplyChanges && !shouldDeployAsInstant();
     String packageName;
     try {
       packageName = myApplicationIdProvider.getPackageName();
@@ -115,14 +117,17 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (startNewAndroidApplication) {
+      if (!shouldDeployAsInstant()) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
-        LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
-                                                                        amStartOptions.toString(),
-                                                                        myLaunchOptions.isDebug(), launchStatus, myApkProvider,
-                                                                        consolePrinter, device);
+        AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
+                                                                           amStartOptions.toString(),
+                                                                           myLaunchOptions.isDebug(), launchStatus, myApkProvider,
+                                                                           consolePrinter, device);
+
         if (appLaunchTask != null) {
+          // Apply (Code) Changes needs additional control over killing/restarting the app.
+          launchTasks.add(new KillAndRestartAppLaunchTask(packageName));
           launchTasks.add(appLaunchTask);
         }
       }
@@ -134,14 +139,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       } else {
         myLogger.warn(e);
       }
-      launchStatus.terminateLaunch("Unable to determine application id: " + e,
-                                   /*destroyProcess=*/startNewAndroidApplication);
+      launchStatus.terminateLaunch("Unable to determine application id: " + e, /*destroyProcess=*/terminateLaunchOnError);
       return Collections.emptyList();
     }
     catch (IllegalStateException e) {
       myLogger.error(e);
-      launchStatus.terminateLaunch(e.getMessage(),
-                                   /*destroyProcess=*/startNewAndroidApplication);
+      launchStatus.terminateLaunch(e.getMessage(), /*destroyProcess=*/terminateLaunchOnError);
       return Collections.emptyList();
     }
 
