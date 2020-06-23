@@ -20,24 +20,14 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.gradle.util.GradleBuildOutputUtilTest;
-import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.module.Module;
 import java.io.*;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
-import static com.android.utils.FileUtils.writeToFile;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link AndroidModuleModel}.
@@ -132,39 +122,5 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
       .create(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "release", new IdeDependenciesFactory());
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
-  }
-
-  public void testApplicationIdFromCache() throws IOException {
-    File rootFile = getProjectFolderPath();
-    File outputFile = new File (rootFile, "build/output/apk/test/output.json");
-    writeToFile(outputFile, new GradleBuildOutputUtilTest().getSingleAPKOutputFileText());
-
-    FileStructure fileStructure = new FileStructure(rootFile);
-    AndroidArtifactStub androidArtifact = new AndroidArtifactStub("test", "test", "test", fileStructure);
-    VariantStub variant = new VariantStub("test", "test", fileStructure, androidArtifact);
-
-    AndroidProjectStub androidProject = new AndroidProjectStub("MyApp", fileStructure);
-    androidProject.setModelVersion("4.2.0");
-    androidProject.clearVariants();
-    androidProject.addVariant(variant);
-
-    // Create AndroidModuleModel with "release" as selected variant.
-    AndroidModuleModel androidModel = AndroidModuleModel
-      .create(androidProject.getName(), rootFile, androidProject, "test", new IdeDependenciesFactory());
-    Module mockModule = mock(Module.class);
-    when(mockModule.getProject()).thenReturn(getProject());
-    androidModel.setModule(mockModule);
-
-    assertThat(androidModel.getApplicationId()).isEqualTo("com.example.myapplication");
-    // Change the value
-    String newSingleAPKOutputFileTest =
-      new GradleBuildOutputUtilTest().getSingleAPKOutputFileText().replace("com.example.myapplication", "com.cool.app");
-    writeToFile(outputFile, newSingleAPKOutputFileTest);
-    // Check cache still produces old value
-    assertThat(androidModel.getApplicationId()).isEqualTo("com.example.myapplication");
-    ServiceManager.getService(getProject(), LastBuildOrSyncService.class).setLastBuildOrSyncTimeStamp(System.currentTimeMillis());
-
-    // Fake the cache clearing and check new value is re-parsed
-    assertThat(androidModel.getApplicationId()).isEqualTo("com.cool.app");
   }
 }

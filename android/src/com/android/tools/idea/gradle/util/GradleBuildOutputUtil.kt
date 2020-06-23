@@ -17,29 +17,17 @@
 
 package com.android.tools.idea.gradle.util
 
-import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
-import com.android.tools.idea.AndroidStartupActivity
-import com.android.tools.idea.gradle.project.build.BuildContext
-import com.android.tools.idea.gradle.project.build.BuildStatus
-import com.android.tools.idea.gradle.project.build.GradleBuildListener
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 
 /**
@@ -179,9 +167,12 @@ private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArti
   }
 }
 
-fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String) : GenericBuiltArtifacts? {
+/**
+ * Retrieve application from build output listing file.
+ */
+fun getApplicationIdFromListingFile(androidModel: AndroidModuleModel, variantName: String): String? {
   val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk) ?: return null
-  return loadFromFile(File(listingFile), LogWrapper(LOG))
+  return getApplicationIdFromListingFile(listingFile)
 }
 
 @VisibleForTesting
@@ -192,43 +183,3 @@ fun getApplicationIdFromListingFile(listingFile: String): String? {
   }
   return null
 }
-
-class LastBuildOrSyncService {
-  // Do not set outside of tests or this class!!
-  @Volatile var lastBuildOrSyncTimeStamp = -1L
-    @VisibleForTesting set
-}
-
-internal class LastBuildOrSyncListener: ExternalSystemTaskNotificationListenerAdapter() {
-  override fun onEnd(id: ExternalSystemTaskId) {
-    id.findProject()?.also { project ->
-      ServiceManager.getService(project, LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
-    }
-  }
-}
-
-/**
- * This should not really be used, but we currently do not use the intellij build infra and therefore do not get
- * events for build. If we move to using this and the events from running tasks trigger the GenericBuiltArtifactsCacheCleaner then
- * this should be removed.
- */
-internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
-  override fun runActivity(project: Project, disposable: Disposable) {
-    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-        if (context == null) return
-        val service = ServiceManager.getService(context.project, LastBuildOrSyncService::class.java)
-        service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
-      }
-    })
-
-    val service = ServiceManager.getService(project, LastBuildOrSyncService::class.java)
-    service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
-  }
-}
-
-@TestOnly
-fun emulateStartupActivityForTest(project: Project) = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(
-  LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
-
-data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp : Long)
