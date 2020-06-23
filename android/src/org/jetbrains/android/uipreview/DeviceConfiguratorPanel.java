@@ -347,7 +347,13 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private void createUIComponents() {
-    myQualifierOptionsPanel = new JPanel(new CardLayout());
+    myQualifierOptionsPanel = new JPanel(new CardLayout()) {
+      @Override
+      public Dimension getPreferredSize() {
+        // Simulate a width weight of 50%
+        return new Dimension(getParent().getWidth() / 2, -1);
+      }
+    };
 
     final JPanel leftPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myAvailableQualifiersList = new JBList<>();
@@ -379,17 +385,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       @SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
       @Override
       public Dimension preferredLayoutSize(Container target) {
-        synchronized (target.getTreeLock()) {
-          final Dimension leftPref = leftPanel.getPreferredSize();
-          final Dimension rightPref = rightPanel.getPreferredSize();
-          final Dimension middlePref = buttonsPanel.getPreferredSize();
-          final Insets insets = target.getInsets();
-
-          final int width = leftPref.width + middlePref.width + rightPref.width + insets.left + insets.right + gap * 2;
-          final int height = Math
-                               .max(leftPref.height, Math.max(rightPref.height, middlePref.height)) + insets.top + insets.bottom;
-          return new Dimension(width, height);
-        }
+        return new Dimension(-1, -1);
       }
 
       @SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
