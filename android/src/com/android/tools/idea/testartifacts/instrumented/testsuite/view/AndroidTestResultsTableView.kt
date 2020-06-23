@@ -146,6 +146,15 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   }
 
   /**
+   * Selects the root item.
+   */
+  @UiThread
+  fun selectRootItem() {
+    myTableView.setColumnSelectionInterval(0, 0)
+    myTableView.setRowSelectionInterval(0, 0)
+  }
+
+  /**
    * Clears currently selected items in the table.
    */
   @UiThread
