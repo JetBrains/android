@@ -220,6 +220,20 @@ class UtilsTest : LightPlatformTestCase() {
     assertEquals(SqliteStatementType.PRAGMA_QUERY, getSqliteStatementType(project, "PRAGMA cache_size"))
     assertEquals(SqliteStatementType.PRAGMA_UPDATE, getSqliteStatementType(project, "PRAGMA cache_size = 2"))
     assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "PRAGMA cache_size ="))
+
+    assertEquals(SqliteStatementType.SELECT, getSqliteStatementType(project, "WITH one AS (SELECT 1) SELECT * FROM one"))
+    assertEquals(SqliteStatementType.SELECT, getSqliteStatementType(
+      project,
+      "WITH one AS (SELECT 1), two  AS (SELECT 2) SELECT * FROM one, two")
+    )
+    assertEquals(SqliteStatementType.UPDATE, getSqliteStatementType(project, "WITH one AS (SELECT 1) UPDATE tab SET name = 1 WHERE id = 1"))
+    assertEquals(SqliteStatementType.INSERT, getSqliteStatementType(project, "WITH one AS (SELECT 1) INSERT INTO tab VALUES (1)"))
+    assertEquals(SqliteStatementType.DELETE, getSqliteStatementType(
+      project,
+      "WITH one AS (SELECT 1) DELETE FROM tab WHERE id IN (SELECT * FROM one)")
+    )
+    assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "WITH one AS (SELECT 1)"))
+    assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "WITH one AS (SELECT 1) EXPLAIN SELECT * FROM one"))
   }
 
   fun testGetWrappableStatement() {
