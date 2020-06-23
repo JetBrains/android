@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
+import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.Disposable
@@ -32,6 +33,7 @@ import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.InputStream
 
 /**
@@ -65,7 +67,7 @@ class ImportUtpResultAction : AnAction() {
    * @param project the Android Studio project.
    **/
   @VisibleForTesting
-  fun parseResultsAndDisplay(inputStream: InputStream, disposable: Disposable, project: Project) {
+  fun parseResultsAndDisplay(file: File, disposable: Disposable, project: Project) {
     RunContentManager.getInstance(project)
     val toolWindow = getToolWindow(project)
     val testSuiteView = AndroidTestSuiteView(disposable, project, null)
@@ -75,7 +77,7 @@ class ImportUtpResultAction : AnAction() {
     val testAdapter = UtpTestResultAdapter(testSuiteView)
     // TODO: error handling
     project.coroutineScope.launch {
-      testAdapter.importResult(inputStream)
+      testAdapter.importResult(file)
     }
     toolWindow.activate(null)
   }
@@ -90,7 +92,7 @@ class ImportUtpResultAction : AnAction() {
                e.project,
                null
     ) { file: VirtualFile ->
-      parseResultsAndDisplay(file.inputStream, requireNotNull(e.project), requireNotNull(e.project))
+      parseResultsAndDisplay(file.toIoFile(), requireNotNull(e.project), requireNotNull(e.project))
     }
   }
 
