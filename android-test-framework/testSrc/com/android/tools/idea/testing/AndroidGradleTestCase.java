@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -53,7 +52,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -65,6 +63,8 @@ import com.intellij.util.Consumer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -184,7 +184,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
         ProjectManagerEx.getInstanceEx().forceCloseProject(openProjects[0]);
-        ProjectRule.checkThatNoOpenProjects();
       }
       myAndroidFacet = null;
       myModules = null;
@@ -292,7 +291,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     File projectDir = getBaseDirPath(project);
     // Tests should not need to access the network
     return invokeGradle(project, gradleInvoker ->
-      gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks), Lists.newArrayList("--offline")));
+      gradleInvoker.executeTasks(projectDir, Arrays.asList(tasks), Collections.singletonList("--offline")));
   }
 
   @NotNull
