@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -187,11 +188,9 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       final int totalScheduledStepsCount = launchTaskMap.values().stream()
         .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask)).sum();
       List<ListenableFuture<?>> asyncTasks = ContainerUtil.map(launchTaskMap.entrySet(), entry -> runLaunchTaskAsync(
-        entry.getKey(),
         entry.getValue(),
         indicator,
-        launchStatus,
-        consolePrinter,
+        new LaunchContext(myProject, myLaunchInfo.executor, entry.getKey(), launchStatus, consolePrinter, myProcessHandler),
         destroyProcessOnCancellation,
         completedStepsCount,
         totalScheduledStepsCount));
@@ -214,17 +213,17 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
   }
 
-  private ListenableFuture<?> runLaunchTaskAsync(@NotNull IDevice device,
-                                                 @NotNull List<LaunchTask> launchTasks,
+  private ListenableFuture<?> runLaunchTaskAsync(@NotNull List<LaunchTask> launchTasks,
                                                  @NotNull ProgressIndicator indicator,
-                                                 @NotNull LaunchStatus launchStatus,
-                                                 @NotNull ConsolePrinter consolePrinter,
+                                                 @NotNull LaunchContext launchContext,
                                                  boolean destroyProcessOnCancellation,
                                                  @NotNull AtomicInteger completedStepsCount,
                                                  int totalScheduledStepsCount) {
     return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
       // Update the indicator progress.
       indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
+      IDevice device = launchContext.getDevice();
+      LaunchStatus launchStatus = launchContext.getLaunchStatus();
 
       NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", ToolWindowId.RUN);
       for (LaunchTask task : launchTasks) {
@@ -234,7 +233,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
-        LaunchResult result = task.run(myLaunchInfo.executor, device, launchStatus, consolePrinter);
+        LaunchResult result = task.run(launchContext);
         myOnFinished.addAll(result.onFinishedCallbacks());
         boolean success = result.getSuccess();
         myStats.endLaunchTask(task, details, success);

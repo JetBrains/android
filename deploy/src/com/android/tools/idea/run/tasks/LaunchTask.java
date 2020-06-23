@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
-import com.intellij.execution.Executor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -51,17 +47,11 @@ public interface LaunchTask {
    * Runs this LaunchTask. This method is an entry point of this launch task and is called by
    * {@link org.jetbrains.ide.PooledThreadExecutor} so you can perform expensive operations here.
    *
-   * @param executor a metadata of the executor of this task. Note that this is not a
-   *                 {@code java.util.concurrent.Executor}
-   * @param device an Android device to perform this task against
-   * @param launchStatus a current status of this launch operation. An implementor of this method
-   *                     should check the status periodically and cancel ongoing operations if it is
-   *                     being terminated.
-   * @param printer use this printer to output arbitrary messages
+   *
+   * @param launchContext additional parameters shared amongst all {@link LaunchTask}s
    * @return the result of this task
    */
-  LaunchResult run(@NotNull Executor executor, @NotNull IDevice device,
-                           @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer);
+  LaunchResult run(@NotNull LaunchContext launchContext);
 
   /**
    * Returns an arbitrary identifier string for this task. This ID is recorded in
