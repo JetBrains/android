@@ -90,10 +90,12 @@ class AndroidTestSuiteViewTest {
   }
 
   @Test
-  fun detailsViewIsNotVisibleInitially() {
+  fun detailsViewIsVisibleAndRawTestOutputIsDisplayedInitially() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
-    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
+    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
+    assertThat(view.tableForTesting.getTableViewForTesting().selectedColumn).isEqualTo(0)
+    assertThat(view.tableForTesting.getTableViewForTesting().selectedRow).isEqualTo(0)
   }
 
   @Test
@@ -218,32 +220,33 @@ class AndroidTestSuiteViewTest {
     view.mySkippedToggleButton.isSelected = true
     view.myInProgressToggleButton.isSelected = false
 
-    assertThat(tableView.rowCount).isEqualTo(1)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(-1)  // Root aggregation (failed)
+    assertThat(tableView.rowCount).isEqualTo(2)
+    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation should always be visible.
     assertThat(tableView.convertRowIndexToView(1)).isEqualTo(-1)  // Class A aggregation (failed)
     assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)  // method 1 (failed)
     assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)  // method 2 (passed)
     assertThat(tableView.convertRowIndexToView(4)).isEqualTo(-1)  // Class B aggregation (in progress)
-    assertThat(tableView.convertRowIndexToView(5)).isEqualTo(0)  // method 3 (skipped)
+    assertThat(tableView.convertRowIndexToView(5)).isEqualTo(1)  // method 3 (skipped)
     assertThat(tableView.convertRowIndexToView(6)).isEqualTo(-1)  // method 4 (in progress)
 
     // Remove "Skipped" and select "In Progress".
     view.mySkippedToggleButton.isSelected = false
     view.myInProgressToggleButton.isSelected = true
 
-    assertThat(tableView.rowCount).isEqualTo(2)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(-1)  // Root aggregation (failed)
+    assertThat(tableView.rowCount).isEqualTo(3)
+    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation should always be visible.
     assertThat(tableView.convertRowIndexToView(1)).isEqualTo(-1)  // Class A aggregation (failed)
     assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)  // method 1 (failed)
     assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)  // method 2 (passed)
-    assertThat(tableView.convertRowIndexToView(4)).isEqualTo(0)  // Class B aggregation (in progress)
+    assertThat(tableView.convertRowIndexToView(4)).isEqualTo(1)  // Class B aggregation (in progress)
     assertThat(tableView.convertRowIndexToView(5)).isEqualTo(-1)  // method 3 (skipped)
-    assertThat(tableView.convertRowIndexToView(6)).isEqualTo(1)  // method 4 (in progress)
+    assertThat(tableView.convertRowIndexToView(6)).isEqualTo(2)  // method 4 (in progress)
 
     // Remove "In Progress". (Nothing is selected).
     view.myInProgressToggleButton.isSelected = false
 
-    assertThat(tableView.rowCount).isEqualTo(0)
+    assertThat(tableView.rowCount).isEqualTo(1)
+    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation should always be visible.
   }
 
   @Test

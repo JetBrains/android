@@ -22,11 +22,13 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -60,12 +62,6 @@ public class AndroidTestSuiteDetailsView {
     void onAndroidTestSuiteDetailsViewCloseButtonClicked();
   }
 
-  /**
-   * Minimum width of the device list swing component in pixel.
-   */
-  private static final int MIN_DEVICE_LIST_WIDTH = 100;
-  private static final int DEFAULT_DEVICE_LIST_WIDTH = 300;
-
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
   private JPanel myHeaderPanel;
@@ -74,8 +70,10 @@ public class AndroidTestSuiteDetailsView {
   private CommonButton myCloseButton;
   private JPanel myContentPanel;
 
+  private final JBSplitter myComponentsSplitter;
   private final DetailsViewDeviceSelectorListView myDeviceSelectorListView;
   private final DetailsViewContentView myContentView;
+  private final ConsoleViewImpl myRawTestLogConsoleView;
 
   @Nullable private AndroidTestResults myTestResults;
   @Nullable private AndroidDevice mySelectedDevice;
@@ -109,12 +107,14 @@ public class AndroidTestSuiteDetailsView {
       }
     });
 
-    ThreeComponentsSplitter componentsSplitter =
-      new ThreeComponentsSplitter(/*vertical=*/false, /*onePixelDividers=*/true, parentDisposable);
-    componentsSplitter.setOpaque(false);
-    componentsSplitter.setMinSize(MIN_DEVICE_LIST_WIDTH);
-    componentsSplitter.setHonorComponentsMinimumSize(false);
-    Disposer.register(parentDisposable, componentsSplitter);
+    myContentView = new DetailsViewContentView(parentDisposable, project);
+    myRawTestLogConsoleView = new ConsoleViewImpl(project, /*viewer=*/true);
+    Disposer.register(parentDisposable, myRawTestLogConsoleView);
+
+    myComponentsSplitter = new JBSplitter();
+    myComponentsSplitter.setHonorComponentsMinimumSize(false);
+    myComponentsSplitter.setDividerWidth(1);
+    myComponentsSplitter.getDivider().setBackground(UIUtil.CONTRAST_BORDER_COLOR);
 
     myDeviceSelectorListView = new DetailsViewDeviceSelectorListView(
       new DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener() {
@@ -122,15 +122,19 @@ public class AndroidTestSuiteDetailsView {
         public void onDeviceSelected(@NotNull AndroidDevice selectedDevice) {
           mySelectedDevice = selectedDevice;
           reloadAndroidTestResults();
+          myComponentsSplitter.setSecondComponent(myContentView.getRootPanel());
+        }
+
+        @Override
+        public void onRawOutputSelected() {
+          myComponentsSplitter.setSecondComponent(myRawTestLogConsoleView);
         }
       });
-    componentsSplitter.setFirstComponent(myDeviceSelectorListView.getRootPanel());
-    componentsSplitter.setFirstSize(DEFAULT_DEVICE_LIST_WIDTH);
+    myComponentsSplitter.setFirstComponent(myDeviceSelectorListView.getRootPanel());
+    myComponentsSplitter.setProportion(0.3f);
 
-    myContentView = new DetailsViewContentView(parentDisposable, project);
-    componentsSplitter.setLastComponent(myContentView.getRootPanel());
-
-    myContentPanel.add(componentsSplitter);
+    myComponentsSplitter.setSecondComponent(myRawTestLogConsoleView.getComponent());
+    myContentPanel.add(myComponentsSplitter);
 
     myTitleText.setBorder(JBUI.Borders.empty(0, 10));
     myRootPanel.setMinimumSize(new Dimension());
@@ -180,6 +184,14 @@ public class AndroidTestSuiteDetailsView {
     myTitleText.setIcon(AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestResultSummary()));
     myTitleText.setMinimumSize(new Dimension());
 
+    if (AndroidTestResultsKt.isRootAggregationResult(myTestResults)) {
+      myDeviceSelectorListView.setShowRawOutputItem(true);
+    } else {
+      myDeviceSelectorListView.setShowRawOutputItem(false);
+      if (mySelectedDevice != null) {
+        selectDevice(mySelectedDevice);
+      }
+    }
     myDeviceSelectorListView.setAndroidTestResults(myTestResults);
 
     myContentView.setPackageName(myTestResults.getPackageName());
@@ -212,6 +224,19 @@ public class AndroidTestSuiteDetailsView {
   @UiThread
   public void selectDevice(@NotNull AndroidDevice device) {
     myDeviceSelectorListView.selectDevice(device);
+  }
+
+  /**
+   * Select the raw output item to be displayed in the content area.
+   */
+  @UiThread
+  public void selectRawOutput() {
+    myDeviceSelectorListView.selectRawOutputItem();
+  }
+
+  @UiThread
+  public ConsoleView getRawTestLogConsoleView() {
+    return myRawTestLogConsoleView;
   }
 
   @VisibleForTesting

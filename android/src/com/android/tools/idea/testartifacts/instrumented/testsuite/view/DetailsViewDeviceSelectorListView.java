@@ -60,12 +60,19 @@ public class DetailsViewDeviceSelectorListView {
      */
     @UiThread
     void onDeviceSelected(@NotNull AndroidDevice selectedDevice);
+
+    /**
+     * Called when a user selects a special item, "Raw Output", in the list.
+     */
+    @UiThread
+    void onRawOutputSelected();
   }
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
-  private JBList<AndroidDevice> myDeviceList;
-  private DefaultListModel<AndroidDevice> myDeviceListModel;
+  private JBList<Object> myDeviceList;
+  private DefaultListModel<Object> myDeviceListModel;
+  private RawOutputItem myRawOutputItem = new RawOutputItem();
 
   private AndroidDeviceListCellRenderer myCellRenderer;
 
@@ -73,9 +80,11 @@ public class DetailsViewDeviceSelectorListView {
     myDeviceList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent event) {
-        AndroidDevice selectedItem = myDeviceList.getSelectedValue();
-        if (selectedItem != null) {
-          listener.onDeviceSelected(selectedItem);
+        Object selectedItem = myDeviceList.getSelectedValue();
+        if (selectedItem instanceof AndroidDevice) {
+          listener.onDeviceSelected((AndroidDevice) selectedItem);
+        } else if (selectedItem instanceof RawOutputItem) {
+          listener.onRawOutputSelected();
         }
       }
     });
@@ -92,6 +101,8 @@ public class DetailsViewDeviceSelectorListView {
     myDeviceList.putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true);
     myCellRenderer = new AndroidDeviceListCellRenderer();
     myDeviceList.setCellRenderer(myCellRenderer);
+    myDeviceList.setFixedCellHeight(50);
+    myDeviceList.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
   }
 
   /**
@@ -120,18 +131,39 @@ public class DetailsViewDeviceSelectorListView {
   }
 
   /**
+   * Select the raw output item in the list.
+   */
+  @UiThread
+  public void selectRawOutputItem() {
+    setShowRawOutputItem(true);
+    myDeviceList.setSelectedValue(myRawOutputItem, true);
+  }
+
+  /**
    * Updates the view with a given AndroidTestResults.
    */
   @UiThread
   public void setAndroidTestResults(@NotNull AndroidTestResults results) {
     myCellRenderer.setAndroidTestResults(results);
-    myDeviceList.updateUI();
+  }
+
+  @UiThread
+  public void setShowRawOutputItem(boolean showRawOutputItem) {
+    if (showRawOutputItem) {
+      if (myDeviceListModel.indexOf(myRawOutputItem) == -1) {
+        myDeviceListModel.add(0, myRawOutputItem);
+      }
+    } else {
+      myDeviceListModel.removeElement(myRawOutputItem);
+    }
   }
 
   @VisibleForTesting
-  public JBList<AndroidDevice> getDeviceListForTesting() {
+  public JBList<Object> getDeviceListForTesting() {
     return myDeviceList;
   }
+
+  @VisibleForTesting static class RawOutputItem {}
 
   private static class AndroidDeviceListCellRenderer extends DefaultListCellRenderer {
 
@@ -173,24 +205,31 @@ public class DetailsViewDeviceSelectorListView {
       myDeviceLabelPanel.setBackground(list.getBackground());
       myDeviceLabelPanel.setForeground(list.getForeground());
 
-      if (!(value instanceof AndroidDevice)) {
-        return myCellRendererComponent;
+      if (value instanceof AndroidDevice) {
+        AndroidDevice device = (AndroidDevice) value;
+        myDeviceLabel.setText(
+          String.format(Locale.US, "<html>%s<br>API %d</html>",
+                        AndroidDeviceKt.getName(device), device.getVersion().getApiLevel()));
+        myDeviceLabel.setIcon(getIconForDeviceType(device.getDeviceType()));
+      } else if (value instanceof RawOutputItem) {
+        myDeviceLabel.setText("Raw Output");
+        myDeviceLabel.setIcon(null);
       }
-      AndroidDevice device = (AndroidDevice) value;
-
-      myDeviceLabel.setText(
-        String.format(Locale.US, "<html>%s<br>API %d</html>",
-                      AndroidDeviceKt.getName(device), device.getVersion().getApiLevel()));
-      myDeviceLabel.setIcon(getIconForDeviceType(device.getDeviceType()));
       myDeviceLabel.setIconTextGap(10);
       myDeviceLabel.setBorder(myEmptyBorder);
       myDeviceLabel.setBackground(list.getBackground());
       myDeviceLabel.setForeground(list.getForeground());
 
-      if (myTestResults != null) {
-        myTestResultLabel.setIcon(
-          AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestCaseResult(device)));
-      } else {
+      if (value instanceof AndroidDevice) {
+        AndroidDevice device = (AndroidDevice) value;
+        if (myTestResults != null) {
+          myTestResultLabel.setIcon(
+            AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestCaseResult(device)));
+        }
+        else {
+          myTestResultLabel.setIcon(null);
+        }
+      } else if (value instanceof RawOutputItem) {
         myTestResultLabel.setIcon(null);
       }
       myTestResultLabel.setBorder(myEmptyBorder);

@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
@@ -49,16 +50,17 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.ui.AppUIUtil;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SortedComboBoxModel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.paint.LinePainter2D;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -190,7 +192,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   private final Project myProject;
 
-  private final ThreeComponentsSplitter myComponentsSplitter;
+  private final JBSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
 
@@ -260,6 +262,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     }
     myTable = new AndroidTestResultsTableView(this, JavaPsiFacade.getInstance(project), testArtifactSearchScopes);
     myTable.setRowFilter(testResults -> {
+      if (AndroidTestResultsKt.isRootAggregationResult(testResults)) {
+        return true;
+      }
       if (myFailedToggleButton.isSelected()
           && testResults.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
         return true;
@@ -304,13 +309,10 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
 
-    myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/false,
-                                                       /*onePixelDividers=*/true,
-                                                       parentDisposable);
-    myComponentsSplitter.setOpaque(false);
-    myComponentsSplitter.setMinSize(MIN_COMPONENT_SIZE_IN_SPLITTER);
+    myComponentsSplitter = new JBSplitter();
     myComponentsSplitter.setHonorComponentsMinimumSize(false);
-    Disposer.register(this, myComponentsSplitter);
+    myComponentsSplitter.setDividerWidth(1);
+    myComponentsSplitter.getDivider().setBackground(UIUtil.CONTRAST_BORDER_COLOR);
 
     myRootPanel.setMinimumSize(new Dimension());
     myComponentsSplitter.setFirstComponent(myRootPanel);
@@ -318,7 +320,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, this, project);
     myDetailsView.getRootPanel().setVisible(false);
     myDetailsView.getRootPanel().setMinimumSize(new Dimension());
-    myComponentsSplitter.setLastComponent(myDetailsView.getRootPanel());
+    myComponentsSplitter.setSecondComponent(myDetailsView.getRootPanel());
+
+    myTable.selectRootItem();
 
     updateProgress();
 
@@ -475,13 +479,12 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDetailsView.setAndroidTestResults(results);
     if (selectedDevice != null) {
       myDetailsView.selectDevice(selectedDevice);
+    } else if (AndroidTestResultsKt.isRootAggregationResult(results)) {
+      myDetailsView.selectRawOutput();
     }
 
     if (!myDetailsView.getRootPanel().isVisible()) {
       myDetailsView.getRootPanel().setVisible(true);
-
-      int componentSize = myComponentsSplitter.getOrientation() ? myComponentsSplitter.getHeight() : myComponentsSplitter.getWidth();
-      myComponentsSplitter.setFirstSize(componentSize/2);
     }
   }
 
@@ -505,56 +508,71 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @Override
-  public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) { }
+  public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) {
+    myDetailsView.getRawTestLogConsoleView().print(text, contentType);
+  }
 
   @Override
-  public void clear() { }
+  public void clear() {
+    myDetailsView.getRawTestLogConsoleView().clear();
+  }
 
   @Override
-  public void scrollTo(int offset) { }
+  public void scrollTo(int offset) {
+    myDetailsView.getRawTestLogConsoleView().scrollTo(offset);
+  }
 
   @Override
   public void attachToProcess(ProcessHandler processHandler) {
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this);
+    myDetailsView.getRawTestLogConsoleView().attachToProcess(processHandler);
   }
 
   @Override
-  public void setOutputPaused(boolean value) { }
+  public void setOutputPaused(boolean value) {
+    myDetailsView.getRawTestLogConsoleView().setOutputPaused(value);
+  }
 
   @Override
   public boolean isOutputPaused() {
-    return false;
+    return myDetailsView.getRawTestLogConsoleView().isOutputPaused();
   }
 
   @Override
   public boolean hasDeferredOutput() {
-    return false;
+    return myDetailsView.getRawTestLogConsoleView().hasDeferredOutput();
   }
 
   @Override
   public void performWhenNoDeferredOutput(@NotNull Runnable runnable) {
-    runnable.run();
+    myDetailsView.getRawTestLogConsoleView().performWhenNoDeferredOutput(runnable);
   }
 
   @Override
-  public void setHelpId(@NotNull String helpId) { }
+  public void setHelpId(@NotNull String helpId) {
+    myDetailsView.getRawTestLogConsoleView().setHelpId(helpId);
+  }
 
   @Override
-  public void addMessageFilter(@NotNull Filter filter) { }
+  public void addMessageFilter(@NotNull Filter filter) {
+    myDetailsView.getRawTestLogConsoleView().addMessageFilter(filter);
+  }
 
   @Override
-  public void printHyperlink(@NotNull String hyperlinkText, @Nullable HyperlinkInfo info) { }
+  public void printHyperlink(@NotNull String hyperlinkText, @Nullable HyperlinkInfo info) {
+    myDetailsView.getRawTestLogConsoleView().printHyperlink(hyperlinkText, info);
+  }
 
   @Override
   public int getContentSize() {
-    return 0;
+    return myDetailsView.getRawTestLogConsoleView().getContentSize();
   }
 
   @Override
   public boolean canPause() {
-    return false;
+    return myDetailsView.getRawTestLogConsoleView().canPause();
   }
 
   @NotNull
@@ -564,7 +582,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @Override
-  public void allowHeavyFilters() { }
+  public void allowHeavyFilters() {
+    myDetailsView.getRawTestLogConsoleView().allowHeavyFilters();
+  }
 
   @Override
   public JComponent getComponent() {

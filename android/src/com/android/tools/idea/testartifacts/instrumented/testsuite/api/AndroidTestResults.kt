@@ -100,6 +100,13 @@ fun AndroidTestResults.getFullTestClassName(): String {
   }
 }
 
+/**
+ * Returns true if this result is a root aggregation result.
+ */
+fun AndroidTestResults.isRootAggregationResult(): Boolean {
+  return getFullTestCaseName() == "."
+}
+
 data class AndroidTestResultStats(
   var passed: Int = 0,
   var failed: Int = 0,
