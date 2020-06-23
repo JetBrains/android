@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.isUpdatablePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -164,6 +165,53 @@ class AgpUpgradeRefactoringProcessor(
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
 }
 
+/**
+One common way to characterise a compatibility change is that some old feature f_o is deprecated in favour of some new feature f_n from
+version v_n (when the new feature f_n is available); the old feature f_o is finally removed in version v_o.  That is, feature f_n is
+available in the versions [v_n, +∞), and f_o is available in versions (-∞, v_o) -- note the exclusion of v_o, which is the first version
+in which f_o is *not* available.  For the rest of this analysis to hold, we also assume that v_n <= v_o -- that is, there is a set
+of versions where the features overlap, or else a feature is replaced wholesale in a single version, but that there is no period where
+neither of the features is present.
+
+If we can characterise the upgrade from a (cur, new > cur) pair of AGP versions, a compatibility change (implemented by a single
+component refactoring) can be put into one of six categories:
+
+| 1 | 2 | 3 | 4 | Necessity
+|---|---|---|---|----------
+|v_n|v_o|cur|new| [IRRELEVANT_PAST]
+|cur|new|v_n|v_o| [IRRELEVANT_FUTURE]
+|cur|v_n|v_o|new| [MANDATORY_CODEPENDENT] (must do the refactoring in the same action as the AGP version upgrade)
+|v_n|cur|v_o|new| [MANDATORY_INDEPENDENT] (must do the refactoring, but can do it before the AGP version upgrade)
+|cur|v_n|new|v_o| [OPTIONAL_CODEPENDENT] (need not do the refactoring, but if done must be with or after the AGP version upgrade)
+|v_n|cur|new|v_o| [OPTIONAL_INDEPENDENT] (need not do the refactoring, but if done can be at any point in the process)
+
+with the conventions for v_n and v_o as described above, equality in version numbers (e.g. if we are upgrading to the first version
+where a feature appears or disappears) is handled by v_n/v_o sorting before cur/new -- so that when comparing a feature version against
+an version associated with an AGP dependency, we must use the < or >= operators depending on whether the feature version is on the left
+or right of the operator respectively.
+
+For the possibly-simpler case where we have a discontinuity in behaviour, v_o = v_n = vvv, and the three possible cases are:
+
+| 1 | 2 | 3 | Necessity
++---+---+---+----------
+|vvv|cur|new| [IRRELEVANT_PAST]
+|cur|vvv|new| [MANDATORY_CODEPENDENT]
+|cur|new|vvv| [IRRELEVANT_FUTURE]
+
+(again in case of equality, vvv sorts before cur and new)
+
+If other refactorings come along which are more complicated than can be supported by this model of a single feature replaced by another,
+we might need more necessity values.
+*/
+enum class AgpUpgradeComponentNecessity {
+  IRRELEVANT_PAST,
+  IRRELEVANT_FUTURE,
+  MANDATORY_CODEPENDENT,
+  MANDATORY_INDEPENDENT,
+  OPTIONAL_CODEPENDENT,
+  OPTIONAL_INDEPENDENT,
+}
+
 // Each individual refactoring involved in an AGP Upgrade is implemented as its own refactoring processor.  For a "batch" upgrade, most
 // of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
@@ -175,7 +223,10 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   var isEnabled: Boolean
     set(value) { _isEnabled = value }
     get() {
-      if (_isEnabled == null) _isEnabled = isApplicable()
+      if (_isEnabled == null) _isEnabled = when (necessity()) {
+        IRRELEVANT_FUTURE, IRRELEVANT_PAST -> false
+        MANDATORY_CODEPENDENT, MANDATORY_INDEPENDENT, OPTIONAL_CODEPENDENT, OPTIONAL_INDEPENDENT -> true
+      }
       return _isEnabled!!
     }
 
@@ -189,7 +240,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.new = processor.new
   }
 
-  protected abstract fun isApplicable(): Boolean
+  protected abstract fun necessity(): AgpUpgradeComponentNecessity
 
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) return UsageInfo.EMPTY_ARRAY
@@ -206,7 +257,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() = true
+  override fun necessity() = MANDATORY_CODEPENDENT
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -285,7 +336,11 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   val gradleVersion: GradleVersion
 
-  override fun isApplicable() = current < GradleVersion(3, 0, 0)
+  override fun necessity() = when {
+    current < GradleVersion(3, 0, 0) && new >= GradleVersion(3, 0, 0) -> MANDATORY_CODEPENDENT
+    new < GradleVersion(3, 0, 0) -> IRRELEVANT_FUTURE
+    else -> IRRELEVANT_PAST
+  }
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -357,7 +412,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   val gradleVersion: GradleVersion
 
-  override fun isApplicable() = true
+  override fun necessity() = MANDATORY_CODEPENDENT
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -427,7 +482,11 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() = current < ACTIVATED_VERSION && new >= ACTIVATED_VERSION
+  override fun necessity() = when {
+    current < ACTIVATED_VERSION && new >= ACTIVATED_VERSION -> MANDATORY_CODEPENDENT
+    new < ACTIVATED_VERSION -> IRRELEVANT_FUTURE
+    else -> IRRELEVANT_PAST
+  }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -540,8 +599,14 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() =
-    current < GradleVersion(5, 0, 0) && new >= GradleVersion(3, 5, 0)
+  override fun necessity() = when {
+    current < IMPLEMENTATION_API_INTRODUCED && new >= COMPILE_REMOVED -> MANDATORY_CODEPENDENT
+    current < COMPILE_REMOVED && new >= COMPILE_REMOVED -> MANDATORY_INDEPENDENT
+    new < IMPLEMENTATION_API_INTRODUCED -> IRRELEVANT_FUTURE
+    current >= COMPILE_REMOVED -> IRRELEVANT_PAST
+    current < IMPLEMENTATION_API_INTRODUCED -> OPTIONAL_CODEPENDENT
+    else -> OPTIONAL_INDEPENDENT
+  }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -626,6 +691,11 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.CompileRuntimeConfiguration"
 
   override fun getCommandName(): String = "Replace deprecated configurations"
+
+  companion object {
+    val IMPLEMENTATION_API_INTRODUCED = GradleVersion(3, 5, 0)
+    val COMPILE_REMOVED = GradleVersion(5, 0, 0)
+  }
 }
 
 class ObsoleteConfigurationDependencyUsageInfo(
