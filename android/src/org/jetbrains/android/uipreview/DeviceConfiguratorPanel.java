@@ -1090,16 +1090,10 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       JBLabel regionLabel = new JBLabel("Specific Region Only:");
 
-      SortedListModel<String> languageModel = new SortedListModel<>(new Comparator<String>() {
-        @Override
-        public int compare(String s1, String s2) {
-          // Special language comparator: We want to prefer 2-letter language codes.
-          int delta = s1.length() - s2.length();
-          if (delta != 0) {
-            return delta;
-          }
-          return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-        }
+      SortedListModel<String> languageModel = new SortedListModel<>((s1, s2) -> {
+        // Special language comparator: We want to prefer 2-letter language codes.
+        int delta = s1.length() - s2.length();
+        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
       });
       languageModel.addAll(LocaleManager.getLanguageCodes(true));
       myLanguageList.setModel(languageModel);
@@ -1173,27 +1167,23 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
       final Ref<String> preferred = new Ref<>(null);
-      SortedListModel<String> regionModel = new SortedListModel<>(new Comparator<String>() {
-        @Override
-        public int compare(String s1, String s2) {
-          // Sort "Any Region" to the top
-          if (s1.equals(FAKE_VALUE)) {
-            return -1;
-          } else if (s2.equals(FAKE_VALUE)) {
-            return 1;
-          }
-          if (s1.equals(preferred.get())) {
-            return -1;
-          } else if (s2.equals(preferred.get())) {
-            return 1;
-          }
-          // Special language comparator: We want to prefer 2-letter language codes.
-          int delta = s1.length() - s2.length();
-          if (delta != 0) {
-            return delta;
-          }
-          return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+      SortedListModel<String> regionModel = new SortedListModel<>((s1, s2) -> {
+        // Sort "Any Region" to the top
+        if (s1.equals(FAKE_VALUE)) {
+          return -1;
         }
+        if (s2.equals(FAKE_VALUE)) {
+          return 1;
+        }
+        if (s1.equals(preferred.get())) {
+          return -1;
+        }
+        if (s2.equals(preferred.get())) {
+          return 1;
+        }
+        // Special language comparator: We want to prefer 2-letter language codes.
+        int delta = s1.length() - s2.length();
+        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
       });
       regionModel.add(FAKE_VALUE);
       if (!myShowAllRegions.isSelected() && languageCode != null) {
