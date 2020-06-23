@@ -88,9 +88,9 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   @NotNull
   static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
-                                                  @NotNull ViewSettings settings,
-                                                  @NotNull AndroidProjectViewPane projectViewPane,
-                                                  @NotNull Iterable<NamedIdeaSourceProvider> providers) {
+                                                     @NotNull ViewSettings settings,
+                                                     @NotNull AndroidProjectViewPane projectViewPane,
+                                                     @NotNull Iterable<NamedIdeaSourceProvider> providers) {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     Project project = facet.getModule().getProject();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
@@ -135,7 +135,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Nullable
   private static PsiDirectory getPsiDirectory(@NotNull Project project, @Nullable PathString path) {
     VirtualFile virtualFile = toVirtualFile(path);
-    return virtualFile != null ? PsiManager.getInstance(project).findDirectory(virtualFile): null;
+    return virtualFile != null ? PsiManager.getInstance(project).findDirectory(virtualFile) : null;
   }
 
   @NotNull
@@ -263,7 +263,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     }
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
     if (ndkModuleModel != null) {
-      return containedInIncludeFolders(ndkModuleModel, file);
+      return containedInIncludeFolders(myProject, ndkModuleModel, file);
     }
     return false;
   }

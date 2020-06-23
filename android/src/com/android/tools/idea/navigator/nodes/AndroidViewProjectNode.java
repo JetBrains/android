@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
@@ -38,14 +41,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.List;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   private final AndroidProjectViewPane myProjectViewPane;
@@ -104,7 +103,9 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     return String.format("%1$s", myProject.getName());
   }
 
-  /** Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(PresentationData)} */
+  /**
+   * Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(PresentationData)}
+   */
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(PlatformIcons.PROJECT_ICON);
@@ -132,10 +133,9 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-        return containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
+        return containedInIncludeFolders(myProject, ndkFacet.getNdkModuleModel(), file);
       }
     }
     return false;
-
   }
 }
