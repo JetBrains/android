@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
-import com.android.tools.idea.run.util.LaunchStatus
-import com.intellij.execution.Executor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -57,10 +54,10 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
 
   override fun getDuration() = LaunchTaskDurations.ASYNC_TASK
 
-  override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
+  override fun run(launchContext: LaunchContext): LaunchResult? {
     val project = module.project
     val window = ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return LaunchResult.success()
-    val preferredProcess = LayoutInspectorPreferredProcess(device, module)
+    val preferredProcess = LayoutInspectorPreferredProcess(launchContext.device, module)
     if (window.isVisible) {
       lookupLayoutInspector(window)?.allClients?.find { it.attachIfSupported(preferredProcess) != null }
     }

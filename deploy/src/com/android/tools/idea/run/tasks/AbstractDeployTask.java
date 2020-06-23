@@ -33,7 +33,6 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Stopwatch;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
@@ -96,7 +95,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(@NotNull LaunchContext launchContext) {
     Stopwatch stopwatch = Stopwatch.createStarted();
     LogWrapper logger = new LogWrapper(LOG);
 
@@ -107,6 +106,9 @@ public abstract class AbstractDeployTask implements LaunchTask {
     // Wall-clock start time for the deployment.
     long wallClockStartMs = System.currentTimeMillis();
 
+    IDevice device = launchContext.getDevice();
+    Executor executor = launchContext.getExecutor();
+    ConsolePrinter printer = launchContext.getConsolePrinter();
     AdbClient adb = new AdbClient(device, logger);
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger);
     DeploymentService service = DeploymentService.getInstance(myProject);
