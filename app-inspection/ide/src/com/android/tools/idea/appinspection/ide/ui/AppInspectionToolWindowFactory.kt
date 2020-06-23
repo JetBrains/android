@@ -42,7 +42,6 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR)
     Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
-    toolWindow.isShowStripeButton = false
     toolWindow.stripeTitle = APP_INSPECTION_ID
   }
 
