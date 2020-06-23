@@ -160,7 +160,7 @@ fun performRecommendedPluginUpgrade(
     if (AGP_UPGRADE_ASSISTANT.get()) {
       val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
       val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
-        val dialog = AgpUpgradeRefactoringProcessorDialog(processor)
+        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor)
         dialog.showAndGet()
       }
       if (runProcessor) {
