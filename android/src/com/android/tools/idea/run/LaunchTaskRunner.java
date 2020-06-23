@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
@@ -51,15 +49,12 @@ import com.intellij.util.containers.ContainerUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -152,21 +147,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       if (!isSwap() && myProcessHandler instanceof AndroidProcessHandler) {
         ListenableFuture<?> waitApplicationTerminationTask = Futures.whenAllSucceed(
           ContainerUtil.map(devices, device -> MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
-            ApplicationTerminationWaiter listener = new ApplicationTerminationWaiter(device, myApplicationId);
-            try {
-              // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
-              if (!listener.await(10, TimeUnit.SECONDS)) {
-                launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
-                throw new CancellationException();
-              }
+            ApplicationTerminator terminator = new ApplicationTerminator(device, myApplicationId);
+            if (!terminator.killApp(launchStatus)) {
+              throw new CancellationException("Could not terminate running app " + myApplicationId);
             }
-            catch (InterruptedException ignored) {
-              launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
-              throw new CancellationException();
-            }
-            if (listener.getIsDeviceAlive()) {
-              AndroidProcessHandler procHandler = (AndroidProcessHandler)myProcessHandler;
-              procHandler.addTargetDevice(device);
+            if (device.isOnline()) {
+              ((AndroidProcessHandler)myProcessHandler).addTargetDevice(device);
             }
           }))).run(() -> {}, AppExecutorUtil.getAppExecutorService());
 
@@ -403,73 +389,5 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
     }
     return "Launching";
-  }
-
-  /**
-   * A waiter to ensure that all existing Clients matching the application ID are fully terminated before proceeding with handoff to
-   * AndroidProcessHandler.
-   * <p>
-   * When the remote debugger is attached or when the app is run from the device directly, Running/Debugging an unchanged app may be fast
-   * enough that the delta install "am force-stop" command's effect does not get reflected in ddmlib before the same IDevice is added to
-   * AndroidProcessHandler. This is caused by the fact that a no-change Run does not wait until the stale Client is actually terminated
-   * before proceeding to attempt to connect the AndroidProcessHandler to the desired device. In such circumstances, the handler will
-   * connect to the stale Client, and almost immediately have the same Client's killed state get reflected by ddmlib, and removed from the
-   * process handler.
-   */
-  private static class ApplicationTerminationWaiter implements AndroidDebugBridge.IDeviceChangeListener {
-    @NotNull private final IDevice myIDevice;
-    @NotNull private final List<Client> myClientsToWaitFor;
-    @NotNull private final CountDownLatch myProcessKilledLatch = new CountDownLatch(1);
-    private volatile boolean myIsDeviceAlive = true;
-
-    private ApplicationTerminationWaiter(@NotNull IDevice iDevice, @NotNull String applicationId) {
-      myIDevice = iDevice;
-      myClientsToWaitFor = Collections.synchronizedList(DeploymentApplicationService.getInstance().findClient(myIDevice, applicationId));
-      if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
-        myProcessKilledLatch.countDown();
-      }
-      else {
-        AndroidDebugBridge.addDeviceChangeListener(this);
-        iDevice.forceStop(applicationId);
-        myClientsToWaitFor.forEach(Client::kill);
-        checkDone();
-      }
-    }
-
-    public boolean await(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
-      return myProcessKilledLatch.await(timeout, unit);
-    }
-
-    public boolean getIsDeviceAlive() {
-      return myIsDeviceAlive;
-    }
-
-    @Override
-    public void deviceConnected(@NotNull IDevice device) {}
-
-    @Override
-    public void deviceDisconnected(@NotNull IDevice device) {
-      myIsDeviceAlive = false;
-      myProcessKilledLatch.countDown();
-      AndroidDebugBridge.removeDeviceChangeListener(this);
-    }
-
-    @Override
-    public void deviceChanged(@NotNull IDevice changedDevice, int changeMask) {
-      if (changedDevice != myIDevice || (changeMask & IDevice.CHANGE_CLIENT_LIST) == 0) {
-        checkDone();
-        return;
-      }
-
-      myClientsToWaitFor.retainAll(Arrays.asList(changedDevice.getClients()));
-      checkDone();
-    }
-
-    private void checkDone() {
-      if (myClientsToWaitFor.isEmpty()) {
-        myProcessKilledLatch.countDown();
-        AndroidDebugBridge.removeDeviceChangeListener(this);
-      }
-    }
   }
 }
