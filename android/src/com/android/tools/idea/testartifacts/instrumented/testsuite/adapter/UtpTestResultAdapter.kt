@@ -26,8 +26,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.test.platform.core.proto.TestStatusProto
 import com.google.test.platform.core.proto.TestSuiteResultProto
+import com.intellij.openapi.util.io.FileUtil.exists
 import java.io.File
-import java.io.InputStream
 
 /**
  * An adapter to parse Unified Test Platform (UTP) result protobuf, and forward them to
@@ -42,8 +42,8 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
    * @param inputStream contains the binary protobuf of the UTP test suite results
    */
   @WorkerThread
-  fun importResult(inputStream: InputStream) {
-    val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(inputStream)
+  fun importResult(file: File) {
+    val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream())
     // TODO(b/154140562): Populate device data in test result protobuf
     val device = AndroidDevice("external",
                                "external device",
@@ -63,16 +63,34 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
       val iceboxArtifact = testResultProto.outputArtifactList.find {
         iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
       }
-      val iceboxArtifactPath = iceboxArtifact?.sourcePath?.path
+      val dir = file.parentFile
+      // The fallbacks of file path is as follows:
+      //
+      // (1) Try absolute path.
+      // (2) Try relative path.
+      // (3) Try to get the file name and use it as relative path. This is useful because currently UTP writes absolute path in the proto.
+      val retentionArtifactFile = iceboxArtifact?.sourcePath?.path?.let {
+        if (exists(it)) {
+          File(it)
+        } else {
+          val file2 = dir.resolve(it)
+          if (file2.exists()) {
+            file2
+          } else {
+            val file3 = dir.resolve(File(it).name)
+            if (file3.exists()) {
+              file3
+            } else {
+              null
+            }
+          }
+        }
+      }
       val testCase = AndroidTestCase(id = fullName,
                                      methodName = testCaseProto.testMethod,
                                      className = testCaseProto.testClass,
                                      packageName = testCaseProto.testPackage,
-                                     retentionSnapshot = if (iceboxArtifactPath != null) {
-                                       File(iceboxArtifactPath)
-                                     } else {
-                                       null
-                                     },
+                                     retentionSnapshot = retentionArtifactFile,
                                      result = when (testResultProto.testStatus) {
                                        TestStatusProto.TestStatus.PASSED -> AndroidTestCaseResult.PASSED
                                        TestStatusProto.TestStatus.FAILED -> AndroidTestCaseResult.FAILED

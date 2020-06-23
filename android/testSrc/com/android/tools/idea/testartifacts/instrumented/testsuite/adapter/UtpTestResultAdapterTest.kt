@@ -29,19 +29,26 @@ import com.google.test.platform.core.proto.TestResultProto
 import com.google.test.platform.core.proto.TestStatusProto
 import com.google.test.platform.core.proto.TestSuiteResultProto
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.argThat
 import org.mockito.Mockito.inOrder
 import org.mockito.MockitoAnnotations
+import java.io.File
+import java.nio.charset.Charset
 import kotlin.test.assertFailsWith
 
 private const val TEST_PACKAGE_NAME = "com.example.application"
 
 @RunWith(JUnit4::class)
 class UtpTestResultAdapterTest {
+  @get:Rule
+  val temporaryFolder = TemporaryFolder()
+
   @Mock
   lateinit var mockListener: AndroidTestResultListener
   @Mock
@@ -49,18 +56,19 @@ class UtpTestResultAdapterTest {
   @Mock
   lateinit var mockAndroidTestSuite: AndroidTestSuite
   lateinit var utpTestResultAdapter: UtpTestResultAdapter
+  private lateinit var utpProtoFile: File
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
     utpTestResultAdapter = UtpTestResultAdapter(mockListener)
+    utpProtoFile = temporaryFolder.newFile()
   }
 
   @Test
   fun invalidProtobuf() {
-    val protoString = "invalid"
-    val inputStream = protoString.byteInputStream()
-    assertFailsWith<InvalidProtocolBufferException>() { utpTestResultAdapter.importResult(inputStream) }
+    utpProtoFile.outputStream().write("Invalid".toByteArray(Charset.defaultCharset()))
+    assertFailsWith<InvalidProtocolBufferException>() { utpTestResultAdapter.importResult(utpProtoFile) }
   }
 
   @Test
@@ -81,7 +89,8 @@ class UtpTestResultAdapterTest {
                          .setTestMethod("useAppContext2"))
           .setTestStatus(TestStatusProto.TestStatus.PASSED)
       ).build()
-    utpTestResultAdapter.importResult(protobuf.toByteArray().inputStream())
+    protobuf.writeTo(utpProtoFile.outputStream())
+    utpTestResultAdapter.importResult(utpProtoFile)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -116,7 +125,8 @@ class UtpTestResultAdapterTest {
                          .setTestMethod("useAppContext2"))
           .setTestStatus(TestStatusProto.TestStatus.FAILED)
       ).build()
-    utpTestResultAdapter.importResult(protobuf.toByteArray().inputStream())
+    protobuf.writeTo(utpProtoFile.outputStream())
+    utpTestResultAdapter.importResult(utpProtoFile)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -149,7 +159,8 @@ class UtpTestResultAdapterTest {
                                .setSourcePath(PathProto.Path.newBuilder()
                                                 .setPath(unrelatedArtifact)))
       ).build()
-    utpTestResultAdapter.importResult(protobuf.toByteArray().inputStream())
+    protobuf.writeTo(utpProtoFile.outputStream())
+    utpTestResultAdapter.importResult(utpProtoFile)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -173,7 +184,8 @@ class UtpTestResultAdapterTest {
                          .setTestMethod("useAppContext"))
           .setTestStatus(TestStatusProto.TestStatus.ERROR)
       ).build()
-    utpTestResultAdapter.importResult(protobuf.toByteArray().inputStream())
+    protobuf.writeTo(utpProtoFile.outputStream())
+    utpTestResultAdapter.importResult(utpProtoFile)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
