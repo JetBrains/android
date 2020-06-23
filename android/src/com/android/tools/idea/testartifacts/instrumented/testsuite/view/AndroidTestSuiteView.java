@@ -37,6 +37,7 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -182,6 +183,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @VisibleForTesting TestFilterToggleAction mySkippedToggleButton;
   @VisibleForTesting TestFilterToggleAction myInProgressToggleButton;
 
+  private static final String FAILED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myFailedToggleButton";
+  private static final String PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton";
+  private static final String SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton";
+  private static final String IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myInProgressToggleButton";
+
+  private final Project myProject;
+
   private final ThreeComponentsSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
@@ -193,6 +201,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   /**
    * This method is invoked before the constructor by IntelliJ form editor runtime.
+   *
+   * @see <a href="https://www.jetbrains.com/help/idea/creating-form-initialization-code.html">Initialization Code</a>
    */
   private void createUIComponents() {
     myStatusSeparator = new MyItemSeparator();
@@ -200,13 +210,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDeviceFilterSeparator = new MyItemSeparator();
 
     myFailedToggleButton = new TestFilterToggleAction(
-      "Show failed tests", AndroidTestCaseResult.FAILED, true);
+      "Show failed tests", AndroidTestCaseResult.FAILED, FAILED_TOGGLE_BUTTON_STATE_KEY, true);
     myPassedToggleButton = new TestFilterToggleAction(
-      "Show passed tests", AndroidTestCaseResult.PASSED, true);
+      "Show passed tests", AndroidTestCaseResult.PASSED, PASSED_TOGGLE_BUTTON_STATE_KEY, true);
     mySkippedToggleButton = new TestFilterToggleAction(
-      "Show skipped tests", AndroidTestCaseResult.SKIPPED, true);
+      "Show skipped tests", AndroidTestCaseResult.SKIPPED, SKIPPED_TOGGLE_BUTTON_STATE_KEY, true);
     myInProgressToggleButton = new TestFilterToggleAction(
-      "Show running tests", AndroidTestCaseResult.IN_PROGRESS, true);
+      "Show running tests", AndroidTestCaseResult.IN_PROGRESS, IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY, true);
 
     myDeviceFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
     DeviceFilterComboBoxItem allDevicesItem = new DeviceFilterComboBoxItem(null);
@@ -231,6 +241,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project, @Nullable Module module) {
+    myProject = project;  // Note: this field assignment is called before createUIComponents().
+
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
@@ -314,14 +326,19 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @VisibleForTesting class TestFilterToggleAction extends ToggleAction {
+    private final String myPropertiesComponentKey;
+    private final boolean myDefaultState;
     private boolean isSelected;
 
     TestFilterToggleAction(@NotNull String actionText,
                            @NotNull AndroidTestCaseResult testCaseResultToDisplay,
-                           boolean initialState) {
+                           @NotNull String propertiesComponentKey,
+                           boolean defaultState) {
       super(() -> actionText,
             AndroidTestResultsTableViewKt.getIconFor(testCaseResultToDisplay, false));
-      isSelected = initialState;
+      myPropertiesComponentKey = propertiesComponentKey;
+      myDefaultState = defaultState;
+      isSelected = PropertiesComponent.getInstance(myProject).getBoolean(propertiesComponentKey, defaultState);
     }
 
     @Override
@@ -336,11 +353,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     @Override
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
       isSelected = state;
+      PropertiesComponent.getInstance(myProject).setValue(myPropertiesComponentKey, isSelected, myDefaultState);
       myTable.refreshTable();
     }
 
     public void setSelected(boolean state) {
       isSelected = state;
+      PropertiesComponent.getInstance(myProject).setValue(myPropertiesComponentKey, isSelected, myDefaultState);
       myTable.refreshTable();
     }
   }

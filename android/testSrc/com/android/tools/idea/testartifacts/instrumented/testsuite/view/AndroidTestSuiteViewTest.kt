@@ -31,6 +31,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.dualView.TreeTableView
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,6 +62,22 @@ class AndroidTestSuiteViewTest {
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
+    resetToDefaultState()
+  }
+
+  @After
+  fun tearDown() {
+    resetToDefaultState()
+  }
+
+  private fun resetToDefaultState() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    // These persisted properties need to be reset before and after tests.
+    view.myPassedToggleButton.isSelected = true
+    view.myFailedToggleButton.isSelected = true
+    view.mySkippedToggleButton.isSelected = true
+    view.myInProgressToggleButton.isSelected = true
   }
 
   @Test
@@ -227,6 +244,31 @@ class AndroidTestSuiteViewTest {
     view.myInProgressToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(0)
+  }
+
+  @Test
+  fun filterByTestStatusButtonStateShouldPersist() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    // All buttons are selected initially.
+    assertThat(view.myFailedToggleButton.isSelected).isTrue()
+    assertThat(view.myPassedToggleButton.isSelected).isTrue()
+    assertThat(view.mySkippedToggleButton.isSelected).isTrue()
+    assertThat(view.myInProgressToggleButton.isSelected).isTrue()
+
+    // Update state to false.
+    view.myFailedToggleButton.isSelected = false
+    view.myPassedToggleButton.isSelected = false
+    view.mySkippedToggleButton.isSelected = false
+    view.myInProgressToggleButton.isSelected = false
+
+    val view2 = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    // The new state should persist even after recreation of the view.
+    assertThat(view2.myFailedToggleButton.isSelected).isFalse()
+    assertThat(view2.myPassedToggleButton.isSelected).isFalse()
+    assertThat(view2.mySkippedToggleButton.isSelected).isFalse()
+    assertThat(view2.myInProgressToggleButton.isSelected).isFalse()
   }
 
   @Test
