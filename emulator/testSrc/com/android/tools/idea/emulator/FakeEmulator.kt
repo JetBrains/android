@@ -168,6 +168,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   /**
+   * Simulates an emulator crash. The Emulator is terminated but the registration file in not deleted.
+   */
+  fun crash() {
+    synchronized(lifeCycleLock) {
+      if (startTime != 0L) {
+        grpcServer.shutdownNow()
+      }
+    }
+  }
+
+  /**
    * Waits for the next gRPC call while dispatching UI events. Returns the next gRPC call and removes
    * it from the queue of recorded calls. Throws TimeoutException if the call is not recorded within
    * the specified timeout.

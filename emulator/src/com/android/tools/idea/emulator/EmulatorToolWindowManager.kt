@@ -20,6 +20,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.emulator.EmulatorController.ConnectionState
+import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.run.AppDeploymentListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -67,7 +69,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private val recentLaunches = CacheBuilder.newBuilder().expireAfterWrite(LAUNCH_INFO_EXPIRATION).build<String, String>()
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project.earlyDisposable)
 
-  private var contentManagerListener = object : ContentManagerListener {
+  private val contentManagerListener = object : ContentManagerListener {
     @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
       viewSelectionChanged(getToolWindow())
@@ -82,6 +84,18 @@ internal class EmulatorToolWindowManager private constructor(private val project
       if (panels.isEmpty()) {
         createPlaceholderPanel()
         hideLiveIndicator(getToolWindow())
+      }
+    }
+  }
+  private val connectionStateListener = object: ConnectionStateListener {
+    @AnyThread
+    override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
+      if (connectionState == ConnectionState.DISCONNECTED) {
+        invokeLaterInAnyModalityState {
+          if (contentCreated && emulators.remove(emulator)) {
+            removeEmulatorPanel(emulator)
+          }
+        }
       }
     }
   }
@@ -234,6 +248,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     lastSelectedEmulatorId = selectedPanel?.id
     RunningEmulatorCatalog.getInstance().removeListener(this)
+    for (emulator in emulators) {
+      emulator.removeConnectionStateListener(connectionStateListener)
+    }
     emulators.clear()
     val contentManager = toolWindow.contentManager
     contentManager.removeContentManagerListener(contentManagerListener)
@@ -245,10 +262,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
-    addEmulatorPanel(EmulatorToolWindowPanel(emulator))
-  }
+    emulator.addConnectionStateListener(connectionStateListener)
 
-  private fun addEmulatorPanel(panel: EmulatorToolWindowPanel) {
+    val panel = EmulatorToolWindowPanel(emulator)
     val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
     if (panels.isEmpty()) {
@@ -287,6 +303,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController) {
+    emulator.removeConnectionStateListener(connectionStateListener)
+
     val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort) ?: return
 
     val toolWindow = getToolWindow()
