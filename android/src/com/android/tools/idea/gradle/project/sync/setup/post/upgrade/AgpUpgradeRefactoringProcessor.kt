@@ -30,6 +30,9 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.isUpdatablePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -479,6 +482,8 @@ class GradleVersionUsageInfo(
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
+  var noLanguageLevelAction = INSERT_OLD_DEFAULT
+
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
@@ -497,27 +502,27 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       pluginNames.firstOrNull { it.startsWith("java") || it == "application" }?.let { _ ->
         model.java().sourceCompatibility().let {
           val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.java().targetCompatibility().let {
           val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "targetCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "targetCompatibility"))
         }
       }
 
       pluginNames.firstOrNull { it.startsWith("com.android") }?.let { _ ->
         model.android().compileOptions().sourceCompatibility().let {
           val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.android().compileOptions().targetCompatibility().let {
           val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "targetCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "targetCompatibility"))
         }
         pluginNames.firstOrNull { it.startsWith("org.jetbrains.kotlin") || it.startsWith("kotlin") }?.let { _ ->
           model.android().kotlinOptions().jvmTarget().let {
             val psiElement = it.psiElement ?: model.android().kotlinOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "jvmOptions"))
+            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "jvmOptions"))
           }
         }
       }
@@ -526,7 +531,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = "Add explicit LanguageLevel properties"
+  override fun getCommandName(): String = "Update implicit LanguageLevel properties"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
 
@@ -536,12 +541,20 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Add explicit LanguageLevel properties"
+      override fun getProcessedElementsHeader() = "Update implicit LanguageLevel properties"
     }
   }
 
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
+  }
+
+  enum class NoLanguageLevelAction(val text: String) {
+    ACCEPT_NEW_DEFAULT("Accept the new default of Java 8"),
+    INSERT_OLD_DEFAULT("Insert directives to continue using Java 7"),
+    ;
+
+    override fun toString() = text
   }
 }
 
@@ -551,18 +564,22 @@ class JavaLanguageLevelUsageInfo(
   new: GradleVersion,
   private val model: LanguageLevelPropertyModel,
   private val existing: Boolean,
+  private val noLanguageLevelAction: NoLanguageLevelAction,
   private val name: String
 ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
-      false -> "insert explicit $name to preserve previous behaviour"
+      false -> when (noLanguageLevelAction) {
+        INSERT_OLD_DEFAULT -> "insert explicit $name to preserve previous behaviour"
+        ACCEPT_NEW_DEFAULT -> "accept new default"
+      }
       true -> "preserve existing explicit $name"
     }
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    when (existing) {
-      false -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
+    when {
+      !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
     }
   }
 
@@ -578,19 +595,23 @@ class KotlinLanguageLevelUsageInfo(
     new: GradleVersion,
     private val model: LanguageLevelPropertyModel,
     private val existing: Boolean,
+    private val noLanguageLevelAction: NoLanguageLevelAction,
     private val name: String
   ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
-      false -> "insert explicit $name to preserve previous behaviour"
+      false -> when (noLanguageLevelAction) {
+        INSERT_OLD_DEFAULT -> "insert explicit $name to preserve previous behaviour"
+        ACCEPT_NEW_DEFAULT -> "accept new default"
+
+      }
       true -> "preserve existing explicit $name"
     }
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    when (existing) {
-      // if we can find a path to a JDK_1_7 we could include that for jdkHome, but the Internet suggests it's not high-value
-      false -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
+    when {
+      !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
     }
   }
 }

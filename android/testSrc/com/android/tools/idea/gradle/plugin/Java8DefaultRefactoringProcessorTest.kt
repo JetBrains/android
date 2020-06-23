@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -57,11 +59,47 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testSimpleApplicationNoLanguageLevelInsertOld() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationNoLanguageLevelExpected"))
+  }
+
+  @Test
+  fun testSimpleApplicationNoLanguageLevelAcceptNew() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = ACCEPT_NEW_DEFAULT
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
+  }
+
+  @Test
   fun testSimpleApplicationWithKotlinNoLanguageLevel() {
     writeToBuildFile(TestFileName("Java8Default/SimpleApplicationWithKotlinNoLanguageLevel"))
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationWithKotlinNoLanguageLevelExpected"))
+  }
+
+  @Test
+  fun testSimpleApplicationWithKotlinNoLanguageLevelInsertOld() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationWithKotlinNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationWithKotlinNoLanguageLevelExpected"))
+  }
+
+  @Test
+  fun testSimpleApplicationWithKotlinNoLanguageLevelAcceptNew() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationWithKotlinNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = ACCEPT_NEW_DEFAULT
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationWithKotlinNoLanguageLevel"))
   }
 
   @Test
@@ -86,6 +124,24 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevelExpected"))
+  }
+
+  @Test
+  fun testSimpleJavaLibraryNoLanguageLevelInsertOld() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevelExpected"))
+  }
+
+  @Test
+  fun testSimpleJavaLibraryNoLanguageLevelAcceptNew() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = ACCEPT_NEW_DEFAULT
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevel"))
   }
 
   @Test
