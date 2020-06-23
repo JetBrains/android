@@ -150,18 +150,6 @@ fun performRecommendedPluginUpgrade(
 
   LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
 
-  if (AGP_UPGRADE_ASSISTANT.get()) {
-    val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
-    val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
-      val dialog = AgpUpgradeRefactoringProcessorDialog(processor)
-      dialog.showAndGet()
-    }
-    if (userAccepted) {
-      processor.run()
-    }
-    return false
-  }
-
   val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
     val updateDialog = dialogFactory.create(project, currentVersion, recommendedVersion)
     updateDialog.showAndGet()
@@ -169,6 +157,19 @@ fun performRecommendedPluginUpgrade(
 
   if (userAccepted) {
     // The user accepted the upgrade
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
+      val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+        val dialog = AgpUpgradeRefactoringProcessorDialog(processor)
+        dialog.showAndGet()
+      }
+      if (runProcessor) {
+        processor.run()
+      }
+      // The AgpUpgradeRefactoringProcessor has requested a sync itself.
+      return false
+    }
+
     val updater = AndroidPluginVersionUpdater.getInstance(project)
 
     val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
