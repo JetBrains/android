@@ -80,6 +80,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/animated_selector.xml", "res/drawable/animated_selector.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
+    myFixture.copyFileToProject("annotator/ic_launcher.png", "res/drawable/ic_launcher.png");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
@@ -270,6 +271,20 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     HighlightInfo highlightInfo =
       findHighlightInfo("res/layout/color_test.xml", "?android:attr/buttonCornerRadius", XmlAttributeValue.class);
     assertThat(highlightInfo.getGutterIconRenderer()).isNull();
+  }
+
+  public void testOnlyLargeDrawable() throws IOException {
+    // Reference to a large drawable where no smaller one exists.
+    myFixture.addClass("package p1.p2;\n" +
+                       "\n" +
+                       "public class DrawableTest {\n" +
+                       "    public void test() {\n" +
+                       "        int drawable = R.drawable.ic_launcher;\n" +
+                       "    }\n" +
+                       "}\n");
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_launcher.png");
   }
 
   @NotNull

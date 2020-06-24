@@ -78,7 +78,7 @@ import org.xmlpull.v1.XmlPullParser;
  * Static methods to be used by Android annotators.
  */
 public class AndroidAnnotatorUtil {
-  static final int MAX_ICON_SIZE = 5000;
+  static final int MAX_ICON_SIZE = 20000;
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
   private static final int ICON_SIZE = 8;
 
