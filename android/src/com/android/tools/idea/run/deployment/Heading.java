@@ -24,7 +24,11 @@ final class Heading extends AnAction {
   static final String AVAILABLE_DEVICES_ID = "AvailableDevices";
 
   private Heading() {
-    getTemplatePresentation().setEnabled(false);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent event) {
+    event.getPresentation().setEnabled(false);
   }
 
   @Override
