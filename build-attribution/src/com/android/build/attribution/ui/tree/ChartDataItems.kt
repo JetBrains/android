@@ -189,30 +189,3 @@ private class OtherChartItem<T>(
     return aggregatedItems
   }
 }
-
-class MiscGradleStepsChartItem<T>(val miscStepsTime: TimeWithPercentage) : TimeDistributionChart.ChartDataItem<T> {
-
-  override fun time(): TimeWithPercentage {
-    return miscStepsTime
-  }
-
-  override fun text(): String {
-    return "Misc Gradle steps"
-  }
-
-  override fun getTableIcon(): Icon? {
-    return null
-  }
-
-  override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
-    return CriticalPathChartLegend.MISC_COLOR
-  }
-
-  override fun chartBoxText(): String? {
-    return null
-  }
-
-  override fun selectedTextColor() = UIUtil.getInactiveTextColor()
-
-  override fun unselectedTextColor() = UIUtil.getInactiveTextColor()
-}

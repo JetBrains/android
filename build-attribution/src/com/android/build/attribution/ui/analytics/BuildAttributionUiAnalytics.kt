@@ -38,8 +38,6 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     .build()
   private var currentPage: BuildAttributionUiEvent.Page = unknownPage
 
-  @Deprecated("Left to support older version, should not be used anymore.")
-  private var nodeLinkClickRegistered = false
   private var tabOpenEventSource: TabOpenEventSource = TabOpenEventSource.TAB_HEADER
 
   private var buildAttributionReportSessionId: String? = null
@@ -97,37 +95,11 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   /**
-   * Registers that page is going to be changed as the result of link click so next [pageChange] call should report it properly.
-   * This state will be cleared with any next event sent.
-   */
-  @Deprecated("Left to support older version, should not be used anymore.")
-  fun registerNodeLinkClick() {
-    nodeLinkClickRegistered = true
-  }
-
-  /**
    * Registers what action was clicked to open Build Analyzer tab so next [tabOpened] call should report it's event as opened using that action.
    * This state will be cleared with any next event sent.
    */
   fun registerOpenEventSource(eventSource: TabOpenEventSource) {
     tabOpenEventSource = eventSource
-  }
-
-  /**
-   * Called when tree selection changes and new page is shown to the user.
-   * If [registerNodeLinkClick] was called just before this call then this event will be reported as PAGE_CHANGE_LINK_CLICK.
-   */
-  @Deprecated("Left to support older version", replaceWith = ReplaceWith("pageChange(pageId, eventType)"))
-  fun pageChange(selectedNodeId: String, pageType: BuildAttributionUiEvent.Page.PageType) {
-    val eventType = if (nodeLinkClickRegistered) {
-      BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK
-    }
-    else {
-      // TODO mlazeba Find how to easily track what was used to update tree selection: mouse or keystrokes.
-      // Report both cases as TREE_CLICK for now.
-      BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK
-    }
-    pageChange(currentPage, toPage(AnalyticsPageId(pageType, selectedNodeId)), eventType)
   }
 
   /**
@@ -147,10 +119,6 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     this.currentPage = targetPage
   }
 
-  @Deprecated("Left to support older version", replaceWith = ReplaceWith("bugReportLinkClicked(currentPageId)"))
-  fun bugReportLinkClicked() =
-    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
-
   fun bugReportLinkClicked(currentPage: BuildAttributionUiEvent.Page) {
     doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
   }
@@ -160,10 +128,6 @@ class BuildAttributionUiAnalytics(private val project: Project) {
 
   fun reportingWindowClosed() =
     doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_CLOSED))
-
-
-  @Deprecated("Left to support older version", replaceWith = ReplaceWith("helpLinkClicked(currentPageId, target)"))
-  fun helpLinkClicked(target: BuildAnalyzerBrowserLinks) = helpLinkClicked(currentPage, target)
 
   fun helpLinkClicked(
     currentPageId: BuildAttributionUiEvent.Page,
@@ -196,14 +160,6 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     )
     //Clear up state variables
     tabOpenEventSource = TabOpenEventSource.TAB_HEADER
-    nodeLinkClickRegistered = false
-  }
-
-  /**
-   * Called instead of [pageChange] when it is a first page opened by default.
-   */
-  fun initFirstPage(pageId: AnalyticsPageId) {
-    currentPage = toPage(pageId)
   }
 
   fun initFirstPage(model: BuildAnalyzerViewModel) {
