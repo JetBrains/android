@@ -384,12 +384,12 @@
 
     <item tag="ViewStub"/>
     <item tag="include"/>
-    <item tag="fragment"/>
-    <item tag="fragment" title="NavHostFragment" suggested="true" id="NavHostFragment"
+    <item tag="androidx.fragment.app.FragmentContainerView" />
+    <item tag="androidx.fragment.app.FragmentContainerView" title="NavHostFragment" suggested="true" id="NavHostFragment"
           icon="StudioIcons.LayoutEditor.Palette.NAV_HOST_FRAGMENT">
     <xml>
         <![CDATA[
-            <fragment
+            <androidx.fragment.app.FragmentContainerView
               android:name="androidx.navigation.fragment.NavHostFragment"
               android:layout_width="match_parent"
               android:layout_height="match_parent"/>

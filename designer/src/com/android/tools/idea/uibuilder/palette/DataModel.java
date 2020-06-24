@@ -18,13 +18,13 @@ package com.android.tools.idea.uibuilder.palette;
 import static com.android.SdkConstants.ANDROIDX_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.MATERIAL2_PKG;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VIEW_FRAGMENT;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
@@ -216,7 +216,9 @@ public class DataModel implements Disposable {
   private static List<String> readFavoriteItems() {
     String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
     if (favorites == null) {
-      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
+      favorites =
+        new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
+          SCROLL_VIEW, SWITCH};
     }
     return Lists.newArrayList(favorites);
   }
