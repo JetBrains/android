@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui
 
-import com.android.build.attribution.ui.panels.htmlTextLabelWithLinesWrap
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBPanel
 import java.awt.GridBagConstraints

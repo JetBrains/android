@@ -22,9 +22,9 @@ import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
-import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
+import com.android.build.attribution.ui.warningsCountString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.util.text.StringUtil
@@ -186,7 +186,7 @@ class TaskWarningTypeNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = warningTypeData.type.uiName,
-      suffix = issuesCountString(warningTypeData.warningCount, warningTypeData.infoCount),
+      suffix = warningsCountString(warningTypeData.warningCount),
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(warningTypeData.timeContribution.timeMs)
     )
 }
@@ -219,7 +219,7 @@ class AnnotationProcessorsRootNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Non-incremental Annotation Processors",
-      suffix = issuesCountString(annotationProcessorsReport.issueCount, 0)
+      suffix = warningsCountString(annotationProcessorsReport.issueCount)
     )
 }
 

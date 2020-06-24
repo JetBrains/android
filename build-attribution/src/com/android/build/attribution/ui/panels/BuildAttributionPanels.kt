@@ -21,8 +21,11 @@ import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.warningIcon
+import com.android.build.attribution.ui.wrapPathToSpans
 import com.android.tools.adtui.TabularLayout
 import com.intellij.openapi.ui.OnePixelDivider
 import com.intellij.ui.HyperlinkLabel
@@ -118,29 +121,9 @@ else {
   reasons.joinToString(separator = "<br/>") { wrapPathToSpans(it).replace("\n", "<br>") }
 }
 
-/**
- * Wraps long path to spans to make it possible to auto-wrap to a new line
- */
-fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
-
 private fun horizontalRuler(): JPanel = JBPanel<JBPanel<*>>()
   .withBackground(OnePixelDivider.BACKGROUND)
   .withPreferredHeight(1)
   .withMaximumHeight(1)
   .withMinimumHeight(1)
 
-/**
- * Label with auto-wrapping turned on that accepts html text.
- * Used in Build Analyzer to render long multi-line text.
- */
-fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JComponent =
-  SwingHelper.createHtmlViewer(true, null, null, null).apply {
-    border = JBUI.Borders.empty()
-    SwingHelper.setHtml(this, htmlBodyContent, null)
-  }
-
-fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JComponent =
-  SwingHelper.createHtmlViewer(false, null, null, null).apply {
-    border = JBUI.Borders.empty()
-    SwingHelper.setHtml(this, htmlBodyContent, null)
-  }
