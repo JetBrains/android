@@ -18,7 +18,10 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.google.common.truth.Truth.assertThat
 import org.mockito.Mockito
 
 class WidgetConstraintModelTest: SceneTest() {
@@ -147,5 +150,37 @@ class WidgetConstraintModelTest: SceneTest() {
     widgetModel.surface = myScene.designSurface
 
     Mockito.verify(callback, Mockito.times(1)).run()
+  }
+
+  fun testTriggerUpdateAfterModelChanges() {
+    ignoreRendering()
+    var count = 0
+    val updateUICallback = Runnable { count++ }
+    val widgetModel = WidgetConstraintModel(updateUICallback)
+    val textView2 = myModel.find("textView2")!!
+    widgetModel.component = textView2
+    count = 0 // reset the count which will be incremented after setting the component to textView2
+
+    myModel.notifyModified(NlModel.ChangeType.EDIT)
+    assertThat(count).isAtLeast(1)
+  }
+
+  fun testTriggerUpdateAfterLayoutlibUpdate() {
+    ignoreRendering()
+    var count = 0
+    val updateUICallback = Runnable { count++ }
+    val widgetModel = WidgetConstraintModel(updateUICallback)
+    val textView2 = myModel.find("textView2")!!
+    widgetModel.component = textView2
+    count = 0 // reset the count which will be incremented after setting the component to textView2
+
+    myModel.notifyListenersModelDerivedDataChanged()
+    assertThat(count).isAtLeast(1)
+  }
+
+  // To speed up the tests ignore all render requests
+  private fun ignoreRendering() {
+    val manager = myModel.surface.sceneManager as? SyncLayoutlibSceneManager ?: return
+    manager.ignoreRenderRequests = true
   }
 }
