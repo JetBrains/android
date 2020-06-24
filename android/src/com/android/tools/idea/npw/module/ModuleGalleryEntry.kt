@@ -18,15 +18,9 @@ package com.android.tools.idea.npw.module
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
-import java.io.File
 import javax.swing.Icon
 
 interface ModuleGalleryEntry {
-  // TODO(qumeric): remove it
-  /**
-   * The file from where this template was loaded.
-   */
-  val templateFile: File? get() = null
   /**
    * Icon to be used in the gallery.
    */
