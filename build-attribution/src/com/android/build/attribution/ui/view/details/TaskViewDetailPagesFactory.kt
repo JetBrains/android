@@ -18,12 +18,12 @@ package com.android.build.attribution.ui.view.details
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.panels.taskDetailsPanel
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon

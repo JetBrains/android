@@ -20,10 +20,10 @@ import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationString
-import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.EMPTY_PLACEHOLDER
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
+import com.android.build.attribution.ui.warningsCountString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import javax.swing.tree.DefaultMutableTreeNode
@@ -256,7 +256,7 @@ class PluginDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,
-      suffix = if (pluginData.warningCount > 0) issuesCountString(pluginData.warningCount, pluginData.infoCount) else "",
+      suffix = warningsCountString(pluginData.warningCount),
       rightAlignedSuffix = pluginData.criticalPathDuration.toRightAlignedNodeDurationText(),
       showChartKey = true
     )

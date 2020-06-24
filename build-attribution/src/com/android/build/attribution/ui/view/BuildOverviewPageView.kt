@@ -18,7 +18,7 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBScrollPane

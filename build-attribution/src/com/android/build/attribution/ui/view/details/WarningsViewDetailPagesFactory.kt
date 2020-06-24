@@ -26,7 +26,7 @@ import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescri
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.panels.taskDetailsPanel
 import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.view.ViewActionHandlers

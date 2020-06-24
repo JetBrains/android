@@ -22,10 +22,9 @@ import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
-import com.android.build.attribution.ui.pluginIcon
-import com.android.build.attribution.ui.taskIcon
 import com.android.build.attribution.ui.warningIcon
-import com.intellij.util.ui.UIUtil
+import com.intellij.icons.AllIcons
+import com.intellij.util.ui.EmptyIcon
 import java.util.ArrayList
 import javax.swing.Icon
 
@@ -116,7 +115,11 @@ private class TaskChartItem(
     return taskData.taskPath
   }
 
-  override fun getTableIcon() = taskIcon(taskData)
+  override fun getTableIcon() = when {
+    taskData.hasWarning -> warningIcon()
+    taskData.hasInfo -> AllIcons.General.BalloonInformation
+    else -> EmptyIcon.ICON_16
+  }
 
   override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return assignedColor
@@ -144,7 +147,11 @@ private class PluginChartItem(
     return pluginData.name
   }
 
-  override fun getTableIcon(): Icon? = pluginIcon(pluginData)
+  override fun getTableIcon(): Icon? = when {
+    pluginData.warningCount > 0 -> warningIcon()
+    pluginData.infoCount > 0 -> AllIcons.General.BalloonInformation
+    else -> EmptyIcon.ICON_16
+  }
 
   override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return assignedColor

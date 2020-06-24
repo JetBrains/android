@@ -30,7 +30,6 @@ import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
