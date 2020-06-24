@@ -299,7 +299,7 @@ class EmulatorView(
     return connected && isPreferredSizeSet
   }
 
-  private val explicitlySetPreferredSize: Dimension?
+  internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 
   /**
