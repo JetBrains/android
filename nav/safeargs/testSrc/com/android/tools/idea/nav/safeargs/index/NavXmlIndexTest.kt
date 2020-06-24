@@ -16,15 +16,21 @@
 package com.android.tools.idea.nav.safeargs.index
 
 import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.indexing.FileContentImpl
+import com.intellij.util.io.DataExternalizer
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 class NavXmlIndexTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -202,6 +208,39 @@ class NavXmlIndexTest {
     // Verify all three destinations can be found from the root
     assertThat(data.root.allDestinations.map { it.id })
       .containsExactly("fragment1", "fragment2", "fragment3", "top_level_nav", "nested_nav")
+
+    verifySerializationLogic(navXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun navigationIdIsOptional() {
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
+
+    val file = fixture.addFileToProject(
+      "navigation/main.xml",
+      //language=XML
+      """
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  app:startDestination="@id/fragment1">
+
+          <fragment android:id="@+id/fragment1"
+                    android:name="test.safeargs.Fragment1"
+                    tools:layout="@layout/fragment1" />
+      </navigation>
+    """.trimIndent()).virtualFile
+
+    val navXmlIndex = NavXmlIndex()
+    val map = navXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    assertThat(map).hasSize(1)
+
+    val data = map.values.first()
+    assertThat(data.root.id).isNull()
+    assertThat(data.root.startDestination).isEqualTo("fragment1")
+
+    verifySerializationLogic(navXmlIndex.valueExternalizer, data)
   }
 
   @Test
@@ -226,4 +265,12 @@ class NavXmlIndexTest {
     assertThat(map).isEmpty()
   }
 
+  private fun verifySerializationLogic(valueExternalizer: DataExternalizer<NavXmlData>, data: NavXmlData) {
+    val bytesOut = ByteArrayOutputStream()
+    DataOutputStream(bytesOut).use { valueExternalizer.save(it, data) }
+
+    val bytesIn = ByteArrayInputStream(bytesOut.toByteArray())
+    val dataCopy = DataInputStream(bytesIn).use { valueExternalizer.read(it) }
+    assertThat(dataCopy).isEqualTo(data)
+  }
 }

@@ -30,9 +30,23 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter
 
 // NOTE: If you change any class in this file, you should also increment NavXmlIndex#getVersion()
 
+/**
+ * Adapter to handle serializing attributes that represent android IDs (e.g. "@id/asdf")
+ */
 private class AndroidIdAdapter : XmlAdapter<String, String>() {
-  override fun marshal(s: String): String = "@id/$s"
+  override fun marshal(s: String) = "@id/$s"
   override fun unmarshal(s: String) = ResourceUrl.parse(s)?.name ?: ""
+}
+
+/**
+ * Adapter to handle serializing attributes that represent android IDs that might not be
+ * present. See also: [AndroidIdAdapter]
+ */
+private class OptionalAndroidIdAdapter : XmlAdapter<String?, String?>() {
+  private val delegateAdapter = AndroidIdAdapter()
+
+  override fun marshal(s: String?) = s?.let { delegateAdapter.marshal(it) }
+  override fun unmarshal(s: String?) = s?.let { delegateAdapter.unmarshal(it) }
 }
 
 @XmlRootElement(name = "argument")
@@ -93,7 +107,7 @@ data class MutableNavFragmentData(
 @XmlRootElement(name = "navigation")
 @XmlAccessorType(XmlAccessType.FIELD)
 data class MutableNavNavigationData(
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
   @field:XmlAttribute(namespace = ANDROID_URI)
   override var id: String?,
 
