@@ -74,10 +74,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
-  /** The values are disposable notification panels created last for the editors. */
-  @NotNull private static final ConcurrentMap<FileEditor, Disposable> ourDisposablePanels = new ConcurrentHashMap<>();
-  @NotNull private static final Object ourDisposablePanelRegistrationLock = new Object();
-
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
 
@@ -103,36 +99,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor editor, @NotNull Project project) {
     NotificationPanel.Type newPanelType = notificationPanelType();
-    NotificationPanel panel = newPanelType.create(project, file, myProjectInfo);
-    // Keep track of the last disposable panel created for the editor to dispose it when a new panel for the same editor is created.
-    // We cannot rely on editor.getUserData(KEY) because the panels created by this method are not necessarily stored there.
-    registerDisposablePanel(editor, panel);
-
-    return panel;
-  }
-
-  private static void registerDisposablePanel(@NotNull FileEditor editor, @Nullable NotificationPanel panel) {
-    Disposable newDisposablePanel = panel instanceof Disposable ? (Disposable)panel : null;
-
-    // The synchronized block below is intended to prevent disposal of the panel
-    // before it is registered with the Disposer.
-    synchronized (ourDisposablePanelRegistrationLock) {
-      Disposable oldDisposablePanel =
-          newDisposablePanel == null ? ourDisposablePanels.remove(editor) : ourDisposablePanels.put(editor, newDisposablePanel);
-      if (oldDisposablePanel != null) {
-        Disposer.dispose(oldDisposablePanel);
-      }
-      if (newDisposablePanel != null) {
-        try {
-          Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
-          Disposer.register(editor, newDisposablePanel);
-        }
-        catch (Throwable t) {
-          Disposer.dispose(newDisposablePanel);
-          throw t;
-        }
-      }
-    }
+    return newPanelType.create(project, file, myProjectInfo);
   }
 
   @VisibleForTesting
@@ -233,48 +200,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
   }
 
-  /** Notification panel which may contain actions which we don't want to be executed during indexing (e.g., retrying sync itself). */
   @VisibleForTesting
-  static class IndexingSensitiveNotificationPanel extends NotificationPanel implements Disposable {
-
-    IndexingSensitiveNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      this(project, type, text, DumbService.getInstance(project));
-    }
-
-    @VisibleForTesting
-    IndexingSensitiveNotificationPanel(@NotNull Project project,
-                                       @NotNull Type type,
-                                       @NotNull String text,
-                                       @NotNull DumbService dumbService) {
-      super(type, text);
-
-      MessageBusConnection connection = project.getMessageBus().connect(this);
-      connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
-        @Override
-        public void enteredDumbMode() {
-          setVisible(false);
-        }
-
-        @Override
-        public void exitDumbMode() {
-          setVisible(true);
-        }
-      });
-
-      // First subscribe, then update visibility.
-      setVisible(!dumbService.isDumb());
-    }
-
-    @Override
-    public void dispose() {
-      // Empty - we have nothing to dispose explicitly but this class has to be Disposable in order for the child
-      // message bus connection to get disposed once the panel is no longer needed
-    }
-  }
-
-  private static class StaleGradleModelNotificationPanel extends IndexingSensitiveNotificationPanel {
+  static class StaleGradleModelNotificationPanel extends NotificationPanel {
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(project, type, text);
+      super(type, text);
       if (GradleFiles.getInstance(project).areExternalBuildFilesModified()) {
         // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
         // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
@@ -289,9 +218,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
   }
 
-  private static class SyncProblemNotificationPanel extends IndexingSensitiveNotificationPanel {
+  @VisibleForTesting
+  static class SyncProblemNotificationPanel extends NotificationPanel {
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(project, type, text);
+      super(type, text);
 
       createActionLabel("Try Again",
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_TRY_AGAIN));
