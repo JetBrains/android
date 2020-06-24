@@ -195,6 +195,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                                            NotificationType.WARNING);
       return;
     }
+
+    if (device.getAbis().contains("x86") || device.getAbis().contains("x86_64")) {
+      AndroidNotification.getInstance(project).showBalloon("Startup Native Memory Profiling",
+                                                           "Native memory profiling not supported on x86 and x86_64 devices.",
+                                                           NotificationType.WARNING);
+      return;
+    }
     String abi = device.getAbis().get(0);
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackRecordAllocations();
