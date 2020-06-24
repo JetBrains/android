@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private ViewEditor myCustomViewEditor;
+  private boolean myIgnoreRenderRequests;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
     super(
@@ -53,9 +54,20 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     myDefaultProperties = new HashMap<>();
   }
 
+  public boolean getIgnoreRenderRequests() {
+    return myIgnoreRenderRequests;
+  }
+
+  public void setIgnoreRenderRequests(boolean ignoreRenderRequests) {
+    myIgnoreRenderRequests = ignoreRenderRequests;
+  }
+
   @NotNull
   @Override
   protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    if (myIgnoreRenderRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
     return CompletableFuture.completedFuture(super.render(trigger).join());
   }
 

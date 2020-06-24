@@ -256,6 +256,11 @@ public class WidgetConstraintModel implements SelectionListener {
     }
 
     @Override
+    public void modelDerivedDataChanged(@NotNull NlModel model) {
+      fireUIUpdate();
+    }
+
+    @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
       fireUIUpdate();
     }
