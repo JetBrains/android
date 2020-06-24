@@ -61,6 +61,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
+        "//tools/adt/idea/compose-designer:lib/ui-animation-tooling-internal",
     ],
 )
 
@@ -143,4 +144,11 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
     ],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "lib/ui-animation-tooling-internal",
+    jars = ["lib/ui-animation-tooling-internal.jar"],
+    visibility = ["//visibility:public"],
 )
