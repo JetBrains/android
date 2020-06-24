@@ -26,9 +26,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.templates.KeystoreUtils
-import com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore
-import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
+import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.TemplateUtils
@@ -128,8 +126,7 @@ class RenderTemplateModel private constructor(
 
         projectTemplateDataBuilder.language = language.value
 
-        val sha1File = androidFacet?.let { getDebugKeystore(it) } ?: getOrCreateDefaultDebugKeystore()
-        projectTemplateDataBuilder.debugKeyStoreSha1 = KeystoreUtils.sha1(sha1File)
+        projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 
         if (androidFacet == null) {
           return@apply
