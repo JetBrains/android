@@ -45,6 +45,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Insets
 import java.awt.LayoutManager
+import java.awt.Point
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -71,6 +72,8 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
   private var loadingPanel: JBLoadingPanel? = null
   private var contentDisposable: Disposable? = null
   private var floatingToolbar: JComponent? = null
+  private var savedEmulatorViewPreferredSize: Dimension? = null
+  private var savedScrollPosition: Point? = null
 
   val id
     get() = emulator.emulatorId
@@ -107,6 +110,14 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
       verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
       horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
       viewport.background = background
+      viewport.addChangeListener { event ->
+        val view = viewport.view
+        // Remove the explicitly set preferred view size if it does not exceed the viewport size.
+        if (view != null && view.isPreferredSizeSet &&
+            view.preferredSize.width <= viewport.width && view.preferredSize.height <= viewport.height) {
+          view.preferredSize = null
+        }
+      }
     }
 
     layeredPane = JLayeredPane().apply {
@@ -168,6 +179,13 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
       loadingPanel.setLoadingText("Connecting to the Emulator")
       loadingPanel.startLoading() // stopLoading is called by EmulatorView after the gRPC connection is established.
 
+      // Restore zoom and scroll state.
+      val emulatorViewPreferredSize = savedEmulatorViewPreferredSize
+      if (emulatorViewPreferredSize != null) {
+        emulatorView.preferredSize = emulatorViewPreferredSize
+        scrollPane.viewport.viewPosition = savedScrollPosition
+      }
+
       loadingPanel.repaint()
     }
     catch (e: Exception) {
@@ -177,6 +195,9 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
   }
 
   fun destroyContent() {
+    savedEmulatorViewPreferredSize = emulatorView?.explicitlySetPreferredSize
+    savedScrollPosition = scrollPane.viewport.viewPosition
+
     contentDisposable?.let { Disposer.dispose(it) }
     contentDisposable = null
 
