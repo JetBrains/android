@@ -23,6 +23,7 @@ import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtArgsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtDirectionsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.getKotlinType
+import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.nav.safeargs.safeArgsMode
@@ -35,9 +36,9 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.util.PlatformIcons
 import net.jcip.annotations.GuardedBy
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
@@ -117,7 +118,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
           .asSequence()
           .flatMap { navEntry ->
             val backingXmlFile = PsiManager.getInstance(navEntry.project).findFile(navEntry.file)
-            val sourceElement = backingXmlFile?.let { XmlSourceElement(it as PsiElement) } ?: SourceElement.NO_SOURCE
+            val sourceElement = backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
 
             val packages = createArgsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString()) +
                            createDirectionsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString())
@@ -155,7 +156,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
                                       ?.findXmlTagById(destination.id)
-                                      ?.let { XmlSourceElement(it) }
+                                      ?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.CLASS_ICON)) }
                                     ?: sourceElement
 
         val packageDescriptor = KtDirectionsPackageDescriptor(moduleDescriptor, entry.project, packageName, className, destination,
@@ -189,7 +190,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
                                       ?.findXmlTagById(fragment.id)
-                                      ?.let { XmlSourceElement(it) }
+                                      ?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.CLASS_ICON)) }
                                     ?: sourceElement
 
         val superTypesProvider = { packageDescriptor: PackageFragmentDescriptorImpl ->

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
+import com.android.tools.idea.nav.safeargs.psi.xml.withMethodIcon
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -41,7 +42,7 @@ internal fun ClassDescriptorImpl.createMethod(
   returnType: KotlinType,
   dispatchReceiver: ClassDescriptor,
   valueParametersProvider: (SimpleFunctionDescriptorImpl) -> List<ValueParameterDescriptor> = { emptyList() },
-  sourceElement: SourceElement = this.source
+  sourceElement: SourceElement = this.source.withMethodIcon()
 ): SimpleFunctionDescriptorImpl {
 
   val method = object : SimpleFunctionDescriptorImpl(

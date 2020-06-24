@@ -17,9 +17,11 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavFragmentData
+import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.PlatformIcons
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -32,6 +34,7 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
+import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
@@ -179,7 +182,7 @@ class LightArgsKtClass(
         .map { parameter ->
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, parameter.name.asString())?.let {
-            XmlSourceElement(it)
+            XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.METHOD_ICON))
           } ?: argsClassDescriptor.source
 
           argsClassDescriptor.createMethod(
@@ -205,7 +208,7 @@ class LightArgsKtClass(
             .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, isNonNull, fallbackType)
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(it)
+            XmlSourceElement(SafeArgsXmlTag(it, KotlinIcons.FIELD_VAL))
           } ?: argsClassDescriptor.source
           argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
         }
