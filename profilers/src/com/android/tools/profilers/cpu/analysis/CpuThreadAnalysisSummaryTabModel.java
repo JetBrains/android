@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadTrackModel;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +36,8 @@ public class CpuThreadAnalysisSummaryTabModel extends CpuAnalysisSummaryTabModel
   }
 
   /**
-   * @return up to k capture nodes in this thread that intersects with the selection range. Returns an empty list if the model contains more
-   * than 1 threads.
+   * @return up to k capture nodes in this thread that intersects with the selection range, sorted by duration. Returns an empty list if the
+   * model contains more than 1 threads.
    */
   @NotNull
   public List<CaptureNode> getTopNodesInSelectionRange(int k) {
@@ -48,6 +49,7 @@ public class CpuThreadAnalysisSummaryTabModel extends CpuAnalysisSummaryTabModel
     if (rootNode != null) {
       return rootNode.getDescendantsStream()
         .filter(node -> node.getDepth() > 0 && mySelectionRange.intersectsWith(node.getStartGlobal(), node.getEndGlobal()))
+        .sorted(Comparator.comparing(CaptureNode::getDuration).reversed())
         .limit(k)
         .collect(Collectors.toList());
     }
