@@ -32,13 +32,23 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.SwingHelper
+import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-fun taskDetailsPanel(
+fun taskDetailsPage(
+  taskData: TaskUiData,
+  helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
+  generateReportClickedListener: (TaskUiData) -> Unit
+): JPanel = JPanel().apply {
+  layout = BorderLayout()
+  add(htmlTextLabelWithFixedLines("<b>${taskData.taskPath}</b>"), BorderLayout.NORTH)
+  add(taskDetailsPanel( taskData, helpLinkListener, generateReportClickedListener), BorderLayout.CENTER)
+}
+
+private fun taskDetailsPanel(
   taskData: TaskUiData,
   helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
   generateReportClickedListener: (TaskUiData) -> Unit

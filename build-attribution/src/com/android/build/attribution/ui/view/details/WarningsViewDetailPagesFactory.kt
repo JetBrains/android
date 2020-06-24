@@ -21,13 +21,13 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.panels.taskDetailsPanel
+import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
@@ -78,15 +78,11 @@ class WarningsViewDetailPagesFactory(
     }, BorderLayout.CENTER)
   }
 
-  private fun createWarningDetailsPage(issueData: TaskIssueUiData) = JPanel().apply {
-    layout = BorderLayout()
-    add(htmlTextLabelWithFixedLines("<b>${issueData.task.taskPath}</b>"), BorderLayout.NORTH)
-    add(taskDetailsPanel(
-      issueData.task,
-      helpLinkListener = actionHandlers::helpLinkClicked,
-      generateReportClickedListener = actionHandlers::generateReportClicked
-    ), BorderLayout.CENTER)
-  }
+  private fun createWarningDetailsPage(issueData: TaskIssueUiData) = taskDetailsPage(
+    issueData.task,
+    helpLinkListener = actionHandlers::helpLinkClicked,
+    generateReportClickedListener = actionHandlers::generateReportClicked
+  )
 
   private fun createAnnotationProcessorsRootDetailsPage(annotationProcessorsReport: AnnotationProcessorsReport) = JPanel().apply {
     layout = BorderLayout()
