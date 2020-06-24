@@ -15,23 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.SdkConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Handler for the {@code <fragment>} tag
+ * Handler for the {@code <androidx.fragment.app.FragmentContainerView>} tag
  */
-public final class FragmentHandler extends BaseFragmentHandler {
-
+public final class FragmentContainerViewHandler extends BaseFragmentHandler {
   @Override
   @NotNull
-  public String getTitle(@NotNull String tagName) {
-    return "<fragment>";
-  }
-
-  @Override
-  @NotNull
-  public String getTitle(@NotNull NlComponent component) {
-    return "<fragment>";
+  public String getGradleCoordinateId(@NotNull String tagName) {
+    return SdkConstants.FRAGMENT_LIB_ARTIFACT;
   }
 }

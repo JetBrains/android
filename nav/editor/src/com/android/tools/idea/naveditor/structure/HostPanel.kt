@@ -19,9 +19,9 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NAV_GRAPH
-import com.android.SdkConstants.VIEW_FRAGMENT
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.stripPrefixFromId
+import com.android.support.FragmentTagUtil.isFragmentTag
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.AndroidPsiUtils
@@ -251,7 +251,7 @@ fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
       continue
     }
     val tag = attribute.parent
-    if (tag.name != VIEW_FRAGMENT) {
+    if (!isFragmentTag(tag.name)) {
       continue
     }
     val className = tag.getAttributeValue(ATTR_NAME, ANDROID_URI) ?: continue

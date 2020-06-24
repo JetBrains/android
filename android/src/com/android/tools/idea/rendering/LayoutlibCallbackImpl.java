@@ -28,6 +28,7 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.FD_RES_MENU;
 import static com.android.SdkConstants.FQCN_GRID_VIEW;
 import static com.android.SdkConstants.FQCN_SPINNER;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.LIST_VIEW;
@@ -584,7 +585,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           }
 
           // Deals with tools:layout attribute from fragments.
-          NodeList fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
+          NodeList fragmentNodeList = document.getElementsByTagName(FRAGMENT_CONTAINER_VIEW);
+          if (fragmentNodeList.getLength() == 0) {
+            // There was no FragmentContainerView, try with the old <fragment> tag.
+            fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
+          }
           for (int i = 0, n = fragmentNodeList.getLength(); i < n; i++) {
             Element fragment = (Element)fragmentNodeList.item(i);
             String included = fragment.getAttributeNS(TOOLS_URI, ATTR_LAYOUT);
