@@ -81,15 +81,15 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
         if (nodesInRange.isNotEmpty()) {
           val nodesTable = CaptureNodeDetailTable(nodesInRange, tabModel.captureRange,
                                                   profilersView.studioProfilers.stage.timeline.viewRange)
-          val sizeText = if (nodesInRange.size == NUMBER_OF_TABLE_NODES) "first ${NUMBER_OF_TABLE_NODES}" else nodesInRange.size
+          val sizeText = if (nodesInRange.size == NUMBER_OF_TABLE_NODES) "top ${NUMBER_OF_TABLE_NODES}" else "${nodesInRange.size}"
           val contentBorder = JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true)
-          val hideablePanel = HideablePanel.Builder("Events (${sizeText})", nodesTable.component)
+          val hideablePanel = HideablePanel.Builder("Longest running events (${sizeText})", nodesTable.component)
             .setPanelBorder(JBUI.Borders.empty())
             .setContentBorder(contentBorder)
             .build()
             .apply {
-            background = primaryContentBackground
-          }
+              background = primaryContentBackground
+            }
           nodesTablePanel.add(hideablePanel)
         }
         nodesTablePanel.invalidate()
