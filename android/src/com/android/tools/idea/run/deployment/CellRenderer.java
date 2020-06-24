@@ -34,8 +34,6 @@ final class CellRenderer extends PopupListElementRenderer<ActionItem> {
 
     if (value.getAction() instanceof Heading) {
       myTextLabel.setFont(UIUtil.getLabelFont(FontSize.MINI));
-      UIUtil.setBackgroundRecursively(myComponent, UIUtil.getPanelBackground());
-
       return;
     }
 
