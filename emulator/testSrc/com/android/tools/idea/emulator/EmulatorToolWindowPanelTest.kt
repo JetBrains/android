@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
@@ -40,6 +41,7 @@ import java.awt.Point
 import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import javax.swing.JViewport
 
 /**
  * Tests for [EmulatorToolWindowPanel] and some of the toolbar actions.
@@ -128,6 +130,48 @@ class EmulatorToolWindowPanelTest {
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
     waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+  }
+
+  @Test
+  fun testZoom() {
+    val panel = createWindowPanel()
+    val ui = FakeUi(panel)
+
+    assertThat(panel.emulatorView).isNull()
+
+    panel.createContent(false)
+    var emulatorView = panel.emulatorView ?: throw AssertionError()
+
+    panel.zoomToolbarIsVisible = true
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    panel.size = Dimension(400, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 363 height: 520")
+    ui.updateToolbars()
+
+    // Zoom in.
+    emulatorView.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
+    assertThat(emulatorView.preferredSize).isEqualTo(Dimension(396, 811))
+    val viewport = emulatorView.parent as JViewport
+    assertThat(viewport.viewSize).isEqualTo(Dimension(400, 811))
+    // Scroll to the bottom.
+    val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
+    viewport.viewPosition = scrollPosition
+
+    // Recreate panel content.
+    panel.destroyContent()
+    panel.createContent(false)
+    emulatorView = panel.emulatorView ?: throw AssertionError()
+    ui.layoutAndDispatchEvents()
+
+    // Check that zoom level and scroll position are restored.
+    assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
+    assertThat(viewport.viewSize).isEqualTo(Dimension(400, 811))
+    assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
