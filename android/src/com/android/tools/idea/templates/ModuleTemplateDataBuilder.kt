@@ -88,7 +88,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   var apis: ApiTemplateData? = null
 
   /**
-   * Adds common module roots template values like [projectOut], [srcDir], etc
+   * Adds common module roots template values like [rootDir], [srcDir], etc
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
@@ -259,7 +259,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     setProjectDefaults(project)
     language = Language.Java
     topOut = project.guessProjectDir()!!.toIoFile()
-    debugKeyStoreSha1 = KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore())
+    debugKeyStoreSha1 = KeystoreUtils.getSha1DebugKeystoreSilently(null)
     applicationPackage = ""
     overridePathCheck = false
   }
