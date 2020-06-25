@@ -360,7 +360,7 @@ class EmulatorDisplayList(override val project: Project?) : JPanel(), ListSelect
   /**
    * Renders a cell with borders.
    */
-  private class NoBorderCellRenderer(var defaultRenderer: TableCellRenderer) : TableCellRenderer {
+  class NoBorderCellRenderer(var defaultRenderer: TableCellRenderer) : TableCellRenderer {
     override fun getTableCellRendererComponent(
       table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
     ): Component = (defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) as JComponent).apply {

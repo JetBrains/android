@@ -144,7 +144,7 @@ class PreconfiguredDisplayList(
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
-   * table must implement this interface and register themselves through [.addSelectionListener]
+   * table must implement this interface and register themselves through [addSelectionListener]
    */
   interface DeviceSelectionListener {
     fun onDeviceSelected(device: PreconfiguredDeviceDefinition?)
