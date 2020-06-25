@@ -27,9 +27,7 @@ import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
@@ -102,22 +100,18 @@ class SafeArgsKotlinPackageDescriptorTest {
       lookupTracker = LookupTracker.DO_NOTHING
     ) as SafeArgSyntheticPackageProvider
 
-    val renderer = DescriptorRenderer.COMPACT_WITH_MODIFIERS
-
-    val classDescriptors = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+    val classesMetadata = fragmentProvider
+      .getPackageFragments(FqName("test.safeargs"))
       .first()
       .getMemberScope()
-      .getContributedDescriptors()
-      .sortedWith(MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
+      .classesInScope()
 
-    assertThat(classDescriptors).containsExactly(
-      // unresolved type is due to the missing library module dependency in test setup
-      "public final class Fragment1Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment1Directions",
-      "public final class Fragment2Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment2Directions",
-      "public final class MainDirections"
+    assertThat(classesMetadata.map { it.toString() }).containsExactly(
+      "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
+      "test.safeargs.Fragment1Directions",
+      "test.safeargs.Fragment2Args: androidx.navigation.NavArgs",
+      "test.safeargs.Fragment2Directions",
+      "test.safeargs.MainDirections"
     )
   }
 }

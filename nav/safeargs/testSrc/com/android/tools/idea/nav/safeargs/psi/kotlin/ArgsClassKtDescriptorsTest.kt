@@ -27,9 +27,7 @@ import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
@@ -85,48 +83,33 @@ class ArgsClassKtDescriptorsTest {
       lookupTracker = LookupTracker.DO_NOTHING
     ) as SafeArgSyntheticPackageProvider
 
-    val renderer = DescriptorRenderer.COMPACT_WITH_MODIFIERS
-
-    val argsClassDescriptor = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+    val classMetadata = fragmentProvider
+      .getPackageFragments(FqName("test.safeargs"))
       .first()
       .getMemberScope()
-      .getContributedDescriptors()
-      .filter { it is LightArgsKtClass }
-      .first() as LightArgsKtClass
+      .classesInScope()
+      .first()
 
-    // Check primary constructor
-    argsClassDescriptor.unsubstitutedPrimaryConstructor.let {
-      val rendered = renderer.render(it)
-      assertThat(rendered).isEqualTo("public constructor Fragment1Args(arg1: kotlin.String, arg2: kotlin.IntArray)")
-    }
+    assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
+      "Fragment1Args(arg1: kotlin.String, arg2: kotlin.IntArray)"
+    )
 
-    // Check companion objects
-    val companionObject = argsClassDescriptor.companionObjectDescriptor
-      .unsubstitutedMemberScope
-      .getContributedDescriptors()
-      .sortedWith(MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
+    assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
+      "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args"
+    )
 
-    assertThat(companionObject).containsExactly(
-      // unresolved type is due to the mock sdk in test setup
-      "public final fun fromBundle(bundle: [ERROR : android.os.Bundle]): test.safeargs.Fragment1Args")
+    assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
+      "val arg1: kotlin.String",
+      "val arg2: kotlin.IntArray"
+    )
 
-    // Check methods
-    val contributors = argsClassDescriptor.unsubstitutedMemberScope
-      .getContributedDescriptors()
-      .sortedWith(MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
-
-    assertThat(contributors).containsExactly(
-      /*properties*/
-      "public final val arg1: kotlin.String",
-      "public final val arg2: kotlin.IntArray",
-      /*generated functions of data class*/
-      "public final fun component1(): kotlin.String",
-      "public final fun component2(): kotlin.IntArray",
-      "public final fun copy(arg1: kotlin.String, arg2: kotlin.IntArray): test.safeargs.Fragment1Args",
-      /*functions*/
-      "public final fun toBundle(): [ERROR : android.os.Bundle]" // unresolved type is due to the mock sdk in test setup
+    assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
+      // generated functions of data class
+      "component1(): kotlin.String",
+      "component2(): kotlin.IntArray",
+      "copy(arg1: kotlin.String, arg2: kotlin.IntArray): test.safeargs.Fragment1Args",
+      // normal functions
+      "toBundle(): android.os.Bundle"
     )
   }
 }

@@ -27,9 +27,7 @@ import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
@@ -89,38 +87,18 @@ class DirectionsClassKtDescriptorsTest {
       lookupTracker = LookupTracker.DO_NOTHING
     ) as SafeArgSyntheticPackageProvider
 
-    val renderer = DescriptorRenderer.COMPACT_WITH_MODIFIERS
-
-    val directionsClassDescriptor = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+    val directionsClassMetadata = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
       .first()
       .getMemberScope()
-      .getContributedDescriptors()
-      .filter { it is LightDirectionsKtClass }
-      .first() as LightDirectionsKtClass
+      .classesInScope { name -> name.endsWith("Directions") }
+      .first()
 
-    // Check primary constructor
-    directionsClassDescriptor.unsubstitutedPrimaryConstructor.let {
-      val rendered = renderer.render(it)
-      assertThat(rendered).isEqualTo("public constructor Fragment1Directions()")
-    }
-
-    // Check companion objects
-    val companionObject = directionsClassDescriptor.companionObjectDescriptor
-      .unsubstitutedMemberScope
-      .getContributedDescriptors()
-      .sortedWith (MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
-
-    assertThat(companionObject).containsExactly(
-      // unresolved type is due to the missing library module dependency in test setup
-      "public final fun actionFragment1ToFragment2(): [ERROR : androidx.navigation.NavDirections]")
-
-    // Check methods
-    val contributors = directionsClassDescriptor.unsubstitutedMemberScope
-      .getContributedDescriptors()
-      .sortedWith (MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
-
-    assertThat(contributors).isEmpty()
+    assertThat(directionsClassMetadata.constructors.map { it.toString()} ).containsExactly(
+      "Fragment1Directions()"
+    )
+    assertThat(directionsClassMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
+      "actionFragment1ToFragment2(): androidx.navigation.NavDirections"
+    )
+    assertThat(directionsClassMetadata.functions).isEmpty()
   }
 }
