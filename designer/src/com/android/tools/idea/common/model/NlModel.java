@@ -886,6 +886,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Override
   public void dispose() {
     boolean shouldDeactivate;
+    myLintAnnotationsModel = null;
     synchronized (myActivations) {
       // If there are no activations left, make sure we deactivate the model correctly
       shouldDeactivate = !myActivations.isEmpty();
