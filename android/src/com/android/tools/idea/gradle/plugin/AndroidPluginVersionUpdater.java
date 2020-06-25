@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
+import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
+import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ThreeState.NO;
@@ -23,11 +29,12 @@ import static com.intellij.util.ThreeState.UNSURE;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspathDependencyRefactoringProcessor;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpGradleVersionRefactoringProcessor;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -36,6 +43,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ThreeState;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,45 +94,14 @@ public class AndroidPluginVersionUpdater {
     @Nullable GradleVersion oldPluginVersion
   ) {
     UpdateResult result = new UpdateResult();
+    runWriteCommandAction(myProject, "Update plugin version", null,
+                          () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, oldPluginVersion, result));
 
-    if (oldPluginVersion == null) {
-      // if we don't know the version we're upgrading from, assume an early one.
-      // FIXME(xof): we should always know what we're upgrading from.  Find callers and fix them.
-      oldPluginVersion = new GradleVersion(1, 0, 0);
-    }
-    GradleVersion projectGradleVersion;
-    if (gradleVersion == null) {
-      // if we're not requesting an upgrade to the gradle version, use the project's current gradle version ...
-      projectGradleVersion = GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0, 0));
-    }
-    else {
-      // ... but if we are, use the to-be-upgraded version.
-      projectGradleVersion = gradleVersion;
-    }
-
-    AgpClasspathDependencyRefactoringProcessor rp1 = new AgpClasspathDependencyRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
-    GMavenRepositoryRefactoringProcessor rp2 = new GMavenRepositoryRefactoringProcessor(myProject, oldPluginVersion, pluginVersion, projectGradleVersion);
-    try {
-      rp1.run();
-      if (!oldPluginVersion.isAtLeast(3, 0, 0)) {
-        rp2.run();
-      }
-      if (rp1.getFoundUsages()) {
-        result.pluginVersionUpdated();
-      }
-    } catch (Throwable e) {
-      result.setPluginVersionUpdateError(e);
-    }
-
+    // Update Gradle version only if plugin is successful updated, to avoid leaving the project
+    // in a inconsistent state.
     if (result.isPluginVersionUpdated() && gradleVersion != null) {
-      AgpGradleVersionRefactoringProcessor rp3 = new AgpGradleVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion, gradleVersion);
-      try {
-        rp3.run();
-        result.gradleVersionUpdated();
-      }
-      catch (Throwable e) {
-        result.setGradleVersionUpdateError(e);
-      }
+      runWriteCommandAction(myProject, "Update Gradle wrapper version", null,
+                            () -> updateGradleWrapperVersion(gradleVersion, result));
     }
 
     Throwable pluginVersionUpdateError = result.getPluginVersionUpdateError();
@@ -161,6 +140,100 @@ public class AndroidPluginVersionUpdater {
 
     String versionValue = model.version().toString();
     return (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) ? YES : NO;
+  }
+
+  /**
+   * Updates android plugin version.
+   *
+   * @param pluginVersion    the plugin version to update to.
+   * @param gradleVersion    the Gradle version that the project will use (or null if it will not change)
+   * @param oldPluginVersion the version of plugin from which we update. Used because of b/130738995.
+   * @param result           result of the update operation.
+   */
+  private void updateAndroidPluginVersion(
+    @NotNull GradleVersion pluginVersion,
+    @Nullable GradleVersion gradleVersion,
+    @Nullable GradleVersion oldPluginVersion,
+    @NotNull UpdateResult result) {
+    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
+
+    BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
+      DependenciesModel dependencies = buildModel.buildscript().dependencies();
+      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+        ThreeState shouldUpdate = isUpdatablePluginVersion(pluginVersion, dependency);
+        if (shouldUpdate == YES) {
+          dependency.version().getResultModel().setValue(pluginVersion.toString());
+          // Add Google Maven repository to buildscript (b/69977310)
+          if (oldPluginVersion == null || !oldPluginVersion.isAtLeast(3, 0, 0)) {
+            if (gradleVersion != null) {
+              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
+            }
+            else {
+              // Gradle version will *not* change, use project version
+              buildModel.buildscript().repositories().addGoogleMavenRepository(
+                GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0)));
+            }
+          }
+          modelsToUpdate.add(buildModel);
+        }
+        else if (shouldUpdate == NO) {
+          break;
+        }
+      }
+      return true;
+    });
+
+    boolean updateModels = !modelsToUpdate.isEmpty();
+    if (updateModels) {
+      try {
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
+        }
+        result.pluginVersionUpdated();
+      }
+      catch (Throwable e) {
+        result.setPluginVersionUpdateError(e);
+      }
+    }
+    else {
+      result.setPluginVersionUpdateError(new RuntimeException("Failed to find gradle build models to update."));
+    }
+  }
+
+  /**
+   * Updates Gradle version in wrapper.
+   *
+   * @param gradleVersion the gradle version to update to.
+   * @param result        the result of the update operation.
+   */
+  private void updateGradleWrapperVersion(@NotNull GradleVersion gradleVersion, @NotNull UpdateResult result) {
+    String basePath = myProject.getBasePath();
+    if (basePath == null) {
+      return;
+    }
+    List<File> projectRootFolders = new ArrayList<>();
+    projectRootFolders.add(new File(toSystemDependentPath(basePath)));
+    projectRootFolders.addAll(getCompositeBuildFolderPaths(myProject));
+    for (File rootFolder : projectRootFolders) {
+      if (rootFolder != null) {
+        try {
+          File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(rootFolder);
+          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath, myProject);
+          String current = gradleWrapper.getGradleVersion();
+          GradleVersion parsedCurrent = null;
+          if (current != null) {
+            parsedCurrent = GradleVersion.tryParse(current);
+          }
+          if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
+            gradleWrapper.updateDistributionUrl(gradleVersion.toString());
+            result.gradleVersionUpdated();
+          }
+        }
+        catch (Throwable e) {
+          result.setGradleVersionUpdateError(e);
+        }
+      }
+    }
   }
 
   public static class UpdateResult {
