@@ -68,7 +68,6 @@ class PreconfiguredDisplayListModel(
 ) : ListTableModel<PreconfiguredDeviceDefinition>() {
   private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
-
   var isUpdating = false
     private set
 

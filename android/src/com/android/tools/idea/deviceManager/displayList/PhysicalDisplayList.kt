@@ -15,17 +15,266 @@
  */
 package com.android.tools.idea.deviceManager.displayList
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
+import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceColumnInfo
+import com.google.common.collect.Sets
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.layout.panel
+import com.intellij.ui.table.TableView
+import com.intellij.util.containers.toArray
+import com.intellij.util.ui.ColumnInfo
+import com.intellij.util.ui.ListTableModel
+import java.awt.BorderLayout
+import java.awt.CardLayout
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.AbstractAction
+import javax.swing.BoxLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.KeyStroke
+import javax.swing.ListSelectionModel
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
 
 // Based on AsyncDevicesGetter
 
-class PhysicalDisplayList(val project: Project?): JPanel() {
-  // Commented out because it's not being used at the moment, to avoid adding the public modifier to AsyncDevicesGetter
-  //val asyncDevicesGetter = AsyncDevicesGetter.getInstance(project!!)
+typealias SerialNumber = String
+
+/**
+ * A UI component which lists the existing AVDs
+ */
+class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListener {
+  private val centerCardPanel: JPanel
+  private val notificationPanel = JPanel().apply {
+    layout = BoxLayout(this, 1)
+  }
+  private val model = ListTableModel<IDevice>().apply {
+    isSortable = true
+  }
+  private val table = TableView<IDevice>().apply {
+    setModelAndUpdateColumns(this@PhysicalDisplayList.model)
+    setDefaultRenderer(Any::class.java, EmulatorDisplayList.NoBorderCellRenderer(this.getDefaultRenderer(Any::class.java)))
+  }
+  private val listeners: MutableSet<DeviceSelectionListener> = Sets.newHashSet()
+  private val logger: Logger get() = logger<PhysicalDisplayList>()
+
+  private var latestSearchString: String = ""
+
+  // TODO(qumeric): consider the case when serial numbers clash
+  private val deviceMap: MutableMap<SerialNumber, IDevice> = mutableMapOf()
+
+  private val deviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
+    override fun deviceChanged(device: IDevice, changeMask: Int) {
+      // TODO(qumeric): can device change serial number?
+      deviceMap[device.serialNumber] = device
+      refreshDevices()
+    }
+
+    override fun deviceConnected(device: IDevice) {
+      deviceMap[device.serialNumber]
+      refreshDevices()
+    }
+
+    override fun deviceDisconnected(device: IDevice) {
+      deviceMap.remove(device.serialNumber)
+      refreshDevices()
+    }
+  }
 
   init {
-    val x = 1
-    println(x)
+    AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
+
+    layout = BorderLayout()
+    val nonemptyPanel = JPanel(BorderLayout()).apply {
+      add(ScrollPaneFactory.createScrollPane(table), BorderLayout.CENTER)
+      add(notificationPanel, BorderLayout.NORTH)
+    }
+
+    /**
+     * If no AVDs are present on the system, the AvdListDialog will display this panel.
+     * It contains instructional messages about AVDs and a link to create a new AVD.
+     */
+    val emptyAvdListPanel = panel {
+      row {
+        label("No physical devices added. Connect a device via USB cable or pair an Android 11+ device over Wi-Fi.")
+      }
+      row {
+        link("Pair over Wi-Fi") {
+          // TODO(qumeric)
+        }
+      }
+    }
+
+    centerCardPanel = JPanel(CardLayout()).apply {
+      add(nonemptyPanel, NONEMPTY)
+      add(emptyAvdListPanel, EMPTY)
+    }
+
+    add(centerCardPanel, BorderLayout.CENTER)
+
+    table.apply {
+      selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+      selectionModel.addListSelectionListener(this)
+      addMouseListener(editingListener)
+      addMouseMotionListener(editingListener)
+      addMouseListener(LaunchListener())
+      getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).apply {
+        // TODO(qumeric): consider changing this
+        put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+        put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter")
+        put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd")
+        put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "deleteAvd")
+      }
+    }
+    table.actionMap.apply {
+      // put("selectPreviousColumnCell", CycleAction(true))
+      // put("selectNextColumnCell", CycleAction(false))
+      put("enter", object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          doAction()
+        }
+      })
+    }
+    refreshDevices()
+
+    model.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
+  }
+
+  /**
+   * Components which wish to receive a notification when the user has selected an AVD from this
+   * table must implement this interface and register themselves through [addSelectionListener]
+   */
+  interface DeviceSelectionListener {
+    fun onDeviceSelected(device: IDevice?)
+  }
+
+  fun addSelectionListener(listener: DeviceSelectionListener) {
+    listeners.add(listener)
+  }
+
+  fun removeSelectionListener(listener: DeviceSelectionListener) {
+    listeners.remove(listener)
+  }
+
+  /**
+   * This class implements the table selection interface and passes the selection events on to its listeners.
+   */
+  override fun valueChanged(e: ListSelectionEvent) {
+    // Required so the editor component is updated to know it's selected.
+    table.editCellAt(table.selectedRow, table.selectedColumn)
+    for (listener in listeners) {
+      listener.onDeviceSelected(table.selectedObject)
+    }
+  }
+
+  // TODO(qumeric):
+  /*fun updateSearchResults(searchString: String?) {
+    if (searchString != null) {
+      latestSearchString = searchString
+    }
+    model.items = avds.filter {
+      it.displayName.contains(latestSearchString, ignoreCase = true)
+    }
+  }*/
+
+  /**
+   * Reload AVD definitions from disk and repopulate the table
+   */
+  fun refreshDevices() {
+    model.items = deviceMap.values.toList()
+    val status = if (model.items.isEmpty()) EMPTY else NONEMPTY
+    //updateSearchResults(null)
+    (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
+    //refreshErrorCheck()
+  }
+
+  private val editingListener: MouseAdapter = object : MouseAdapter() {
+    override fun mouseMoved(e: MouseEvent) {
+      possiblySwitchEditors(e)
+    }
+
+    override fun mouseEntered(e: MouseEvent) {
+      possiblySwitchEditors(e)
+    }
+
+    override fun mouseExited(e: MouseEvent) {
+      possiblySwitchEditors(e)
+    }
+
+    override fun mouseClicked(e: MouseEvent) {
+      possiblySwitchEditors(e)
+    }
+
+    override fun mousePressed(e: MouseEvent) {
+      possiblyShowPopup(e)
+    }
+
+    override fun mouseReleased(e: MouseEvent) {
+      possiblyShowPopup(e)
+    }
+  }
+
+  private fun possiblySwitchEditors(e: MouseEvent) {
+    val p = e.point
+    val row = table.rowAtPoint(p)
+    val col = table.columnAtPoint(p)
+    if (row != table.editingRow || col != table.editingColumn) {
+      if ((row != -1) && (col != -1) && table.isCellEditable(row, col)) {
+        table.editCellAt(row, col)
+      }
+    }
+  }
+
+  private fun possiblyShowPopup(e: MouseEvent) {
+    if (!e.isPopupTrigger) {
+      return
+    }
+    val p = e.point
+    val row = table.rowAtPoint(p)
+    val col = table.columnAtPoint(p)
+    if (row != -1 && col != -1) {
+      val lastColumn = table.columnCount - 1
+      val maybeActionPanel = table.getCellRenderer(row, lastColumn).getTableCellRendererComponent(
+        table, table.getValueAt(row, lastColumn), false, true, row, lastColumn
+      )
+      if (maybeActionPanel is AvdActionPanel) {
+        maybeActionPanel.showPopup(table, e)
+      }
+    }
+  }
+
+  // needs an initialized table
+  fun newColumns(): Collection<ColumnInfo<IDevice, *>> {
+    return listOf(
+      object : PhysicalDeviceColumnInfo("Device") {
+        override fun valueOf(item: IDevice): String? = item.name
+      }
+    )
+  }
+
+  private inner class LaunchListener : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+      if (e.clickCount == 2) {
+        doAction()
+      }
+    }
+  }
+
+  private fun doAction() {
+    // TODO
+  }
+
+  companion object {
+    const val NONEMPTY = "nonempty"
+    const val EMPTY = "empty"
   }
 }
+
