@@ -690,6 +690,7 @@ public class RenderTask {
     }
 
     params.setFontScale(configuration.getFontScale());
+    params.setUiMode(configuration.getUiModeFlagValue());
 
     try {
       myLayoutlibCallback.setLogger(myLogger);

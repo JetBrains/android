@@ -169,21 +169,6 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
-
-private const val UI_MODE_TYPE_MASK = 0x0000000f
-private const val UI_MODE_TYPE_APPLIANCE = 0x00000005
-private const val UI_MODE_TYPE_CAR = 0x00000003
-private const val UI_MODE_TYPE_DESK = 0x00000002
-private const val UI_MODE_TYPE_NORMAL = 0x00000001
-private const val UI_MODE_TYPE_TELEVISION = 0x00000004
-private const val UI_MODE_TYPE_VR_HEADSET = 0x00000007
-private const val UI_MODE_TYPE_WATCH = 0x00000006
-
-private const val UI_MODE_NIGHT_MASK = 0x00000030
-private const val UI_MODE_NIGHT_YES = 0x00000020
-private const val UI_MODE_NIGHT_NO = 0x00000010
-
-
 /**
  * Contain settings for rendering
  */
@@ -204,25 +189,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
       renderConfiguration.setTheme(theme)
     }
 
-    if (uiMode xor UI_MODE_NIGHT_MASK != 0) {
-      renderConfiguration.nightMode = when (uiMode and UI_MODE_NIGHT_MASK) {
-        UI_MODE_NIGHT_YES -> NightMode.NIGHT
-        else -> NightMode.NOTNIGHT
-      }
-    }
-
-    if (uiMode xor UI_MODE_TYPE_MASK != 0) {
-      renderConfiguration.uiMode = when (uiMode and UI_MODE_TYPE_MASK) {
-        UI_MODE_TYPE_APPLIANCE -> UiMode.APPLIANCE
-        UI_MODE_TYPE_CAR -> UiMode.CAR
-        UI_MODE_TYPE_TELEVISION -> UiMode.TELEVISION
-        UI_MODE_TYPE_WATCH -> UiMode.WATCH
-        UI_MODE_TYPE_DESK -> UiMode.DESK
-        UI_MODE_TYPE_VR_HEADSET -> UiMode.VR_HEADSET
-        else -> UiMode.NORMAL
-      }
-    }
-
+    renderConfiguration.uiModeFlagValue = uiMode
     renderConfiguration.fontScale = max(0f, fontScale)
   }
 
