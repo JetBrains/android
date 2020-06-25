@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -23,6 +24,7 @@ import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.openapi.project.Project;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,11 +33,22 @@ import org.jetbrains.annotations.NotNull;
  * at the moment, and may be changed as needed.
  */
 public abstract class AndroidProgramRunner extends GenericProgramRunner<RunnerSettings> {
+  private final Function<Project, ExecutionTarget> myExecutionTargetGetter;
+
+  public AndroidProgramRunner() {
+    myExecutionTargetGetter = project -> ExecutionTargetManager.getInstance(project).getActiveTarget();
+  }
+
+  // @VisibleForTesting
+  AndroidProgramRunner(@NotNull Function<Project, ExecutionTarget> executionTargetGetter) {
+    myExecutionTargetGetter = executionTargetGetter;
+  }
+
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
     if (profile instanceof RunConfiguration) {
       Project project = ((RunConfiguration)profile).getProject();
-      ExecutionTarget target = ExecutionTargetManager.getInstance(project).getActiveTarget();
+      ExecutionTarget target = myExecutionTargetGetter.apply(project);
       if (!(target instanceof AndroidExecutionTarget)) {
         return false;
       }

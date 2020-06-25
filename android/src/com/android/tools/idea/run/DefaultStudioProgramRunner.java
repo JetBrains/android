@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.openapi.project.Project;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,6 +30,15 @@ import org.jetbrains.annotations.NotNull;
  * {@link com.intellij.openapi.actionSystem.AnAction}, such as {@link DefaultRunExecutor} and {@link DefaultDebugExecutor}.
  */
 public class DefaultStudioProgramRunner extends StudioProgramRunner {
+  public DefaultStudioProgramRunner() {
+  }
+
+  @VisibleForTesting
+  public DefaultStudioProgramRunner(@NotNull Function<Project, GradleSyncState> syncStateGetter,
+                                    @NotNull Function<Project, ExecutionTarget> executionTargetGetter) {
+    super(syncStateGetter, executionTargetGetter);
+  }
+
   @Override
   @NotNull
   public String getRunnerId() {
@@ -33,14 +47,8 @@ public class DefaultStudioProgramRunner extends StudioProgramRunner {
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    if (!super.canRun(executorId, profile)) {
-      return false;
-    }
-    if (!DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) && !DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) {
-      return false;
-    }
-
-    return profile instanceof AndroidRunConfigurationBase;
+    return super.canRun(executorId, profile) &&
+           (DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) || DefaultRunExecutor.EXECUTOR_ID.equals(executorId));
   }
 
   @Override
