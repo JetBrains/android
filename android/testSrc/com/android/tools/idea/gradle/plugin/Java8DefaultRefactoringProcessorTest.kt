@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,6 +50,24 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   fun testIsEnabledFor420Release() {
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
+  }
+
+  @Test
+  fun testNecessities() {
+    val expectedNecessitiesMap = mapOf(
+      ("4.1.0" to "4.2.0-alpha04") to IRRELEVANT_FUTURE,
+      ("4.1.0" to "4.2.0-alpha05") to MANDATORY_CODEPENDENT,
+      ("4.1.0" to "4.2.0-beta01") to MANDATORY_CODEPENDENT,
+      ("4.1.0" to "4.2.0-rc01") to MANDATORY_CODEPENDENT,
+      ("4.1.0" to "4.2.0") to MANDATORY_CODEPENDENT,
+      ("4.2.0-alpha05" to "4.2.0") to IRRELEVANT_PAST,
+      ("4.2.0-beta01" to "4.2.0") to IRRELEVANT_PAST,
+      ("4.2.0-rc01" to "4.2.0") to IRRELEVANT_PAST
+    )
+    expectedNecessitiesMap.forEach { (t, u) ->
+      val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      assertEquals("${t.first} to ${t.second}", processor.necessity(), u)
+    }
   }
 
   @Test

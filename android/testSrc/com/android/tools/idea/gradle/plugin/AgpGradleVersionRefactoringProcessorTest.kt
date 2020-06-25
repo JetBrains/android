@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspathDependencyRefactoringProcessor
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpGradleVersionRefactoringProcessor
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -43,11 +43,30 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
 
   @Test
   fun testIsAlwaysEnabled() {
-    val versions = listOf("1.5.0", "2.2.0", "2.3.2", "3.0.0", "3.3.2", "3.4.2", "3.5.0")
+    val versions = listOf("1.5.0", "2.2.0", "2.3.2", "3.0.0", "3.3.2", "3.4.2", "3.5.0", "4.0.0", "4.1.0", "5.0.0", "5.1.0")
     versions.forEach { current ->
       versions.forEach { new ->
-        val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse(current), GradleVersion.parse(new))
-        assertTrue(processor.isEnabled)
+        val currentVersion = GradleVersion.parse(current)
+        val newVersion = GradleVersion.parse(new)
+        if (newVersion > currentVersion) {
+          val processor = AgpGradleVersionRefactoringProcessor(project, currentVersion, newVersion, GradleVersion.parse("6.5"))
+          assertTrue(processor.isEnabled)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun testIsAlwaysMandatoryCodependent() {
+    val versions = listOf("1.5.0", "2.2.0", "2.3.2", "3.0.0", "3.3.2", "3.4.2", "3.5.0", "4.0.0", "4.1.0", "5.0.0", "5.1.0")
+    versions.forEach { current ->
+      versions.forEach { new ->
+        val currentVersion = GradleVersion.parse(current)
+        val newVersion = GradleVersion.parse(new)
+        if (newVersion > currentVersion) {
+          val processor = AgpGradleVersionRefactoringProcessor(project, currentVersion, newVersion, GradleVersion.parse("6.5"))
+          assertEquals(processor.necessity(), MANDATORY_CODEPENDENT)
+        }
       }
     }
   }
