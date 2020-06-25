@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
-import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CALENDAR_VIEW;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
@@ -33,7 +32,6 @@ import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.URI_PREFIX;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
@@ -53,7 +51,6 @@ import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.rendering.api.LayoutlibCallback;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -121,7 +118,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ViewLoader;
@@ -270,7 +266,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   /**
-   * Sets the {@link LayoutLog} logger to use for error messages during problems.
+   * Sets the {@link ILayoutLog} logger to use for error messages during problems.
    *
    * @param logger the new logger to use
    */

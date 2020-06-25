@@ -28,15 +28,15 @@ import static com.android.SdkConstants.VALUE_FILL_PARENT;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_PREFIX;
+import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.Lint.editDistance;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
@@ -80,7 +80,6 @@ import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
@@ -795,15 +794,15 @@ public class RenderErrorContributor {
       seenTags.add(tag);
 
       if (tag != null) {
-        if (LayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
+        if (ILayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
           reportTagResourceFormat(myResult, message);
           continue;
         }
-        else if (LayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
+        else if (ILayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
           reportRtlNotEnabled(logger, task);
           continue;
         }
-        else if (LayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
+        else if (ILayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
           addIssue()
             .setSeverity(HighlightSeverity.ERROR)
             .setSummary("RTL support requires API level >= 17")
