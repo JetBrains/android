@@ -36,7 +36,7 @@ public class AndroidStudioGradleSettings extends GradleSettings{
   }
 
   static void configureForAndroidStudio(@NotNull GradleProjectSettings projectSettings) {
-    projectSettings.setResolveModulePerSourceSet(false);
+    projectSettings.setResolveModulePerSourceSet(StudioFlags.USE_MODULE_PER_SOURCE_SET.get());
     if (!StudioFlags.GRADLE_UNIT_TESTING.get()) {
       projectSettings.setTestRunner(TestRunner.PLATFORM);
     }
