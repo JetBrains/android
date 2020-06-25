@@ -253,6 +253,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
 
   public abstract override fun getCommandName(): String
+
+  open fun getReadMoreUrl(): String? = null
 }
 
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -544,6 +546,9 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       override fun getProcessedElementsHeader() = "Update implicit LanguageLevel properties"
     }
   }
+
+  // TODO(xof): move this target to _redirects.yaml (or find some other way to be future-proof)
+  override fun getReadMoreUrl(): String? = "https://developer.android.com/studio/write/java8-support#supported_features"
 
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
