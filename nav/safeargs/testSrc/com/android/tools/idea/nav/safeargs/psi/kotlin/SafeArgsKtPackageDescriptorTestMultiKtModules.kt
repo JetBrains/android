@@ -27,8 +27,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.resolve.MemberComparator
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -66,28 +64,21 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     projectRule.requestSyncAndWait()
     val appModule = fixture.project.findAppModule()
     val moduleDescriptor = appModule.toDescriptor()
-    val renderer = DescriptorRenderer.FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS
 
-    val classDescriptors = moduleDescriptor!!.getPackage(FqName("com.example.myapplication"))
+    val classesMetadata = moduleDescriptor!!
+      .getPackage(FqName("com.example.myapplication"))
       .memberScope
-      .getContributedDescriptors()
-      .filter {
-        val name = it.name.asString()
-        name.endsWith("Args") || name.endsWith("Directions")
-      }
-      .sortedWith(MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
+      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
-    assertThat(classDescriptors).containsExactly(
-      // unresolved type is due to the missing library module dependency in test setup
-      "public final class FirstFragmentArgs : [ERROR : androidx.navigation.NavArgs] defined in com.example.myapplication in file nav_graph.xml",
-      "public final class FirstFragmentArgs : [ERROR : androidx.navigation.NavArgs] defined in com.example.mylibrary in file libnav_graph.xml",
-      "public final class FirstFragmentDirections defined in com.example.myapplication in file nav_graph.xml",
-      "public final class FirstFragmentDirections defined in com.example.mylibrary in file libnav_graph.xml",
-      "public final class SecondFragmentArgs : [ERROR : androidx.navigation.NavArgs] defined in com.example.myapplication in file nav_graph.xml",
-      "public final class SecondFragmentArgs : [ERROR : androidx.navigation.NavArgs] defined in com.example.mylibrary in file libnav_graph.xml",
-      "public final class SecondFragmentDirections defined in com.example.myapplication in file nav_graph.xml",
-      "public final class SecondFragmentDirections defined in com.example.mylibrary in file libnav_graph.xml"
+    assertThat(classesMetadata.map { it.fqcn to it.file }).containsExactly(
+      "com.example.myapplication.FirstFragmentArgs" to "nav_graph.xml",
+      "com.example.mylibrary.FirstFragmentArgs" to "libnav_graph.xml",
+      "com.example.myapplication.FirstFragmentDirections" to "nav_graph.xml",
+      "com.example.mylibrary.FirstFragmentDirections" to "libnav_graph.xml",
+      "com.example.myapplication.SecondFragmentArgs" to "nav_graph.xml",
+      "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
+      "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml",
+      "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
     )
   }
 }
