@@ -17,7 +17,7 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
@@ -78,14 +78,14 @@ public class LayoutLibraryLoader {
     LayoutLibrary library;
     final ILogger logger = new LogWrapper(LOG);
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
-    final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
+    final ILayoutLog ILayoutLog = new LayoutLogWrapper(LOG);
 
     String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA));
 
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
     library =
       LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
-    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "icu/", enumMap, layoutLog)) {
+    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "icu/", enumMap, ILayoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;
