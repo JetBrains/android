@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
@@ -339,7 +340,8 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     this.gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION)!!
   }
 
-  val gradleVersion: GradleVersion
+  var gradleVersion: GradleVersion
+    @VisibleForTesting set
 
   override fun necessity() = when {
     current < GradleVersion(3, 0, 0) && new >= GradleVersion(3, 0, 0) -> MANDATORY_CODEPENDENT
