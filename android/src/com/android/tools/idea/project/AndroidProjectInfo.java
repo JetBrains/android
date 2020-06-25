@@ -22,6 +22,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.AndroidModel;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -67,14 +68,8 @@ public class AndroidProjectInfo {
    * @return {@code true} if the project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && AndroidModel.isRequired(androidFacet)) {
-        return true;
-      }
-    }
-    return false;
+    return ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)
+      .stream().anyMatch(AndroidModel::isRequired);
   }
 
   public boolean isApkProject() {
