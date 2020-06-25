@@ -44,7 +44,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.text.DateFormat;
@@ -225,7 +224,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       IDevice device = launchContext.getDevice();
       LaunchStatus launchStatus = launchContext.getLaunchStatus();
 
-      NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", ToolWindowId.RUN);
+      NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", launchContext.getExecutor().getId());
       for (LaunchTask task : launchTasks) {
         if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
           throw new CancellationException();
