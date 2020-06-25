@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,6 +36,19 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   fun testIsDisabledForNewerAGP() {
     val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("3.2.0"), GradleVersion.parse("4.0.0"), GradleVersion.parse("6.5"))
     assertFalse(processor.isEnabled)
+  }
+
+  @Test
+  fun testNecessities() {
+    val expectedNecessitiesMap = mapOf(
+      ("2.2.0" to "2.3.2") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+      ("2.3.2" to "3.1.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+      ("3.0.0" to "3.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
+    )
+    expectedNecessitiesMap.forEach { (t, u) ->
+      val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second), GradleVersion.parse("6.5"))
+      assertEquals("${t.first} to ${t.second}", processor.necessity(), u)
+    }
   }
 
   @Test

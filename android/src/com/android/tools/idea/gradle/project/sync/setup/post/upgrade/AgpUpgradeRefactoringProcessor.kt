@@ -244,7 +244,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.new = processor.new
   }
 
-  protected abstract fun necessity(): AgpUpgradeComponentNecessity
+  abstract fun necessity(): AgpUpgradeComponentNecessity
 
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) return UsageInfo.EMPTY_ARRAY
