@@ -46,7 +46,15 @@ class KotlincWithQuickFixesParserTest {
 
   @Test
   fun `Cannot inline bytecode with JVM target 8 has correct quickfixes`() {
-    val errorLine = "e: /path/file.kt: (42, 47): Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option"
+    verifyJvmTarget8QuickFixes("e: /path/file.kt: (42, 47): Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option")
+  }
+
+  @Test
+  fun `Calls to static methods prohibited in JVM target 6 has correct quickfixes`() {
+    verifyJvmTarget8QuickFixes("e: /path/file.kt: (15, 19): Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'")
+  }
+
+  private fun verifyJvmTarget8QuickFixes(errorLine: String) {
     val captor = ArgumentCaptor.forClass(BuildEvent::class.java)
     assertThat(parser.parse(errorLine, reader, messageConsumer)).isTrue()
     Mockito.verify(messageConsumer).accept(captor.capture())
