@@ -43,33 +43,6 @@ public class LintAnnotationsModel {
   private List<IssueData> myIssueList = Collections.emptyList();
 
   /**
-   * Get the icon for the severity level of the issue associated with the
-   * given component. If the component has no issue, the returned icon will be null
-   *
-   * @param component The component the get the icon for
-   * @param selected
-   * @return The icon for the severity level of the issue.
-   */
-  @Nullable
-  public Icon getIssueIcon(@NotNull NlComponent component, boolean selected) {
-    if (myIssues == null) {
-      return null;
-    }
-    List<IssueData> issueData = myIssues.get(component);
-    if (issueData == null || issueData.isEmpty()) {
-      return null;
-    }
-
-    IssueData max = findHighestSeverityIssue(issueData);
-    boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
-
-    if (selected) {
-      return isError ? StudioIcons.Common.ERROR_INLINE_SELECTED : StudioIcons.Common.WARNING_INLINE_SELECTED;
-    }
-    return isError ? StudioIcons.Common.ERROR_INLINE : StudioIcons.Common.WARNING_INLINE;
-  }
-
-  /**
    * If the provided component has an issue, return the message associated with the highest
    * severity issue for the component.
    *

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.common.error;
 
+import static com.android.tools.idea.common.error.MockIssueFactoryKt.createIssue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
@@ -33,10 +36,13 @@ import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class IssueModelTest {
   private IssueModel myIssueModel;
@@ -125,6 +131,57 @@ public class IssueModelTest {
     assertEquals(6, myIssueModel.getIssueCount());
     assertEquals(4, myIssueModel.getErrorCount());
     assertEquals(2, myIssueModel.getWarningCount());
+  }
+
+  @Test
+  public void testHighestSeverityIssue() {
+    assertFalse(myIssueModel.hasIssues());
+    NlComponent mockComponent = Mockito.mock(NlComponent.class);
+    Issue expectedHighest = createIssue(HighlightSeverity.WARNING, mockComponent);
+    myIssueModel.addIssueProvider(
+      new IssueProvider() {
+        @Override
+        public void collectIssues(@NotNull ImmutableCollection.Builder<Issue> issueListBuilder) {
+          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, mockComponent));
+          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, mockComponent));
+          issueListBuilder.add(expectedHighest);
+        }
+    });
+    assertEquals(3, myIssueModel.getIssueCount());
+    Issue highest = myIssueModel.getHighestSeverityIssue(mockComponent);
+    assertEquals(expectedHighest, highest );
+  }
+
+  @Test
+  public void testIssueIconErrorInline() {
+    HighlightSeverity severity = HighlightSeverity.ERROR;
+    Icon icon = IssueModel.getIssueIcon(severity, false);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.ERROR_INLINE, icon);
+  }
+
+  @Test
+  public void testIssueIconErrorInlineSelected() {
+    HighlightSeverity severity = HighlightSeverity.ERROR;
+    Icon icon = IssueModel.getIssueIcon(severity, true);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.ERROR_INLINE_SELECTED, icon);
+  }
+
+  @Test
+  public void testIssueIconWarningInline() {
+    HighlightSeverity severity = HighlightSeverity.INFORMATION;
+    Icon icon = IssueModel.getIssueIcon(severity, false);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.WARNING_INLINE, icon);
+  }
+
+  @Test
+  public void testIssueIconWarningInlineSelected() {
+    HighlightSeverity severity = HighlightSeverity.INFORMATION;
+    Icon icon = IssueModel.getIssueIcon(severity, true);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.WARNING_INLINE_SELECTED, icon);
   }
 
   @Test

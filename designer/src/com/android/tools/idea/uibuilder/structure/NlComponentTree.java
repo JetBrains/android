@@ -176,6 +176,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       overrideCtrlClick();
     }
     setModel(designSurface != null ? designSurface.getModel() : null);
+    myBadgeHandler.setIssueModel(designSurface != null ? designSurface.getIssueModel() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
 
