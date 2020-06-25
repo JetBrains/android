@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
@@ -34,9 +36,12 @@ import com.intellij.execution.ui.RunContentManager;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.content.Content;
+import com.intellij.util.ThreeState;
+import java.util.function.Function;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -48,6 +53,30 @@ import org.jetbrains.annotations.Nullable;
  * It provides the necessary support and management for working with hot swap (Apply (Code) Changes).
  */
 public abstract class StudioProgramRunner extends AndroidProgramRunner {
+  @NotNull
+  private final Function<Project, GradleSyncState> mySyncStateGetter;
+
+  public StudioProgramRunner() {
+    mySyncStateGetter = project -> GradleSyncState.getInstance(project);
+  }
+
+  // @VisibleForTesting
+  StudioProgramRunner(@NotNull Function<Project, GradleSyncState> syncStateGetter,
+                             @NotNull Function<Project, ExecutionTarget> executionTargetGetter) {
+    super(executionTargetGetter);
+    mySyncStateGetter = syncStateGetter;
+  }
+
+  @Override
+  public boolean canRun(@NotNull String executorId,
+                        @NotNull RunProfile profile) {
+    if (!super.canRun(executorId, profile) || !(profile instanceof AndroidRunConfigurationBase)) {
+      return false;
+    }
+    GradleSyncState syncState = mySyncStateGetter.apply(((AndroidRunConfigurationBase)profile).getProject());
+    return !syncState.isSyncInProgress() && syncState.isSyncNeeded().equals(ThreeState.NO);
+  }
+
   @Override
   @Nullable
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)

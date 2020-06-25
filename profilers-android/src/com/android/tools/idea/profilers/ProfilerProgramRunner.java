@@ -39,13 +39,10 @@ public class ProfilerProgramRunner extends StudioProgramRunner {
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    if (!super.canRun(executorId, profile)) {
-      return false;
-    }
-    if (!ProfileRunExecutor.EXECUTOR_ID.equals(executorId) || !(profile instanceof AndroidRunConfigurationBase)) {
-      return false;
-    }
-    return ((AndroidRunConfigurationBase)profile).isProfilable();
+    return super.canRun(executorId, profile) &&
+           ProfileRunExecutor.EXECUTOR_ID.equals(executorId) &&
+           // Super class canRun checks if profile is AndroidRunConfigurationBase.
+           ((AndroidRunConfigurationBase)profile).isProfilable();
   }
 
   @Override
