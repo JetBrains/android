@@ -712,7 +712,11 @@ public class RenderTask {
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
         RenderResult result = RenderResult.create(this, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
+        if (oldRenderSession != null) {
+          disposeRenderSession(oldRenderSession);
+        }
         addDiagnostics(result.getRenderResult());
         return result;
       }
