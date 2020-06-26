@@ -83,7 +83,8 @@ import org.jetbrains.annotations.Nullable;
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public final class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
+@SuppressWarnings("ClassWithOnlyPrivateConstructors")
+public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
 
   private boolean myPreviewWithToolsAttributes = true;
 
