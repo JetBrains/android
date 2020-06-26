@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  * Entry point is {@link #processSubtags(AndroidFacet, AndroidDomElement, SubtagProcessor)}, look for a
  * Javadoc there.
  */
-public class SubtagsProcessingUtil {
+public final class SubtagsProcessingUtil {
   private SubtagsProcessingUtil() {
   }
 

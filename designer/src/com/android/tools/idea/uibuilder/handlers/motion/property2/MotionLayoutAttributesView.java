@@ -81,7 +81,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider));
   }
 
-  private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
+  private static final class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
     private final MotionLayoutAttributesModel myModel;
     private final TableUIProvider myTableUIProvider;
     private final XmlElementDescriptorProvider myDescriptorProvider;

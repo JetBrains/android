@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
+public final class ToggleOfflineModeHyperlink extends NotificationHyperlink {
   private final boolean myEnableOfflineMode;
 
   @Nullable

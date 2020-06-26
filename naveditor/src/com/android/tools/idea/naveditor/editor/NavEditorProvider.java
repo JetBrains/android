@@ -50,7 +50,7 @@ public class NavEditorProvider extends DesignerEditorProvider {
     return NavEditorKt.NAV_EDITOR_ID;
   }
 
-  private static class NavigationFileType implements DesignerEditorFileType {
+  private static final class NavigationFileType implements DesignerEditorFileType {
 
     private static NavigationFileType ourInstance;
 

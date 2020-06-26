@@ -236,7 +236,7 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
   /**
    * Helper class to hold both a {@link CaptureDetails} and {@link FilterResult}.
    */
-  static class CaptureDetailsWithFilterResult {
+  static final class CaptureDetailsWithFilterResult {
     @NotNull private final CaptureDetails myCaptureDetails;
     @NotNull private final FilterResult myFilterResult;
 

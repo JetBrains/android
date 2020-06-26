@@ -554,7 +554,7 @@ public class SingleWidgetView extends JPanel {
   /**
    * Buttons that can kill the constraint
    */
-  static class AspectButton extends JComponent {
+  static final class AspectButton extends JComponent {
     private boolean mMouseIn;
     private final ColorSet mColorSet;
     private final Color mColor;
@@ -640,7 +640,7 @@ public class SingleWidgetView extends JPanel {
   /**
    * Connect button
    */
-  static class ConnectButton extends JLabel {
+  static final class ConnectButton extends JLabel {
 
     private static final Icon ICON = StudioIcons.LayoutEditor.Properties.ADD_CONNECTION;
 

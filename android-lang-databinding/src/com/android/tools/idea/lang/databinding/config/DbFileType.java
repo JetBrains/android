@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A file type for testing data-binding.
  */
-public class DbFileType extends LanguageFileType {
+public final class DbFileType extends LanguageFileType {
 
   public static final DbFileType INSTANCE = new DbFileType();
   public static final String EXT = "android_data_binding";

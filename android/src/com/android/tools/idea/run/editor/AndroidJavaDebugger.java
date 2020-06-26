@@ -243,7 +243,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     return false;
   }
 
-  private static class VMExitedNotifier {
+  private static final class VMExitedNotifier {
     @NotNull private final Client myClient;
     @NotNull private final AtomicBoolean myNeedsToNotify = new AtomicBoolean(true);
 

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
 
-public class GuiTestingService {
+public final class GuiTestingService {
   public static final Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
   public static final Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
 

@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
@@ -180,7 +180,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * <p>
  * TODO: Perform validation (such as cyclic layout resource detection for layout selection)
  */
-public class ChooseResourceDialog extends DialogWrapper {
+public final class ChooseResourceDialog extends DialogWrapper {
   private static final String TYPE_KEY = "ResourceType";
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
@@ -263,7 +263,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   /**
    * Builder class for constructing a resource chooser
    */
-  public static class Builder {
+  public static final class Builder {
     private Module myModule;
     private Configuration myConfiguration;
     private XmlTag myTag;

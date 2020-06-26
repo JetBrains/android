@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.androidSql;
 
 import com.intellij.lang.Language;
 
-public class AndroidSqlLanguage extends Language {
+public final class AndroidSqlLanguage extends Language {
   public static final AndroidSqlLanguage INSTANCE = new AndroidSqlLanguage();
 
   private AndroidSqlLanguage() {

@@ -82,7 +82,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /** Provides information about an Eclipse project */
-class EclipseProject implements Comparable<EclipseProject> {
+final class EclipseProject implements Comparable<EclipseProject> {
   static final String DEFAULT_LANGUAGE_LEVEL = "1.6";
   private static final String HOME_PROPERTY = "user.home";                    //$NON-NLS-1$
   private static final String HOME_PROPERTY_REF = "${" + HOME_PROPERTY + '}'; //$NON-NLS-1$

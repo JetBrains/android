@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;
 
-public class NlXmlRenderers implements PTableCellRendererProvider {
+public final class NlXmlRenderers implements PTableCellRendererProvider {
   private static NlXmlRenderers ourInstance = new NlXmlRenderers();
 
   private final NlXmlNameRenderer myXmlNameRenderer;

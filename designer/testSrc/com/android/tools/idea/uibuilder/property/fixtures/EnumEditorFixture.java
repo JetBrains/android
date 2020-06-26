@@ -283,7 +283,7 @@ public class EnumEditorFixture extends EditorFixtureBase {
     return differences;
   }
 
-  private static class ComboUI extends DarculaComboBoxUI {
+  private static final class ComboUI extends DarculaComboBoxUI {
     private boolean myPopupIsVisible;
     private JComboBox myCombo;
 

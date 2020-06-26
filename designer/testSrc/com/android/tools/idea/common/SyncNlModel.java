@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link NlModel} that runs all the operations synchronously for testing
  */
-public class SyncNlModel extends NlModel {
+public final class SyncNlModel extends NlModel {
 
   private Configuration myConfiguration; // for testing purposes
   private DesignSurface mySurface; // for testing purposes

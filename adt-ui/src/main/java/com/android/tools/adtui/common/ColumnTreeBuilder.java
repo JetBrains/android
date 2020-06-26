@@ -802,7 +802,7 @@ public class ColumnTreeBuilder {
     }
   }
 
-  private static class ColumnTreeTableRowSorter extends TableRowSorter<TableModel> {
+  private static final class ColumnTreeTableRowSorter extends TableRowSorter<TableModel> {
     @NotNull private final List<SortOrder> mySortOrderPreferences;
 
     /**

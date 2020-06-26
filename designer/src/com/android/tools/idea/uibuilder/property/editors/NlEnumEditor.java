@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class NlEnumEditor extends EnumEditor {
+public final class NlEnumEditor extends EnumEditor {
   private String myApiVersion;
 
   public static NlTableCellEditor createForTable() {

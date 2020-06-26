@@ -336,7 +336,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     return myWorkBench;
   }
 
-  private static class WaitingForGradleSyncException extends RuntimeException {
+  private static final class WaitingForGradleSyncException extends RuntimeException {
     private WaitingForGradleSyncException(@NotNull String message) {
       super(message);
     }

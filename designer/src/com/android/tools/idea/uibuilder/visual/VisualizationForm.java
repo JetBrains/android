@@ -598,7 +598,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     }
   }
 
-  private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
+  private static final class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
     @NotNull private DesignSurface mySurface;
 
     private VisualizationTraversalPolicy(@NotNull DesignSurface surface) {

@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 
-public class MotionLayoutComponentHelper {
+public final class MotionLayoutComponentHelper {
 
   private static final boolean USE_MOTIONLAYOUT_HELPER_CACHE = true;
 

@@ -81,7 +81,7 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrat
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
-class MigrateToAppCompatUtil {
+final class MigrateToAppCompatUtil {
 
   // Class known for its static members
   private MigrateToAppCompatUtil() {

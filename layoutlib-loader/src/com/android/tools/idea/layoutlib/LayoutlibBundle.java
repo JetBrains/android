@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 import java.util.function.Supplier;
 
-public class LayoutlibBundle extends DynamicBundle {
+public final class LayoutlibBundle extends DynamicBundle {
   @NonNls private static final String BUNDLE = "messages.LayoutlibBundle";
   private static final LayoutlibBundle INSTANCE = new LayoutlibBundle();
 

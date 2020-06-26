@@ -84,7 +84,7 @@ public abstract class BuildsToPathsMapperForApkTestCase extends AndroidGradleTes
     return projectBuildOutput;
   }
 
-  private static class PostBuildModuleModelsMockBuilder {
+  private static final class PostBuildModuleModelsMockBuilder {
     @NotNull private final OutputBuildAction.PostBuildModuleModels myPostBuildModuleModels;
 
     private PostBuildModuleModelsMockBuilder() {
@@ -106,7 +106,7 @@ public abstract class BuildsToPathsMapperForApkTestCase extends AndroidGradleTes
     }
   }
 
-  private static class PostBuildProjectModelsMockBuilder {
+  private static final class PostBuildProjectModelsMockBuilder {
     @NotNull private final OutputBuildAction.PostBuildProjectModels myPostBuildProjectModels;
 
     private PostBuildProjectModelsMockBuilder() {

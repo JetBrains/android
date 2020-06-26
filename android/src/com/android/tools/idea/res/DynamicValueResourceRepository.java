@@ -54,7 +54,7 @@ import org.jetbrains.annotations.TestOnly;
  * the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other resource
  * repositories.
  */
-public class DynamicValueResourceRepository extends LocalResourceRepository
+public final class DynamicValueResourceRepository extends LocalResourceRepository
     implements Disposable, BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   @NotNull private final ResourceNamespace myNamespace;

@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
@@ -12,7 +13,7 @@ import java.io.*;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidPackagingStateStorage implements StorageOwner {
+public final class AndroidPackagingStateStorage implements StorageOwner {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidPackagingStateStorage");
 
   private final File myFile;
@@ -82,7 +83,7 @@ public class AndroidPackagingStateStorage implements StorageOwner {
     }
   }
 
-  public static class Provider extends StorageProvider<AndroidPackagingStateStorage> {
+  public static final class Provider extends StorageProvider<AndroidPackagingStateStorage> {
     public static final Provider INSTANCE = new Provider();
 
     private Provider() {

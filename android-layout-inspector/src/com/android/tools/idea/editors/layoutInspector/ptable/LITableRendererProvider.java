@@ -30,7 +30,7 @@ import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-public class LITableRendererProvider implements PTableCellRendererProvider {
+public final class LITableRendererProvider implements PTableCellRendererProvider {
   private static LITableRendererProvider ourInstance = new LITableRendererProvider();
 
   private final LITableNameRenderer myNameRenderer;

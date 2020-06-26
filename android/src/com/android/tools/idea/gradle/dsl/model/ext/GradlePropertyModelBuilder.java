@@ -39,7 +39,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 /**
  * Builder class for subclasses of GradlePropertyModelImpl.
  */
-public class GradlePropertyModelBuilder {
+public final class GradlePropertyModelBuilder {
   /**
    * Creates a builder.
    *

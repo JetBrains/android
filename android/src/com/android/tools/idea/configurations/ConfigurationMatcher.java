@@ -111,7 +111,7 @@ public class ConfigurationMatcher {
 
   // ---- Finding matching configurations ----
 
-  private static class ConfigBundle {
+  private static final class ConfigBundle {
     private final FolderConfiguration config;
     private int localeIndex;
     private int dockModeIndex;
@@ -736,7 +736,7 @@ public class ConfigurationMatcher {
   /**
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
-  private static class TabletConfigComparator implements Comparator<ConfigMatch> {
+  private static final class TabletConfigComparator implements Comparator<ConfigMatch> {
     private final Map<String, Integer> mIdRank;
     private static final String PREFERRED_ID = "Nexus 10";
 

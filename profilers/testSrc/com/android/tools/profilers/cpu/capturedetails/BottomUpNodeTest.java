@@ -409,7 +409,7 @@ public class BottomUpNodeTest {
     return root;
   }
 
-  private static class ExpectedNode {
+  private static final class ExpectedNode {
     private String myId;
     private double myTotal;
     private double myChildrenTotal;

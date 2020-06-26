@@ -36,7 +36,7 @@ import static com.android.tools.adtui.workbench.ToolWindowDefinition.ALLOW_AUTO_
 import static com.android.tools.adtui.workbench.ToolWindowDefinition.ALLOW_FLOATING;
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
-class PalettePanelToolContent implements ToolContent<String> {
+final class PalettePanelToolContent implements ToolContent<String> {
   public static final int MIN_TOOL_WIDTH = 310;
 
   private final AnAction myGearAction;

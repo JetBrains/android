@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author yole
  */
-public class AndroidApkBuilder {
+public final class AndroidApkBuilder {
   private static final Logger LOG = Logger.getInstance(AndroidApkBuilder.class);
 
   @NonNls private static final String UNALIGNED_SUFFIX = ".unaligned";
@@ -508,7 +508,7 @@ public class AndroidApkBuilder {
     return false;
   }
 
-  private static class MyResourceFilter extends JavaResourceFilter {
+  private static final class MyResourceFilter extends JavaResourceFilter {
     private final Set<String> myExcludedEntries;
 
     private MyResourceFilter(@NotNull Set<String> excludedEntries) {

@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.fonts;
 
 import com.google.common.util.concurrent.AtomicDouble;
@@ -204,7 +204,7 @@ public class FontFileDownloader {
     });
   }
 
-  private static class ConcurrentTasksProgressManager {
+  private static final class ConcurrentTasksProgressManager {
     private final ProgressIndicator myParent;
     private final int myTasksCount;
     private final AtomicDouble myTotalFraction;
@@ -246,7 +246,7 @@ public class FontFileDownloader {
     }
   }
 
-  private static class SubTaskProgressIndicator extends SensitiveProgressWrapper {
+  private static final class SubTaskProgressIndicator extends SensitiveProgressWrapper {
     private final AtomicDouble myFraction;
     private final ConcurrentTasksProgressManager myProgressManager;
 

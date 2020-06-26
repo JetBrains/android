@@ -36,7 +36,7 @@ import static com.android.SdkConstants.*;
  * Its primary interface is through a static method "change()"
  * The class itself is created to perform more complex operations on the chain
  */
-public class ScoutChainsArrange {
+public final class ScoutChainsArrange {
   private List<NlComponent> myChain = new ArrayList<>();
   private boolean myVertical = false;
   private String attr_a_to_a = myVertical ? ATTR_LAYOUT_TOP_TO_TOP_OF : ATTR_LAYOUT_START_TO_START_OF;

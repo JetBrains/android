@@ -815,7 +815,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
                              ActionManager.getInstance(), 0);
   }
 
-  private static class SomeAction extends AnAction {
+  private static final class SomeAction extends AnAction {
     private SomeAction(@NotNull String title) {
       super(title);
     }

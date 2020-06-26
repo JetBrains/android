@@ -176,7 +176,7 @@ public class InstalledApkCache implements Disposable {
     }
   }
 
-  private static class CacheData {
+  private static final class CacheData {
     @NotNull private final InstallState installState;
     @NotNull private final HashCode hash;
 

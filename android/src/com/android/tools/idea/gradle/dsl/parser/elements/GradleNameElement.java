@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleNameElement {
+public final class GradleNameElement {
   /**
    * This regex is used to extract indexes out from a dereferenced map or list property.
    * Example properties would be:

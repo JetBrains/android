@@ -164,7 +164,7 @@ public class RunInstantAppTask implements LaunchTask {
     return ID;
   }
 
-  public static class RunInstantAppException extends Exception {
+  public static final class RunInstantAppException extends Exception {
 
     private RunInstantAppException(@NotNull String message) {
       super(message);

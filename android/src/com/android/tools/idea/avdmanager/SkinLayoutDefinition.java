@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * }
  * </pre>
  */
-public class SkinLayoutDefinition {
+public final class SkinLayoutDefinition {
 
   @VisibleForTesting static final Pattern ourQuerySeparator = Pattern.compile("\\.");
   @VisibleForTesting static final Pattern ourWhitespacePattern = Pattern.compile("\\s+");

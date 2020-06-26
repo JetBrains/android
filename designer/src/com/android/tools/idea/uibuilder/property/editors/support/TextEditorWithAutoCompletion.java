@@ -59,7 +59,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<String> {
+public final class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<String> {
   private final TextAttributes myTextAttributes;
   private final CompletionProvider myCompletionProvider;
   private final PropertyChangeListener myPropertyChangeListener;

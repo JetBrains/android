@@ -1119,7 +1119,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   /**
    * Information about a resource folder.
    */
-  protected static class FolderInfo {
+  protected static final class FolderInfo {
     @NotNull public final ResourceFolderType folderType;
     @NotNull public final FolderConfiguration configuration;
     @Nullable public final ResourceType resourceType;
@@ -1171,7 +1171,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     }
   }
 
-  private static class ResourceFileCollector implements FileVisitor<Path> {
+  private static final class ResourceFileCollector implements FileVisitor<Path> {
     @NotNull final List<PathString> resourceFiles = new ArrayList<>();
     @NotNull final List<IOException> ioErrors = new ArrayList<>();
     @NotNull final FileFilter fileFilter;

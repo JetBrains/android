@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Data model for TrackGroup, a collapsible UI component that contains a list of Tracks.
  */
-public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
+public final class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   /**
    * Use this to generate unique (within this group) IDs for {@link TrackModel}s in this group.
    */
@@ -104,7 +104,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     return new Builder();
   }
 
-  public static class Builder {
+  public static final class Builder {
     private String myTitle;
     private String myTitleInfo;
     private boolean myCollapsedInitially;

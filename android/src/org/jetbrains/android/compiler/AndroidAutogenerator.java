@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
 
@@ -58,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 @SuppressWarnings("deprecation")
-public class AndroidAutogenerator {
+public final class AndroidAutogenerator {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidAutogenerator");
 
   private AndroidAutogenerator() {
@@ -802,7 +803,7 @@ public class AndroidAutogenerator {
     return genFolder.getPath() + '/' + relativePath;
   }
 
-  private static class AptAutogenerationItem {
+  private static final class AptAutogenerationItem {
     final String myPackage;
     final String myOutputDirOsPath;
     final Map<String, String> myGenFileRelPath2package;
@@ -816,7 +817,7 @@ public class AndroidAutogenerator {
     }
   }
 
-  private static class IdlAutogenerationItem {
+  private static final class IdlAutogenerationItem {
     final VirtualFile myFile;
     final IAndroidTarget myTarget;
     final String myOutFileOsPath;
@@ -839,7 +840,7 @@ public class AndroidAutogenerator {
     }
   }
 
-  private static class RenderscriptAutogenerationItem {
+  private static final class RenderscriptAutogenerationItem {
     final String mySdkLocation;
     final IAndroidTarget myTarget;
     final String myGenDirPath;
@@ -856,7 +857,7 @@ public class AndroidAutogenerator {
     }
   }
 
-  private static class BuildconfigAutogenerationItem {
+  private static final class BuildconfigAutogenerationItem {
     final String myPackage;
     final String mySourceRootOsPath;
 

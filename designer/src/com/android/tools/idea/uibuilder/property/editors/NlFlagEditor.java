@@ -34,7 +34,7 @@ import java.awt.event.ActionEvent;
  * The {@link NlFlagEditor} is used to edit a {@link NlFlagPropertyItemValue} by displaying
  * a single checkbox for a single flag value.
  */
-public class NlFlagEditor extends BaseComponentEditor implements NlComponentEditor {
+public final class NlFlagEditor extends BaseComponentEditor implements NlComponentEditor {
   private final JPanel myPanel;
   private final JCheckBox myCheckbox;
   private final boolean myIncludeLabel;

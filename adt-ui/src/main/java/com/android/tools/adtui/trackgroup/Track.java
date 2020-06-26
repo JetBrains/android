@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents horizontal data visualization (e.g. time-based data series), used in a {@link TrackGroup}.
  */
-public class Track {
+public final class Track {
   /**
    * The first column displays the title header. The second column displays the track content.
    */

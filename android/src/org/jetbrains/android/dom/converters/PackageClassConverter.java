@@ -387,7 +387,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     return qName;
   }
 
-  private static class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
+  private static final class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
     private final int myStart;
     private final String myManifestPackage;
     private final String[] myExtraBasePackages;

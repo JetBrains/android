@@ -355,7 +355,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
    * connect to the stale Client, and almost immediately have the same Client's killed state get reflected by ddmlib, and removed from the
    * process handler.
    */
-  private static class ApplicationTerminationWaiter implements AndroidDebugBridge.IDeviceChangeListener {
+  private static final class ApplicationTerminationWaiter implements AndroidDebugBridge.IDeviceChangeListener {
     @NotNull private final IDevice myIDevice;
     @NotNull private final List<Client> myClientsToWaitFor;
     @NotNull private final CountDownLatch myProcessKilledLatch = new CountDownLatch(1);

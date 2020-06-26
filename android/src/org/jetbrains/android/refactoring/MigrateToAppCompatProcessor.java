@@ -134,7 +134,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   /**
    * Dependency to add to build.gradle
    */
-  private static class AppCompatLibraryDescriptor extends ExternalLibraryDescriptor {
+  private static final class AppCompatLibraryDescriptor extends ExternalLibraryDescriptor {
     private AppCompatLibraryDescriptor(@Nullable String minVersion) {
       super(GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), minVersion,
             null);

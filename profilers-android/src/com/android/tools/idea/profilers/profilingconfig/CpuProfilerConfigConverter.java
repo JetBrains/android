@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuProfilerConfigConverter {
+public final class CpuProfilerConfigConverter {
 
   private CpuProfilerConfigConverter() {}
 

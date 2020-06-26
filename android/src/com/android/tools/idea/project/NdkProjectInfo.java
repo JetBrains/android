@@ -19,7 +19,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
-public class NdkProjectInfo {
+public final class NdkProjectInfo {
   private static final Key<Boolean> HAS_NDK_MODULES = Key.create("HAS_NDK_MODULES");
   private final @NotNull Project myProject;
 

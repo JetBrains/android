@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Version of {@link ThumbnailManager} than can be used in bazel tests.
  */
-public class TestableThumbnailManager extends ThumbnailManager {
+public final class TestableThumbnailManager extends ThumbnailManager {
 
   private final ThumbnailManager myPreviousManager;
 

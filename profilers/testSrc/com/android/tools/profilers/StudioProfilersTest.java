@@ -1544,7 +1544,7 @@ public final class StudioProfilersTest {
     }
   }
 
-  private static class FakeStage extends StreamingStage {
+  private static final class FakeStage extends StreamingStage {
     private FakeStage(@NotNull StudioProfilers profilers) {
       super(profilers);
     }

@@ -65,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
  * This class defines a sample data source. It also handles the caching and invalidation according
  * to the given functions passed in the creation.
  */
-public class SampleDataResourceItem implements ResourceItem, ResolvableResourceItem {
+public final class SampleDataResourceItem implements ResourceItem, ResolvableResourceItem {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceItem.class);
 
   private static final Cache<String, SampleDataHolder> sSampleDataCache =

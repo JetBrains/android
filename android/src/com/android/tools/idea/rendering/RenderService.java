@@ -410,7 +410,7 @@ public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
-  public static class RenderTaskBuilder {
+  public static final class RenderTaskBuilder {
     private final RenderService myService;
     private final AndroidFacet myFacet;
     private final Configuration myConfiguration;

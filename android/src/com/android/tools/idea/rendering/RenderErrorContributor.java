@@ -1410,7 +1410,7 @@ public class RenderErrorContributor {
     return Collections.unmodifiableCollection(myIssues);
   }
 
-  private static class RebuildWith16Fix implements Runnable {
+  private static final class RebuildWith16Fix implements Runnable {
     private final Project myProject;
 
     private RebuildWith16Fix(Project project) {
@@ -1428,7 +1428,7 @@ public class RenderErrorContributor {
     }
   }
 
-  private static class SwitchTo16Fix implements Runnable {
+  private static final class SwitchTo16Fix implements Runnable {
     final List<Module> myProblemModules;
     private final Project myProject;
 

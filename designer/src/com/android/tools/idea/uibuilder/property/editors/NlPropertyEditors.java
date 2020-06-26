@@ -33,7 +33,7 @@ import java.util.Set;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class NlPropertyEditors extends PropertyEditors implements PTableCellEditorProvider{
+public final class NlPropertyEditors extends PropertyEditors implements PTableCellEditorProvider{
   private final Project myProject;
   private NlTableCellEditor myBooleanEditor;
   private NlTableCellEditor myFlagEditor;

@@ -52,7 +52,7 @@ public class DensityMenuAction extends DropDownAction {
     return true;
   }
 
-  private static class SetDensityAction extends AnAction {
+  private static final class SetDensityAction extends AnAction {
     private final NlModel myModel;
     private final Density myDensity;
 

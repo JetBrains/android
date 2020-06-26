@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 /**
  * Represents characteristics of C/C++ functions.
  */
-public class CppFunctionModel extends NativeNodeModel {
+public final class CppFunctionModel extends NativeNodeModel {
 
   /**
    * Pattern used to separate method parameters.

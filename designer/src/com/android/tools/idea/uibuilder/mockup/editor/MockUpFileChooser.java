@@ -42,7 +42,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 /**
  * File chooser for MockUps
  */
-public class MockUpFileChooser {
+public final class MockUpFileChooser {
   public static final MockUpFileChooser INSTANCE = new MockUpFileChooser();
 
   private String myLastOpenedFileName = null;

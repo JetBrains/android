@@ -21,7 +21,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidRenderscriptFileType extends LanguageFileType {
+public final class AndroidRenderscriptFileType extends LanguageFileType {
   public static final AndroidRenderscriptFileType INSTANCE = new AndroidRenderscriptFileType();
   @NonNls public static final String CODE_EXTENSION = "rs";
   @NonNls public static final String FS_CODE_EXTENSION = "fs";

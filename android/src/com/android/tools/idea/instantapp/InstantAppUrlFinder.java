@@ -317,7 +317,7 @@ public final class InstantAppUrlFinder {
   }
 
   @VisibleForTesting
-  static class AttributesResolver {
+  static final class AttributesResolver {
     @Nullable private final ResourceResolver myResourceResolver;
 
     private AttributesResolver(@NotNull Module module) {

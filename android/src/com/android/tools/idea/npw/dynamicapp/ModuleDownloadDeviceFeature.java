@@ -244,7 +244,7 @@ public class ModuleDownloadDeviceFeature {
    * Keeps track of component activation so that listeners/bindings are created and released
    * when the component is activated or deactivated (respectively).
    */
-  private class ActivationListener implements PropertyChangeListener {
+  private final class ActivationListener implements PropertyChangeListener {
     @NotNull
     private TextFieldProperty<String> myDeviceFeatureValueComboTextProperty;
     @NotNull
@@ -293,7 +293,7 @@ public class ModuleDownloadDeviceFeature {
     }
   }
 
-  private static class TextFieldProperty<T> extends StringProperty {
+  private static final class TextFieldProperty<T> extends StringProperty {
     @NotNull
     private TextFieldWithAutoCompletion<T> myTextField;
 

@@ -47,7 +47,7 @@ import org.jetbrains.annotations.TestOnly;
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
-public class AndroidModuleInfo extends AndroidFacetScopedService {
+public final class AndroidModuleInfo extends AndroidFacetScopedService {
   private static final Logger LOG = Logger.getInstance(AndroidModuleInfo.class);
   @VisibleForTesting
   static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());

@@ -85,7 +85,7 @@ public class MlkitModuleService {
     });
   }
 
-  private static class ModelFileModificationTracker implements ModificationTracker {
+  private static final class ModelFileModificationTracker implements ModificationTracker {
     private int myModificationCount;
 
     private ModelFileModificationTracker(Module module) {

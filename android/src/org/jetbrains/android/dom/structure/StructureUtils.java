@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Various utilities methods for structure view builders
  */
-public class StructureUtils {
+public final class StructureUtils {
   private StructureUtils() {
   }
 

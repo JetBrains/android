@@ -61,7 +61,7 @@ import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE;
 import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_REMOVE;
 import static org.jetbrains.android.facet.IdeaSourceProviderUtil.isManifestFile;
 
-public class ManifestUtils {
+public final class ManifestUtils {
 
   private ManifestUtils() {
   }

@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
  *   template.render(rc);
  * </code>
  */
-public class RenderingContext {
+public final class RenderingContext {
   private final ContextTarget myContextTarget;
   private final String myTitle;
   private final Map<String, Object> myParamMap;
@@ -471,7 +471,7 @@ public class RenderingContext {
     }
   }
 
-  private static class ContextTarget {
+  private static final class ContextTarget {
     @NotNull final Project myProject;
     @Nullable final Module myModule;
 

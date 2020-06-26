@@ -43,7 +43,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
-class AndroidContentEntriesSetup extends ContentEntriesSetup {
+final class AndroidContentEntriesSetup extends ContentEntriesSetup {
   static class Factory {
     @NotNull
     AndroidContentEntriesSetup create(@NotNull AndroidModuleModel androidModel,

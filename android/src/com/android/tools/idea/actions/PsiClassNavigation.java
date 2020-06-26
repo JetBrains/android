@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * Navigates to (goto) class source/definition using the psi data structure to resolve the location.
  * This navigation can also navigate to anonymous inner classes.
  */
-public class PsiClassNavigation implements NavigationItem {
+public final class PsiClassNavigation implements NavigationItem {
   @NotNull private PsiFile myPsiFile;
   private int myOffset;
   private int myLine;

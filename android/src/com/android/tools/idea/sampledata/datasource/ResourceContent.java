@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.util.function.Function;
 
-public class ResourceContent implements Function<OutputStream, Exception> {
+public final class ResourceContent implements Function<OutputStream, Exception> {
   private static final Logger LOG = Logger.getInstance(ResourceContent.class);
   private static final String[] LIB_CUSTOM_PATHS = {
     // Bundled path

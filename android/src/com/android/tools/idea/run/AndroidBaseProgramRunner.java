@@ -110,7 +110,7 @@ public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSe
   }
 
   @VisibleForTesting
-  static class HiddenRunContentDescriptor extends RunContentDescriptor {
+  static final class HiddenRunContentDescriptor extends RunContentDescriptor {
     @NotNull
     private final RunContentDescriptor myDelegate;
 

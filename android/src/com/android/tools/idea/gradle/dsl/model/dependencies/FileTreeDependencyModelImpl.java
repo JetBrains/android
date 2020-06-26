@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FileTreeDependencyModelImpl extends DependencyModelImpl implements FileTreeDependencyModel {
+public final class FileTreeDependencyModelImpl extends DependencyModelImpl implements FileTreeDependencyModel {
   @NonNls public static final String FILE_TREE = "fileTree";
   @NonNls public static final String DIR = "dir";
   @NonNls private static final String INCLUDE = "include";

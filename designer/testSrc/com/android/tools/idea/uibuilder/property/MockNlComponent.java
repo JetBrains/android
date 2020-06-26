@@ -26,7 +26,7 @@ import com.intellij.psi.xml.XmlTag;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MockNlComponent extends NlComponent {
+public final class MockNlComponent extends NlComponent {
   private MockNlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull SmartPsiElementPointer<XmlTag> tagPointer) {
     super(model, tag, tagPointer);
   }

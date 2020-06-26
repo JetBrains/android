@@ -79,7 +79,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * Handler which manages instantiating FreeMarker templates, copying resources
  * and merging into existing files
  */
-public class Template {
+public final class Template {
   /**
    * Reserved filename which describes each template
    */

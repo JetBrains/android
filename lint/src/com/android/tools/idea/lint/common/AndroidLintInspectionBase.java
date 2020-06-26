@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -442,7 +442,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     };
   }
 
-  private static class LintInspectionFactory extends GlobalInspectionToolWrapper {
+  private static final class LintInspectionFactory extends GlobalInspectionToolWrapper {
     private final AndroidLintInspectionBase myInspection;
 
     private LintInspectionFactory(AndroidLintInspectionBase inspection) {
@@ -835,7 +835,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
    * warnings), as well as directory errors (such as incorrect locale folders),
    * and clicking on them will navigate to the correct icon.
    */
-  private static class NonTextFileProblemDescriptor implements ProblemDescriptor {
+  private static final class NonTextFileProblemDescriptor implements ProblemDescriptor {
     private final PsiFileSystemItem myFile;
     private final String myMessage;
     private final LocalQuickFix[] myFixes;

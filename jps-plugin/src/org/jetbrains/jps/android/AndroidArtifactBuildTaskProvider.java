@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
@@ -66,7 +66,7 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
            : Collections.emptyList();
   }
 
-  private static class MyTask extends BuildTask {
+  private static final class MyTask extends BuildTask {
     private final JpsArtifact myArtifact;
     private final JpsAndroidModuleExtension myExtension;
     private final JpsAndroidApplicationArtifactProperties myProps;

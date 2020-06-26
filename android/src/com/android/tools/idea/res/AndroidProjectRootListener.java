@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * Service that subscribes to project root changes in order to invalidate {@link AndroidDependenciesCache},
  * the {@link ResourceFolderManager} cache, and to update resource repositories.
  */
-public class AndroidProjectRootListener {
+public final class AndroidProjectRootListener {
   /**
    * Makes AndroidProjectRootListener listen to the {@link ProjectTopics#PROJECT_ROOTS} events if it has not been listening already.
    *

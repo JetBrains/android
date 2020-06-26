@@ -67,7 +67,7 @@ public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuil
     return postBuildProjectModels;
   }
 
-  public static class PostBuildProjectModels implements Serializable {
+  public static final class PostBuildProjectModels implements Serializable {
     // Key: module's Gradle path.
     @NotNull private final Map<String, PostBuildModuleModels> myModelsByModule = new HashMap<>();
 
@@ -103,7 +103,7 @@ public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuil
     }
   }
 
-  public static class PostBuildModuleModels implements Serializable {
+  public static final class PostBuildModuleModels implements Serializable {
     @NotNull private final GradleProject myGradleProject;
     @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
 

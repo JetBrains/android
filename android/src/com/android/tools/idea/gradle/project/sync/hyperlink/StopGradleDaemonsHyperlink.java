@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart;
 
-public class StopGradleDaemonsHyperlink extends NotificationHyperlink {
+public final class StopGradleDaemonsHyperlink extends NotificationHyperlink {
   @NotNull
   public static NotificationHyperlink createStopGradleDaemonsHyperlink() {
     if (ApplicationManager.getApplication().isRestartCapable()) {

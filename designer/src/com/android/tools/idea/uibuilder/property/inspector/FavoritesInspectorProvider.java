@@ -97,7 +97,7 @@ public class FavoritesInspectorProvider implements InspectorProvider<NlPropertie
     return propertyName.substring(propertyName.indexOf(':') + 1);
   }
 
-  private static class FavoritesInspectorComponent implements InspectorComponent<NlPropertiesManager> {
+  private static final class FavoritesInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final List<String> myStarredPropertyNames;
     private final Map<String, NlComponentEditor> myEditorMap;
 

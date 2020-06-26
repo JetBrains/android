@@ -176,7 +176,7 @@ public class AndroidLogFilterModelTest {
     assertThat(result.isApplicable()).isFalse();
   }
 
-  private static class TestFilterModel extends AndroidLogFilterModel {
+  private static final class TestFilterModel extends AndroidLogFilterModel {
     @NotNull private LogLevel myMinimumLevel = LogLevel.VERBOSE; // Allow all messages by default
 
     private TestFilterModel() {

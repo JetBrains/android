@@ -22,7 +22,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OpenProjectStructureHyperlink extends NotificationHyperlink {
+public final class OpenProjectStructureHyperlink extends NotificationHyperlink {
   @Nullable
   public static OpenProjectStructureHyperlink openJdkSettings(@NotNull Project project) {
     return openSdkSettings(project, "Open JDK Settings");

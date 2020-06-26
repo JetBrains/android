@@ -705,7 +705,7 @@ final class MemoryClassifierView extends AspectObserver {
     return createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), classObjectComparator);
   }
 
-  private static class MemoryClassifierTreeNode extends LazyMemoryObjectTreeNode<ClassifierSet> {
+  private static final class MemoryClassifierTreeNode extends LazyMemoryObjectTreeNode<ClassifierSet> {
     private MemoryClassifierTreeNode(@NotNull ClassifierSet classifierSet) {
       super(classifierSet, false);
     }

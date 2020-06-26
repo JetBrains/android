@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NonNls;
 /**
  * Android IDL Language.
  */
-public class AidlLanguage extends Language {
+public final class AidlLanguage extends Language {
   public static final AidlLanguage INSTANCE = new AidlLanguage();
 
   @NonNls private static final String ID = "AIDL";

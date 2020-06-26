@@ -452,7 +452,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
   }
 
-  private static class PsiBackedType extends Type {
+  private static final class PsiBackedType extends Type {
     private final PsiClass myPsiClass;
     private final PsiPackage myPsiPackage;
     private final JavaDirectoryService myJavaDirectoryService;
@@ -518,7 +518,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
   }
 
-  private static class StringBackedType extends Type {
+  private static final class StringBackedType extends Type {
     private final String myPackage;
     private final String myClass;
 

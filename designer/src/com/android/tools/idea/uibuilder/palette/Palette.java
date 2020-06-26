@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  * Each item correspond to a component type.
  */
 @XmlRootElement(name = "palette")
-public class Palette {
+public final class Palette {
   public static final Palette EMPTY = new Palette();
 
   // @formatter:off

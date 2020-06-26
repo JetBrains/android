@@ -1524,7 +1524,7 @@ public class GradleImport {
       throws IOException;
   }
 
-  private static class ImportException extends RuntimeException {
+  private static final class ImportException extends RuntimeException {
     private String mMessage;
 
     private ImportException(@NonNull String message) {

@@ -277,7 +277,7 @@ public class GutterIconFactory {
     return null;
   }
 
-  private static class RetinaImageIcon extends ImageIcon {
+  private static final class RetinaImageIcon extends ImageIcon {
     private RetinaImageIcon(Image image) {
       super(image, "");
     }

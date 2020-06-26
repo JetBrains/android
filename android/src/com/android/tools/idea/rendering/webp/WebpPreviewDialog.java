@@ -186,7 +186,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     };
   }
 
-  protected class PrevAction extends DialogWrapperAction {
+  protected final class PrevAction extends DialogWrapperAction {
     private PrevAction() {
       super("Previous");
     }
@@ -209,7 +209,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     }
   }
 
-  protected class NextAction extends DialogWrapperAction {
+  protected final class NextAction extends DialogWrapperAction {
     private NextAction() {
       super("Next");
     }
@@ -220,7 +220,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     }
   }
 
-  protected class AcceptAllAction extends DialogWrapperAction {
+  protected final class AcceptAllAction extends DialogWrapperAction {
     private AcceptAllAction() {
       super("Accept All");
     }

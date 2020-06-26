@@ -142,7 +142,7 @@ import org.jetbrains.annotations.Nullable;
  * Entry point is {@link #processAttributes(AndroidDomElement, AndroidFacet, boolean, AttributeProcessor)},
  * look for a Javadoc there.
  */
-public class AttributeProcessingUtil {
+public final class AttributeProcessingUtil {
   private static final String PREFERENCE_TAG_NAME = "Preference";
 
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_TAG_NAMES =

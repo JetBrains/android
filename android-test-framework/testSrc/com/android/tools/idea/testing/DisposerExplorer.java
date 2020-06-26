@@ -32,7 +32,7 @@ import org.jetbrains.annotations.TestOnly;
  * Collection of methods for accessing {@link Disposer}'s tree.
  */
 @TestOnly
-public class DisposerExplorer {
+public final class DisposerExplorer {
   private static final Object treeLock = getTreeLock();
 
   /**

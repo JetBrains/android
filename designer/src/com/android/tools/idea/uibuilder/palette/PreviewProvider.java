@@ -282,7 +282,7 @@ public class PreviewProvider implements Disposable {
     }
   }
 
-  public static class ImageAndDimension {
+  public static final class ImageAndDimension {
     public BufferedImage image;
     public Dimension dimension;
 

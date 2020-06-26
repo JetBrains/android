@@ -37,7 +37,7 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleSourceAutogenerating {
+public final class ModuleSourceAutogenerating {
   private final Set<AndroidAutogeneratorMode> myDirtyModes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
   private Sdk myPrevSdk;
 

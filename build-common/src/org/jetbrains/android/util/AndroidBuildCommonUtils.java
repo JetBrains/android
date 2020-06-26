@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidBuildCommonUtils {
+public final class AndroidBuildCommonUtils {
   @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidCommonUtils");
 

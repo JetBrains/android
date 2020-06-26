@@ -478,7 +478,7 @@ public class ASGallery<E> extends JBList {
     }
   }
 
-  private static class TextAndImageCellRenderer extends AbstractCellRenderer {
+  private static final class TextAndImageCellRenderer extends AbstractCellRenderer {
     private JPanel myPanel;
     private JLabel myLabel;
 

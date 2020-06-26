@@ -275,7 +275,7 @@ public class AndroidFileChangeListener implements Disposable {
    * When an event happens on a file within a folder with a corresponding
    * {@link ResourceFolderRepository}, the event is delegated to it.
    */
-  static class MyVfsListener implements BulkFileListener {
+  static final class MyVfsListener implements BulkFileListener {
 
     private final ResourceFolderRegistry myRegistry;
 
@@ -374,7 +374,7 @@ public class AndroidFileChangeListener implements Disposable {
     }
   }
 
-  static class MyFileDocumentManagerListener implements FileDocumentManagerListener {
+  static final class MyFileDocumentManagerListener implements FileDocumentManagerListener {
     private final ResourceFolderRegistry myRegistry;
 
     private MyFileDocumentManagerListener(ResourceFolderRegistry registry) {
@@ -387,7 +387,7 @@ public class AndroidFileChangeListener implements Disposable {
     }
   }
 
-  static class MyDocumentListener implements DocumentListener {
+  static final class MyDocumentListener implements DocumentListener {
     private final FileDocumentManager myFileDocumentManager;
     private final PsiDocumentManager myPsiDocumentManager;
     private final ResourceFolderRegistry myRegistry;

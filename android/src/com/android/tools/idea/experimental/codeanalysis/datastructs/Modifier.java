@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * A class provides static methods and constants to represent and
  * work with Java modifiers. A replica from soot.Modifier
  */
-public class Modifier {
+public final class Modifier {
   public static final int ABSTRACT = 0x0400;
   public static final int FINAL = 0x0010;
   public static final int INTERFACE = 0x0200;

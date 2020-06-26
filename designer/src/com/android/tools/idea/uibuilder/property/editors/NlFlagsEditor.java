@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * The {@link NlFlagsEditor} is used to edit a {@link NlFlagPropertyItem} by displaying
  * a popup with a list of choices.
  */
-public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEditor {
+public final class NlFlagsEditor extends BaseComponentEditor implements NlComponentEditor {
   private final JPanel myPanel;
   private final JTextField myValue;
   private NlFlagPropertyItem myProperty;

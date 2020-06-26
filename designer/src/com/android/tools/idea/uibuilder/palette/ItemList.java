@@ -69,7 +69,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
            displayFittedTextIfNecessary(index);
   }
 
-  private static class ItemCellRenderer implements ListCellRenderer<Palette.Item> {
+  private static final class ItemCellRenderer implements ListCellRenderer<Palette.Item> {
     private final ItemPanelRenderer myPanel;
     private final JBLabel myDownloadIcon;
     private final TextCellRenderer myTextRenderer;
@@ -130,7 +130,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
     }
   }
 
-  private static class ItemPanelRenderer extends JPanel {
+  private static final class ItemPanelRenderer extends JPanel {
     private int myWidth;
     private int myHeight;
 

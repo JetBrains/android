@@ -31,7 +31,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MavenPoms {
+public final class MavenPoms {
   private static final Logger LOG = Logger.getInstance(MavenPoms.class);
 
   private MavenPoms() {

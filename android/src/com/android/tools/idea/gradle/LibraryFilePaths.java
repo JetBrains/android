@@ -42,7 +42,7 @@ public class LibraryFilePaths {
   // for 2019-05 gradle cache layout
   private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
 
-  private static class ArtifactPaths {
+  private static final class ArtifactPaths {
     @Nullable final File myJavaDoc;
     @Nullable final File mySources;
     @Nullable final File myPom;

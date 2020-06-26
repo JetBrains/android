@@ -402,7 +402,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
     return Pair.create(inspection, errorLevel);
   }
 
-  private static class MyDisableInspectionFix implements IntentionAction, Iconable {
+  private static final class MyDisableInspectionFix implements IntentionAction, Iconable {
     private final DisableInspectionToolAction myDisableInspectionToolAction;
 
     private MyDisableInspectionFix(@NotNull HighlightDisplayKey key) {
@@ -487,7 +487,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
     }
   }
 
-  private static class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {
+  private static final class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {
     private MyEditInspectionToolsSettingsAction(@NotNull HighlightDisplayKey key, @NotNull final AndroidLintInspectionBase inspection) {
       super(key, () -> "Edit '" + inspection.getDisplayName() + "' inspection settings");
     }

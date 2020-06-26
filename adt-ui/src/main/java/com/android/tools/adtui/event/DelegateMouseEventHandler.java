@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Use {@link #delegateTo(Component)} with chained calls to {@link #installListenerOn(Component)},
  * {@link #installMotionListenerOn(Component)} or {@link #installMouseWheelListenerOn(Component)}.
  */
-public class DelegateMouseEventHandler extends MouseEventHandler {
+public final class DelegateMouseEventHandler extends MouseEventHandler {
   @NotNull private final Component myTargetComponent;
 
   private DelegateMouseEventHandler(@NotNull Component targetComponent) {

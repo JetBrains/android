@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage> {
+public final class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage> {
   @NotNull
   public static Subject.Factory<SyncMessageSubject, SyncMessage> syncMessage() {
     return SyncMessageSubject::new;

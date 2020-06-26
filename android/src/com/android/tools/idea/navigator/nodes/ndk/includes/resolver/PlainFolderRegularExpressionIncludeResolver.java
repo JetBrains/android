@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 /**
  * A resolver that will turn a particular regex match into a plain include folder.
  */
-class PlainFolderRegularExpressionIncludeResolver extends RegularExpressionIncludeResolver {
+final class PlainFolderRegularExpressionIncludeResolver extends RegularExpressionIncludeResolver {
   @NotNull private final String myPattern;
 
   private PlainFolderRegularExpressionIncludeResolver(@NotNull String pattern) {

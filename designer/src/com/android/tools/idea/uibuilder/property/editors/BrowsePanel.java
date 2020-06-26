@@ -162,7 +162,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
                             ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
   }
 
-  private static class BrowseAction extends AnAction {
+  private static final class BrowseAction extends AnAction {
     private final Context myContext;
 
     private BrowseAction(@Nullable Context context) {

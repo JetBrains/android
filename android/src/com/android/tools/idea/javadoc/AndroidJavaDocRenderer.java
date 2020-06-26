@@ -648,7 +648,7 @@ public class AndroidJavaDocRenderer {
     }
   }
 
-  private static class TextValueRenderer extends ResourceValueRenderer {
+  private static final class TextValueRenderer extends ResourceValueRenderer {
     private TextValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       super(module, configuration);
     }
@@ -882,7 +882,7 @@ public class AndroidJavaDocRenderer {
     return new ResourceReference(ResourceNamespace.fromBoolean(url.isFramework()), url.type, url.name);
   }
 
-  private static class ArrayRenderer extends ResourceValueRenderer {
+  private static final class ArrayRenderer extends ResourceValueRenderer {
     private ArrayRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       super(module, configuration);
     }
@@ -924,7 +924,7 @@ public class AndroidJavaDocRenderer {
     }
   }
 
-  private static class DrawableValueRenderer extends ResourceValueRenderer {
+  private static final class DrawableValueRenderer extends ResourceValueRenderer {
     private DrawableValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       super(module, configuration);
     }
@@ -1178,7 +1178,7 @@ public class AndroidJavaDocRenderer {
     }
   }
 
-  private static class ColorValueRenderer extends ResourceValueRenderer {
+  private static final class ColorValueRenderer extends ResourceValueRenderer {
     private ColorValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       super(module, configuration);
     }
@@ -1395,7 +1395,7 @@ public class AndroidJavaDocRenderer {
    * folder name, we can also record the flavor or library name, as well as display attributes indicating
    * whether the item is from a selected flavor, or whether the item is masked by a higher priority repository
    */
-  private static class ItemInfo implements Comparable<ItemInfo> {
+  private static final class ItemInfo implements Comparable<ItemInfo> {
     @Nullable public final ResourceValue value;
     @NotNull public final FolderConfiguration configuration;
     @Nullable public final String flavor;

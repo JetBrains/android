@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.util.ArrayUtil;
@@ -114,7 +115,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     }
   }
 
-  public static class MyTargetType extends AndroidBuildTargetType<AndroidPackagingBuildTarget> {
+  public static final class MyTargetType extends AndroidBuildTargetType<AndroidPackagingBuildTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
@@ -127,7 +128,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     }
   }
 
-  private static class MyResourceRootDescriptor extends BuildRootDescriptorImpl {
+  private static final class MyResourceRootDescriptor extends BuildRootDescriptorImpl {
     private MyResourceRootDescriptor(BuildTarget target, File root) {
       super(target, root);
     }

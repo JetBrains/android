@@ -148,7 +148,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * label for menu usage (e.g. with mnemonics) and makes hidden action visible but
    * disabled instead
    */
-  private static class AndroidRefactoringActionWrapper extends AnAction {
+  private static final class AndroidRefactoringActionWrapper extends AnAction {
     private final AnAction myRefactoringAction;
 
     private AndroidRefactoringActionWrapper(@NotNull String text, @NotNull AnAction refactoringAction) {
@@ -440,7 +440,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link DirectViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
+  private final class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
     private final DirectViewAction myAction;
     private final ViewHandler myHandler;
     private final ViewEditor myEditor;
@@ -540,7 +540,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
+  private final class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
     private final ToggleViewAction myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -636,7 +636,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link ViewActionMenu} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class ViewActionMenuWrapper extends ActionGroup implements ViewActionPresentation {
+  private final class ViewActionMenuWrapper extends ActionGroup implements ViewActionPresentation {
     private final ViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -704,7 +704,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
   }
 
-  private class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
+  private final class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
     private final NestedViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;

@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  * of properties as they were at the time of rendering, not as they are at the current
  * instant.
  */
-public class TagSnapshot {
+public final class TagSnapshot {
   @Nullable public final String namespace;
   @NotNull  public final String tagName;
   @Nullable public final XmlTag tag;

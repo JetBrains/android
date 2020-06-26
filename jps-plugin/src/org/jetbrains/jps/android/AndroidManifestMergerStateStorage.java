@@ -23,7 +23,7 @@ import org.jetbrains.jps.incremental.storage.StorageOwner;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidManifestMergerStateStorage implements StorageOwner {
+public final class AndroidManifestMergerStateStorage implements StorageOwner {
   private static final Logger LOG = Logger.getInstance(AndroidPackagingStateStorage.class);
 
   public static final StorageProvider<AndroidManifestMergerStateStorage> PROVIDER = new StorageProvider<AndroidManifestMergerStateStorage>() {

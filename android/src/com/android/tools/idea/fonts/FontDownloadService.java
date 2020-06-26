@@ -36,7 +36,7 @@ import java.util.List;
  * or if we want all the fonts in the family {@link FontDetail} to be downloaded as well.
  * The menu font file is usually a smaller font file (~4k).
  */
-public class FontDownloadService {
+public final class FontDownloadService {
   private final DownloadableFontCacheServiceImpl myCacheService;
   private final File myFontPath;
   private final List<FontFamily> myFontsToDownload;

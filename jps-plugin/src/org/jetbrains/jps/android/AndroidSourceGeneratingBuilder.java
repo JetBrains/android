@@ -1548,7 +1548,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     return result.toString();
   }
 
-  private static class MyModuleData {
+  private static final class MyModuleData {
     private final AndroidPlatform myPlatform;
     private final JpsAndroidModuleExtension myAndroidExtension;
     private final File myManifestFileForCompiler;

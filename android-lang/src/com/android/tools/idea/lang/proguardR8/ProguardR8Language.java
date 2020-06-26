@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.proguardR8;
 import com.intellij.lang.Language;
 import org.jetbrains.annotations.NotNull;
 
-public class ProguardR8Language extends Language {
+public final class ProguardR8Language extends Language {
   public static final ProguardR8Language INSTANCE = new ProguardR8Language();
 
   private ProguardR8Language() {

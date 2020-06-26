@@ -193,7 +193,7 @@ public class OrientationMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static class SetDeviceStateAction extends ConfigurationAction {
+  static final class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
     private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
@@ -211,7 +211,7 @@ public class OrientationMenuAction extends DropDownAction {
     }
   }
 
-  private static class SetUiModeAction extends ConfigurationAction {
+  private static final class SetUiModeAction extends ConfigurationAction {
     @NotNull private final UiMode myUiMode;
 
     private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
@@ -226,7 +226,7 @@ public class OrientationMenuAction extends DropDownAction {
     }
   }
 
-  private static class SetNightModeAction extends ConfigurationAction {
+  private static final class SetNightModeAction extends ConfigurationAction {
     @NotNull private final NightMode myNightMode;
 
     private SetNightModeAction(@NotNull ConfigurationHolder renderContext,

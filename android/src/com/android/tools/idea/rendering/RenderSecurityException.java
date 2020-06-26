@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 
 /** Exception thrown when custom view code makes an illegal code while rendering under layoutlib */
-public class RenderSecurityException extends SecurityException {
+public final class RenderSecurityException extends SecurityException {
 
     private final String myMessage;
 

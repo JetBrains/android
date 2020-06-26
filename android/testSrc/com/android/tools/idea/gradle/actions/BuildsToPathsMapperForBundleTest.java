@@ -100,7 +100,7 @@ public class BuildsToPathsMapperForBundleTest extends AndroidGradleTestCase {
     return projectBuildOutput;
   }
 
-  private static class PostBuildModuleModelsMockBuilder {
+  private static final class PostBuildModuleModelsMockBuilder {
     @NotNull private final OutputBuildAction.PostBuildModuleModels myPostBuildModuleModels;
 
     private PostBuildModuleModelsMockBuilder() {
@@ -117,7 +117,7 @@ public class BuildsToPathsMapperForBundleTest extends AndroidGradleTestCase {
     }
   }
 
-  private static class PostBuildProjectModelsMockBuilder {
+  private static final class PostBuildProjectModelsMockBuilder {
     @NotNull private final OutputBuildAction.PostBuildProjectModels myPostBuildProjectModels;
 
     private PostBuildProjectModelsMockBuilder() {

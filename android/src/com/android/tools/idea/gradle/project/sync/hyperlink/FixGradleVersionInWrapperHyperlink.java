@@ -35,7 +35,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
  */
-public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
+public final class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @NotNull private final GradleWrapper myGradleWrapper;
   @NotNull private final String myGradleVersion;
 

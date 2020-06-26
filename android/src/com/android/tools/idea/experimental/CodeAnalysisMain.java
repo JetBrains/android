@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public class CodeAnalysisMain {
+public final class CodeAnalysisMain {
 
   private static Map<Project, CodeAnalysisMain> instanceMap = Maps.newHashMap();
 

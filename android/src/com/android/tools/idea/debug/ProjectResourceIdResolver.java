@@ -26,7 +26,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProjectResourceIdResolver implements ResourceIdResolver {
+public final class ProjectResourceIdResolver implements ResourceIdResolver {
   private final Project myProject;
 
   private TIntObjectHashMap<String> myIdMap;

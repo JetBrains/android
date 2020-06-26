@@ -6,7 +6,7 @@ import java.io.File;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
+public final class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
   private static class Holder {
     private static final AndroidLayoutlibDownloader INSTANCE = new AndroidLayoutlibDownloader();
   }

@@ -119,7 +119,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     return super.getQuickFixes(startElement, endElement, message, quickfixData);
   }
 
-  private static class AddPermissionFix extends DefaultLintQuickFix {
+  private static final class AddPermissionFix extends DefaultLintQuickFix {
     private final AndroidFacet myFacet;
     private final String myPermissionName;
     private final int myMaxVersion;
@@ -222,7 +222,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     }
   }
 
-  private static class AddCheckPermissionFix extends DefaultLintQuickFix {
+  private static final class AddCheckPermissionFix extends DefaultLintQuickFix {
     private final AndroidFacet myFacet;
     private final PermissionRequirement myRequirement;
     private final Set<String> myRevocablePermissions;

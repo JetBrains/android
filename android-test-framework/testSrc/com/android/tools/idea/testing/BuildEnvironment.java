@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
 
-public class BuildEnvironment {
+public final class BuildEnvironment {
 
   private static BuildEnvironment ourInstance;
 

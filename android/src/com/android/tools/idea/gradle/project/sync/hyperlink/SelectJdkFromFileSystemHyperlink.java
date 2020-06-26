@@ -24,7 +24,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
+public final class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
   @NotNull private final AndroidProjectSettingsService mySettingsService;
 
   @Nullable

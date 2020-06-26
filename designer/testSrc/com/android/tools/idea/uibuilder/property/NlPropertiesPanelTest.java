@@ -367,7 +367,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     return -1;
   }
 
-  private static class MyTable extends PTable {
+  private static final class MyTable extends PTable {
     private int myRequestFocusCount;
 
     private MyTable(@NotNull PTableModel model) {

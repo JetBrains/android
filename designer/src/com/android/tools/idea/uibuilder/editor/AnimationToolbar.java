@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Control that provides controls for animations (play, pause, stop and frame-by-frame steps).
  */
-public class AnimationToolbar extends JPanel implements Disposable {
+public final class AnimationToolbar extends JPanel implements Disposable {
   private static final int TICKER_STEP = 1000 / 30; // 30 FPS
   private static final Font BUTTON_FONT = UIUtil.getLabelFont(UIUtil.FontSize.MINI);
 

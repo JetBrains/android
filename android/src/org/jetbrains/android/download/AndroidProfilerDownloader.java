@@ -3,7 +3,7 @@ package org.jetbrains.android.download;
 
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidProfilerDownloader extends AndroidComponentDownloader {
+public final class AndroidProfilerDownloader extends AndroidComponentDownloader {
   private static class Holder {
     private static final AndroidProfilerDownloader INSTANCE = new AndroidProfilerDownloader();
   }

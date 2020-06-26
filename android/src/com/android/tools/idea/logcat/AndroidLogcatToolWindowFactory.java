@@ -193,7 +193,7 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
     }
   }
 
-  private static class MyAndroidPlatformListener implements ModuleRootListener {
+  private static final class MyAndroidPlatformListener implements ModuleRootListener {
     private final Project myProject;
     private final AndroidLogcatView myView;
 

@@ -25,7 +25,7 @@ import java.util.Arrays;
 import javax.swing.JCheckBox;
 import org.jetbrains.annotations.NotNull;
 
-public class ActionToolbarUtil {
+public final class ActionToolbarUtil {
 
   // Avoid instantiation...
   private ActionToolbarUtil() {}

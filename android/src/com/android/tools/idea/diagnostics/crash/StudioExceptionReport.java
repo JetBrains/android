@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
-public class StudioExceptionReport extends BaseStudioReport {
+public final class StudioExceptionReport extends BaseStudioReport {
   /**
    * {@link Throwable} classes with messages expected to be useful for debugging and not to contain PII.
    */

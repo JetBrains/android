@@ -69,7 +69,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * In namespaced projects the R class contains only resources from the aar itself and the repository used by the
  * {@link ResourceClassGenerator} should be the one created from the AAR.
  */
-public class ResourceClassGenerator {
+public final class ResourceClassGenerator {
   private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
   interface NumericIdProvider {
@@ -351,7 +351,7 @@ public class ResourceClassGenerator {
     }
   }
 
-  private static class MergedStyleable {
+  private static final class MergedStyleable {
     @NotNull final String name;
     @NotNull final LinkedHashSet<ResourceReference> attrs;
 

@@ -280,7 +280,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
-  private class TrackGroupMouseEventHandler extends MouseEventHandler {
+  private final class TrackGroupMouseEventHandler extends MouseEventHandler {
     @NotNull private final TrackGroup myTrackGroup;
 
     // Track index for the current mouse event.
