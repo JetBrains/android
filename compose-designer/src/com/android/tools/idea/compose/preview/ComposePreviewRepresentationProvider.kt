@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.actions.SceneModeAction
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -35,6 +37,8 @@ import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -50,6 +54,7 @@ import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import icons.StudioIcons
 
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
@@ -66,7 +71,16 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS),
-      if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null
+      if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null,
+      if (StudioFlags.COMPOSE_BLUEPRINT_MODE.get() && surface is NlDesignSurface)
+        DropDownAction(message("action.scene.mode.title"), message(
+          "action.scene.mode.description"),
+          // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
+                       StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
+          addAction(SceneModeAction(SceneMode.COMPOSE, surface))
+          addAction(SceneModeAction(SceneMode.COMPOSE_BLUEPRINT, surface))
+        }
+      else null
     )
   )
 
