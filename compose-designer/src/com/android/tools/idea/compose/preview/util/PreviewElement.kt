@@ -23,6 +23,8 @@ import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.concurrency.Slow
 import com.android.resources.NightMode
 import com.android.resources.UiMode
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -100,7 +102,10 @@ internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
  * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
-internal class ComposeAdapterLightVirtualFile(name: String, content: String, private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name, content), BackedVirtualFile {
+internal class ComposeAdapterLightVirtualFile(name: String,
+                                              content: String,
+                                              private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name,
+                                                                                                                     content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 
   override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
@@ -169,6 +174,68 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
+private const val DEFAULT_DEVICE = ""
+private const val DEVICE_BY_ID_PREFIX = "id:"
+private const val DEVICE_BY_NAME_PREFIX = "name:"
+
+private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
+                                         highestApiTarget: (Configuration) -> IAndroidTarget?,
+                                         devicesProvider: (Configuration) -> Collection<Device>,
+                                         defaultDeviceProvider: (Configuration) -> Device?) {
+  if (apiLevel != UNDEFINED_API_LEVEL) {
+    highestApiTarget(renderConfiguration)?.let {
+      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, null)
+    }
+  }
+
+  if (theme != null) {
+    renderConfiguration.setTheme(theme)
+  }
+
+  renderConfiguration.uiModeFlagValue = uiMode
+  renderConfiguration.fontScale = max(0f, fontScale)
+
+  when {
+    deviceSpec.startsWith(DEVICE_BY_ID_PREFIX) -> {
+      val id = deviceSpec.removePrefix(DEVICE_BY_ID_PREFIX)
+      val device = devicesProvider(renderConfiguration).find { it.id == id } ?: defaultDeviceProvider(renderConfiguration)
+      if (device != null) {
+        renderConfiguration.setDevice(device, false)
+      }
+      else {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with id '$id'")
+      }
+    }
+    deviceSpec.startsWith(DEVICE_BY_NAME_PREFIX) -> {
+      val name = deviceSpec.removePrefix(DEVICE_BY_NAME_PREFIX)
+      val device = devicesProvider(renderConfiguration).find { it.displayName == name } ?: defaultDeviceProvider(renderConfiguration)
+      if (device != null) {
+        renderConfiguration.setDevice(device, false)
+      }
+      else {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with name '$name'")
+      }
+    }
+    else -> {
+      if (deviceSpec != DEFAULT_DEVICE) {
+        Logger.getInstance(PreviewElement::class.java).warn("Unknown device spec $deviceSpec")
+      }
+      val device = defaultDeviceProvider(renderConfiguration)
+      if (device != null) {
+        renderConfiguration.setDevice(device, false)
+      }
+    }
+  }
+}
+
+@TestOnly
+fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configuration,
+                                                   highestApiTarget: (Configuration) -> IAndroidTarget?,
+                                                   devicesProvider: (Configuration) -> Collection<Device>,
+                                                   defaultDeviceProvider: (Configuration) -> Device?) {
+  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
+}
+
 /**
  * Contain settings for rendering
  */
@@ -177,21 +244,13 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                                                      val width: Int,
                                                      val height: Int,
                                                      val fontScale: Float,
-                                                     val uiMode: Int) {
-  fun applyTo(renderConfiguration: Configuration) {
-    if (apiLevel != UNDEFINED_API_LEVEL) {
-      val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
-
-      renderConfiguration.target = CompatibilityRenderTarget(highestTarget, apiLevel, null)
-    }
-
-    if (theme != null) {
-      renderConfiguration.setTheme(theme)
-    }
-
-    renderConfiguration.uiModeFlagValue = uiMode
-    renderConfiguration.fontScale = max(0f, fontScale)
-  }
+                                                     val uiMode: Int,
+                                                     val deviceSpec: String) {
+  fun applyTo(renderConfiguration: Configuration) =
+    applyTo(renderConfiguration,
+            { it.configurationManager.highestApiTarget },
+            { it.configurationManager.devices },
+            { it.configurationManager.defaultDevice })
 
   companion object {
     /**
@@ -204,7 +263,8 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                     width: Int?,
                     height: Int?,
                     fontScale: Float?,
-                    uiMode: Int?): PreviewConfiguration =
+                    uiMode: Int?,
+                    device: String?): PreviewConfiguration =
     // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
@@ -212,12 +272,13 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                            width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
                            height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
                            fontScale = fontScale ?: 1f,
-                           uiMode = uiMode ?: 0)
+                           uiMode = uiMode ?: 0,
+                           deviceSpec = device ?: DEFAULT_DEVICE)
   }
 }
 
 /** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
 
 /**
  * Settings that modify how a [PreviewElement] is rendered
@@ -424,7 +485,8 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
 
         return sequenceOf()
       }.first()
-    } finally {
+    }
+    finally {
       ModuleClassLoaderManager.get().release(classLoader, this)
     }
   }

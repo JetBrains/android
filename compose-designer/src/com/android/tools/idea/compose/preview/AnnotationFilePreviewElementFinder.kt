@@ -71,8 +71,9 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
   val height = node.findAttributeIntValue("height") ?: node.findAttributeIntValue(HEIGHT_PARAMETER)
   val fontScale = node.findAttributeFloatValue("fontScale")
   val uiMode = node.findAttributeIntValue("uiMode")
+  val device = node.findAttributeValue("device")?.evaluateString()?.nullize()
 
-  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale, uiMode)
+  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale, uiMode, device)
 }
 
 /**
