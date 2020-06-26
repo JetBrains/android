@@ -33,7 +33,6 @@ import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildF
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.
