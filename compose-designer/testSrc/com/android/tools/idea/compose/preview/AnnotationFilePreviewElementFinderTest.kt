@@ -80,6 +80,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
+        import androidx.ui.tooling.preview.Devices
         import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
@@ -94,7 +95,7 @@ class AnnotationFilePreviewElementFinderTest {
         }
 
         @Composable
-        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)
+        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)
         fun Preview3() {
         }
 
@@ -173,11 +174,13 @@ class AnnotationFilePreviewElementFinderTest {
       assertFalse(it.displaySettings.showBackground)
       assertTrue(it.displaySettings.showDecoration)
       assertEquals(0, it.configuration.uiMode)
+      assertEquals("id:Nexus 7", it.configuration.deviceSpec)
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)",
+          it.previewElementDefinitionPsi?.element?.text)
       }
     }
 
