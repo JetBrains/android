@@ -69,8 +69,9 @@ abstract class LintIdeSupport {
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
 
-  open fun getBaselineFile(module: Module): File? {
+  open fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val dir = module.getModuleDir() ?: return null
+    client.getConfiguration(dir)?.baselineFile?.let { baseline -> return baseline }
     val lintBaseline = File(dir, "lint_baseline.xml")
     if (lintBaseline.exists()) {
       return lintBaseline
