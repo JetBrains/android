@@ -341,51 +341,6 @@ public class Configuration implements Disposable, ModificationTracker {
     return copy(this);
   }
 
-  /**
-   * Copies attributes from the given source configuration into the given destination configuration,
-   * as long as the attributes are compatible with the folder of the destination file.
-   *
-   * @param source the original to copy from
-   * @return a new configuration copied from the original
-   */
-  @NotNull
-  public static Configuration copyCompatible(@NotNull Configuration source, @NotNull Configuration destination) {
-    FolderConfiguration editedConfig = destination.getEditedConfig();
-
-    if (editedConfig.getVersionQualifier() == null) {
-      destination.myTarget = source.myTarget;  // avoid getTarget() since it fetches project state
-    }
-    if (editedConfig.getScreenSizeQualifier() == null) {
-      destination.mySpecificDevice = source.mySpecificDevice; // avoid getDevice() since it fetches project state
-    }
-    if (editedConfig.getScreenOrientationQualifier() == null && editedConfig.getSmallestScreenWidthQualifier() == null) {
-      destination.myStateName = source.myStateName;
-      destination.myState = source.myState;
-    }
-    if (editedConfig.getLocaleQualifier() == null) {
-      destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
-    }
-    if (editedConfig.getUiModeQualifier() == null) {
-      destination.myUiMode = source.getUiMode();
-    }
-    if (editedConfig.getNightModeQualifier() == null) {
-      destination.myNightMode = source.getNightMode();
-    }
-    destination.myActivity = source.getActivity();
-    destination.myTheme = source.getTheme();
-    //destination.myDisplayName = source.getDisplayName();
-
-    ConfigurationMatcher matcher = new ConfigurationMatcher(destination, destination.myFile);
-    //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
-      matcher.adaptConfigSelection(true /*needBestMatch*/);
-    //}
-
-    destination.myFontScale = source.myFontScale;
-
-    return destination;
-  }
-
-
   public void save() {
     ConfigurationStateManager stateManager = ConfigurationStateManager.get(myManager.getModule().getProject());
 
@@ -728,15 +683,6 @@ public class Configuration implements Disposable, ModificationTracker {
     }
 
     return myFullConfig;
-  }
-
-  /**
-   * Copies the full, complete {@link FolderConfiguration} into the given folder config instance.
-   *
-   * @param dest the {@link FolderConfiguration} instance to copy into
-   */
-  public void copyFullConfig(FolderConfiguration dest) {
-    dest.set(myFullConfig);
   }
 
   /**
@@ -1357,10 +1303,6 @@ public class Configuration implements Disposable, ModificationTracker {
 
   public Module getModule() {
     return myManager.getModule();
-  }
-
-  public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    return new ConfigurationMatcher(this, file).isCurrentFileBestMatchFor(config);
   }
 
   @Override
