@@ -16,9 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
-import com.android.tools.idea.actions.BlueprintModeAction;
-import com.android.tools.idea.actions.DesignModeAction;
+import com.android.tools.idea.actions.SceneModeAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
@@ -104,9 +102,9 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @NotNull
   private DropDownAction createDesignModeAction() {
     DropDownAction designSurfaceMenu = new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SceneModeAction(SceneMode.RENDER, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SceneModeAction(SceneMode.BLUEPRINT, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SceneModeAction(SceneMode.RENDER_AND_BLUEPRINT, (NlDesignSurface)mySurface));
     designSurfaceMenu.addSeparator();
     // Get the action instead of creating a new one, to make the popup menu display the shortcut.
     designSurfaceMenu.addAction(RefreshRenderAction.getInstance());

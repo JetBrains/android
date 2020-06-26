@@ -528,6 +528,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
+    // TODO(b/160021437): Make SceneMode a property of SceneManager instead, the way is currently implemented, changes made to DesignSurface
+    //  properties affect previews from all NlModels, that's not always the desired behavior like in this case
     if (setAsDefault) {
       SceneMode.Companion.savePreferredMode(sceneMode);
     }
@@ -535,11 +537,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (sceneMode != mySceneMode) {
       mySceneMode = sceneMode;
 
-      LayoutlibSceneManager manager = getSceneManager();
-      if (manager != null) {
+      for (SceneManager manager : getSceneManagers()) {
         manager.updateSceneView();
         manager.requestLayoutAndRender(false);
       }
+
       if (!contentResizeSkipped()) {
         zoomToFit();
         revalidateScrollArea();
