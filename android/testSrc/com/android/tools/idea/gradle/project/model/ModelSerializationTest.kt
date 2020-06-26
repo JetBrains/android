@@ -25,7 +25,6 @@ import com.android.ide.common.gradle.model.IdeApiVersion
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeClassField
-import com.android.ide.common.gradle.model.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.IdeDependencyGraphs
 import com.android.ide.common.gradle.model.IdeFilterData
 import com.android.ide.common.gradle.model.IdeGraphItem
@@ -56,7 +55,9 @@ import com.android.ide.common.gradle.model.IdeVariantImpl
 import com.android.ide.common.gradle.model.IdeVectorDrawablesOptions
 import com.android.ide.common.gradle.model.IdeViewBindingOptions
 import com.android.ide.common.gradle.model.ModelCache
+import com.android.ide.common.gradle.model.level2.IdeDependencies
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
+import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub
@@ -224,9 +225,7 @@ class ModelSerializationTest {
   fun level2Dependencies() = assertSerializable {
     // We use a local one to avoid changing the global one that is used for other tests.
     val localDependenciesFactory = IdeDependenciesFactory()
-    localDependenciesFactory.create(
-      IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion))
-      as com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
+    localDependenciesFactory.create(AndroidArtifactStub()) as IdeDependenciesImpl
   }
 
   /*
@@ -276,10 +275,6 @@ class ModelSerializationTest {
   @Test
   fun classField() =
     assertSerializable { IdeClassField(ClassFieldStub()) }
-
-  @Test
-  fun dependencies() =
-    assertSerializable { IdeDependenciesImpl(DependenciesStub(), modelCache) }
 
   @Test
   fun dependencyGraphs() =
