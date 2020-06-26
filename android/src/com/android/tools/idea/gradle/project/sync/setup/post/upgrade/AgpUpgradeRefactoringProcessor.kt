@@ -542,7 +542,8 @@ class GradleVersionUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
     // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
-    //  does all that is necessary to save files, so we do that here to mimic that.
+    //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
+    //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = documentManager.getDocument(element!!.containingFile) ?: return
     if (documentManager.isDocumentBlockedByPsi(document)) {
