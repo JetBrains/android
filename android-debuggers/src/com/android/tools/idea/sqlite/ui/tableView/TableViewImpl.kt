@@ -538,7 +538,13 @@ class TableViewImpl : TableView {
         return
       }
 
-      val newSqliteValue = SqliteValue.fromAny(newValue)
+      // if old value was null and new value is empty string, set back to null
+      val newSqliteValue = if (oldValue == null && (newValue as? String)?.isEmpty() == true) {
+        SqliteValue.NullValue
+      }
+      else {
+        SqliteValue.fromAny(newValue)
+      }
 
       // the first column doesn't exist, it's used to show the row index
       val actualColumnIndex = modelColumnIndex - 1
