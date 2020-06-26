@@ -58,6 +58,7 @@ iml_module(
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
         "//tools/vendor/intellij/cidr/cidr-workspaceModel:intellij.cidr.workspaceModel",
+        "//tools/adt/idea/android:intellij.android.core.tests",
         "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
         "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
         "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
