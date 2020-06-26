@@ -47,6 +47,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState.NON_MODAL
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.util.SystemProperties
@@ -164,9 +165,9 @@ fun performRecommendedPluginUpgrade(
         dialog.showAndGet()
       }
       if (runProcessor) {
-        processor.run()
+        DumbService.getInstance(project).smartInvokeLater { processor.run() }
       }
-      // The AgpUpgradeRefactoringProcessor has requested a sync itself.
+      // The AgpUpgradeRefactoringProcessor requests a sync itself when executed.
       return false
     }
 
