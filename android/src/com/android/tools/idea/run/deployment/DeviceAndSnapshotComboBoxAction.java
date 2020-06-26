@@ -219,7 +219,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Component button = createComboBoxButton(presentation);
 
     Group horizontalGroup = layout.createSequentialGroup()
-      .addComponent(button, 0, JBUI.scale(GroupLayout.DEFAULT_SIZE), JBUI.scale(Short.MAX_VALUE))
+      .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addGap(JBUI.scale(3));
 
     Group verticalGroup = layout.createParallelGroup()
