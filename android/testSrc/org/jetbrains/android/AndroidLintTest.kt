@@ -959,7 +959,7 @@ class AndroidLintTest : AndroidTestCase() {
       "    <issue id=\"IconDuplicates\">\n" +
       "        <ignore path=\"res/drawable/dup1.png\" />\n" +
       "    </issue>\n" +
-      "</lint>\n")
+      "</lint>")
   }
 
   fun testSuppressingInXml1() {

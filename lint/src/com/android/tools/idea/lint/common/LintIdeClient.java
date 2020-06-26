@@ -20,12 +20,12 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
-import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.client.api.GradleVisitor;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
+import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Context;
@@ -39,7 +39,6 @@ import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.tools.lint.model.LintModelLintOptions;
 import com.android.tools.lint.model.LintModelModule;
-import com.android.tools.lint.model.LintModelSeverity;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -270,78 +269,27 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
-    if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      LintModelModule model = project.getBuildModule();
-      if (model != null) {
-        try {
-          LintModelLintOptions lintOptions = model.getLintOptions();
-          final Map<String, LintModelSeverity> overrides = lintOptions.getSeverityOverrides();
-          if (overrides != null && !overrides.isEmpty()) {
-            return new DefaultConfiguration(this, project, null) {
-              @NonNull
-              @Override
-              public Severity getSeverity(@NonNull Issue issue) {
-                LintModelSeverity severity = overrides.get(issue.getId());
-                if (severity != null) {
-                  switch (severity) {
-                    case FATAL:
-                      return Severity.FATAL;
-                    case ERROR:
-                      return Severity.ERROR;
-                    case WARNING:
-                      return Severity.WARNING;
-                    case INFORMATIONAL:
-                      return Severity.INFORMATIONAL;
-                    case DEFAULT_ENABLED:
-                      return issue.getDefaultSeverity();
-                    case IGNORE:
-                    default:
-                      return Severity.IGNORE;
-                  }
-                }
+    return getConfigurations().getConfigurationForProject(project, (client, file) -> createConfiguration(project));
+  }
 
-                Set<Issue> issues = getIssues();
-                boolean known = issues.contains(issue);
-                if (!known) {
-                  if (issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED) {
-                    return Severity.IGNORE;
-                  }
-
-                  // Allow third-party checks
-                  IssueRegistry builtin = LintIdeSupport.get().getIssueRegistry();
-                  if (builtin.isIssueId(issue.getId())) {
-                    return Severity.IGNORE;
-                  }
-                }
-
-                return super.getSeverity(issue);
-              }
-            };
-          }
+  private Configuration createConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
+    File defaultConfigFile = new File(project.getDir(), LintXmlConfiguration.CONFIG_FILE_NAME);
+    LintModelModule model = project.getBuildModule();
+    if (model != null) {
+      try {
+        LintModelLintOptions lintOptions = model.getLintOptions();
+        File configFile = lintOptions.getLintConfig();
+        if (configFile == null) {
+          configFile = defaultConfigFile;
         }
-        catch (Exception e) {
-          LOG.error(e);
-        }
+        return new LintIdeGradleConfiguration(this, configFile, project.getDir(), lintOptions, getIssues());
+      }
+      catch (Exception e) {
+        LOG.error(e);
       }
     }
-    return new DefaultConfiguration(this, project, null) {
-      @Override
-      public boolean isEnabled(@NonNull Issue issue) {
-        Set<Issue> issues = getIssues();
-        boolean known = issues.contains(issue);
-        if (!known) {
-          if (issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED) {
-            return true;
-          }
 
-          // Allow third-party checks
-          IssueRegistry builtin = LintIdeIssueRegistry.get();
-          return !builtin.isIssueId(issue.getId());
-        }
-
-        return super.isEnabled(issue);
-      }
-    };
+    return new LintIdeConfiguration(this, defaultConfigFile, getIssues());
   }
 
   @Override

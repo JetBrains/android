@@ -21,7 +21,7 @@ import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFile
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -109,7 +109,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
             }
           }
 
-          if (DefaultConfiguration.CONFIG_FILE_NAME.equals(file.getName())) {
+          if (LintXmlConfiguration.CONFIG_FILE_NAME.equals(file.getName())) {
             return true;
           }
 
@@ -117,7 +117,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
           XmlTag tag = xmlFile.getRootTag();
           if (tag != null) {
             String tagName = tag.getName();
-            if (DefaultConfiguration.TAG_LINT.equals(tagName) || SdkConstants.TAG_ISSUES.equals(tagName)) {
+            if (LintXmlConfiguration.TAG_LINT.equals(tagName) || SdkConstants.TAG_ISSUES.equals(tagName)) {
               return true;
             }
           }
