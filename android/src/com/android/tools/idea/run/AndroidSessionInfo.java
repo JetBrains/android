@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package com.android.tools.idea.run;
 
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidSessionInfo {
+public final class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<>("KEY");
   public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<>("ANDROID_DEBUG_CLIENT");
   public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<>("ANDROID_DEVICE_API_LEVEL");

@@ -106,7 +106,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
    * A fake Process which will wait for the created process to finish
    * and wrap stdout and stderr into their respective {@link InputStream}.
    */
-  private static class ProcessWrapper extends Process {
+  private static final class ProcessWrapper extends Process {
     private HANDLE myProcess;
     private final IntByReference myExitCode;
     private final File myOutFile;

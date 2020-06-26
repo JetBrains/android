@@ -48,7 +48,7 @@ import org.jetbrains.annotations.NotNull;
  * are in ISO 3166-1 alpha-2 country codes.
  */
 @SuppressWarnings("SpellCheckingInspection")
-public class FlagManager {
+public final class FlagManager {
   private static final FlagManager ourInstance = new FlagManager();
 
   /**

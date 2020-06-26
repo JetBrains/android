@@ -18,7 +18,7 @@ package com.android.tools.idea.smali;
 import com.intellij.lang.Language;
 import org.jetbrains.annotations.NotNull;
 
-public class SmaliLanguage extends Language {
+public final class SmaliLanguage extends Language {
   private static final SmaliLanguage INSTANCE = new SmaliLanguage();
 
   @NotNull

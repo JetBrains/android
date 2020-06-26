@@ -252,7 +252,7 @@ public abstract class SceneView implements Disposable {
    *   For historical reason we put the Coordinate translation in {@link SceneContext} instead of using
    *   {@link SceneView} directly. Maybe we can remove {@link SceneContext} and just use {@link SceneView} only.
    */
-  private class SceneViewTransform extends SceneContext {
+  private final class SceneViewTransform extends SceneContext {
 
     private SceneViewTransform() {
     }

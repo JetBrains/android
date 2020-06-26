@@ -101,7 +101,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
     tools.forEach(tool -> myCards.add(tool.getComponent(), tool.getToolName()));
   }
 
-  private static class MySplitter extends Splitter {
+  private static final class MySplitter extends Splitter {
     private MySplitter() {
       super(true);
       setDividerWidth(9);

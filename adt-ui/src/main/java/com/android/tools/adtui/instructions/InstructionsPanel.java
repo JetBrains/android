@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 /**
  * A custom panel that renders a list of {@link RenderInstruction} and optionally fades out after a certain time period.
  */
-public class InstructionsPanel extends JPanel {
+public final class InstructionsPanel extends JPanel {
 
   @Nullable private final EaseOutModel myEaseOutModel;
   @Nullable private AspectObserver myObserver;

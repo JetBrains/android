@@ -38,7 +38,7 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
 
-public class ModuleDependencyModelImpl extends DependencyModelImpl implements
+public final class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                                                    ModuleDependencyModel {
   @NonNls public static final String PROJECT = "project";
   @NonNls private static final String PATH = "path";

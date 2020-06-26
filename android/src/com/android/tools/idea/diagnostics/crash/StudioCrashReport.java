@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class StudioCrashReport extends BaseStudioReport {
+public final class StudioCrashReport extends BaseStudioReport {
   private final List<String> descriptions;
   private final boolean isJvmCrash;
   private final long uptimeInMs;

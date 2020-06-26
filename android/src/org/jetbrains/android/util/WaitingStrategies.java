@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.util;
 
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +12,7 @@ public class WaitingStrategies {
     }
   }
 
-  public static class DoNotWait extends Strategy {
+  public static final class DoNotWait extends Strategy {
     private static final DoNotWait INSTANCE = new DoNotWait();
 
     private DoNotWait() {
@@ -23,7 +24,7 @@ public class WaitingStrategies {
     }
   }
 
-  public static class WaitForTime extends Strategy {
+  public static final class WaitForTime extends Strategy {
     private final int myTimeMs;
 
     private WaitForTime(int timeMs) {
@@ -41,7 +42,7 @@ public class WaitingStrategies {
     }
   }
 
-  public static class WaitForever extends Strategy {
+  public static final class WaitForever extends Strategy {
     private static final WaitForever INSTANCE = new WaitForever();
 
     private WaitForever() {

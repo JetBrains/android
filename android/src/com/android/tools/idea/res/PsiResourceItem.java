@@ -602,7 +602,7 @@ public final class PsiResourceItem implements ResourceItem {
     return helper.toString();
   }
 
-  private static class AsyncInitializationData {
+  private static final class AsyncInitializationData {
     @NotNull final PsiFile psiFile;
     @Nullable final XmlTag xmlTag;
 

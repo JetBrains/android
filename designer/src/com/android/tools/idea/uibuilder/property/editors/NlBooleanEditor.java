@@ -32,7 +32,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public class NlBooleanEditor extends BaseComponentEditor implements NlComponentEditor {
+public final class NlBooleanEditor extends BaseComponentEditor implements NlComponentEditor {
   @VisibleForTesting static final String TIP_TEXT_DONT_CARE = "(No value)";
   @VisibleForTesting static final String TIP_TEXT_NOT_SELECTED = "false";
   @VisibleForTesting static final String TIP_TEXT_SELECTED = "true";

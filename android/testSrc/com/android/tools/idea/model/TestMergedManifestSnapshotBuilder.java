@@ -31,7 +31,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 @SuppressWarnings("unused")
-public class TestMergedManifestSnapshotBuilder {
+public final class TestMergedManifestSnapshotBuilder {
   @NotNull private final Module myModule;
   @Nullable private String myName;
   @Nullable private String myId;

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This was copied from the Room Migration project. It is only a temporary solution and in the future we will try to use the real classes.
  */
-class SchemaEqualityUtil {
+final class SchemaEqualityUtil {
   static <T, K extends SchemaEquality<K>> boolean checkSchemaEquality(
     @Nullable Map<T, K> map1, @Nullable Map<T, K> map2) {
     if (map1 == null) {

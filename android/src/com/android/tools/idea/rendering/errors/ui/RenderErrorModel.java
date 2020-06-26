@@ -78,7 +78,7 @@ public class RenderErrorModel {
    * <li><b>Link handler</b>: An {@link HyperlinkListener} to handle any links on the HTML content. It can be null.</li>
    * </ui>
    */
-  public static class Issue implements Comparable<Issue> {
+  public static final class Issue implements Comparable<Issue> {
     private HighlightSeverity mySeverity = HighlightSeverity.INFORMATION;
     private String mySummary;
     private String myHtmlContent;

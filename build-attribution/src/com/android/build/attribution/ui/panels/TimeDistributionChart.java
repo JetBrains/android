@@ -150,7 +150,7 @@ public class TimeDistributionChart<T> extends JPanel {
     List<T> getUnderlyingData();
   }
 
-  private class ChartItem {
+  private final class ChartItem {
     @NotNull
     final ChartDataItem<T> myDataItem;
     @NotNull
@@ -211,7 +211,7 @@ public class TimeDistributionChart<T> extends JPanel {
   }
 
   @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeStatic"})
-  private class ChartPane extends JBPanel<ChartPane> {
+  private final class ChartPane extends JBPanel<ChartPane> {
     private final int myChartBoxMarginPx = JBUIScale.scale(1);
     private final int myMinCursorHeight = JBUIScale.scale(10);
 

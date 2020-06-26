@@ -40,7 +40,7 @@ public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
     return new MyJdkScope(project, entry, index.isInLibrarySource(file));
   }
 
-  public static class MyJdkScope extends JdkScope {
+  public static final class MyJdkScope extends JdkScope {
     private @Nullable final Sdk mySdk;
     private final boolean myIncludeSource;
 

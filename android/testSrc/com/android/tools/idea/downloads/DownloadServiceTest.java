@@ -176,7 +176,7 @@ public class DownloadServiceTest extends AndroidTestCase {
     assertThat(service.getLastLoadUrl()).isEqualTo(oldFile.toURI().toURL());
   }
 
-  private static class MyDownloadService extends DownloadService {
+  private static final class MyDownloadService extends DownloadService {
     private int myLoadedCount;
     private URL myLastLoadUrl;
 

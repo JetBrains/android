@@ -50,7 +50,7 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.isWear;
  * overrides the device will probably return a phone-sized screen if the
  * inherited device is a tablet, or vice versa.
  */
-public class VaryingConfiguration extends NestedConfiguration {
+public final class VaryingConfiguration extends NestedConfiguration {
   /**
    * Variation version; see {@link #setVariation(int)}
    */

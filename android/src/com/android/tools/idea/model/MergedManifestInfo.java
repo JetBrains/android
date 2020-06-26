@@ -107,7 +107,7 @@ final class MergedManifestInfo {
   }
 
   /** A record of the VFS and PSI modification stamps of a set of files at a given point in time. */
-  private static class ModificationStamps {
+  private static final class ModificationStamps {
     @NotNull private final ImmutableList<VirtualFile> files;
     /**
      * A mapping from PsiFile (or VirtualFile if the corresponding PsiFile is unavailable) to its modification stamp at this point in time.

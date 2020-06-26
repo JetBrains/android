@@ -24,7 +24,7 @@ import com.intellij.lang.Language;
  * More information can be found at the following link:
  * https://developer.android.com/studio/build/multidex#multidexkeepfile-property
  */
-public class MultiDexKeepLanguage extends Language {
+public final class MultiDexKeepLanguage extends Language {
   public static final MultiDexKeepLanguage INSTANCE = new MultiDexKeepLanguage();
 
   private MultiDexKeepLanguage() {

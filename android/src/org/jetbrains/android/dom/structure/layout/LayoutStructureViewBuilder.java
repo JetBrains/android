@@ -96,7 +96,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
   /**
    * Tree node corresponding to &lt;include&gt; tag
    */
-  private static class IncludeNode extends PsiTreeElementBase<XmlTag> {
+  private static final class IncludeNode extends PsiTreeElementBase<XmlTag> {
     private final Include myElement;
 
     private IncludeNode(@NotNull Include element) {

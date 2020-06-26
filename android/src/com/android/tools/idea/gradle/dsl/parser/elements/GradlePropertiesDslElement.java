@@ -793,11 +793,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * or not variable types should be returned along with coordinating a number of properties
    * with the same name.
    */
-  private static class ElementList {
+  private static final class ElementList {
     /**
      * Wrapper to add state to each element.
      */
-    private static class ElementItem {
+    private static final class ElementItem {
       @NotNull private GradleDslElement myElement;
       @NotNull private ElementState myElementState;
       // Whether or not this element item exists in THIS DSL file. While element state == EXISTING implies this is true,

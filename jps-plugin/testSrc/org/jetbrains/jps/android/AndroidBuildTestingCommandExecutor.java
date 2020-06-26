@@ -312,7 +312,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
     }
   }
 
-  private static class MyLogEntry {
+  private static final class MyLogEntry {
     final String myContent;
     final String[] myDepIds;
 

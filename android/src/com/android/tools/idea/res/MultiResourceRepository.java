@@ -528,7 +528,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
    * for MultiResourceRepository because the latter always copies data to immutable containers
    * before exposing it to callers.
    */
-  private static class PerConfigResourceMap implements ListMultimap<String, ResourceItem> {
+  private static final class PerConfigResourceMap implements ListMultimap<String, ResourceItem> {
     private final Map<String, List<ResourceItem>> myMap = new HashMap<>();
     private int mySize = 0;
     @NotNull private final ResourceItemComparator myComparator;

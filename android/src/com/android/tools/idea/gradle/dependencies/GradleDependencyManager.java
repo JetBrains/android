@@ -302,7 +302,7 @@ public class GradleDependencyManager {
     });
   }
 
-  private static class GradleCompletionTask implements GradleBuildInvoker.AfterGradleInvocationTask {
+  private static final class GradleCompletionTask implements GradleBuildInvoker.AfterGradleInvocationTask {
     private final Project myProject;
     private final Runnable myCallback;
 

@@ -28,7 +28,7 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ConfirmSHA256FromGradleWrapperHyperlink extends NotificationHyperlink {
+public final class ConfirmSHA256FromGradleWrapperHyperlink extends NotificationHyperlink {
   @NotNull String myDistributionUrl;
   @NotNull String myDistributionSHA256;
 

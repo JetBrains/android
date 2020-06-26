@@ -416,7 +416,7 @@ public class TutorialStep extends JPanel {
    * TODO(b/28357327): Try to reduce the number of hacks and fragile code paths.
    * TODO: Determine why the background does not update on theme change.
    */
-  private class CodePane extends EditorTextField {
+  private final class CodePane extends EditorTextField {
 
     private static final int PAD = 5;
     private static final int MAX_HEIGHT = 500;

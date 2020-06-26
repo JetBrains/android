@@ -31,7 +31,7 @@ public class IntellijLogService extends LogService {
     return new Logger(com.intellij.openapi.diagnostic.Logger.getInstance(clazz));
   }
 
-  public static class Logger implements LogService.Logger {
+  public static final class Logger implements LogService.Logger {
     @NonNull private final com.intellij.openapi.diagnostic.Logger myLogger;
 
     private Logger(@NonNull com.intellij.openapi.diagnostic.Logger logger) {

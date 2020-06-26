@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.DOT_JAR;
@@ -85,7 +85,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     return HashCodes.mix(myFacet.hashCode(), myFile.hashCode());
   }
 
-  private static class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
+  private static final class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
     private final static int PREVIEW_MAX_WIDTH = JBUIScale.scale(128);
     private final static int PREVIEW_MAX_HEIGHT = JBUIScale.scale(128);
     private final static String PREVIEW_TEXT = "Click Image to Open Resource";

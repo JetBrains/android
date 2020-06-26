@@ -75,7 +75,7 @@ import org.w3c.dom.UserDataHandler;
  * only worries about the details Lint cares about; currently this means it only wraps elements,
  * text and comment nodes.)
  */
-public class DomPsiConverter {
+public final class DomPsiConverter {
   private DomPsiConverter() {
   }
 
@@ -326,7 +326,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static class DomNamedNodeMap implements NamedNodeMap {
+  private static final class DomNamedNodeMap implements NamedNodeMap {
     @NotNull protected final Map<String, DomNode> myMap;
     @NotNull protected final Map<String, Map<String, DomNode>> myNsMap;
     @NotNull protected final List<DomNode> mItems;
@@ -695,7 +695,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static class DomDocument extends DomNode implements Document {
+  private static final class DomDocument extends DomNode implements Document {
     @NotNull private final XmlDocument myPsiDocument;
     @Nullable private DomElement myRoot;
 
@@ -937,7 +937,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static class DomElement extends DomNode implements Element {
+  private static final class DomElement extends DomNode implements Element {
     private final XmlTag myTag;
     @Nullable private NamedNodeMap myAttributes;
 
@@ -1154,7 +1154,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static class DomText extends DomNode implements Text {
+  private static final class DomText extends DomNode implements Text {
     @NotNull private final XmlText myText;
 
     private DomText(@NotNull Document owner, @NotNull DomNode parent, @NotNull XmlText text) {
@@ -1219,7 +1219,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static class DomComment extends DomNode implements Comment {
+  private static final class DomComment extends DomNode implements Comment {
     @NotNull private final XmlComment myComment;
 
     private DomComment(@NotNull Document owner, @NotNull DomNode parent, @NotNull XmlComment comment) {
@@ -1258,7 +1258,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static class DomAttr extends DomNode implements Attr {
+  private static final class DomAttr extends DomNode implements Attr {
     @NotNull private final DomElement myOwner;
     @NotNull private final XmlAttribute myAttribute;
 

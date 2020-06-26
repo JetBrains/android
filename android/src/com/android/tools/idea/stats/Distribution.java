@@ -23,7 +23,7 @@ import java.util.List;
  * Information about a single Android version, including its share of Android usage overall.
  */
 
-public class Distribution implements Comparable<Distribution> {
+public final class Distribution implements Comparable<Distribution> {
   private int apiLevel;
   private Revision version;
   private String description;

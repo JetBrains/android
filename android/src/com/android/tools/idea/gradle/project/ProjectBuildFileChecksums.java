@@ -49,7 +49,7 @@ import static com.intellij.util.ArrayUtilRt.EMPTY_BYTE_ARRAY;
 /**
  * The Project data that needs to be persisted to check whether it is possible to reload the Project without the need of calling Gradle.
  */
-public class ProjectBuildFileChecksums implements Serializable {
+public final class ProjectBuildFileChecksums implements Serializable {
   // Key: build file path (relative if inside project). Value: MD5 hash of file.
   private Map<String, byte[]> myFileChecksums = new HashMap<>();
 

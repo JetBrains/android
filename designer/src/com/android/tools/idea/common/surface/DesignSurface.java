@@ -1158,7 +1158,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getLayoutType().isEditable() && myIsEditable;
   }
 
-  private static class MyScrollPane extends JBScrollPane {
+  private static final class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
       setupCorners();
@@ -1177,7 +1177,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private static class MyScrollBar extends JBScrollBar implements IdeGlassPane.TopComponent {
+  private static final class MyScrollBar extends JBScrollBar implements IdeGlassPane.TopComponent {
     private ScrollBarUI myPersistentUI;
 
     private MyScrollBar(@JdkConstants.AdjustableOrientation int orientation) {
@@ -1400,7 +1400,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * is a rendering. This is necessary because even though the progress icon looks good on some
    * renderings, depending on the layout theme colors it is invisible in other cases.
    */
-  private class MyProgressPanel extends JPanel {
+  private final class MyProgressPanel extends JPanel {
     private AsyncProcessIcon mySmallProgressIcon;
     private AsyncProcessIcon myLargeProgressIcon;
     private boolean mySmall;

@@ -47,7 +47,7 @@ public class MEJTable extends JBTable {
     return UIUtil.getTableSelectionBackground(isFocusOwner());
   }
 
-  private static class DefaultIconRenderer implements TableCellRenderer {
+  private static final class DefaultIconRenderer implements TableCellRenderer {
     private final JPanel myPanel;
     private final JBLabel myLabel;
 

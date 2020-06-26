@@ -23,7 +23,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.function.Consumer;
 
-class NonPooledImage implements ImagePool.Image {
+final class NonPooledImage implements ImagePool.Image {
   private BufferedImage myImage;
 
   private NonPooledImage(@NotNull BufferedImage image) {

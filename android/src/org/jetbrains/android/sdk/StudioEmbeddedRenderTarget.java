@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link IAndroidTarget} to render using the layoutlib version and resources shipped with Android Studio.
  */
-public class StudioEmbeddedRenderTarget implements IAndroidTarget {
+public final class StudioEmbeddedRenderTarget implements IAndroidTarget {
   private static final Logger LOG = Logger.getInstance(StudioEmbeddedRenderTarget.class);
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
   private static final String FRAMEWORK_RES_JAR = "framework_res.jar";

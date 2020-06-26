@@ -148,7 +148,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myCorrespondingToolWindow.setSplit(myToolWindow.isSplitMode());
   }
 
-  private class AttachToSideAction extends AnAction {
+  private final class AttachToSideAction extends AnAction {
     private final Side mySide;
 
     private AttachToSideAction(@NotNull Side side) {
@@ -172,7 +172,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private static class DetachedAction extends ToggleAction {
+  private static final class DetachedAction extends ToggleAction {
 
     private DetachedAction() {
       super("None");

@@ -92,7 +92,7 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
   /**
    * Class to hide the ugliness of dealing with Object[]
    */
-  private static class NodeWrapper {
+  private static final class NodeWrapper {
     private final ResourceChooserGroup group;
 
     private NodeWrapper(@NotNull ResourceChooserGroup group) {

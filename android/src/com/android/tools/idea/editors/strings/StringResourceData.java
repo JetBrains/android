@@ -43,7 +43,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StringResourceData {
+public final class StringResourceData {
   private static final int MAX_LOCALE_LABEL_COUNT = 3;
 
   private final Map<StringResourceKey, StringResource> myKeyToResourceMap;

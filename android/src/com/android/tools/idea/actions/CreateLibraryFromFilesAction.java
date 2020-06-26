@@ -134,7 +134,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     return roots;
   }
 
-  private static class CreateGradleLibraryFromFilesDialog extends DialogWrapper {
+  private static final class CreateGradleLibraryFromFilesDialog extends DialogWrapper {
     public static final String COMMAND_TITLE = "Create Library";
     private final ModulesComboBox myModulesComboBox;
     private final Project myProject;

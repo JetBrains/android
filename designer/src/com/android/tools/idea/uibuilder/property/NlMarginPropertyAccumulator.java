@@ -117,7 +117,7 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
     };
   }
 
-  private class MarginGroupNode extends AccumulatorGroupNode {
+  private final class MarginGroupNode extends AccumulatorGroupNode {
 
     private MarginGroupNode(@NotNull String name, @NotNull String prefix) {
       super(name, prefix);

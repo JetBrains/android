@@ -33,7 +33,7 @@ import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
+public final class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
   @NonNls public static final String FILES = "files";
 
   @NotNull private GradleDslSimpleExpression myFileDslExpression;

@@ -319,7 +319,7 @@ public class ResourceNotificationManager {
    * A {@linkplain ModuleEventObserver} registers listeners for various module-specific events (such as
    * resource folder manager changes) and then notifies {@link #notice(Reason)} when it sees an event
    */
-  private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
+  private final class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
     private final AndroidFacet myFacet;
     private long myGeneration;
     private final Object myListenersLock = new Object();
@@ -460,7 +460,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private class ProjectPsiTreeObserver implements PsiTreeChangeListener {
+  private final class ProjectPsiTreeObserver implements PsiTreeChangeListener {
 
     private ProjectPsiTreeObserver() {
     }
@@ -702,7 +702,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private class FileEventObserver implements BulkFileListener {
+  private final class FileEventObserver implements BulkFileListener {
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;
@@ -762,7 +762,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private class ConfigurationEventObserver implements ConfigurationListener {
+  private final class ConfigurationEventObserver implements ConfigurationListener {
     private final Configuration myConfiguration;
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
 
@@ -865,7 +865,7 @@ public class ResourceNotificationManager {
    * A version timestamp of the resources. This snapshot version is immutable, so you can hold on
    * to it and compare it with your most recent version.
    */
-  public static class ResourceVersion {
+  public static final class ResourceVersion {
     private final long myResourceGeneration;
     private final long myFileGeneration;
     private final long myConfigurationGeneration;

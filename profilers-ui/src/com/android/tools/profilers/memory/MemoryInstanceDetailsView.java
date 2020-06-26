@@ -477,7 +477,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     return tree;
   }
 
-  private static class ReferenceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
+  private static final class ReferenceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
     @Nullable
     private List<ReferenceObject> myReferenceObjects = null;
 

@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.io.FileUtil;
@@ -141,7 +142,7 @@ public class AndroidBuildDataCache {
     abstract T getValue() throws ComputationException;
   }
 
-  private static class SuccessComputedValue<T> extends MyComputedValue<T> {
+  private static final class SuccessComputedValue<T> extends MyComputedValue<T> {
     @NotNull
     private final T myValue;
 
@@ -156,7 +157,7 @@ public class AndroidBuildDataCache {
     }
   }
 
-  private static class ErrorComputedValue<T> extends MyComputedValue<T> {
+  private static final class ErrorComputedValue<T> extends MyComputedValue<T> {
     @NotNull
     private final String myMessage;
 

@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
-public class ProfilerAction implements ContextMenuItem {
+public final class ProfilerAction implements ContextMenuItem {
   @NotNull private final Supplier<String> myText;
   @NotNull private final Runnable myActionRunnable;
   @NotNull private final BooleanSupplier myEnableBooleanSupplier;

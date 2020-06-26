@@ -665,7 +665,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   /**
    * PTableKeyListener is our own implementation of "JTable.autoStartsEdit"
    */
-  private static class PTableKeyListener extends KeyAdapter {
+  private static final class PTableKeyListener extends KeyAdapter {
     private final PTable myTable;
 
     private PTableKeyListener(@NotNull PTable table) {
@@ -693,7 +693,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
   // Setup focus traversal keys such that tab takes focus out of the table if the user is not editing.
   // When the user is editing the focus traversal keys will move to the next editable cell.
-  private static class MyFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
+  private static final class MyFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
     private final PTable myTable;
 
     private MyFocusTraversalPolicy(@NotNull PTable table) {

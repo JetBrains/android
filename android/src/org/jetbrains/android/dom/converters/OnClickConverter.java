@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.converters;
 
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -118,7 +119,7 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
     return s;
   }
 
-  public class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> {
+  public final class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> {
 
     private MyReference(XmlAttributeValue value, TextRange range) {
       super(value, range, true);

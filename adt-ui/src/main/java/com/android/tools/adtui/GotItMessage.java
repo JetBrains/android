@@ -36,7 +36,7 @@ import java.awt.event.MouseEvent;
 /**
  * Copied from com/intellij/ui/GotItMessage but visually customized for Studio based on design from UX
  */
-public class GotItMessage {
+public final class GotItMessage {
   @NotNull private final String myTitle;
   @NotNull private final String myMessage;
 

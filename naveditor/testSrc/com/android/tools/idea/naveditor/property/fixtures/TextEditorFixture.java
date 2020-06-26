@@ -31,7 +31,7 @@ import java.awt.event.*;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 
-public class TextEditorFixture extends EditorFixtureBase {
+public final class TextEditorFixture extends EditorFixtureBase {
   private final TextEditor myComponentEditor;
   private final EditorTextField myEditor;
 

@@ -80,7 +80,7 @@ class FontFamilyParser {
     }
   }
 
-  private static class FontFamilyHandler extends DefaultHandler {
+  private static final class FontFamilyHandler extends DefaultHandler {
     private static final String FONT_FAMILY = "font-family";
     private static final String FONT = "font";
     private static final String ATTR_AUTHORITY = "fontProviderAuthority";

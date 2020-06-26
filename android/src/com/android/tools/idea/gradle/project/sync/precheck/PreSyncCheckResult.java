@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.precheck;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PreSyncCheckResult {
+public final class PreSyncCheckResult {
   @NotNull static final PreSyncCheckResult SUCCESS = new PreSyncCheckResult(true, null);
 
   private final boolean mySuccess;

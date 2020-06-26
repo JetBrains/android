@@ -47,7 +47,7 @@ import org.w3c.dom.NodeList;
  * Descriptor for a device frame picture (background, shadow, reflection) which can be
  * painted around a screenshot or device rendering
  */
-public class DeviceArtDescriptor {
+public final class DeviceArtDescriptor {
   @NotNull public static final DeviceArtDescriptor NONE = new DeviceArtDescriptor(null, null);
 
   private final String myId;

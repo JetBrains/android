@@ -361,7 +361,7 @@ public class TutorialCard extends CardViewPanel {
     }
   }
 
-  private static class StepButton extends NavigationButton {
+  private static final class StepButton extends NavigationButton {
     public enum Direction {
       NEXT,
       PREV
@@ -390,7 +390,7 @@ public class TutorialCard extends CardViewPanel {
   }
 
   // Determine why the border, contentfill, etc are reset to default on theme change. Note that this doesn't persist across restart.
-  private class BackButton extends NavigationButton {
+  private final class BackButton extends NavigationButton {
     private BackButton(@Nullable String label) {
       super(label, TutorialChooser.NAVIGATION_KEY, myListener);
       setIcon(AllIcons.Actions.Back);

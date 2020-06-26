@@ -591,7 +591,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
   }
 
-  private static class LintGradleProject extends LintAndroidModelProject {
+  private static final class LintGradleProject extends LintAndroidModelProject {
     private final AndroidModuleModel myAndroidModuleModel;
 
     /**
@@ -919,7 +919,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
   }
 
-  private static class LintGradleLibraryProject extends LintIdeProject {
+  private static final class LintGradleLibraryProject extends LintIdeProject {
     private final AndroidLibrary myLibrary;
 
     private LintGradleLibraryProject(@NonNull LintClient client,

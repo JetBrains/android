@@ -39,7 +39,7 @@ import java.util.List;
 
 import static com.android.tools.idea.common.property.editors.BaseComponentEditor.*;
 
-public class NlResourceValueEditor extends PTableCellEditor {
+public final class NlResourceValueEditor extends PTableCellEditor {
   private final JPanel myPanel;
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private NlResourceItem myItem;

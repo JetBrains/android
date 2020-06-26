@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * <b>NOTE: This is not a public or final API; if you rely on this be prepared
  * to adjust your code for the next tools release.</b>
  */
-public class ResizePolicy {
+public final class ResizePolicy {
   private static final int NONE = 0;
   private static final int LEFT_EDGE = 1;
   private static final int RIGHT_EDGE = 2;

@@ -75,7 +75,7 @@ import org.jetbrains.plugins.groovy.GroovyFileType;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
-public class GradleFiles {
+public final class GradleFiles {
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -457,7 +457,7 @@ public class GradleFiles {
    * only triggered with the children set in the after method and sometimes no after method is triggered
    * at all.
    */
-  private static class GradleFileChangeListener extends PsiTreeChangeAdapter {
+  private static final class GradleFileChangeListener extends PsiTreeChangeAdapter {
     @NotNull
     private final GradleFiles myGradleFiles;
 

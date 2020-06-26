@@ -565,7 +565,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   /**
    * Action invoked by the user to minimize or restore the errors panel
    */
-  private class MinimizeAction extends AnAction {
+  private final class MinimizeAction extends AnAction {
     private static final String DESCRIPTION = "Hide the render errors panel";
 
     private MinimizeAction() {
@@ -578,7 +578,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     }
   }
 
-  private static class ColumnHeaderPanel extends JPanel {
+  private static final class ColumnHeaderPanel extends JPanel {
 
     private static final int HEIGHT = 15;
     private static final GradientPaint backgroundPaint =

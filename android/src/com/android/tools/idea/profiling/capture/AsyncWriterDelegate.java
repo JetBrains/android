@@ -37,7 +37,7 @@ class AsyncWriterDelegate implements Runnable {
     protected abstract void performMessageRequest();
   }
 
-  private class ExitMessage extends Message {
+  private final class ExitMessage extends Message {
     private ExitMessage() {
       super();
     }
@@ -48,7 +48,7 @@ class AsyncWriterDelegate implements Runnable {
     }
   }
 
-  private static class WriteMessage extends Message {
+  private static final class WriteMessage extends Message {
     @NotNull private CaptureHandle myCaptureHandle;
     @NotNull private byte[] myData;
 
@@ -69,7 +69,7 @@ class AsyncWriterDelegate implements Runnable {
     }
   }
 
-  private static class FinalizeMessage extends Message {
+  private static final class FinalizeMessage extends Message {
     @NotNull private CaptureHandle myCaptureHandle;
     @Nullable private Runnable myTask;
 

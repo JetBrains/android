@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public class SimulatedSyncErrors {
+public final class SimulatedSyncErrors {
   private static Key<ExternalSystemException> SIMULATED_ERROR_KEY = Key.create("com.android.tools.idea.gradle.sync.simulated.errors");
 
   private SimulatedSyncErrors() {

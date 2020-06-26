@@ -190,7 +190,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     myClientData = clientData;
   }
 
-  public static class Plain extends RenderProblem {
+  public static final class Plain extends RenderProblem {
     @NotNull private final String myHtml;
 
     private Plain(@NotNull HighlightSeverity severity, int ordinal, @NotNull String text) {
@@ -205,7 +205,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     }
   }
 
-  public static class Html extends RenderProblem {
+  public static final class Html extends RenderProblem {
     @NotNull private final HtmlBuilder myBuilder;
 
     private Html(@NotNull HighlightSeverity severity, int ordinal) {

@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.inspections;
 
 import com.android.resources.ResourceFolderType;
@@ -63,7 +63,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
     return ProblemDescriptor.EMPTY_ARRAY;
   }
 
-  private static class MyVisitor extends XmlRecursiveElementVisitor {
+  private static final class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
     final List<ProblemDescriptor> myResult = new ArrayList<>();

@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Solution strings used in {@link AccelerationErrorCode}, and associated Runnables to fix them.
  */
-public class AccelerationErrorSolution {
+public final class AccelerationErrorSolution {
   private static final Logger LOG = Logger.getInstance(AccelerationErrorNotificationPanel.class);
   private static final Revision KARMIC_KERNEL = Revision.parseRevision("2.6.31");
   private static final String KVM_INSTRUCTIONS = "https://help.ubuntu.com/community/KVM/Installation";

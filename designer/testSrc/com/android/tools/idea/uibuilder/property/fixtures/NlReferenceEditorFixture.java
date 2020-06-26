@@ -39,7 +39,7 @@ import java.time.temporal.ChronoUnit;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 
-public class NlReferenceEditorFixture extends EditorFixtureBase {
+public final class NlReferenceEditorFixture extends EditorFixtureBase {
   private final NlReferenceEditor myComponentEditor;
   private final TextFieldWithCompletion myEditor;
   private final SliderWithTimeDelay mySlider;

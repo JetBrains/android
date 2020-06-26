@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.proguard;
 
 import com.intellij.lang.Language;
 
-public class ProguardLanguage extends Language {
+public final class ProguardLanguage extends Language {
   public static final ProguardLanguage INSTANCE = new ProguardLanguage();
 
   private ProguardLanguage() {

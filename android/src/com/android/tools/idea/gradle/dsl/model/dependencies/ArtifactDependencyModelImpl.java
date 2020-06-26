@@ -196,7 +196,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     return shouldInterpolate ? iStr(dependencySpec.compactNotation()) : dependencySpec.compactNotation();
   }
 
-  static class MapNotation extends ArtifactDependencyModelImpl {
+  static final class MapNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslExpressionMap myDslElement;
 
     @Nullable
@@ -267,7 +267,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     }
   }
 
-  static class CompactNotation extends ArtifactDependencyModelImpl {
+  static final class CompactNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslSimpleExpression myDslExpression;
 
     @Nullable

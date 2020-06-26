@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
@@ -159,7 +160,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
   }
 
-  private static class MyVisitor extends XmlRecursiveElementVisitor {
+  private static final class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
     private final Collection<PsiClass> myRelatedActivities;
@@ -271,7 +272,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
   }
 
-  public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
+  public static final class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
     private final String myMethodName;
     private final OnClickConverter myConverter;
     private final PsiClass myClass;

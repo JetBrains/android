@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.stubs.gradle;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.jetbrains.annotations.NotNull;
 
-public class IdeaDependencyScopeStub implements IdeaDependencyScope {
+public final class IdeaDependencyScopeStub implements IdeaDependencyScope {
   public static final IdeaDependencyScope COMPILE = new IdeaDependencyScopeStub("compile");
 
   @NotNull private final String myScope;

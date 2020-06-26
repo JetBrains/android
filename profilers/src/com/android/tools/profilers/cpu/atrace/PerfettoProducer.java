@@ -316,7 +316,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     return "";
   }
 
-  private static class LineFormatter {
+  private static final class LineFormatter {
     private final Map<Integer, Integer> myTidToTgid;
     private final Map<Integer, String> myTidToName;
 

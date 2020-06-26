@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Quantity implements Comparable<Quantity> {
+public final class Quantity implements Comparable<Quantity> {
   private static final Pattern QUANTITY_PATTERN = Pattern.compile("^(-?\\d+(\\.\\d+)?)(.*)$");
 
   private final int myValue;

@@ -44,7 +44,7 @@ import static com.android.SdkConstants.AUTO_URI;
  * Most of this is based on the {@link LayoutPsiPullParser} but
  * with DOM nodes instead of PSI elements as the data model
  */
-public class DomPullParser extends LayoutPullParser {
+public final class DomPullParser extends LayoutPullParser {
   @NotNull
   private final List<Element> myNodeStack;
 

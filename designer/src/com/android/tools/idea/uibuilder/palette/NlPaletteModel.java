@@ -74,7 +74,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class NlPaletteModel implements Disposable {
+public final class NlPaletteModel implements Disposable {
   private boolean myDisposed;
 
   @VisibleForTesting

@@ -31,7 +31,7 @@ import static com.android.ide.common.resources.configuration.LocaleQualifier.FAK
 /**
  * A language,region pair
  */
-public class Locale {
+public final class Locale {
   /**
    * A special marker region qualifier representing any region
    */

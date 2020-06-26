@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
@@ -190,7 +191,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     return myProject.hashCode();
   }
 
-  public static class MyTargetType extends BuildTargetType<AndroidPreDexBuildTarget> {
+  public static final class MyTargetType extends BuildTargetType<AndroidPreDexBuildTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
@@ -221,7 +222,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     }
   }
 
-  public static class MyRootDescriptor extends BuildRootDescriptorImpl {
+  public static final class MyRootDescriptor extends BuildRootDescriptorImpl {
     private final String myModuleName;
 
     private MyRootDescriptor(@NotNull BuildTarget target, @NotNull File root, @Nullable String moduleName) {

@@ -134,7 +134,7 @@ public class MarqueeInteraction extends Interaction {
    * overlay rectangle matching the mouse coordinate delta between gesture
    * start and the current position.
    */
-  private static class MarqueeLayer extends Layer {
+  private static final class MarqueeLayer extends Layer {
     @NotNull ColorSet myColorSet;
     @SwingCoordinate private int x;
     @SwingCoordinate private int y;

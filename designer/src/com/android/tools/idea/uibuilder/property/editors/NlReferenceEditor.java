@@ -499,7 +499,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
   // This is a workaround to avoid the problem where a click on an activate editor
   // in a table also causes the slider to change value. The workaround is simply
   // to delay all mouse events until a short time after the editor is created.
-  public static class SliderWithTimeDelay extends JSlider {
+  public static final class SliderWithTimeDelay extends JSlider {
     private static final long SHORT_WAIT_MILLIS = 300;
     private Clock myClock;
     private long myLastAddNotifyMillis;

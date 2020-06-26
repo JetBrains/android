@@ -532,7 +532,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     return new OverrideElementFix(folder);
   }
 
-  private static class OverrideElementFix implements LintIdeQuickFix {
+  private static final class OverrideElementFix implements LintIdeQuickFix {
     private final String myFolder;
 
     private OverrideElementFix(@Nullable String folder) {

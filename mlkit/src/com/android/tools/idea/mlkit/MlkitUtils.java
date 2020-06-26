@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Provides common utility methods.
  */
-public class MlkitUtils {
+public final class MlkitUtils {
 
   private MlkitUtils() {
   }

@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * by first invoking {@link #getDebugBridge(File)} to obtain the bridge, and implementing
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
-public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
+public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
   public static final int TIMEOUT = 3000000;
   @GuardedBy("this")
@@ -272,7 +272,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
   // It turns out that IntelliJ's invokeOnPooledThread will capture exceptions thrown from the callable, log them,
   // and not pass them on via the future. As a result, the callable has to pass the error status back inline. Hence we have
   // this simple wrapper class around either an error result or a correct result.
-  private static class BridgeConnectionResult {
+  private static final class BridgeConnectionResult {
     @Nullable public final AndroidDebugBridge bridge;
     @Nullable public final String error;
 

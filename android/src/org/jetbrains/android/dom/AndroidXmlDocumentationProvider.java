@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
@@ -496,7 +497,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     return null;
   }
 
-  private static class MyDocElement extends FakePsiElement {
+  private static final class MyDocElement extends FakePsiElement {
 
     XmlAttribute myParent;
     String myValue;
@@ -527,7 +528,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
    * Contains the element from which the completion has been started from, and the a String taken from lookup
    * element, which is a {@link ResourceUrl}.
    */
-  public static class ResourceReferenceCompletionElement extends FakePsiElement {
+  public static final class ResourceReferenceCompletionElement extends FakePsiElement {
     final PsiElement myParent;
     final String myResource;
 

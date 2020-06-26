@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class StringsVirtualFile extends LightVirtualFile {
+public final class StringsVirtualFile extends LightVirtualFile {
   public static final String NAME = "Translations Editor";
 
   private static final Key<StringsVirtualFile> KEY = Key.create(StringsVirtualFile.class.getName());

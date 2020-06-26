@@ -42,7 +42,7 @@ import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class IntellijDataViewer implements DataViewer {
+public final class IntellijDataViewer implements DataViewer {
   @NotNull
   private final JComponent myComponent;
   @NotNull

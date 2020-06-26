@@ -60,7 +60,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
+public final class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   @NonNls private static final String ENTERED_PREFIX_PROPERTY_NAME = "enteredPrefix";
 
   @NotNull private final AbstractBaseTreeBuilder myTreeBuilder;

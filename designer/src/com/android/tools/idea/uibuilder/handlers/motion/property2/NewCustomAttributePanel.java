@@ -273,7 +273,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
     myDataType = new ComboBox<>();
   }
 
-  private static class MyTextFieldModel implements CommonTextFieldModel {
+  private static final class MyTextFieldModel implements CommonTextFieldModel {
     private final List<ValueChangedListener> myListeners;
     private final Runnable myTextChanged;
     private String myText = "";
@@ -392,7 +392,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
     }
   }
 
-  private static class AttributeNameEditingSupport implements EditingSupport {
+  private static final class AttributeNameEditingSupport implements EditingSupport {
     private final NlComponent myComponent;
     private final Supplier<CustomAttributeType> myType;
     private CustomAttributeType myLastLookupType;

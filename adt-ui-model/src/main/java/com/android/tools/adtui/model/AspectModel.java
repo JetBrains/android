@@ -64,7 +64,7 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
     myDependencies.removeAll(observerDependencies);
   }
 
-  public static class Dependency<U extends Enum<U>> {
+  public static final class Dependency<U extends Enum<U>> {
 
     private Multimap<U, Runnable> myListeners = HashMultimap.create();
 

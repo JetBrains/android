@@ -464,7 +464,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private class ItemTransferHandler extends TransferHandler {
+  private final class ItemTransferHandler extends TransferHandler {
     private final PreviewProvider myPreviewProvider;
     private final Supplier<Palette.Item> myItemSupplier;
 
@@ -552,7 +552,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private class AddToDesignAction extends AnAction {
+  private final class AddToDesignAction extends AnAction {
 
     private AddToDesignAction() {
       super("Add to Design");
@@ -609,7 +609,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private class FavoriteAction extends ToggleAction {
+  private final class FavoriteAction extends ToggleAction {
 
     private FavoriteAction() {
       super("Favorite");
@@ -635,7 +635,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
   }
 
-  private class MaterialDocAction extends AnAction {
+  private final class MaterialDocAction extends AnAction {
     private static final String MATERIAL_DEFAULT_REFERENCE = "https://material.io/guidelines/material-design/introduction.html";
 
     private MaterialDocAction() {

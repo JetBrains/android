@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <N> The type of the node used by this tree chart
  */
-public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
+public final class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   private static final String NO_HTREE = "No data available.";
   private static final String NO_RANGE = "X range width is zero: Please use a wider range.";

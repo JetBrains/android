@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class ProguardFileType extends LanguageFileType {
+public final class ProguardFileType extends LanguageFileType {
   public static final ProguardFileType INSTANCE = new ProguardFileType();
 
   /** Default extension for ProGuard files (without dot) */

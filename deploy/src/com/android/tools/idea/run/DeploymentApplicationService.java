@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
-public class DeploymentApplicationService implements Disposable {
+public final class DeploymentApplicationService implements Disposable {
   private final ApplicationIdResolver myApplicationIdResolver;
   private final DeviceVersion myDeviceVersion;
 

@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public class LayoutNavigationManager implements Disposable {
+public final class LayoutNavigationManager implements Disposable {
 
   /**
    * The map associate a "destination" file with a "source" file.

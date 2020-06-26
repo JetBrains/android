@@ -738,7 +738,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     };
   }
 
-  private class MyGenSourceFieldListener implements ActionListener {
+  private final class MyGenSourceFieldListener implements ActionListener {
     private final TextFieldWithBrowseButton myTextField;
     private final String myDefaultPath;
 

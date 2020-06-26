@@ -80,7 +80,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
     return categoryModel.hasMatchCounts();
   }
 
-  private static class CategoryCellRenderer implements ListCellRenderer<Palette.Group> {
+  private static final class CategoryCellRenderer implements ListCellRenderer<Palette.Group> {
     private final JPanel myPanel;
     private final TextCellRenderer myTextRenderer;
     private final JLabel myMatchCount;

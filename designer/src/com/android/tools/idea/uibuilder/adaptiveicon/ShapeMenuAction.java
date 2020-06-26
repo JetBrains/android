@@ -73,7 +73,7 @@ public class ShapeMenuAction extends DropDownAction {
     return true;
   }
 
-  private static class SetShapeAction extends AnAction {
+  private static final class SetShapeAction extends AnAction {
     private final AdaptiveIconShape myShape;
     private final NlDesignSurface mySurface;
 

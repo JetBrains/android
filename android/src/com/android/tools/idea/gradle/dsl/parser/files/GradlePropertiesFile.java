@@ -90,7 +90,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
     return new GradleDslWriter.Adapter();
   }
 
-  private static class GradlePropertyElement extends GradleDslSimpleExpression {
+  private static final class GradlePropertyElement extends GradleDslSimpleExpression {
     @Nullable private Object myValue;
 
     private GradlePropertyElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {

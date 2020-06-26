@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public class FakeGrpcServer extends FakeGrpcChannel {
+public final class FakeGrpcServer extends FakeGrpcChannel {
   /**
    * Mapping from sessions being profiled to the number of profilers that are monitoring it.
    */

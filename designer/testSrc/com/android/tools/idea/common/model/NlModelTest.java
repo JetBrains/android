@@ -936,7 +936,7 @@ public class NlModelTest extends LayoutTestCase {
   /**
    * {@link AndroidFacet} used for testing without depending on the fixture facet.
    */
-  private static class FakeAndroidFacet extends AndroidFacet {
+  private static final class FakeAndroidFacet extends AndroidFacet {
     private FakeAndroidFacet(Module module) {
       super(module, AndroidFacet.NAME, new AndroidFacetConfiguration());
     }

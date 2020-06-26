@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProjectBuildModelImpl implements ProjectBuildModel {
+public final class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull private final BuildModelContext myBuildModelContext;
   @Nullable private final GradleBuildFile myProjectBuildFile;
 

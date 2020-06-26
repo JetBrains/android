@@ -38,7 +38,7 @@ import static com.android.SdkConstants.*;
 /**
  * A reference to a particular file in the project
  */
-public class IncludeReference {
+public final class IncludeReference {
   @SuppressWarnings("ConstantConditions")
   public static final IncludeReference NONE = new IncludeReference(null, null, null);
 

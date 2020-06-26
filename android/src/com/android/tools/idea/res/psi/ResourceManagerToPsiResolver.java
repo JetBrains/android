@@ -62,7 +62,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolver {
+public final class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolver {
   @NotNull public static final ResourceManagerToPsiResolver INSTANCE = new ResourceManagerToPsiResolver();
 
   private ResourceManagerToPsiResolver() {}

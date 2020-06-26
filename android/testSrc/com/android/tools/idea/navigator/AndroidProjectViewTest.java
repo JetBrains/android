@@ -422,7 +422,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     return PsiManager.getInstance(getProject()).findDirectory(folder);
   }
 
-  private class TestAndroidTreeStructure extends TestProjectTreeStructure {
+  private final class TestAndroidTreeStructure extends TestProjectTreeStructure {
     private TestAndroidTreeStructure(Project project, Disposable parentDisposable) {
       super(project, parentDisposable);
     }

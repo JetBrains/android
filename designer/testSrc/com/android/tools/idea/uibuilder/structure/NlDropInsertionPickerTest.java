@@ -275,7 +275,7 @@ public class NlDropInsertionPickerTest {
   /**
    * Dummy JTree
    */
-  private class DummyTree extends JTree {
+  private final class DummyTree extends JTree {
 
     private DummyTree() {
       super(new NlComponentTreeModel(myModel));
@@ -390,7 +390,7 @@ public class NlDropInsertionPickerTest {
   /**
    * Dummy component to mock a ViewGroup
    */
-  private static class DummyComponentGroup extends DummyComponent {
+  private static final class DummyComponentGroup extends DummyComponent {
     private static final DummyComponent[] EMPTY_COMPONENTS = new DummyComponent[0];
     @NotNull private DummyComponent[] myChildren = EMPTY_COMPONENTS;
 
@@ -428,7 +428,7 @@ public class NlDropInsertionPickerTest {
   /**
    * Dummy TreePath
    */
-  private static class DummyTreePath extends TreePath {
+  private static final class DummyTreePath extends TreePath {
 
     private final int myPosition;
 

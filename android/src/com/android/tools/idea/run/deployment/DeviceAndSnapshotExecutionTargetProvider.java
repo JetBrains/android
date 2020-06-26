@@ -52,7 +52,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
     return Collections.singletonList(DefaultExecutionTarget.INSTANCE);
   }
 
-  static class Target extends AndroidExecutionTarget {
+  static final class Target extends AndroidExecutionTarget {
     @NotNull private final Device myDevice;
 
     private Target(@NotNull Device device) {

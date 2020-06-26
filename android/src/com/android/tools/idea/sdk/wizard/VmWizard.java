@@ -223,7 +223,7 @@ public class VmWizard extends DynamicWizard {
            (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)" : ".");
   }
 
-  private class VmPath extends DynamicWizardPath {
+  private final class VmPath extends DynamicWizardPath {
     @NotNull SetupProgressStep mySetupProgressStep;
     @NotNull VmType myType;
     @NotNull Vm myVm;

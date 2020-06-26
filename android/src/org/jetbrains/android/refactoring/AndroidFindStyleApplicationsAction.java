@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -158,8 +159,8 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     }
     return new MyStyleData(style, styleName, facet, styleNameAttrValue);
   }
-  
-  static class MyStyleData {
+
+  static final class MyStyleData {
     private final Style myStyle;
     private final String myName;
     private final XmlAttributeValue myNameAttrValue;

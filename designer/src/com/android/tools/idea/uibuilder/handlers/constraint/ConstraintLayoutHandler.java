@@ -544,7 +544,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return true;
   }
 
-  private static class ClearConstraintsAction extends DirectViewAction {
+  private static final class ClearConstraintsAction extends DirectViewAction {
 
     private static final String MESSAGE_DELETE_CONSTRAINT = "Delete all the constraints in the current layout?";
 
@@ -717,7 +717,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private static class ToggleVisibilityAction extends ToggleViewAction {
+  private static final class ToggleVisibilityAction extends ToggleViewAction {
     String mType;
 
     private ToggleVisibilityAction(String type, String text, boolean defaultValue) {
@@ -801,7 +801,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private static class AddElementAction extends DirectViewAction {
+  private static final class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
     public static final int HORIZONTAL_BARRIER = 2;
@@ -1186,7 +1186,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private static class MarginSelector extends DirectViewAction {
+  private static final class MarginSelector extends DirectViewAction {
 
     private static final String PICK_A_DIMENSION = "Pick a Dimension";
     private static final float DEFAULT_ICON_FONT_SIZE = 12f;
@@ -1778,7 +1778,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
 
-    private static class ConnectSource extends DisappearingActionMenu {
+    private static final class ConnectSource extends DisappearingActionMenu {
       int mIndex;
 
       private ConnectSource(int index,

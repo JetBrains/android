@@ -32,12 +32,12 @@ public class AndroidQuickfixContexts {
     }
   }
 
-  public static class ContextType {
+  public static final class ContextType {
     private ContextType() {
     }
   }
 
-  public static class BatchContext extends Context {
+  public static final class BatchContext extends Context {
     public static final ContextType TYPE = new ContextType();
     private static final BatchContext INSTANCE = new BatchContext();
 
@@ -51,7 +51,7 @@ public class AndroidQuickfixContexts {
     }
   }
 
-  public static class EditorContext extends Context {
+  public static final class EditorContext extends Context {
     public static final ContextType TYPE = new ContextType();
     private final Editor myEditor;
 
@@ -71,7 +71,7 @@ public class AndroidQuickfixContexts {
     }
   }
 
-  public static class DesignerContext extends Context {
+  public static final class DesignerContext extends Context {
     public static final ContextType TYPE = new ContextType();
     private static final DesignerContext INSTANCE = new DesignerContext();
 

@@ -616,7 +616,7 @@ public class MockupViewPanel extends JPanel {
   /**
    * Handle the zoom and pan interaction on the image
    */
-  private class PanZoomManager {
+  private final class PanZoomManager {
     private final static int ANIMATION_DURATION = 200;
     private final static int ZOOM_DELAY = 20;
     private float myTargetZoom;

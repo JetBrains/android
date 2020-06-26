@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.adtui.workbench;
 
 import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
@@ -619,7 +619,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private static class UpdatableActionButton extends ActionButton {
+  private static final class UpdatableActionButton extends ActionButton {
 
     private UpdatableActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
       super(action, action.getTemplatePresentation().clone(), TOOL_WINDOW_TOOLBAR_PLACE, buttonSize);
@@ -637,7 +637,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class SearchAction extends AnAction {
+  private final class SearchAction extends AnAction {
     private SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
@@ -656,7 +656,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class GearAction extends AnAction {
+  private final class GearAction extends AnAction {
     private GearAction() {
       super("More Options", null, AllIcons.General.GearPlain);
     }
@@ -681,7 +681,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class HideAction extends AnAction {
+  private final class HideAction extends AnAction {
    private HideAction() {
       super(UIBundle.messagePointer("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
     }
@@ -722,7 +722,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class ToggleOppositePropertyTypeAction extends TogglePropertyTypeAction {
+  private final class ToggleOppositePropertyTypeAction extends TogglePropertyTypeAction {
     private ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(property, text);
     }
@@ -742,7 +742,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class SwapAction extends AnAction {
+  private final class SwapAction extends AnAction {
     private SwapAction() {
       super("Swap");
     }
@@ -754,7 +754,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class MySearchField extends SearchTextField implements KeyListener {
+  private final class MySearchField extends SearchTextField implements KeyListener {
     private Component myOldFocusComponent;
 
     private MySearchField(@NotNull String propertyName) {

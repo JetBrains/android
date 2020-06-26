@@ -18,7 +18,7 @@ package com.android.tools.adtui.model.formatter;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
-public class UserCounterAxisFormatter extends BaseAxisFormatter {
+public final class UserCounterAxisFormatter extends BaseAxisFormatter {
 
   // TODO: (b/140522169) Base default interval based on how many events users have registered.
   public static final int DEFAULT_MAJOR_INTERVAL = 2;

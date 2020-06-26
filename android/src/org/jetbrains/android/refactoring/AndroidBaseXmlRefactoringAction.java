@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.lang.Language;
@@ -217,7 +218,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
     }
   }
 
-  private class MyHandler implements RefactoringActionHandler {
+  private final class MyHandler implements RefactoringActionHandler {
     private final XmlTag[] myTagsFromExternalContext;
 
     private MyHandler(@NotNull XmlTag[] tagsFromExternalContext) {

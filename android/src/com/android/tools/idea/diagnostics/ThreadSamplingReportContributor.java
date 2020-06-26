@@ -224,7 +224,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     }
   }
 
-  private static class FrameInfo {
+  private static final class FrameInfo {
     public static final FrameInfo[] EMPTY_FRAME_INFOS = {};
     private static final String INDENT_STRING = "  ";
     private static final String INDENT_MARK_STRING = "+ ";

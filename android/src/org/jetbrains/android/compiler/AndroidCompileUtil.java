@@ -107,7 +107,7 @@ import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 /**
  * @author yole
  */
-public class AndroidCompileUtil {
+public final class AndroidCompileUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidCompileUtil");
 
   private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<Boolean>(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION);

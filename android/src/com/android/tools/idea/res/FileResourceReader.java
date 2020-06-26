@@ -42,7 +42,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * Methods for working with Android file resources.
  */
-public class FileResourceReader {
+public final class FileResourceReader {
   /**
    * Reads and returns the contents of a resource. The resource path can point either to a file on
    * disk, or to a ZIP file entry. In the latter case the URI of the resource path contains a path

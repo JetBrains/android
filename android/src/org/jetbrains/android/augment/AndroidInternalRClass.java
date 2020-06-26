@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.augment;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -95,7 +96,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     return null;
   }
 
-  private class MyInnerClass extends InnerRClassBase {
+  private final class MyInnerClass extends InnerRClassBase {
 
     private MyInnerClass(@NotNull ResourceType resourceType) {
       super(AndroidInternalRClass.this, resourceType);

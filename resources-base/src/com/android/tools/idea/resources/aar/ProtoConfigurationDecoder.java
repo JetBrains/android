@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Converts {@code aapt.pb.Configuration} proto message into a {@link FolderConfiguration} object.
  */
-class ProtoConfigurationDecoder {
+final class ProtoConfigurationDecoder {
   @NotNull
   static FolderConfiguration getConfiguration(@NotNull Configuration configMsg) {
     FolderConfiguration configuration = new FolderConfiguration();

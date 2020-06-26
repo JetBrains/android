@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class EmptyProperty implements NlProperty {
+public final class EmptyProperty implements NlProperty {
 
   public static final EmptyProperty INSTANCE = new EmptyProperty();
 

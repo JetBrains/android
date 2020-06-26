@@ -352,7 +352,7 @@ public class ScreenViewLayer extends Layer {
    *
    * @see ImageUtils#scale(BufferedImage, double)
    */
-  private static class RescaleRunnable implements Runnable {
+  private static final class RescaleRunnable implements Runnable {
     @NotNull private final Consumer<BufferedImage> myOnReadyCallback;
     private final Object lock = new Object();
     private BufferedImage mySourceImage;

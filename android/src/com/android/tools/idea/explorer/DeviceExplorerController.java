@@ -1700,7 +1700,7 @@ public class DeviceExplorerController {
     }
   }
 
-  private static class ShowLoadingNodeRequest implements Runnable {
+  private static final class ShowLoadingNodeRequest implements Runnable {
     @NotNull private DefaultTreeModel myTreeModel;
     @NotNull private DeviceFileEntryNode myNode;
 

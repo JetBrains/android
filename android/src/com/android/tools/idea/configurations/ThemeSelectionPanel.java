@@ -623,7 +623,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     });
   }
 
-  private class ThemeFilterComponent extends FilterComponent {
+  private final class ThemeFilterComponent extends FilterComponent {
     private ThemeFilterComponent(@NonNls String propertyName, int historySize, boolean onTheFlyUpdate) {
       super(propertyName, historySize, onTheFlyUpdate);
     }

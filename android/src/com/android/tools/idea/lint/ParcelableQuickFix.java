@@ -197,7 +197,7 @@ public class ParcelableQuickFix implements LintIdeQuickFix {
     return null;
   }
 
-  private static class QuickFixWorker {
+  private static final class QuickFixWorker {
     private final Project myProject;
     private final JavaPsiFacade myFacade;
     private final PsiElementFactory myFactory;

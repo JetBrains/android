@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.table.TableCellRenderer;
 import java.util.Set;
 
-public class NlPropertyRenderers implements PTableCellRendererProvider {
+public final class NlPropertyRenderers implements PTableCellRendererProvider {
   private static NlPropertyRenderers ourInstance = new NlPropertyRenderers();
 
   private final NlTableNameRenderer myTableNameRenderer;

@@ -27,7 +27,7 @@ import javax.swing.*;
 /**
  * File type for *.aidl files.
  */
-public class AidlFileType extends LanguageFileType {
+public final class AidlFileType extends LanguageFileType {
   public static final AidlFileType INSTANCE = new AidlFileType();
 
   @NonNls public static final String DEFAULT_ASSOCIATED_EXTENSION = SdkConstants.EXT_AIDL;

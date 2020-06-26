@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * File type for multiDexKeepFile format.
  * @see MultiDexKeepLanguage
  */
-public class MultiDexKeepFileType extends LanguageFileType {
+public final class MultiDexKeepFileType extends LanguageFileType {
   public static final MultiDexKeepFileType INSTANCE = new MultiDexKeepFileType();
 
   private MultiDexKeepFileType() {

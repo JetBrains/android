@@ -113,7 +113,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     assertNotNull(viewManager.getHandler(BOTTOM_APP_BAR));
   }
 
-  private static class TestHandler implements ViewHandlerProvider {
+  private static final class TestHandler implements ViewHandlerProvider {
     private final Function<String, ViewHandler> myProvider;
 
     private TestHandler(Function<String, ViewHandler> provider) {

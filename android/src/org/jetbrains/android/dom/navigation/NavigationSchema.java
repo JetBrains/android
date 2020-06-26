@@ -271,7 +271,7 @@ public class NavigationSchema implements Disposable {
     return result;
   }
 
-  private class NavigatorKeyInfo {
+  private final class NavigatorKeyInfo {
     long myModificationCount;
     @NotNull TypeRef myNavigatorTypeRef;
     @Nullable String myTagName;
@@ -1038,7 +1038,7 @@ public class NavigationSchema implements Disposable {
   public String getDefaultTag(@NotNull DestinationType type) {
     return myTypeToRootTag.get(type);
   }
-  
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region UI

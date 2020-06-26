@@ -21,7 +21,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidColorDomUtil {
+public final class AndroidColorDomUtil {
   private AndroidColorDomUtil() {}
 
   private static final ImmutableList<String> ROOT_TAGS = ImmutableList.of("selector", "gradient");
