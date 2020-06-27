@@ -6,9 +6,7 @@ import static org.jetbrains.android.util.AndroidCompilerMessageKind.INFORMATION;
 import static org.jetbrains.android.util.AndroidCompilerMessageKind.WARNING;
 
 import com.android.SdkConstants;
-import com.android.jarutils.DebugKeyProvider;
-import com.android.jarutils.JavaResourceFilter;
-import com.android.jarutils.SignedJarBuilder;
+import com.android.ide.common.signing.KeytoolException;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -21,9 +19,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.text.DateFormatUtil;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -46,6 +42,8 @@ import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidExecutionUtil;
 import org.jetbrains.android.util.AndroidNativeLibData;
+import org.jetbrains.android.util.ApkContentFilter;
+import org.jetbrains.android.util.DebugKeyProvider;
 import org.jetbrains.android.util.SafeSignedJarBuilder;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -84,7 +82,7 @@ public final class AndroidApkBuilder {
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static void collectDuplicateEntries(@NotNull String rootFile, @NotNull Set<String> entries, @NotNull Set<String> result)
     throws IOException {
-    final JavaResourceFilter javaResourceFilter = new JavaResourceFilter();
+    final ApkContentFilter apkContentFilter = new ApkContentFilter();
 
     FileInputStream fis = null;
     ZipInputStream zis = null;
@@ -96,7 +94,7 @@ public final class AndroidApkBuilder {
       while ((entry = zis.getNextEntry()) != null) {
         if (!entry.isDirectory()) {
           String name = entry.getName();
-          if (javaResourceFilter.checkEntry(name) && !entries.add(name)) {
+          if (apkContentFilter.checkEntry(name) && !entries.add(name)) {
             result.add(name);
           }
           zis.closeEntry();
@@ -231,15 +229,14 @@ public final class AndroidApkBuilder {
     result.put(INFORMATION, new ArrayList<>());
     result.put(WARNING, new ArrayList<>());
 
-    FileOutputStream fos = null;
-    SignedJarBuilder builder = null;
+    SafeSignedJarBuilder builder = null;
     try {
 
       String keyStoreOsPath = customKeystorePath != null && !customKeystorePath.isEmpty()
                               ? customKeystorePath
                               : DebugKeyProvider.getDefaultKeyStoreOsPath();
 
-      DebugKeyProvider provider = createDebugKeyProvider(result, keyStoreOsPath);
+      DebugKeyProvider provider = createDebugKeyProvider(keyStoreOsPath);
 
       X509Certificate certificate = signed ? (X509Certificate)provider.getCertificate() : null;
 
@@ -249,7 +246,7 @@ public final class AndroidApkBuilder {
         if (keyStoreFile.exists()) {
           keyStoreFile.delete();
         }
-        provider = createDebugKeyProvider(result, keyStoreOsPath);
+        provider = createDebugKeyProvider(keyStoreOsPath);
         certificate = (X509Certificate)provider.getCertificate();
       }
 
@@ -288,16 +285,8 @@ public final class AndroidApkBuilder {
         return result;
       }
 
-      fos = new FileOutputStream(outputApk);
-      builder = new SafeSignedJarBuilder(fos, key, certificate, outputApk);
-
-      FileInputStream fis = new FileInputStream(resApkPath);
-      try {
-        builder.writeZip(fis, null);
-      }
-      finally {
-        fis.close();
-      }
+      builder = new SafeSignedJarBuilder(key, certificate, outputApk);
+      builder.writeZip(new File(resApkPath), null);
 
       builder.writeFile(dexEntryFile, AndroidBuildCommonUtils.CLASSES_FILE_NAME);
 
@@ -322,13 +311,7 @@ public final class AndroidApkBuilder {
       MyResourceFilter filter = new MyResourceFilter(duplicates);
 
       for (String externalJar : externalJars) {
-        fis = new FileInputStream(externalJar);
-        try {
-          builder.writeZip(fis, filter);
-        }
-        finally {
-          fis.close();
-        }
+        builder.writeZip(new File(externalJar), filter::isIgnored);
       }
 
       final HashSet<String> nativeLibs = new HashSet<>();
@@ -349,7 +332,7 @@ public final class AndroidApkBuilder {
     catch (CertificateException e) {
       return addExceptionMessage(e, result);
     }
-    catch (DebugKeyProvider.KeytoolException e) {
+    catch (KeytoolException e) {
       return addExceptionMessage(e, result);
     }
     catch (AndroidLocation.AndroidLocationException e) {
@@ -372,45 +355,24 @@ public final class AndroidApkBuilder {
         catch (IOException e) {
           addExceptionMessage(e, result);
         }
-        catch (GeneralSecurityException e) {
-          addExceptionMessage(e, result);
-        }
-      }
-
-      if (fos != null) {
-        try {
-          fos.close();
-        }
-        catch (IOException ignored) {
-        }
       }
     }
     return result;
   }
 
-  private static DebugKeyProvider createDebugKeyProvider(final Map<AndroidCompilerMessageKind, List<String>> result, String path) throws
-                                                                                                                                  KeyStoreException,
-                                                                                                                                  NoSuchAlgorithmException,
-                                                                                                                                  CertificateException,
-                                                                                                                                  UnrecoverableEntryException,
-                                                                                                                                  IOException,
-                                                                                                                                  DebugKeyProvider.KeytoolException,
-                                                                                                                                  AndroidLocation.AndroidLocationException {
+  private static DebugKeyProvider createDebugKeyProvider(@Nullable String path) throws
+                                                                                KeyStoreException,
+                                                                                NoSuchAlgorithmException,
+                                                                                CertificateException,
+                                                                                UnrecoverableEntryException,
+                                                                                IOException,
+                                                                                KeytoolException,
+                                                                                AndroidLocation.AndroidLocationException {
 
-    return new DebugKeyProvider(path, null, new DebugKeyProvider.IKeyGenOutput() {
-      @Override
-      public void err(String message) {
-        result.get(ERROR).add("Error during key creation: " + message);
-      }
-
-      @Override
-      public void out(String message) {
-        result.get(INFORMATION).add("Info message during key creation: " + message);
-      }
-    });
+    return new DebugKeyProvider(path, null);
   }
 
-  private static void writeNativeLibraries(SignedJarBuilder builder,
+  private static void writeNativeLibraries(SafeSignedJarBuilder builder,
                                            File nativeLibsFolder,
                                            File child,
                                            boolean debugBuild,
@@ -450,7 +412,7 @@ public final class AndroidApkBuilder {
         result.add(file);
       }
     }
-    else if (JavaResourceFilter.checkFolderForPackaging(file.getName())) {
+    else if (ApkContentFilter.checkFolderForPackaging(file.getName())) {
       final File[] children = file.listFiles();
 
       if (children != null) {
@@ -470,7 +432,7 @@ public final class AndroidApkBuilder {
       for (File child : children) {
         if (child.exists()) {
           if (child.isDirectory()) {
-            if (JavaResourceFilter.checkFolderForPackaging(child.getName()) && filter.value(child)) {
+            if (ApkContentFilter.checkFolderForPackaging(child.getName()) && filter.value(child)) {
               collectStandardJavaResources(child, result, filter);
             }
           }
@@ -484,7 +446,7 @@ public final class AndroidApkBuilder {
 
   private static void writeStandardJavaResources(Collection<File> resources,
                                                  File sourceRoot,
-                                                 SignedJarBuilder jarBuilder,
+                                                 SafeSignedJarBuilder jarBuilder,
                                                  Set<String> added) throws IOException {
     for (File child : resources) {
       final String relativePath = FileUtil.getRelativePath(sourceRoot, child);
@@ -503,12 +465,12 @@ public final class AndroidApkBuilder {
       if (SdkConstants.EXT_ANDROID_PACKAGE.equals(extension)) {
         return false;
       }
-      return JavaResourceFilter.checkFileForPackaging(fileName, extension);
+      return ApkContentFilter.checkFileForPackaging(fileName, extension);
     }
     return false;
   }
 
-  private static final class MyResourceFilter extends JavaResourceFilter {
+  private static final class MyResourceFilter extends ApkContentFilter {
     private final Set<String> myExcludedEntries;
 
     private MyResourceFilter(@NotNull Set<String> excludedEntries) {
@@ -521,6 +483,10 @@ public final class AndroidApkBuilder {
         return false;
       }
       return super.checkEntry(name);
+    }
+
+    public boolean isIgnored(String name) {
+      return !checkEntry(name);
     }
   }
 }

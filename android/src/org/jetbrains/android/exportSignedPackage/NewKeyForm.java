@@ -1,18 +1,11 @@
 package org.jetbrains.android.exportSignedPackage;
 
-import com.android.jarutils.DebugKeyProvider;
-import com.android.jarutils.KeystoreHelper;
+import com.android.ide.common.signing.KeystoreHelper;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +17,11 @@ import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.swing.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -132,6 +130,7 @@ public abstract class NewKeyForm {
     }
   }
 
+  @NotNull
   private String getDName() {
     StringBuilder builder = new StringBuilder();
     buildDName(builder, "CN", myFirstAndLastNameField);
@@ -151,7 +150,6 @@ public abstract class NewKeyForm {
     String keyPassword = new String(getKeyPassword());
     String keyAlias = getKeyAlias();
     String dname = getDName();
-    assert dname != null;
 
     if (keystorePassword.indexOf('"') >= 0 || keyPassword.indexOf('"') >= 0) {
       throw new CommitStepException("Passwords cannot contain quote character");
@@ -162,20 +160,7 @@ public abstract class NewKeyForm {
     final StringBuilder outBuilder = new StringBuilder();
     try {
       createdStore = KeystoreHelper
-        .createNewStore(keystoreLocation, null, keystorePassword, keyAlias, keyPassword, dname, getValidity(),
-                        new DebugKeyProvider.IKeyGenOutput() {
-                          @Override
-                          public void err(String message) {
-                            errorBuilder.append(message).append('\n');
-                            LOG.info("Error: " + message);
-                          }
-
-                          @Override
-                          public void out(String message) {
-                            outBuilder.append(message).append('\n');
-                            LOG.info(message);
-                          }
-                        });
+        .createNewStore(null, new File(keystoreLocation), keystorePassword, keyPassword, keyAlias, dname, getValidity());
     }
     catch (Exception e) {
       LOG.info(e);
