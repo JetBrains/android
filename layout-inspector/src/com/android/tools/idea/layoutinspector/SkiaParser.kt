@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.annotations.concurrency.Slow
+import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
@@ -78,6 +79,12 @@ interface SkiaParserService {
 
   fun shutdownAll()
 }
+
+// The minimum version of a skia parser component required by this version of studio.
+// It's the parser's responsibility to be compatible with all supported studio versions.
+private val minimumRevisions = mapOf(
+  "skiaparser;1" to Revision(1)
+)
 
 object SkiaParser : SkiaParserService {
   private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
@@ -287,7 +294,20 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     }
     else {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      val serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+      var serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+      // If the path isn't in the map at all, it's newer than this version of studio.
+      if (minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version) {
+        // Current version is too old, try to update
+        val updatablePackage = sdkHandler.getSdkManager(progressIndicator).packages.consolidatedPkgs[packagePath] ?: return null
+        if (updatablePackage.isUpdate) {
+          SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show()
+        }
+        serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+        // we didn't update successfully
+        if (minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version) {
+          return null
+        }
+      }
       File(serverPackage.location, serverName)
     }
   }
