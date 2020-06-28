@@ -13,10 +13,10 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-native" />
     <orderEntry type="module" module-name="android-ndk" />
+    <orderEntry type="module" module-name="google-cloud-tools-as" />
     <orderEntry type="module" module-name="firebase" />
     <orderEntry type="module" module-name="firebase-testing" />
     <orderEntry type="module" module-name="google-appindexing" />
-    <orderEntry type="module" module-name="google-cloud-tools-as" />
     <orderEntry type="module" module-name="google-cloud-tools-core-as" />
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="module" module-name="google-samples" />
