@@ -171,8 +171,8 @@ public class BuildVariantView {
     List<Object[]> rows = new ArrayList<>();
 
     // Maps the row number to the corresponding array of build variants and abis.
-    Map<Integer, BuildVariantItem[]> buildVariantsPerRow = new TreeMap<>();
-    Map<Integer, AbiItem[]> abisPerRow = new TreeMap<>();
+    List<BuildVariantItem[]> buildVariantsPerRow = new ArrayList<>();
+    List< AbiItem[]> abisPerRow = new ArrayList<>();
 
     int rowId = 0;
     for (Module module : getGradleModulesWithAndroidProjects()) {
@@ -196,12 +196,16 @@ public class BuildVariantView {
 
       BuildVariantItem[] buildVariantItems = getBuildVariantItems(module);
       if (buildVariantItems.length > 0) {
-        buildVariantsPerRow.put(rowId, buildVariantItems);
+        buildVariantsPerRow.add(rowId, buildVariantItems);
+      } else {
+        buildVariantsPerRow.add(rowId, null);
       }
 
       AbiItem[] abiItems = getAbiItems(module, variantNameWithoutAbi);
       if (abiItems.length > 0) {
-        abisPerRow.put(rowId, abiItems);
+        abisPerRow.add(rowId, abiItems);
+      } else {
+        abisPerRow.add(rowId, null);
       }
 
       Object[] row = {module, variantNameWithoutAbi, abiName};
@@ -523,8 +527,8 @@ public class BuildVariantView {
     private final ModuleTableCell myModuleCellEditor = new ModuleTableCell();
 
     // Maps each table row to the corresponding build variant, and ABI cell editor.
-    private final Map<Integer, TableCellEditor> myVariantCellEditors = new TreeMap<>();
-    private final Map<Integer, TableCellEditor> myAbiCellEditors = new TreeMap<>();
+    private List<BuildVariantItem[]> myBuildVariantsPerRow = new ArrayList<>();
+    private List<AbiItem[]> myAbisPerRow = new ArrayList<>();
 
     // The renderers for the module, build variant, and ABI cells.
     private final ModuleTableCell myModuleCellRenderer = new ModuleTableCell();
@@ -584,13 +588,13 @@ public class BuildVariantView {
 
     private void clearContents() {
       setModel(new BuildVariantTableModel(Collections.emptyList(), previousModelHadAbis));
-      myVariantCellEditors.clear();
-      myAbiCellEditors.clear();
+      myBuildVariantsPerRow.clear();
+      myAbisPerRow.clear();
     }
 
     void setModel(@NotNull List<Object[]> rows,
-                  @NotNull Map<Integer, BuildVariantItem[]> buildVariantsPerRow,
-                  @NotNull Map<Integer, AbiItem[]> abisPerRow) {
+                  @NotNull List<BuildVariantItem[]> buildVariantsPerRow,
+                  @NotNull List<AbiItem[]> abisPerRow) {
       setLoading(false);
       previousModelHadAbis = !abisPerRow.isEmpty();
       if (rows.isEmpty()) {
@@ -610,91 +614,90 @@ public class BuildVariantView {
     /**
      * Populates the contents of the build variant column for each row.
      */
-    private void addBuildVariants(@NotNull Map<Integer, BuildVariantItem[]> buildVariantsPerRow) {
-      for (Map.Entry<Integer, BuildVariantItem[]> entry : buildVariantsPerRow.entrySet()) {
-        int row = entry.getKey();
-        BuildVariantItem[] items = entry.getValue();
-        BuildVariantItem selected = null;
-        for (BuildVariantItem item : items) {
-          if (item.hasBuildVariantName(getValueAt(row, VARIANT_COLUMN_INDEX))) {
-            selected = item;
-            break;
-          }
+    private void addBuildVariants(@NotNull List<BuildVariantItem[]> buildVariantsPerRow) {
+      myBuildVariantsPerRow = buildVariantsPerRow;
+    }
+
+    @NotNull
+    private DefaultCellEditor createCellEditor(int row, BuildVariantItem[] items) {
+      BuildVariantItem selected = null;
+      for (BuildVariantItem item : items) {
+        if (item.hasBuildVariantName(getValueAt(row, VARIANT_COLUMN_INDEX))) {
+          selected = item;
+          break;
         }
-
-        ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
-        if (selected != null) {
-          editor.setSelectedItem(selected);
-        }
-
-        editor.setBorder(JBUI.Borders.empty());
-        editor.addItemListener(e -> {
-          if (e.getStateChange() == ItemEvent.SELECTED) {
-            BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-            getVariantsTable().setLoading(true /* Show "loading" message in the table*/ );
-            if (!myUpdater.updateSelectedBuildVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName)) {
-              updateContents();
-            }
-          }
-        });
-        DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
-
-        editor.addKeyListener(new KeyAdapter() {
-          @Override
-          public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-              defaultCellEditor.cancelCellEditing();
-            }
-          }
-        });
-
-        myVariantCellEditors.put(row, defaultCellEditor);
       }
+
+      ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
+      if (selected != null) {
+        editor.setSelectedItem(selected);
+      }
+
+      editor.setBorder(JBUI.Borders.empty());
+      editor.addItemListener(e -> {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
+          getVariantsTable().setLoading(true /* Show "loading" message in the table*/ );
+          if (!myUpdater.updateSelectedBuildVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName)) {
+            updateContents();
+          }
+        }
+      });
+      DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
+
+      editor.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            defaultCellEditor.cancelCellEditing();
+          }
+        }
+      });
+      return defaultCellEditor;
     }
 
     /**
      * Populates the contents of the ABIs column for each row.
      */
-    private void addAbiNames(@NotNull Map<Integer, AbiItem[]> abisPerRow) {
-      for (Map.Entry<Integer, AbiItem[]> entry : abisPerRow.entrySet()) {
-        int row = entry.getKey();
-        AbiItem[] items = entry.getValue();
+    private void addAbiNames(@NotNull List<AbiItem[]> abisPerRow) {
+      myAbisPerRow = abisPerRow;
+    }
 
-        AbiItem selected = null;
-        for (AbiItem item : items) {
-          if (item.hasAbiName(getValueAt(row, ABI_COLUMN_INDEX))) {
-            selected = item;
-            break;
-          }
+    @NotNull
+    private DefaultCellEditor createAbiCellEditor(int row, AbiItem[] items) {
+      AbiItem selected = null;
+      for (AbiItem item : items) {
+        if (item.hasAbiName(getValueAt(row, ABI_COLUMN_INDEX))) {
+          selected = item;
+          break;
         }
-
-        ComboBox<AbiItem> editor = new ComboBox<>(items);
-        if (selected != null) {
-          editor.setSelectedItem(selected);
-        }
-
-        editor.setBorder(JBUI.Borders.empty());
-        editor.addItemListener(e -> {
-          if (e.getStateChange() == ItemEvent.SELECTED) {
-            AbiItem selectedAbi = (AbiItem)e.getItem();
-            if (!myUpdater.updateSelectedAbi(myProject, selectedAbi.myModuleName, selectedAbi.myAbiName)) {
-              updateContents();
-            }
-          }
-        });
-        DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
-
-        editor.addKeyListener(new KeyAdapter() {
-          @Override
-          public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-              defaultCellEditor.cancelCellEditing();
-            }
-          }
-        });
-
-        myAbiCellEditors.put(row, defaultCellEditor);
       }
+
+      ComboBox<AbiItem> editor = new ComboBox<>(items);
+      if (selected != null) {
+        editor.setSelectedItem(selected);
+      }
+
+      editor.setBorder(JBUI.Borders.empty());
+      editor.addItemListener(e -> {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          AbiItem selectedAbi = (AbiItem)e.getItem();
+          if (!myUpdater.updateSelectedAbi(myProject, selectedAbi.myModuleName, selectedAbi.myAbiName)) {
+            updateContents();
+          }
+        }
+      });
+      DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
+
+      editor.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            defaultCellEditor.cancelCellEditing();
+          }
+        }
+      });
+      return defaultCellEditor;
     }
 
     @Override
@@ -713,10 +716,14 @@ public class BuildVariantView {
     @Override
     public TableCellEditor getCellEditor(int row, int column) {
       if ((column == VARIANT_COLUMN_INDEX)) {
-        return myVariantCellEditors.getOrDefault(row, null);
+        BuildVariantItem[] variantItems = myBuildVariantsPerRow.get(row);
+        if (variantItems == null) return null;
+        return createCellEditor(row, variantItems);
       }
       if ((column == ABI_COLUMN_INDEX)) {
-        return myAbiCellEditors.getOrDefault(row, null);
+        AbiItem[] abiItems = myAbisPerRow.get(row);
+        if (abiItems == null) return null;
+        return createAbiCellEditor(row, abiItems);
       }
       return myModuleCellEditor;
     }
