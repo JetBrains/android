@@ -15,21 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.model.VIEW1
-import com.android.tools.idea.layoutinspector.model.VIEW2
-import com.android.tools.idea.layoutinspector.model.VIEW3
-import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.model.*
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.view
-import com.intellij.testFramework.DisposableRule
+import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
 import org.junit.After
@@ -46,8 +40,7 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import javax.imageio.ImageIO
 
-// FIXME-ank2: don't use:
-private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
+private val TEST_DATA_PATH = AndroidTestPaths.adtSources().resolve("layout-inspector/testData").toFile()
 private const val DIFF_THRESHOLD = 0.05
 
 class DeviceViewContentPanelTest {
@@ -108,51 +101,51 @@ class DeviceViewContentPanelTest {
     panel.setSize(1000, 1500)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.scalePercent = 50
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_scaled.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.scalePercent = 100
     panel.model.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 10
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 200
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = INITIAL_LAYER_SPACING
     val windowRoot = model[ROOT]!!
     model.selection = windowRoot
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
     model.selection = model[VIEW1]!!
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_label.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD)
 
     model.hoveredNode = windowRoot
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -172,20 +165,20 @@ class DeviceViewContentPanelTest {
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(1000, 1500)
 
-    panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"))
+    panel.model.overlay = ImageIO.read(File(TEST_DATA_PATH, "testPaint_hovered.png"))
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-60.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_overlay-60.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.overlayAlpha = 0.2f
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-20.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_overlay-20.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.overlayAlpha = 0.9f
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-90.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaint_overlay-90.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -214,7 +207,7 @@ class DeviceViewContentPanelTest {
     panel.setSize(200, 300)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testClip.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testClip.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   // FIXME-ank2
@@ -268,18 +261,18 @@ class DeviceViewContentPanelTest {
     panel.setSize(200, 300)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintMultiWindow.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintMultiWindow.png"), generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[VIEW3]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintMultiWindow_selected.png"), generatedImage,
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintMultiWindow_selected.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
     panel.model.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintMultiWindow_rotated.png"), generatedImage,
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintMultiWindow_rotated.png"), generatedImage,
                                      DIFF_THRESHOLD)
   }
 
@@ -308,21 +301,21 @@ class DeviceViewContentPanelTest {
     panel.setSize(200, 300)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintMultiWindowDimBehind.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintMultiWindowDimBehind.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.rotate(0.3, 0.2)
     settings.scalePercent = 50
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintMultiWindowDimBehind_rotated.png"), generatedImage,
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintMultiWindowDimBehind_rotated.png"), generatedImage,
                                      DIFF_THRESHOLD)
   }
 
   @Test
   fun testPaintWithImages() {
-    val image1 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
-    val image2 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image2.png"))
-    val image3 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image3.png"))
+    val image1 = ImageIO.read(File(TEST_DATA_PATH, "image1.png"))
+    val image2 = ImageIO.read(File(TEST_DATA_PATH, "image2.png"))
+    val image3 = ImageIO.read(File(TEST_DATA_PATH, "image3.png"))
 
     val model = model {
       view(ROOT, 0, 0, 585, 804, imageBottom = image1) {
@@ -341,47 +334,47 @@ class DeviceViewContentPanelTest {
     panel.setSize(350, 450)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintWithImages.png"), generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[ROOT]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_root.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImages_root.png"), generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[VIEW1]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view1.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImages_view1.png"), generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[VIEW2]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
 
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
 
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
   fun testPaintWithRootImageOnly() {
 
-    val image1 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
+    val image1 = ImageIO.read(File(TEST_DATA_PATH, "image1.png"))
 
     val model = model {
       view(ROOT, 0, 0, 585, 804, imageBottom = image1) {
@@ -400,18 +393,18 @@ class DeviceViewContentPanelTest {
     panel.setSize(350, 450)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithRootImageOnly.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintWithRootImageOnly.png"), generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[ROOT]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithRootImageOnly_root.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithRootImageOnly_root.png"), generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[VIEW1]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithRootImageOnly_view1.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithRootImageOnly_view1.png"), generatedImage, DIFF_THRESHOLD)
   }
 }
