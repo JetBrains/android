@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.module.Module
@@ -149,10 +150,21 @@ fun setupBuildListener(
   project: Project,
   buildable: BuildListener,
   parentDisposable: Disposable) {
+  if (Disposer.isDisposed(parentDisposable)) {
+    Logger.getInstance("ChangeManager").warn("calling setupBuildListener for a disposed component $parentDisposable")
+    return
+  }
   // If we are not yet subscribed to this project, we should subscribe
   if (projectSubscriptionsLock.withLock {
       val notSubscribed = projectSubscriptions[project] == null
-      projectSubscriptions.computeIfAbsent(project) { WeakHashMap() }
+      projectSubscriptions.computeIfAbsent(project) {
+        Disposer.register(project, Disposable {
+          projectSubscriptionsLock.withLock {
+            projectSubscriptions.remove(project)
+          }
+        })
+        WeakHashMap()
+      }
       notSubscribed
     }) {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
@@ -182,8 +194,17 @@ fun setupBuildListener(
    * the project has synced and is smart.
    */
   fun initPreviewWhenSmartAndSynced() {
+    if (Disposer.isDisposed(parentDisposable)) return
+
     projectSubscriptionsLock.withLock {
-      projectSubscriptions[project]!![parentDisposable] = buildable
+      projectSubscriptions[project]!!.let {
+        it[parentDisposable] = buildable
+        Disposer.register(parentDisposable, Disposable {
+          projectSubscriptionsLock.withLock {
+            projectSubscriptions[project]?.remove(parentDisposable)
+          }
+        })
+      }
     }
 
     val status = GradleBuildState.getInstance(project)?.summary?.status

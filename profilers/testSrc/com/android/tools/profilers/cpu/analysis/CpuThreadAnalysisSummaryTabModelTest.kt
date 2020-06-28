@@ -44,8 +44,8 @@ class CpuThreadAnalysisSummaryTabModelTest {
     val model = CpuThreadAnalysisSummaryTabModel(timeline.dataRange, timeline.selectionRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
-    assertThat(model.getTopNodesInSelectionRange(1).map { it.data.name }).containsExactly("1")
-    assertThat(model.getTopNodesInSelectionRange(10).map { it.data.name }).containsExactly("1", "3")
+    assertThat(model.getTopNodesInSelectionRange(1).map { it.data.name }).containsExactly("3")
+    assertThat(model.getTopNodesInSelectionRange(10).map { it.data.name }).containsExactly("3", "1")
   }
 
   companion object {

@@ -47,15 +47,22 @@ public class VariantStub implements Variant {
    * @param buildType     the name of the build type.
    * @param fileStructure the file structure of the Gradle project this variant belongs to.
    */
-  VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+  public VariantStub(@NotNull String name,
+                     @NotNull String buildType,
+                     @NotNull FileStructure fileStructure,
+                     @NotNull AndroidArtifactStub mainArtifact) {
     myName = name;
     myBuildType = buildType;
-    myMainArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, buildType, fileStructure);
+    myMainArtifact = mainArtifact;
     myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_ANDROID_TEST, "androidTest/" + buildType,
                                                             buildType, fileStructure);
     myExtraAndroidArtifacts.add(myInstrumentationTestArtifact);
     myUnitTestArtifact = new JavaArtifactStub(AndroidProject.ARTIFACT_UNIT_TEST, "test/" + buildType, buildType, fileStructure);
     myExtraJavaArtifacts.add(myUnitTestArtifact);
+  }
+
+  VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+    this(name, buildType, fileStructure, new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, buildType, fileStructure));
   }
 
   @Override

@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.ddmlib.IDevice
+import com.android.emulator.control.KeyboardEvent
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
@@ -35,10 +36,8 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.ui.UiTestRule
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -50,12 +49,6 @@ import java.util.concurrent.TimeUnit
  */
 @RunsInEdt
 class EmulatorToolWindowManagerTest {
-  companion object {
-    @JvmField
-    @ClassRule
-    val uiRule = UiTestRule.uiRule
-  }
-
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private var nullableToolWindow: ToolWindow? = null
@@ -80,7 +73,7 @@ class EmulatorToolWindowManagerTest {
   }
 
   @Test
-  fun testEmulatorToolWindowManager() {
+  fun testTabManagement() {
     val factory = EmulatorToolWindowFactory()
     assertThat(factory.shouldBeAvailable(project)).isTrue()
     factory.createToolWindowContent(project, toolWindow)
@@ -88,14 +81,16 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root.toPath()
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555)
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
 
     // The Emulator tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
 
-    // Start the first emulator.
+    // Start the first and the second emulators.
     emulator1.start()
+    emulator2.start()
 
     // Send notification that the emulator has been launched.
     val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini").toFile(),
@@ -112,25 +107,30 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
 
-    emulator2.start()
+    // Start the third emulator.
+    emulator3.start()
 
     waitForCondition(3, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
 
     // The second emulator panel is added but the first one is still selected.
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator2.avdName)
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator3.avdName)
     assertThat(contentManager.contents[1].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[1].isSelected).isTrue()
 
-    val device = mock<IDevice>()
-    `when`(device.isEmulator).thenReturn(true)
-    `when`(device.serialNumber).thenReturn("emulator-${emulator2.serialPort}")
-    project.messageBus.syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, project)
+    for (emulator in listOf(emulator2, emulator3)) {
+      val device = mock<IDevice>()
+      `when`(device.isEmulator).thenReturn(true)
+      `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
+      project.messageBus.syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, project)
+    }
 
     // Deploying an app activates the corresponding emulator panel.
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].isSelected }
 
+    assertThat(contentManager.contents).hasLength(2)
+
     // Stop the second emulator.
-    emulator2.stop()
+    emulator3.stop()
 
     // The panel corresponding the the second emulator goes away.
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 }
@@ -146,6 +146,34 @@ class EmulatorToolWindowManagerTest {
     // The panel corresponding the the first emulator goes away and is replaced by the placeholder panel.
     assertThat(contentManager.contents.size).isEqualTo(1)
     assertThat(contentManager.contents[0].displayName).isEqualTo("No Running Emulators")
+  }
+
+  @Test
+  fun testEmulatorCrash() {
+    val factory = EmulatorToolWindowFactory()
+    assertThat(factory.shouldBeAvailable(project)).isTrue()
+    factory.createToolWindowContent(project, toolWindow)
+    val contentManager = toolWindow.contentManager
+    assertThat(contentManager.contents).isEmpty()
+
+    val tempFolder = emulatorRule.root.toPath()
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+
+    toolWindow.show()
+
+    // Start the emulator.
+    emulator.start()
+
+    val controllers = RunningEmulatorCatalog.getInstance().updateNow().get()
+    waitForCondition(3, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
+    assertThat(controllers).isNotEmpty()
+    waitForCondition(2, TimeUnit.SECONDS) { controllers.first().connectionState == EmulatorController.ConnectionState.CONNECTED }
+
+    // Simulate an emulator crash.
+    emulator.crash()
+    controllers.first().sendKey(KeyboardEvent.newBuilder().setText(" ").build())
+    waitForCondition(5, TimeUnit.SECONDS) { contentManager.contents[0].displayName == "No Running Emulators" }
   }
 
   private val FakeEmulator.avdName

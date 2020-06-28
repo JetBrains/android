@@ -90,7 +90,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
   protected static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.AndroidLintIdeClient");
 
   @NonNull protected Project myProject;
-  @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
   public AndroidLintIdeClient(@NonNull Project project, @NotNull LintResult lintResult) {
     super(project, lintResult);
@@ -211,7 +210,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Nullable
   public Revision getBuildToolsRevision(@NonNull com.android.tools.lint.detector.api.Project project) {
     if (project.isGradleProject()) {
-      Module module = getModule();
+      Module module = getModule(project);
       if (module != null) {
         AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
@@ -241,7 +240,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Override
   public boolean isGradleProject(@NotNull com.android.tools.lint.detector.api.Project project) {
-    Module module = getModule();
+    Module module = getModule(project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && AndroidModel.isRequired(facet);
@@ -334,7 +333,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NotNull
   @Override
   public Set<Desugaring> getDesugaring(@NotNull com.android.tools.lint.detector.api.Project project) {
-    Module module = getModule();
+    Module module = getModule(project);
     if (module == null) {
       return Desugaring.DEFAULT;
     }
@@ -355,12 +354,9 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NonNull
   @Override
   public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
-    Module module = myLintResult.getModule();
+    Module module = getModule(project);
     if (module == null) {
-      module = findModuleForLintProject(myProject, project);
-      if (module == null) {
-        return super.getResourceFolders(project);
-      }
+      return super.getResourceFolders(project);
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);

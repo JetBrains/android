@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.lint.AndroidLintMockLocationInspection
+import com.android.tools.idea.lint.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -42,7 +43,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     // Test that, in a test project which enables lintOptions.checkTestSources, warnings
     // are flagged in unit test sources. This ensures that we're properly syncing lint options
     // into the driver; b/139490306.
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_SAME_NAME_CLASSES)
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
     val file = myFixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
     myFixture.checkLint(file, AndroidLintSdCardPathInspection(), "/sd|card",
       """
@@ -57,7 +58,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
   fun testMockLocations() {
     // MOCK locations are okay in debug manifests; they're not okay in main manifests.
     // This tests that the Gradle builder model is properly passed through to lint.
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_SAME_NAME_CLASSES)
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
     val debug = myFixture.loadFile("app/src/debug/AndroidManifest.xml")
     myFixture.checkLint(debug, AndroidLintMockLocationInspection(), "android.permission.ACCESS_|MOCK_LOCATION",
@@ -73,6 +74,16 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
           Fix: Move to debug-specific manifest
           Fix: Suppress: Add tools:ignore="MockLocation" attribute
       """
+    )
+  }
+
+  fun testLibraryDesugaringInLibrary() {
+    // Regression test for https://issuetracker.google.com/158189490
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
+
+    val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/MyClass.kt")
+    myFixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow",
+                        "No warnings."
     )
   }
 }

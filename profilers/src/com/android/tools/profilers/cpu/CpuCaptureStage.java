@@ -416,7 +416,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
-      .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse it.")
+      .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse. " +
+                        "Shift+click to select multiple threads.")
       .setTrackSelectable(true)
       // For box selection
       .setRangeSelectionModel(new RangeSelectionModel(timeline.getSelectionRange(), timeline.getViewRange()))
