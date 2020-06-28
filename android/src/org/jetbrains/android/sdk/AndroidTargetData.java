@@ -51,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class AndroidTargetData {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidTargetData");
+  private static final Logger LOG = Logger.getInstance(AndroidTargetData.class);
 
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
@@ -258,7 +258,7 @@ public class AndroidTargetData {
     }
 
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
-                                                                                  // FIXME-ank3: false should be replaced with isLayoutLibStandard
+                                                                                  // FIXME-ank3: false should be replaced with isLayoutLibNative
                                                                                   false &&
                                                                                   myTarget instanceof CompatibilityRenderTarget,
                                                                                   languages);
