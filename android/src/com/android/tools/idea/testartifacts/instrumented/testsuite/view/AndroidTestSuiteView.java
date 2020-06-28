@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
@@ -37,6 +38,7 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -48,16 +50,17 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.ui.AppUIUtil;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SortedComboBoxModel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.paint.LinePainter2D;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -182,7 +185,14 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @VisibleForTesting TestFilterToggleAction mySkippedToggleButton;
   @VisibleForTesting TestFilterToggleAction myInProgressToggleButton;
 
-  private final ThreeComponentsSplitter myComponentsSplitter;
+  private static final String FAILED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myFailedToggleButton";
+  private static final String PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton";
+  private static final String SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton";
+  private static final String IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myInProgressToggleButton";
+
+  private final Project myProject;
+
+  private final JBSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
 
@@ -193,6 +203,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   /**
    * This method is invoked before the constructor by IntelliJ form editor runtime.
+   *
+   * @see <a href="https://www.jetbrains.com/help/idea/creating-form-initialization-code.html">Initialization Code</a>
    */
   private void createUIComponents() {
     myStatusSeparator = new MyItemSeparator();
@@ -200,13 +212,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDeviceFilterSeparator = new MyItemSeparator();
 
     myFailedToggleButton = new TestFilterToggleAction(
-      "Show failed tests", AndroidTestCaseResult.FAILED, true);
+      "Show failed tests", AndroidTestCaseResult.FAILED, FAILED_TOGGLE_BUTTON_STATE_KEY, true);
     myPassedToggleButton = new TestFilterToggleAction(
-      "Show passed tests", AndroidTestCaseResult.PASSED, true);
+      "Show passed tests", AndroidTestCaseResult.PASSED, PASSED_TOGGLE_BUTTON_STATE_KEY, true);
     mySkippedToggleButton = new TestFilterToggleAction(
-      "Show skipped tests", AndroidTestCaseResult.SKIPPED, true);
+      "Show skipped tests", AndroidTestCaseResult.SKIPPED, SKIPPED_TOGGLE_BUTTON_STATE_KEY, true);
     myInProgressToggleButton = new TestFilterToggleAction(
-      "Show running tests", AndroidTestCaseResult.IN_PROGRESS, true);
+      "Show running tests", AndroidTestCaseResult.IN_PROGRESS, IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY, true);
 
     myDeviceFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
     DeviceFilterComboBoxItem allDevicesItem = new DeviceFilterComboBoxItem(null);
@@ -231,6 +243,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project, @Nullable Module module) {
+    myProject = project;  // Note: this field assignment is called before createUIComponents().
+
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
@@ -248,6 +262,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     }
     myTable = new AndroidTestResultsTableView(this, JavaPsiFacade.getInstance(project), testArtifactSearchScopes);
     myTable.setRowFilter(testResults -> {
+      if (AndroidTestResultsKt.isRootAggregationResult(testResults)) {
+        return true;
+      }
       if (myFailedToggleButton.isSelected()
           && testResults.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
         return true;
@@ -292,13 +309,10 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
 
-    myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/false,
-                                                       /*onePixelDividers=*/true,
-                                                       parentDisposable);
-    myComponentsSplitter.setOpaque(false);
-    myComponentsSplitter.setMinSize(MIN_COMPONENT_SIZE_IN_SPLITTER);
+    myComponentsSplitter = new JBSplitter();
     myComponentsSplitter.setHonorComponentsMinimumSize(false);
-    Disposer.register(this, myComponentsSplitter);
+    myComponentsSplitter.setDividerWidth(1);
+    myComponentsSplitter.getDivider().setBackground(UIUtil.CONTRAST_BORDER_COLOR);
 
     myRootPanel.setMinimumSize(new Dimension());
     myComponentsSplitter.setFirstComponent(myRootPanel);
@@ -306,7 +320,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, this, project);
     myDetailsView.getRootPanel().setVisible(false);
     myDetailsView.getRootPanel().setMinimumSize(new Dimension());
-    myComponentsSplitter.setLastComponent(myDetailsView.getRootPanel());
+    myComponentsSplitter.setSecondComponent(myDetailsView.getRootPanel());
+
+    myTable.selectRootItem();
 
     updateProgress();
 
@@ -314,14 +330,19 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @VisibleForTesting class TestFilterToggleAction extends ToggleAction {
+    private final String myPropertiesComponentKey;
+    private final boolean myDefaultState;
     private boolean isSelected;
 
     TestFilterToggleAction(@NotNull String actionText,
                            @NotNull AndroidTestCaseResult testCaseResultToDisplay,
-                           boolean initialState) {
+                           @NotNull String propertiesComponentKey,
+                           boolean defaultState) {
       super(() -> actionText,
             AndroidTestResultsTableViewKt.getIconFor(testCaseResultToDisplay, false));
-      isSelected = initialState;
+      myPropertiesComponentKey = propertiesComponentKey;
+      myDefaultState = defaultState;
+      isSelected = PropertiesComponent.getInstance(myProject).getBoolean(propertiesComponentKey, defaultState);
     }
 
     @Override
@@ -336,11 +357,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     @Override
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
       isSelected = state;
+      PropertiesComponent.getInstance(myProject).setValue(myPropertiesComponentKey, isSelected, myDefaultState);
       myTable.refreshTable();
     }
 
     public void setSelected(boolean state) {
       isSelected = state;
+      PropertiesComponent.getInstance(myProject).setValue(myPropertiesComponentKey, isSelected, myDefaultState);
       myTable.refreshTable();
     }
   }
@@ -456,13 +479,12 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDetailsView.setAndroidTestResults(results);
     if (selectedDevice != null) {
       myDetailsView.selectDevice(selectedDevice);
+    } else if (AndroidTestResultsKt.isRootAggregationResult(results)) {
+      myDetailsView.selectRawOutput();
     }
 
     if (!myDetailsView.getRootPanel().isVisible()) {
       myDetailsView.getRootPanel().setVisible(true);
-
-      int componentSize = myComponentsSplitter.getOrientation() ? myComponentsSplitter.getHeight() : myComponentsSplitter.getWidth();
-      myComponentsSplitter.setFirstSize(componentSize/2);
     }
   }
 
@@ -486,56 +508,71 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @Override
-  public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) { }
+  public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) {
+    myDetailsView.getRawTestLogConsoleView().print(text, contentType);
+  }
 
   @Override
-  public void clear() { }
+  public void clear() {
+    myDetailsView.getRawTestLogConsoleView().clear();
+  }
 
   @Override
-  public void scrollTo(int offset) { }
+  public void scrollTo(int offset) {
+    myDetailsView.getRawTestLogConsoleView().scrollTo(offset);
+  }
 
   @Override
   public void attachToProcess(ProcessHandler processHandler) {
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this);
+    myDetailsView.getRawTestLogConsoleView().attachToProcess(processHandler);
   }
 
   @Override
-  public void setOutputPaused(boolean value) { }
+  public void setOutputPaused(boolean value) {
+    myDetailsView.getRawTestLogConsoleView().setOutputPaused(value);
+  }
 
   @Override
   public boolean isOutputPaused() {
-    return false;
+    return myDetailsView.getRawTestLogConsoleView().isOutputPaused();
   }
 
   @Override
   public boolean hasDeferredOutput() {
-    return false;
+    return myDetailsView.getRawTestLogConsoleView().hasDeferredOutput();
   }
 
   @Override
   public void performWhenNoDeferredOutput(@NotNull Runnable runnable) {
-    runnable.run();
+    myDetailsView.getRawTestLogConsoleView().performWhenNoDeferredOutput(runnable);
   }
 
   @Override
-  public void setHelpId(@NotNull String helpId) { }
+  public void setHelpId(@NotNull String helpId) {
+    myDetailsView.getRawTestLogConsoleView().setHelpId(helpId);
+  }
 
   @Override
-  public void addMessageFilter(@NotNull Filter filter) { }
+  public void addMessageFilter(@NotNull Filter filter) {
+    myDetailsView.getRawTestLogConsoleView().addMessageFilter(filter);
+  }
 
   @Override
-  public void printHyperlink(@NotNull String hyperlinkText, @Nullable HyperlinkInfo info) { }
+  public void printHyperlink(@NotNull String hyperlinkText, @Nullable HyperlinkInfo info) {
+    myDetailsView.getRawTestLogConsoleView().printHyperlink(hyperlinkText, info);
+  }
 
   @Override
   public int getContentSize() {
-    return 0;
+    return myDetailsView.getRawTestLogConsoleView().getContentSize();
   }
 
   @Override
   public boolean canPause() {
-    return false;
+    return myDetailsView.getRawTestLogConsoleView().canPause();
   }
 
   @NotNull
@@ -545,7 +582,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @Override
-  public void allowHeavyFilters() { }
+  public void allowHeavyFilters() {
+    myDetailsView.getRawTestLogConsoleView().allowHeavyFilters();
+  }
 
   @Override
   public JComponent getComponent() {

@@ -299,7 +299,7 @@ class EmulatorView(
     return connected && isPreferredSizeSet
   }
 
-  private val explicitlySetPreferredSize: Dimension?
+  internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 
   /**
@@ -388,8 +388,13 @@ class EmulatorView(
 
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
     val displayRect = this.displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
-    val normalizedX = (x * screenScale - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
-    val normalizedY = (y * screenScale - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
+    val physicalX = x * screenScale // Coordinate is physical screen pixels.
+    val physicalY = y * screenScale
+    if (!displayRect.contains(physicalX, physicalY)) {
+      return // Outside of the display rectangle.
+    }
+    val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
+    val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
     val deviceDisplayWidth = emulatorConfig.displayWidth
     val deviceDisplayHeight = emulatorConfig.displayHeight
     val displayX: Int
@@ -535,15 +540,11 @@ class EmulatorView(
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw display.
-    val image = if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
-      displayImage
-    }
-    else {
-      displayImage.getScaledInstance(displayRect.width, displayRect.height, Image.SCALE_SMOOTH)
-    }
     displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-    g.drawImage(image, displayTransform, null)
+    displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
+    g.drawImage(displayImage, displayTransform, null)
 
+    // Draw device frame and mask.
     skin.drawFrameAndMask(g, displayRect)
   }
 

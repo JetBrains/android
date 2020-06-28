@@ -1,6 +1,7 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.*;
@@ -26,7 +27,7 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
 
   @Override
   public String getHelpTopic() {
-    return "reference.dialogs.rundebug.AndroidRunConfigurationType";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html";
   }
 
   public class AndroidRunConfigurationFactory extends AndroidRunConfigurationFactoryBase {

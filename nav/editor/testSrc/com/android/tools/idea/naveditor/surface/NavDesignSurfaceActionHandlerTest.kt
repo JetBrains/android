@@ -50,7 +50,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val context = DataManagerImpl.MyDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
 
-    surface.selectionModel.setSelection(listOf(model.find("fragment2")))
+    surface.selectionModel.setSelection(listOf(model.find("fragment2")!!))
     assertTrue(handler.canDeleteElement(context))
 
     handler.deleteElement(context)
@@ -61,7 +61,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val root = model.find("root")!!
     assertNull(root.startDestination)
 
-    surface.selectionModel.setSelection(listOf(model.find("a3")))
+    surface.selectionModel.setSelection(listOf(model.find("a3")!!))
     handler.deleteElement(context)
     assertEquals(surface.selectionModel.selection, model.components)
   }
@@ -78,7 +78,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.model = model
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManagerImpl.MyDataContext(model.surface)
-    var nlComponent = model.find("fragment")
+    var nlComponent = model.find("fragment")!!
     val scene = surface.scene!!
     var sceneComponent = scene.getSceneComponent(nlComponent)!!
     sceneComponent.setPosition(123, 456)
@@ -113,7 +113,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)
 
-    nlComponent = model.find("fragment")
+    nlComponent = model.find("fragment")!!
     sceneComponent = scene.getSceneComponent(nlComponent)!!
 
     assertNotNull(nlComponent)
@@ -133,7 +133,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)
 
-    nlComponent = model.find("fragment")
+    nlComponent = model.find("fragment")!!
     sceneComponent = scene.getSceneComponent(nlComponent)!!
 
     assertNotNull(nlComponent)
@@ -157,12 +157,12 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     val root = model.components[0]
-    val subnav = model.find("subnav")
+    val subnav = model.find("subnav")!!
 
     assertEquals(root, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf())
     assertEquals(root, handler.pasteTarget)
-    val a1 = model.find("a1")
+    val a1 = model.find("a1")!!
     surface.selectionModel.setSelection(listOf(a1))
     assertEquals(a1, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf(subnav))
@@ -173,7 +173,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     assertEquals(subnav, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf(subnav))
     assertEquals(subnav, handler.pasteTarget)
-    val fragment3 = model.find("fragment3")
+    val fragment3 = model.find("fragment3")!!
     surface.selectionModel.setSelection(listOf(fragment3))
     assertEquals(fragment3, handler.pasteTarget)
   }

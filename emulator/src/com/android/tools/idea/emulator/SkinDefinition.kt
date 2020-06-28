@@ -67,8 +67,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     val frameWidth = -frameX + displayWidth + (rotatedFrameRect.right - rotatedDisplaySize.width).scaled(scaleX)
     val frameHeight = -frameY + displayHeight + (rotatedFrameRect.bottom - rotatedDisplaySize.height).scaled(scaleY)
     val frameRect = Rectangle(frameX, frameY, frameWidth, frameHeight)
-    val frameImages = layout.frameImages.map { it.rotatedAndScaled(displayRotation, scaleX, scaleY) }.toList()
-    val maskImages = layout.maskImages.map { it.rotatedAndScaled(displayRotation, scaleX, scaleY) }.toList()
+    val frameImages = layout.frameImages.mapNotNull { it.rotatedAndScaled(displayRotation, scaleX, scaleY) }.toList()
+    val maskImages = layout.maskImages.mapNotNull { it.rotatedAndScaled(displayRotation, scaleX, scaleY) }.toList()
     return SkinLayout(Dimension(displayWidth, displayHeight), frameRect, frameImages, maskImages)
   }
 

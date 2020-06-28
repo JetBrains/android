@@ -19,7 +19,6 @@ import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -35,25 +34,37 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.DisposableRule
+import org.junit.Before
+import org.junit.rules.TemporaryFolder
+import java.io.File
 
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ImportUtpResultActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
+  private val temporaryFolder = TemporaryFolder()
 
   @get:Rule
   val rules: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(EdtRule())
     .around(disposableRule)
+    .around(temporaryFolder)
     .around(RestoreFlagRule(StudioFlags.UTP_TEST_RESULT_SUPPORT))
 
   private val importUtpResultAction = ImportUtpResultAction()
+  private lateinit var utpProtoFile: File
+
+  @Before
+  fun setUp() {
+    utpProtoFile = temporaryFolder.newFile()
+  }
 
   @Test
   fun importUtpResults() {
-    importUtpResultAction.parseResultsAndDisplay("".byteInputStream(), disposableRule.disposable, projectRule.project)
+
+    importUtpResultAction.parseResultsAndDisplay(utpProtoFile, disposableRule.disposable, projectRule.project)
     val toolWindow = importUtpResultAction.getToolWindow(projectRule.project)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
   }
@@ -64,7 +75,7 @@ class ImportUtpResultActionTest {
     val toolWindow = ToolWindowManager.getInstance(projectRule.project)
       .getToolWindow(ImportUtpResultAction.IMPORTED_TEST_WINDOW_ID)
     assertThat(toolWindow).isNull()
-    importUtpResultAction.parseResultsAndDisplay("".byteInputStream(), disposableRule.disposable, projectRule.project)
+    importUtpResultAction.parseResultsAndDisplay(utpProtoFile, disposableRule.disposable, projectRule.project)
     val newToolWindow = importUtpResultAction.getToolWindow(projectRule.project)
     assertThat(newToolWindow.contentManager.contents).isNotEmpty()
   }

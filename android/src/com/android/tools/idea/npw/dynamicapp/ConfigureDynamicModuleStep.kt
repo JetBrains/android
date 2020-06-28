@@ -19,10 +19,12 @@ import com.android.AndroidProjectTypes
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
@@ -81,16 +83,27 @@ class ConfigureDynamicModuleStep(
       apiLevelCombo()
     }
 
-    row {
-      labelFor("Module title (this may be visible to users)", moduleTitle)
-      moduleTitle()
-    }.visible = model.isInstant
+    if (model.isInstant) {
+      row {
+        labelFor("Module title (this may be visible to users)", moduleTitle)
+        moduleTitle()
+      }
+    }
+
+    verticalGap()
 
     row {
       // TODO(qumeric): labelFor?
       fusingCheckbox()
     }
+
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      row {
+        gradleKtsCheck()
+      }
+    }
   }
+
   override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {

@@ -19,9 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.execution.Executor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -50,9 +47,8 @@ public class ClearLogcatTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(
-    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    clearLogcatAndConsole(myProject, device);
+  public LaunchResult run(@NotNull LaunchContext launchContext) {
+    clearLogcatAndConsole(myProject, launchContext.getDevice());
     return LaunchResult.success();
   }
 

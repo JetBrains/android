@@ -78,7 +78,17 @@ class DetailsViewContentViewTest {
     view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
     view.setAndroidDevice(device("device id", "device name"))
     assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font size='+1'></font><br><font color='#b81708'>Failed</font> on device name</html>")
+      "<html><font color='#b81708'>Failed</font> on device name</html>")
+  }
+
+  @Test
+  fun testResultLabelOnFailingWithErrorStackTrace() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
+    view.setAndroidDevice(device("device id", "device name"))
+    view.setErrorStackTrace("ErrorStackTrace")
+    assertThat(view.myTestResultLabel.text).isEqualTo(
+      "<html><font size='+1'>ErrorStackTrace</font><br><font color='#b81708'>Failed</font> on device name</html>")
   }
 
   @Test
@@ -87,6 +97,14 @@ class DetailsViewContentViewTest {
     view.setAndroidTestCaseResult(AndroidTestCaseResult.IN_PROGRESS)
     view.setAndroidDevice(device("device id", "device name"))
     assertThat(view.myTestResultLabel.text).isEqualTo("Running on device name")
+  }
+
+  @Test
+  fun testResultLabelNoTestStatus() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(null)
+    view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myTestResultLabel.text).isEqualTo("No test status available on device name")
   }
 
   @Test
@@ -106,6 +124,15 @@ class DetailsViewContentViewTest {
     view.setErrorStackTrace("error stack trace")
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\nerror stack trace")
+  }
+
+  @Test
+  fun logsViewWithNoMessage() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setLogcat("")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("No logcat output for this device.")
   }
 
   @Test

@@ -27,14 +27,20 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
-import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.*
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.RESOURCE
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.RESOURCE_GENERATED
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.SOURCE
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.SOURCE_GENERATED
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_GENERATED
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE_GENERATED
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 
 /**
  * Sets up all of the content entries for a given [DataNode] containing the [ModuleData]. We use the given
@@ -76,7 +82,7 @@ private fun collectContentRootData(
   androidModel: AndroidModuleModel,
   ndkModel: NdkModuleModel?,
   existingContentRoots: Collection<DataNode<ContentRootData>>?
-) : Collection<ContentRootData> {
+): Collection<ContentRootData> {
   val moduleRootPath = androidModel.rootDirPath.absolutePath
 
   // Attempt to reuse the main content root, we do this to reduce the work later when merging content roots in idea,
@@ -118,17 +124,6 @@ private fun collectContentRootData(
   // Process all of the unit test and Android test source providers for the selected variant.
   (androidModel.unitTestSourceProviders + androidModel.androidTestSourceProviders).forEach { sourceProvider ->
     sourceProvider.processAll(true, ::addSourceFolder)
-  }
-
-  // Deal with any NDK specific folders.
-  if (ndkModel != null) {
-    ndkModel.selectedVariant.sourceFolders.forEach {
-      addSourceFolder(it.absolutePath, SOURCE)
-    }
-
-    // Exclude .externalNativeBuild (b/72450552)
-    addSourceFolder(File(ndkModel.rootDirPath, ".externalNativeBuild").absolutePath, EXCLUDED)
-    addSourceFolder(File(ndkModel.rootDirPath, ".cxx").absolutePath, EXCLUDED)
   }
 
   return newContentRoots

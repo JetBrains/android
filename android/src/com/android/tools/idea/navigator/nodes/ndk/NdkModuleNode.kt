@@ -34,7 +34,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Queryable
 import com.intellij.openapi.util.text.StringUtil.trimEnd
 import com.intellij.openapi.util.text.StringUtil.trimStart
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.ArrayList
 
@@ -96,9 +95,6 @@ fun getNativeSourceNodes(project: Project,
 private fun getLibraryBasedNativeNodes(ndkModel: NdkModuleModel,
                                        project: Project,
                                        settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val nativeAndroidProject = ndkModel.androidProject
-  val sourceFileExtensions = nativeAndroidProject.fileExtensions.keys
-
   val variant = ndkModel.selectedVariant
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, NativeArtifact>()
   for (artifact in variant.artifacts) {
@@ -133,12 +129,10 @@ private fun getLibraryBasedNativeNodes(ndkModel: NdkModuleModel,
   for (key in nativeLibraries.keySet()) {
     val nativeLibraryType = key.type.displayText
     val nativeLibraryName = key.name
-    val fileSystem = LocalFileSystem.getInstance()
-    val buildFileFolder = fileSystem.findFileByIoFile(ndkModel.rootDirPath)
-    val node = NdkLibraryEnhancedHeadersNode(buildFileFolder!!, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(key),
+    val node = NdkLibraryEnhancedHeadersNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(key),
                                              NativeIncludes({ ndkModel.findSettings(it) },
-                                                            nativeLibraries.get(key)), settings,
-                                             sourceFileExtensions)
+                                                            nativeLibraries.get(key)), settings
+    )
     children.add(node)
   }
   return if (children.size == 1) {

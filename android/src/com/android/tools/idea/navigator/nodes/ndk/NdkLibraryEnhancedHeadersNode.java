@@ -16,6 +16,10 @@
 package com.android.tools.idea.navigator.nodes.ndk;
 
 
+import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
@@ -34,39 +38,31 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.*;
-
-import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-
 public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<NativeArtifact>> implements FolderGroupNode {
 
-  @NotNull private final VirtualFile myBuildFileFolder;
   @NotNull private final String myNativeLibraryName;
   @NotNull private final String myNativeLibraryType;
-  @NotNull private final Collection<String> mySourceFileExtensions;
   @NotNull private final NativeIncludes myNativeIncludes;
 
   @Nullable private VirtualFile myLibraryFolder;
 
-  public NdkLibraryEnhancedHeadersNode(@NotNull VirtualFile buildFileFolder,
-                                       @NotNull Project project,
+  public NdkLibraryEnhancedHeadersNode(@NotNull Project project,
                                        @NotNull String nativeLibraryName,
                                        @NotNull String nativeLibraryType,
                                        @NotNull Collection<NativeArtifact> artifacts,
                                        @NotNull NativeIncludes nativeIncludes,
-                                       @NotNull ViewSettings settings,
-                                       @NotNull Collection<String> sourceFileExtensions) {
+                                       @NotNull ViewSettings settings) {
     super(project, artifacts, settings);
-    myBuildFileFolder = buildFileFolder;
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
-    mySourceFileExtensions = sourceFileExtensions;
     myNativeIncludes = nativeIncludes;
   }
 
@@ -74,8 +70,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   private static Collection<AbstractTreeNode<?>> getSourceFolderNodes(
     @NotNull Project project,
     @NotNull Collection<NativeArtifact> artifacts,
-    @NotNull ViewSettings settings,
-    @NotNull Collection<String> sourceFileExtensions) {
+    @NotNull ViewSettings settings) {
     TreeMap<String, RootFolder> rootFolders = new TreeMap<>();
 
     for (NativeArtifact artifact : artifacts) {
@@ -238,11 +233,11 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
-    IncludesViewNode includesNode = new IncludesViewNode(myBuildFileFolder, getNotNullProject(), myNativeIncludes, getSettings());
+    IncludesViewNode includesNode = new IncludesViewNode(getNotNullProject(), myNativeIncludes, getSettings());
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     result.add(includesNode);
     Collection<AbstractTreeNode<?>> sourceFolderNodes =
-      getSourceFolderNodes(getNotNullProject(), getArtifacts(), getSettings(), mySourceFileExtensions);
+      getSourceFolderNodes(getNotNullProject(), getArtifacts(), getSettings());
     if (sourceFolderNodes.size() == 1) {
       AbstractTreeNode node = Iterables.getOnlyElement(sourceFolderNodes);
       assert node instanceof NdkSourceFolderNode;
@@ -303,24 +298,6 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return myNativeLibraryName + (myNativeLibraryType.isEmpty() ? "" : " (" + myNativeLibraryType + ")");
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    NdkLibraryEnhancedHeadersNode that = (NdkLibraryEnhancedHeadersNode)o;
-    return Objects.equals(myBuildFileFolder, that.myBuildFileFolder)
-           && Objects.equals(myNativeLibraryName, that.myNativeLibraryName);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myBuildFileFolder, myNativeLibraryName);
   }
 
   @Override

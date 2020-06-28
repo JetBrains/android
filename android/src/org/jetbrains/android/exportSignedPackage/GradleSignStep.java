@@ -17,7 +17,7 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
@@ -176,7 +176,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public String getHelpId() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/app-signing";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/app-signing";
   }
 
   @Override

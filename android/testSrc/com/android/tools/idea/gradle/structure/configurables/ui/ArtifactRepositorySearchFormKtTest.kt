@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.structure.ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES
-import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsVariables
 import com.android.tools.idea.gradle.structure.model.android.asParsed
@@ -34,7 +34,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 @RunsInEdt
-class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
+class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
 
   private val foundArtifact = FoundArtifact(
     "repository", "org.example.group.id", "artifact-name", listOf(GradleVersion(1, 0), GradleVersion(1, 1), GradleVersion(2, 0)))

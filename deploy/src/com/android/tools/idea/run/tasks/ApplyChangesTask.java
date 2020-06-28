@@ -33,8 +33,8 @@ public class ApplyChangesTask extends AbstractDeployTask {
 
   public ApplyChangesTask(@NotNull Project project,
                           @NotNull Map<String, List<File>> packages,
-                          boolean fallback) {
-    super(project, packages, fallback);
+                          boolean rerunOnSwapFailure) {
+    super(project, packages, rerunOnSwapFailure);
   }
 
   @NotNull
@@ -53,9 +53,16 @@ public class ApplyChangesTask extends AbstractDeployTask {
   @Override
   public String getFailureTitle() { return "Changes were not applied."; }
 
+  @Override
+  protected boolean shouldTaskLaunchApp() {
+    return false;
+  }
 
   @Override
-  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected Deployer.Result perform(IDevice device,
+                                    Deployer deployer,
+                                    String applicationId,
+                                    List<File> files) throws DeployerException {
     LOG.info("Applying changes to application: " + applicationId);
     return deployer.fullSwap(getPathsToInstall(files));
   }

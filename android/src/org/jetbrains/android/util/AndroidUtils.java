@@ -54,6 +54,7 @@ import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -71,7 +72,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -233,7 +233,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     final List<String> packages = new ArrayList<>();
     file = file.getParent();
 
-    while (file != null && !Comparing.equal(projectDir, file) && !sourceRoots.contains(file)) {
+    while (file != null && !Objects.equals(projectDir, file) && !sourceRoots.contains(file)) {
       packages.add(file.getName());
       file = file.getParent();
     }
@@ -782,7 +782,8 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
-    Notifications.Bus.notify(new Notification(AndroidBundle.message("android.facet.importing.notification.group"),
+    Notifications.Bus.notify(new Notification(NotificationGroup.createIdWithTitle(
+      "Importing Error", AndroidBundle.message("android.facet.importing.notification.group")),
                                               AndroidBundle.message("android.facet.importing.title", modName),
                                               message, NotificationType.ERROR, listener), project);
     LOG.debug(message);

@@ -30,6 +30,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.progress.CompilerTask;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -51,7 +52,6 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
@@ -188,7 +188,7 @@ public class AndroidCompileUtil {
     }
 
     for (Map.Entry<VirtualFile, VirtualFile> entry : presentableFilesMap.entrySet()) {
-      if (Comparing.equal(file, entry.getValue())) {
+      if (Objects.equals(file, entry.getValue())) {
         return entry.getKey().getUrl();
       }
     }
@@ -198,7 +198,7 @@ public class AndroidCompileUtil {
   private static void collectChildrenRecursively(@NotNull VirtualFile root,
                                                  @NotNull VirtualFile anchor,
                                                  @NotNull Collection<VirtualFile> result) {
-    if (Comparing.equal(root, anchor)) {
+    if (Objects.equals(root, anchor)) {
       return;
     }
 
@@ -207,11 +207,11 @@ public class AndroidCompileUtil {
       return;
     }
     for (VirtualFile child : parent.getChildren()) {
-      if (!Comparing.equal(child, anchor)) {
+      if (!Objects.equals(child, anchor)) {
         result.add(child);
       }
     }
-    if (!Comparing.equal(parent, root)) {
+    if (!Objects.equals(parent, root)) {
       collectChildrenRecursively(root, parent, result);
     }
   }
@@ -283,7 +283,7 @@ public class AndroidCompileUtil {
       boolean markedAsSource = false;
 
       for (VirtualFile existingRoot : model.getSourceRoots()) {
-        if (Comparing.equal(existingRoot, root)) {
+        if (Objects.equals(existingRoot, root)) {
           markedAsSource = true;
           break;
         }
@@ -325,7 +325,7 @@ public class AndroidCompileUtil {
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
     for (ExcludeEntryDescription description : configuration.getExcludeEntryDescriptions()) {
-      if (Comparing.equal(description.getUrl(), url)) {
+      if (Objects.equals(description.getUrl(), url)) {
         return;
       }
     }
@@ -337,7 +337,7 @@ public class AndroidCompileUtil {
       CompilerConfiguration.getInstance(project).getExcludedEntriesConfiguration();
 
     for (ExcludeEntryDescription description : configuration.getExcludeEntryDescriptions()) {
-      if (Comparing.equal(description.getVirtualFile(), dir)) {
+      if (Objects.equals(description.getVirtualFile(), dir)) {
         return;
       }
     }
@@ -394,7 +394,7 @@ public class AndroidCompileUtil {
                              "' as source root, because it is not located under content root of module '" +
                              model.getModule().getName() + "'\n<a href='fix'>Open Project Structure</a>";
       final Notification notification = new Notification(
-        AndroidBundle.message("android.autogeneration.notification.group"),
+        NotificationGroup.createIdWithTitle("Android Autogeneration", AndroidBundle.message("android.autogeneration.notification.group")),
         "Autogeneration Error", message, NotificationType.ERROR,
         new NotificationListener.Adapter() {
           @Override
@@ -497,7 +497,7 @@ public class AndroidCompileUtil {
       PsiFile psiFile = c.getContainingFile();
       if (className.equals(FileUtil.getNameWithoutExtension(psiFile.getName()))) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
-        if (virtualFile != null && Comparing.equal(projectFileIndex.getSourceRootForFile(virtualFile), sourceRoot)) {
+        if (virtualFile != null && Objects.equals(projectFileIndex.getSourceRootForFile(virtualFile), sourceRoot)) {
           final String path = virtualFile.getPath();
           final File f = new File(path);
 
@@ -681,7 +681,7 @@ public class AndroidCompileUtil {
 
     for (ExcludeEntryDescription description : descriptions) {
       final VirtualFile vFile = description.getVirtualFile();
-      if (!Comparing.equal(vFile, AndroidRootUtil.getAaptGenDir(facet))) {
+      if (!Objects.equals(vFile, AndroidRootUtil.getAaptGenDir(facet))) {
         configuration.addExcludeEntryDescription(description);
       }
     }

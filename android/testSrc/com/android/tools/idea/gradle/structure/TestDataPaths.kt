@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure
 
-import com.android.tools.idea.gradle.structure.GradleFileModelTestCase.TestFileName
+import com.android.tools.idea.gradle.GradleFileModelTestCase.TestFileName
 
 val ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES = TestFileName("artifactRepositorySearchFormKt/prepareArtifactVersionChoices")
 val MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES = TestFileName("modelListPropertyImpl/propertyValues")

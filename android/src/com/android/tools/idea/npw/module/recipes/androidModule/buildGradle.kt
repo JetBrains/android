@@ -73,7 +73,7 @@ $androidConfigBlock
 dependencies {
     implementation project("${baseFeatureName}")
 }
-"""
+""".gradleToKtsIfKts(isKts)
   }
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
@@ -109,29 +109,7 @@ dependencies {
     $dependenciesBlock
     """
 
-  return if (isKts) {
-    allBlocks
-      .split("\n").joinToString("\n") {
-        it.replace("'", "\"")
-          .toKtsFunction("compileSdkVersion")
-          .toKtsProperty("buildToolsVersion")
-          .toKtsProperty("applicationId")
-          .toKtsFunction("minSdkVersion")
-          .toKtsFunction("targetSdkVersion")
-          .toKtsProperty("versionCode")
-          .toKtsProperty("versionName")
-          .toKtsProperty("testInstrumentationRunner")
-          .toKtsProperty("minifyEnabled")
-          .toKtsFunction("proguardFiles")
-          .toKtsFunction("consumerProguardFiles")
-          .toKtsFunction("wearApp")
-          .replace("minifyEnabled", "isMinifyEnabled")
-          .replace("release {", "getByName(\"release\") {")
-      }
-  }
-  else {
-    allBlocks
-  }
+  return allBlocks.gradleToKtsIfKts(isKts)
 }
 
 private fun String.toKtsFunction(funcName: String): String = if (this.contains("$funcName ")) {
@@ -143,3 +121,27 @@ else {
 
 private fun String.toKtsProperty(funcName: String): String = this.replace("$funcName ", "$funcName = ")
 
+internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
+  split("\n").joinToString("\n") {
+    it.replace("'", "\"")
+      .toKtsFunction("compileSdkVersion")
+      .toKtsProperty("buildToolsVersion")
+      .toKtsProperty("applicationId")
+      .toKtsFunction("minSdkVersion")
+      .toKtsFunction("targetSdkVersion")
+      .toKtsProperty("versionCode")
+      .toKtsProperty("versionName")
+      .toKtsProperty("testInstrumentationRunner")
+      .toKtsProperty("minifyEnabled")
+      .toKtsFunction("proguardFiles")
+      .toKtsFunction("consumerProguardFiles")
+      .toKtsFunction("wearApp")
+      .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))
+      .replace("minifyEnabled", "isMinifyEnabled")
+      .replace("release {", "getByName(\"release\") {")
+      .replace("debug {", "getByName(\"debug\") {")
+  }
+}
+else {
+  this
+}

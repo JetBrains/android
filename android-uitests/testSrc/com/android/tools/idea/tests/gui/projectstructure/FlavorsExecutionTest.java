@@ -130,7 +130,7 @@ public class FlavorsExecutionTest {
 
     ideFrameFixture
       .getBuildVariantsWindow()
-      .selectVariantForModule("app", "flavor1Debug");
+      .selectVariantForModule("SimpleFlavoredApplication.app", "flavor1Debug");
 
     ideFrameFixture.runApp("app", "Google Nexus 5X");
 
@@ -144,16 +144,7 @@ public class FlavorsExecutionTest {
       .selectProcess(PROCESS_NAME);
 
     BuildVariantsToolWindowFixture buildVariantsWindow = ideFrameFixture.getBuildVariantsWindow();
-    try {
-      buildVariantsWindow.selectVariantForModule("app", "flavor2Debug");
-    } catch (NullPointerException ignore) {
-      // TODO: http://b/130568400
-      // When the build variant is changed, the table is immediately emptied and rebuilt. This causes
-      // the BuildVariantsToolWindowFixture to fail during cell editing by throwing an NPE.
-      // This is not a critical error in a critical user journey test, so we ignore this error.
-      // Fixing this issue by rewriting BuildVariantsToolWindowFixture is a larger task that
-      // requires more free time than currently available.
-    }
+    buildVariantsWindow.selectVariantForModule("SimpleFlavoredApplication.app", "flavor2Debug");
     guiTest.waitForBackgroundTasks();
 
     ideFrameFixture.runApp("app", "Google Nexus 5X");

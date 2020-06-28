@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
@@ -166,7 +166,7 @@ class ResourceExplorer private constructor(
 
   override fun getData(dataId: String): Any? =
     when (dataId) {
-      PlatformDataKeys.HELP_ID.name -> STUDIO_HELP_PREFIX + "studio/write/resource-manager"
+      PlatformDataKeys.HELP_ID.name -> AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
       else -> null
     }
 

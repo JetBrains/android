@@ -25,7 +25,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,6 +40,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -168,7 +168,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
       List<AndroidAutogeneratorMode> modes = new ArrayList<>();
 
-      if (Comparing.equal(manifestFile, file)) {
+      if (Objects.equals(manifestFile, file)) {
         Manifest manifest = Manifest.getMainManifest(facet);
         String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
         String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
@@ -183,13 +183,13 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       }
       else if (file.getFileType() == AidlFileType.INSTANCE) {
         VirtualFile sourceRoot = findSourceRoot(module, file);
-        if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getAidlGenDir(facet), sourceRoot)) {
+        if (sourceRoot != null && !Objects.equals(AndroidRootUtil.getAidlGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.AIDL);
         }
       }
       else if (file.getFileType() == AndroidRenderscriptFileType.INSTANCE) {
         VirtualFile sourceRoot = findSourceRoot(module, file);
-        if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getRenderscriptGenDir(facet), sourceRoot)) {
+        if (sourceRoot != null && !Objects.equals(AndroidRootUtil.getRenderscriptGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.RENDERSCRIPT);
         }
       }

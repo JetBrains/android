@@ -28,7 +28,6 @@ import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -386,7 +385,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     PsiFile file = psiClass.getContainingFile();
     if (file instanceof PsiClassOwner) {
       PsiClassOwner psiFile = (PsiClassOwner)file;
-      if (Comparing.equal(psiFile.getPackageName(), basePackageName)) {
+      if (Objects.equals(psiFile.getPackageName(), basePackageName)) {
         String name = getName(psiClass);
         if (name != null) {
           final String dottedName = '.' + name;

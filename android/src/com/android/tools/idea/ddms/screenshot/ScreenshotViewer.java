@@ -22,11 +22,12 @@ import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.device.DeviceArtDescriptor;
 import com.android.tools.idea.device.DeviceArtPainter;
-import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -176,7 +177,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
       else if (actionEvent.getSource() == myCopyButton) {
         CopyPasteManager.getInstance().setContents(new ImageTransferable(myImageFileEditor.getImageEditor().getDocument().getValue()));
-        Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.screenshot"),
+        Notifications.Bus.notify(new Notification(NotificationGroup.createIdWithTitle("Screen Capture", AndroidBundle.message("android.ddms.actions.screenshot")),
                                                   AndroidBundle.message("android.ddms.actions.screenshot"),
                                                   AndroidBundle.message("android.ddms.actions.screenshot.copied.to.clipboard"),
                                                   NotificationType.INFORMATION), myProject);
@@ -456,7 +457,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @Nullable
   @Override
   protected String getHelpId() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/am-screenshot.html";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/am-screenshot.html";
   }
 
   @Override

@@ -21,21 +21,15 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.mock.MockDumbService;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
@@ -78,7 +72,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
     Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
     assertNull(refreshExternalNativeModels);
   }
@@ -90,7 +84,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
     Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
     assertTrue(refreshExternalNativeModels);
   }
@@ -126,7 +120,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.FAILED, type);
-    assertInstanceOf(createPanel(type), IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(createPanel(type), ProjectSyncStatusNotificationProvider.SyncProblemNotificationPanel.class);
   }
 
   public void testProjectStructureNotificationPanelType() {
@@ -154,70 +148,10 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
   }
 
   private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
-    // Disposing logic similar to the ProjectSyncStatusNotificationProvider.createNotificationPanel method.
-    if (panel instanceof Disposable) {
-      Disposer.register(getTestRootDisposable(), (Disposable)panel);
-    }
-    return panel;
-  }
-
-  public void testIndexingSensitiveNotificationPanel() {
-    OurMockDumbService dumbService = new OurMockDumbService(myProject);
-
-    dumbService.setDumb(true);
-    IndexingSensitiveNotificationPanel initiallyInvisibleNotificationPanel =
-        new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
-    Disposer.register(getTestRootDisposable(), initiallyInvisibleNotificationPanel);
-    assertFalse(initiallyInvisibleNotificationPanel.isVisible());
-
-    dumbService.setDumb(false);
-    IndexingSensitiveNotificationPanel notificationPanel =
-        new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
-    Disposer.register(getTestRootDisposable(), notificationPanel);
-    assertTrue(notificationPanel.isVisible());
-
-    dumbService.setDumb(true);
-    assertFalse(notificationPanel.isVisible());
-    dumbService.setDumb(false);
-    assertTrue(notificationPanel.isVisible());
-
-    // Must dispose the message bus connection
-    Disposer.dispose(notificationPanel);
-    dumbService.setDumb(true);
-    assertTrue(notificationPanel.isVisible());
-    dumbService.setDumb(false);
-    assertTrue(notificationPanel.isVisible());
-  }
-
-  private static class OurMockDumbService extends MockDumbService {
-    private boolean myDumb;
-    private DumbModeListener myPublisher;
-
-    OurMockDumbService(@NotNull Project project) {
-      super(project);
-      myDumb = false;
-      myPublisher = project.getMessageBus().syncPublisher(DUMB_MODE);
-    }
-
-    public void setDumb(boolean dumb) {
-      if (dumb) {
-        myDumb = true;
-        myPublisher.enteredDumbMode();
-      }
-      else {
-        myDumb = false;
-        myPublisher.exitDumbMode();
-      }
-    }
-
-    @Override
-    public boolean isDumb() {
-      return myDumb;
-    }
+    return type.create(myProject, myFile, myProjectInfo);
   }
 }

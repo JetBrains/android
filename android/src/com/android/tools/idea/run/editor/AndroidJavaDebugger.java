@@ -158,7 +158,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
           }
         };
         // Add the handler first, then check, as to avoid race condition where process terminates between checking then adding.
-        handler.addProcessListener(processAdapter, project);
+        handler.addProcessListener(processAdapter);
         if (handler.isProcessTerminated()) {
           handler.removeProcessListener(processAdapter);
           notifier.notifyClient();

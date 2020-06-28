@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 class AndroidDataSource extends LocalDataSource implements ModificationTracker {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSource");
@@ -153,12 +154,12 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
   @Override
   public boolean equalConfiguration(@NotNull LocalDataSource o) {
     if (!(o instanceof AndroidDataSource)) return super.equalConfiguration(o);
-    if (!Comparing.equal(getComment(), o.getComment())) return false;
+    if (!Objects.equals(getComment(), o.getComment())) return false;
 
     State s = ((AndroidDataSource)o).getState();
-    if (!Comparing.equal(myState.deviceId, s.deviceId)) return false;
-    if (!Comparing.equal(myState.packageName, s.packageName)) return false;
-    if (!Comparing.equal(myState.databaseName, s.databaseName)) return false;
+    if (!Objects.equals(myState.deviceId, s.deviceId)) return false;
+    if (!Objects.equals(myState.packageName, s.packageName)) return false;
+    if (!Objects.equals(myState.databaseName, s.databaseName)) return false;
     if (!Comparing.equal(myState.external, s.external)) return false;
 
     return true;

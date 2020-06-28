@@ -81,6 +81,20 @@ class DetailsViewDeviceSelectorListViewTest {
     verify(mockListener).onDeviceSelected(eq(device1))
   }
 
+  @Test
+  fun selectRawOutputItem() {
+    val view = DetailsViewDeviceSelectorListView(mockListener)
+    val device = device(id = "device id", name = "device name")
+
+    view.addDevice(device)
+    view.selectRawOutputItem()
+
+    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(2)
+    assertThat(view.deviceListForTesting.model.getElementAt(0)).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
+    assertThat(view.deviceListForTesting.model.getElementAt(1)).isEqualTo(device)
+    assertThat(view.deviceListForTesting.selectedValue).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
+  }
+
   private fun device(id: String, name: String): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
   }

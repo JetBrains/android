@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.android.tools.idea.wizard.template.Language.Java
@@ -60,6 +61,7 @@ class AddBenchmarkModuleTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Java)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
@@ -108,6 +110,7 @@ class AddBenchmarkModuleTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Kotlin)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()

@@ -42,7 +42,6 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     get() = property.value.orEmpty()
     set(value) {
       property.value = if (value.isEmpty()) null else value
-      refresh()
     }
 
   override var visible = true

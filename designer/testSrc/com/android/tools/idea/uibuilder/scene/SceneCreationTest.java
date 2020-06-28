@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -101,7 +102,7 @@ public class SceneCreationTest extends SceneTest {
     DesignSurface surface = spy(surfaceNoSpy);
     Disposer.register(surfaceNoSpy, surface); // When real object is disposed, dispose the spy and its registered children
 
-    SelectionModel selectionModel = spy(new SelectionModel());
+    SelectionModel selectionModel = spy(new DefaultSelectionModel());
     when(surface.getSelectionModel()).thenReturn(selectionModel);
 
     // Create a sample model

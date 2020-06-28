@@ -22,12 +22,13 @@ import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertTagName;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.common.analytics.CommonUsageTrackerKt;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.analytics.CommonUsageTrackerImpl;
+import com.android.tools.idea.common.analytics.CommonUsageTrackerKt;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -85,8 +86,11 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
       myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
     }
     else {
+      final String applicationId = CommonUsageTrackerKt.getApplicationId(surface.getModel().getFacet());
       Consumer<AndroidStudioEvent.Builder> builder = delegatingBuilder -> {
-        CommonUsageTrackerKt.setApplicationId(delegatingBuilder, surface.getModel().getFacet());
+        if (applicationId != null) {
+          delegatingBuilder.setRawProjectId(applicationId).setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId));
+        }
         eventLogger.accept(delegatingBuilder);
       };
       myCommonTracker = new CommonUsageTrackerImpl(executor, surface, builder);

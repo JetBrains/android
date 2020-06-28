@@ -27,11 +27,13 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.deployment.ModifyDeviceSetAction;
+import com.android.tools.idea.run.deployment.MultipleDevicesAction;
+import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
-import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
@@ -43,7 +45,6 @@ import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -52,7 +53,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.PreloadingActivity;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -70,8 +70,10 @@ import java.io.File;
 import java.util.Arrays;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -103,11 +105,14 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     setupAnalytics();
     disableIdeaJUnitConfigurations(actionManager);
+    disableKaptImportHandlers();
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
       tweakDefaultColorScheme();
     }
+
+    setUpDeviceComboBoxActions(actionManager);
   }
 
   private static void tweakDefaultColorScheme() {
@@ -117,6 +122,16 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+  }
+
+  private static void setUpDeviceComboBoxActions(@NotNull ActionManager manager) {
+    if (StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get()) {
+      Actions.hideAction(manager, MultipleDevicesAction.ID);
+      Actions.hideAction(manager, ModifyDeviceSetAction.ID);
+    }
+    else {
+      Actions.hideAction(manager, RunOnMultipleDevicesAction.ID);
+    }
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
@@ -260,6 +275,11 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
     }
+  }
+
+  private static void disableKaptImportHandlers() {
+    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint(null);
+    resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
   }
 
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType

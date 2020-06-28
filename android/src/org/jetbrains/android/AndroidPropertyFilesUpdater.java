@@ -23,7 +23,6 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -40,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import javax.swing.event.HyperlinkEvent;
@@ -225,7 +225,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
       facet.getProperties().ENABLE_PRE_DEXING);
     final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
 
-    if (state == null || !Comparing.equal(state, newState)) {
+    if (state == null || !Objects.equals(state, newState)) {
       updateTargetProperty(facet, projectProperties, changes);
       updateProjectTypeProperty(facet, projectProperties, changes);
       updateManifestMergerProperty(facet, projectProperties, changes);
@@ -322,7 +322,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
         });
       }
       else {
-        if (!Comparing.equal(property.getValue(), targetPropertyValue)) {
+        if (!Objects.equals(property.getValue(), targetPropertyValue)) {
           final PsiElement element = property.getPsiElement();
           if (element != null) {
             changes.add(new Runnable() {

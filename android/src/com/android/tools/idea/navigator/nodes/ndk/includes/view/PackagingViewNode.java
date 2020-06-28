@@ -16,9 +16,11 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
 
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
-import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.google.common.collect.ImmutableList;
@@ -30,32 +32,22 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-
-/**
- * Presents a view over PackagingExpression. For example,
- *
- * CDep <- parent packaging family
- * protobuf <- this class
- */
+/** Presents a view over {@link PackageValue}. See the class doc of {@link PackageValue} for more details. */
 public class PackagingViewNode extends IncludeViewNode<PackageValue> {
-  protected PackagingViewNode(@NotNull VirtualFile buildFileFolder,
-                              @NotNull IncludeSet includeFolders,
+  protected PackagingViewNode(@NotNull Collection<File> includeFolders,
                               @Nullable Project project,
                               @NotNull PackageValue dependency,
                               @NotNull ViewSettings viewSettings,
                               boolean showPackageType) {
-    super(buildFileFolder, dependency, includeFolders, showPackageType, project, viewSettings);
+    super(dependency, includeFolders, showPackageType, project, viewSettings);
   }
 
   @NotNull
@@ -76,7 +68,7 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
     List<File> folders = new ArrayList<>();
     List<SimpleIncludeValue> result = new ArrayList<>();
     PackageValue value = getPackageValue();
-    for (File folder : myIncludeFolders.getIncludesInOrder()) {
+    for (File folder : myIncludeFolders) {
       for (SimpleIncludeValue simpleIncludeValue : value.getIncludes()) {
         if (FileUtil.filesEqual(simpleIncludeValue.getIncludeFolder(), folder)) {
           result.add(simpleIncludeValue);

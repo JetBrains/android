@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.validator.ClassNameValidator
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.intellij.ui.components.JBTextField
@@ -57,7 +58,7 @@ class ConfigureLibraryModuleStep(
       languageCombo()
     }
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
-      row { Label("")()} // Vertical spacer
+      verticalGap()
 
       row {
         gradleKtsCheck()

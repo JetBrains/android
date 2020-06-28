@@ -45,6 +45,11 @@ private const val defaultTraceMethods = "# GRADLE\n" +
                                         "Trace: org.gradle.api.internal.artifacts.configurations.DefaultConfiguration\$ConfigurationArtifactCollection\n" +
                                         "Trace: org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter::execute\n" +
                                         "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
+                                        "Trace: org.jetbrains.kotlin.gradle.model.builder.KotlinModelBuilder\n" +
+                                        "Trace: org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService\n" +
+                                        "Trace: org.jetbrains.plugins.gradle.tooling.internal.ExtraModelBuilder\n" +
+                                        "Trace: org.jetbrains.kotlin.gradle.KotlinGradleModelBuilder\n" +
+                                        "Trace: org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder\n" +
                                         "\n" +
                                         "# IDEA\n" +
                                         "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncFailed\n" +

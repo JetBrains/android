@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 
+import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.ide.common.repository.GradleVersion
@@ -37,9 +38,10 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   dynamicFeatureTitle: String,
   fusing: Boolean,
   downloadInstallKind: DownloadInstallKind,
-  deviceFeatures: Collection<DeviceFeatureModel>
+  deviceFeatures: Collection<DeviceFeatureModel>,
+  useGradleKts: Boolean
 ) {
-  val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = moduleData
+  val (projectData, srcOut, _, manifestOut, testOut, unitTestOut, _, moduleOut) = moduleData
   val apis = moduleData.apis
   val (buildApi, targetApi,  minApi, appCompatVersion) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
@@ -57,21 +59,21 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   createDefaultDirectories(moduleOut, srcOut)
   addIncludeToSettings(name)
 
-  val buildToolsVersion = projectData.buildToolsVersion
+  val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
   save(buildGradle(
-    false, // TODO(qumeric): change it
+    useGradleKts,
     false,
     true,
     packageName,
     buildApi.apiString,
-    buildToolsVersion,
+    projectData.buildToolsVersion,
     minApi.apiString,
     targetApi.apiString,
     useAndroidX,
     agpVersion,
     baseFeatureName = baseFeature.name,
     formFactorNames = projectData.includedFormFactorNames
-  ), moduleOut.resolve(FN_BUILD_GRADLE))
+  ), moduleOut.resolve(buildFile))
 
   applyPlugin("com.android.dynamic-feature")
   addKotlinIfNeeded(projectData)

@@ -134,7 +134,7 @@ public class DetailsViewContentView {
     myDeviceInfoTableView.setAndroidDevice(androidDevice);
   }
 
-  public void setAndroidTestCaseResult(@NotNull AndroidTestCaseResult result) {
+  public void setAndroidTestCaseResult(@Nullable AndroidTestCaseResult result) {
     myAndroidTestCaseResult = result;
     refreshTestResultLabel();
   }
@@ -167,7 +167,12 @@ public class DetailsViewContentView {
   }
 
   private void refreshTestResultLabel() {
-    if (myAndroidTestCaseResult == null || myAndroidDevice == null) {
+    if (myAndroidDevice == null) {
+      myTestResultLabel.setText("No test status available");
+      return;
+    }
+    if (myAndroidTestCaseResult == null) {
+      myTestResultLabel.setText("No test status available on " + AndroidDeviceKt.getName(myAndroidDevice));
       return;
     }
     if (myAndroidTestCaseResult.isTerminalState()) {
@@ -184,14 +189,24 @@ public class DetailsViewContentView {
             AndroidDeviceKt.getName(myAndroidDevice)));
           break;
 
-        case FAILED:
-          myTestResultLabel.setText(String.format(
-            Locale.US,
-            "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
-            Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse(""),
-            ColorUtil.toHtmlColor(statusColor),
-            AndroidDeviceKt.getName(myAndroidDevice)));
+        case FAILED: {
+          String errorMessage = Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse("");
+          if (StringUtil.isEmptyOrSpaces(errorMessage)) {
+            myTestResultLabel.setText(String.format(
+              Locale.US,
+              "<html><font color='%s'>Failed</font> on %s</html>",
+              ColorUtil.toHtmlColor(statusColor),
+              AndroidDeviceKt.getName(myAndroidDevice)));
+          } else {
+            myTestResultLabel.setText(String.format(
+              Locale.US,
+              "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
+              errorMessage,
+              ColorUtil.toHtmlColor(statusColor),
+              AndroidDeviceKt.getName(myAndroidDevice)));
+          }
           break;
+        }
 
         case SKIPPED:
           myTestResultLabel.setText(String.format(
@@ -212,6 +227,10 @@ public class DetailsViewContentView {
 
   private void refreshLogsView() {
     myLogsView.clear();
+    if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
+      myLogsView.print("No logcat output for this device.", ConsoleViewContentType.NORMAL_OUTPUT);
+      return;
+    }
     myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT);
     myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT);
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT);

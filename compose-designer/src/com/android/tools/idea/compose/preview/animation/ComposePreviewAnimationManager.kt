@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.UIUtil
 
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
 
@@ -56,7 +57,9 @@ object ComposePreviewAnimationManager {
   fun onAnimationSubscribed(clock: Any?, animation: Any) {
     currentInspector?.takeIf { it.clock != clock }?.let { it.clock = clock }
     if (subscribedAnimations.add(animation)) {
-      // TODO(b/157895086): add animation as a tab in the animation inspector
+      UIUtil.invokeLaterIfNeeded {
+        currentInspector?.addTab(animation)
+      }
     }
   }
 
@@ -64,9 +67,10 @@ object ComposePreviewAnimationManager {
    * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationInspectorPanel].
    */
   fun onAnimationUnsubscribed(animation: Any) {
-    subscribedAnimations.remove(animation)
     if (subscribedAnimations.remove(animation)) {
-      // TODO(b/157895086): remove animation tab in the animation inspector
+      UIUtil.invokeLaterIfNeeded {
+        currentInspector?.removeTab(animation)
+      }
     }
     if (subscribedAnimations.isEmpty()) {
       // No more animations. Set the clock to null, so the panel can update accordingly.

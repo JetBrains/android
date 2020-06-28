@@ -154,7 +154,7 @@ class NewKtsModuleTest {
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
-  // @Test b/159103915
+  @Test
   fun addNewJavaWearWithKtsModule() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
@@ -169,9 +169,6 @@ class NewKtsModuleTest {
       .chooseActivity("Blank Activity")
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
-
-    // HACK for b/159103915 - Not enough
-    guiTest.ideFrame().editor.open("wear/src/main/res/layout/activity_main.xml", EDITOR).select("(dark_grey)").typeText("purple_200")
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
@@ -276,6 +273,94 @@ class NewKtsModuleTest {
       contains("java {")
       contains("sourceCompatibility = JavaVersion")
       contains("targetCompatibility = JavaVersion")
+    }
+  }
+
+  /**
+   * Verifies that adding new Java "Dynamic Feature" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Dynamic Feature" module, with Java Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewJavaDynamicFeatureWithKtsModule() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToDynamicFeature()
+      .enterFeatureModuleName("DynamicFeature")
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .clickNextToConfigureConditionalDelivery()
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("DynamicFeature/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("com.android.dynamic-feature")""")
+    }
+  }
+
+  /**
+   * Verifies that adding new Java "Instant Dynamic Feature" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Instant Dynamic Feature" module, with Java Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewJavaInstantDynamicFeatureWithKtsModule() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToInstantDynamicFeature()
+      .enterFeatureModuleName("InstantFeature")
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("InstantFeature/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("com.android.dynamic-feature")""")
+    }
+  }
+
+  /**
+   * Verifies that adding new Java "Benchmark" Module, with kts, has the expected content and builds.
+   *
+   * Test Steps
+   * 1. Import "Simple Application" (a basic non kts java project)
+   * 2. Add a new "Benchmark" module, with Java Language and "Use kts script" selected.
+   * - Make sure the projects can build ("Build" > "Make Project")
+   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
+   */
+  @Test
+  fun addNewJavaBenchmarkModuleWithKts() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToBenchmarkModule()
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .setSourceLanguage(Language.Java)
+      .setUseKtsBuildFiles(true)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    assertThat(guiTest.getProjectFileText("benchmark/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("com.android.library")""")
+      contains("""id("androidx.benchmark")""")
     }
   }
 }

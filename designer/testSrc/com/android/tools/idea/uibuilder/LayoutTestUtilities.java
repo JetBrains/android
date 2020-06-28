@@ -23,6 +23,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -250,7 +251,7 @@ public class LayoutTestUtilities {
   public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
-    SelectionModel selectionModel = new SelectionModel();
+    SelectionModel selectionModel = new DefaultSelectionModel();
     List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     when(surface.getSelectionModel()).thenReturn(selectionModel);

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
@@ -24,6 +29,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
@@ -172,9 +179,17 @@ open class NelePropertiesModel(
     }
     val componentName = if (property.components.size == 1) property.components[0].tagName else "Multiple"
 
+    @Suppress("DEPRECATION")
+    property.components.forEach { it.snapshot?.setAttribute(property.name, property.namespace, null, newValue) }
+
+
     ApplicationManager.getApplication().invokeLater(Runnable {
       NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
+        val compatibleAttribute = compatibleMarginAttribute(property)
+        if (compatibleAttribute != null) {
+          property.components.forEach { it.setAttribute(property.namespace, compatibleAttribute, newValue) }
+        }
         logPropertyValueChanged(property)
         if (property.namespace == TOOLS_URI) {
           if (newValue != null) {
@@ -195,6 +210,21 @@ open class NelePropertiesModel(
       }
     }, Condition<Boolean> { Disposer.isDisposed(this) })
   }
+
+  private fun compatibleMarginAttribute(property: NelePropertyItem): String? {
+    if (property.namespace != ANDROID_URI ||
+        AndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
+      return null
+    }
+    return when (property.name) {
+      ATTR_LAYOUT_MARGIN_LEFT -> if (isRTL) ATTR_LAYOUT_MARGIN_END else ATTR_LAYOUT_MARGIN_START
+      ATTR_LAYOUT_MARGIN_RIGHT -> if (isRTL) ATTR_LAYOUT_MARGIN_START else ATTR_LAYOUT_MARGIN_END
+      else -> null
+    }
+  }
+
+  private val isRTL: Boolean
+    get() = activeSceneView?.scene?.isInRTL ?: false
 
   private fun useDesignSurface(surface: DesignSurface?) {
     if (surface != activeSurface) {

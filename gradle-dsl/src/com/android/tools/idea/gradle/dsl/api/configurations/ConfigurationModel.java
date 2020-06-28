@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 public interface ConfigurationModel extends GradleDslModel {
   @NotNull String name();
 
+  void rename(String newName);
+
   @NotNull ResolvedPropertyModel transitive();
 
   @NotNull ResolvedPropertyModel visible();

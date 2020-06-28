@@ -22,6 +22,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions;
+import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
@@ -30,7 +31,9 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
@@ -38,7 +41,6 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
@@ -66,7 +68,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -160,7 +161,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   public boolean isGeneratedName() {
-    return Comparing.equal(getName(), suggestedName());
+    return Objects.equals(getName(), suggestedName());
   }
 
   @Override
@@ -334,12 +335,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull AndroidFacet facet,
-                                                @NotNull String contributorsAmStartOptions,
-                                                boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus,
-                                                @NotNull ApkProvider apkProvider) {
+  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                   @NotNull AndroidFacet facet,
+                                                   @NotNull String contributorsAmStartOptions,
+                                                   boolean waitForDebugger,
+                                                   @NotNull LaunchStatus launchStatus,
+                                                   @NotNull ApkProvider apkProvider,
+                                                   @NotNull ConsolePrinter consolePrinter,
+                                                   @NotNull IDevice device) {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
       runner = getDefaultInstrumentationRunner(facet);
@@ -376,13 +379,19 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                 testAppId,
                                                                 waitForDebugger,
                                                                 instrumentationOptions,
-                                                                testArtifact);
+                                                                testArtifact,
+                                                                launchStatus.getProcessHandler(),
+                                                                consolePrinter,
+                                                                device);
       case TEST_ALL_IN_PACKAGE:
         return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
                                                                  testAppId,
                                                                  waitForDebugger,
                                                                  instrumentationOptions,
                                                                  testArtifact,
+                                                                 launchStatus.getProcessHandler(),
+                                                                 consolePrinter,
+                                                                 device,
                                                                  PACKAGE_NAME);
 
       case TEST_CLASS:
@@ -391,6 +400,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           waitForDebugger,
                                                           instrumentationOptions,
                                                           testArtifact,
+                                                          launchStatus.getProcessHandler(),
+                                                          consolePrinter,
+                                                          device,
                                                           CLASS_NAME);
 
       case TEST_METHOD:
@@ -399,6 +411,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                            waitForDebugger,
                                                            instrumentationOptions,
                                                            testArtifact,
+                                                           launchStatus.getProcessHandler(),
+                                                           consolePrinter,
+                                                           device,
                                                            CLASS_NAME,
                                                            METHOD_NAME);
 

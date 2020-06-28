@@ -48,6 +48,21 @@ interface AndroidTestResults {
   fun getTestResultSummary(): AndroidTestCaseResult
 
   /**
+   * Returns a one liner test result summary string.
+   */
+  fun getTestResultSummaryText(): String
+
+  /**
+   * Returns a test result stats.
+   */
+  fun getResultStats(): AndroidTestResultStats
+
+  /**
+   * Returns a test result stats of a given device.
+   */
+  fun getResultStats(device: AndroidDevice): AndroidTestResultStats
+
+  /**
    * Returns the logcat message emitted during the test on a given device.
    */
   fun getLogcat(device: AndroidDevice): String
@@ -68,11 +83,6 @@ interface AndroidTestResults {
 }
 
 /**
- * Returns the name of the test case.
- */
-fun AndroidTestResults.getTestCaseName(): String = "$className.$methodName"
-
-/**
  * Returns the fully qualified name of the test case.
  */
 fun AndroidTestResults.getFullTestCaseName(): String {
@@ -87,5 +97,41 @@ fun AndroidTestResults.getFullTestClassName(): String {
     className
   } else {
     "$packageName.$className"
+  }
+}
+
+/**
+ * Returns true if this result is a root aggregation result.
+ */
+fun AndroidTestResults.isRootAggregationResult(): Boolean {
+  return getFullTestCaseName() == "."
+}
+
+data class AndroidTestResultStats(
+  var passed: Int = 0,
+  var failed: Int = 0,
+  var skipped: Int = 0,
+  var running: Int = 0,
+  var cancelled: Int = 0) {
+  val total: Int
+    get() = passed + failed + skipped + running + cancelled
+}
+
+operator fun AndroidTestResultStats.plus(rhs: AndroidTestResultStats) = AndroidTestResultStats(
+  passed + rhs.passed,
+  failed + rhs.failed,
+  skipped + rhs.skipped,
+  running + rhs.running,
+  cancelled + rhs.cancelled
+)
+
+fun AndroidTestResultStats.getSummaryResult(): AndroidTestCaseResult {
+  return when {
+    failed > 0 -> AndroidTestCaseResult.FAILED
+    cancelled > 0 -> AndroidTestCaseResult.CANCELLED
+    running > 0 -> AndroidTestCaseResult.IN_PROGRESS
+    passed > 0 -> AndroidTestCaseResult.PASSED
+    skipped > 0 -> AndroidTestCaseResult.SKIPPED
+    else -> AndroidTestCaseResult.SCHEDULED
   }
 }

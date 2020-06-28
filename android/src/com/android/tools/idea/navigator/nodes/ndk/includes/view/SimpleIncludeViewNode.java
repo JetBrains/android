@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
-import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapper;
 import com.google.common.collect.ImmutableList;
@@ -30,29 +33,24 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-
 /**
- * A view class over SimpleIncludeExpressions. This is a basic single include folder.
+ * A view class over {@link SimpleIncludeValue}. This is a basic single include folder.
  */
 final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
 
-  SimpleIncludeViewNode(@NotNull VirtualFile buildFileFolder,
-                                  @NotNull SimpleIncludeValue thisInclude,
-                                  @NotNull IncludeSet allIncludes,
-                                  boolean showPackageType,
-                                  @Nullable Project project,
-                                  @NotNull ViewSettings viewSettings) {
-    super(buildFileFolder, thisInclude, allIncludes, showPackageType, project, viewSettings);
+  SimpleIncludeViewNode(@NotNull SimpleIncludeValue thisInclude,
+                        @NotNull Collection<File> allIncludes,
+                        boolean showPackageType,
+                        @Nullable Project project,
+                        @NotNull ViewSettings viewSettings) {
+    super(thisInclude, allIncludes, showPackageType, project, viewSettings);
   }
 
   @NotNull

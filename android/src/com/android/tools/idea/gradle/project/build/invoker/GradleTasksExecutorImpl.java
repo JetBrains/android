@@ -71,6 +71,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -384,13 +385,22 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             buildMessages.add(msg);
           }
           GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
+          RuntimeException error = null;
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
             try {
               task.execute(result);
-            } catch (Throwable t) {
-              // Ignore all errors, since they just get thrown into the wind. However, we must run all post invocation tasks in order to
-              // ensure all relevant locks are released.
+            } catch (ProcessCanceledException e) {
+              // Ignore process cancellation exceptions.
+              // We must run all post invocation tasks in order to ensure all relevant locks are released.
+            } catch (RuntimeException e) {
+              if (error == null) {
+                // Stash the first non-PCE exception to re-throw after all post invocation tasks had a chance to execute.
+                error = e;
+              }
             }
+          }
+          if (error != null) {
+            throw error;
           }
         }
       }
