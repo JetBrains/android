@@ -155,7 +155,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myNativeLibsFolder.getButton().addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
                                                                                AndroidRootUtil.getLibsDir(facet), false, null));
 
-    myCustomAptSourceDirField.getButton().addActionListener(new MyFolderFieldListener(myCustomAptSourceDirField, getCustomResourceDirForApt(facet), false, null));
+    myCustomAptSourceDirField.getButton()
+      .addActionListener(new MyFolderFieldListener(myCustomAptSourceDirField, getCustomResourceDirForApt(facet), false, null));
 
     myRunProguardCheckBox.addActionListener(new ActionListener() {
       @Override
@@ -477,7 +478,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String absGenPathR = myRGenPathField.getText().trim();
     String absGenPathAidl = myAidlGenPathField.getText().trim();
 
-    boolean runApt = false;
     boolean runIdl = false;
 
     if (absGenPathR == null || absGenPathR.isEmpty() || absGenPathAidl == null || absGenPathAidl.isEmpty()) {
@@ -485,11 +485,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
     else {
       String relativeGenPathR = getAndCheckRelativePath(absGenPathR, false);
-      String newAptDestDir = '/' + relativeGenPathR;
-      if (!newAptDestDir.equals(myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_APT)) {
-        runApt = true;
-      }
-      myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_APT = newAptDestDir;
+      myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_APT = '/' + relativeGenPathR;
 
       String relativeGenPathAidl = getAndCheckRelativePath(absGenPathAidl, false);
       String newIdlDestDir = '/' + relativeGenPathAidl;
@@ -571,7 +567,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE = myUseCustomManifestPackage.isSelected();
     myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE = myCustomManifestPackageField.getText().trim();
-    myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = myAdditionalPackagingCommandLineParametersField.getText().trim();
+    myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS =
+      myAdditionalPackagingCommandLineParametersField.getText().trim();
 
     String absAptSourcePath = myCustomAptSourceDirField.getText().trim();
     if (useCustomAptSrc) {
@@ -590,17 +587,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH =
       !absProguardLogsPath.isEmpty() ? '/' + getAndCheckRelativePath(absProguardLogsPath, false) : "";
 
-    if (runApt || runIdl) {
+    if (runIdl) {
       AndroidFacet facet = (AndroidFacet)myContext.getFacet();
       ModuleSourceAutogenerating sourceAutoGenerator = ModuleSourceAutogenerating.getInstance(facet);
 
       if (sourceAutoGenerator != null) {
-        if (runApt) {
-          sourceAutoGenerator.scheduleSourceRegenerating(AndroidAutogeneratorMode.AAPT);
-        }
-        if (runIdl) {
-          sourceAutoGenerator.scheduleSourceRegenerating(AndroidAutogeneratorMode.AIDL);
-        }
+        sourceAutoGenerator.scheduleSourceRegenerating(AndroidAutogeneratorMode.AIDL);
       }
     }
   }
