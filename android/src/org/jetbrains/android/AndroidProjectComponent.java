@@ -8,7 +8,11 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.Anchor;
+import com.intellij.openapi.actionSystem.Constraints;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.Service;
@@ -24,15 +28,19 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
+import org.jetbrains.android.compiler.AndroidResourceFilesListener;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.compiler.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 @Service
 public final class AndroidProjectComponent implements Disposable {
@@ -142,13 +150,16 @@ public final class AndroidProjectComponent implements Disposable {
           return; // When project is closing (but not disposed yet), runReadActionInSmartMode throws "Registering post-startup activity"
         }
 
-        DumbService service = DumbService.getInstance(myProject);
-        Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
-        if (!facetsToProcess.isEmpty()) {
-          generate(facetsToProcess);
-        }
-        if (!alarm.isDisposed()) {
-          alarm.addRequest(this, 2000);
+        try {
+          DumbService service = DumbService.getInstance(myProject);
+          Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
+          if (!facetsToProcess.isEmpty()) {
+            generate(facetsToProcess);
+          }
+        } finally {
+          if (!alarm.isDisposed()) {
+            alarm.addRequest(this, 2000);
+          }
         }
       }
     }, 2000);

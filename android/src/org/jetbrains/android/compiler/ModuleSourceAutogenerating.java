@@ -60,7 +60,6 @@ public class ModuleSourceAutogenerating {
         module.getName() + " is built by an external build system and should not require the IDE to generate sources");
     }
 
-    scheduleSourceRegenerating(AndroidAutogeneratorMode.AAPT);
     scheduleSourceRegenerating(AndroidAutogeneratorMode.AIDL);
     scheduleSourceRegenerating(AndroidAutogeneratorMode.RENDERSCRIPT);
     scheduleSourceRegenerating(AndroidAutogeneratorMode.BUILDCONFIG);
