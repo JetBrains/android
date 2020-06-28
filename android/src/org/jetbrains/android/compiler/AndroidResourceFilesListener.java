@@ -176,7 +176,6 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
           AndroidCompileUtil.removeDuplicatingClasses(module, cachedPackage, AndroidUtils.R_CLASS_NAME, null, aptGenDirPath);
         }
         facet.putUserData(CACHED_PACKAGE_KEY, aPackage);
-        modes.add(AndroidAutogeneratorMode.AAPT);
         modes.add(AndroidAutogeneratorMode.BUILDCONFIG);
       }
       else if (file.getFileType() == AidlFileType.INSTANCE) {
