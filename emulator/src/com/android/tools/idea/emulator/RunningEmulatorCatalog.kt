@@ -187,7 +187,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
             var created = false
             if (!isDisposing) {
               val emulatorId = readEmulatorInfo(file)
-              if (emulatorId != null && emulatorId.isEmbedded) {
+              if (emulatorId != null) {
                 emulator = oldEmulators[emulatorId]
                 if (emulator == null) {
                   if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
@@ -204,8 +204,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
             latch.countDown()
 
-            // Connect to the running Emulator asynchronously.
-            if (emulator != null && created) {
+            // Connect to the running embedded Emulator asynchronously.
+            if (emulator != null && created && emulator.emulatorId.isEmbedded) {
               emulator.connect()
             }
           }
@@ -346,7 +346,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
     // Shut down all embedded Emulators.
     synchronized(updateLock) {
       for (emulator in emulators) {
-        emulator.shutdown()
+        if (emulator.emulatorId.isEmbedded) {
+          emulator.shutdown()
+        }
       }
     }
   }

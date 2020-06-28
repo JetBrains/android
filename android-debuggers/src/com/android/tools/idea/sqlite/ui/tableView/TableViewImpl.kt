@@ -268,7 +268,9 @@ class TableViewImpl : TableView {
     table.isEnabled = false
 
     tableHadFocus = table.hasFocus()
-    progressBar.requestFocusInWindow()
+    if (table.hasFocus()) {
+      progressBar.requestFocusInWindow()
+    }
     layeredPane.revalidate()
     layeredPane.repaint()
 
@@ -299,14 +301,16 @@ class TableViewImpl : TableView {
     this.columns = columns
     table.model = MyTableModel(columns)
 
-    table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
-    table.columnModel.getColumn(0).resizable = false
+    if (columns.isNotEmpty()) {
+      table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
+      table.columnModel.getColumn(0).resizable = false
 
-    for (i in 1 until table.columnModel.columnCount) {
-      table.columnModel.getColumn(i).minWidth = JBUI.scale(65)
+      for (i in 1 until table.columnModel.columnCount) {
+        table.columnModel.getColumn(i).minWidth = JBUI.scale(65)
+      }
+
+      setAutoResizeMode()
     }
-
-    setAutoResizeMode()
   }
 
   override fun updateRows(rowDiffOperations: List<RowDiffOperation>) {
@@ -510,7 +514,7 @@ class TableViewImpl : TableView {
 
     override fun getColumnClass(modelColumnIndex: Int) = String::class.java
 
-    override fun getColumnCount() = columns.size + 1
+    override fun getColumnCount() = if (columns.isEmpty()) 0 else columns.size + 1
 
     override fun getRowCount() = rows.size
 

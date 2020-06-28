@@ -29,6 +29,7 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
@@ -45,9 +46,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   override fun populateProjectModels(controller: BuildController,
                                      projectModel: Model,
                                      modelConsumer: ProjectImportModelProvider.ProjectModelConsumer) {
-    projectModel
-      .let { controller.findModel(projectModel, GradlePluginModel::class.java) }
+    controller.findModel(projectModel, GradlePluginModel::class.java)
       ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
+    controller.findModel(projectModel, KaptGradleModel::class.java)
+      ?.also { model -> modelConsumer.consume(model, KaptGradleModel::class.java) }
   }
 
   /**

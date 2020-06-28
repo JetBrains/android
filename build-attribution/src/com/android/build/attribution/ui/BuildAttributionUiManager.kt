@@ -125,7 +125,7 @@ class BuildAttributionUiManagerImpl(
 
   override fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
     this.reportUiData = reportUiData
-    ApplicationManager.getApplication().invokeLater {
+    invokeLaterIfNotDisposed {
       uiAnalytics.newReportSessionId(buildSessionId)
       updateReportUI()
       stateReporter.setStateDataExist()
@@ -134,7 +134,7 @@ class BuildAttributionUiManagerImpl(
 
   override fun onBuildFailure(buildSessionId: String) {
     this.reportUiData = failedBuildReportData()
-    ApplicationManager.getApplication().invokeLater {
+    invokeLaterIfNotDisposed {
       uiAnalytics.newReportSessionId(buildSessionId)
       updateReportUI()
     }
@@ -230,7 +230,7 @@ class BuildAttributionUiManagerImpl(
 
   override fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
     if (hasDataToShow()) {
-      ApplicationManager.getApplication().invokeLater {
+      invokeLaterIfNotDisposed {
         if (buildContent?.isValid != true) {
           createNewView()
           createNewTab()
@@ -254,6 +254,11 @@ class BuildAttributionUiManagerImpl(
   override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized && this.reportUiData.successfulBuild
 
   override fun dispose() = cleanUp()
+
+  private fun invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(
+    runnable,
+    { project.isDisposed }
+  )
 }
 
 private class NewViewComponentContainer(

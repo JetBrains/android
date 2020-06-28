@@ -30,6 +30,7 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlUpdateStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlWithClauseStatement
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.model.SqliteStatementType
@@ -175,12 +176,24 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
   val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
 
   return when {
-    PsiTreeUtil.getChildOfType(psiFile, PsiErrorElement::class.java) != null -> SqliteStatementType.UNKNOWN
+    PsiTreeUtil.hasErrorElements(psiFile) -> SqliteStatementType.UNKNOWN
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlExplainPrefix::class.java) != null -> SqliteStatementType.EXPLAIN
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlSelectStatement::class.java) != null -> SqliteStatementType.SELECT
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlDeleteStatement::class.java) != null -> SqliteStatementType.DELETE
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlInsertStatement::class.java) != null -> SqliteStatementType.INSERT
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlUpdateStatement::class.java) != null -> SqliteStatementType.UPDATE
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlWithClauseStatement::class.java) != null -> {
+      // check part of "with" statement after "with" clause
+      val withClauseStatement = PsiTreeUtil.getChildOfType(psiFile, AndroidSqlWithClauseStatement::class.java)
+      return when {
+        withClauseStatement == null -> SqliteStatementType.UNKNOWN
+        withClauseStatement.selectStatement != null -> SqliteStatementType.SELECT
+        withClauseStatement.deleteStatement != null -> SqliteStatementType.DELETE
+        withClauseStatement.insertStatement != null -> SqliteStatementType.INSERT
+        withClauseStatement.updateStatement != null -> SqliteStatementType.UPDATE
+        else -> SqliteStatementType.UNKNOWN
+      }
+    }
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java) != null -> {
       val pragmaStatement = PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java)!!
       // we can just check for EQ (=) because the syntax of pragma statements is fairly limited

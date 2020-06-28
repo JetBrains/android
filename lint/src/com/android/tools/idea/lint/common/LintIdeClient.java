@@ -494,6 +494,15 @@ public class LintIdeClient extends LintClient implements Disposable {
     return myLintResult.getModule();
   }
 
+  @Nullable
+  protected Module getModule(@NonNull com.android.tools.lint.detector.api.Project project) {
+    Module module = findModuleForLintProject(getIdeProject(), project);
+    if (module != null) {
+      return module;
+    }
+    return getModule();
+  }
+
   @Override
   public void log(@NonNull Severity severity, @Nullable Throwable exception, @Nullable String format, @Nullable Object... args) {
     if (severity == Severity.ERROR || severity == Severity.FATAL) {
@@ -715,7 +724,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public List<File> getJavaSourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
-    Module module = myLintResult.getModule();
+    Module module = getModule(project);
     if (module == null) {
       module = findModuleForLintProject(myProject, project);
       if (module == null) {

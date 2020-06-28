@@ -20,12 +20,11 @@ import com.android.tools.idea.wizard.template.MaterialColor.*
 const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
 const val DARK_ACTION_BAR_APPCOMPAT = "Theme.AppCompat.Light.DarkActionBar"
 
-fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App"): String {
-  val parent = if (useAndroidX) DARK_ACTION_BAR_MATERIAL_COMPONENTS else DARK_ACTION_BAR_APPCOMPAT
-  return """
-<resources xmlns:tools="http://schemas.android.com/tools">
+fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
+  if (useAndroidX)
+    """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
-  <style name="${themeName}" parent="$parent">
+  <style name="${themeName}" parent="$DARK_ACTION_BAR_MATERIAL_COMPONENTS">
       <!-- Primary brand color. -->
       <item name="colorPrimary">@color/${PURPLE_500.colorName}</item>
       <item name="colorPrimaryDark">@color/${PURPLE_700.colorName}</item>
@@ -38,7 +37,15 @@ fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App"): 
       <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
       <!-- Customize your theme here. -->
   </style>
-
-</resources>
-"""
-}
+</resources>"""
+  else
+    """<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Base application theme. -->
+  <style name="${themeName}" parent="$DARK_ACTION_BAR_APPCOMPAT">
+      <!-- Primary brand color. -->
+      <item name="colorPrimary">@color/${PURPLE_500.colorName}</item>
+      <item name="colorPrimaryDark">@color/${PURPLE_700.colorName}</item>
+      <item name="colorAccent">@color/${TEAL_200.colorName}</item>
+      <!-- Customize your theme here. -->
+  </style>
+</resources>"""
