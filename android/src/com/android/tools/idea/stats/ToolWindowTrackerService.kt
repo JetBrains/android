@@ -47,8 +47,8 @@ class ToolWindowTrackerService(private val project: Project) {
     fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
   }
 
-  fun toolWindowRegistered(id: String) {
-    stateMap[id] = queryToolWindowState(id, ToolWindowManager.getInstance(project))
+  fun toolWindowRegistered(id: String, toolWindowManager: ToolWindowManager) {
+    stateMap[id] = queryToolWindowState(id, toolWindowManager)
   }
 
   fun stateChanged() {
@@ -82,10 +82,10 @@ class ToolWindowTrackerService(private val project: Project) {
 }
 
 internal class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
-  override fun toolWindowsRegistered(ids: MutableList<String>) {
+  override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
     val trackerService = ToolWindowTrackerService.getInstance(project)
     for (id in ids) {
-      trackerService.toolWindowRegistered(id)
+      trackerService.toolWindowRegistered(id, toolWindowManager)
     }
   }
 

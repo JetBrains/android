@@ -53,7 +53,7 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
   fun testOpen() {
     // registered a tool window in closed state
     val testId = "test"
-    myService.toolWindowRegistered(testId)
+    myService.toolWindowRegistered(testId, ToolWindowManager.getInstance(project))
     val mockToolWindow = Mockito.mock(ToolWindow::class.java)
     `when`(mockToolWindow.isActive).thenReturn(false)
     `when`(myMockToolWindowManager.getToolWindow(testId)).thenReturn(mockToolWindow)
