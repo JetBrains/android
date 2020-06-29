@@ -31,7 +31,7 @@ import javax.swing.SwingConstants
 class SqliteColumnValueTableCellRenderer : ColoredTableCellRenderer() {
   private val TEXT_RENDERER_HORIZ_PADDING = 6
 
-  override fun customizeCellRenderer(table: JTable?, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+  override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
     if (value !is SqliteColumnValue) {
       appendUnsupportedDataTypeToCell()
     } else {

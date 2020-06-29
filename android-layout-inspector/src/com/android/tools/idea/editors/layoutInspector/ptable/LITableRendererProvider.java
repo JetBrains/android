@@ -75,7 +75,7 @@ public final class LITableRendererProvider implements PTableCellRendererProvider
   private static ColoredTableCellRenderer createGroupTableCellRenderer() {
     return new ColoredTableCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      protected void customizeCellRenderer(@NotNull JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
         setBackground(selected ? UIUtil.getTableSelectionBackground(true) : PropertiesTablePanel.GROUP_BACKGROUND_COLOR);
       }
     };

@@ -524,7 +524,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
   private static class LaunchCompatibilityRenderer extends ColoredTableCellRenderer {
     @Override
-    protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+    protected void customizeCellRenderer(@NotNull JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
       if (!(value instanceof LaunchCompatibility)) {
         return;
       }

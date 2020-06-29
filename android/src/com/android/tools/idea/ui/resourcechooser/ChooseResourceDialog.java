@@ -1466,7 +1466,7 @@ public final class ChooseResourceDialog extends DialogWrapper {
         columnModel.getColumn(1).setHeaderValue("Default Value");
         columnModel.getColumn(0).setCellRenderer(new ColoredTableCellRenderer() {
           @Override
-          protected void customizeCellRenderer(JTable table,
+          protected void customizeCellRenderer(@NotNull JTable table,
                                                Object value,
                                                boolean isSelected,
                                                boolean hasFocus,
