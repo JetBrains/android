@@ -75,6 +75,16 @@ class MemoryVisualizationViewTest {
   }
 
   @Test
+  fun contextMenuInstalledOnVisualization() {
+    val component = visualizationView.component
+    MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
+    visualizationView.onSelectionChanged(true)
+    val walker = TreeWalker(component)
+    val chart = walker.descendants().filterIsInstance<HTreeChart<ClassifierSetHNode>>().first() as JComponent
+    assertThat(fakeIdeProfilerComponents.getCodeLocationSupplier(chart)).isNotNull()
+  }
+
+  @Test
   fun filterPersistBeforeAndAfterSelection() {
     val component = visualizationView.component
     MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
