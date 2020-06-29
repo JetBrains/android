@@ -121,7 +121,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
     }
 
     @Override
-    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
+    protected void customizeCellRenderer(@NotNull JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
       setIcon(myDependency.getIcon());
       setIconOpaque(true);
       setFocusBorderAroundIcon(true);

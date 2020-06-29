@@ -40,7 +40,7 @@ internal class AvailableVersionsPanel(notifyVersionSelectionChanged: Consumer<Pa
       init {
         font = versionsTable.font
       }
-      override fun customizeCellRenderer(table: JTable?, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+      override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
         @Suppress("UNCHECKED_CAST")
         (value as Annotated<ParsedValue<GradleVersion>>?)?.renderTo(this.toRenderer(), { toString() }, mapOf())
       }
