@@ -7,7 +7,7 @@ MODULE              : MainActivity.app
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -415,7 +415,7 @@ MODULE              : MainActivity.lib
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
