@@ -218,7 +218,7 @@ class ModelSerializationTest {
 
   @Test
   fun level2ModuleLibrary() = assertSerializable {
-    IdeModuleLibrary()
+    IdeModuleLibrary("projectPath", "artifactAddress", "buildId")
   }
 
   @Test
