@@ -85,6 +85,11 @@ public final class StudioFlags {
     NPW, "show.gradle.kts.option", "Show gradle kts option",
     "Shows an option on new Project/Module to allow the use of Kotlin script",
     false);
+
+  public static final Flag<Boolean> NPW_NEW_MODULE_WITH_SIDE_BAR = Flag.create(
+    NPW, "new.module.with.side.bar", "New Module with sidebar",
+    "Shows latest UX implementation of New Module with a left side bar",
+    false);
   //endregion
 
   //region Profiler

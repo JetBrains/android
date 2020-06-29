@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.npw.module
-
-import org.jetbrains.android.util.AndroidBundle.message
+package com.android.tools.idea.npw.module.deprecated
 
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
+import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.JComponent
@@ -36,6 +35,7 @@ import javax.swing.JComponent
 /**
  * This step allows the user to select which type of module they want to create.
  */
+@Deprecated("Use new ChooseModuleTypeStep", ReplaceWith("ChooseModuleTypeStep", "com.android.tools.idea.npw.module.ChooseModuleTypeStep"))
 class ChooseModuleTypeStep(
   private val project: Project,
   private val moduleParent: String,
@@ -79,8 +79,7 @@ class ChooseModuleTypeStep(
   override fun getPreferredFocusComponent(): JComponent? = formFactorGallery
 }
 
-@VisibleForTesting
-fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): List<ModuleGalleryEntry> {
+private fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): List<ModuleGalleryEntry> {
   // To have a sequence specified by design, we hardcode the sequence. Everything else is added at the end (sorted by name)
   val orderedNames = arrayOf(
     message("android.wizard.module.new.mobile"),
@@ -101,9 +100,4 @@ fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): List<Modu
   return moduleTypesProviders.partition { it.name in orderedNames }.run {
     first.sortedBy { orderedNames.indexOf(it.name) } + second.sortedBy { it.name }
   }
-}
-
-fun createWithDefaultGallery(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): ChooseModuleTypeStep {
-  val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project) }
-  return ChooseModuleTypeStep(project, moduleParent, moduleDescriptions, projectSyncInvoker)
 }
