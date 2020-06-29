@@ -253,25 +253,16 @@ public class GradleSyncExecutor {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
       rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
-        for (OrderRootType type : OrderRootType.getAllTypes()) {
-          List<String> expectedUrls = asList(entry.getUrls(type));
-          if (expectedUrls.isEmpty()) {
-            continue;
-          }
-          // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
-          // all files are missing.
-          if (type.equals(CLASSES)) {
-            if (expectedUrls.stream().noneMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) != null)) {
-              missingFileFound.set(true);
-              return false; // Don't continue with processor.
-            }
-          }
-          // For other types of root, fail validation if any file is missing. This includes annotation processor, sources and javadoc.
-          else {
-            if (expectedUrls.stream().anyMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) == null)) {
-              missingFileFound.set(true);
-              return false; // Don't continue with processor.
-            }
+        // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
+        // all files are missing. If the library lifetime in the Gradle cache has expired there will be none that exists.
+        // TODO(b/160088430): Review when the platform is fixed and not existing entries are correctly removed.
+        // For other types of root we do not perform any validations since urls are intentionally or unintentionally not removed
+        // from libraries if the location changes. See TODO: b/160088430.
+        List<String> expectedUrls = asList(entry.getUrls(CLASSES));
+        if (!expectedUrls.isEmpty()) {
+          if (expectedUrls.stream().noneMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) != null)) {
+            missingFileFound.set(true);
+            return false; // Don't continue with processor.
           }
         }
         return true;
