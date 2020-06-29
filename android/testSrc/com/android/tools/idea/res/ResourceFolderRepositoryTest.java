@@ -4588,11 +4588,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private void runListeners() {
     PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    try {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    }
-    catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 }
