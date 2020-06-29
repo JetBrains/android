@@ -32,10 +32,11 @@ import com.android.tools.profilers.memory.CapturePanelTabContainer
 import com.android.tools.profilers.memory.CaptureSelectionAspect
 import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.MemoryCaptureSelection
-import com.android.tools.profilers.memory.MemoryProfilerAspect
-import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
+import com.android.tools.profilers.stacktrace.CodeLocation
+import com.google.common.base.Strings
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -134,7 +135,24 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
     panel.add(chart, TabularLayout.Constraint(0, 0))
     panel.add(HTreeChartVerticalScrollBar(chart), TabularLayout.Constraint(0, 1))
     panel.add(horizontalScrollBar, TabularLayout.Constraint(1, 0, 1, 2))
+    val navigator = profilersView.studioProfilers.ideServices.codeNavigator
+    profilersView.ideProfilerComponents.createContextMenuInstaller()
+      .installNavigationContextMenu(chart, navigator) { getCodeLocation(chart) }
     return panel
+  }
+
+  private fun getCodeLocation(chart: HTreeChart<ClassifierSetHNode>): CodeLocation? {
+    val nativeSet = chart.getFocusedNode()?.data
+    if (nativeSet is NativeCallStackSet) {
+      if (!Strings.isNullOrEmpty(nativeSet.fileName)) {
+        return CodeLocation.Builder(nativeSet.name) // Expects class name but we don't have that so we use the function.
+          .setMethodName(nativeSet.name)
+          .setFileName(nativeSet.fileName)
+          .setLineNumber(nativeSet.lineNumber - 1) // Line numbers from symbolizer are 1 based UI is 0 based.
+          .build()
+      }
+    }
+    return null
   }
 
   private fun createAxis(formatter: BaseAxisFormatter,
