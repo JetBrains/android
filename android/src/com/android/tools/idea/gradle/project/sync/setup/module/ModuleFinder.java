@@ -124,7 +124,7 @@ public class ModuleFinder {
    */
   @Nullable
   public Module findModuleFromLibrary(@NotNull IdeLibrary library) {
-    if (library.getType() != Library.LIBRARY_MODULE) {
+    if (library.getType() != IdeLibrary.LibraryType.LIBRARY_MODULE) {
       return null;
     }
     String gradlePath = library.getProjectPath();
