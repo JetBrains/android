@@ -72,7 +72,7 @@ final class AsyncDevicesGetter {
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
     this(project,
-         () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
+         StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get,
          new KeyToConnectionTimeMap(),
          new NameGetter(project));
   }

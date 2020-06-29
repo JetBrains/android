@@ -40,7 +40,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -176,15 +175,12 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     }
 
     try (Stream<Path> stream = Files.list(snapshots)) {
-      @SuppressWarnings("UnstableApiUsage")
-      Collector<Snapshot, ?, ImmutableList<Snapshot>> collector = ImmutableList.toImmutableList();
-
       return stream
         .filter(Files::isDirectory)
         .map(this::getSnapshot)
         .filter(Objects::nonNull)
         .sorted()
-        .collect(collector);
+        .collect(ImmutableList.toImmutableList());
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevicesTask.class).warn(snapshots.toString(), exception);
