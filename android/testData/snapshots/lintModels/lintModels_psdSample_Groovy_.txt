@@ -8,7 +8,7 @@ MODULE              : project.app
     BuildFolder         : <ROOT>/app/build [-]
     - DynamicFeatures   : :dyn_feature
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -826,7 +826,7 @@ MODULE              : project.dyn_feature
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/dyn_feature/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -913,7 +913,7 @@ MODULE              : project.lib
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -1545,7 +1545,7 @@ MODULE              : project.nested1
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested1/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -1632,7 +1632,7 @@ MODULE              : project.nested1.deep
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested1/deep/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -1721,7 +1721,7 @@ MODULE              : project.nested2
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -1824,7 +1824,7 @@ MODULE              : project.nested2.deep
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/deep/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -1912,7 +1912,7 @@ MODULE              : project.nested2.trans.deep2
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/trans/deep2/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true

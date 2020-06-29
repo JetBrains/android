@@ -8,7 +8,7 @@ MODULE              : project.app
     BuildFolder         : <ROOT>/app/build [-]
     - LintRuleJars      : <ROOT>/lint/build/libs/lint.jar [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -105,7 +105,7 @@ MODULE              : project.library
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/library/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -194,7 +194,7 @@ MODULE              : project.library-remote
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/library-remote/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
