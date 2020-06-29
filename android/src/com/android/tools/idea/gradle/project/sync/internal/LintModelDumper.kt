@@ -253,7 +253,6 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
       prop("ProjectPath") { (this@with as? LintModelModuleLibrary)?.projectPath }
       prop("ResolvedCoordinates") { (this@with as? LintModelExternalLibrary)?.resolvedCoordinates?.toString()?.replaceKnownPaths() }
       prop("Provided") { provided.takeIf { it }?.toString() }
-      prop("Skipped") { skipped.takeIf { it }?.toString() }
     }
   }
 }
