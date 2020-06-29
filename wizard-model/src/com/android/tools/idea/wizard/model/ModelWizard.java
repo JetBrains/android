@@ -45,14 +45,14 @@ import java.util.function.BooleanSupplier;
  * done for you by a wrapping class, such as a model wizard dialog).
  */
 public final class ModelWizard implements Disposable {
-  private final List<ModelWizardStep> mySteps;
+  private final List<ModelWizardStep<?>> mySteps;
 
   /**
    * When we check if we should show a step, we also check the step's ancestor chain, and make sure
    * all of those should be shown as well. In this way, skipping a parent step automatically will
    * skip any child steps as well (recursively).
    */
-  private final Map<ModelWizardStep, ModelWizardStep> myStepOwners = new HashMap<>();
+  private final Map<ModelWizardStep<?>, ModelWizardStep<?>> myStepOwners = new HashMap<>();
 
   private final BindingsManager myBindings = new BindingsManager();
   private final BoolProperty myCanGoBack = new BoolValueProperty();
@@ -60,7 +60,7 @@ public final class ModelWizard implements Disposable {
   private final BoolProperty myOnLastStep = new BoolValueProperty();
   private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<>();
 
-  private final Stack<ModelWizardStep> myPrevSteps = new Stack<>();
+  private final Stack<ModelWizardStep<?>> myPrevSteps = new Stack<>();
 
   private final TitleHeader myTitleHeader = new TitleHeader();
   private final JPanel myContentPanel = new JPanel(new BorderLayout());
@@ -87,9 +87,9 @@ public final class ModelWizard implements Disposable {
    *
    * @throws IllegalArgumentException if {@code steps} is empty or none of the steps are visible.
    */
-  private ModelWizard(@NotNull Collection<ModelWizardStep> steps) {
+  private ModelWizard(@NotNull Collection<ModelWizardStep<?>> steps) {
     mySteps = new ArrayList<>(steps.size());
-    for (ModelWizardStep step : steps) {
+    for (ModelWizardStep<?> step : steps) {
       addStep(step);
     }
 
@@ -107,7 +107,7 @@ public final class ModelWizard implements Disposable {
     });
 
     Set<WizardModel> seenModels = new HashSet<>();
-    for (ModelWizardStep step : mySteps) {
+    for (ModelWizardStep<?> step : mySteps) {
       Disposer.register(this, step);
 
       WizardModel model = step.getModel();
@@ -120,12 +120,12 @@ public final class ModelWizard implements Disposable {
     // if we can.
 
     for (int i = 0; i < mySteps.size(); i++) {
-      ModelWizardStep step = mySteps.get(i);
+      ModelWizardStep<?> step = mySteps.get(i);
       step.onWizardStarting(new Facade(i));
     }
 
     boolean atLeastOneVisibleStep = false;
-    for (ModelWizardStep step : mySteps) {
+    for (ModelWizardStep<?> step : mySteps) {
       if (shouldShowStep(step)) {
         atLeastOneVisibleStep = true;
         break;
@@ -212,7 +212,7 @@ public final class ModelWizard implements Disposable {
       return null;
     }
 
-    ModelWizardStep step = mySteps.get(myCurrIndex);
+    ModelWizardStep<?> step = mySteps.get(myCurrIndex);
     return step.getPreferredFocusComponent();
   }
 
@@ -222,7 +222,7 @@ public final class ModelWizard implements Disposable {
   private void addStep(@NotNull ModelWizardStep<?> step) {
     mySteps.add(step);
 
-    for (ModelWizardStep subStep : step.createDependentSteps()) {
+    for (ModelWizardStep<?> subStep : step.createDependentSteps()) {
       myStepOwners.put(subStep, step);
       addStep(subStep);
     }
@@ -235,7 +235,7 @@ public final class ModelWizard implements Disposable {
    */
   @VisibleForTesting
   @NotNull
-  ModelWizardStep getCurrentStep() {
+  ModelWizardStep<?> getCurrentStep() {
     return mySteps.get(myCurrIndex);
   }
 
@@ -266,9 +266,9 @@ public final class ModelWizard implements Disposable {
   public boolean goForward() {
     ensureWizardIsRunning();
 
-    ModelWizardStep prevStep = null;
+    ModelWizardStep<?> prevStep = null;
     if (myCurrIndex >= 0) {
-      ModelWizardStep currStep = mySteps.get(myCurrIndex);
+      ModelWizardStep<?> currStep = mySteps.get(myCurrIndex);
       if (!myCanGoForward.get()) {
         return false;
       }
@@ -286,7 +286,7 @@ public final class ModelWizard implements Disposable {
     }
 
     // Note: calling onProceeding() may change a step "children's" visibility. We can only calculate the next step, after its call.
-    ModelWizardStep nextStep = null;
+    ModelWizardStep<?> nextStep = null;
     int nextIndex = myCurrIndex;
     while (true) {
       nextIndex++;
@@ -294,7 +294,7 @@ public final class ModelWizard implements Disposable {
         break;
       }
 
-      ModelWizardStep step = mySteps.get(nextIndex);
+      ModelWizardStep<?> step = mySteps.get(nextIndex);
       if (shouldShowStep(step)) {
         // Prepare to go to the next step but don't assume we'll make it - an exception may
         // interrupt.
@@ -396,13 +396,13 @@ public final class ModelWizard implements Disposable {
     try {
       if (result == WizardResult.FINISHED) {
         Set<WizardModel> seenModels = new HashSet<>();
-        for (ModelWizardStep step : myPrevSteps) {
+        for (ModelWizardStep<?> step : myPrevSteps) {
           WizardModel model = step.getModel();
           if (seenModels.add(model)) {
             model.handleFinished();
           }
         }
-        for (ModelWizardStep step : mySteps) {
+        for (ModelWizardStep<?> step : mySteps) {
           WizardModel model = step.getModel();
           if (seenModels.add(model)) {
             model.handleSkipped();
@@ -433,7 +433,7 @@ public final class ModelWizard implements Disposable {
   }
 
   private void showCurrentStep() {
-    ModelWizardStep step = mySteps.get(myCurrIndex);
+    ModelWizardStep<?> step = mySteps.get(myCurrIndex);
     myTitleHeader.title().set(step.getTitle());
     myTitleHeader.stepIcon().setNullableValue(step.getIcon());
 
@@ -460,14 +460,14 @@ public final class ModelWizard implements Disposable {
    */
   private void updateNavigationProperties() {
     myOnLastStep.set(isOnLastVisibleStep());
-    ModelWizardStep step = mySteps.get(myCurrIndex);
+    ModelWizardStep<?> step = mySteps.get(myCurrIndex);
     myCanGoBack.set(!myPrevSteps.empty() && step.canGoBack());
     myCanGoForward.set(false); // Prevent going forward until the next step finishes binding
     myBindings.bind(myCanGoForward, step.canGoForward());
   }
 
-  private boolean shouldShowStep(ModelWizardStep step) {
-    ModelWizardStep currStep = step;
+  private boolean shouldShowStep(ModelWizardStep<?> step) {
+    ModelWizardStep<?> currStep = step;
     do {
       if (!currStep.shouldShow()) {
         return false;
@@ -484,7 +484,7 @@ public final class ModelWizard implements Disposable {
     float size = mySteps.size();
     boolean currPageIsLast = true;
     for (int i = myCurrIndex + 1; i < size; i++) {
-      ModelWizardStep step = mySteps.get(i);
+      ModelWizardStep<?> step = mySteps.get(i);
       if (shouldShowStep(step)) {
         currPageIsLast = false;
         break;
@@ -540,18 +540,18 @@ public final class ModelWizard implements Disposable {
    * step.
    */
   public static final class Builder {
-    private final List<ModelWizardStep> mySteps;
+    private final List<ModelWizardStep<?>> mySteps;
 
     /**
      * Builder constructor which, for convenience, accepts some initial steps. You can also call
      * {@link #addStep(ModelWizardStep)} to add additional steps. Once all steps are added, you
      * should {@link #build()} the wizard.
      */
-    public Builder(@NotNull ModelWizardStep... steps) {
+    public Builder(@NotNull ModelWizardStep<?>... steps) {
       mySteps = Lists.newArrayList(steps);
     }
 
-    public Builder addStep(@NotNull ModelWizardStep step) {
+    public Builder addStep(@NotNull ModelWizardStep<?> step) {
       mySteps.add(step);
       return this;
     }
