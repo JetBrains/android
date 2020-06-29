@@ -196,6 +196,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
 
+  private int myScheduledDevices = 0;
   private int scheduledTestCases = 0;
   private int passedTestCases = 0;
   private int failedTestCases = 0;
@@ -405,6 +406,12 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
         myApiLevelFilterComboBoxModel.add(apiLevelFilterItem);
       }
 
+      myScheduledDevices++;
+      if (myScheduledDevices == 1) {
+        myTable.showTestDuration(device);
+      } else {
+        myTable.showTestDuration(null);
+      }
       myTable.addDevice(device);
       myDetailsView.addDevice(device);
     });

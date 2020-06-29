@@ -22,6 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedDuration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getSummaryResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.plus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -33,17 +34,22 @@ import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.actions.EditSourceAction
+import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.RelativeFont
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns
@@ -53,9 +59,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
 import java.awt.Component
+import java.awt.Graphics
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.time.Duration
 import java.util.Comparator
 import javax.swing.Icon
 import javax.swing.JTable
@@ -70,6 +78,7 @@ import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeNode
+import kotlin.math.max
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
@@ -135,6 +144,15 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   fun setColumnFilter(filter: (AndroidDevice) -> Boolean) {
     myModel.setVisibleCondition(filter)
     refreshTable()
+  }
+
+  /**
+   * Shows an elapsed time of a test execution in table rows for a given device.
+   *
+   * @param device a device to retrieve the time or null to hide the string.
+   */
+  fun showTestDuration(device: AndroidDevice?) {
+    myTableView.showTestDuration(device)
   }
 
   /**
@@ -243,6 +261,9 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
                                                    private val javaPsiFacade: JavaPsiFacade,
                                                    private val testArtifactSearchScopes: TestArtifactSearchScopes?)
   : TreeTableView(model), DataProvider {
+
+  private var myDeviceToShowTestDuration: AndroidDevice? = null
+
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -254,6 +275,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tree.isRootVisible = true
     tree.showsRootHandles = true
     tree.cellRenderer = object: ColoredTreeCellRenderer() {
+      private var myDurationTextWidth: Int = 0
+      private var myDurationText: String = ""
       override fun customizeCellRenderer(tree: JTree,
                                          value: Any?,
                                          selected: Boolean,
@@ -274,6 +297,28 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           }
         })
         icon = getIconFor(results.getTestResultSummary())
+
+        val duration = myDeviceToShowTestDuration?.let { results.getRoundedDuration(it) }
+        if (duration == null) {
+          myDurationTextWidth = 0
+          myDurationText = ""
+        } else {
+          myDurationText = StringUtil.formatDuration(duration.toMillis(), "\u2009")
+          val fontMetrics = getFontMetrics(RelativeFont.SMALL.derive(font))
+          myDurationTextWidth = fontMetrics.stringWidth(myDurationText + "\u2009")
+        }
+      }
+
+      // Note: Override paintComponent and draw the test duration text manually. Ideally,
+      // ColoredTreeCellRenderer should support drawing a right aligned text but it doesn't.
+      // I referred how com.intellij.execution.testframework.sm.runner.ui.TestTreeRenderer
+      // renders the duration text to implement it.
+      override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        setupAntialiasing(g)
+        g.color = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+        g.font = RelativeFont.SMALL.derive(font)
+        g.drawString(myDurationText, width - myDurationTextWidth, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
       }
     }
 
@@ -333,7 +378,17 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {
-    return getColumnInfo(column).getRenderer(getRowElement(row)) ?: super.getCellRenderer(row, column)
+    getColumnInfo(column).getRenderer(getRowElement(row))?.let { return it }
+    getColumnModel().getColumn(column).cellRenderer?.let { return it }
+    return getDefaultRenderer(getColumnClass(column))
+  }
+
+  /**
+   * Shows an elapsed time of a test execution in table rows for a given device. Set null to hide
+   * the duration string.
+   */
+  fun showTestDuration(device: AndroidDevice?) {
+    myDeviceToShowTestDuration = device
   }
 
   fun refreshTable() {
@@ -563,6 +618,12 @@ private class AndroidTestResultsRow(override val methodName: String,
    */
   override fun getLogcat(device: AndroidDevice): String = myTestCases[device.id]?.logcat ?: ""
 
+  override fun getDuration(device: AndroidDevice): Duration? {
+    val start = myTestCases[device.id]?.startTimestampMillis ?: return null
+    val end = myTestCases[device.id]?.endTimestampMillis ?: System.currentTimeMillis()
+    return Duration.ofMillis(max(end - start, 0))
+  }
+
   /**
    * Returns an error stack for a given [device].
    */
@@ -663,6 +724,16 @@ private class AggregationRow(override val packageName: String = "",
         }
       }
     }?:""
+  }
+  override fun getDuration(device: AndroidDevice): Duration? {
+    return  children?.fold(null as Duration?) { acc, result ->
+      val childDuration = (result as? AndroidTestResults)?.getDuration(device) ?: return@fold acc
+      if (acc == null) {
+        childDuration
+      } else {
+        acc + childDuration
+      }
+    }
   }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
   override fun getBenchmark(device: AndroidDevice): String {

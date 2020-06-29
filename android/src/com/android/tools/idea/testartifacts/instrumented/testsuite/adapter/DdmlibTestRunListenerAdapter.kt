@@ -137,7 +137,8 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
                                    testId.testName,
                                    ClassUtil.extractClassName(testId.className),
                                    ClassUtil.extractPackageName(testId.className),
-                                   AndroidTestCaseResult.IN_PROGRESS)
+                                   AndroidTestCaseResult.IN_PROGRESS,
+                                   startTimestampMillis = System.currentTimeMillis())
     myTestCases[testId] = testCase
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
@@ -168,6 +169,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     }
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
     testCase.benchmark = getBenchmarkOutput(testMetrics)
+    testCase.endTimestampMillis = System.currentTimeMillis()
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 

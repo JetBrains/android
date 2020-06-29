@@ -54,6 +54,7 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.awt.event.MouseEvent
 import java.io.File
+import java.time.Duration
 
 /**
  * Unit tests for [AndroidTestResultsTableView].
@@ -253,6 +254,41 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun addTestResultsWithDuration() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addTestCase(device1,
+                      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 100))
+    table.addTestCase(device1,
+                      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 200))
+    table.addTestCase(device1,
+                      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 300))
+    table.addTestCase(device2,
+                      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 400))
+    table.addTestCase(device2,
+                      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 500))
+    table.addTestCase(device2,
+                      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 600))
+
+    assertThat(table.getTableViewForTesting().getItem(0).getDuration(device1)).isEqualTo(Duration.ofMillis(100 + 200 + 300))
+    assertThat(table.getTableViewForTesting().getItem(1).getDuration(device1)).isEqualTo(Duration.ofMillis(100 + 200))
+    assertThat(table.getTableViewForTesting().getItem(2).getDuration(device1)).isEqualTo(Duration.ofMillis(100))
+    assertThat(table.getTableViewForTesting().getItem(3).getDuration(device1)).isEqualTo(Duration.ofMillis(200))
+    assertThat(table.getTableViewForTesting().getItem(4).getDuration(device1)).isEqualTo(Duration.ofMillis(300))
+    assertThat(table.getTableViewForTesting().getItem(5).getDuration(device1)).isEqualTo(Duration.ofMillis(300))
+
+    assertThat(table.getTableViewForTesting().getItem(0).getDuration(device2)).isEqualTo(Duration.ofMillis(400 + 500 + 600))
+    assertThat(table.getTableViewForTesting().getItem(1).getDuration(device2)).isEqualTo(Duration.ofMillis(400 + 500))
+    assertThat(table.getTableViewForTesting().getItem(2).getDuration(device2)).isEqualTo(Duration.ofMillis(400))
+    assertThat(table.getTableViewForTesting().getItem(3).getDuration(device2)).isEqualTo(Duration.ofMillis(500))
+    assertThat(table.getTableViewForTesting().getItem(4).getDuration(device2)).isEqualTo(Duration.ofMillis(600))
+    assertThat(table.getTableViewForTesting().getItem(5).getDuration(device2)).isEqualTo(Duration.ofMillis(600))
+  }
+
+  @Test
   fun clickTestResultsRow() {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
@@ -448,6 +484,7 @@ class AndroidTestResultsTableViewTest {
       override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getDuration(device: AndroidDevice): Duration? = null
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
       override fun getBenchmark(device: AndroidDevice): String = ""
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
