@@ -25,14 +25,11 @@ import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.WaitFor;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Component;
+import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -144,11 +141,7 @@ public class IconPickerDialogTest extends PlatformTestCase {
       @Override
       protected boolean condition() {
         // Dispatch pending EDT tasks, do not block the thread while waiting.
-        try {
-          PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-        }
-        catch (InterruptedException ignored) {
-        }
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
         JTable table = UIUtil.findComponentOfType(pickerPanel, JTable.class);
         JComboBox box = UIUtil.findComponentOfType(pickerPanel, JComboBox.class);
         boolean populatedTable = table != null && table.getValueAt(0, 0) != null;

@@ -736,12 +736,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void dispatchEvents() {
-    try {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    }
-    catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

@@ -80,7 +80,7 @@ import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.util.WaitFor;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -4521,11 +4521,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private void runListeners() {
     PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    try {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    }
-    catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 }
