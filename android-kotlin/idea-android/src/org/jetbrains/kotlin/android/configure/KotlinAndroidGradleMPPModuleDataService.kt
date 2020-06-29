@@ -139,7 +139,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             } ?: return emptyList()
             return dependencies
                 .moduleDependencies
-                .mapNotNull { projectNode.findChildModuleById(it.projectPath) }
+                .mapNotNull { projectNode.findChildModuleById(it.projectPath!!) }
         }
 
         val javaModel = getJavaModuleModel(moduleNode)

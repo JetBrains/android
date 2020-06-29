@@ -751,7 +751,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         if (gradleProject != null) {
           try {
             String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-            myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+            myDependenciesFactory.addBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
           }
           catch (UnsupportedOperationException exception) {
             // getBuildDirectory is not available for Gradle older than 2.0.
