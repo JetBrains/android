@@ -113,7 +113,7 @@ inline fun <reified T> traverseObjectGraph(roots: Map<Any, String>,
   ApplicationManager.getApplication().runReadAction {
     ProhibitAWTEvents.start("checking for leaks").use {
       DebugReflectionUtil.walkObjects(
-        10000, roots, suspectClass, Condition { shouldFollowValue(it) },
+        10000, roots, suspectClass, { shouldFollowValue(it) },
         PairProcessor { value, backLink ->
           if (objectMatches(value as T) && alreadyReported.add(value)) processor(value, backLink)
           true // keep reporting, don't stop at the first occurrence
