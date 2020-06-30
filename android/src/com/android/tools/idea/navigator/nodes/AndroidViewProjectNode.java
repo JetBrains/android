@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes;
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
@@ -87,9 +88,12 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       children.add(new AndroidBuildScriptsGroupNode(myProject, settings));
     }
 
-    ExternalBuildFilesGroupNode externalBuildFilesNode = new ExternalBuildFilesGroupNode(myProject, settings);
-    if (!externalBuildFilesNode.getChildren().isEmpty()) {
-      children.add(externalBuildFilesNode);
+    if (!StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get()) {
+      // Content root based nodes already show these build files so there is no need to show them again.
+      ExternalBuildFilesGroupNode externalBuildFilesNode = new ExternalBuildFilesGroupNode(myProject, settings);
+      if (!externalBuildFilesNode.getChildren().isEmpty()) {
+        children.add(externalBuildFilesNode);
+      }
     }
 
     // TODO: What about files in the base project directory
