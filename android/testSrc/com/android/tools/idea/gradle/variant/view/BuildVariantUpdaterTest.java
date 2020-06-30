@@ -106,7 +106,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     myVariantUpdater = new BuildVariantUpdater(myModifiableModelsProviderFactory);
     myVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
 
-    when(myNdkModel.getNdkVariantNames()).thenReturn(new HashSet() {{
+    when(myNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
       add("debug-armeabi-v7a");
       add("debug-x86");
       add("release-armeabi-v7a");
@@ -150,7 +150,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     String variantToSelect = "release";
     String abiToSelect = "x86";
 
-    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
@@ -191,7 +191,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     String variantToSelect = "debug";
     String abiToSelect = "armeabi-v7a";
 
-    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
@@ -385,7 +385,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Selected variant related expectations.
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
     when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
 
@@ -394,7 +394,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(myNdkModel).setSelectedVariantName(ndkVariantToSelect);
+    verify(myNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
@@ -473,11 +473,11 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Selected variant related expectations.
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
     when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(libraryNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(libraryNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(libraryNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
 
-    when(libraryNdkModel.getNdkVariantNames()).thenReturn(new HashSet() {{
+    when(libraryNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
       add("debug-armeabi-v7a");
       add("debug-x86");
       add("release-armeabi-v7a");
@@ -490,7 +490,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryNdkModel).setSelectedVariantName(ndkVariantToSelect);
+    verify(libraryNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -580,14 +580,14 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
     // Selected variant related expectations.
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(libraryNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(libraryNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(libraryNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
 
-    when(libraryNdkModel.getNdkVariantNames()).thenReturn(new HashSet() {{
+    when(libraryNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
       add("debug-armeabi-v7a");
       add("debug-x86");
       add("release-armeabi-v7a");
@@ -599,9 +599,9 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(myNdkModel).setSelectedVariantName(ndkVariantToSelect);
+    verify(myNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryNdkModel).setSelectedVariantName(ndkVariantToSelect);
+    verify(libraryNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -693,15 +693,15 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
     // Selected variant related expectations.
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
     when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(libraryNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
     when(libraryNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
     when(libraryNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
 
-    when(libraryNdkModel.getNdkVariantNames()).thenReturn(new HashSet() {{
+    when(libraryNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
       add("debug-armeabi-v7a");
       add("debug-x86");
       add("release-armeabi-v7a");
@@ -713,9 +713,9 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(myNdkModel).setSelectedVariantName(ndkVariantToSelect);
+    verify(myNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
     verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryNdkModel).setSelectedVariantName(ndkVariantToSelect);
+    verify(libraryNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
