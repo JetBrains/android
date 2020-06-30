@@ -88,6 +88,18 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testGetReferredElement() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    // Create a reference to prop1.
+    val extModel = gradleBuildModel.ext()
+    val prop1Model = extModel.findProperty("prop1")
+    TestCase.assertNotNull(prop1Model)
+    val referenceTo = ReferenceTo(prop1Model)
+    assertEquals(referenceTo.referredElement, prop1Model.rawElement)
+  }
+
+  @Test
   fun testPropertiesFromScratch() {
     writeToBuildFile(TestFile.PROPERTIES_FROM_SCRATCH)
 
