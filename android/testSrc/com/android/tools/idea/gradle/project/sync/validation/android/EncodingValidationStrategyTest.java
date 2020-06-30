@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.ModelCache;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -64,7 +65,8 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
     when(androidModel.getAndroidProject())
-      .thenAnswer(invocation -> IdeAndroidProjectImpl.create(androidProject, new IdeDependenciesFactory(), null, ImmutableList.of()));
+      .thenAnswer(invocation -> IdeAndroidProjectImpl.create(androidProject, new ModelCache(), new IdeDependenciesFactory(), null, ImmutableList.of()
+      ));
 
     myStrategy.validate(mock(Module.class), androidModel);
 

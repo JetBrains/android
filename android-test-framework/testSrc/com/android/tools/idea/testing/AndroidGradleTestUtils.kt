@@ -828,6 +828,7 @@ private fun createAndroidModuleDataNode(
         moduleBasePath,
         IdeAndroidProjectImpl.create(
           androidProjectStub,
+          HashMap(),
           IdeDependenciesFactory(),
           null,
           ImmutableList.of()),

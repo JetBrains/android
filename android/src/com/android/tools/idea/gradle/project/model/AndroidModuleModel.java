@@ -122,12 +122,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
+  @VisibleForTesting
   public static AndroidModuleModel create(@NotNull String moduleName,
                                           @NotNull File rootDirPath,
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String selectedVariantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory) {
-    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, emptyList(), emptyList());
+    return
+      create(moduleName, rootDirPath, androidProject, selectedVariantName, new HashMap<>(), dependenciesFactory, null, emptyList(), emptyList());
   }
 
   public static AndroidModuleModel create(@NotNull String moduleName,
@@ -151,11 +153,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull File rootDirPath,
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String variantName,
+                                          @NotNull Map<String, String> strings,
                                           @NotNull IdeDependenciesFactory dependenciesFactory,
                                           @Nullable Collection<Variant> variantsToAdd,
                                           @NotNull Collection<IdeVariant> cachedVariants,
                                           @NotNull Collection<SyncIssue> syncIssues) {
-    IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+    IdeAndroidProject ideAndroidProject =
+      IdeAndroidProjectImpl.create(androidProject, strings, dependenciesFactory, variantsToAdd, syncIssues
+      );
     ideAndroidProject.addVariants(cachedVariants);
     return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, ideAndroidProject, variantName);
   }
