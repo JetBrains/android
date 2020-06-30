@@ -98,10 +98,8 @@ public class CommandLineArgs {
 
     // Obtains the version of the Android Support plugin.
     IdeaPluginDescriptor androidSupport = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
-    if (androidSupport != null && !isDevBuild(androidSupport.getVersion()) && IdeInfo.getInstance().isAndroidStudio()) {
+    if (androidSupport != null && !isDevBuild(androidSupport.getVersion())) {
       // Example of version to pass: 2.4.0.6
-      // FIXME-ank3: when IJ installers are built plugin descriptors are patched to match IDE version, so
-      // androidSupport.getVersion() reports 202.SNAPSHOT.20200614 which cannot be parsed by AGP. 202.xxx does not make sense either.
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, androidSupport.getVersion()));
     }
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
