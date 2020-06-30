@@ -462,7 +462,7 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
         "Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val classLoader = ModuleClassLoaderManager.get().getShared(null, module, this)
+    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedPreviewElementTemplate::class.java.classLoader, module, this)
     try {
       return parameterProviders.map {
         try {
