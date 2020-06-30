@@ -550,7 +550,7 @@ public final class StudioFlags {
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
-    "Enable the Upgrade Assistant for helping with AGP upgrades", false);
+    "Enable the Upgrade Assistant for helping with AGP upgrades", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false
