@@ -291,7 +291,7 @@ fun shouldForcePluginUpgrade(
 @Slow
 fun performForcedPluginUpgrade(
   project: Project,
-  currentPluginVersion: GradleVersion?,
+  currentPluginVersion: GradleVersion,
   newPluginVersion: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 ) : Boolean {
   val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
@@ -300,8 +300,21 @@ fun performForcedPluginUpgrade(
 
   if (upgradeAccepted) {
     // The user accepted the upgrade
-    val versionUpdater = AndroidPluginVersionUpdater.getInstance(project)
-    versionUpdater.updatePluginVersion(newPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), currentPluginVersion)
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      val processor = AgpUpgradeRefactoringProcessor(project, currentPluginVersion, newPluginVersion)
+      val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor)
+        dialog.showAndGet()
+      }
+      if (runProcessor) {
+        DumbService.getInstance(project).smartInvokeLater { processor.run() }
+      }
+      return false
+    }
+    else {
+      val versionUpdater = AndroidPluginVersionUpdater.getInstance(project)
+      versionUpdater.updatePluginVersion(newPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), currentPluginVersion)
+    }
   } else {
     // The user did not accept the upgrade
     val syncMessage = SyncMessage(

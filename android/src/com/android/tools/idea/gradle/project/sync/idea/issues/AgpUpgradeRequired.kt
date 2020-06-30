@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture
  */
 class AgpUpgradeRequiredException(
   val project: Project?,
-  val modelVersion: GradleVersion?
+  val modelVersion: GradleVersion
 ) : AndroidSyncException()
 
 /**
@@ -77,7 +77,7 @@ class AgpUpgradeRequiredIssueChecker : GradleIssueChecker {
  * Hyperlink that triggered the showing of the [ForcedPluginPreviewVersionUpgradeDialog] letting the user
  * upgrade there Android Gradle plugin and Gradle versions.
  */
-private class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion?) : BuildIssueQuickFix {
+private class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : BuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
@@ -92,11 +92,15 @@ private class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion?) : BuildI
 /**
  * Helper method to trigger the forced upgrade prompt and then request a sync if it was successful.
  */
-private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVersion?) : Boolean {
+private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVersion) : Boolean {
   val success = performForcedPluginUpgrade(project, currentAgpVersion)
   if (success) {
     val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
     GradleSyncInvoker.getInstance().requestProjectSync(project, request)
   }
+  // TODO(b/159995302): the return value of performForcedPluginUpgrade() above is used to indicate both: "should a sync be triggered", and
+  //  whether the update was successful... except that (a) we don't check to see if the sync is successful before returning true, and
+  //  (b) nothing uses the return value anyway.  We could probably simplify a lot of things by moving to a fully-asynchronous model
+  //  and not attempting to track return codes like this.
   return success
 }

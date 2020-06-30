@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.intellij.openapi.util.Disposer;
@@ -57,8 +58,12 @@ public class ForcedPluginPreviewVersionUpgradeDialogTest extends PlatformTestCas
   public void testDialogMessage() {
     myDialog = new ForcedPluginPreviewVersionUpgradeDialog(getProject(), null);
     String message = myDialog.getDisplayedMessage();
-
-    assertThat(message).contains("the IDE will update the plugin to version " + LatestKnownPluginVersionProvider.INSTANCE.get() + ".");
+    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+      assertThat(message).contains("upgrade the project's build files to use version " + LatestKnownPluginVersionProvider.INSTANCE.get());
+    }
+    else {
+      assertThat(message).contains("the IDE will update the plugin to version " + LatestKnownPluginVersionProvider.INSTANCE.get() + ".");
+    }
     LatestKnownPluginVersionProvider.INSTANCE.get();
   }
 }
