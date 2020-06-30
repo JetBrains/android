@@ -570,15 +570,15 @@ class JavaLanguageLevelUsageInfo(
   private val model: LanguageLevelPropertyModel,
   private val existing: Boolean,
   private val noLanguageLevelAction: NoLanguageLevelAction,
-  private val name: String
+  private val propertyName: String
 ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
       false -> when (noLanguageLevelAction) {
-        INSERT_OLD_DEFAULT -> "insert explicit $name to preserve previous behaviour"
+        INSERT_OLD_DEFAULT -> "insert explicit $propertyName to preserve previous behaviour"
         ACCEPT_NEW_DEFAULT -> "accept new default"
       }
-      true -> "preserve existing explicit $name"
+      true -> "preserve existing explicit $propertyName"
     }
   }
 
@@ -588,9 +588,9 @@ class JavaLanguageLevelUsageInfo(
     }
   }
 
-  // don't need hashCode for correctness because this is stricter than the superclass's equals()
+  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
   override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is JavaLanguageLevelUsageInfo && name == other.name
+    return super.equals(other) && other is JavaLanguageLevelUsageInfo && propertyName == other.propertyName
   }
 }
 
@@ -601,16 +601,16 @@ class KotlinLanguageLevelUsageInfo(
     private val model: LanguageLevelPropertyModel,
     private val existing: Boolean,
     private val noLanguageLevelAction: NoLanguageLevelAction,
-    private val name: String
+    private val propertyName: String
   ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
       false -> when (noLanguageLevelAction) {
-        INSERT_OLD_DEFAULT -> "insert explicit $name to preserve previous behaviour"
+        INSERT_OLD_DEFAULT -> "insert explicit $propertyName to preserve previous behaviour"
         ACCEPT_NEW_DEFAULT -> "accept new default"
 
       }
-      true -> "preserve existing explicit $name"
+      true -> "preserve existing explicit $propertyName"
     }
   }
 
@@ -618,6 +618,11 @@ class KotlinLanguageLevelUsageInfo(
     when {
       !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
     }
+  }
+
+  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
+  override fun equals(other: Any?): Boolean {
+    return super.equals(other) && other is KotlinLanguageLevelUsageInfo && propertyName == other.propertyName
   }
 }
 
