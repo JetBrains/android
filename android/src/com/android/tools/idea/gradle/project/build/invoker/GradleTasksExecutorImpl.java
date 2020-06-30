@@ -56,7 +56,6 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
@@ -250,7 +249,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
         if (enableBuildAttribution) {
-          attributionFileDir = Files.createTempDir();
+          attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
