@@ -34,8 +34,9 @@ class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
       "liveTemplates/AndroidTesting",
       "liveTemplates/AndroidXML"
     )
-    if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get() && StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get()) {
+    if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
       templates.add("liveTemplates/AndroidCompose")
+      templates.add("liveTemplates/AndroidComposePreview")
     }
 
     return templates.toTypedArray()

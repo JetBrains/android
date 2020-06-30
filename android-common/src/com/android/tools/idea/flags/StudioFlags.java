@@ -926,13 +926,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_SURROUND_WITH_WIDGET = Flag.create(
-    COMPOSE, "editor.surround.with.widget.action",
-    "Enables \"Surround with widget\" intention and template",
-    "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_FUNCTION_EXTRACTION = Flag.create(
     COMPOSE, "editor.function.extraction",
     "Enables extracting @Composable function from other composables",

@@ -46,7 +46,6 @@ class ComposeSurroundWithWidget : IntentionAction, HighPriorityAction {
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     when {
       !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> return false
-      !StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get() -> return false
       file == null || editor == null -> return false
       !file.isWritable || file !is KtFile || !editor.selectionModel.hasSelection() -> return false
       else -> {
