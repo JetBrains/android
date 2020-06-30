@@ -18,27 +18,30 @@ package com.android.tools.idea.gradle.project.model;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.google.common.collect.ImmutableList;
-import java.io.Serializable;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.*;
-
-public class NdkVariant implements Serializable {
-  @NotNull private final String myVariantName;
+public class NdkVariant {
+  @NotNull private final String myVariantAbi;
   @NotNull private final Map<String, NativeArtifact> myArtifactsByName;
   private final boolean myExportedHeadersSupported;
 
   // Used for serialization by the IDE.
   @SuppressWarnings("unused")
   public NdkVariant() {
-    myVariantName = "";
+    myVariantAbi = "";
     myArtifactsByName = Collections.emptyMap();
     myExportedHeadersSupported = false;
   }
 
-  NdkVariant(@NotNull String variantName, boolean exportedHeadersSupported) {
-    myVariantName = variantName;
+  NdkVariant(@NotNull String variantAbi, boolean exportedHeadersSupported) {
+    myVariantAbi = variantAbi;
     myArtifactsByName = new HashMap<>();
     myExportedHeadersSupported = exportedHeadersSupported;
   }
@@ -49,7 +52,7 @@ public class NdkVariant implements Serializable {
 
   @NotNull
   public String getName() {
-    return myVariantName;
+    return myVariantAbi;
   }
 
   @NotNull

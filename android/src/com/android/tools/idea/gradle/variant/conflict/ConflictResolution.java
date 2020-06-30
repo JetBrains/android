@@ -80,7 +80,7 @@ public final class ConflictResolution {
         return false;  // Cannot solve NDK variant induced conflict.
       }
 
-      ndkModel.setSelectedVariantName(newNdkVariant);
+      ndkModel.setSelectedVariantAbi(newNdkVariant);
       ndkFacet.setNdkModuleModel(ndkModel);
     }
 
@@ -121,7 +121,7 @@ public final class ConflictResolution {
     String userSelectedAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
     String ndkVariant = newVariant + "-" + userSelectedAbi;  // e.g., debug-x86
 
-    if (ndkModel.variantExists(ndkVariant)) {
+    if (ndkModel.variantAbiExists(ndkVariant)) {
       return ndkVariant;
     }
 

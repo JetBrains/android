@@ -290,7 +290,7 @@ public class BuildVariantView {
     NdkModuleModel ndkModuleModel = getNdkModuleModelIfNotJustDummy(module);
     if (ndkModuleModel != null) {
       buildVariantNames.addAll(
-        ContainerUtil.map(ndkModuleModel.getNdkVariantNames(), ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName)));
+        ContainerUtil.map(ndkModuleModel.getNdkVariantAbis(), ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName)));
     }
 
     return buildVariantNames;
@@ -325,7 +325,7 @@ public class BuildVariantView {
       return Collections.emptyList();
     }
 
-    Collection<String> allNdkVariants = ndkModuleModel.getNdkVariantNames();
+    Collection<String> allNdkVariants = ndkModuleModel.getNdkVariantAbis();
     return allNdkVariants.stream()
       .filter((String ndkVariant) -> ndkVariant.startsWith(variantNameWithoutAbi))
       .map((String ndkVariant) -> ndkModuleModel.getAbiName(ndkVariant))
@@ -942,7 +942,7 @@ public class BuildVariantView {
   private static NdkModuleModel getNdkModuleModelIfNotJustDummy(@NotNull NdkFacet ndkFacet) {
     NdkModuleModel ndkModel = NdkModuleModel.get(ndkFacet);
     String variantNameWithAbi = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
-    if (variantNameWithAbi.equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+    if (variantNameWithAbi.equals(NdkModuleModel.DUMMY_VARIANT_ABI.getDisplayName())) {
       // There are no valid NDK variants. Treat as if NdkModuleModel does not exist.
       return null;
     }

@@ -344,10 +344,10 @@ public class BuildVariantUpdater {
 
     affectedNdkFacets.add(ndkFacet);
     ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantToSelect;
-    if (!ndkModuleModel.variantExists(variantToSelect)) {
+    if (!ndkModuleModel.variantAbiExists(variantToSelect)) {
       return false;
     }
-    ndkModuleModel.setSelectedVariantName(variantToSelect);
+    ndkModuleModel.setSelectedVariantAbi(variantToSelect);
     return true;
   }
 
@@ -472,7 +472,7 @@ public class BuildVariantUpdater {
                                              @Nullable String userSelectedAbi) {
     if (userSelectedAbi != null) {
       String ndkVariant = getNdkBuildVariantName(newVariant, userSelectedAbi);  // e.g., debug-x86
-      if (ndkModel.getNdkVariantNames().contains(ndkVariant)) {
+      if (ndkModel.getNdkVariantAbis().contains(ndkVariant)) {
         return ndkVariant;
       }
 
@@ -485,13 +485,13 @@ public class BuildVariantUpdater {
     String existingAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
     String ndkVariant = getNdkBuildVariantName(newVariant, existingAbi);  // e.g., debug-x86
 
-    if (ndkModel.getNdkVariantNames().contains(ndkVariant)) {
+    if (ndkModel.getNdkVariantAbis().contains(ndkVariant)) {
       return ndkVariant;
     }
 
     // Cannot preserve ABI. It is probably filtered out by the user. Fall back to any other available ABI for that build variant.
     String expectedPrefix = newVariant + "-";
-    Optional<String> variant = ndkModel.getNdkVariantNames().stream().filter(it -> it.startsWith(expectedPrefix)).findFirst();
+    Optional<String> variant = ndkModel.getNdkVariantAbis().stream().filter(it -> it.startsWith(expectedPrefix)).findFirst();
     return variant.orElse(null);
   }
 
@@ -698,7 +698,7 @@ public class BuildVariantUpdater {
         String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
       return null;
     }
-    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DUMMY_VARIANT_ABI.getDisplayName())) {
       // Native module that does not have any real ABIs. Proceed with the build variant without ABI.
       return null;
     }
@@ -711,7 +711,7 @@ public class BuildVariantUpdater {
     if (ndkModuleModel == null) {
       return null;
     }
-    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DUMMY_VARIANT_ABI.getDisplayName())) {
       // Native module that does not have any real ABIs. Proceed with the build variant without ABI.
       return null;
     }

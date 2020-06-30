@@ -48,7 +48,7 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   private static void configureFacet(@NotNull NdkFacet facet, @NotNull NdkModuleModel model) {
     String selectedVariant = facet.getConfiguration().SELECTED_BUILD_VARIANT;
     if (isNotEmpty(selectedVariant)) {
-      model.setSelectedVariantName(selectedVariant);
+      model.setSelectedVariantAbi(selectedVariant);
     }
     facet.setNdkModuleModel(model);
   }
