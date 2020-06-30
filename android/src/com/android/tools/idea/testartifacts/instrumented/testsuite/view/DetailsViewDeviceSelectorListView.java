@@ -29,6 +29,7 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -203,6 +204,7 @@ public class DetailsViewDeviceSelectorListView {
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
       super.getListCellRendererComponent(list, " ", index, isSelected, cellHasFocus);
+      setBackground(UIUtil.getTableBackground(isSelected, list.hasFocus()));
 
       myCellRendererComponent.setBackground(list.getBackground());
       myCellRendererComponent.setForeground(list.getForeground());

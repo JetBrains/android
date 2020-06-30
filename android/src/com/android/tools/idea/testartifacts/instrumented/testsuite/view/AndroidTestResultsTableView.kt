@@ -54,8 +54,10 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
+import com.intellij.ui.treeStructure.treetable.TreeTableCellRenderer
+import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.ColumnInfo
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
 import java.awt.Component
@@ -383,6 +385,21 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     return getDefaultRenderer(getColumnClass(column))
   }
 
+  override fun createTableRenderer(treeTableModel: TreeTableModel): TreeTableCellRenderer {
+    return object: TreeTableCellRenderer(this, tree) {
+      override fun getTableCellRendererComponent(table: JTable,
+                                                 value: Any,
+                                                 isSelected: Boolean,
+                                                 hasFocus: Boolean,
+                                                 row: Int,
+                                                 column: Int): Component {
+        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column).also {
+          tree.border = null
+        }
+      }
+    }
+  }
+
   /**
    * Shows an elapsed time of a test execution in table rows for a given device. Set null to hide
    * the duration string.
@@ -496,8 +513,7 @@ private object TestStatusColumn : ColumnInfo<AndroidTestResults, AndroidTestResu
 }
 
 private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty()
-  override fun getTableCellRendererComponent(table: JTable?,
+  override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
                                              hasFocus: Boolean,
@@ -508,7 +524,7 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
     horizontalAlignment = CENTER
     horizontalTextPosition = CENTER
     foreground = getColorFor(results.getTestResultSummary())
-    border = myEmptyBorder
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
   }
 }
@@ -553,8 +569,7 @@ private class AndroidTestResultsColumn(val device: AndroidDevice) :
 }
 
 private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty()
-  override fun getTableCellRendererComponent(table: JTable?,
+  override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
                                              hasFocus: Boolean,
@@ -565,14 +580,13 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
     horizontalAlignment = CENTER
     horizontalTextPosition = CENTER
     icon = getIconFor(stats.getSummaryResult())
-    border = myEmptyBorder
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
   }
 }
 
 private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty()
-  override fun getTableCellRendererComponent(table: JTable?,
+  override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
                                              hasFocus: Boolean,
@@ -584,8 +598,8 @@ private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCell
     horizontalTextPosition = CENTER
     icon = null
     foreground = getColorFor(stats.getSummaryResult())
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     setValue("${stats.passed + stats.skipped}/${stats.total}")
-    border = myEmptyBorder
     return this
   }
 }
