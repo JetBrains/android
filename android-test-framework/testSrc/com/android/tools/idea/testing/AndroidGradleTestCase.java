@@ -325,7 +325,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
-  protected void importProject() {
+  protected void importProject() throws Exception {
     Project project = getProject();
     AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest());
   }

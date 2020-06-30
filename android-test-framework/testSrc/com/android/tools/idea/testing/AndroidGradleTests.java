@@ -75,7 +75,6 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.config.KotlinCompilerVersion;
 
 public class AndroidGradleTests {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
@@ -447,7 +446,7 @@ public class AndroidGradleTests {
   /**
    * Imports {@code project}, syncs the project and checks the result.
    */
-  public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
+  public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) throws Exception {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
