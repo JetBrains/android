@@ -25,6 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -509,9 +510,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
   private fun ResolvedPropertyModel.setValueIfNone(value: String) {
     if (valueType == ValueType.NONE) {
-      // Variable values need to be in double quotes
-      val quotedValue = if (value.contains('$')) "\"$value\"" else value
-      setValue(quotedValue)
+      if (value.startsWith('$')) ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) }
+      else setValue(value)
     }
   }
 
