@@ -224,7 +224,7 @@ effects.**
 
 ![Memory - Java Memory Allocation][memory-alloc-java]
 
-### Live Allocation Sampling
+### Live Allocation
 
 **(This test is expected to work only on Android O+, API >= 26)**
 
@@ -232,17 +232,20 @@ effects.**
 1. In the QA App, select the "Java Memory Allocation" scenario.
 1. Observe the sampling pulldown (which should be set to *Sampled* unless changed
    in a previous session).
-   * This may be set to another value if you changed it in a previous session and
-     left it set to that value. In that case, go ahead and set it to "Sampled" now.
+   * Set it to "Full" now.
      If you restart Studio and your sampling value is not saved across sessions,
      please file a bug.
-1. Change the pulldown from "Sampled" to "None"
+     **There should be a dashed line beginning with an full circle icon.**
+     The horizontal position of the full circle icon should be either
+     at the current point on the timeline, or near the beginning of
+     the profiler session if the last session ends with "Full" sampling rate.
+1. Change the pulldown from "Full" to "None"
 1. You should see **the dashed chart line end, finishing with an empty circle
    icon**
 1. **Important**: Set the pulldown back to "Sampled" to avoid unintentionally
    affecting other memory tests.
-1. You should see **the dashed chart line restart, beginning with an empty
-   circle icon**
+1. You should see **a semi-filled circle icon**.
+   Its vertical position should be near the bottom.
 
 ![Memory - Live Allocation Sampling, None][memory-alloc-sample-none]
 
