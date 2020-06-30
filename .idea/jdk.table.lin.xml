@@ -336,9 +336,7 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/javaslang-match-2.0.6.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/sam-with-receiver-ide-plugin.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-daemon-client-new.jar!/" type="simple" />
-            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-stdlib-common.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-scripting-intellij.jar!/" type="simple" />
-            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-stdlib-jdk7.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/android-extensions-ide.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/noarg-ide-plugin.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlinx-coroutines-jdk8-1.2.1.jar!/" type="simple" />
@@ -346,7 +344,6 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-script-runtime.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-allopen-compiler-plugin.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-gradle-tooling.jar!/" type="simple" />
-            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-stdlib.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlinx-serialization-compiler-plugin.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/markdown-0.1.25.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/javax.inject-1.jar!/" type="simple" />
@@ -359,7 +356,6 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-script-util.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-noarg-compiler-plugin.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/annotations-13.0.jar!/" type="simple" />
-            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-stdlib-jdk8.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-plugin.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-daemon-client.jar!/" type="simple" />
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/Kotlin/lib/kotlin-util-klib-metadata.jar!/" type="simple" />
