@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -89,6 +90,11 @@ public final class ReferenceTo {
       return null;
     }
     return new ReferenceTo(referenceModel);
+  }
+
+  @Nullable
+  public GradleDslElement getReferredElement() {
+    return (propertyModel != null) ? propertyModel.getRawElement() : null;
   }
 
   @NotNull
