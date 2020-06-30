@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.transport
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -73,11 +74,6 @@ class DefaultPropertiesProvider(
       firePropertiesProvided(view, PropertiesTable.emptyTable())
       return Futures.immediateFuture(null)
     }
-    if (!view.hasProperties) {
-      val generator = Generator(PropertyEvent.getDefaultInstance(), view, resourceLookup)
-      firePropertiesProvided(view, PropertiesTable.create(generator.generate()))
-      return Futures.immediateFuture(null)
-    }
     lastRequestedView = view
     val inspectorCommand = LayoutInspectorCommand.newBuilder()
       .setType(LayoutInspectorCommand.Type.GET_PROPERTIES)
@@ -113,48 +109,60 @@ class DefaultPropertiesProvider(
 
     fun generate(): Table<String, String, InspectorPropertyItem> {
       for (property in properties.propertyList) {
-        val name = stringTable[property.name]
-        val isDeclared = property.source == properties.layout &&
-                         property.source != Resource.getDefaultInstance()
-        val source = stringTable[property.source]
-        val group = when {
-          property.isLayout -> PropertySection.LAYOUT
-          isDeclared -> PropertySection.DECLARED
-          else -> PropertySection.DEFAULT
-        }
-        val value: String? = when (property.type) {
-          Type.STRING,
-          Type.INT_ENUM -> stringTable[property.int32Value]
-          Type.GRAVITY,
-          Type.INT_FLAG -> fromFlags(property.flagValue)
-          Type.BOOLEAN -> fromBoolean(property)?.toString()
-          Type.CHAR -> fromChar(property)?.toString()
-          Type.BYTE,
-          Type.INT16,
-          Type.INT32 -> fromInt32(property)?.toString()
-          Type.INT64 -> fromInt64(property)?.toString()
-          Type.DOUBLE -> fromDouble(property)?.toString()
-          Type.FLOAT -> fromFloat(property)?.toString()
-          Type.RESOURCE -> fromResource(property, layout)
-          Type.COLOR -> fromColor(property)
-
-          // We are unable to get the value from the agent. Use a placeholder.
-          Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE
-          Type.ANIM -> SOME_UNKNOWN_ANIM_VALUE
-          Type.ANIMATOR -> SOME_UNKNOWN_ANIMATOR_VALUE
-          Type.INTERPOLATOR -> SOME_UNKNOWN_INTERPOLATOR_VALUE
-          else -> ""
-        }
-        var type = property.type
-        if ((type == Type.INT32 || type == Type.FLOAT) && resourceLookup.isDimension(view, name)) {
-          type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT
-        }
-        // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-        add(InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, view, resourceLookup))
+        add(generateItem(property))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
       addInternalProperties(table, view, resourceLookup)
       return table
+    }
+
+    private fun generateItem(property: Property): InspectorPropertyItem {
+      val name = stringTable[property.name]
+      val isDeclared = property.source == properties.layout &&
+                       property.source != Resource.getDefaultInstance()
+      val source = stringTable[property.source]
+      val group = when {
+        property.isLayout -> PropertySection.LAYOUT
+        isDeclared -> PropertySection.DECLARED
+        else -> PropertySection.DEFAULT
+      }
+      val value: String? = when (property.type) {
+        Type.STRING,
+        Type.INT_ENUM -> stringTable[property.int32Value]
+        Type.GRAVITY,
+        Type.INT_FLAG -> fromFlags(property.flagValue)
+        Type.BOOLEAN -> fromBoolean(property)?.toString()
+        Type.CHAR -> fromChar(property)?.toString()
+        Type.BYTE,
+        Type.INT16,
+        Type.INT32 -> fromInt32(property)?.toString()
+        Type.INT64 -> fromInt64(property)?.toString()
+        Type.DIMENSION_EM,
+        Type.DIMENSION_DP,
+        Type.DIMENSION_FLOAT,
+        Type.DIMENSION_SP -> fromFloat(property)?.toString()
+        Type.DOUBLE -> fromDouble(property)?.toString()
+        Type.FLOAT -> fromFloat(property)?.toString()
+        Type.RESOURCE -> fromResource(property, layout)
+        Type.COLOR -> fromColor(property)
+
+        // We are unable to get the value from the agent. Use a placeholder.
+        Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE
+        Type.ANIM -> SOME_UNKNOWN_ANIM_VALUE
+        Type.ANIMATOR -> SOME_UNKNOWN_ANIMATOR_VALUE
+        Type.INTERPOLATOR -> SOME_UNKNOWN_INTERPOLATOR_VALUE
+        else -> ""
+      }
+      var type = property.type
+      if ((type == Type.INT32 || type == Type.FLOAT) && view !is ComposeViewNode && resourceLookup.isDimension(view, name)) {
+        type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT
+      }
+      if (property.elementList.isEmpty()) {
+        // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
+        return InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, view, resourceLookup)
+      }
+      val children = property.elementList.map { generateItem(it) }
+      return InspectorGroupPropertyItem(ANDROID_URI, name, type, value, null, group, source, view, resourceLookup, children)
     }
 
     /**

@@ -59,9 +59,6 @@ open class ViewNode(
   val children = mutableListOf<ViewNode>()
   var parent: ViewNode? = null
 
-  val hasProperties: Boolean
-    get() = this !is ComposeViewNode
-
   // imageBottom: the image painted before the sub views
   var imageBottom: Image? = null
 
