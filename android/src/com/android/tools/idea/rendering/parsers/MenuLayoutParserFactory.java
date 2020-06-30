@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,9 @@ import org.w3c.dom.Document;
 
 import java.util.Collections;
 
+import static com.android.SdkConstants.NAVIGATION_VIEW;
 import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
+import static com.android.tools.idea.util.DependencyManagementUtil.mapAndroidxName;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.
@@ -74,8 +77,9 @@ class MenuLayoutParserFactory {
 
   @NotNull
   public static ILayoutPullParser createInNavigationView(@NotNull PsiFile file) {
+    String navViewTag = mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(file), NAVIGATION_VIEW);
     @Language("XML")
-    String xml = "<android.support.design.widget.NavigationView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    String xml = "<" + navViewTag + " xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"wrap_content\"\n" +
                  "    android:layout_height=\"match_parent\"\n" +
