@@ -41,6 +41,12 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testIsEnabledFrom420Alpha04() {
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.2.0-alpha04"), GradleVersion.parse("4.2.0"))
+    assertTrue(processor.isEnabled)
+  }
+
+  @Test
   fun testIsDisabledFrom420Alpha05() {
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.2.0-alpha05"), GradleVersion.parse("4.2.0"))
     assertFalse(processor.isEnabled)
