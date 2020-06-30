@@ -465,16 +465,12 @@ iml_module(
 
 filegroup(
     name = "profiler-artifacts",
-    srcs = select({
-        "//tools/base/bazel:windows": [],
-        "//conditions:default": [
-            "//tools/base/profiler/app:perfa.jar",
-            "//tools/base/profiler/app:perfa_okhttp.dex",
-            "//tools/base/profiler/transform:profilers-transform.jar",
-        ],
-    }) + [
+    srcs = [
         "//tools/base/profiler:perfetto-protos",
+        "//tools/base/profiler/app:perfa.jar",
+        "//tools/base/profiler/app:perfa_okhttp.dex",
         "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
+        "//tools/base/profiler/transform:profilers-transform.jar",
     ],
     visibility = ["//visibility:public"],
 )
