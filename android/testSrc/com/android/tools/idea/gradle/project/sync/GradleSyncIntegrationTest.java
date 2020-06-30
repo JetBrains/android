@@ -956,7 +956,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertThat(failureResult.getFailures().get(0).getMessage()).isEqualTo("Fake sync error");
   }
 
-  public void testUnresolvedDependency() throws IOException {
+  public void testUnresolvedDependency() throws Exception {
     prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null);
     Project project = getProject();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
