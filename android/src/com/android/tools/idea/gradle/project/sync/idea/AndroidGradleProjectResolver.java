@@ -64,6 +64,7 @@ import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.ModelCache;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
@@ -136,6 +137,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -176,6 +178,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
+
+  @NotNull private final Map<String, String> myStrings = new HashMap<>();
   private boolean myIsImportPre3Dot0;
 
   @SuppressWarnings("unused")
@@ -326,6 +330,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         rootModulePath,
         androidProject,
         selectedVariant.getName(),
+        myStrings,
         myDependenciesFactory,
         (variantGroup == null) ? null : variantGroup.getVariants(),
         (cachedVariants == null) ? emptyList() : cachedVariants.getVariants(),

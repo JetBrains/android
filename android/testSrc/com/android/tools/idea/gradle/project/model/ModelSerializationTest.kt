@@ -366,7 +366,7 @@ class ModelSerializationTest {
 
   @Test
   fun sourceProvider() =
-    assertSerializable { IdeSourceProvider(SourceProviderStub()) }
+    assertSerializable { IdeSourceProvider.create(SourceProviderStub(), deduplicate = { this }) }
 
   @Test
   fun sourceProviderContainer() =
