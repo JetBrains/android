@@ -35,6 +35,7 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT;
 import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
@@ -72,18 +73,32 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     super(project);
     myProject = project;
 
-    setTitle("Android Gradle Plugin Update Required");
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      setTitle("Android Gradle Plugin Upgrade Assistant");
+    }
+    else {
+      setTitle("Android Gradle Plugin Update Required");
+    }
     init();
 
     setUpAsHtmlLabel(myMessagePane);
+
     String pluginVersion = LatestKnownPluginVersionProvider.INSTANCE.get();
     myRecommendedPluginVersion = pluginVersion;
     myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
-    myMessage = "<b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/><br/>" +
-                "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
-                "You can learn more about this version of the plugin from the " +
-                "<a href='https://developer.android.com/studio/releases/gradle-plugin.html" +
-                "'>release notes</a>.<br/><br/>";
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      myMessage = "<p><b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b></p>" +
+                  "<p>To continue importing the project, Android Studio will upgrade the project's build files to use version " +
+                  pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
+                  "from the <a href='https://developer.android.com/studio/releases/gradle-plugin.html'>release notes</a>).</p>";
+    }
+    else {
+      myMessage = "<b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/><br/>" +
+                  "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
+                  "You can learn more about this version of the plugin from the " +
+                  "<a href='https://developer.android.com/studio/releases/gradle-plugin.html" +
+                  "'>release notes</a>.<br/><br/>";
+    }
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -121,7 +136,12 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected Action getOKAction() {
     Action action = super.getOKAction();
-    action.putValue(NAME, "Update");
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      action.putValue(NAME, "Begin Upgrade");
+    }
+    else {
+      action.putValue(NAME, "Update");
+    }
     return action;
   }
 
@@ -129,7 +149,12 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected Action getCancelAction() {
     Action action = super.getCancelAction();
-    action.putValue(NAME, "Cancel and update manually");
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      action.putValue(NAME, "Cancel (and update build files manually)");
+    }
+    else {
+      action.putValue(NAME, "Cancel and update manually");
+    }
     return action;
   }
 

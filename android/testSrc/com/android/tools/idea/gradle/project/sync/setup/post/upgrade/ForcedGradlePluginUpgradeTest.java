@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -31,6 +32,8 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
@@ -90,13 +93,20 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
     // Simulate user accepting the upgrade.
-    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
+    //
+    // TODO(b/159995302): if the upgrade assistant is turned on, there are more user interaction points within performForcedPluginUpgrade,
+    //  which require overrides (e.g. of DialogWrapper.showAndGet()) just for testing purposes, and those tests end up not testing the
+    //  production codepaths anyway.  On moving to an asynchronous handling of plugin upgrades, this test and others will need to be
+    //  adapted, rewritten or removed.
+    if (!StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+      myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
-    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-    assertTrue(upgraded);
+      boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
+      assertTrue(upgraded);
 
-    verify(myVersionUpdater).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
-    assertThat(mySyncMessages.getReportedMessages()).isEmpty();
+      verify(myVersionUpdater).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
+      assertThat(mySyncMessages.getReportedMessages()).isEmpty();
+    }
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927
