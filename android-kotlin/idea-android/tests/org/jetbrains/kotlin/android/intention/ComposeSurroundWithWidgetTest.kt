@@ -26,12 +26,10 @@ class ComposeSurroundWithWidgetTest : JavaCodeInsightFixtureTestCase() {
     super.setUp()
     myFixture.stubComposableAnnotation()
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.override(true)
   }
 
   public override fun tearDown() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.clearOverride()
     super.tearDown()
   }
 
