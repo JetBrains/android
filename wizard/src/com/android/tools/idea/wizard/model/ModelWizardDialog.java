@@ -20,9 +20,11 @@ import static com.android.tools.idea.observable.expressions.bool.BooleanExpressi
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.ObservableOptional;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.intellij.ide.BrowserUtil;
@@ -33,6 +35,7 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -60,12 +63,19 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
   private CancellationPolicy myCancellationPolicy = CancellationPolicy.ALWAYS_CAN_CANCEL;
 
-  @SuppressWarnings("NullableProblems") // Always NotNull but initialized indirectly in constructor
+  @SuppressWarnings("NotNullFieldNotInitialized") // Always NotNull but initialized indirectly in constructor
   @NotNull
-  private ModelWizard myWizard;
+  private ModelWizard myActiveWizard;
 
-  private final BindingsManager myBindings = new BindingsManager();
+  private final BindingsManager myDialogBindings = new BindingsManager();
+  private final BindingsManager myActiveWizardBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
+  private final BoolProperty myCanGoBack = new BoolValueProperty();
+  private final BoolProperty myCanGoForward = new BoolValueProperty();
+  private final BoolProperty myOnLastStep = new BoolValueProperty();
+  private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<>();
+
+  private final JPanel mainPanel = new JPanel(new BorderLayout());
 
   @Nullable private CustomLayout myCustomLayout;
   @Nullable private URL myHelpUrl;
@@ -102,13 +112,12 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
                     @Nullable CustomLayout customLayout,
                     @Nullable URL helpUrl,
                     @NotNull CancellationPolicy cancellationPolicy) {
-    Disposer.register(getDisposable(), wizard);
-    myWizard = wizard;
-    myWizard.addResultListener(this);
     myCustomLayout = customLayout;
     myHelpUrl = helpUrl;
     myCancellationPolicy = cancellationPolicy;
     setTitle(title);
+    setModelWizard(wizard);
+
 
     init();
 
@@ -117,12 +126,41 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     }
   }
 
+  private void clearActiveWizard() {
+    // Only null while initialized indirectly in constructor
+    //noinspection ConstantConditions
+    if (myActiveWizard != null) {
+      myActiveWizardBindings.releaseAll();
+      myActiveWizard.removeResultListener(this);
+      Disposer.dispose(myActiveWizard);
+    }
+  }
+
+  /**
+   * Disposes the current wizard and replaced it by the specified one.
+   * @param wizard The new wizard to use.
+   */
+  public void setModelWizard(@NotNull ModelWizard wizard) {
+    clearActiveWizard();
+
+    myActiveWizard = wizard;
+    myActiveWizard.addResultListener(this);
+
+    myActiveWizardBindings.bind(myCanGoBack, myActiveWizard.canGoBack());
+    myActiveWizardBindings.bind(myCanGoForward, myActiveWizard.canGoForward());
+    myActiveWizardBindings.bind(myOnLastStep, myActiveWizard.onLastStep());
+    myActiveWizardBindings.bind(myExtraAction, myActiveWizard.getExtraAction());
+
+    mainPanel.removeAll();
+    mainPanel.add(myActiveWizard.getContentPanel(), BorderLayout.CENTER);
+  }
+
   @Override
   protected void dispose() {
     super.dispose();
-    myBindings.releaseAll();
+    myDialogBindings.releaseAll();
     myListeners.releaseAll();
-    myWizard.removeResultListener(this);
+    clearActiveWizard();
   }
 
   @NotNull
@@ -134,8 +172,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @NotNull
   @Override
   protected JComponent createCenterPanel() {
-    JPanel wizardContent = myWizard.getContentPanel();
-    return myCustomLayout == null ? wizardContent : myCustomLayout.decorate(myWizard.getTitleHeader(), wizardContent);
+    return myCustomLayout == null ? mainPanel : myCustomLayout.decorate(myActiveWizard.getTitleHeader(), mainPanel);
   }
 
   @Override
@@ -149,7 +186,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
   @Override
   public void doCancelAction() {
-    myWizard.cancel();
+    myActiveWizard.cancel();
     // DON'T call super.doCancelAction - that's triggered by onWizardFinished
   }
 
@@ -203,7 +240,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myWizard.getPreferredFocusComponent();
+    return myActiveWizard.getPreferredFocusComponent();
   }
 
   @Override
@@ -212,8 +249,8 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     if (action instanceof ModelWizardDialogAction) {
       ModelWizardDialogAction wizardAction = (ModelWizardDialogAction)action;
-      myBindings.bind(new EnabledProperty(button), wizardAction.shouldBeEnabled());
-      myBindings.bind(new VisibleProperty(button), wizardAction.shouldBeVisible());
+      myDialogBindings.bind(new EnabledProperty(button), wizardAction.shouldBeEnabled());
+      myDialogBindings.bind(new VisibleProperty(button), wizardAction.shouldBeVisible());
       myListeners.listenAndFire(wizardAction.shouldBeDefault(), isDefault -> {
         JRootPane rootPane = getRootPane();
         if (rootPane != null && isDefault) {
@@ -245,7 +282,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
    * By associating actions with those properties, we can easily bind UI buttons to them.
    */
   private abstract class ModelWizardDialogAction extends DialogWrapperAction {
-    public ModelWizardDialogAction(@NotNull String name) {
+    private ModelWizardDialogAction(@NotNull String name) {
       super(name);
     }
 
@@ -270,19 +307,19 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @Override
     protected void doAction(ActionEvent e) {
-      myWizard.goForward();
+      myActiveWizard.goForward();
     }
 
     @Override
     @NotNull
     public ObservableBool shouldBeEnabled() {
-      return myWizard.canGoForward().and(not(myWizard.onLastStep()));
+      return myCanGoForward.and(not(myOnLastStep));
     }
 
     @NotNull
     @Override
     public ObservableBool shouldBeDefault() {
-      return not(myWizard.onLastStep());
+      return not(myOnLastStep);
     }
   }
 
@@ -293,13 +330,13 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @Override
     protected void doAction(ActionEvent e) {
-      myWizard.goBack();
+      myActiveWizard.goBack();
     }
 
     @Override
     @NotNull
     public ObservableBool shouldBeEnabled() {
-      return myWizard.canGoBack();
+      return myCanGoBack;
     }
   }
 
@@ -310,19 +347,19 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @Override
     protected void doAction(ActionEvent e) {
-      myWizard.goForward();
+      myActiveWizard.goForward();
     }
 
     @Override
     @NotNull
     public ObservableBool shouldBeEnabled() {
-      return myWizard.onLastStep().and(myWizard.canGoForward());
+      return myOnLastStep.and(myCanGoForward);
     }
 
     @NotNull
     @Override
     public ObservableBool shouldBeDefault() {
-      return myWizard.onLastStep();
+      return myOnLastStep;
     }
   }
 
@@ -344,7 +381,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     public ObservableBool shouldBeEnabled() {
       switch (myCancellationPolicy) {
         case CAN_CANCEL_UNTIL_CAN_FINISH:
-          return not(myWizard.onLastStep().and(myWizard.canGoForward()));
+          return not(myOnLastStep.and(myCanGoForward));
         case ALWAYS_CAN_CANCEL:
         default:
           return ObservableBool.TRUE;
@@ -359,7 +396,6 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
    */
   private final class StepActionWrapper extends ModelWizardDialogAction {
     private final BoolValueProperty myEnabled = new BoolValueProperty(false);
-    private final ObservableOptional<Action> myExtraAction;
     private PropertyChangeListener myActionListener;
 
 
@@ -369,10 +405,8 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
       return myExtraAction.isPresent();
     }
 
-    public StepActionWrapper() {
+    private StepActionWrapper() {
       super("");
-
-      myExtraAction = myWizard.getExtraAction();
 
       InvalidationListener extraActionChangedListener = new InvalidationListener() {
         Action myActiveAction = null;

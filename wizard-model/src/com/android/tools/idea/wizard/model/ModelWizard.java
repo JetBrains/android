@@ -454,6 +454,7 @@ public final class ModelWizard implements Disposable {
     // have to exclude elements from steps that are technically added to the layout but effectively invisible.
     myContentPanel.removeAll();
     myContentPanel.add(step.getComponent());
+    myContentPanel.revalidate();
     myContentPanel.repaint();
 
     JComponent focusedComponent = step.getPreferredFocusComponent();
