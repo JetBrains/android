@@ -114,6 +114,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
           // Wait until other actions are over, in particular wait for all facets to be added.
           ApplicationManager.getApplication().invokeLater(() -> {
             try {
+              if (project.isDisposed()) return;
               ProjectView projectView = ProjectView.getInstance(project);
               AbstractProjectViewPane pane = projectView.getProjectViewPaneById(ID);
               boolean visible = isInitiallyVisible();
@@ -127,7 +128,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
             finally {
               isProcessingChanges.set(false);
             }
-          }, project.getDisposed());
+          });
         }
       }
     });
