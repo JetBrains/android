@@ -127,7 +127,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
             finally {
               isProcessingChanges.set(false);
             }
-          });
+          }, project.getDisposed());
         }
       }
     });
