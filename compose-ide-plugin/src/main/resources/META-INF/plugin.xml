@@ -27,7 +27,6 @@ The Jetpack Compose IDE plugin
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeFrameModelChecker" />
         <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeTryCatchComposableChecker" />
         <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeComposableAnnotationChecker" />
         <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeUnionAnnotationCheckerProvider" />
