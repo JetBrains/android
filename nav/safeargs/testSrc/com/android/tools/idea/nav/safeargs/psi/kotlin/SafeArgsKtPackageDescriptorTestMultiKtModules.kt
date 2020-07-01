@@ -58,7 +58,8 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
    * Check contributed descriptors for base app and library module by providing fully qualified package names
    *
    * Test Project structure:
-   * base app module(safe arg mode is on) --> lib dep module(safe arg mode is on)
+   * -base app module(safe arg mode is on) --> lib dep module(safe arg mode is on)
+   * -excluded lib module(safe arg mode is on)
    */
   @Test
   fun multiModuleTest() {
@@ -90,6 +91,20 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     assertThat(classesMetadataInLib.map { it.fqcn to it.file }).containsExactly(
       "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
       "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
+      "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
+      "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
+    )
+
+    // check contents for excluded library module
+    val libModuleExcluded = fixture.project.findModule("mylibraryexcluded")
+    val libModuleExcludedDescriptor = libModuleExcluded.toDescriptor()
+
+    val classesMetadataInLibExcluded = libModuleExcludedDescriptor!!
+      .getPackage(FqName("com.example.mylibrary"))
+      .memberScope
+      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+
+    assertThat(classesMetadataInLibExcluded.map { it.fqcn to it.file }).containsExactly(
       "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
       "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
     )

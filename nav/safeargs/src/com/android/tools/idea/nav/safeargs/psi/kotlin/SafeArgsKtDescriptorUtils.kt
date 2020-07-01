@@ -23,24 +23,34 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.analyzer.moduleInfo
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.isSubpackageOf
+import org.jetbrains.kotlin.platform.jvm.isJvm
 
 /**
- * Returns the android module associate with the specified package.
+ * Returns the android module associate with the specified package within the context that either it's the dependency
+ * or it's the module itself.
  *
  * An android module should usually be found, but as it relies on APIs under the hood which querying indices, and
  * in some cases like we query when dumb mode or primary manifest files are malformed, we might get null.
  */
-internal fun findAndroidModuleByPackageName(fqName: FqName, project: Project): Module? {
+internal fun findAndroidModuleByPackageName(fqName: FqName, project: Project, moduleContext: Module): Module? {
   val projectSystem = project.getProjectSystem()
   val projectScope = GlobalSearchScope.projectScope(project)
   var packageFqName = fqName
 
   while (!packageFqName.isRoot) {
-    val facet = projectSystem.getAndroidFacetsWithPackageName(project, packageFqName.asString(), projectScope).firstOrNull()
-    if (facet != null) return facet.module
+    val facets = projectSystem.getAndroidFacetsWithPackageName(project, packageFqName.asString(), projectScope)
+
+    if (facets.isNotEmpty()) {
+      return facets.firstOrNull {
+        moduleContext == it.module || ModuleRootManager.getInstance(moduleContext).isDependsOn(it.module)
+      }?.module
+    }
 
     packageFqName = packageFqName.parent()
   }
@@ -48,18 +58,21 @@ internal fun findAndroidModuleByPackageName(fqName: FqName, project: Project): M
   return null
 }
 
-internal fun getDescriptorsByModule(modulePackageName: FqName, project: Project): Map<FqName, List<PackageFragmentDescriptor>> {
+internal fun getDescriptorsByModule(module: Module, project: Project): Map<FqName, List<PackageFragmentDescriptor>> {
   return project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java).modulesUsingSafeArgs
     .asSequence()
     .map { it.module }
-    .map { module ->
-      val candidates = KtDescriptorCacheModuleService.getInstance(module).getDescriptors()
-      candidates.filter { it.key.isSubpackageOf(modulePackageName) }
+    .filter { it == module || ModuleRootManager.getInstance(it).isDependsOn(module) }
+    .flatMap {
+      KtDescriptorCacheModuleService.getInstance(it).getDescriptors().entries.asSequence()
+    }
+    .filter { (_, descriptors) ->
+      descriptors.first().containingDeclaration.toModule().let { it == module }
     }
     .fold(mutableMapOf()) { acc, curr ->
       // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
       //  resolved.
-      curr.entries.forEach { entry -> acc.merge(entry.key, entry.value) { old, new -> old + new } }
+      acc.merge(curr.key, curr.value) { old, new -> old + new }
       acc
     }
 }
@@ -72,9 +85,9 @@ internal fun getDescriptorsByModulesWithDependencies(module: Module): Map<FqName
     .map { it.module }
     .map { ProgressManager.checkCanceled(); it }
     .flatMap { KtDescriptorCacheModuleService.getInstance(it).getDescriptors().entries.asSequence() }
-    .filter { (fqName, _) ->
-      val foundModule = findAndroidModuleByPackageName(fqName, project) ?: return@filter false
-      ModuleRootManager.getInstance(module).isDependsOn(foundModule) || module == foundModule
+    .filter { (_, descriptors) ->
+      descriptors.first().containingDeclaration.toModule()
+        ?.let { it == module || ModuleRootManager.getInstance(module).isDependsOn(it) } == true
     }
     .fold(mutableMapOf()) { acc, curr ->
       // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
@@ -82,4 +95,12 @@ internal fun getDescriptorsByModulesWithDependencies(module: Module): Map<FqName
       acc.merge(curr.key, curr.value) { old, new -> old + new }
       acc
     }
+}
+
+internal fun ModuleInfo.toModule(): Module? {
+  return this.unwrapModuleSourceInfo()?.takeIf { it.platform.isJvm() }?.module
+}
+
+internal fun ModuleDescriptor.toModule(): Module? {
+  return this.moduleInfo?.toModule()
 }

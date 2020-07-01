@@ -48,7 +48,10 @@ class KtArgsPackageDescriptor(
   private val storageManager: StorageManager
 ) : PackageFragmentDescriptorImpl(moduleDescriptor, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgsModuleScope() }
-  private val containingModule = storageManager.createNullableLazyValue { findAndroidModuleByPackageName(fqName, project) }
+  private val containingModule = storageManager.createNullableLazyValue {
+    val moduleContext = moduleDescriptor.toModule() ?: return@createNullableLazyValue null
+    findAndroidModuleByPackageName(fqName, project, moduleContext)
+  }
 
   override fun getMemberScope(): MemberScope = scope()
 
