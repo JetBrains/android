@@ -88,3 +88,63 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.templates.tests",
+    exec_properties = LARGE_MACHINE,
+    iml_files = ["intellij.android.templates.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.templates.TemplateTestSuite",
+    test_data = [
+        "//tools/adt/idea/android:test_deps.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:cmake",
+        "//prebuilts/studio/sdk:ndk",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+    ],
+    test_shard_count = 10,
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "block-network",
+        "no_test_mac",
+    ],
+    test_timeout = "eternal",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions",
+        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle",
+    ],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
+        "//tools/base/wizard/template-plugin:unb.studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/wizard/template-impl:unb.studio.intellij.android.wizardTemplate.impl[module, test]",
+        "//tools/adt/idea/sdk-updates:unb.intellij.android.sdkUpdates[module, test]",
+        "//tools/adt/idea/lint:unb.intellij.lint[module, test]",
+        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module, test]",
+    ],
+)

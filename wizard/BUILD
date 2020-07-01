@@ -74,3 +74,24 @@ iml_module(
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.wizard",
+    srcs = ["src"],
+    iml_files = ["intellij.android.wizard.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model[module]",
+        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
+        "//tools/adt/idea/observable-ui:unb.intellij.android.observable.ui[module]",
+    ],
+)

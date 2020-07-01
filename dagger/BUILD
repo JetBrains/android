@@ -134,3 +134,64 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.dagger",
+    srcs = ["src"],
+    iml_files = ["intellij.android.dagger.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.dagger.tests",
+    iml_files = ["intellij.android.dagger.tests.iml"],
+    tags = [
+        "manual",
+        "no_test_windows",  # b/135665870
+        "unb",
+    ],
+    test_class = "com.android.tools.tests.AndroidDaggerTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.truth",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/dagger:unb.intellij.android.dagger[module]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+    ],
+)

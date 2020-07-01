@@ -119,3 +119,45 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.layoutlib-loader",
+    srcs = ["src"],
+    iml_files = ["intellij.android.layoutlib-loader.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.layoutlib-loader.tests",
+    iml_files = ["intellij.android.layoutlib-loader.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/layoutlib-loader:unb.intellij.android.layoutlib-loader[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
+        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native[test]",
+    ],
+)

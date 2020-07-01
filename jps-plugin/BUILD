@@ -67,3 +67,26 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.jps",
+    srcs = ["src"],
+    iml_files = ["intellij.android.jps.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_srcs = ["testSrc"],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/build-common:unb.intellij.android.buildCommon[module]",
+        "//tools/adt/idea/rt:unb.intellij.android.rt[module]",
+        "//tools/base/build-system:unb.studio.android.sdktools.manifest-merger[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+    ],
+)

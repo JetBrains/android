@@ -77,3 +77,40 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.apkanalyzer",
+    srcs = ["src"],
+    iml_files = ["intellij.android.apkanalyzer.iml"],
+    lint_baseline = "lint_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_resources = ["testSrc/resources"],
+    test_srcs = ["testSrc/java"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
+        "//tools/base/apkparser/analyzer:unb.studio.android.sdktools.analyzer[module]",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/apkparser:unb.studio.android.sdktools.binary-resources[module]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.dexlib2",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/smali:unb.intellij.android.smali[module]",
+        "//tools/adt/idea/android-lang:unb.intellij.android.lang[module]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+    ],
+)

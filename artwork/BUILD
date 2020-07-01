@@ -26,3 +26,27 @@ filegroup(
     srcs = glob(["resources/device-art-resources/**"]),
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.artwork",
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
+    bundle_data = [":device-art-resources"],
+    iml_files = ["intellij.android.artwork.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    # do not sort: must match IML order
+    resources = [
+        "resources",
+        "compatibilityResources",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+)

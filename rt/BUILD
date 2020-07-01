@@ -13,3 +13,17 @@ iml_module(
         "//tools/idea/platform/util-rt:intellij.platform.util.rt[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.rt",
+    srcs = ["src"],
+    iml_files = ["intellij.android.rt.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+)

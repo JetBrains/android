@@ -68,3 +68,30 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.projectSystem",
+    srcs = ["src"],
+    iml_files = ["intellij.android.projectSystem.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_srcs = ["testSrc"],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/base/build-system:unb.studio.android.sdktools.manifest-merger[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module]",
+    ],
+)

@@ -134,3 +134,55 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.lint",
+    srcs = ["src"],
+    iml_files = ["intellij.lint.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.lint.tests",
+    iml_files = ["tests/intellij.lint.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.lint.common.LintIdeTestSuite",
+    test_data = [
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/lint/tests/testData",
+        "//tools/adt/idea/android/annotations",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_resources = ["tests/testData"],
+    test_srcs = ["tests/testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/lint:unb.intellij.lint[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
+    ],
+)
