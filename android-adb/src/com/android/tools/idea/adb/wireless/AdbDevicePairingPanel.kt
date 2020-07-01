@@ -16,12 +16,10 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBDimension
 import java.awt.BorderLayout
@@ -40,7 +38,6 @@ internal class AdbDevicePairingPanel {
 
   fun setQrCodeImage(image: QrCodeImage) {
     qrCodeImagePanel.setQrCode(image)
-    qrCodeImagePanel.setLabels("Scan the QR Code from you mobile", "phone to begin pairing")
   }
 
   private fun createPanel(): JComponent {
@@ -154,5 +151,9 @@ internal class AdbDevicePairingPanel {
     rootPanel.border = IdeBorderFactory.createBorder(Color.BLACK)
     rootPanel.minimumSize = JBDimension(100, 300)
     return rootPanel
+  }
+
+  fun setQrCodePairingStatus(label: String) {
+    qrCodeImagePanel.setStatusLabel(label)
   }
 }

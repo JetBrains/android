@@ -17,6 +17,7 @@ package com.android.tools.idea.ui
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 
 /**
@@ -28,6 +29,7 @@ import javax.swing.JComponent
 class FakeDialogWrapper : AbstractDialogWrapper() {
   override var title: String = ""
   override var isModal: Boolean = false
+  override val disposable = Disposer.newDisposable()
   override var okButtonText: String? = "Ok"
   var initCalled = false
   var showCalled = false

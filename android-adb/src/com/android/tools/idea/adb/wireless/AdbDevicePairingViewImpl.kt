@@ -16,22 +16,56 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 
 @UiThread
-class AdbDevicePairingViewImpl(private val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
+class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
   private val dlg: AdbDevicePairingDialog
+  private val listeners = ArrayList<AdbDevicePairingView.Listener>()
 
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
     dlg = AdbDevicePairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+    Disposer.register(dlg.disposable, Disposable {
+      listeners.forEach { it.onClose() }
+    })
   }
 
   override fun showDialog() {
     updateQrCodeImage(model.qrCodeImage)
     dlg.show()
+  }
+
+  override fun showQrCodePairingStarted() {
+    dlg.showQrCodeStatus("Waiting for device...")
+  }
+
+  override fun showQrCodePairingInProgress(mdnsService: MdnsService) {
+    dlg.showQrCodeStatus("Pairing with device ${mdnsService.displayString}...")
+  }
+
+  override fun showQrCodeMdnsPairingSuccess(pairingResult: PairingResult) {
+    dlg.showQrCodeStatus("Waiting for device ${pairingResult.displayString} to connect...")
+  }
+
+  override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
+    dlg.showQrCodeStatus("${device.displayString} connected")
+  }
+
+  override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
+    dlg.showQrCodeStatus("An error occurred connecting the device. Scan to try again.")
+  }
+
+  override fun addListener(listener: AdbDevicePairingView.Listener) {
+    listeners.add(listener)
+  }
+
+  override fun removeListener(listener: AdbDevicePairingView.Listener) {
+    listeners.remove(listener)
   }
 
   private fun updateQrCodeImage(image: QrCodeImage?) {
@@ -42,6 +76,9 @@ class AdbDevicePairingViewImpl(private val project: Project, override val model:
   private inner class ModelListener : AdbDevicePairingModelListener {
     override fun qrCodeGenerated(newImage: QrCodeImage) {
       updateQrCodeImage(newImage)
+    }
+
+    override fun mdnsServicesDiscovered(services: List<MdnsService>) {
     }
   }
 }
