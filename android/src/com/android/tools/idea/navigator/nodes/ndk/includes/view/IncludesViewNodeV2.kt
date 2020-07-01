@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.view
 
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedIncludeValue
@@ -62,12 +63,13 @@ class IncludesViewNodeV2(
 
   companion object {
     fun create(module: Module, settings: ViewSettings): IncludesViewNodeV2? {
-      val ndkModuleModel = NdkModuleModel.get(module) ?: return null
+      val ndkFacet = NdkFacet.getInstance(module) ?: return null
       val sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(NativeSourceRootType)
       val project = module.project
       val projectFileIndex = ProjectFileIndex.getInstance(project)
-      val variant = ndkModuleModel.getVariantName(ndkModuleModel.selectedVariant.name)
-      val abi = ndkModuleModel.getAbiName(ndkModuleModel.selectedVariant.name)
+      val selectedVariantAbi = ndkFacet.selectedVariantAbi
+      val variant = selectedVariantAbi.variant
+      val abi = selectedVariantAbi.abi
       val nativeWorkspaceService = NativeWorkspaceService.getInstance(project)
       val nativeHeaderDirs = nativeWorkspaceService.getNativeHeaderDirs(
         ModuleVariantAbi(module.name, variant, abi)).filter { nativeHeaderDir ->

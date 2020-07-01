@@ -313,7 +313,7 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
 }
 
 private fun ProjectDumper.dump(ndkFacetConfiguration: NdkFacetConfiguration) {
-  prop("SelectedBuildVariant") { ndkFacetConfiguration.SELECTED_BUILD_VARIANT.nullize() }
+  prop("SelectedVariantAbi") { ndkFacetConfiguration.selectedVariantAbi.toString().nullize() }
 }
 
 private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguration) {

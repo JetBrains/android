@@ -16,20 +16,15 @@
 package com.android.tools.idea.gradle.project.facet.ndk
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.intellij.ProjectTopics
+import com.android.tools.idea.gradle.project.model.VariantAbi
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeId
 import com.intellij.facet.FacetTypeRegistry
 import com.intellij.facet.impl.FacetUtil
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.ModuleRootEvent
-import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.WriteExternalException
-import com.intellij.psi.PsiDocumentManager
 
 class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguration
 ) : Facet<NdkFacetConfiguration?>(facetType, module, name, configuration, null) {
@@ -37,20 +32,16 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
     private set
 
   override fun initFacet() {
-    // TODO(tgeng): Remove this listener and write to disk directly after the selected varaint ABI is moved from NdkModuleModel to here.
-    val connection = module.messageBus.connect(this)
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
-      override fun rootsChanged(event: ModuleRootEvent) = ApplicationManager.getApplication().invokeLater(
-        {
-          if (isDisposed) {
-            return@invokeLater
-          }
-          PsiDocumentManager.getInstance(module.project).commitAllDocuments()
-          writeConfigurationToDisk()
-        }, ModalityState.NON_MODAL)
-    })
     writeConfigurationToDisk()
   }
+
+  var selectedVariantAbi: VariantAbi
+    get() = configuration.selectedVariantAbi.takeIf { it in ndkModuleModel?.allVariantAbis ?: emptySet() }
+            ?: ndkModuleModel?.getDefaultVariantAbi() ?: NdkModuleModel.DUMMY_VARIANT_ABI
+    set(value) {
+      configuration.selectedVariantAbi = value
+      writeConfigurationToDisk()
+    }
 
   private fun writeConfigurationToDisk() {
     try {
@@ -63,7 +54,6 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
 
   fun setNdkModuleModel(ndkModuleModel: NdkModuleModel) {
     this.ndkModuleModel = ndkModuleModel
-    configuration.SELECTED_BUILD_VARIANT = ndkModuleModel.selectedVariant.name
   }
 
   companion object {

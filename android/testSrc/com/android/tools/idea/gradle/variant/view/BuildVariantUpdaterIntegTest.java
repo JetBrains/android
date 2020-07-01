@@ -30,6 +30,7 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -181,16 +182,20 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
 
     NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
+    NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
     NdkModuleModel lib1NdkModel = NdkModuleModel.get(getModule("lib1"));
+    NdkFacet lib1NdkFacet = NdkFacet.getInstance(getModule("lib1"));
     NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
+    NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
     NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
+    NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
     assertNotNull(appNdkModel);
     assertNull(lib1NdkModel);
     assertNotNull(lib2NdkModel);
     assertNotNull(lib3NdkModel);
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+    assertEquals("debug-x86", appNdkModel.getNdkVariant(appNdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib2NdkModel.getNdkVariant(lib2NdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib3NdkModel.getNdkVariant(lib3NdkFacet.getSelectedVariantAbi()).getName());
 
     // Triggers a sync.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
@@ -198,9 +203,9 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("release", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("release", lib2AndroidModel.getSelectedVariant().getName());
     assertEquals("release", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("release-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("release-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("release-x86", lib3NdkModel.getSelectedVariant().getName());
+    assertEquals("release-x86", appNdkModel.getNdkVariant(appNdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("release-x86", lib2NdkModel.getNdkVariant(lib2NdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("release-x86", lib3NdkModel.getNdkVariant(lib3NdkFacet.getSelectedVariantAbi()).getName());
 
     // Gets served from cache.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
@@ -208,9 +213,9 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+    assertEquals("debug-x86", appNdkModel.getNdkVariant(appNdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib2NdkModel.getNdkVariant(lib2NdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib3NdkModel.getNdkVariant(lib3NdkFacet.getSelectedVariantAbi()).getName());
   }
 
   public void testWithNativeModulesChangeAbi() throws Exception {
@@ -230,16 +235,19 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
 
     NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
+    NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
     NdkModuleModel lib1NdkModel = NdkModuleModel.get(getModule("lib1"));
     NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
+    NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
     NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
+    NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
     assertNotNull(appNdkModel);
     assertNull(lib1NdkModel);
     assertNotNull(lib2NdkModel);
     assertNotNull(lib3NdkModel);
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+    assertEquals("debug-x86", appNdkModel.getNdkVariant(appNdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib2NdkModel.getNdkVariant(lib2NdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib3NdkModel.getNdkVariant(lib3NdkFacet.getSelectedVariantAbi()).getName());
 
     // Triggers a sync.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "armeabi-v7a");
@@ -247,9 +255,9 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug-armeabi-v7a", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-armeabi-v7a", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-armeabi-v7a", lib3NdkModel.getSelectedVariant().getName());
+    assertEquals("debug-armeabi-v7a", appNdkModel.getNdkVariant(appNdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-armeabi-v7a", lib2NdkModel.getNdkVariant(lib2NdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-armeabi-v7a", lib3NdkModel.getNdkVariant(lib3NdkFacet.getSelectedVariantAbi()).getName());
 
     // Gets served from cache.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "x86");
@@ -257,9 +265,9 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+    assertEquals("debug-x86", appNdkModel.getNdkVariant(appNdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib2NdkModel.getNdkVariant(lib2NdkFacet.getSelectedVariantAbi()).getName());
+    assertEquals("debug-x86", lib3NdkModel.getNdkVariant(lib3NdkFacet.getSelectedVariantAbi()).getName());
   }
 
   // Test the scenario when there are two app modules in one project, and they share the same set of dependency modules.
@@ -417,7 +425,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
 
   private void verifyContainsVariantAbi(@NotNull String moduleName, @NotNull List<String> expectedVariantNames) {
     NdkModuleModel ndkModel = NdkModuleModel.get(getModule(moduleName));
-    List<String> variantsInModel = map(ndkModel.getVariants(), variant -> variant.getName());
-    assertThat(variantsInModel).containsExactlyElementsIn(expectedVariantNames);
+    List<String> variantAbisInModel = map(ndkModel.getSyncedVariantAbis(), variantAbi -> variantAbi.getDisplayName());
+    assertThat(variantAbisInModel).containsExactlyElementsIn(expectedVariantNames);
   }
 }
