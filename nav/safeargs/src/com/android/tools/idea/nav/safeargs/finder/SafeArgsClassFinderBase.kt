@@ -56,15 +56,19 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     return findAll(project)
-      .firstOrNull { argsClass ->
-        argsClass.qualifiedName == qualifiedName
-        && PsiSearchScopeUtil.isInScope(scope, argsClass)
+      .firstOrNull { lightClass ->
+        lightClass.qualifiedName == qualifiedName
+        && PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val psiClass = findClass(qualifiedName, scope) ?: return PsiClass.EMPTY_ARRAY
-    return arrayOf(psiClass)
+    return findAll(project)
+      .filter { lightClass ->
+        lightClass.qualifiedName == qualifiedName
+        && PsiSearchScopeUtil.isInScope(scope, lightClass)
+      }
+      .toTypedArray()
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
@@ -73,9 +77,9 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
     }
 
     return findAll(psiPackage.project)
-      .filter { argsClass ->
-        psiPackage.qualifiedName == argsClass.qualifiedName?.substringBeforeLast('.')
-        && PsiSearchScopeUtil.isInScope(scope, argsClass)
+      .filter { lightClass ->
+        psiPackage.qualifiedName == lightClass.qualifiedName?.substringBeforeLast('.')
+        && PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
       .toTypedArray()
   }
