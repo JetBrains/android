@@ -166,7 +166,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
-  private JProgressBar myProgressBar;
+  @VisibleForTesting JProgressBar myProgressBar;
   private JBLabel myStatusText;
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
@@ -196,7 +196,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
 
+  // Number of devices which we will run tests against.
   private int myScheduledDevices = 0;
+  // Number of devices which we have started running tests on.
+  private int myStartedDevices = 0;
+
   private int scheduledTestCases = 0;
   private int passedTestCases = 0;
   private int failedTestCases = 0;
@@ -377,8 +381,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       myProgressBar.setIndeterminate(false);
       myProgressBar.setForeground(ColorProgressBar.BLUE);
     } else {
-      myProgressBar.setMaximum(scheduledTestCases);
-      myProgressBar.setValue(completedTestCases);
+      myProgressBar.setMaximum(scheduledTestCases * myScheduledDevices);
+      myProgressBar.setValue(completedTestCases * myStartedDevices);
       myProgressBar.setIndeterminate(false);
       if (failedTestCases > 0) {
         myProgressBar.setForeground(ColorProgressBar.RED);
@@ -414,6 +418,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       }
       myTable.addDevice(device);
       myDetailsView.addDevice(device);
+      updateProgress();
     });
   }
 
@@ -422,6 +427,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   public void onTestSuiteStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
     AppUIUtil.invokeOnEdt(() -> {
       scheduledTestCases += testSuite.getTestCaseCount();
+      myStartedDevices++;
       updateProgress();
     });
   }
