@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
@@ -303,14 +304,12 @@ public final class StudioProfilersTest {
 
   @Test
   public void testAgentUnattachableAfterMaxRetries() {
-    Assume.assumeFalse(myNewEventPipeline);
+    Assume.assumeTrue(myNewEventPipeline);
     StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
-    AgentData attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.UNSPECIFIED).build();
-    myTransportService.setAgentStatus(attachedResponse);
-    myTransportService.addDevice(FAKE_DEVICE);
-    myTransportService.addProcess(FAKE_DEVICE, FAKE_PROCESS);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(FAKE_DEVICE, FAKE_PROCESS);
+    ((BeginSession)myTransportService.getRegisteredCommand(Commands.Command.CommandType.BEGIN_SESSION))
+      .setAgentStatus(AgentData.Status.UNSPECIFIED);
+    profilers.getSessionsManager().endCurrentSession();
+    profilers.getSessionsManager().beginSession(FAKE_DEVICE.getDeviceId(), FAKE_DEVICE, FAKE_PROCESS);
 
     for (int i = 0; i < AGENT_STATUS_MAX_RETRY_COUNT; i++) {
       assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNSPECIFIED);
@@ -319,44 +318,52 @@ public final class StudioProfilersTest {
     assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNATTACHABLE);
 
     // Ensures that if the agent becomes attached at a later point, the status will be correct.
-    attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
-    myTransportService.setAgentStatus(attachedResponse);
+    Common.AgentData agentData = Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build();
+    long sessionStreamId = profilers.getSession().getStreamId();
+    myTransportService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
+      .setPid(FAKE_PROCESS.getPid())
+      .setKind(Common.Event.Kind.AGENT)
+      .setAgentData(agentData)
+      .build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.ATTACHED);
   }
 
   @Test
   public void testAgentStatusRetryCachedForSession() {
-    Assume.assumeFalse(myNewEventPipeline);
+    Assume.assumeTrue(myNewEventPipeline);
     StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
-    AgentData attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.UNSPECIFIED).build();
-    myTransportService.setAgentStatus(attachedResponse);
-    myTransportService.addDevice(FAKE_DEVICE);
-    myTransportService.addProcess(FAKE_DEVICE, FAKE_PROCESS);
-    Common.Process process2 = FAKE_PROCESS.toBuilder().setPid(2).build();
-    myTransportService.addProcess(FAKE_DEVICE, process2);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(FAKE_DEVICE, FAKE_PROCESS);
+    ((BeginSession)myTransportService.getRegisteredCommand(Commands.Command.CommandType.BEGIN_SESSION))
+      .setAgentStatus(AgentData.Status.UNSPECIFIED);
     profilers.getSessionsManager().endCurrentSession();
+    profilers.getSessionsManager().beginSession(FAKE_DEVICE.getDeviceId(), FAKE_DEVICE, FAKE_PROCESS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session1 = profilers.getSession();
 
     // Switch to a different process.
-    profilers.setProcess(FAKE_DEVICE, process2);
+    Common.Process process2 = FAKE_PROCESS.toBuilder().setPid(FAKE_PROCESS.getPid() + 1).build();
+    profilers.getSessionsManager().endCurrentSession();
+    profilers.getSessionsManager().beginSession(FAKE_DEVICE.getDeviceId(), FAKE_DEVICE, process2);
+    // Note the following tick will update the selected session and mySessionIdToAgentStatusRetryMap for session 2.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session2 = profilers.getSession();
-    int session2RetryCount;
-    for (session2RetryCount = 0; session2RetryCount < AGENT_STATUS_MAX_RETRY_COUNT / 2; session2RetryCount++) {
+    int session2RetryCount = 1;  // the latest tick (two lines above) has updated the retry count.
+    for (; session2RetryCount < AGENT_STATUS_MAX_RETRY_COUNT / 2; session2RetryCount++) {
       assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNSPECIFIED);
       myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     }
 
     // Switch back to the first session, agent status should remain unspecified because it is ended.
-    profilers.getSessionsManager().setSession(session1);
+    // Note we cannot call 'setSession(session1)' because the session object in the session manager has been updated
+    // when it ended, and session manager doesn't want to set to an out-of-date session.
+    profilers.getSessionsManager().setSessionById(session1.getSessionId());
     for (int j = 0; j < AGENT_STATUS_MAX_RETRY_COUNT * 2; j++) {
       myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     }
     assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNSPECIFIED);
 
-    // Switch back to the second session, we should only need another 5 ticks to reach UNATTACHABLE.
+    // Switch back to the second session, we should only need another
+    // (AGENT_STATUS_MAX_RETRY_COUNT - session2RetryCount) ticks to reach UNATTACHABLE.
     profilers.getSessionsManager().setSession(session2);
     for (; session2RetryCount < AGENT_STATUS_MAX_RETRY_COUNT; session2RetryCount++) {
       assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNSPECIFIED);
@@ -365,8 +372,8 @@ public final class StudioProfilersTest {
     assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNATTACHABLE);
 
     // Switch to the first session and back should give UNATTACHABLE immediately.
-    profilers.getSessionsManager().setSession(session1);
-    profilers.getSessionsManager().setSession(session2);
+    profilers.getSessionsManager().setSessionById(session1.getSessionId());
+    profilers.getSessionsManager().setSessionById(session2.getSessionId());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNATTACHABLE);
   }
