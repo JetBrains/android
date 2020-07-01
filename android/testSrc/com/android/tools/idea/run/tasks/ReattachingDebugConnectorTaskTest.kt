@@ -27,7 +27,6 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -50,7 +49,6 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
   lateinit var baseConnector: TestConnectDebuggerTask
   lateinit var printer: ProcessHandlerConsolePrinter
 
-  @Before
   override fun setUp() {
     super.setUp()
 

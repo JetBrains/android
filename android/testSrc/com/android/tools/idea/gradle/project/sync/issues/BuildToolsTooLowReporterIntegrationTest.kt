@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
 
@@ -30,7 +29,6 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
   private var reporter : BuildToolsTooLowReporter? = null
   private var handler : SdkBuildToolsTooLowErrorHandler? = null
 
-  @Before
   override fun setUp() {
     super.setUp()
     handler = mock(SdkBuildToolsTooLowErrorHandler::class.java)

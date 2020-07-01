@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -35,7 +34,6 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
   private lateinit var reporter: MissingSdkIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
-  @Before
   override fun setUp() {
     super.setUp()
 
