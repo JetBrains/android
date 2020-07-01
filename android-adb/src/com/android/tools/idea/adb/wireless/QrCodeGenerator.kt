@@ -16,7 +16,6 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.adtui.ImageUtils
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
@@ -68,9 +67,11 @@ object QrCodeGenerator {
   fun encodeQrCodeToImage(contents: String, backgroundColor: Color, foregroundColor: Color): BufferedImage {
     val bits = encodeQrCode(contents)
 
-    // Note: Since we set individual pixels. It is up to the caller to scale the
-    // image to the desired dpi scale.
-    val img = ImageUtils.createDipImage(bits.width, bits.height, BufferedImage.TYPE_INT_ARGB)
+    // Note: Since we set individual pixels, we use a non-hidpi aware image
+    //       (i.e. we use BufferedImage directly). It is up to the caller
+    //       to scale the image to the desired dpi scale.
+    @Suppress("UndesirableClassUsage")
+    val img = BufferedImage(bits.width, bits.height, BufferedImage.TYPE_INT_ARGB)
     for (y in 0 until bits.height) {
       for (x in 0 until bits.width) {
         img.setRGB(x, y, if (bits.get(x, y)) foregroundColor.rgb else backgroundColor.rgb)
