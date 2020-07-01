@@ -20,21 +20,21 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.intellij.openapi.util.NlsContexts;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import javax.swing.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
   private JPanel myContentPanel;
   private TextFieldWithBrowseButton myDownloadLocation;
 
   DeviceFileExplorerConfigurable() {
-    myDownloadLocation.addBrowseFolderListener("Device File Explorer Download Location", null, null,
+    myDownloadLocation.addBrowseFolderListener(AndroidBundle.message("dialog.title.device.file.explorer.download.location"), null, null,
                                                new FileChooserDescriptor(false, true, false,
                                                                          false, false, false));
   }
@@ -69,7 +69,8 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
     if (Files.isDirectory(path)) {
       DeviceFileExplorerSettings.getInstance().setDownloadLocation(path.toString());
     } else {
-      throw new ConfigurationException("Path must be an existing directory", "Invalid Path");
+      throw new ConfigurationException(AndroidBundle.message("dialog.message.path.must.be.existing.directory"),
+                                       AndroidBundle.message("dialog.title.invalid.path"));
     }
   }
 
@@ -82,13 +83,13 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
   public void disposeUIResources() {
   }
 
-  @Nls
+  @NlsContexts.ConfigurableName
   @Override
   public String getDisplayName() {
     if (IdeInfo.getInstance().isAndroidStudio()) {
-      return "Device File Explorer";
+      return AndroidBundle.message("configurable.name.device.file.explorer");
     } else {
-      return "Android Device File Explorer";
+      return AndroidBundle.message("configurable.name.android.device.file.explorer");
     }
   }
 
