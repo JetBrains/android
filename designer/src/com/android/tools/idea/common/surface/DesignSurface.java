@@ -680,10 +680,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @UiThread
   public void validateScrollArea() {
+    // Mark both the sceneview panel and the scroll pane as invalid to force a relayout.
     mySceneViewPanel.invalidate();
     myScrollPane.invalidate();
+    // Validate the scroll pane immediately and layout components.
     myScrollPane.validate();
-    myScrollPane.repaint();
+    mySceneViewPanel.repaint();
   }
 
   /**
@@ -692,9 +694,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @UiThread
   public void revalidateScrollArea() {
+    // Mark the scene view panel as invalid to force a revalidation when the scroll pane is revalidated.
     mySceneViewPanel.invalidate();
+    // Schedule a layout for later.
     myScrollPane.revalidate();
-    myScrollPane.repaint();
+    // Also schedule a repaint.
+    mySceneViewPanel.repaint();
   }
 
   public JComponent getPreferredFocusedComponent() {
