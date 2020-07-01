@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
@@ -27,18 +35,12 @@ import com.google.android.instantapps.sdk.api.RunHandler;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
+import java.io.File;
+import java.net.URL;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.io.File;
-import java.net.URL;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 public class RunInstantAppTaskTest extends AndroidTestCase {
   private final String DEVICE_ID = "dev1234";
@@ -54,7 +56,6 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   @Mock private ConsolePrinter consolePrinter;
 
   @Override
-  @Before
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);

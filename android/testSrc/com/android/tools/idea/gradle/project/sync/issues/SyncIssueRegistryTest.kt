@@ -18,12 +18,10 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.builder.model.SyncIssue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestCase
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
 
 class SyncIssueRegistryTest : PlatformTestCase() {
-  @Before
   override fun setUp() {
     super.setUp()
   }

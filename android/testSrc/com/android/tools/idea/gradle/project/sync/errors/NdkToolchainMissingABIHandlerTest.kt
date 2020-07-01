@@ -23,7 +23,6 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
 
 class NdkToolchainMissingABIHandlerTest : AndroidGradleTestCase() {
@@ -31,7 +30,6 @@ class NdkToolchainMissingABIHandlerTest : AndroidGradleTestCase() {
   private var expectedError = "This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n" +
                               "Please use plugin version 3.1 or newer."
 
-  @Before
   override fun setUp() {
     super.setUp()
     syncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)

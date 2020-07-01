@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
-import org.junit.Before
 import org.junit.Test
 
 class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
@@ -32,7 +31,6 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
   private lateinit var reporter: OutOfDateThirdPartyPluginIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
-  @Before
   override fun setUp() {
     super.setUp()
 

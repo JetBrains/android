@@ -15,16 +15,15 @@
  */
 package com.android.tools.datastore.database;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class NetworkTableTest extends DatabaseTest<NetworkTable> {
   private static final int VALID_CONN_ID = 3;
@@ -34,8 +33,8 @@ public class NetworkTableTest extends DatabaseTest<NetworkTable> {
   private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setStreamId(4321).build();
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void before() throws Exception {
+    super.before();
     populateDatabase();
   }
 
