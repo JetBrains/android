@@ -35,8 +35,7 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
   private lateinit var compositeSub: VirtualFile
 
   @Before
-  override fun before() {
-    super.before()
+  fun prepare() {
     writeToBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD)
     writeToNewProjectFile("applied", COMPOSITE_BUILD_MAIN_PROJECT_APPLIED)
     writeToSubModuleBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD)
