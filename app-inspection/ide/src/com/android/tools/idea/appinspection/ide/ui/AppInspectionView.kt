@@ -66,20 +66,18 @@ class AppInspectionView(
   private val inspectorPanel = JPanel(BorderLayout())
 
   @VisibleForTesting
-  val inspectorTabs = CommonTabbedPane().apply {
-    ui = object : CommonTabbedPaneUI() {
+  val inspectorTabs = CommonTabbedPane(object : CommonTabbedPaneUI() {
       // TODO(b/152556591): Remove this when we launch our second inspector and the tool window becomes
       //  an app inspection tool window.
       override fun calculateTabAreaHeight(tabPlacement: Int, horizRunCount: Int, maxTabHeight: Int): Int {
-        if (tabCount > 1) {
+        if (tabPane.tabCount > 1) {
           return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight)
         }
         else {
           return 0
         }
       }
-    }
-  }
+    })
 
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
