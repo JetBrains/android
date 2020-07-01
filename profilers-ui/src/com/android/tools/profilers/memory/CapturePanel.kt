@@ -252,7 +252,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
         // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
         val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
         // Other totals other than class count don't need this, because they are direct fields initialized correctly
-        totalClassLabel.numValue = filterMatches.map{it.classEntry.classId}.distinct().count()
+        totalClassLabel.numValue = filterMatches.mapToLong{it.classEntry.classId}.distinct().count()
         totalCountLabel.numValue = heap.totalObjectCount.toLong()
         totalNativeSizeLabel.numValue = heap.totalNativeSize
         totalShallowSizeLabel.numValue = heap.totalShallowSize

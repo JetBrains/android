@@ -95,7 +95,8 @@ class HeapDumpInstanceObject implements InstanceObject {
 
   @Override
   public int hashCode() {
-    return myInstance.hashCode();
+    // cheap hashcode implementation in sync with `equals` as defined above
+    return System.identityHashCode(myInstance);
   }
 
   @NotNull
@@ -288,6 +289,11 @@ class HeapDumpInstanceObject implements InstanceObject {
     }
     builder.setFullStack(frameBuilder);
     return builder.build();
+  }
+
+  @Override
+  public boolean isCallStackEmpty() {
+    return myInstance.getStack() == null || myInstance.getStack().getFrames().length == 0;
   }
 
   @Override
