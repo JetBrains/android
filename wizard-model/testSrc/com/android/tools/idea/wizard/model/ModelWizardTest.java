@@ -29,19 +29,18 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class ModelWizardTest {
 
-  private TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
+  private final TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
 
   @Rule
-  public BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(myInvokeStrategy);
+  public final BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(myInvokeStrategy);
 
   @Test
-  public void wizardCanProgressThroughAllStepsAsExpected() throws Exception {
+  public void wizardCanProgressThroughAllStepsAsExpected() {
     PersonModel personModel = new PersonModel();
     OccupationModel occupationModel = new OccupationModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
@@ -101,7 +100,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCanGoForwardAndBack() throws Exception {
+  public void wizardCanGoForwardAndBack() {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
     PersonModel personModel = new PersonModel();
@@ -127,7 +126,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCanBeCancelled() throws Exception {
+  public void wizardCanBeCancelled() {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
     DummyModel model = new DummyModel();
@@ -154,7 +153,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardRunsFinishOnModelsInOrder() throws Exception {
+  public void wizardRunsFinishOnModelsInOrder() {
     List<RecordFinishedModel> finishList = Lists.newArrayList();
     RecordFinishedStep step1 = new RecordFinishedStep(new RecordFinishedModel(finishList));
     RecordFinishedStep step2 = new RecordFinishedStep(new RecordFinishedModel(finishList));
@@ -181,7 +180,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardInformsModelsTheyWereSkipped() throws Exception {
+  public void wizardInformsModelsTheyWereSkipped() {
     DummyModel modelFinished1 = new DummyModel();
     DummyModel modelFinished2 = new DummyModel();
     DummyModel modelFinished3 = new DummyModel();
@@ -224,12 +223,12 @@ public class ModelWizardTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void cantCreateWizardWithoutSteps() throws Exception {
+  public void cantCreateWizardWithoutSteps() {
     new ModelWizard.Builder().build();
   }
 
   @Test(expected = IllegalStateException.class)
-  public void cantCreateWizardWithoutAtLeastOneVisibleStep() throws Exception {
+  public void cantCreateWizardWithoutAtLeastOneVisibleStep() {
     DummyModel model = new DummyModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
@@ -241,7 +240,7 @@ public class ModelWizardTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void wizardCantGoForwardAfterFinishing() throws Exception {
+  public void wizardCantGoForwardAfterFinishing() {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     try {
       runInvokerAndGoForward(wizard);
@@ -254,7 +253,7 @@ public class ModelWizardTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void wizardCantGoBackAfterFinishing() throws Exception {
+  public void wizardCantGoBackAfterFinishing() {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     try {
       runInvokerAndGoForward(wizard);
@@ -267,7 +266,7 @@ public class ModelWizardTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void wizardCantCancelAfterFinishing() throws Exception {
+  public void wizardCantCancelAfterFinishing() {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     try {
       runInvokerAndGoForward(wizard);
@@ -280,7 +279,7 @@ public class ModelWizardTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void wizardCantGoBackIfNoPreviousSteps() throws Exception {
+  public void wizardCantGoBackIfNoPreviousSteps() {
     DummyModel model = new DummyModel();
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(model), new DummyStep(model)).build();
     try {
@@ -294,7 +293,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCanSkipOverSteps() throws Exception {
+  public void wizardCanSkipOverSteps() {
     DummyModel dummyModel = new DummyModel();
     ShouldSkipStep shouldSkipStep = new ShouldSkipStep(dummyModel);
 
@@ -314,7 +313,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCantContinueIfStepPreventsIt() throws Exception {
+  public void wizardCantContinueIfStepPreventsIt() {
     DummyModel dummyModel = new DummyModel();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
@@ -328,7 +327,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCantGoBackIfStepPreventsIt() throws Exception {
+  public void wizardCantGoBackIfStepPreventsIt() {
     DummyModel dummyModel = new DummyModel();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
@@ -343,7 +342,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void stepCanCreateSubsteps() throws Exception {
+  public void stepCanCreateSubSteps() {
     DummyModel model = new DummyModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
@@ -360,7 +359,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void hidingAStepHidesItsSubstepsRecursively() throws Exception {
+  public void hidingAStepHidesItsSubStepsRecursively() {
     DummyModel model = new DummyModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
@@ -378,7 +377,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void finishedWizardsSkipModelsOfHiddenSteps() throws Exception {
+  public void finishedWizardsSkipModelsOfHiddenSteps() {
     List<RecordFinishedModel> finishList = Lists.newArrayList();
     RecordFinishedModel recordModel = new RecordFinishedModel(finishList);
     RecordFinishedStep recordStep = new RecordFinishedStep(recordModel);
@@ -398,7 +397,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void stepGetsDisposedWhenWizardGetsDisposed() throws Exception {
+  public void stepGetsDisposedWhenWizardGetsDisposed() {
     DisposedStep disposedStep = new DisposedStep(new DummyModel());
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(disposedStep);
@@ -414,7 +413,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void allModelsGetDisposedWhenWizardGetsDisposed() throws Exception {
+  public void allModelsGetDisposedWhenWizardGetsDisposed() {
     DummyModel modelA = new DummyModel();
     DummyModel modelB = new DummyModel();
     DummyModel modelC = new DummyModel();
@@ -443,7 +442,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCanRecoverFromOnProceedingThrowingException() throws Exception {
+  public void wizardCanRecoverFromOnProceedingThrowingException() {
     DummyModel modelA = new DummyModel();
     DummyModel modelB = new DummyModel();
     DummyModel modelC = new DummyModel();
@@ -483,7 +482,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardCanRecoverFromOnEnteringThrowingException() throws Exception {
+  public void wizardCanRecoverFromOnEnteringThrowingException() {
     DummyModel modelA = new DummyModel();
     DummyModel modelB = new DummyModel();
     DummyModel modelC = new DummyModel();
@@ -521,7 +520,7 @@ public class ModelWizardTest {
   }
 
   @Test
-  public void wizardStaysClosedEvenIfModelThrowsException() throws Exception {
+  public void wizardStaysClosedEvenIfModelThrowsException() {
     DummyModel modelA = new DummyModel();
     DummyExceptionModel modelB = new DummyExceptionModel();
     DummyModel modelC = new DummyModel();
@@ -792,7 +791,7 @@ public class ModelWizardTest {
   private static class NameStep extends NoUiStep<PersonModel> {
     private final String myName;
 
-    public NameStep(PersonModel model, String name) {
+    private NameStep(PersonModel model, String name) {
       super(model);
       myName = name; // Normally, this would be set in some UI, but this is just a test
     }
@@ -806,7 +805,7 @@ public class ModelWizardTest {
   private static class AgeStep extends NoUiStep<PersonModel> {
     private final int myAge;
 
-    public AgeStep(PersonModel model, int age) {
+    private AgeStep(PersonModel model, int age) {
       super(model);
       myAge = age; // Normally, this would be set in some UI, but this is just a test
     }
@@ -820,7 +819,7 @@ public class ModelWizardTest {
   private static class TitleStep extends NoUiStep<OccupationModel> {
     private final String myTitle;
 
-    public TitleStep(OccupationModel model, String title) {
+    private TitleStep(OccupationModel model, String title) {
       super(model);
       myTitle = title; // Normally, this would be set in some UI, but this is just a test
     }
@@ -844,13 +843,12 @@ public class ModelWizardTest {
 
     @NotNull
     @Override
-    protected Collection<? extends ModelWizardStep> createDependentSteps() {
+    protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
       return Collections.singletonList(new ChildStep(getModel()));
     }
   }
 
   private static class GrandparentStep extends NoUiStep<DummyModel> {
-    @Nullable private List<ParentStep> myParentSteps;
     private boolean myShouldShow = true;
 
     protected GrandparentStep(@NotNull DummyModel model) {
@@ -859,9 +857,8 @@ public class ModelWizardTest {
 
     @NotNull
     @Override
-    protected Collection<? extends ModelWizardStep> createDependentSteps() {
-      myParentSteps = Collections.singletonList(new ParentStep(getModel()));
-      return myParentSteps;
+    protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
+      return Collections.singletonList(new ParentStep(getModel()));
     }
 
     @Override
@@ -877,7 +874,7 @@ public class ModelWizardTest {
   private static class FakeStepException extends RuntimeException {
     private final ModelWizardStep<?> myStep;
 
-    public FakeStepException(ModelWizardStep<?> step) {
+    private FakeStepException(ModelWizardStep<?> step) {
       myStep = step;
     }
 
