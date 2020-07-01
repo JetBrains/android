@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.utils.alwaysTrue
  * Directions Kt package descriptor, which wraps and indirectly exposes a [LightDirectionsKtClass] class descriptor
  */
 class KtDirectionsPackageDescriptor(
-  module: ModuleDescriptor,
+  moduleDescriptor: ModuleDescriptor,
   private val project: Project,
   fqName: FqName,
   val className: Name,
@@ -46,9 +46,12 @@ class KtDirectionsPackageDescriptor(
   private val navResourceData: NavXmlData,
   private val sourceElement: SourceElement,
   private val storageManager: StorageManager
-) : PackageFragmentDescriptorImpl(module, fqName) {
+) : PackageFragmentDescriptorImpl(moduleDescriptor, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgsModuleScope() }
-  private val containingModule = storageManager.createNullableLazyValue { findAndroidModuleByPackageName(fqName, project) }
+  private val containingModule = storageManager.createNullableLazyValue {
+    val moduleContext = moduleDescriptor.toModule() ?: return@createNullableLazyValue null
+    findAndroidModuleByPackageName(fqName, project, moduleContext)
+  }
 
   override fun getMemberScope(): MemberScope = scope()
 

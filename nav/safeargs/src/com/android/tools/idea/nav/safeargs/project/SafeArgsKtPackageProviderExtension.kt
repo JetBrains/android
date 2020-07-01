@@ -18,6 +18,7 @@ package com.android.tools.idea.nav.safeargs.project
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.psi.kotlin.getDescriptorsByModule
+import com.android.tools.idea.nav.safeargs.psi.kotlin.toModule
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.manifest.getPackageName
@@ -26,11 +27,9 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
-import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.StorageManager
@@ -47,13 +46,10 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
                                           lookupTracker: LookupTracker): PackageFragmentProvider? {
     if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
-    val moduleSourceInfo = moduleInfo?.unwrapModuleSourceInfo()?.takeIf { it.platform.isJvm() } ?: return null
-    val facet = moduleSourceInfo.module.let { AndroidFacet.getInstance(it) } ?: return null
+    val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
 
-    val modulePackageName = getPackageName(facet) ?: return null
-
-    val packageDescriptors = getDescriptorsByModule(FqName(modulePackageName), project).takeIf { it.isNotEmpty() } ?: return null
+    val packageDescriptors = getDescriptorsByModule(facet.module, project).takeIf { it.isNotEmpty() } ?: return null
     return SafeArgsSyntheticPackageProvider(packageDescriptors)
   }
 }
