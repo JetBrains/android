@@ -21,18 +21,19 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
-import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
-import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
+import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
+import com.intellij.facet.Facet
+import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -47,8 +48,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
+import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -124,13 +129,9 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val moduleManager = ModuleManager.getInstance(project)
   val projectDataManager = ProjectDataManager.getInstance()
-  val caches = DataNodeCaches.getInstance(project)
 
   fun findProjectDataNode(externalProjectPath: String): DataNode<ProjectData>? =
     projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)?.externalProjectStructure
-
-  fun findModule(internalName: String): Module? =
-    moduleManager.findModuleByName(internalName)
 
   fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> =
     ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
@@ -157,23 +158,58 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     return
   }
 
-  if (projectDataNodes.any { caches.isCacheMissingModels(it) }) {
-    requestSync("Some models are missing")  // TODO(solodkyy): Merge with attaching and report details.
-    return
-  }
+  val existingGradleModules = moduleManager.modules.filter { ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it) }
 
-  if (GradleSyncExecutor.areCachedFilesMissing(project)) {
-    requestSync("Some .jar files missing")
-    return
+  val facets =
+    existingGradleModules
+      .flatMap { module ->
+        FacetManager.getInstance(module).let {
+          it.getFacetsByType(GradleFacet.getFacetTypeId()) +
+          it.getFacetsByType(AndroidFacet.ID) +
+          it.getFacetsByType(JavaFacet.getFacetTypeId()) +
+          it.getFacetsByType(NdkFacet.getFacetTypeId())
+        }
+      }
+      .toMutableSet()
+
+  existingGradleModules.asSequence().flatMap { module ->
+    ModuleRootManager.getInstance(module)
+      .orderEntries.filterIsInstance<LibraryOrderEntry>().asSequence()
+      .mapNotNull { it.library }
+      .filter { it.name?.startsWith("Gradle: ") ?: false }
   }
+    .distinct()
+    .forEach { library ->
+      // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
+      // all files are missing. If the library lifetime in the Gradle cache has expired there will be none that exists.
+      // TODO(b/160088430): Review when the platform is fixed and not existing entries are correctly removed.
+      // For other types of root we do not perform any validations since urls are intentionally or unintentionally not removed
+      // from libraries if the location changes. See TODO: b/160088430.
+      val expectedUrls = library.getUrls(OrderRootType.CLASSES)
+      if (expectedUrls.none { url: String -> VirtualFileManager.getInstance().findFileByUrl(url) != null }) {
+        requestSync(
+          "Cannot find any of:\n ${expectedUrls.joinToString(separator = ",\n") { it }}\n in ${library.name}")
+        return
+      }
+    }
+
+
+  val modulesById =
+    existingGradleModules
+      .asSequence()
+      .mapNotNull { module ->
+        val externalId = ExternalSystemApiUtil.getExternalProjectId(module) ?: return@mapNotNull null
+        externalId to module
+      }
+      .toMap()
 
   val moduleToModelPairs: Collection<Pair<Module, DataNode<ModuleData>>> =
     projectDataNodes.flatMap { projectData ->
       projectData
         .modules()
         .map { node ->
-          val internalName = node.data.internalName
-          val module = findModule(internalName) ?: run { requestSync("Module $internalName not found"); return }
+          val externalId = node.data.id
+          val module = modulesById[externalId] ?: run { requestSync("Module $externalId not found"); return }
           module to node
         }
     }
@@ -181,7 +217,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
   val attachModelActions = moduleToModelPairs.flatMap { (module, moduleDataNode) ->
 
     /** Returns `null` if validation fails. */
-    fun <T, V> prepare(
+    fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
       getFacet: Module.() -> V?,
       attach: V.(T) -> Unit,
@@ -197,6 +233,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
       }
+      facets.remove(facet)
       model.configure(module)
       return { facet.attach(model) }
     }
@@ -209,12 +246,17 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     )
   }
 
+  if (facets.isNotEmpty()) {
+    requestSync("Cached models not available for:\n" + facets.joinToString(separator = ",\n") { "${it.module.name} : ${it.typeId}" })
+    return
+  }
+
   LOG.info("Up-to-date models found in the cache. Not invoking Gradle sync.")
   attachModelActions.forEach { it() }
 
   additionalProjectSetup(project)
 
-  getInstance(project).syncSkipped(null)
+  GradleSyncState.getInstance(project).syncSkipped(null)
 }
 
 private fun additionalProjectSetup(project: Project) {
@@ -222,3 +264,4 @@ private fun additionalProjectSetup(project: Project) {
   ProjectStructure.getInstance(project).analyzeProjectStructure()
   setUpModules(project)
 }
+
