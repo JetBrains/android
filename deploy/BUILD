@@ -77,3 +77,36 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.deploy",
+    srcs = ["src"],
+    iml_files = ["intellij.android.deploy.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/base/deploy/deployer:unb.studio.android.sdktools.deployer[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/tracer:unb.studio.android.sdktools.tracer[module]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/base/fakeadbserver:unb.studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/build-common:unb.intellij.android.buildCommon[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+    ],
+)

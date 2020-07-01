@@ -125,3 +125,52 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.gradle.dsl",
+    srcs = ["src"],
+    iml_files = ["intellij.android.gradle.dsl.iml"],
+    lint_baseline = "lint_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.gradle.dsl.tests",
+    iml_files = ["intellij.android.gradle.dsl.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.gradle.dsl.GradleDslTestSuite",
+    test_data = glob(["testData/**"]),
+    test_srcs = ["testSrc"],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/common:unb.studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+    ],
+)

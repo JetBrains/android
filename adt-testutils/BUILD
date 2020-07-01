@@ -43,3 +43,22 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.adt.testutils",
+    iml_files = ["intellij.android.adt.testutils.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_srcs = ["src/main/java"],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/repository:unb.studio.android.sdktools.repository[module, test]",
+    ],
+)

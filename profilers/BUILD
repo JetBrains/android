@@ -95,3 +95,40 @@ kotlin_test(
         "//tools/idea/.idea/libraries:studio-proto",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.profilers",
+    srcs = ["src"],
+    iml_files = ["intellij.android.profilers.iml"],
+    lint_baseline = "lint_baseline.xml",
+    tags = [
+        "manual",
+        "no_test_windows",
+        "unb",
+    ],
+    test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
+        "//tools/base/perflib:unb.studio.android.sdktools.perflib[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/profilers-atrace:unb.intellij.android.profilers.atrace[module]",
+        "//tools/adt/idea/transport-database:unb.intellij.android.transportDatabase[module, test]",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
+        "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
+        "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+    ],
+)

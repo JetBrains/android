@@ -90,3 +90,58 @@ iml_module(
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.ide-perf-tests",
+    iml_files = ["intellij.android.ide-perf-tests.iml"],
+    split_test_targets = {
+        "SantaTrackerBenchmark": {
+            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
+        },
+        "SantaTrackerKotlinBenchmark": {
+            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
+        },
+        "other": {},
+    },
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.benchmarks.IdeBenchmarkTestSuite",
+    test_data = [
+        "//prebuilts/studio/buildbenchmarks:SantaTrackerKotlin_project",
+        "//prebuilts/studio/buildbenchmarks:SantaTracker_project",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//prebuilts/tools/common/mlkit/testData",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/ide-perf-tests/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+    ],
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "perfgate",
+    ],
+    test_timeout = "eternal",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+    ],
+)

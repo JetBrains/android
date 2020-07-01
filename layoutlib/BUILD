@@ -12,3 +12,17 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:layoutlib",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.layoutlib",
+    srcs = ["src"],
+    iml_files = ["intellij.android.layoutlib.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//prebuilts/studio/layoutlib/data:unb.layoutlib",
+    ],
+)

@@ -45,3 +45,27 @@ iml_module(
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.app-inspection.inspectors.workmanager.model",
+    srcs = ["src"],
+    iml_files = ["intellij.android.app-inspection.inspectors.workmanager.model.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api[module]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
+    ],
+)

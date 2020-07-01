@@ -75,3 +75,80 @@ java_import(
     jars = ["pepk.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.asm-5.0.3",
+    jars = ["asm-5.0.3.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.asm-analysis-5.0.3",
+    jars = ["asm-analysis-5.0.3.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.asm-tree-5.0.3",
+    jars = ["asm-tree-5.0.3.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.jarutils",
+    jars = ["jarutils.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.spantable",
+    jars = ["spantable.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.instantapps-api-1.8",
+    jars = ["instantapps-api-1.8.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.pepk",
+    jars = ["pepk.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -155,3 +155,70 @@ maven_repo(
     ],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.sync-perf-tests",
+    iml_files = ["intellij.android.sync-perf-tests.iml"],
+    split_test_targets = {
+        "Base100": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+        },
+        "Dolphin": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+        },
+        # This split test target contains AveragePerfTest, and other unspecified tests if
+        # they exist. Additional targets should be made if this one begins taking a long time.
+        "other": {
+        },
+    },
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.SyncPerfTestSuite",
+    test_data = [
+        ":test_deps.zip",
+        "//prebuilts/studio/buildbenchmarks:Base100_project",
+        "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/latest-preview",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/sync-perf-tests/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-5.5",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system/previous-versions:3.5.0.zip",
+    ],
+    test_runtime_deps = ["//tools/adt/idea/databinding:unb.intellij.android.databinding"],
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+        "perfgate",
+    ],
+    test_timeout = "eternal",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
+        "//tools/adt/idea/android:unb.intellij.android.core.tests[module, test]",
+        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
+        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+    ],
+)
