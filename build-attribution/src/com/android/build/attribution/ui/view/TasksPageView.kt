@@ -44,6 +44,7 @@ import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
 
@@ -119,12 +120,16 @@ class TasksPageView(
       add(ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE), BorderLayout.CENTER)
     }
     val detailsHalf: JPanel = JPanel().apply {
-      val dimension = JBUI.size(20, 5)
+      val dimension = JBUI.size(5, 5)
       layout = BorderLayout(dimension.width(), dimension.height())
       border = JBUI.Borders.empty(5, 20)
       add(detailsPanel, BorderLayout.CENTER)
-      val chartsScrollArea = JBScrollPane(chartsPanel).apply {
+      val chartsScrollArea = JBScrollPane().apply {
         border = JBUI.Borders.empty()
+        horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+        verticalScrollBar.isOpaque = false
+
         setViewportView(chartsPanel)
       }
       add(chartsScrollArea, BorderLayout.WEST)
