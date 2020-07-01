@@ -45,7 +45,7 @@ public class SourceFoldersTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     VirtualFile appFolder = createFolderInProjectRoot(getProject(), "app");
-    myAppModule = createModuleAt("app", getProject(), getModuleType(), appFolder.getPath());
+    myAppModule = createModuleAt("app", getProject(), getModuleType(), appFolder.toNioPath());
     mySrcFolder = createFolder(appFolder, "src");
     myMypackageFolder = createFolder(mySrcFolder, "mypackage");
     myLibFolder = createFolder(appFolder, "lib");
