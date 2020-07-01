@@ -92,8 +92,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -103,9 +101,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
-
-  @Rule public TestName myNameRule = new TestName();
-  @Rule public RunInEDTRule myEDTRule = new RunInEDTRule();
 
   protected String myTestDataPath;
 
@@ -134,16 +129,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       ,
       {".gradle.kts", KOTLIN_LANGUAGE}
     });
-  }
-
-  /**
-   * This method override is required for a PlatformTestCase subclass to be run with the Parameterized test runner.
-   * PlatformTestCase expects the JUnit3 method TestCase#getName to return the correct value. While use Parameterized test runner
-   * this is null. We make sure that getName gives us the correct value here by using the JUnit4 method to obtain the name.
-   */
-  @Override
-  public String getName() {
-    return myNameRule.getMethodName();
   }
 
   protected boolean isGroovy() {
@@ -194,9 +179,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   @Before
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void before() throws Exception {
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
     StudioFlags.KOTLIN_DSL_PARSING.override(true);
@@ -248,13 +231,8 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   @After
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
-    } finally {
-      super.tearDown();
-    }
+  public void after() {
+    StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
   }
 
   @Override

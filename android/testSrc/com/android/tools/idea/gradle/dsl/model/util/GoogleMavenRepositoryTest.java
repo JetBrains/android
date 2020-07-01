@@ -43,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.IOException;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -51,9 +52,8 @@ import org.junit.Test;
 public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   private GradleVersions myGradleVersions;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void prepare() {
     myGradleVersions = spy(GradleVersions.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, myGradleVersions, getTestRootDisposable());
   }
