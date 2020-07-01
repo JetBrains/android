@@ -39,7 +39,13 @@ import com.intellij.psi.util.CachedValuesManager
  */
 class BindingClassFinder(project: Project) : PsiElementFinder() {
   private val lightBindingsCache: CachedValue<List<LightBindingClass>>
-  private val fqcnBindingsCache: CachedValue<Map<String, LightBindingClass>>
+  /**
+   * A mapping of a fully qualified name to a list of one or more matches.
+   *
+   * Although there is usually only one LightBindingClass per fqcn, it is possible for multiple modules to
+   * implement different versions the same class, as long as other modules only depend on one of them.
+   */
+  private val fqcnBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val packageBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
 
   init {
@@ -57,7 +63,7 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
     }
 
     fqcnBindingsCache = cachedValuesManager.createCachedValue {
-      val fqcnBindings = lightBindingsCache.value.associateBy { bindingClass -> bindingClass.qualifiedName }
+      val fqcnBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName }
       CachedValueProvider.Result.create(fqcnBindings, enabledFacetsProvider, resourcesModifiedTracker)
     }
 
@@ -69,12 +75,14 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     return fqcnBindingsCache.value[qualifiedName]
-      ?.takeIf { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
+      ?.firstOrNull { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val psiClass = findClass(qualifiedName, scope) ?: return PsiClass.EMPTY_ARRAY
-    return arrayOf(psiClass)
+    return fqcnBindingsCache.value[qualifiedName]
+             ?.filter { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
+             ?.toTypedArray<PsiClass>()
+           ?: emptyArray()
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
