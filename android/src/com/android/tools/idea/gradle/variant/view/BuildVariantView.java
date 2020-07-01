@@ -596,7 +596,7 @@ public class BuildVariantView {
                   @NotNull List<BuildVariantItem[]> buildVariantsPerRow,
                   @NotNull List<AbiItem[]> abisPerRow) {
       setLoading(false);
-      previousModelHadAbis = !abisPerRow.isEmpty();
+      previousModelHadAbis = abisPerRow.stream().filter(abis -> abis != null).count() > 0;
       if (rows.isEmpty()) {
         // This is most likely an old-style (pre-Gradle) Android project. Just leave the table empty.
         setModel(new BuildVariantTableModel(rows, previousModelHadAbis));
