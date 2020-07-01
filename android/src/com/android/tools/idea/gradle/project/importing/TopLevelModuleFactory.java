@@ -64,7 +64,7 @@ class TopLevelModuleFactory {
         new File(new File(projectRootDir, Project.DIRECTORY_STORE_FOLDER), "modules"), // "modules" is private in GradleManager.
         projectRootDir.getName() + ".iml");
       ModifiableModuleModel projectModifieableModel = moduleManager.getModifiableModel();
-      Module module = projectModifieableModel.newModule(moduleFile.getPath(), JAVA.getId());
+      Module module = projectModifieableModel.newModule(moduleFile.toPath(), JAVA.getId());
       try {
         // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets
         // up the project name correctly, we can prevent the root mdule from being disposed by sync if we configure its name correctly.
