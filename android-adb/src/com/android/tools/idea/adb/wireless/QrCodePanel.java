@@ -27,6 +27,7 @@ public class QrCodePanel {
   private JBLabel mySecondLineLabel;
   private ImagePanel myQrCodePanel;
   private JPanel myRootComponent;
+  private JBLabel myPairingStateLabel;
 
   public QrCodePanel() {
     myQrCodePanel.setBorder(JBUI.Borders.customLine(QrCodeColors.BORDER));
@@ -35,9 +36,8 @@ public class QrCodePanel {
     mySecondLineLabel.setForeground(QrCodeColors.LABEL_FOREGROUND);
   }
 
-  public void setLabels(@NotNull String line1, @NotNull String line2) {
-    myFirstLineLabel.setText(line1);
-    mySecondLineLabel.setText(line2);
+  public void setStatusLabel(@NotNull String line) {
+    myPairingStateLabel.setText(line);
   }
 
   public void setQrCode(@NotNull QrCodeImage image) {

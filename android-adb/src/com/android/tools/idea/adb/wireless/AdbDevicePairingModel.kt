@@ -16,7 +16,6 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import java.awt.image.BufferedImage
 import java.util.ArrayList
 
 /**
@@ -24,8 +23,14 @@ import java.util.ArrayList
  */
 @UiThread
 class AdbDevicePairingModel {
+  var mdnsServices: List<MdnsService> = emptyList()
+    set(value) {
+      field = value
+      listeners.forEach { it.mdnsServicesDiscovered(value) }
+    }
+
   /** The list of listeners */
-  private val listeners: ArrayList<AdbDevicePairingModelListener> = ArrayList<AdbDevicePairingModelListener>()
+  private val listeners: ArrayList<AdbDevicePairingModelListener> = ArrayList()
 
   /**
    * The last [QrCodeImage] generated. It may be `null` if no image has been generated yet.
@@ -53,4 +58,9 @@ interface AdbDevicePairingModelListener {
    * Invoked when a new QrCode image has been generated
    */
   fun qrCodeGenerated(newImage: QrCodeImage)
+
+  /**
+   * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
+   */
+  fun mdnsServicesDiscovered(services: List<MdnsService>)
 }

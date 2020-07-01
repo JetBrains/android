@@ -998,6 +998,11 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueChecker"/>
   </extensions>
 
+  <applicationListeners>
+    <listener class="com.android.tools.idea.startup.AdbFileProviderInitializer"
+              topic="com.intellij.openapi.project.ProjectManagerListener"/>
+  </applicationListeners>
+
   <projectListeners>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>

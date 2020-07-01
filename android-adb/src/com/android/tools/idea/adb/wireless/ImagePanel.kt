@@ -27,7 +27,7 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
   var image: Image? = null
     set(value) {
       field = value
-      invalidate()
+      repaint()
     }
 
   override fun paintComponent(g: Graphics) {
