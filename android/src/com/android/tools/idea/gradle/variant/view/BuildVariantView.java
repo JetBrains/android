@@ -24,6 +24,7 @@ import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -72,9 +73,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
@@ -185,9 +184,9 @@ public class BuildVariantView {
 
       NdkModuleModel ndkModel = ndkFacet == null ? null : getNdkModuleModelIfNotJustDummy(ndkFacet);
       if (ndkModel != null) {
-        String variantNameWithAbi = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
-        variantNameWithoutAbi = ndkModel.getVariantName(variantNameWithAbi);
-        abiName = ndkModel.getAbiName(variantNameWithAbi);
+        VariantAbi variantAbi = ndkFacet.getSelectedVariantAbi();
+        variantNameWithoutAbi = variantAbi.getVariant();
+        abiName = variantAbi.getAbi();
       } else {
         assert androidFacet != null;  // getGradleModules() returns only relevant modules.
         variantNameWithoutAbi = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
@@ -290,7 +289,7 @@ public class BuildVariantView {
     NdkModuleModel ndkModuleModel = getNdkModuleModelIfNotJustDummy(module);
     if (ndkModuleModel != null) {
       buildVariantNames.addAll(
-        ContainerUtil.map(ndkModuleModel.getNdkVariantAbis(), ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName)));
+        ContainerUtil.map(ndkModuleModel.getAllVariantAbis(), VariantAbi::getVariant));
     }
 
     return buildVariantNames;
@@ -325,10 +324,10 @@ public class BuildVariantView {
       return Collections.emptyList();
     }
 
-    Collection<String> allNdkVariants = ndkModuleModel.getNdkVariantAbis();
-    return allNdkVariants.stream()
-      .filter((String ndkVariant) -> ndkVariant.startsWith(variantNameWithoutAbi))
-      .map((String ndkVariant) -> ndkModuleModel.getAbiName(ndkVariant))
+    Collection<VariantAbi> allVariantAbis = ndkModuleModel.getAllVariantAbis();
+    return allVariantAbis.stream()
+      .filter(variantAbi -> variantAbi.getVariant().equals(variantNameWithoutAbi))
+      .map(VariantAbi::getAbi)
       .collect(Collectors.toList());
   }
 
@@ -941,8 +940,7 @@ public class BuildVariantView {
   @Nullable
   private static NdkModuleModel getNdkModuleModelIfNotJustDummy(@NotNull NdkFacet ndkFacet) {
     NdkModuleModel ndkModel = NdkModuleModel.get(ndkFacet);
-    String variantNameWithAbi = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
-    if (variantNameWithAbi.equals(NdkModuleModel.DUMMY_VARIANT_ABI.getDisplayName())) {
+    if (ndkModel == null || ndkFacet.getSelectedVariantAbi() == NdkModuleModel.DUMMY_VARIANT_ABI) {
       // There are no valid NDK variants. Treat as if NdkModuleModel does not exist.
       return null;
     }

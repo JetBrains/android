@@ -17,6 +17,7 @@ package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.NdkVariant
@@ -108,9 +109,12 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   }
 
   // 2. libs built in studio by NDK and gradle
+  val ndkFacet = NdkFacet.getInstance(module)
   val ndkModuleModel = NdkModuleModel.get(module)
-  if (ndkModuleModel != null) {
-    for (variant in ndkModuleModel.variants.filter { it.isDebugVariant() == ndkModuleModel.selectedVariant.isDebugVariant() }) {
+  if (ndkModuleModel != null && ndkFacet != null) {
+    for (variant in ndkModuleModel.variants.filter {
+      it.isDebugVariant() == ndkModuleModel.getNdkVariant(ndkFacet.selectedVariantAbi).isDebugVariant()
+    }) {
       val dirs = variant.artifacts
         .filter { it.abi == abiName }
         .mapNotNull { it.outputFile?.parentFile }

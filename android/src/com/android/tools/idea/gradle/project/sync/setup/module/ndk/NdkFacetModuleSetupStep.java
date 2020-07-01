@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
+
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -24,9 +26,6 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   @Override
@@ -46,10 +45,6 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
   }
 
   private static void configureFacet(@NotNull NdkFacet facet, @NotNull NdkModuleModel model) {
-    String selectedVariant = facet.getConfiguration().SELECTED_BUILD_VARIANT;
-    if (isNotEmpty(selectedVariant)) {
-      model.setSelectedVariantAbi(selectedVariant);
-    }
     facet.setNdkModuleModel(model);
   }
 }

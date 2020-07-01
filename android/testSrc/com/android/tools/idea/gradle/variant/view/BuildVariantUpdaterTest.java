@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -36,6 +37,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -45,6 +47,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -52,7 +55,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
@@ -70,7 +72,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeAndroidProject myAndroidProject;
   @Mock private IdeDependencies myIdeDependencies;
   @Mock private IdeVariant myDebugVariant;
-  @Mock private NdkVariant myNdkDebugVariant;
   @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
@@ -106,13 +107,12 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     myVariantUpdater = new BuildVariantUpdater(myModifiableModelsProviderFactory);
     myVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
 
-    when(myNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
-      add("debug-armeabi-v7a");
-      add("debug-x86");
-      add("release-armeabi-v7a");
-      add("release-x86");
-    }});
-
+    when(myNdkModel.getAllVariantAbis()).thenReturn(ImmutableList.of(
+      new VariantAbi("debug", "armeabi-v7a"),
+      new VariantAbi("debug", "x86"),
+      new VariantAbi("release", "armeabi-v7a"),
+      new VariantAbi("release", "x86")
+    ));
   }
 
   public void testUpdateSelectedVariant() {
@@ -136,33 +136,24 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   // Expected final Variant/ABI selection:
   //    app: release-x86
   public void testUpdateSelectedVariantWithNdkModule() {
-    String appVariant = "debug";
-    String appNdkVariant = "debug-x86";
-    String appAbi = "x86";
+    VariantAbi variantAbi = new VariantAbi("debug", "x86");
 
     // setup ndk facet and NdkModuleModel.
-    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
-    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
-    when(myNdkModel.getVariantName(appNdkVariant)).thenReturn(appVariant);
-    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
-
-    String ndkVariantToSelect = "release-x86";
-    String variantToSelect = "release";
-    String abiToSelect = "x86";
-
-    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
     ndkFacet.setNdkModuleModel(myNdkModel);
+    ndkFacet.setSelectedVariantAbi(variantAbi);
+
+    VariantAbi variantAbiToSelect = new VariantAbi("release", "x86");
+
+    when(myNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
 
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
+    when(myAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
 
     when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // invoke method to test.
-    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantAbiToSelect.getVariant());
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -177,33 +168,24 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   // Expected final Variant/ABI selection:
   //    app: debug-armeabi-v7a
   public void testUpdateSelectedAbiWithNdkModule() {
-    String appVariant = "debug";
-    String appNdkVariant = "debug-x86";
-    String appAbi = "x86";
+    VariantAbi variantAbi = new VariantAbi("debug", "x86");
 
     // setup ndk facet and NdkModuleModel.
-    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
-    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
-    when(myNdkModel.getVariantName(appNdkVariant)).thenReturn(appVariant);
-    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
-
-    String ndkVariantToSelect = "debug-armeabi-v7a";
-    String variantToSelect = "debug";
-    String abiToSelect = "armeabi-v7a";
-
-    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
     ndkFacet.setNdkModuleModel(myNdkModel);
+    ndkFacet.setSelectedVariantAbi(variantAbi);
+
+    VariantAbi variantAbiToSelect = new VariantAbi("debug", "armeabi-v7a");
+
+    when(myNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
 
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
+    when(myAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
 
     when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // invoke method to test.
-    myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), abiToSelect);
+    myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), variantAbiToSelect.getAbi());
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -328,22 +310,17 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   //    app: release-x86
   //    library: release
   public void testNdkModuleDependsOnAndroidModule() {
-    String appNdkVariant = "debug-x86";
-    String appAbi = "x86";
+    VariantAbi variantAbi = new VariantAbi("debug", "x86");
     String libraryVariant = "debug";
-
-    // Setup app.
-
-    // Setup expectations for app.
-    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
-    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
-    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
-    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // Register NDK facet for app.
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
     ndkFacet.setNdkModuleModel(myNdkModel);
+    ndkFacet.setSelectedVariantAbi(variantAbi);
+
+    // Setup expectations for app.
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // Mock objects required by library.
     AndroidModuleModel libraryAndroidModel = mock(AndroidModuleModel.class);
@@ -378,24 +355,20 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ProjectStructure.getInstance(myProject).getModuleFinder().addModule(libraryModule, ":library");
 
     // Selected variants (and ABI) for NDK and non-NDK modules.
-    String ndkVariantToSelect = "release-x86";
-    String variantToSelect = "release";
-    String abiToSelect = "x86";
+    VariantAbi variantAbiToSelect = new VariantAbi("release", "x86");
 
     // Selected variant related expectations.
-    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
+    when(myAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(libraryAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(myNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantAbiToSelect.getVariant());
 
     // Verify that variants are selected as expected.
-    verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(myNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
-    verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
+    verify(myAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    assertThat(ndkFacet.getSelectedVariantAbi()).isEqualTo(variantAbiToSelect);
+    verify(libraryAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -412,11 +385,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   //    app: release
   //    library: release-x86
   public void testAndroidModuleDependsOnNdkModule() {
-    String libraryVariant = "debug";
-    String libraryNdkVariant = "debug-x86";
-    String libraryAbi = "x86";
-
-    // Setup app.
+    VariantAbi libraryVariantAbi = new VariantAbi("debug", "x86");
 
     // Setup expectations for app.
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
@@ -432,15 +401,19 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
     NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
 
+
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
     AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
-    // Setup library.
+    // Register NDK facet for library.
+    NdkFacet ndkFacet = createAndAddNdkFacet(libraryModule);
+    ndkFacet.setNdkModuleModel(libraryNdkModel);
+    ndkFacet.setSelectedVariantAbi(libraryVariantAbi);
 
     // Setup expectations for library.
-    when(libraryDebugVariant.getName()).thenReturn(libraryVariant);
+    when(libraryDebugVariant.getName()).thenReturn(libraryVariantAbi.getVariant());
     when(libraryAndroidModel.getSelectedVariant()).thenReturn(libraryDebugVariant);
     when(libraryIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
     when(libraryAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
@@ -449,13 +422,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Setup NDK expectations for library.
-    when(libraryNdkDebugVariant.getName()).thenReturn(libraryNdkVariant);
-    when(libraryNdkModel.getAbiName(libraryNdkVariant)).thenReturn(libraryAbi);
-    when(libraryNdkModel.getSelectedVariant()).thenReturn(libraryNdkDebugVariant);
-
-    // Register NDK facet for library.
-    NdkFacet ndkFacet = createAndAddNdkFacet(libraryModule);
-    ndkFacet.setNdkModuleModel(libraryNdkModel);
+    when(libraryNdkDebugVariant.getName()).thenReturn(libraryVariantAbi.getVariant());
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
     when(library.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
@@ -466,31 +433,21 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ProjectStructure.getInstance(myProject).getModuleFinder().addModule(libraryModule, ":library");
 
     // Selected variants (and ABI) for NDK and non-NDK modules.
-    String ndkVariantToSelect = "release-x86";
-    String variantToSelect = "release";
-    String abiToSelect = "x86";
+    VariantAbi variantAbiToSelect = new VariantAbi("release", "x86");
 
     // Selected variant related expectations.
-    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(libraryNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(libraryNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
-
-    when(libraryNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
-      add("debug-armeabi-v7a");
-      add("debug-x86");
-      add("release-armeabi-v7a");
-      add("release-x86");
-    }});
+    when(myAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(libraryAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(libraryNdkModel.getAllVariantAbis()).thenReturn(ImmutableList.of(libraryVariantAbi, variantAbiToSelect));
+    when(libraryNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(libraryVariantAbi, variantAbiToSelect));
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantAbiToSelect.getVariant());
 
     // Verify that variants are selected as expected.
-    verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
+    verify(myAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    verify(libraryAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    assertThat(ndkFacet.getSelectedVariantAbi()).isEqualTo(variantAbiToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -507,24 +464,16 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   //    app: release-x86
   //    library: release-x86
   public void testNdkModuleDependsOnNdkModule() {
-    String appNdkVariant = "debug-x86";
-    String appAbi = "x86";
-    String libraryVariant = "debug";
-    String libraryNdkVariant = "debug-x86";
-    String libraryAbi = "x86";
-
-    // Setup app.
-
-    // Setup expectations for app.
-    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
-    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
-    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
-    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+    VariantAbi variantAbi = new VariantAbi("debug", "x86");
 
     // Register NDK facet for app.
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
     ndkFacet.setNdkModuleModel(myNdkModel);
+    ndkFacet.setSelectedVariantAbi(variantAbi);
+
+    // Setup expectations for app.
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // Setup expectations for app.
     //when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
@@ -545,10 +494,13 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
     AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
-    // Setup library.
+    // Register NDK facet for library.
+    NdkFacet libraryNdkFacet = createAndAddNdkFacet(libraryModule);
+    libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
+    libraryNdkFacet.setSelectedVariantAbi(variantAbi);
 
     // Setup expectations for library.
-    when(libraryDebugVariant.getName()).thenReturn(libraryVariant);
+    when(libraryDebugVariant.getName()).thenReturn(variantAbi.getVariant());
     when(libraryAndroidModel.getSelectedVariant()).thenReturn(libraryDebugVariant);
     when(libraryIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
     when(libraryAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
@@ -557,13 +509,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Setup NDK expectations for library.
-    when(libraryNdkDebugVariant.getName()).thenReturn(libraryNdkVariant);
-    when(libraryNdkModel.getAbiName(libraryNdkVariant)).thenReturn(libraryAbi);
-    when(libraryNdkModel.getSelectedVariant()).thenReturn(libraryNdkDebugVariant);
-
-    // Register NDK facet for library.
-    NdkFacet libraryNdkFacet = createAndAddNdkFacet(libraryModule);
-    libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
+    when(libraryNdkDebugVariant.getName()).thenReturn(variantAbi.getVariant());
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
     when(library.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
@@ -574,34 +520,23 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ProjectStructure.getInstance(myProject).getModuleFinder().addModule(libraryModule, ":library");
 
     // Selected variants (and ABI) for NDK and non-NDK modules.
-    String ndkVariantToSelect = "release-x86";
-    String variantToSelect = "release";
-    String abiToSelect = "x86";
+    VariantAbi variantAbiToSelect = new VariantAbi("release", "x86");
 
     // Selected variant related expectations.
-    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(libraryNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(libraryNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
-
-    when(libraryNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
-      add("debug-armeabi-v7a");
-      add("debug-x86");
-      add("release-armeabi-v7a");
-      add("release-x86");
-    }});
+    when(myAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(myNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
+    when(libraryAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(libraryNdkModel.getAllVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
+    when(libraryNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantAbiToSelect.getVariant());
 
     // Verify that variants are selected as expected.
-    verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(myNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
-    verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
+    verify(myAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    assertThat(ndkFacet.getSelectedVariantAbi()).isEqualTo(variantAbiToSelect);
+    verify(libraryAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    assertThat(libraryNdkFacet.getSelectedVariantAbi()).isEqualTo(variantAbiToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }
@@ -618,26 +553,16 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   //    app: debug-armeabi-v7a
   //    library: debug-armeabi-v7a
   public void testNdkModuleDependsOnNdkModuleWithAbiChange() {
-    String appVariant = "debug";
-    String appNdkVariant = "debug-x86";
-    String appAbi = "x86";
-    String libraryVariant = "debug";
-    String libraryNdkVariant = "debug-x86";
-    String libraryAbi = "x86";
-
-    // Setup app.
-
-    // Setup expectations for app.
-    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
-    when(myNdkModel.getVariantName(appNdkVariant)).thenReturn(appVariant);
-    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
-    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
-    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+    VariantAbi variantAbi = new VariantAbi("debug", "x86");
 
     // Register NDK facet for app.
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
     ndkFacet.setNdkModuleModel(myNdkModel);
+    ndkFacet.setSelectedVariantAbi(variantAbi);
+
+    // Setup expectations for app.
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // Setup expectations for app.
     //when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
@@ -651,32 +576,25 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
     IdeLibrary library = mock(IdeLibrary.class);
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
-    NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
 
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
     AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
-    // Setup library.
+    // Register NDK facet for library.
+    NdkFacet libraryNdkFacet = createAndAddNdkFacet(libraryModule);
+    libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
+    libraryNdkFacet.setSelectedVariantAbi(variantAbi);
 
     // Setup expectations for library.
-    when(libraryDebugVariant.getName()).thenReturn(libraryVariant);
+    when(libraryDebugVariant.getName()).thenReturn(variantAbi.getVariant());
     when(libraryAndroidModel.getSelectedVariant()).thenReturn(libraryDebugVariant);
     when(libraryIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
     when(libraryAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(libraryAndroidModel.getAndroidProject()).thenReturn(libraryAndroidProject);
     when(libraryAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(libraryIdeDependencies);
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
-
-    // Setup NDK expectations for library.
-    when(libraryNdkDebugVariant.getName()).thenReturn(libraryNdkVariant);
-    when(libraryNdkModel.getAbiName(libraryNdkVariant)).thenReturn(libraryAbi);
-    when(libraryNdkModel.getSelectedVariant()).thenReturn(libraryNdkDebugVariant);
-
-    // Register NDK facet for library.
-    NdkFacet libraryNdkFacet = createAndAddNdkFacet(libraryModule);
-    libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
 
     // Register "library" into gradle so that "app:debug" depends on "library:debug".
     when(library.getType()).thenReturn(IdeLibrary.LibraryType.LIBRARY_MODULE);
@@ -687,35 +605,23 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ProjectStructure.getInstance(myProject).getModuleFinder().addModule(libraryModule, ":library");
 
     // Selected variants (and ABI) for NDK and non-NDK modules.
-    String ndkVariantToSelect = "debug-armeabi-v7a";
-    String variantToSelect = "debug";
-    String abiToSelect = "armeabi-v7a";
+    VariantAbi variantAbiToSelect = new VariantAbi("debug", "armeabi-v7a");
 
     // Selected variant related expectations.
-    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
-    when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
-    when(libraryNdkModel.variantAbiExists(ndkVariantToSelect)).thenReturn(true);
-    when(libraryNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
-    when(libraryNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
-
-    when(libraryNdkModel.getNdkVariantAbis()).thenReturn(new HashSet() {{
-      add("debug-armeabi-v7a");
-      add("debug-x86");
-      add("release-armeabi-v7a");
-      add("release-x86");
-    }});
+    when(myAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(myNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
+    when(libraryAndroidModel.variantExists(variantAbiToSelect.getVariant())).thenReturn(true);
+    when(libraryNdkModel.getAllVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
+    when(libraryNdkModel.getSyncedVariantAbis()).thenReturn(ImmutableList.of(variantAbi, variantAbiToSelect));
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), abiToSelect);
+    myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), variantAbiToSelect.getAbi());
 
     // Verify that variants are selected as expected.
-    verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(myNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
-    verify(libraryAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(libraryNdkModel).setSelectedVariantAbi(ndkVariantToSelect);
+    verify(myAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    assertThat(ndkFacet.getSelectedVariantAbi()).isEqualTo(variantAbiToSelect);
+    verify(libraryAndroidModel).setSelectedVariantName(variantAbiToSelect.getVariant());
+    assertThat(libraryNdkFacet.getSelectedVariantAbi()).isEqualTo(variantAbiToSelect);
 
     verify(myVariantSelectionChangeListener).selectionChanged();
   }

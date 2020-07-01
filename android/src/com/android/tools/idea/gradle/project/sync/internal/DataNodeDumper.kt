@@ -103,10 +103,9 @@ fun NdkModuleModel.format(): String = "\n" + """
     moduleName = ${moduleName}
     rootDirPath = ${rootDirPath}
     androidProject = ${androidProject.format()}
-    variantAbi = ${variantAbi.format()}
+    variantAbi = ${nativeVariantAbis.format()}
     variants = ${variants.format{ format()}}
     features = ${features.format()}
-    selectedVariant = ${selectedVariant.format()}
   """
 
 fun <T> Collection<T>.format(format: T.() -> String): String = """[

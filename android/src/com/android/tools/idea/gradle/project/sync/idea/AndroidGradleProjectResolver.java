@@ -450,7 +450,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
         NdkModuleModel nativeModel = NdkModuleModel.get(module);
         if (nativeModel != null) {
-          cachedVariants.getNativeVariants().addAll(nativeModel.getVariantAbi());
+          cachedVariants.getNativeVariants().addAll(nativeModel.getNativeVariantAbis());
         }
         return cachedVariants;
       }
