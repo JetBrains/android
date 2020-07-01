@@ -187,7 +187,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalNativeSize   += unit * validOrZero(instanceObject.getNativeSize());
     myTotalShallowSize  += unit * validOrZero(instanceObject.getShallowSize());
     myTotalRetainedSize += unit * validOrZero(instanceObject.getRetainedSize());
-    if (instanceObject.getCallStackDepth() > 0) {
+    if (!instanceObject.isCallStackEmpty()) {
       myInstancesWithStackInfoCount += unit;
     }
     myInstanceFilterMatchCounter.invalidate();
@@ -231,8 +231,10 @@ public abstract class ClassifierSet implements MemoryObject {
       assert classifierSet != null;
       instanceChanged = classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, isAdding, handler);
     }
-    else if ((isAdding == !myDeltaInstances.contains(instanceObject)) &&
-             (isAdding || !instanceObject.hasTimeData())) {
+    else if ((isAdding || !instanceObject.hasTimeData()) &&
+             // `contains` is more expensive, so deferred to after above test fails.
+             // This line is run often enough to make a difference.
+             (isAdding == !myDeltaInstances.contains(instanceObject))) {
       handler.accept(myDeltaInstances, instanceObject);
       instanceChanged = true;
     }
@@ -253,7 +255,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalShallowSize  += factor * validOrZero(instanceObject.getShallowSize());
     myTotalRetainedSize += factor * validOrZero(instanceObject.getRetainedSize());
 
-    if (instanceChanged && instanceObject.getCallStackDepth() > 0) {
+    if (instanceChanged && !instanceObject.isCallStackEmpty()) {
       myInstancesWithStackInfoCount += unit;
       myNeedsRefiltering = true;
     }
@@ -474,11 +476,26 @@ public abstract class ClassifierSet implements MemoryObject {
   }
 
   private int countInstanceFilterMatch(CaptureObjectInstanceFilter filter) {
-    return myClassifier != null && !myClassifier.isTerminalClassifier()
-           ? myClassifier.getAllClassifierSets().stream()
-             .map(s -> s.getInstanceFilterMatchCount(filter))
-             .reduce(0, Integer::sum)
-           : (int) getInstancesStream().filter(filter.getInstanceTest()::invoke).count();
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      return myClassifier.getAllClassifierSets().stream()
+        .mapToInt(s -> s.getInstanceFilterMatchCount(filter))
+        .sum();
+    } else {
+      // Spell out the counting of distinct instances satisfying filter
+      // without using streams, because this is a bottleneck
+      int total = 0;
+      for (InstanceObject inst : myDeltaInstances) {
+        if (filter.getInstanceTest().invoke(inst)) {
+          ++total;
+        }
+      }
+      for (InstanceObject inst : mySnapshotInstances) {
+        if (!myDeltaInstances.contains(inst) && filter.getInstanceTest().invoke(inst)) {
+          ++total;
+        }
+      }
+      return total;
+    }
   }
 
   private static long validOrZero(long value) {
