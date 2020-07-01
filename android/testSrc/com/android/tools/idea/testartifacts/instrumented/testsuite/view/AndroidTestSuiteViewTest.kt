@@ -366,6 +366,70 @@ class AndroidTestSuiteViewTest {
     assertThat(tableViewModel.columnInfos[3].getWidth(tableView)).isEqualTo(1)
   }
 
+  @Test
+  fun progressBar() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    val device1 = device("deviceId1", "deviceName1", 29)
+    val device2 = device("deviceId2", "deviceName2", 28)
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    val testcase1OnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice1 = AndroidTestCase("testId2", "method2", "class2", "package2")
+    val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    val testcase1OnDevice2 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice2 = AndroidTestCase("testId2", "method2", "class2", "package2")
+
+    assertThat(view.myProgressBar.isIndeterminate).isFalse()
+    assertThat(view.myProgressBar.value).isEqualTo(0)
+    assertThat(view.myProgressBar.maximum).isEqualTo(100)
+
+    // Add scheduled devices.
+    view.onTestSuiteScheduled(device1)
+    view.onTestSuiteScheduled(device2)
+
+    assertThat(view.myProgressBar.value).isEqualTo(0)
+    assertThat(view.myProgressBar.maximum).isEqualTo(100)
+
+    // Test execution on device 1.
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+
+    // Progress = (completed tests / scheduled tests) * (started devices / scheduled devices).
+    assertThat(view.myProgressBar.value).isEqualTo(0 * 1)
+    assertThat(view.myProgressBar.maximum).isEqualTo(2 * 2)
+
+    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase1OnDevice1)
+    testcase1OnDevice1.result = AndroidTestCaseResult.PASSED
+    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase1OnDevice1)
+
+    assertThat(view.myProgressBar.value).isEqualTo(1 * 1)
+    assertThat(view.myProgressBar.maximum).isEqualTo(2 * 2)
+
+    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase2OnDevice1)
+    testcase2OnDevice1.result = AndroidTestCaseResult.FAILED
+    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase2OnDevice1)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(view.myProgressBar.value).isEqualTo(2 * 1)
+    assertThat(view.myProgressBar.maximum).isEqualTo(2 * 2)
+
+    // Test execution on device 2.
+    view.onTestSuiteStarted(device2, testsuiteOnDevice2)
+    view.onTestCaseStarted(device2, testsuiteOnDevice2, testcase1OnDevice2)
+    testcase1OnDevice2.result = AndroidTestCaseResult.SKIPPED
+    view.onTestCaseFinished(device2, testsuiteOnDevice2, testcase1OnDevice2)
+
+    assertThat(view.myProgressBar.value).isEqualTo(3 * 2)
+    assertThat(view.myProgressBar.maximum).isEqualTo(4 * 2)
+
+    view.onTestCaseStarted(device2, testsuiteOnDevice2, testcase2OnDevice2)
+    testcase2OnDevice2.result = AndroidTestCaseResult.PASSED
+    view.onTestCaseFinished(device2, testsuiteOnDevice2, testcase2OnDevice2)
+    view.onTestSuiteFinished(device2, testsuiteOnDevice2)
+
+    assertThat(view.myProgressBar.value).isEqualTo(4 * 2)
+    assertThat(view.myProgressBar.maximum).isEqualTo(4 * 2)
+  }
+
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(apiVersion))
   }
