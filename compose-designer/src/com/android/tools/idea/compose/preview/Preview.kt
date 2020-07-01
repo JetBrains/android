@@ -196,7 +196,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider,
                                                                         ModificationTracker {
-                                                                          psiFilePointer.element?.modificationStamp ?: -1
+                                                                          ReadAction.compute<Long, Throwable> {
+                                                                            psiFilePointer.element?.modificationStamp ?: -1
+                                                                          }
                                                                         })
   private val previewElementProvider = PreviewFilters(memoizedElementsProvider)
 
@@ -586,7 +588,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private suspend fun doRefreshSync(filePreviewElements: Sequence<PreviewElement>) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
@@ -735,10 +737,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
     }
 
-    previewElements = ReadAction.compute<List<PreviewElement>, Throwable> {
-      filePreviewElements
-        .sortedWith(previewElementComparatorBySourcePosition)
-        .toList()
+    if (models.size >= filePreviewElements.size) {
+      previewElements = filePreviewElements
+    }
+    else {
+      // Some preview elements did not result in model creations. This could be because of failed PreviewElements instantiation.
+      // TODO(b/160300892): Add better error handling for failed instantiations.
+      LOG.warn("Some preview elements have failed")
     }
 
     withContext(uiThread) {
@@ -752,8 +757,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  fun refresh() =
-    launch(uiThread) {
+  fun refresh(): Job {
+    var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
+    return launch(uiThread) {
+      LOG.debug("Refresh triggered", refreshTrigger)
       if (DumbService.isDumb(project)) {
         LOG.debug("Project is in dumb mode, not able to refresh")
         return@launch
@@ -764,9 +771,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       try {
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
+            .toList()
+            .sortedWith(previewElementComparatorBySourcePosition)
         }
 
-        if (filePreviewElements.toList() == previewElements) {
+        if (filePreviewElements == previewElements) {
           LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
           // In this case, there are no new previews. We need to make sure that the surface is still correctly
           // configured and that we are showing the right size for components. For example, if the user switches on/off
@@ -795,11 +804,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             doRefreshSync(filePreviewElements)
           }.join()
         }
-      } finally {
+      }
+      catch (t: Throwable) {
+        LOG.warn("Refresh request failed", t)
+      }
+      finally {
         isContentBeingRendered.set(false)
         updateSurfaceVisibilityAndNotifications()
       }
     }
+  }
 
   /**
    * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
