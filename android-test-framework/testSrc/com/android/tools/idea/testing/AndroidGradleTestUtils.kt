@@ -949,6 +949,7 @@ interface GradleIntegrationTest {
 /**
  * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
  */
+@JvmOverloads
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
