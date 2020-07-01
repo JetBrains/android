@@ -244,33 +244,4 @@ public class GradleSyncExecutor {
 
     return builder.build();
   }
-
-  /**
-   * @return true if the expected jars from cached libraries don't exist on disk.
-   */
-  public static boolean areCachedFilesMissing(@NotNull Project project) {
-    final Ref<Boolean> missingFileFound = Ref.create(false);
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-      rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
-        // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
-        // all files are missing. If the library lifetime in the Gradle cache has expired there will be none that exists.
-        // TODO(b/160088430): Review when the platform is fixed and not existing entries are correctly removed.
-        // For other types of root we do not perform any validations since urls are intentionally or unintentionally not removed
-        // from libraries if the location changes. See TODO: b/160088430.
-        List<String> expectedUrls = asList(entry.getUrls(CLASSES));
-        if (!expectedUrls.isEmpty()) {
-          if (expectedUrls.stream().noneMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) != null)) {
-            missingFileFound.set(true);
-            return false; // Don't continue with processor.
-          }
-        }
-        return true;
-      });
-      if (missingFileFound.get()) {
-        return true;
-      }
-    }
-    return missingFileFound.get();
-  }
 }

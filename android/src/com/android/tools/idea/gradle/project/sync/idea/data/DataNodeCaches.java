@@ -15,36 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManagerImpl;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.util.Collection;
-import java.util.Map;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 
 public class DataNodeCaches {
@@ -70,75 +54,6 @@ public class DataNodeCaches {
     ProjectDataManager dataManager = ProjectDataManager.getInstance();
     String projectPath = getBaseDirPath(myProject).getPath();
     return dataManager.getExternalProjectData(myProject, GradleConstants.SYSTEM_ID, projectPath);
-  }
-
-  public boolean isCacheMissingModels(@NotNull DataNode<ProjectData> cache) {
-    Collection<DataNode<ModuleData>> moduleDataNodes = findAll(cache, MODULE);
-    if (!moduleDataNodes.isEmpty()) {
-      Map<String, DataNode<ModuleData>> moduleDataNodesByName = indexByModuleName(moduleDataNodes);
-
-      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-      for (Module module : moduleManager.getModules()) {
-        DataNode<ModuleData> moduleDataNode = moduleDataNodesByName.get(module.getName());
-        if (moduleDataNode == null) {
-          // When a Gradle facet is present, there should be a cache node for the module.
-          GradleFacet gradleFacet = GradleFacet.getInstance(module);
-          if (gradleFacet != null) {
-            return true;
-          }
-        }
-        else if (isCacheMissingModels(moduleDataNode, module)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
-  @NotNull
-  private static Map<String, DataNode<ModuleData>> indexByModuleName(@NotNull Collection<DataNode<ModuleData>> moduleDataNodes) {
-    Map<String, DataNode<ModuleData>> mapping = Maps.newHashMap();
-    for (DataNode<ModuleData> moduleDataNode : moduleDataNodes) {
-      ModuleData data = moduleDataNode.getData();
-      mapping.put(data.getInternalName(), moduleDataNode);
-    }
-    return mapping;
-  }
-
-  private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    if (gradleFacet != null) {
-      DataNode<GradleModuleModel> gradleDataNode = find(cache, GRADLE_MODULE_MODEL);
-      if (gradleDataNode == null) {
-        return true;
-      }
-
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        DataNode<AndroidModuleModel> androidDataNode = find(cache, ANDROID_MODEL);
-        if (androidDataNode == null) {
-          return true;
-        }
-      }
-      else {
-        JavaFacet javaFacet = JavaFacet.getInstance(module);
-        if (javaFacet != null) {
-          DataNode<JavaModuleModel> javaProjectDataNode = find(cache, JAVA_MODULE_MODEL);
-          if (javaProjectDataNode == null) {
-            return true;
-          }
-        }
-      }
-    }
-    NdkFacet ndkFacet = NdkFacet.getInstance(module);
-    if (ndkFacet != null) {
-      DataNode<NdkModuleModel> ndkModuleModelDataNode = find(cache, NDK_MODEL);
-      if (ndkModuleModelDataNode == null) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public void clearCaches() {
