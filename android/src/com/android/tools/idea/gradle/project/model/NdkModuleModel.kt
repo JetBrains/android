@@ -29,7 +29,6 @@ import java.io.File
 import java.util.ArrayList
 import java.util.Collections
 import java.util.HashMap
-import java.util.Objects
 
 /**
  * Used to track serialization version. This value should be updated when the serialized form of [NdkModuleModel] is changed in a backward-
@@ -232,28 +231,6 @@ class NdkModuleModel
   fun findToolchain(toolchainName: String) = toolchainsByName[toolchainName]
 
   fun findSettings(settingsName: String) = settingsByName[settingsName]
-
-  override fun hashCode(): Int {
-    // Hashcode should consist of what's written in writeObject.
-    // Everything else is derived from these so those don't matter wrt to identity.
-    return Objects.hash(
-      moduleName,
-      rootDirPath,
-      androidProject,
-      variantAbi,
-      syncVersion)
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (other == null) return false
-    if (other !is NdkModuleModel) return false
-    if (moduleName != other.moduleName) return false
-    if (rootDirPath.path != other.rootDirPath.path) return false
-    if (androidProject != other.androidProject) return false
-    if (syncVersion != other.syncVersion) return false
-    return variantAbi == other.variantAbi
-  }
 
   companion object {
     @JvmStatic
