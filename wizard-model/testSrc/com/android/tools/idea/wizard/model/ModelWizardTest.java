@@ -62,6 +62,7 @@ public class ModelWizardTest {
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
     assertThat(wizard.canGoBack().get()).isFalse();
     assertThat(wizard.canGoForward().get()).isTrue();
+    assertThat(wizard.onFirstStep().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isFalse();
 
     runInvokerAndGoForward(wizard);
@@ -69,6 +70,7 @@ public class ModelWizardTest {
     myInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
+    assertThat(wizard.onFirstStep().get()).isFalse();
     assertThat(wizard.onLastStep().get()).isFalse();
 
     runInvokerAndGoForward(wizard);
@@ -76,6 +78,7 @@ public class ModelWizardTest {
     myInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
+    assertThat(wizard.onFirstStep().get()).isFalse();
     assertThat(wizard.onLastStep().get()).isTrue();
 
     assertThat(wizardResult[0]).isNull();
@@ -85,6 +88,7 @@ public class ModelWizardTest {
     assertThat(wizard.isFinished()).isTrue();
     assertThat(wizard.canGoBack().get()).isFalse();
     assertThat(wizard.canGoForward().get()).isFalse();
+    assertThat(wizard.onFirstStep().get()).isFalse();
     assertThat(wizard.onLastStep().get()).isFalse();
 
     assertThat(personModel.isFinished()).isTrue();
@@ -372,6 +376,7 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.onLastStep().get()).isTrue();
+    assertThat(wizard.onFirstStep().get()).isTrue();
 
     Disposer.dispose(wizard);
   }

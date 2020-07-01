@@ -57,6 +57,7 @@ public final class ModelWizard implements Disposable {
   private final BindingsManager myBindings = new BindingsManager();
   private final BoolProperty myCanGoBack = new BoolValueProperty();
   private final BoolProperty myCanGoForward = new BoolValueProperty();
+  private final BoolProperty myOnFirstStep = new BoolValueProperty();
   private final BoolProperty myOnLastStep = new BoolValueProperty();
   private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<>();
 
@@ -165,6 +166,14 @@ public final class ModelWizard implements Disposable {
   @NotNull
   public ObservableBool canGoForward() {
     return myCanGoForward;
+  }
+
+  /**
+   * Boolean property which is set to {@code true} when the wizard is on the first step.
+   */
+  @NotNull
+  public ObservableBool onFirstStep() {
+    return myOnFirstStep;
   }
 
   /**
@@ -422,6 +431,7 @@ public final class ModelWizard implements Disposable {
       myPrevSteps.clear();
       myCanGoBack.set(false);
       myCanGoForward.set(false);
+      myOnFirstStep.set(false);
       myOnLastStep.set(false);
 
       // Make a copy of the event list, as a listener may attempt to remove their listener when this
@@ -459,6 +469,7 @@ public final class ModelWizard implements Disposable {
    * This should only be called if you're already on a step.
    */
   private void updateNavigationProperties() {
+    myOnFirstStep.set(myPrevSteps.empty());
     myOnLastStep.set(isOnLastVisibleStep());
     ModelWizardStep<?> step = mySteps.get(myCurrIndex);
     myCanGoBack.set(!myPrevSteps.empty() && step.canGoBack());
