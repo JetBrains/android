@@ -23,14 +23,12 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
 
 class DeprecatedConfigurationReporterIntegrationTest : AndroidGradleTestCase() {
   private var reporter : BuildToolsTooLowReporter? = null
 
-  @Before
   override fun setUp() {
     super.setUp()
     reporter = BuildToolsTooLowReporter()

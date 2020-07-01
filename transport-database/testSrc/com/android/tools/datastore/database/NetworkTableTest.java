@@ -34,8 +34,8 @@ public class NetworkTableTest extends DatabaseTest<NetworkTable> {
   private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setStreamId(4321).build();
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void before() throws Exception {
+    super.before();
     populateDatabase();
   }
 
