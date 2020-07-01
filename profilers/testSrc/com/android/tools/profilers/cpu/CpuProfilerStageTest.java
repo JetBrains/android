@@ -65,8 +65,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -74,23 +72,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public final class CpuProfilerStageTest extends AspectObserver {
   private static final int FAKE_PID = 20;
-
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   private final FakeCpuService myCpuService = new FakeCpuService();
@@ -107,9 +95,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   private boolean myCaptureDetailsCalled;
 
-  public CpuProfilerStageTest(boolean useNewEventPipeline) {
+  public CpuProfilerStageTest() {
     myServices = new FakeIdeProfilerServices();
-    myServices.enableEventsPipeline(useNewEventPipeline);
+    // This test file assumes always using Transport Pipeline.
+    myServices.enableEventsPipeline(true);
   }
 
   @Before
@@ -122,6 +111,9 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);
+    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
+    }
   }
 
   @Test
@@ -575,19 +567,58 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testUsageTooltip() {
-    // TODO b/119261457 handle test tooltip data in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     myStage.enter();
     myStage.setTooltip(new CpuProfilerStageCpuUsageTooltip(myStage));
     assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStageCpuUsageTooltip.class);
     CpuProfilerStageCpuUsageTooltip tooltip = (CpuProfilerStageCpuUsageTooltip)myStage.getTooltip();
 
+    long tooltipTimeMs = 123456;
+    long sampleIntervalMs = 100;
+    int pid = myStage.getStudioProfilers().getSession().getPid();
+
+    Cpu.CpuUsageData usageData1 = Cpu.CpuUsageData.newBuilder()
+      .setEndTimestamp(TimeUnit.MILLISECONDS.toNanos(tooltipTimeMs - sampleIntervalMs))
+      .setAppCpuTimeInMillisec(0)
+      .setSystemCpuTimeInMillisec(0)
+      .setElapsedTimeInMillisec(0)
+      .build();
+    Cpu.CpuUsageData usageData2 = Cpu.CpuUsageData.newBuilder()
+      .setEndTimestamp(TimeUnit.MILLISECONDS.toNanos(tooltipTimeMs))
+      .setAppCpuTimeInMillisec(10)
+      .setSystemCpuTimeInMillisec(50)
+      .setElapsedTimeInMillisec(sampleIntervalMs)
+      .build();
+    Cpu.CpuThreadData threadData = Cpu.CpuThreadData.newBuilder()
+      .setTid(pid)
+      .setName("FakeThread")
+      .setState(Cpu.CpuThreadData.State.RUNNING)
+      .build();
+    long sessionStreamId = myStage.getStudioProfilers().getSession().getStreamId();
+    myTransportService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
+      .setPid(pid)
+      .setKind(Common.Event.Kind.CPU_USAGE)
+      .setGroupId(pid)
+      .setTimestamp(usageData1.getEndTimestamp())
+      .setCpuUsage(usageData1)
+      .build());
+    myTransportService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
+      .setPid(pid)
+      .setKind(Common.Event.Kind.CPU_USAGE)
+      .setGroupId(pid)
+      .setTimestamp(usageData2.getEndTimestamp())
+      .setCpuUsage(usageData2)
+      .build());
+    myTransportService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
+      .setPid(pid)
+      .setKind(Common.Event.Kind.CPU_THREAD)
+      .setGroupId(pid)
+      .setTimestamp(usageData1.getEndTimestamp())
+      .setCpuThread(threadData)
+      .build());
+
+    long tooltipTimeUs = TimeUnit.MILLISECONDS.toMicros(tooltipTimeMs);
+    myStage.getTimeline().getTooltipRange().set(tooltipTimeUs, tooltipTimeUs);
     CpuProfilerStage.CpuStageLegends legends = tooltip.getLegends();
-    double tooltipTime = TimeUnit.SECONDS.toMicros(0);
-    myCpuService.setAppTimeMs(10);
-    myCpuService.setSystemTimeMs(50);
-    myStage.getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
     assertThat(legends.getCpuLegend().getName()).isEqualTo("App");
     assertThat(legends.getOthersLegend().getName()).isEqualTo("Others");
     assertThat(legends.getThreadsLegend().getName()).isEqualTo("Threads");
@@ -598,9 +629,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testThreadsTooltip() {
-    // TODO b/119261457 handle test tooltip data in the new pipeline.
-    Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
-
     Range viewRange = myStage.getTimeline().getViewRange();
     Range tooltipRange = myStage.getTimeline().getTooltipRange();
 
@@ -616,12 +644,16 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(tooltip.getThreadName()).isNull();
     assertThat(tooltip.getThreadState()).isNull();
 
-    // Thread series: 1 - running - 8 - dead - 11
-    LegacyCpuThreadStateDataSeries series =
-      new LegacyCpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), ProfilersTestData.SESSION_DATA, 1, null);
-    tooltip.setThread("myThread", series);
+    // Thread series: [<1, running>, <8, dead>]
+    CpuThreadStateDataSeries series =
+      new CpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getTransportClient(),
+                                   ProfilersTestData.SESSION_DATA.getStreamId(),
+                                   ProfilersTestData.SESSION_DATA.getPid(),
+                                   1,
+                                   null);
+    tooltip.setThread("Thread 1", series);
 
-    assertThat(tooltip.getThreadName()).isEqualTo("myThread");
+    assertThat(tooltip.getThreadName()).isEqualTo("Thread 1");
 
     // Tooltip before all data.
     long tooltipTimeUs = TimeUnit.SECONDS.toMicros(0);
