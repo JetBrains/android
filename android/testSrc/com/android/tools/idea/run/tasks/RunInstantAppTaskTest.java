@@ -30,7 +30,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -60,7 +59,6 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   @Mock private ProcessHandler handler;
 
   @Override
-  @Before
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
