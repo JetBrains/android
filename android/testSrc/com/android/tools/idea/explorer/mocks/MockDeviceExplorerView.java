@@ -252,6 +252,10 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     myViewImpl.stopProgress();
   }
 
+  public List<DeviceExplorerViewListener> getListeners() {
+    return myListeners;
+  }
+
   public FutureValuesTracker<DeviceFileSystem> getDeviceAddedTracker() {
     return myDeviceAddedTracker;
   }
