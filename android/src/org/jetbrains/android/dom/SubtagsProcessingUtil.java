@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.CLASS_VIEW;
+
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import java.lang.reflect.Type;
@@ -36,10 +38,9 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
+import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility functions for enumerating available children tag types in the context of a given XML tag.
@@ -49,23 +50,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SubtagsProcessingUtil {
   private SubtagsProcessingUtil() {
-  }
-
-  /**
-   * Checks if the given {@code psiClass} is a preference group and should have subtags in XML.
-   *  @param psiClass class to check
-   * @param baseClass psiClass to check against, from corresponding PreferenceSource.
-   */
-  private static boolean isPreferenceGroup(@NotNull PsiClass psiClass, @Nullable PsiClass baseClass) {
-    Project project = psiClass.getProject();
-    PsiManager psiManager = PsiManager.getInstance(project);
-
-    if (baseClass != null) {
-      if (psiManager.areElementsEquivalent(baseClass, psiClass) || psiClass.isInheritor(baseClass, true)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -115,12 +99,12 @@ public class SubtagsProcessingUtil {
 
     // for preferences
     AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
-    Map<String, PsiClass> prefClassMap = AttributeProcessingUtil.getClassMap(facet, preferenceSource.getQualifiedBaseClass());
-    PsiClass groupClass = prefClassMap.get(preferenceSource.getQualifiedGroupClass());
-    PsiClass psiClass = prefClassMap.get(tagName);
+    PsiClass psiClass = AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, tagName, preferenceSource.getQualifiedBaseClass());
 
-    if (psiClass != null && isPreferenceGroup(psiClass, groupClass)) {
-      registerClassNameSubtags(tag, prefClassMap, PreferenceElement.class, subtagProcessor, processExistingSubTags);
+    if (InheritanceUtil.isInheritor(psiClass, preferenceSource.getQualifiedGroupClass())) {
+      Map<String, PsiClass> preferences =
+        TagToClassMapper.getInstance(facet.getModule()).getClassMap(preferenceSource.getQualifiedBaseClass());
+      registerClassNameSubtags(tag, preferences, PreferenceElement.class, subtagProcessor, processExistingSubTags);
     }
   }
 
@@ -136,14 +120,12 @@ public class SubtagsProcessingUtil {
       final String tagName = entry.getKey();
       final PsiClass aClass = entry.getValue();
 
-      if (!AndroidUtils.isAbstract(aClass)) {
-        allAllowedTags.add(tagName);
-        final String qName = aClass.getQualifiedName();
-        final String prevTagName = class2Name.get(qName);
+      allAllowedTags.add(tagName);
+      final String qName = aClass.getQualifiedName();
+      final String prevTagName = class2Name.get(qName);
 
-        if (prevTagName == null || tagName.indexOf('.') == -1) {
-          class2Name.put(qName, tagName);
-        }
+      if (prevTagName == null || tagName.indexOf('.') == -1) {
+        class2Name.put(qName, tagName);
       }
     }
     registerSubtags(tag, allAllowedTags, class2Name.values(), type, subtagProcessor, processExistingSubTags);
@@ -173,7 +155,8 @@ public class SubtagsProcessingUtil {
                                     boolean processExistingSubTags,
                                     @NotNull SubtagProcessor subtagProcessor) {
     if (element instanceof LayoutElement) {
-      registerClassNameSubtags(element.getXmlTag(), AttributeProcessingUtil.getViewClassMap(facet), LayoutViewElement.class,
+      registerClassNameSubtags(element.getXmlTag(), TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_VIEW),
+                               LayoutViewElement.class,
                                subtagProcessor, processExistingSubTags);
     }
     else if (element instanceof XmlResourceElement) {
