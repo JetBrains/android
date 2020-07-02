@@ -25,6 +25,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -156,6 +157,11 @@ class AndroidTestSuiteViewTest {
     view.onAndroidTestSuiteDetailsViewCloseButtonClicked()
 
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
+
+    assertThat(view.myLogger.getImpressionsForTesting()).containsExactly(
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW,
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW)
   }
 
   @Test
