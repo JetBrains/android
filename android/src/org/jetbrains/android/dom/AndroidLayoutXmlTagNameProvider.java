@@ -17,6 +17,7 @@ package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.isVisibleInXml;
 
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.InsertHandler;
@@ -41,7 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +95,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       LookupElementBuilder lookupElement =
         declaration == null ? LookupElementBuilder.create(qualifiedName) : LookupElementBuilder.create(declaration, qualifiedName);
 
-      if (declaration instanceof PsiClass && !LayoutViewClassUtils.isViewClassVisibleAsTag((PsiClass)declaration)) {
+      if (declaration instanceof PsiClass && !isVisibleInXml((PsiClass)declaration)) {
         continue;
       }
 

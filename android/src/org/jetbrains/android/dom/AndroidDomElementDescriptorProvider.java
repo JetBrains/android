@@ -43,8 +43,8 @@ import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
+import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     if (facet == null) return null;
     final String name = domElement.getXmlTag().getName();
     final PsiClass aClass = baseClassName != null
-                            ? LayoutViewClassUtils.findClassByTagName(facet, name, baseClassName)
+                            ? AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, name, baseClassName)
                             : null;
     final Icon icon = getIconForTag(name, domElement);
 
@@ -97,7 +97,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
     final DomManager domManager = DomManager.getDomManager(project);
     if (domManager.getFileElement((XmlFile)file, AndroidDomElement.class) == null) return null;
-    
+
     final DomElement domElement = domManager.getDomElement(tag);
     // DataBindingElements are handled by a different provider.
     if (!(domElement instanceof AndroidDomElement) || domElement instanceof DataBindingElement) {
