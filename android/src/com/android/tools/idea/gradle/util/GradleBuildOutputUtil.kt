@@ -181,15 +181,12 @@ private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArti
 
 fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String) : GenericBuiltArtifacts? {
   val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk) ?: return null
-  return loadFromFile(File(listingFile), LogWrapper(LOG))
-}
-
-@VisibleForTesting
-fun getApplicationIdFromListingFile(listingFile: String): String? {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
-    return builtArtifacts.applicationId
+    return builtArtifacts
   }
+
+  LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
   return null
 }
 
