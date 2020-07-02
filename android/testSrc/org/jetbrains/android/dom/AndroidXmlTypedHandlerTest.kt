@@ -20,13 +20,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidXmlTypedHandlerTest : AndroidTestCase() {
   lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
-  override fun invokeTestRunnable(runnable: Runnable) = tester.runWithAutoPopupEnabled(runnable)
+  override fun invokeTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun providesCustomManifest(): Boolean = true
 
