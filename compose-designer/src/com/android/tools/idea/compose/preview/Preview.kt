@@ -45,8 +45,8 @@ import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.modelAffinity
-import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.compose.preview.util.requestComposeRender
+import com.android.tools.idea.compose.preview.util.sortBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -489,9 +489,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
       launch {
         // Update the current build status in the background
-        ReadAction.run<Throwable> {
-          hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
-        }
+        hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
       }
       refresh()
     })
@@ -779,7 +777,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
             .toList()
-            .sortedWith(previewElementComparatorBySourcePosition)
+            .sortBySourcePosition()
         }
 
         if (filePreviewElements == previewElements) {

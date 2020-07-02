@@ -97,11 +97,9 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
       psiFile.getModuleSystem()
     }
   }
-  ReadAction.compute<Array<PsiClass>, Throwable> { psiFile.classes }
-      .mapNotNull {
-        androidModuleSystem?.findClassFile("${it.qualifiedName}")
-      }
-      .firstOrNull() != null
+  ReadAction.compute<List<String>, Throwable> { psiFile.classes.mapNotNull { it.qualifiedName } }
+    .mapNotNull { androidModuleSystem?.findClassFile(it) }
+    .firstOrNull() != null
 }
 else false
 
@@ -118,5 +116,5 @@ fun hasBeenBuiltSuccessfully(psiFilePointer: SmartPsiElementPointer<PsiFile>): B
   }
 
   // We do not have information from the last build, try to find if the class file exists
-  return hasExistingClassFile(psiFilePointer.element)
+  return hasExistingClassFile(ReadAction.compute<PsiFile, Throwable> { psiFilePointer.element })
 }

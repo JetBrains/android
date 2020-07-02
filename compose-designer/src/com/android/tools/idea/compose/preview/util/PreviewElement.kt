@@ -21,8 +21,6 @@ import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.concurrency.Slow
-import com.android.resources.NightMode
-import com.android.resources.UiMode
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.PreviewElementProvider
@@ -569,16 +567,15 @@ private val PreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
 
 /**
- * Sorts the [PreviewElement]s by source code line number, smaller first. This comparator needs
- * to be used under a [ReadAction].
- */
-val previewElementComparatorBySourcePosition = Comparator<PreviewElement> { o1, o2 ->
-  o1.sourceOffset - o2.sourceOffset
-}
-
-/**
  * Sorts the [PreviewElement]s in alphabetical order of their display name.
  */
-val previewElementComparatorByDisplayName = Comparator<PreviewElement> { o1, o2 ->
+fun Collection<PreviewElement>.sortByDisplayName(): List<PreviewElement> = sortedWith(Comparator { o1, o2 ->
   o1.displaySettings.name.compareTo(o2.displaySettings.name)
+})
+
+/**
+ * Sorts the [PreviewElement]s by source code line number, smaller first.
+ */
+fun Collection<PreviewElement>.sortBySourcePosition(): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
+  sortedWith(Comparator { o1, o2 -> o1.sourceOffset - o2.sourceOffset })
 }
