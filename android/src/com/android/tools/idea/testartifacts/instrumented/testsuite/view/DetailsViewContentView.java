@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.largeFilesEditor.GuiUtils;
@@ -70,7 +72,8 @@ public class DetailsViewContentView {
   @VisibleForTesting final TabInfo myRetentionTab;
 
   public DetailsViewContentView(@NotNull Disposable parentDisposable,
-                                @NotNull Project project) {
+                                @NotNull Project project,
+                                @NotNull AndroidTestSuiteLogger logger) {
     myTestResultLabel.setBorder(JBUI.Borders.empty(10));
 
     JBTabs tabs = JBTabsFactory.createTabs(project, parentDisposable);
@@ -78,6 +81,8 @@ public class DetailsViewContentView {
     // Create logcat tab.
     myLogsView = new ConsoleViewImpl(project, /*viewer=*/true);
     Disposer.register(parentDisposable, myLogsView);
+    logger.addImpressionWhenDisplayed(
+      myLogsView.getComponent(), ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW);
     TabInfo logsTab = new TabInfo(myLogsView.getComponent());
     logsTab.setText("Logs");
     logsTab.setTooltipText("Show logcat output");
@@ -94,6 +99,8 @@ public class DetailsViewContentView {
 
     // Device info tab.
     myDeviceInfoTableView = new AndroidDeviceInfoTableView();
+    logger.addImpressionWhenDisplayed(
+      myDeviceInfoTableView.getComponent(), ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW);
     TabInfo deviceInfoTab = new TabInfo(myDeviceInfoTableView.getComponent());
     deviceInfoTab.setText("Device Info");
     deviceInfoTab.setTooltipText("Show device information");

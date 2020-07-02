@@ -25,11 +25,13 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedDuration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getSummaryResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.plus
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -88,9 +90,10 @@ import kotlin.math.max
  */
 class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
                                   javaPsiFacade: JavaPsiFacade,
-                                  testArtifactSearchScopes: TestArtifactSearchScopes?) {
+                                  testArtifactSearchScopes: TestArtifactSearchScopes?,
+                                  logger: AndroidTestSuiteLogger) {
   private val myModel = AndroidTestResultsTableModel()
-  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes)
+  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
   private val myTableViewContainer = JBScrollPane(myTableView)
 
   /**
@@ -180,6 +183,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   @UiThread
   fun clearSelection() {
     myTableView.clearSelection()
+    myTableView.resetLastReportedValues()
   }
 
   /**
@@ -261,10 +265,13 @@ private val SKIPPED_TEST_TEXT_COLOR = JBColor(Gray._130, Gray._200)
 private class AndroidTestResultsTableViewComponent(private val model: AndroidTestResultsTableModel,
                                                    private val listener: AndroidTestResultsTableListener,
                                                    private val javaPsiFacade: JavaPsiFacade,
-                                                   private val testArtifactSearchScopes: TestArtifactSearchScopes?)
+                                                   private val testArtifactSearchScopes: TestArtifactSearchScopes?,
+                                                   private val logger: AndroidTestSuiteLogger)
   : TreeTableView(model), DataProvider {
 
   private var myDeviceToShowTestDuration: AndroidDevice? = null
+  private var myLastReportedResults: AndroidTestResults? = null
+  private var myLastReportedDevice: AndroidDevice? = null
 
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
@@ -328,14 +335,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.ANDROID_TEST_SUITE_TABLE)
     addMouseListener(object: MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
+        logger.reportInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
         when (e?.clickCount) {
-          1 -> {
-            selectedObject?.let {
-              listener.onAndroidTestResultsRowSelected(
-                it,
-                (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
-            }
-          }
           2 -> {
             EditSourceAction().actionPerformed(
               AnActionEvent.createFromInputEvent(
@@ -352,11 +353,32 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
+
+    // Ignore intermediate values.
+    if (event.valueIsAdjusting) {
+      return
+    }
+
     selectedObject?.let {
-      listener.onAndroidTestResultsRowSelected(
+      notifyAndroidTestResultsRowSelectedIfValueChanged(
         it,
         (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
     }
+  }
+
+  private fun notifyAndroidTestResultsRowSelectedIfValueChanged(results: AndroidTestResults,
+                                                                device: AndroidDevice?) {
+    if (myLastReportedResults == results && myLastReportedDevice == device) {
+      return
+    }
+    myLastReportedResults = results
+    myLastReportedDevice = device
+    listener.onAndroidTestResultsRowSelected(results, device)
+  }
+
+  fun resetLastReportedValues() {
+    myLastReportedResults = null
+    myLastReportedDevice = null
   }
 
   override fun tableChanged(e: TableModelEvent?) {
