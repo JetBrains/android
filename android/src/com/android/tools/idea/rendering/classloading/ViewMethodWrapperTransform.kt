@@ -99,9 +99,9 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
     mw.visitVarInsn(Opcodes.ALOAD, throwableIndex)
     mw.visitInsn(Opcodes.ACONST_NULL)
     mw.visitInsn(Opcodes.ACONST_NULL)
-    mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/android/ide/common/rendering/api/ILayoutLog", "error",
+    mw.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/android/ide/common/rendering/api/ILayoutLog", "error",
                        ERROR_METHOD_DESCRIPTION,
-                       false)
+                       true)
     if ("onMeasure" == name) { // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception when no size is set
       mw.visitVarInsn(Opcodes.ALOAD, 0) // this
       mw.visitInsn(Opcodes.ICONST_0) // measuredWidth
