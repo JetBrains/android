@@ -19,8 +19,8 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
-import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
-import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
+import com.android.tools.idea.compose.preview.util.sortByDisplayName
+import com.android.tools.idea.compose.preview.util.sortBySourcePosition
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
@@ -299,7 +299,8 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.compose.Composableimport androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+        import androidx.ui.tooling.preview.Preview
 
         @Composable
         @Preview
@@ -428,7 +429,7 @@ class AnnotationFilePreviewElementFinderTest {
           // Randomize to make sure the ordering works
           shuffle()
         }
-        .sortedWith(previewElementComparatorBySourcePosition)
+        .sortBySourcePosition()
         .map { it.composableMethodFqn }
         .toTypedArray()
         .let {
@@ -441,7 +442,7 @@ class AnnotationFilePreviewElementFinderTest {
         // Randomize to make sure the ordering works
         shuffle()
       }
-      .sortedWith(previewElementComparatorByDisplayName)
+      .sortByDisplayName()
       .map { it.composableMethodFqn }
       .toTypedArray()
       .let {
