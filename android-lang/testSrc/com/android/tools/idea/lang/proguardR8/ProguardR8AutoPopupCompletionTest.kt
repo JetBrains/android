@@ -20,12 +20,13 @@ import com.google.common.truth.Truth
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ThrowableRunnable
 
 class ProguardR8AutoPopupCompletionTest : ProguardR8TestCase() {
   private lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
-  override fun invokeTestRunnable(runnable: Runnable) = tester.runWithAutoPopupEnabled(runnable)
+  override fun invokeTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun setUp() {
     TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
