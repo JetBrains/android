@@ -27,7 +27,7 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
   lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
-  override fun invokeTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
+  override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun providesCustomManifest(): Boolean = true
 

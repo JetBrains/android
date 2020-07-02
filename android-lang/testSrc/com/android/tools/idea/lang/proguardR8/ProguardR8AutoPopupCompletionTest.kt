@@ -26,7 +26,7 @@ class ProguardR8AutoPopupCompletionTest : ProguardR8TestCase() {
   private lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
-  override fun invokeTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
+  override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun setUp() {
     TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
