@@ -248,7 +248,9 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
 
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) return UsageInfo.EMPTY_ARRAY
-    return findComponentUsages()
+    val usages = findComponentUsages()
+    foundUsages = usages.isNotEmpty()
+    return usages
   }
 
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
@@ -288,7 +290,6 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -373,7 +374,6 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -439,7 +439,6 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -531,7 +530,6 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -705,8 +703,6 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
           maybeAddUsageForConfiguration(configuration, compileReplacement, psiElement)
         }
     }
-
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
