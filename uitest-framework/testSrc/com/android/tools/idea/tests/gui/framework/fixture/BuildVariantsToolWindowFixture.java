@@ -70,8 +70,10 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     if (!variant.equals(selectedVariant)) {
       // Attempt to select variant if it is not already selected.
       JTableCellFixture variantCell = table.cell(variantCellCoordinates);
-      JTableCellFixture cellFixture = variantCell.startEditing();
-      new JComboBoxFixture(robot(), ((JComboBox<?>)(cellFixture.editor()))).selectItem(variant);
+      variantCell.startEditing();
+      waitForIdle();
+      new JListFixture(robot(), robot().finder().findByType(robot().findActivePopupMenu(), JList.class)).selectItem(variant);
+      waitForIdle();
     }
 
     return this;
