@@ -113,8 +113,6 @@ class BuildCppKotlinTest {
     }
     // TODO end hack for b/110174414
 
-    ideFrame
-      .waitAndInvokeMenuPath(30,"Build", "Rebuild Project")
-      .waitForBuildToFinish(BuildMode.REBUILD)
+    ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project")
   }
 }

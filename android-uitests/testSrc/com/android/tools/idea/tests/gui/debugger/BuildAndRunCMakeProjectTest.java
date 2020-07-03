@@ -93,7 +93,7 @@ public class BuildAndRunCMakeProjectTest {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
+    ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project");
 
     ideFrame.runApp(RUN_CONFIG_NAME, avdRule.getMyAvd().getName());
 

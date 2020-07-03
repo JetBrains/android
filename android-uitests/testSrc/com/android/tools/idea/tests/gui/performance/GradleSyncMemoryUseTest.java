@@ -160,9 +160,6 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void rebuildProject() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    guiTest.runWithBleak(() -> {
-      ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
-        .waitForBuildToFinish(REBUILD);
-    });
+    guiTest.runWithBleak(() -> ideFrameFixture.invokeAndWaitForBuildAction("Build", "Rebuild Project"));
   }
 }

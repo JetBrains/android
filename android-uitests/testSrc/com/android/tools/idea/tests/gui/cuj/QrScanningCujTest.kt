@@ -57,9 +57,9 @@ class QrScanningCujTest {
   @Throws(IOException::class)
   fun qrScanningCuj() {
     // Import VotingApp project
-    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("VotingApp")
-      .waitAndInvokeMenuPath("Build", "Make Project")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    val ide = guiTest
+      .importProjectAndWaitForProjectSyncToFinish("VotingApp")
+      .invokeAndWaitForBuildAction("Build", "Make Project")
 
     // Add constraint layout dependency from the PSD
     ide.run {
@@ -153,8 +153,7 @@ class QrScanningCujTest {
       .doubleClick()
 
     // Check that the project compiles
-    ide.waitAndInvokeMenuPath("Build", "Rebuild Project")
-      .waitForBuildToFinish(BuildMode.REBUILD)
+    ide.invokeAndWaitForBuildAction("Build", "Rebuild Project")
 
     // Add dependency by typing it in build.gradle file
     ide.editor

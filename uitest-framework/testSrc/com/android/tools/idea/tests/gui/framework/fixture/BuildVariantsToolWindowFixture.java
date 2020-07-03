@@ -20,12 +20,14 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
 import com.intellij.ui.content.Content;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 
@@ -70,8 +72,6 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
       JTableCellFixture variantCell = table.cell(variantCellCoordinates);
       JTableCellFixture cellFixture = variantCell.startEditing();
       new JComboBoxFixture(robot(), ((JComboBox<?>)(cellFixture.editor()))).selectItem(variant);
-
-      myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
     }
 
     return this;
