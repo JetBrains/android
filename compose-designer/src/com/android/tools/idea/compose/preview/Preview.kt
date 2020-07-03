@@ -575,10 +575,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         LOG.debug("Needs successful build")
         showModalErrorMessage(message("panel.needs.build"))
       }
+      else if (previewElements.isEmpty()) {
+        LOG.debug("No preview elements")
+        showModalErrorMessage(message("panel.no.previews.defined"))
+      }
       else {
-        LOG.debug("Show content")
-        workbench.hideLoading()
-        workbench.showContent()
+          LOG.debug("Show content")
+          workbench.hideLoading()
+          workbench.showContent()
       }
 
       updateNotifications()
@@ -713,9 +717,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         .await()
       hasRenderedAtLeastOnce.set(true)
     }
-    else {
-      showModalErrorMessage(message("panel.no.previews.defined"))
-    }
 
     if (LOG.isDebugEnabled) {
       LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
@@ -758,7 +759,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   fun refresh(): Job {
-    var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
+    val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       LOG.debug("Refresh triggered", refreshTrigger)
       if (DumbService.isDumb(project)) {
@@ -768,6 +769,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       isContentBeingRendered.set(true)
       updateNotifications()
+
       try {
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
