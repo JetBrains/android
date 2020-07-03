@@ -16,17 +16,19 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel
-import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.rendering.HtmlBuilderHelper
 import com.android.tools.lint.detector.api.TextFormat
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
-import java.util.*
+import java.util.Objects
 import java.util.stream.Stream
 import kotlin.properties.Delegates
 
@@ -79,27 +81,31 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       return builder.html
     }
 
-    override fun getSummary(): String {
-      return myIssue.issue.getBriefDescription(TextFormat.RAW)
-    }
+    override val summary: String
+      get() = myIssue.issue.getBriefDescription(TextFormat.RAW)
 
-    override fun getDescription() = myDescription
+    override val description: String
+      get() = myDescription
 
-    override fun getSeverity() = myIssue.level.severity
+    override val severity: HighlightSeverity
+      get() = myIssue.level.severity
 
-    override fun getSource() = myIssue.component
+    override val source: NlComponent?
+      get() = myIssue.component
 
-    override fun getCategory() = myIssue.issue.category.fullName
+    override val category: String
+      get() = myIssue.issue.category.fullName
 
-    override fun getFixes(): Stream<Fix> {
-      val inspection = myIssue.inspection
-      val quickFixes = inspection.getQuickFixes(
+    override val fixes: Stream<Fix>
+      get() {
+        val inspection = myIssue.inspection
+        val quickFixes = inspection.getQuickFixes(
           myIssue.startElement, myIssue.endElement,
           myIssue.message, myIssue.quickfixData
-      )
-      val intentions = inspection.getIntentions(myIssue.startElement, myIssue.endElement)
-      return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map {createQuickFixPair(it)}).stream()
-    }
+        )
+        val intentions = inspection.getIntentions(myIssue.startElement, myIssue.endElement)
+        return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
+      }
 
     private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix(fix.name, createQuickFixRunnable(fix))
 
