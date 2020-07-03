@@ -693,12 +693,9 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
           val psiElement = dependency.psiElement ?: model.dependencies().psiElement ?: modelPsiElement
           maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
         }
-      model.buildscript().dependencies().all()
-        .forEach { dependency ->
-          val psiElement = dependency.psiElement ?: model.buildscript().dependencies().psiElement ?: model.buildscript().psiElement
-                           ?: modelPsiElement
-          maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
-        }
+      // Although there might be a buildscript with dependencies, those dependencies cannot be added to a compile/runtime configuration
+      // out of the box -- and if somehow a user manages to configure things to have compile/runtime configurations there, there's no
+      // guarantee that they mean the same as the deprecated gradle ones.
       model.configurations().all()
         .forEach { configuration ->
           // this PsiElement is used for displaying in the refactoring preview window, rather than for performing the refactoring; it is

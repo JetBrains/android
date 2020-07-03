@@ -143,4 +143,12 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariantExpected"))
   }
+
+  @Test
+  fun testBuildscriptDependenciesLeftAlone() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAlone"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAloneExpected"))
+  }
 }
