@@ -49,6 +49,7 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -76,6 +77,7 @@ import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -186,8 +188,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
       return null;
     }
 
-    Set<AndroidFacet> facets = new HashSet<AndroidFacet>();
-    HashSet<Module> seen = new HashSet<Module>();
+    Set<AndroidFacet> facets = new HashSet<>();
+    HashSet<Module> seen = new HashSet<>();
     seen.add(module);
     addAndroidModules(facets, seen, graph, module);
 
@@ -343,20 +345,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
-    return findAndroidFacetInProject(project) != null;
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
   }
 
   @Nullable
   private static AndroidFacet findAndroidFacetInProject(@NonNull com.intellij.openapi.project.Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        return facet;
-      }
-    }
-
-    return null;
+    @NotNull List<AndroidFacet> androidFacetsInRandomOrder = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+    return androidFacetsInRandomOrder.isEmpty() ? null : androidFacetsInRandomOrder.get(0);
   }
 
   /**
