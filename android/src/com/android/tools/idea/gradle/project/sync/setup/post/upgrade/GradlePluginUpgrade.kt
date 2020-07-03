@@ -53,7 +53,7 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.util.SystemProperties
 import java.util.concurrent.TimeUnit
 
-private val LOG = Logger.getInstance("AndroidGradlePluginUpdates")
+private val LOG = Logger.getInstance(if (AGP_UPGRADE_ASSISTANT.get()) "Upgrade Assistant" else "AndroidGradlePluginUpdates")
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 // **************************************************************************

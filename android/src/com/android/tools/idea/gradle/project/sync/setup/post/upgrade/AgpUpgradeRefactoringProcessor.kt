@@ -36,14 +36,17 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8Defaul
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
@@ -56,6 +59,8 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
 import java.io.File
+
+private val LOG = Logger.getInstance("Upgrade Assistant")
 
 abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   constructor(project: Project) : super(project) {
@@ -74,15 +79,18 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 
   var foundUsages: Boolean = false
 
-  override fun performRefactoring(usages: Array<out UsageInfo>?) {
-    usages?.forEach {
+  override fun performRefactoring(usages: Array<out UsageInfo>) {
+    val size = usages.size
+    LOG.info("performing refactoring \"${this.commandName}\" with $size ${pluralize("usage", size)}")
+    usages.forEach {
       if (it is GradleBuildModelUsageInfo) {
-        it.performBuildModelRefactoring(this)
+        it.performRefactoringFor(this)
       }
     }
   }
 
   override fun performPsiSpoilingRefactoring() {
+    LOG.info("applying changes from \"${this.commandName}\" refactoring to build model")
     buildModel.applyChanges()
 
     // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
@@ -91,8 +99,8 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
     // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
     // at which point the manipulation could be done in performRefactoring().
     psiSpoilingUsageInfos.forEach {
-      if (it is GradleBuildModelUsageInfo)
-        it.performPsiSpoilingBuildModelRefactoring(this)
+      if (it is SpoilingGradleBuildModelUsageInfo)
+        it.performPsiSpoilingRefactoringFor(this)
     }
 
     super.performPsiSpoilingRefactoring()
@@ -102,14 +110,49 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 /**
  * Instances of [GradleBuildModelUsageInfo] should perform their refactor through the buildModel, and must not
  * invalidate either the BuildModel or the underlying Psi in their [performBuildModelRefactoring] method.  Any spoiling
- * should be done in the [performPsiSpoilingBuildModelRefactoring] method, which will run after the changes in the
- * buildModel have been applied.
+ * should be done using [SpoilingGradleBuildModelUsageInfo] instances.
  */
-abstract class GradleBuildModelUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
-  open fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+abstract class GradleBuildModelUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion) : UsageInfo(element) {
+  fun performRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
+    logBuildModelRefactoring()
+    performBuildModelRefactoring(processor)
+  }
+
+  abstract fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor)
+
+  private fun logBuildModelRefactoring() {
+    val path = when (val basePath = project.basePath) {
+      null -> this.virtualFile?.name
+      else -> this.virtualFile?.toIoFile()?.toRelativeString(File(basePath)) ?: this.virtualFile?.name
+    }
+    LOG.info("performing \"${this.tooltipText}\" build model refactoring in '${path}'")
+  }
+}
+
+/**
+ * Instances of [SpoilingGradleBuildModelUsageInfo] should perform their refactor in the [performPsiSpoilingBuildModelRefactoring] method
+ * in any way they desire, operating after changes to the buildModel have been applied.
+ */
+abstract class SpoilingGradleBuildModelUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion
+) : GradleBuildModelUsageInfo(element, current, new) {
+  final override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    noteForPsiSpoilingBuildModelRefactoring(processor)
+  }
+
+  fun performPsiSpoilingRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
+    LOG.info("performing \"${this.tooltipText}\" Psi-spoiling refactoring")
+    performPsiSpoilingBuildModelRefactoring(processor)
+  }
+
+  abstract fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor)
+
+  private fun noteForPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    LOG.info("adding usage \"${this.tooltipText}\" to psiSpoilingUsageInfos")
     processor.psiSpoilingUsageInfos.add(this)
   }
-  open fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) = Unit
 }
 
 class AgpUpgradeRefactoringProcessor(
@@ -225,11 +268,17 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val new: GradleVersion
   private var _isEnabled: Boolean? = null
   var isEnabled: Boolean
-    set(value) { _isEnabled = value }
+    set(value) {
+      LOG.info("setting isEnabled for \"${this.commandName}\" refactoring to $value")
+      _isEnabled = value
+    }
     get() {
-      if (_isEnabled == null) _isEnabled = when (necessity()) {
-        IRRELEVANT_FUTURE, IRRELEVANT_PAST -> false
-        MANDATORY_CODEPENDENT, MANDATORY_INDEPENDENT, OPTIONAL_CODEPENDENT, OPTIONAL_INDEPENDENT -> true
+      if (_isEnabled == null) {
+        LOG.info("initializing isEnabled for \"${this.commandName}\" refactoring from ${necessity()}")
+        _isEnabled = when (necessity()) {
+          IRRELEVANT_FUTURE, IRRELEVANT_PAST -> false
+          MANDATORY_CODEPENDENT, MANDATORY_INDEPENDENT, OPTIONAL_CODEPENDENT, OPTIONAL_INDEPENDENT -> true
+        }
       }
       return _isEnabled!!
     }
@@ -249,6 +298,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) return UsageInfo.EMPTY_ARRAY
     val usages = findComponentUsages()
+    val size = usages.size
+    LOG.info("found $size ${pluralize("usage", size)} for \"${this.commandName}\" refactoring")
     foundUsages = usages.isNotEmpty()
     return usages
   }
@@ -486,6 +537,10 @@ class GradleVersionUsageInfo(
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   var noLanguageLevelAction = INSERT_OLD_DEFAULT
+    set(value) {
+      LOG.info("setting noLanguageLevelAction to ${value.name}")
+      field = value
+    }
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
