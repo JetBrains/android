@@ -127,15 +127,16 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           // Extend top to account for the top toolbar
           it.top += sceneViewTopPanel.preferredSize.height
         }
-        return if (contentSize.width < minimumSize.width &&
+        return if (contentSize.width < minimumSize.width ||
                    contentSize.height < minimumSize.height) {
-          // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space
-          val hSpace = (minimumSize.width - contentSize.width) / 2
-          val vSpace = (minimumSize.height - contentSize.height) / 2
+          // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space.
+          // Horizontally, we align the content to the left.
+          val rightSpace = (minimumSize.width - contentSize.width).coerceAtLeast(0)
+          val vSpace = (minimumSize.height - contentSize.height).coerceAtLeast(0) / 2
           Insets(sceneViewMargin.top + vSpace,
-                 sceneViewMargin.left + hSpace,
+                 sceneViewMargin.left,
                  sceneViewMargin.bottom + vSpace,
-                 sceneViewMargin.right + hSpace)
+                 sceneViewMargin.right  + rightSpace)
         }
         else {
           sceneViewMargin
