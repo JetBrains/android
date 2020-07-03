@@ -68,16 +68,16 @@ class DeviceViewContentPanelTest {
     val settings = DeviceViewSettings(scalePercent = 30)
     settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    assertEquals(Dimension(188, 197), panel.preferredSize)
+    assertEquals(Dimension(376, 394), panel.preferredSize)
 
     settings.scalePercent = 100
-    assertEquals(Dimension(510, 542), panel.preferredSize)
+    assertEquals(Dimension(1020, 1084), panel.preferredSize)
 
     model.update(
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
       }, ROOT, listOf(ROOT))
-    assertEquals(Dimension(366, 410), panel.preferredSize)
+    assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
   @Test
