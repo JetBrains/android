@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
-import com.android.tools.idea.tests.gui.framework.fixture.JTextComponentWithHtmlFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.IssueView;
+import com.android.tools.idea.tests.gui.framework.fixture.JTextComponentWithHtmlFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.intellij.lang.annotation.HighlightSeverity;
+import javax.annotation.Nonnull;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.Nonnull;
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
 
 /**
  * Fixture for {@link IssuePanel}
