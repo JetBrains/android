@@ -399,11 +399,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode) {
-    return waitForBuildToFinish(buildMode, null);
-  }
-
-  @NotNull
   private IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode, @Nullable Wait wait) {
     Project project = getProject();
     if (wait == null) {

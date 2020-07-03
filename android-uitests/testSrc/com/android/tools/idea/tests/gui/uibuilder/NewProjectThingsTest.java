@@ -47,8 +47,7 @@ public class NewProjectThingsTest {
       .clickNext()
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
-      .invokeMenuPath("Build", "Rebuild Project")
-      .waitForBuildToFinish(BuildMode.REBUILD);
+      .invokeAndWaitForBuildAction("Build", "Rebuild Project");
 
     assertThat(guiTest.getProjectFileText("app/build.gradle")).contains("lintOptions");
   }

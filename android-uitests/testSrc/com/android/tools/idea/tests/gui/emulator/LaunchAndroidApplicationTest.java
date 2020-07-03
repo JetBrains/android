@@ -167,8 +167,7 @@ public class LaunchAndroidApplicationTest {
     File buildCacheDir = new File(androidHomeDir, "build-cache");
     FileUtil.delete(buildCacheDir);
 
-    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
-      .waitForBuildToFinish(REBUILD);
+    ideFrameFixture.invokeAndWaitForBuildAction("Build", "Rebuild Project");
     assertThat(buildCacheDir.exists()).isTrue();
 
     FileUtil.delete(buildCacheDir);
@@ -176,16 +175,14 @@ public class LaunchAndroidApplicationTest {
       .open("gradle.properties")
       .moveBetween("true", "")
       .enterText("\nandroid.enableBuildCache=false");
-    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
-      .waitForBuildToFinish(REBUILD);
+    ideFrameFixture.invokeAndWaitForBuildAction("Build", "Rebuild Project");
     assertThat(buildCacheDir.exists()).isFalse();
 
     ideFrameFixture.getEditor()
       .open("gradle.properties")
       .select("(false)")
       .enterText("true");
-    ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
-      .waitForBuildToFinish(REBUILD);
+    ideFrameFixture.invokeAndWaitForBuildAction("Build", "Rebuild Project");
     assertThat(buildCacheDir.exists()).isTrue();
   }
 }
