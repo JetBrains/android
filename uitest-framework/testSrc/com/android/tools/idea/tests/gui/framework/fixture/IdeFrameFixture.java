@@ -404,7 +404,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode, @Nullable Wait wait) {
+  private IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode, @Nullable Wait wait) {
     Project project = getProject();
     if (wait == null) {
       // http://b/72834057 - If we keep tweaking this value we should consider a different way of waiting for this.

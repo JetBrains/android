@@ -68,8 +68,8 @@ public class ApkViewerTest {
 
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
-    ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))
+    ProjectViewFixture projectView = ideFrame
+      .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
       .getProjectView();
 
     PaneFixture paneFixture = projectView.selectProjectPane();
@@ -91,7 +91,6 @@ public class ApkViewerTest {
       .enterText("\nSystem.out.println(\"Hello.\");")
       .close();
 
-    ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180));
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
   }
 }
