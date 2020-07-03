@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
 import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -37,7 +36,6 @@ import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -45,7 +43,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -246,6 +243,8 @@ class MyViewportLayoutManagerTest {
 
   private var layerSpacing = INITIAL_LAYER_SPACING
 
+  private var rootPosition = Point(400, 500)
+
   @get:Rule
   val edtRule = EdtRule()
 
@@ -256,7 +255,7 @@ class MyViewportLayoutManagerTest {
     scrollPane.size = Dimension(502, 202)
     scrollPane.preferredSize = Dimension(502, 202)
     contentPanel.preferredSize = Dimension(1000, 1000)
-    layoutManager = MyViewportLayoutManager(scrollPane.viewport) { layerSpacing }
+    layoutManager = MyViewportLayoutManager(scrollPane.viewport, { layerSpacing }, { rootPosition })
     layoutManager.layoutContainer(scrollPane.viewport)
     scrollPane.layout.layoutContainer(scrollPane)
   }
@@ -314,7 +313,28 @@ class MyViewportLayoutManagerTest {
 
     // view proportionally offset from center
     assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(166, 358))
+  }
 
+  @Test
+  fun testChangeSize() {
+    // Start view as centered
+    scrollPane.viewport.viewPosition = Point(250, 400)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view grows
+    contentPanel.preferredSize = Dimension(1200, 1200)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view should still be in the same place
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(250, 400))
+
+    // view grows, root location moves
+    contentPanel.preferredSize = Dimension(1300, 1300)
+    rootPosition = Point(500, 600)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // scroll changes to keep view in the same place
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
   }
 }
 
