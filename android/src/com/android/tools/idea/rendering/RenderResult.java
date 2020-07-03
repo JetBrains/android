@@ -43,7 +43,7 @@ public class RenderResult {
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
-  @NotNull private final Map<Object, String> myDefaultStyles;
+  @NotNull private final Map<Object, ResourceReference> myDefaultStyles;
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   @Nullable private final Object myValidatorResult;
@@ -58,7 +58,7 @@ public class RenderResult {
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
-                         @NotNull Map<Object, String> defaultStyles,
+                         @NotNull Map<Object, ResourceReference> defaultStyles,
                          @Nullable Object validatorResult) {
     myRenderTask = renderTask;
     myModule = module;
@@ -95,7 +95,7 @@ public class RenderResult {
     List<ViewInfo> rootViews = session.getRootViews();
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
-    Map<Object, String> defaultStyles = session.getDefaultStyles();
+    Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
       file,
       renderTask.getContext().getModule(),
@@ -261,7 +261,7 @@ public class RenderResult {
    * The map is index by view cookie.
    */
   @NotNull
-  public Map<Object, String> getDefaultStyles() {
+  public Map<Object, ResourceReference> getDefaultStyles() {
     return myDefaultStyles;
   }
 

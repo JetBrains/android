@@ -293,7 +293,7 @@ open class NavSceneManager(
 
   override fun getDefaultProperties() = mapOf<Any, Map<ResourceReference, ResourceValue>>()
 
-  override fun getDefaultStyles() = mapOf<Any, String>()
+  override fun getDefaultStyles() = mapOf<Any, ResourceReference>()
 
   private inner class ModelChangeListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) {

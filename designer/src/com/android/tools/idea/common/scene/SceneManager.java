@@ -271,7 +271,7 @@ abstract public class SceneManager implements Disposable {
 
   public abstract Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties();
 
-  public abstract Map<Object, String> getDefaultStyles();
+  public abstract Map<Object, ResourceReference> getDefaultStyles();
 
   @NotNull
   protected HitProvider getHitProvider(@NotNull NlComponent component) {
