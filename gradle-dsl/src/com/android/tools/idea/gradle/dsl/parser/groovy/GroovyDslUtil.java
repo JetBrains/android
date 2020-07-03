@@ -377,7 +377,7 @@ public final class GroovyDslUtil {
     else if (unsavedValue instanceof ReferenceTo) {
       // TODO(b/161911921): we will want to only allow references to resolvable elements.
       if (((ReferenceTo)unsavedValue).getReferredElement() != null) {
-        unsavedValueText = doGetElementExternalReferenceName(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext);
+        unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
         if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
       }
       else {
@@ -404,17 +404,17 @@ public final class GroovyDslUtil {
                                                   GradleDslFile applyContext,
                                                   String referenceText,
                                                   boolean forInjection) {
-    GradleDslElement resolvedReference = context.resolveInternalSyntaxReference(referenceText, false);
-    if (resolvedReference == null) {
-      return referenceText;
-    }
-    String externalReference = doGetElementExternalReferenceName(resolvedReference, context, applyContext);
+    GradleDslElement referenceElement = context.resolveInternalSyntaxReference(referenceText, false);
+    if (referenceElement == null) return referenceText;
+
+    String externalReference = convertToExternalTextValue(referenceElement, context, applyContext, forInjection);
     return externalReference != null ? externalReference : referenceText;
   }
 
-  private static String doGetElementExternalReferenceName(GradleDslElement referenceElement,
-                                                          GradleDslSimpleExpression context,
-                                                          GradleDslFile applyContext) {
+  public static String convertToExternalTextValue(GradleDslElement referenceElement,
+                                                  GradleDslSimpleExpression context,
+                                                  GradleDslFile applyContext,
+                                                  boolean forInjection) {
     StringBuilder externalName = new StringBuilder();
     GradleDslElement currentParent = referenceElement.getParent();
 

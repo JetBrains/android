@@ -116,15 +116,16 @@ fun convertToExternalTextValue(
   referenceText : String,
   forInjection: Boolean
 ) : String {
-  val resolvedReference = context.resolveInternalSyntaxReference(referenceText, false) ?: return referenceText
+  val referenceElement = context.resolveInternalSyntaxReference(referenceText, false) ?: return referenceText
+
   // Get the resolvedReference value type that might be used for the final cast.
-  return doGetElementExternalReferenceName(resolvedReference, context, applyContext, forInjection) ?: referenceText
+  return convertToExternalTextValue(referenceElement, context, applyContext, forInjection) ?: referenceText
 }
 
-internal fun doGetElementExternalReferenceName(dslReference: GradleDslElement,
-                                               context: GradleDslSimpleExpression,
-                                               applyContext: GradleDslFile,
-                                               forInjection: Boolean): String? {
+internal fun convertToExternalTextValue(dslReference: GradleDslElement,
+                                        context: GradleDslSimpleExpression,
+                                        applyContext: GradleDslFile,
+                                        forInjection: Boolean): String? {
   // TODO(karimai): what if the type needs to be imported ?
   val className = if (dslReference is GradleDslLiteral) dslReference.value?.javaClass?.kotlin?.simpleName else null
   val externalName = StringBuilder()
@@ -374,7 +375,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
     is ReferenceTo -> {
       // TODO(b/161911921): we will want to only allow references to resolvable elements.
       val externalTextValue = if (value.referredElement != null) {
-        doGetElementExternalReferenceName(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
+        convertToExternalTextValue(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
       }
       else {
         convertToExternalTextValue(context, applyContext, value.text, false)
