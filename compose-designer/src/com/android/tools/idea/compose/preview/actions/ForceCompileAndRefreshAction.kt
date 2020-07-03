@@ -21,19 +21,29 @@ import com.android.tools.idea.compose.preview.findComposePreviewManagersForConte
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.JBColor
+import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-
 internal fun requestBuildForSurface(surface: DesignSurface) {
-  surface.models.map { it.module }.distinct().forEach {
-    requestBuild(surface.project, it)
-  }
+  surface.models.map { it.module }.distinct()
+    .onEach {
+      requestBuild(surface.project, it)
+    }
+    .ifEmpty {
+      AppExecutorUtil.getAppExecutorService().submit {
+        // If there are no models in the surface, we can not infer which models we should trigger
+        // the build for. The fallback is to build the project incrementally.
+        surface.project.getProjectSystem().buildProject()
+      }
+    }
 }
 
 /**
