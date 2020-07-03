@@ -735,7 +735,7 @@ class ObsoleteConfigurationDependencyUsageInfo(
     dependency.setConfigurationName(newConfigurationName)
   }
 
-  override fun getTooltipText() = "Update configuration to $newConfigurationName"
+  override fun getTooltipText() = "Update configuration from ${dependency.configurationName()} to $newConfigurationName"
 
   // Don't need hashCode() because this is stricter than the superclass method.
   override fun equals(other: Any?): Boolean {
@@ -755,7 +755,7 @@ class ObsoleteConfigurationConfigurationUsageInfo(
     configuration.rename(newConfigurationName)
   }
 
-  override fun getTooltipText() = "Rename configuration to $newConfigurationName"
+  override fun getTooltipText() = "Rename configuration from ${configuration.name()} to $newConfigurationName"
 
   // Don't need hashCode() because this is stricter than the superclass method.
   override fun equals(other: Any?): Boolean {
