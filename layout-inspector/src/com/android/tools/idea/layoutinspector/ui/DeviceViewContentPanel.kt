@@ -33,6 +33,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
+import java.awt.Point
 import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -61,6 +62,13 @@ private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
 class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
   val model = DeviceViewPanelModel(inspectorModel)
+
+  val rootLocation: Point
+    get() {
+      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: Point(0,0)
+      return Point((modelLocation.x * viewSettings.scaleFraction).toInt() + (size.width / 2),
+                   (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
+    }
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -162,8 +170,10 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
   override fun getPreferredSize() =
     if (inspectorModel.isEmpty) Dimension(0, 0)
-    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
-                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
+    // Give twice the needed size so we have room to move the view around a little. Otherwise things can jump around
+    // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
+    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2,
+                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2)
 
   private fun drawView(g: Graphics,
                        drawInfo: ViewDrawInfo,
