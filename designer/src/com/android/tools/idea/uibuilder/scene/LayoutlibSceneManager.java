@@ -852,7 +852,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   @NotNull
-  public Map<Object, String> getDefaultStyles() {
+  public Map<Object, ResourceReference> getDefaultStyles() {
     myRenderResultLock.readLock().lock();
     try {
       if (myRenderResult == null) {
