@@ -19,6 +19,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import org.jetbrains.android.compose.COMPOSE_VIEW_ADAPTER_FQNS
 import java.util.concurrent.CompletableFuture
 
 
@@ -39,7 +40,7 @@ internal fun RenderResult?.isComposeErrorResult(): Boolean {
 
   return logger.brokenClasses.values
     .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER_FQNS.contains(ex.className) }
     }
 }
 

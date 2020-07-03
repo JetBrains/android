@@ -28,6 +28,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.After
@@ -40,6 +41,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Asserts that the given [methodName] body has the actual given [actualBodyRange]
@@ -58,9 +61,19 @@ private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRan
 private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
-class AnnotationFilePreviewElementFinderTest {
+@RunWith(Parameterized::class)
+class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNamespace) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+  }
+
+  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
 
@@ -80,8 +93,8 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Devices
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Devices
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -121,7 +134,7 @@ class AnnotationFilePreviewElementFinderTest {
         }
 
         @Composable
-        @androidx.ui.tooling.preview.Preview(name = "FQN")
+        @$PREVIEW_TOOLING_PACKAGE.Preview(name = "FQN")
         fun FullyQualifiedAnnotationPreview() {
 
         }
@@ -214,7 +227,7 @@ class AnnotationFilePreviewElementFinderTest {
         import androidx.compose.Composable
 
         @Composable
-        @androidx.ui.tooling.preview.Preview
+        @$PREVIEW_TOOLING_PACKAGE.Preview
         fun Preview1() {
         }
       """.trimIndent()).toUElement() as UFile
@@ -233,7 +246,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
         
         @Composable
@@ -300,7 +313,7 @@ class AnnotationFilePreviewElementFinderTest {
       // language=kotlin
       """
         import androidx.compose.Composable
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Composable
         @Preview
@@ -333,9 +346,9 @@ class AnnotationFilePreviewElementFinderTest {
       """
         package test
 
-        import androidx.ui.tooling.preview.Preview
-        import androidx.ui.tooling.preview.PreviewParameter
-        import androidx.ui.tooling.preview.PreviewParameterProvider
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+        import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
         import androidx.compose.Composable
 
         @Composable
@@ -404,7 +417,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -456,7 +469,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
 
         @Composable

@@ -18,15 +18,28 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class PreviewEntryPointTest {
+@RunWith(Parameterized::class)
+class PreviewEntryPointTest(libraryNamespace: ComposeLibraryNamespace) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+  }
+
+  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
   private val fixture get() = projectRule.fixture
 
   @Before
@@ -39,7 +52,7 @@ class PreviewEntryPointTest {
     @Language("kotlin")
     val fileContent = """
       import androidx.compose.Composable
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview

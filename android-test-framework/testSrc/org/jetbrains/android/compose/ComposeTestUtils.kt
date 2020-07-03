@@ -29,12 +29,12 @@ fun CodeInsightTestFixture.stubComposableAnnotation() {
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation() {
+fun CodeInsightTestFixture.stubPreviewAnnotation(namespace: ComposeLibraryNamespace) {
   addFileToProject(
     "src/com/android/tools/preview/Preview.kt",
     // language=kotlin
     """
-    package androidx.ui.tooling.preview
+    package ${namespace.packageName}.tooling.preview
 
     import kotlin.reflect.KClass
 
