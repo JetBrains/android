@@ -44,6 +44,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -348,20 +349,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
-    return findAndroidFacetInProject(project) != null;
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
   }
 
   @Nullable
   private static AndroidFacet findAndroidFacetInProject(@NonNull com.intellij.openapi.project.Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        return facet;
-      }
-    }
-
-    return null;
+    @NotNull List<AndroidFacet> androidFacetsInRandomOrder = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+    return androidFacetsInRandomOrder.isEmpty() ? null : androidFacetsInRandomOrder.get(0);
   }
 
   /**
