@@ -19,12 +19,11 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
-import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.util.PREVIEW_NAME
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
@@ -45,16 +44,30 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.popup.AbstractPopup
+import org.jetbrains.android.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.android.compose.isComposableFunction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+
+fun KtNamedFunction.findUiToolingPackage(): ComposeLibraryNamespace? = ReadAction.compute<ComposeLibraryNamespace?, Throwable> {
+  for (annotation in annotationEntries) {
+    if (annotation.fqNameMatches(ComposeLibraryNamespace.ANDROIDX_UI.previewAnnotationName)) {
+      return@compute ComposeLibraryNamespace.ANDROIDX_UI
+    }
+    if (annotation.fqNameMatches(ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationName)) {
+      return@compute ComposeLibraryNamespace.ANDROIDX_COMPOSE
+    }
+  }
+
+  return@compute null
+}
 
 /**
  * Adds rendered image of sample@ to Compose element's documentation.
@@ -150,8 +163,9 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private fun renderImage(previewElement: KtNamedFunction): CompletableFuture<BufferedImage?> {
     val facet = AndroidFacet.getInstance(previewElement) ?: return CompletableFuture.completedFuture(null)
+    val uiToolingPackageName = previewElement.findUiToolingPackage() ?: return CompletableFuture.completedFuture(null)
     val previewElementName = getFullNameForPreview(previewElement)
-    return renderPreviewElement(facet, previewFromMethodName(previewElementName))
+    return renderPreviewElement(facet, previewFromMethodName(previewElementName, uiToolingPackageName))
       .whenComplete { _, _ ->
         if (StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW.get()) {
           Thread.sleep(3000)
@@ -161,7 +175,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
 
-  private fun previewFromMethodName(fqName: String) =
+  private fun previewFromMethodName(fqName: String, composeLibraryNamespace: ComposeLibraryNamespace) =
     SinglePreviewElementInstance(
       composableMethodFqn = fqName,
       displaySettings = PreviewDisplaySettings(
@@ -172,8 +186,8 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
         backgroundColor = null),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
-      configuration = nullConfiguration
-    )
+      configuration = nullConfiguration,
+      composeLibraryNamespace = composeLibraryNamespace)
 
   /**
    * Returns KtNamedFunction after @sample tag in JavaDoc for given element or null if there is no such tag or function is not valid.
@@ -200,8 +214,9 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     "<img src='file://${imageKey}' alt='preview:${imageKey}' width='${i.width}' height='${i.height}'>"
 
   private fun PsiElement.isPreview() = this is KtNamedFunction &&
-                                       annotationEntries.any { it.shortName?.asString() == PREVIEW_NAME } &&
-                                       this.findAnnotation(FqName(PREVIEW_ANNOTATION_FQN)) != null
+                                       annotationEntries.any { it.shortName?.asString() == COMPOSE_PREVIEW_ANNOTATION_NAME } &&
+                                       (this.findAnnotation(ComposeLibraryNamespace.ANDROIDX_UI.previewAnnotationNameFqName) != null ||
+                                        this.findAnnotation(ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationNameFqName) != null)
 
   private fun getOriginalDoc(element: PsiElement?, originalElement: PsiElement?): String? = ReadAction.compute<String?, Throwable> {
     if (element?.isValid != true) return@compute null

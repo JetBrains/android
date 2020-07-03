@@ -26,8 +26,6 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-const val COMPOSABLE_FQ_NAME = "androidx.compose.Composable"
-
 fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 

@@ -42,6 +42,8 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.android.compose.ComposeLibraryNamespace
+import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.module
@@ -57,23 +59,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.memberProperties
-
-/** Preview element name */
-internal const val PREVIEW_NAME = "Preview"
-
-/** Package containing the preview definitions */
-private const val PREVIEW_PACKAGE = "androidx.ui.tooling.preview"
-
-/** Only composables with this annotation will be rendered to the surface */
-internal const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
-
-internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
-
-/** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
-internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
-
-/** Annotation FQN for `Preview` annotated parameters */
-internal const val PREVIEW_PARAMETER_FQN = "$PREVIEW_PACKAGE.PreviewParameter"
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -125,7 +110,7 @@ else {
 private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
 
 /**
- * Returns whether a `@Composable` [PREVIEW_ANNOTATION_FQN] is defined in a valid location, which can be either:
+ * Returns whether a `@Composable` [PREVIEW_ANNOTATION_FQNS] is defined in a valid location, which can be either:
  * 1. Top-level functions
  * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
  *
@@ -149,12 +134,12 @@ internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
 }
 
 /**
- *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQN] and is defined in a valid location.
+ *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQNS] and is defined in a valid location.
  *
  *  @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQN) }
+  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQNS) }
 
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
@@ -311,6 +296,9 @@ data class PreviewParameter(val name: String,
  * Definition of a preview element
  */
 interface PreviewElement {
+  /** [ComposeLibraryNamespace] to identify the package name used for this [PreviewElement] annotations */
+  val composeLibraryNamespace: ComposeLibraryNamespace
+
   /** Fully Qualified Name of the composable method */
   val composableMethodFqn: String
 
@@ -348,6 +336,7 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     val height = dimensionToString(configuration.height, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     xmlBuilder
+      .setRootTagName(composeLibraryNamespace.composableAdapterName)
       .androidAttribute(ATTR_LAYOUT_WIDTH, width)
       .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
       // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
@@ -385,7 +374,8 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                    override val displaySettings: PreviewDisplaySettings,
                                    override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                                    override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                   override val configuration: PreviewConfiguration) : PreviewElementInstance() {
+                                   override val configuration: PreviewConfiguration,
+                                   override val composeLibraryNamespace: ComposeLibraryNamespace) : PreviewElementInstance() {
   override val instanceId: String = composableMethodFqn
 
   companion object {
@@ -396,7 +386,8 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                    showDecorations: Boolean = false,
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
-                   configuration: PreviewConfiguration = nullConfiguration) =
+                   configuration: PreviewConfiguration = nullConfiguration,
+                   uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_UI) =
       SinglePreviewElementInstance(composableMethodFqn,
                                    PreviewDisplaySettings(
                                      displayName,
@@ -405,7 +396,8 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                      showBackground,
                                      backgroundColor),
                                    null, null,
-                                   configuration)
+                                   configuration,
+                                   uiToolingPackageName)
   }
 }
 

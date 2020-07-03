@@ -79,12 +79,22 @@ fun KtAnnotationEntry.fqNameMatches(fqName: String): Boolean {
   return fqName.endsWith(shortName) && fqName == getQualifiedName()
 }
 
+/**
+ * Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names.
+ */
+fun KtAnnotationEntry.fqNameMatches(fqName: Set<String>): Boolean {
+  val qualifiedName by lazy { getQualifiedName() }
+  val shortName = shortName?.asString() ?: return false
+  return fqName.filter { it.endsWith(shortName) }.any { it == qualifiedName }
+}
+
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
 fun KtClass.getQualifiedName(): String? {
   val classDescriptor = analyze(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
   return if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) || classDescriptor.kind != ClassKind.CLASS) {
     null
-  } else {
+  }
+  else {
     classDescriptor.fqNameSafe.asString()
   }
 }

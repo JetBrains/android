@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
 import com.android.tools.idea.compose.preview.util.MAX_WIDTH
-import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
 import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.flags.StudioFlags
@@ -33,6 +30,9 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import org.jetbrains.android.compose.COMPOSABLE_FQ_NAME
+import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
+import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
@@ -73,13 +73,13 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
         override fun visitImportDirective(importDirective: KtImportDirective) {
           super.visitImportDirective(importDirective)
 
-          isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
+          isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQNS.contains(importDirective.importedFqName?.asString())
         }
 
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
           super.visitAnnotationEntry(annotationEntry)
 
-          isPreviewFile = isPreviewFile || annotationEntry.fqNameMatches(PREVIEW_ANNOTATION_FQN)
+          isPreviewFile = isPreviewFile || annotationEntry.fqNameMatches(PREVIEW_ANNOTATION_FQNS)
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {
@@ -89,7 +89,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
             return
           }
 
-          val previewAnnotation = function.annotationEntries.firstOrNull { it.fqNameMatches(PREVIEW_ANNOTATION_FQN) } ?: return
+          val previewAnnotation = function.annotationEntries.firstOrNull { it.fqNameMatches(PREVIEW_ANNOTATION_FQNS) } ?: return
           visitPreviewAnnotatedFunction(holder, function, previewAnnotation)
         }
       }
@@ -106,7 +106,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 private fun KtParameter.isAcceptableForPreview(): Boolean =
   hasDefaultValue() ||
   // When data sources are enabled, we also accept parameters with the @PreviewParameter annotation
-  (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get() && annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQN) })
+  (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get() && annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQNS) })
 
 /**
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
@@ -136,7 +136,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
                                              previewAnnotation: KtAnnotationEntry) {
     // Find the second PreviewParameter annotation if any
     val secondPreviewParameter = function.valueParameters.mapNotNull {
-      it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(PREVIEW_PARAMETER_FQN) }
+      it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(PREVIEW_PARAMETER_FQNS) }
     }.drop(1).firstOrNull() ?: return
 
     // Flag the second annotation as the error
@@ -153,7 +153,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
-    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQN) }
+    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_FQ_NAME) }
     if (nonComposable) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.composable.description"),

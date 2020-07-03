@@ -22,20 +22,33 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyMode
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.application.ReadAction
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 private fun PreviewElement.annotationText(): String = ReadAction.compute<String, Throwable> {
   previewElementDefinitionPsi?.element?.text ?: ""
 }
 
-class PsiPickerTests {
+@RunWith(Parameterized::class)
+class PsiPickerTests(libraryNamespace: ComposeLibraryNamespace) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+  }
+
+  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
   private val fixture get() = projectRule.fixture
   private val project get() = projectRule.project
 
@@ -44,7 +57,7 @@ class PsiPickerTests {
     @Language("kotlin")
     val fileContent = """
       import androidx.compose.Composable
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview
@@ -95,7 +108,7 @@ class PsiPickerTests {
     @Language("kotlin")
     val fileContent = """
       import androidx.compose.Composable
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview(name = "Test")

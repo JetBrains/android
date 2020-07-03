@@ -22,9 +22,12 @@ import com.android.sdklib.devices.State
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 private fun buildDevice(name: String,
                         id: String = name,
@@ -51,9 +54,17 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 /**
  * Tests checking [PreviewElement] being applied to a [Configuration].
  */
-class PreviewElementConfigurationTest {
+@RunWith(Parameterized::class)
+class PreviewElementConfigurationTest(libraryNamespace: ComposeLibraryNamespace) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+  }
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
   private val fixture get() = projectRule.fixture
 
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
