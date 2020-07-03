@@ -20,7 +20,6 @@ import com.android.flags.junit.RestoreFlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
@@ -48,14 +47,31 @@ class NewKtsModuleTest {
    * Verifies that adding new Mobile/Tablet Java Module, with kts, has the expected content and builds.
    *
    * Test Steps
-   * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Phone/Tablet" module, with Java Language and "Use kts script" selected.
+   * 1. Import "Simple Application" (a basic java project)
+   * 2. Add a new Java "Phone/Tablet" Module and selected "Use kts script".
+   * 3. Add a new Kotlin "Android Library" Module and select "Use kts script".
+   * 4. Add a new Java "Automotive" Module and selected "Use kts script".
+   * 5. Add a new Java "Wear OS" Module and selected "Use kts script".
+   * 6. Add a new Java "Android Tv" Module and selected "Use kts script".
+   * 7. Add a new Java "Android Things" Module and selected "Use kts script".
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
   @Test
-  fun addNewJavaMobileModuleWithKts() {
-    guiTest.importSimpleApplication()
+  fun addNewMobileModulesWithKts() {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+
+    addNewJavaMobileModuleWithKts()
+    addNewKotlinAndroidLibraryWithKtsModule()
+    addNewJavaAutomotiveWithKtsModule()
+    addNewJavaWearWithKtsModule()
+    addNewJavaAndroidTvWithKtsModule()
+    addNewJavaAndroidThingsWithKtsModule()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+  }
+
+  private fun addNewJavaMobileModuleWithKts() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextPhoneAndTabletModule()
@@ -68,8 +84,6 @@ class NewKtsModuleTest {
       .chooseActivity("No Activity")
       .clickFinishAndWaitForSyncToFinish()
 
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     assertThat(guiTest.getProjectFileText("mobile/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
       contains("""id("com.android.application")""")
@@ -80,18 +94,7 @@ class NewKtsModuleTest {
     }
   }
 
-  /**
-   * Verifies that adding new Kotlin "Android Library" Module, with kts, has the expected content and builds.
-   *
-   * Test Steps
-   * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Android Library" module, with Kotlin Language and "Use kts script" selected.
-   * - Make sure the projects can build ("Build" > "Make Project")
-   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
-   */
-  @Test
-  fun addNewKotlinAndroidLibraryWithKtsModule() {
-    guiTest.importSimpleApplication()
+  private fun addNewKotlinAndroidLibraryWithKtsModule() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
@@ -102,8 +105,6 @@ class NewKtsModuleTest {
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     assertThat(guiTest.getProjectFileText("android_lib/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
       contains("""id("com.android.library")""")
@@ -112,18 +113,7 @@ class NewKtsModuleTest {
     }
   }
 
-  /**
-   * Verifies that adding new Java "Automotive" Module, with kts, has the expected content and builds.
-   *
-   * Test Steps
-   * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Automotive" module, with Java Language and "Use kts script" selected.
-   * - Make sure the projects can build ("Build" > "Make Project")
-   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
-   */
-  @Test
-  fun addNewJavaAutomotiveWithKtsModule() {
-    guiTest.importSimpleApplication()
+  private fun addNewJavaAutomotiveWithKtsModule() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextAutomotiveModule()
@@ -137,26 +127,13 @@ class NewKtsModuleTest {
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
 
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     assertThat(guiTest.getProjectFileText("automotive/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
-      contains("""implementation("com.android.support:support-media-compat:""")
+      contains("""implementation("androidx.media:media:""")
     }
   }
 
-  /**
-   * Verifies that adding new Java "Wear OS" Module, with kts, has the expected content and builds.
-   *
-   * Test Steps
-   * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Wear OS" module, with Java Language and "Use kts script" selected.
-   * - Make sure the projects can build ("Build" > "Make Project")
-   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
-   */
-  @Test
-  fun addNewJavaWearWithKtsModule() {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+  private fun addNewJavaWearWithKtsModule() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextWearModule()
@@ -170,26 +147,13 @@ class NewKtsModuleTest {
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
 
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     assertThat(guiTest.getProjectFileText("wear/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
       contains("""implementation("androidx.wear:wear:""")
     }
   }
 
-  /**
-   * Verifies that adding new Java "Android Tv" Module, with kts, has the expected content and builds.
-   *
-   * Test Steps
-   * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Android Tv" module, with Java Language and "Use kts script" selected.
-   * - Make sure the projects can build ("Build" > "Make Project")
-   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
-   */
-  @Test
-  fun addNewJavaAndroidTvWithKtsModule() {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+  private fun addNewJavaAndroidTvWithKtsModule() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextAndroidTvModule()
@@ -203,26 +167,13 @@ class NewKtsModuleTest {
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
 
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     assertThat(guiTest.getProjectFileText("tv/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
       contains("""androidx.leanback:leanback:""")
     }
   }
 
-  /**
-   * Verifies that adding new Java "Android Things" Module, with kts, has the expected content and builds.
-   *
-   * Test Steps
-   * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Android Things" module, with Java Language and "Use kts script" selected.
-   * - Make sure the projects can build ("Build" > "Make Project")
-   * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
-   */
-  @Test
-  fun addNewJavaAndroidThingsWithKtsModule() {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+  private fun addNewJavaAndroidThingsWithKtsModule() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextAndroidThingsModule()
@@ -235,8 +186,6 @@ class NewKtsModuleTest {
       .chooseActivity("Empty Activity")
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
-
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
     assertThat(guiTest.getProjectFileText("things/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
