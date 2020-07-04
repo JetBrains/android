@@ -81,12 +81,13 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.TimerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -105,7 +106,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
-import javax.swing.Timer;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -251,7 +252,7 @@ public class LayoutlibSceneManager extends SceneManager {
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface,
                                @NotNull Supplier<RenderSettings> renderSettingsProvider) {
-    this(model, designSurface, renderSettingsProvider, PooledThreadExecutor.INSTANCE);
+    this(model, designSurface, renderSettingsProvider, AppExecutorUtil.getAppExecutorService());
   }
 
   @NotNull
@@ -603,7 +604,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   CompletableFuture<Void> doRequestLayoutAndRender(boolean animate) {
     return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
-      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
+      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), AppExecutorUtil.getAppExecutorService());
   }
 
   /**
@@ -951,7 +952,7 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   protected CompletableFuture<Void> updateModel() {
     return inflate(true)
-      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete(), PooledThreadExecutor.INSTANCE)
+      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete(), AppExecutorUtil.getAppExecutorService())
       .thenApply(result -> null);
   }
 
