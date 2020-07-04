@@ -23,9 +23,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * {@link ConverterProvider} providing {@link AndroidJUnitConfigurationConverter}.
  */
-public class AndroidJUnitConfigurationConverterProvider extends ConverterProvider {
-  protected AndroidJUnitConfigurationConverterProvider() {
-    super("junit-to-android-junit-configurations");
+final class AndroidJUnitConfigurationConverterProvider extends ConverterProvider {
+  private AndroidJUnitConfigurationConverterProvider() {
   }
 
   @NotNull
@@ -40,6 +39,4 @@ public class AndroidJUnitConfigurationConverterProvider extends ConverterProvide
   public ProjectConverter createConverter(@NotNull ConversionContext context) {
     return new AndroidJUnitConfigurationConverter();
   }
-
-
 }
