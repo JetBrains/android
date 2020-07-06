@@ -19,6 +19,8 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
+import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
+import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceActionsColumnInfo
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceColumnInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -56,7 +58,8 @@ data class NamedDevice(
 /**
  * A UI component which lists the existing AVDs
  */
-class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListener {
+
+class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelectionListener, PhysicalDeviceUiAction.PhysicalDeviceProvider {
   private val centerCardPanel: JPanel
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
@@ -211,6 +214,7 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
    */
   fun refreshDevices() {
     model.items = deviceMap.values.toList()
+    // TODO(qumeric) sometimes status is not updated to "EMPTY" when we do unplug devices.
     val status = if (model.items.isEmpty()) EMPTY else NONEMPTY
     //updateSearchResults(null)
     (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
@@ -272,6 +276,8 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
     }
   }
 
+  override val device: NamedDevice? get() = table.selectedObject
+
   // needs an initialized table
   fun newColumns(): Collection<ColumnInfo<NamedDevice, *>> {
     return listOf(
@@ -280,7 +286,8 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
       },
       object : PhysicalDeviceColumnInfo("Api") {
         override fun valueOf(item: NamedDevice): String? = item.device.version.apiString
-      }
+      },
+      PhysicalDeviceActionsColumnInfo("Actions", deviceProvider = this)
     )
   }
 
