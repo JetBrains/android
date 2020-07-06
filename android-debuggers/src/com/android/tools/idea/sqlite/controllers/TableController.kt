@@ -248,27 +248,12 @@ class TableController(
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {
-      orderBy = orderBy.nextState(viewColumn)
-
-      val order = when(orderBy) {
-        is OrderBy.Asc -> "ASC"
-        is OrderBy.Desc -> "DESC"
-        is OrderBy.NotOrdered -> ""
-      }
-
-      // TODO (b/157633844) move sqlite code into repository
-      val selectOrderByStatement = when (orderBy) {
-        is OrderBy.Asc, is OrderBy.Desc -> sqliteStatement.transform(SqliteStatementType.SELECT) {
-          "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(viewColumn.name)} $order"
-        }
-        is OrderBy.NotOrdered -> sqliteStatement
-      }
+      orderBy = orderBy.nextState(viewColumn.name)
 
       Disposer.dispose(resultSet)
-
       view.startTableLoading()
-      databaseRepository
-        .runQuery(databaseId, selectOrderByStatement)
+
+      databaseRepository.selectOrdered(databaseId, sqliteStatement, orderBy)
         .transform(edtExecutor) { newResultSet ->
           if (Disposer.isDisposed(this@TableController)) {
             newResultSet.dispose()
