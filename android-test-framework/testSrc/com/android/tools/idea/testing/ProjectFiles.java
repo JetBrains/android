@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,7 @@ public final class ProjectFiles {
 
   @NotNull
   public static VirtualFile createFolderInProjectRoot(@NotNull Project project, @NotNull String folderName) throws IOException {
-    return createFolder(project.getBaseDir(), folderName);
+    return createFolder(PlatformTestUtil.getOrCreateProjectBaseDir(project), folderName);
   }
 
   @NotNull
@@ -62,7 +63,7 @@ public final class ProjectFiles {
 
   @NotNull
   public static VirtualFile createFileInProjectRoot(@NotNull Project project, @NotNull String fileName) throws IOException {
-    VirtualFile parent = project.getBaseDir();
+    VirtualFile parent = PlatformTestUtil.getOrCreateProjectBaseDir(project);
     return createFile(parent, fileName);
   }
 

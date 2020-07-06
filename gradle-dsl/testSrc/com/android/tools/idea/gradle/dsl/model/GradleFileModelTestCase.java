@@ -76,9 +76,13 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -121,7 +125,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected VirtualFile mySubModulePropertiesFile;
   protected VirtualFile myBuildSrcBuildFile;
 
-  protected VirtualFile myModuleDirPath;
   protected VirtualFile myProjectBasePath;
 
   @NotNull
@@ -196,22 +199,26 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   public void before() throws Exception {
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
+    Path basePath = ProjectKt.getStateStore(myProject).getProjectBasePath();
+    Files.createDirectories(basePath);
+    LocalFileSystem fs = LocalFileSystem.getInstance();
+    myProjectBasePath = fs.refreshAndFindFileByNioFile(basePath);
+
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
-      String basePath = myProject.getBasePath();
-      assertNotNull(basePath);
-      myProjectBasePath = VfsUtil.findFile(new File(basePath).toPath(), true);
-      assertTrue(myProjectBasePath.isDirectory());
       mySettingsFile = myProjectBasePath.createChildData(this, getSettingsFileName());
       assertTrue(mySettingsFile.isWritable());
 
-      myModuleDirPath = myModule.getModuleFile().getParent();
-      assertTrue(myModuleDirPath.isDirectory());
-      myBuildFile = myModuleDirPath.createChildData(this, getBuildFileName());
+      Path moduleDirPath = myModule.getModuleNioFile().getParent();
+      Files.createDirectories(moduleDirPath);
+      VirtualFile moduleVirtualDir = fs.refreshAndFindFileByNioFile(moduleDirPath);
+      myBuildFile = moduleVirtualDir.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
-      myPropertiesFile = myModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
+      myPropertiesFile = moduleVirtualDir.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(myPropertiesFile.isWritable());
 
-      VirtualFile subModuleDirPath = VfsUtil.findFile(new File(mySubModule.getModuleFilePath()).getParentFile().toPath(), true);
+      Path subModuleNioDir = mySubModule.getModuleNioFile().getParent();
+      Files.createDirectories(subModuleNioDir);
+      VirtualFile subModuleDirPath = fs.refreshAndFindFileByNioFile(subModuleNioDir);
       assertTrue(subModuleDirPath.isDirectory());
       mySubModuleBuildFile = subModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(mySubModuleBuildFile.isWritable());
@@ -258,17 +265,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   private Module createSubModule(String name) {
-    final VirtualFile baseDir = ProjectUtil.guessProjectDir(myProject);
-    assertNotNull(baseDir);
-    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()), name + File.separatorChar + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
-    createIfDoesntExist(moduleFile);
-    myFilesToDelete.add(moduleFile.toPath());
+    Path moduleFile = ProjectKt.getStateStore(myProject).getProjectBasePath().resolve(name).resolve(name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     return WriteAction.compute(() -> {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-      assertNotNull(virtualFile);
-      Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
-      module.getModuleFile();
-      return module;
+      return ModuleManager.getInstance(myProject).newModule(moduleFile, getModuleType().getId());
     });
   }
 
@@ -324,20 +323,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     throws IOException {
     Module newModule = createSubModule(name);
 
-    runWriteAction((ThrowableComputable<Void, IOException>)() -> {
-      VirtualFile newModuleFile = newModule.getModuleFile();
-      VirtualFile newModuleDir = newModuleFile.getParent();
-      assertTrue(newModuleDir.isDirectory());
-      VirtualFile moduleBuildFile = newModuleDir.createChildData(this, getBuildFileName());
-      assertTrue(moduleBuildFile.isWritable());
-      VirtualFile modulePropertiesFile = newModuleDir.createChildData(this, FN_GRADLE_PROPERTIES);
-      assertTrue(modulePropertiesFile.isWritable());
-
-      saveFileUnderWrite(moduleBuildFile, buildFileText);
-      saveFileUnderWrite(modulePropertiesFile, propertiesFileText);
-      return null;
-    });
-
+    Path newModuleDirPath = newModule.getModuleNioFile().getParent();
+    LocalFileSystem fs = LocalFileSystem.getInstance();
+    fs.refreshAndFindFileByNioFile(PathKt.write(newModuleDirPath.resolve(getBuildFileName()), buildFileText));
+    fs.refreshAndFindFileByNioFile(PathKt.write(newModuleDirPath.resolve(FN_GRADLE_PROPERTIES), propertiesFileText));
     return newModule;
   }
 
