@@ -29,7 +29,7 @@ import icons.StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY
  * For now, all icons are temporary.
  */
 class LayoutValidatorAction: DumbAwareAction(
-  "Run Layout Validation", "Run the layout validation",
+  "Run accessibility scanner", "Run accessibility testing framework scanner on current layout",
   ACCESSIBILITY) {
 
   companion object {
