@@ -16,60 +16,44 @@
 package com.android.tools.idea.deviceManager.displayList.columns
 
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
+import com.android.tools.idea.deviceManager.avdmanager.actions.DeviceUiAction
+import com.android.tools.idea.deviceManager.avdmanager.actions.PhysicalDeviceUiAction
+import com.android.tools.idea.deviceManager.displayList.NamedDevice
+import com.android.tools.idea.deviceManager.displayList.PhysicalDeviceActionPanel
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.ColumnInfo
-import com.intellij.util.ui.JBUI
 import java.awt.Component
+import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 
-/**
- * Custom table cell renderer that renders an action panel for a given AVD entry
- *
- */
-class AvdActionsColumnInfo(
+class PhysicalDeviceActionsColumnInfo(
   name: String,
-  private val numVisibleActions: Int = -1,
-  private val refreshProvider: AvdActionPanel.AvdRefreshProvider
-) : ColumnInfo<AvdInfo, AvdInfo>(name) {
-  private val width: Int = if (numVisibleActions == -1) -1 else JBUI.scale(45) * numVisibleActions + JBUI.scale(75)
+  private val width: Int = -1,
+  private val deviceProvider: PhysicalDeviceUiAction.PhysicalDeviceProvider
+): ColumnInfo<NamedDevice, NamedDevice>(name) {
+  override fun valueOf(item: NamedDevice?) = item
 
-  /**
-   * This cell renders an action panel for both the editor component and the display component
-   */
-  private val ourActionPanelRendererEditor = hashMapOf<AvdInfo?, ActionRenderer?>()
-  override fun valueOf(avdInfo: AvdInfo): AvdInfo = avdInfo
+  override fun getRenderer(device: NamedDevice)  = getComponent(device)
 
-  /**
-   * We override the comparator here so that we can sort by healthy vs not healthy AVDs
-   */
-  override fun getComparator(): java.util.Comparator<AvdInfo> = Comparator { o1, o2 -> o1.status.compareTo(o2.status) }
+  // TODO(qumeric): override comporator for sorting, see AvdACtionsColumnInfo
 
-  override fun getRenderer(avdInfo: AvdInfo): TableCellRenderer = getComponent(avdInfo)
+  // TODO(qumeric): do we need cache here? See AvdActionsColumnInfo
+  fun getComponent(device: NamedDevice?) = ActionRenderer(2, device, deviceProvider)
 
-  fun getComponent(avdInfo: AvdInfo?): ActionRenderer {
-    var renderer = ourActionPanelRendererEditor[avdInfo]
-    if (renderer == null) {
-      renderer = ActionRenderer(numVisibleActions, avdInfo, refreshProvider)
-      ourActionPanelRendererEditor[avdInfo] = renderer
-    }
-    return renderer
-  }
+  override fun getEditor(device: NamedDevice?): TableCellEditor = getComponent(device)
 
-  override fun getEditor(avdInfo: AvdInfo?): TableCellEditor = getComponent(avdInfo)
-
-  override fun isCellEditable(avdInfo: AvdInfo): Boolean = true
+  override fun isCellEditable(device: NamedDevice?): Boolean = true
 
   override fun getWidth(table: JTable): Int = width
 
-  fun cycleFocus(info: AvdInfo?, backward: Boolean): Boolean = getComponent(info).cycleFocus(backward)
-
   class ActionRenderer(
-    private var numVisibleActions: Int, info: AvdInfo?, refreshProvider: AvdActionPanel.AvdRefreshProvider
+    private var numVisibleActions: Int, device: NamedDevice?, deviceProvider: PhysicalDeviceUiAction.PhysicalDeviceProvider
   ) : AbstractTableCellEditor(), TableCellRenderer {
-    val component: AvdActionPanel = AvdActionPanel((info)!!, this.numVisibleActions, refreshProvider)
+    // FIXME(qumeric)
+    val component = PhysicalDeviceActionPanel(deviceProvider, numVisibleActions)
 
     private fun getComponent(table: JTable, row: Int, column: Int) = component.apply {
       if (table.selectedRow == row) {
@@ -85,7 +69,7 @@ class AvdActionsColumnInfo(
       setFocused(table.selectedRow == row && table.selectedColumn == column)
     }
 
-    fun cycleFocus(backward: Boolean): Boolean = component.cycleFocus(backward)
+    //fun cycleFocus(backward: Boolean): Boolean = component.cycleFocus(backward)
 
     override fun getTableCellRendererComponent(
       table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
