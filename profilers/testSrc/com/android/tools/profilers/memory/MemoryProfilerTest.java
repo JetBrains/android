@@ -94,24 +94,6 @@ public final class MemoryProfilerTest {
   }
 
   @Test
-  public void testStartMonitoring() {
-    Assume.assumeFalse("Unified pipeline does not go through StartMonitoringApp", myUnifiedPipeline);
-
-    MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
-    memoryProfiler.startProfiling(TEST_SESSION);
-    Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
-  }
-
-  @Test
-  public void testStopMonitoring() {
-    Assume.assumeFalse("Unified pipeline does not go through StopMonitoringApp", myUnifiedPipeline);
-
-    MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
-    memoryProfiler.stopProfiling(TEST_SESSION);
-    Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
-  }
-
-  @Test
   public void testStopMonitoringCallsStopTracking() {
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
