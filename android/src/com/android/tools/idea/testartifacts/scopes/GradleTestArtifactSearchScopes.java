@@ -100,6 +100,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
     myModule = module;
   }
 
+  @Override
   @NotNull
   public Module getModule() {
     return myModule;

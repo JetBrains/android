@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
@@ -29,11 +30,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.Location
+import com.intellij.execution.PsiLocation
 import com.intellij.lang.jvm.JvmMethod
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -415,11 +419,17 @@ class AndroidTestResultsTableViewTest {
   fun tableShouldImplementDataProviderAndProvideJavaPsiElementForSelectedRow() {
     val mockAndroidTestSourceScope = mock<GlobalSearchScope>()
     val mockPsiClass = mock<PsiClass>()
-    val mockJvmMethod = mock<JvmMethod>()
+    val mockPsiMethod = mock<PsiMethod>()
     `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
     `when`(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
-    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"))).thenReturn(arrayOf(mockJvmMethod))
-    `when`(mockJvmMethod.name).thenReturn("myTestMethodName")
+    `when`(mockPsiClass.findMethodsByName(any())).thenReturn(arrayOf())
+    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"))).thenReturn(arrayOf(mockPsiMethod))
+    `when`(mockPsiClass.name).thenReturn("myTestClassName")
+    `when`(mockPsiClass.isValid).thenReturn(true)
+    `when`(mockPsiClass.project).thenReturn(projectRule.project)
+    `when`(mockPsiMethod.name).thenReturn("myTestMethodName")
+    `when`(mockPsiMethod.isValid).thenReturn(true)
+    `when`(mockPsiMethod.project).thenReturn(projectRule.project)
 
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
     assertThat(table.getTableViewForTesting()).isInstanceOf(DataProvider::class.java)
@@ -434,10 +444,24 @@ class AndroidTestResultsTableViewTest {
     val data = (table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
     assertThat(data).isInstanceOf(JvmMethod::class.java)
     assertThat((data as JvmMethod).name).isEqualTo("myTestMethodName")
+    val location = (table.getTableViewForTesting() as DataProvider).getData(Location.DATA_KEY.name)
+    assertThat(location).isInstanceOf(PsiLocation::class.java)
+    assertThat((location as PsiLocation<*>).psiElement).isSameAs(mockPsiMethod)
+
+    // Select the test class.
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
+
+    val dataForClass = (table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
+    assertThat(dataForClass).isInstanceOf(PsiClass::class.java)
+    assertThat((dataForClass as PsiClass).name).isEqualTo("myTestClassName")
+    val locationForClass = (table.getTableViewForTesting() as DataProvider).getData(Location.DATA_KEY.name)
+    assertThat(locationForClass).isInstanceOf(PsiLocation::class.java)
+    assertThat((locationForClass as PsiLocation<*>).psiElement).isSameAs(mockPsiClass)
 
     // Clear the selection.
     table.clearSelection()
     assertThat((table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)).isNull()
+    assertThat((table.getTableViewForTesting() as DataProvider).getData(Location.DATA_KEY.name)).isNull()
   }
 
   @Test
