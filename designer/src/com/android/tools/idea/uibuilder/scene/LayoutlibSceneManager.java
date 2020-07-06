@@ -1169,6 +1169,10 @@ public class LayoutlibSceneManager extends SceneManager {
           myRenderResultLock.writeLock().lock();
           try {
             updateCachedRenderResult(result);
+            // TODO(nro): this may not be ideal -- forcing direct results immediately
+            if (!isDisposed.get()) {
+              update();
+            }
             // Downgrade the write lock to read lock
             myRenderResultLock.readLock().lock();
           }
