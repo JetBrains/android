@@ -169,10 +169,20 @@ public class NewProjectTest {
       });
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/149463420
+  /**
+   * Java source compatibility for older Android API levels was 1.6. For Api 21 and above, it should be 1.7 by default.
+   */
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk(21).create(guiTest);
+
+    // Remove "compileOptions { ... }" block, to force gradle "defaults"
+    guiTest.ideFrame().getEditor()
+      .open("app/build.gradle")
+      .select("(compileOptions.*\n.*\n.*\n.*})")
+      .typeText(" ")
+      .getIdeFrame()
+      .requestProjectSyncAndWaitForSyncToFinish();
 
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
