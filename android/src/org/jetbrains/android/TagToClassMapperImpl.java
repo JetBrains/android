@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.CLASS_VIEW;
 import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getTagNamesByClass;
+import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getViewTagNamesByClass;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -42,6 +44,7 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.Collections;
@@ -228,6 +231,8 @@ class TagToClassMapperImpl implements TagToClassMapper {
       return false;
     }
 
+    boolean isView = InheritanceUtil.isInheritor(baseClass, CLASS_VIEW);
+
     int api = getMinApiLevel();
 
     String[] baseClassTagNames = getTagNamesByClass(baseClass, api);
@@ -236,7 +241,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     try {
       ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-        String[] tagNames = getTagNamesByClass(c, api);
+        String[] tagNames = isView ? getViewTagNamesByClass(c, api) : getTagNamesByClass(c, api);
         for (String tagName : tagNames) {
           map.put(tagName, c);
         }
