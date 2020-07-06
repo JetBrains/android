@@ -48,7 +48,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
     AndroidExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(key), myGetter);
 
     // Act
-    Object actualDevices = target.getDevices();
+    Object actualDevices = target.getRunningDevices();
 
     // Assert
     assertEquals(Collections.emptyList(), actualDevices);

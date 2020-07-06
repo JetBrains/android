@@ -45,7 +45,7 @@ public class DefaultStudioProgramRunnerTest {
    */
   @Test
   public void gradleCanRun() {
-    Mockito.when(target.getDevices()).thenReturn(Collections.emptyList());
+    Mockito.when(target.getRunningDevices()).thenReturn(Collections.emptyList());
     Mockito.when(runConfig.getProject()).thenReturn(DummyProject.getInstance());
 
     DefaultStudioProgramRunner runner = new DefaultStudioProgramRunner(p -> syncState, p -> target);
