@@ -141,6 +141,6 @@ private fun Project.verifyModelsAttached() {
       module.verifyModel(JavaFacet::getInstance, JavaFacet::getJavaModuleModel)
     }
     module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
-    module.verifyModel(NdkFacet::getInstance, NdkFacet::getNdkModuleModel)
+    module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }
 }
