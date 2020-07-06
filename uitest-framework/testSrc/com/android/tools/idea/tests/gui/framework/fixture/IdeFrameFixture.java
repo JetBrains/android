@@ -81,7 +81,6 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -322,7 +321,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
    */
   public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
-    getMenuFixture().invokeMenuPath(menuPath);
+    getMenuFixture().invokeMenuPath(10, menuPath);
     return fixtureFunction.apply(this);
   }
 
@@ -341,7 +340,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public IdeFrameFixture invokeMenuPath(@NotNull String... path) {
-    getMenuFixture().invokeMenuPath(path);
+    getMenuFixture().invokeMenuPath(10, path);
     return this;
   }
 
@@ -356,9 +355,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public IdeFrameFixture waitAndInvokeMenuPath(int timeToWait, @NotNull String... path) {
-    Wait.seconds(timeToWait).expecting("Wait until the path " + Arrays.toString(path) + " is ready.")
-      .until(() -> getMenuFixture().isMenuPathEnabled(path));
-    getMenuFixture().invokeMenuPath(path);
+    getMenuFixture().invokeMenuPath(timeToWait, path);
     return this;
   }
 
@@ -693,12 +690,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myIsClosed = true;
     requestFocusIfLost(); // "Close Project" can be disabled if no component has focus
     return openFromMenu(WelcomeFrameFixture::find, "File", "Close Project");
-  }
-
-  public IdeFrameFixture closeProjectWithPrompt() {
-    myIsClosed = true;
-    requestFocusIfLost(); // "Close Project" can be disabled if no component has focus
-    return invokeMenuPath("File", "Close Project");
   }
 
   public boolean isClosed() {

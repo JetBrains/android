@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import org.fest.swing.core.Robot;
-import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.NotNull;
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.psi.impl.DebugUtil.sleep;
+import static org.junit.Assert.assertEquals;
 
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.util.containers.ContainerUtil;
+import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
+import java.util.Collection;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Pause;
+import org.jetbrains.annotations.NotNull;
 
 class MenuFixture {
   @NotNull private final Robot myRobot;
@@ -50,10 +51,8 @@ class MenuFixture {
    *
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
    */
-  void invokeMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(false, path);
-    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
-    myRobot.click(menuItem);
+  void invokeMenuPath(int timeToWaitAtStepMs, @NotNull String... path) {
+    doInvokeMenuPath(path, false, timeToWaitAtStepMs);
   }
 
   /**
@@ -62,75 +61,79 @@ class MenuFixture {
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
    */
   void invokeContextualMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(true, path);
-    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
-    myRobot.click(menuItem);
+    doInvokeMenuPath(path, true, 10);
   }
 
-  @NotNull
-  private JMenuItem findActionMenuItem(boolean isContextual, @NotNull String... path) {
-    myRobot.waitForIdle(); // UI events can trigger modifications of the menu contents
+  private void doInvokeMenuPath(@NotNull String[] path, boolean isContextual, int wait) {
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
 
-    // We keep the list of previously found pop-up menus, so we don't look for menu items in the same pop-up more than once.
-    List<JPopupMenu> previouslyFoundPopups = Lists.newArrayList();
+    // If waiting requested we can use a reliable robot. Otherwise we might be called in an unsafe context when the IdeEventQueue has
+    // already been shut down.
+    Robot robot = (wait > 0) ? fixupWaiting(myRobot) : myRobot;
 
-    Container root = isContextual ? GuiTests.waitUntilShowing(myRobot, myContainer, Matchers.byType(JPopupMenu.class)) : myContainer;
-    for (int i = 0; i < segmentCount; i++) {
-      final String segment = path[i];
-      JMenuItem found = GuiTests.waitUntilShowing(myRobot, root, Matchers.byText(JMenuItem.class, segment));
-      found.requestFocus();
-      if (root instanceof JPopupMenu) {
-        previouslyFoundPopups.add((JPopupMenu)root);
-      }
-      if (i < segmentCount - 1) {
-        myRobot.click(found);
-        int expectedCount = isContextual ? i + 2 : i + 1;
-        List<JPopupMenu> showingPopupMenus = findShowingPopupMenus(expectedCount);
-        showingPopupMenus.removeAll(previouslyFoundPopups);
-        assertThat(showingPopupMenus).hasSize(1);
-        root = showingPopupMenus.get(0);
-        continue;
-      }
-      return found;
-    }
-    throw new AssertionError("Menu item with path " + Arrays.toString(path) + " should have been found already");
-  }
+    robot.waitForIdle(); // UI events can trigger modifications of the menu contents
+    long started = System.currentTimeMillis();
 
-  @NotNull
-  private List<JPopupMenu> findShowingPopupMenus(final int expectedCount) {
-    final Ref<List<JPopupMenu>> ref = new Ref<>();
-    Wait.seconds(5).expecting(expectedCount + " JPopupMenus to show up")
-      .until(() -> {
-        List<JPopupMenu> popupMenus = Lists.newArrayList(myRobot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()));
-        boolean allFound = popupMenus.size() == expectedCount;
-        if (allFound) {
-          ref.set(popupMenus);
+    int initialPopups = isContextual ? 1 : robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()).size();
+    int popupsToClose = 0;
+    // Repeat attempts to open all nested menus until we either succeed or the timeout expires.
+    tryAgain:
+    while (true) {
+      // Close any previously opened popups.
+      while (
+        robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()).size() > initialPopups && popupsToClose > 0) {
+        robot.pressAndReleaseKey(KeyEvent.VK_ESCAPE);
+        popupsToClose--;
+      }
+      popupsToClose = 0;
+
+      Collection<JPopupMenu> initiallyVisible = robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing());
+      assertEquals(
+        String.format("Cannot open menu %s. Incorrect number of initially visible popups: %d (Expected: %d)",
+                      String.join(" / ", path), initiallyVisible.size(), initialPopups),
+        initialPopups, initiallyVisible.size());
+
+      // Check whether the timeout has expired after we closed all previously opened popups.
+      if (System.currentTimeMillis() - started > wait * 1000L) {
+        throw new WaitTimedOutError("Timed out while attempting to open: " + String.join(" / ", path));
+      }
+
+      Container root = isContextual ? robot.finder().findByType(JPopupMenu.class) : myContainer;
+
+      // Attempt to open nested menus and click the item. Do no wait for menu items to become enabled since they are not updated while
+      // popups are visible.
+      for (int i = 0; i < segmentCount; i++) {
+        String segment = path[i];
+        Collection<JMenuItem> menuItems = robot.finder().findAll(root, Matchers.byText(JMenuItem.class, segment));
+        if (menuItems.isEmpty()) continue tryAgain;
+        JMenuItem menuItem = ContainerUtil.getOnlyItem(menuItems);
+        GuiTask.execute(() -> menuItem.requestFocus());
+        robot.waitForIdle();
+        if (!GuiQuery.get(() -> menuItem.isEnabled())) continue tryAgain;
+        robot.moveMouse(menuItem);
+        robot.click(menuItem);
+        popupsToClose++;
+        if (GuiQuery.getNonNull(() -> menuItem.isShowing() && !menuItem.isEnabled())) {
+          System.out.printf("Menu item %s got disabled while clicking. Trying again...%n", String.join(" / ", Arrays.copyOf(path, i + 1)));
+          continue tryAgain;
         }
-        return allFound;
-      });
-    List<JPopupMenu> popupMenus = ref.get();
-    assertThat(popupMenus).hasSize(expectedCount);
-    return popupMenus;
-  }
+        if (i < segmentCount - 1) {
+          int expectedCount = i + 1 + initialPopups;
 
-  /**
-   * Returns whether a menu path is enabled
-   *
-   * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
-   */
-  public boolean isMenuPathEnabled(String... path) {
-    boolean isEnabled;
-    try {
-      isEnabled = findActionMenuItem(false, path).isEnabled();
-    } catch (ComponentLookupException e) {
-      isEnabled = false;
+          Collection<JPopupMenu> popups;
+          int counter = 100; // Wait approx 1 second for a popup to appear on hover/click.
+          do {
+            popups = robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing());
+            if (popups.size() == expectedCount) break;
+            Pause.pause();
+          }
+          while (counter-- > 0);
+          if (expectedCount != popups.size()) continue tryAgain;
+        }
+      }
+      break;
     }
-    // Close all opened menu before continuing.
-    while (myRobot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()).size() > 0) {
-      myRobot.pressAndReleaseKey(KeyEvent.VK_ESCAPE);
-    }
-    return isEnabled;
+    robot.waitForIdle();
   }
 }
