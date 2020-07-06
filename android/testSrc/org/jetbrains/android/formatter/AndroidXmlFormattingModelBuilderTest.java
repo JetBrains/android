@@ -19,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidXmlFormattingModelBuilderTest extends LightJavaCodeInsightFixtureTestCase {
 
-  public static final String LAYOUT_FILE = AndroidTestPaths.adtSources().resolve("android/testData/res/layout/test.xml").toAbsolutePath().toString();
+  public static final String LAYOUT_FILE = AndroidTestPaths.adtSources().resolve("android/testData/nonAndroidResources/res/layout/test.xml")
+    .toAbsolutePath().toString();
 
   public void testNotEngagedWhenNoAndroidFacet() {
     PsiFile psiFile = myFixture.configureByFile(LAYOUT_FILE);
