@@ -17,6 +17,7 @@ package com.android.tools.idea.deviceManager.displayList
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceColumnInfo
 import com.google.common.collect.Sets
@@ -98,6 +99,16 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
       add(notificationPanel, BorderLayout.NORTH)
     }
 
+
+    fun openWifiPairingDialog() {
+      if (project == null) {
+        logger.error("Cannot pair device without a project")
+        return
+      }
+      val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
+      controller.showDialog()
+    }
+
     /**
      * If no AVDs are present on the system, the AvdListDialog will display this panel.
      * It contains instructional messages about AVDs and a link to create a new AVD.
@@ -107,9 +118,7 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
         label("No physical devices added. Connect a device via USB cable or pair an Android 11+ device over Wi-Fi.")
       }
       row {
-        link("Pair over Wi-Fi") {
-          // TODO(qumeric)
-        }
+        link("Pair over Wi-Fi", action = ::openWifiPairingDialog)
       }
     }
 
