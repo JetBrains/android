@@ -210,7 +210,7 @@ private class ComponentTreeLoaderImpl(
     }
 
     private fun createViewMap(viewRoot: SkiaViewNode): Map<Long, SkiaViewNode> =
-      viewRoot.flatten().asSequence().filter { it.image != null }.associateBy { it.id.toLong() }
+      viewRoot.flatten().filter { it.image != null }.associateBy { it.id.toLong() }
 
     fun loadImages() {
       for ((drawId, node) in nodeMap) {

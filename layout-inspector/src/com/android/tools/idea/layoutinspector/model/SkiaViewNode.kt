@@ -53,7 +53,7 @@ class SkiaViewNode(
     children.add(child)
   }
 
-  fun flatten(): Collection<SkiaViewNode> {
-    return children.flatMap { it.flatten() }.plus(this)
+  fun flatten(): Sequence<SkiaViewNode> {
+    return children.asSequence().flatMap { it.flatten() }.plus(this)
   }
 }
