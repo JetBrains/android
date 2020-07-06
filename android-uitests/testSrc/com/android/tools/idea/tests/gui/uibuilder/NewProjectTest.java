@@ -34,7 +34,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.Notifications;
-import com.intellij.notification.NotificationsAdapter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
@@ -63,12 +62,12 @@ public class NewProjectTest {
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private MessageBusConnection notificationsBusConnection;
-  private List<String> balloonsDisplayed = Lists.newArrayList();
+  private final List<String> balloonsDisplayed = Lists.newArrayList();
 
   @Before
   public void setup() {
     notificationsBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
-    notificationsBusConnection.subscribe(Notifications.TOPIC, new NotificationsAdapter() {
+    notificationsBusConnection.subscribe(Notifications.TOPIC, new Notifications() {
       @Override
       public void notify(@NotNull Notification notification) {
         if (notification.getBalloon() != null) {
@@ -99,6 +98,7 @@ public class NewProjectTest {
 
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
+    //noinspection SpellCheckingInspection
     String inspectionResults = guiTest.ideFrame()
       .actAndWaitForGradleProjectSyncToFinish(
         it ->
@@ -114,6 +114,7 @@ public class NewProjectTest {
       .clickOk()
       .getResults();
 
+    //noinspection SpellCheckingInspection
     verifyOnlyExpectedWarnings(inspectionResults,
       "InspectionViewTree",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
@@ -227,7 +228,7 @@ public class NewProjectTest {
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(contents).contains("implementation \'androidx.recyclerview:recyclerview:");
+    assertThat(contents).contains("implementation 'androidx.recyclerview:recyclerview:");
   }
 
   @Test
