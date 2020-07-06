@@ -167,7 +167,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           it.getFacetsByType(GradleFacet.getFacetTypeId()) +
           it.getFacetsByType(AndroidFacet.ID) +
           it.getFacetsByType(JavaFacet.getFacetTypeId()) +
-          it.getFacetsByType(NdkFacet.getFacetTypeId())
+          it.getFacetsByType(NdkFacet.facetTypeId)
         }
       }
       .toMutableSet()
@@ -242,7 +242,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule) ?: return,
       prepare(JAVA_MODULE_MODEL, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
+      prepare(NDK_MODEL, { NdkFacet.getInstance(this) }, NdkFacet::setNdkModuleModel) ?: return
     )
   }
 
