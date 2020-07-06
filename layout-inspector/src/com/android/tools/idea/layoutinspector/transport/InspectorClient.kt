@@ -118,7 +118,7 @@ interface InspectorClient {
 
   companion object {
     /**
-     * Prove a way for tests to generate a mock client.
+     * Provide a way for tests to generate a mock client.
      */
     @VisibleForTesting
     var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->

@@ -19,24 +19,39 @@ import java.awt.Image
 
 /**
  * A view as seen in a Skia image.
- *
- * @param id the id in the Skia image which is also the id found by View.getUniqueDrawingId
- * @param type the qualified class name of the view
- * @param x the left edge of the view from the device left edge
- * @param y the top edge of the view from the device top edge
+ * We can only have children or an image, not both.
  *
  * TODO: maybe just use the proto coming from the parser directly instead of this class.
  */
-class SkiaViewNode(
+class SkiaViewNode private constructor(
   val id: String,
   val type: String,
   var x: Int,
   var y: Int,
   var width: Int,
   var height: Int,
-  var image: Image? = null,
-  children: List<SkiaViewNode> = listOf()
+  var image: Image?,
+  children: List<SkiaViewNode>
 ) {
+
+  constructor(id: String,
+              type: String,
+              x: Int,
+              y: Int,
+              width: Int,
+              height: Int,
+              children: List<SkiaViewNode> = listOf()
+  ) : this(id, type, x, y, width, height, null, children)
+
+  constructor(id: String,
+              type: String,
+              x: Int,
+              y: Int,
+              width: Int,
+              height: Int,
+              image: Image
+  ) : this(id, type, x, y, width, height, image, listOf())
+
   var imageGenerationTime: Long? = null
 
   /**

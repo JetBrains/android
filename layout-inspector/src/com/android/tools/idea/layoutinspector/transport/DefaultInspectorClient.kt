@@ -139,6 +139,7 @@ class DefaultInspectorClient(
   private val lowMemoryWatcher = LowMemoryWatcher.register(
     {
       model.root.children.clear()
+      model.root.drawChildren.clear()
       requestScreenshotMode()
       InspectorBannerService.getInstance(project).setNotification("Low Memory. Rotation disabled.")
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)

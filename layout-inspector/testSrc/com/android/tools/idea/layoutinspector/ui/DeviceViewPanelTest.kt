@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.PropertySetterRule
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboard
@@ -46,10 +47,8 @@ import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.Image
 import java.awt.Point
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -93,7 +92,7 @@ class DeviceViewPanelTest {
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock(DefaultInspectorClient::class.java)) },
+    { _, _ -> listOf(mock<DefaultInspectorClient>()) },
     InspectorClient.Companion::clientFactory)
 
   @Test
@@ -109,7 +108,9 @@ class DeviceViewPanelTest {
 
     val newModel = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+        view(VIEW1, 25, 30, 50, 50) {
+          image()
+        }
       }
     }
 
@@ -123,7 +124,9 @@ class DeviceViewPanelTest {
     // Update the model
     val newModel2 = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW2, 50, 20, 30, 40, imageBottom = mock(Image::class.java))
+        view(VIEW2, 50, 20, 30, 40) {
+          image()
+        }
       }
     }
     model.update(newModel2.root, ROOT, listOf(ROOT))
@@ -161,7 +164,9 @@ class DeviceViewPanelTest {
   private fun testPan(startPan: (FakeUi, DeviceViewPanel) -> Unit, endPan: (FakeUi, DeviceViewPanel) -> Unit, panButton: Button = LEFT) {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+        view(VIEW1, 25, 30, 50, 50) {
+          image()
+        }
       }
     }
 

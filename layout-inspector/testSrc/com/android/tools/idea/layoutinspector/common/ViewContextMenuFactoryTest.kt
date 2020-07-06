@@ -59,8 +59,11 @@ class ViewContextMenuFactoryTest {
   private var inspectorModel: InspectorModel? = model {
     view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
       view(VIEW1)
-      view(VIEW2, qualifiedName = "viewName", imageTop = mock()) {
-        view(VIEW3, textValue = "myText", imageTop = mock())
+      view(VIEW2, qualifiedName = "viewName") {
+        view(VIEW3, textValue = "myText") {
+          image()
+        }
+        image()
       }
     }
   }

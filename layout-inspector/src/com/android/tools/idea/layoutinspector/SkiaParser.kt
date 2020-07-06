@@ -46,7 +46,6 @@ import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
-import java.awt.Image
 import java.awt.Point
 import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage
@@ -124,8 +123,8 @@ object SkiaParser : SkiaParserService {
     }
     val width = node.width
     val height = node.height
-    var image: Image? = null
-    if (!node.image.isEmpty) {
+
+    return if (!node.image.isEmpty) {
       val intArray = IntArray(width * height)
       node.image.asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(intArray)
       val buffer = DataBufferInt(intArray, width * height)
@@ -134,11 +133,11 @@ object SkiaParser : SkiaParserService {
       val colorModel = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                         32, 0xff0000, 0xff00, 0xff, 0xff000000.toInt(), false, DataBuffer.TYPE_INT)
       @Suppress("UndesirableClassUsage")
-      image = BufferedImage(colorModel, raster, false, null)
+      SkiaViewNode(node.id, node.type, node.x, node.y, width, height, BufferedImage(colorModel, raster, false, null))
     }
-    val res = SkiaViewNode(node.id, node.type, node.x, node.y, width, height, image)
-    node.childrenList.mapNotNull { buildTree(it, isInterrupted) }.forEach { res.addChild(it) }
-    return res
+    else {
+      SkiaViewNode(node.id, node.type, node.x, node.y, width, height, node.childrenList.mapNotNull { buildTree(it, isInterrupted) })
+    }
   }
 
   /**

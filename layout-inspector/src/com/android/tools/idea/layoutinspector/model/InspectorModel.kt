@@ -21,12 +21,10 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
-import java.awt.Color
-import java.awt.image.BufferedImage
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
-const val DIMMER_QNAME = "DIM_BEHIND"
 
 class InspectorModel(val project: Project) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
@@ -34,8 +32,9 @@ class InspectorModel(val project: Project) {
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   val resourceLookup = ResourceLookup(project)
 
+  // TODO: store this at the window root
   private fun findSubimages(root: ViewNode?) =
-    root?.flatten()?.minus(root)?.any { it.imageBottom != null || it.imageTop != null } == true
+    root?.flatten()?.minus(root)?.any { it.drawChildren.firstIsInstanceOrNull<DrawViewImage>() != null } == true
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
     if (new != old) {
@@ -77,6 +76,7 @@ class InspectorModel(val project: Project) {
    */
   private fun updateRoot(allIds: List<*>) {
     root.children.clear()
+    root.drawChildren.clear()
     val maxWidth = roots.values.map { it.width }.max() ?: 0
     val maxHeight = roots.values.map { it.height }.max() ?: 0
     root.width = maxWidth
@@ -84,19 +84,10 @@ class InspectorModel(val project: Project) {
     for (id in allIds) {
       val viewNode = roots[id] ?: continue
       if (viewNode.isDimBehind) {
-        val dimmer = ViewNode(-1, DIMMER_QNAME, null, 0, 0, maxWidth, maxHeight, null, "", 0)
-        if (maxWidth > 0 && maxHeight > 0) {
-          // TODO: subclass ViewNode so we don't have to create and hold on to this image
-          val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
-          dimmer.imageBottom = image
-          val graphics = image.graphics
-          graphics.color = Color(0.0f, 0.0f, 0.0f, 0.5f)
-          graphics.fillRect(0, 0, maxWidth, maxHeight)
-        }
-        root.children.add(dimmer)
-        dimmer.parent = root
+        root.drawChildren.add(Dimmer(root))
       }
       root.children.add(viewNode)
+      root.drawChildren.add(DrawViewChild(viewNode))
       viewNode.parent = root
     }
   }
@@ -161,8 +152,6 @@ class InspectorModel(val project: Project) {
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?
       // Maybe each view should have its own modification listener that can listen for such changes?
-      oldNode.imageBottom = newNode.imageBottom
-      oldNode.imageTop = newNode.imageTop
       oldNode.width = newNode.width
       oldNode.height = newNode.height
       oldNode.qualifiedName = newNode.qualifiedName
@@ -179,15 +168,27 @@ class InspectorModel(val project: Project) {
       }
 
       oldNode.children.clear()
-      for (newChild in newNode.children) {
-        val oldChild = oldNodes[newChild.drawId]
-        if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
-          modified = update(oldChild, oldNode, newChild) || modified
-          oldNode.children.add(oldChild)
-        } else {
-          modified = true
-          oldNode.children.add(newChild)
-          newChild.parent = oldNode
+      oldNode.drawChildren.clear()
+      for (newChild in newNode.drawChildren) {
+        when (newChild) {
+          is DrawViewChild -> {
+            val newChildView = newChild.owner
+            val oldChild = oldNodes[newChildView.drawId]
+            if (oldChild != null && oldChild.javaClass == newChildView.javaClass) {
+              modified = update(oldChild, oldNode, newChildView) || modified
+              oldNode.children.add(oldChild)
+              oldNode.drawChildren.add(newChild)
+            }
+            else {
+              modified = true
+              oldNode.children.add(newChildView)
+              oldNode.drawChildren.add(newChild)
+              newChildView.parent = oldNode
+            }
+          }
+          is DrawViewImage -> {
+            oldNode.drawChildren.add(newChild)
+          }
         }
       }
       return modified

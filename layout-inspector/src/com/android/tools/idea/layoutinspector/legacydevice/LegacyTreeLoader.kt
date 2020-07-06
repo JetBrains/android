@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.legacydevice
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -77,13 +79,15 @@ object LegacyTreeLoader : TreeLoader {
     try {
       val imageData = imageHandler.getData()
       if (imageData != null) {
-        rootNode.imageBottom = ImageIO.read(ByteArrayInputStream(imageData))
+        rootNode.drawChildren.add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode.x, rootNode.y, rootNode))
       }
     }
     catch (e: IOException) {
       // We didn't get an image, but still return the hierarchy and properties
     }
-    if (rootNode.imageBottom != null) {
+    rootNode.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
+
+    if (rootNode.drawChildren.size != rootNode.children.size) {
       client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
     }
     else {
@@ -194,7 +198,7 @@ object LegacyTreeLoader : TreeLoader {
   }
 
   private class ListViewRootsHandler :
-    DebugViewDumpHandler(DebugViewDumpHandler.CHUNK_VULW) {
+    DebugViewDumpHandler(CHUNK_VULW) {
 
     private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
 

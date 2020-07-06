@@ -22,6 +22,10 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.ui.UIUtil
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.Rectangle
 
@@ -59,11 +63,12 @@ open class ViewNode(
   val children = mutableListOf<ViewNode>()
   var parent: ViewNode? = null
 
-  // imageBottom: the image painted before the sub views
-  var imageBottom: Image? = null
+  val parentSequence: Sequence<ViewNode>
+    get() = generateSequence(this) { it.parent }
 
-  // imageTop: the image painted after the sub views
-  var imageTop: Image? = null
+  // Views and images that will be drawn.
+  // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
+  val drawChildren = mutableListOf<DrawViewNode>()
 
   // The type of image we received from the device.
   var imageType: LayoutInspectorProto.ComponentTreeEvent.PayloadType = SKP
@@ -77,6 +82,7 @@ open class ViewNode(
   val unqualifiedName: String
     get() = qualifiedName.substringAfterLast('.')
 
+  // TODO: move to draw node
   var visible = true
 
   val isDimBehind: Boolean
@@ -84,5 +90,54 @@ open class ViewNode(
 
   fun flatten(): Collection<ViewNode> {
     return children.flatMap { it.flatten() }.plus(this)
+  }
+}
+
+/**
+ * A node in the hierarchy used to paint the device view. This is separate from the basic hierarchy ([ViewNode.children]) since views
+ * can do their own painting interleaved with painting their children, and we need to keep track of the order in which the operations
+ * happen.
+ */
+sealed class DrawViewNode(val owner: ViewNode) {
+  abstract fun paint(g2: Graphics2D, model: InspectorModel)
+}
+
+/**
+ * A draw view corresponding directly to a ViewNode. Doesn't do any painting itself.
+ */
+class DrawViewChild(owner: ViewNode): DrawViewNode(owner) {
+  override fun paint(g2: Graphics2D, model: InspectorModel) {}
+}
+
+/**
+ * A draw view that paints an image. The [owner] should be the view that does the painting, and is also the "draw parent" of this node.
+ */
+class DrawViewImage(@VisibleForTesting val image: Image,
+                    private val x: Int,
+                    private val y: Int,
+                    owner: ViewNode): DrawViewNode(owner) {
+  override fun paint(g2: Graphics2D, model: InspectorModel) {
+    val composite = g2.composite
+    // Check hasSubImages, since it doesn't make sense to dim if we're only showing one image.
+    if (model.selection != null && owner != model.selection && model.hasSubImages) {
+      g2.composite = AlphaComposite.SrcOver.derive(0.6f)
+    }
+    UIUtil.drawImage(g2, image, x, y, null)
+    g2.composite = composite
+  }
+}
+
+/**
+ * A draw view that draw a semi-transparent grey rectangle. Shown when a window has DIM_BEHIND set and is drawn over another window (e.g.
+ * a dialog box).
+ */
+class Dimmer(val root: ViewNode): DrawViewNode(root) {
+  override fun paint(g2: Graphics2D, model: InspectorModel) {
+    if (root.width > 0 && root.height > 0) {
+      val color = g2.color
+      g2.color = Color(0.0f, 0.0f, 0.0f, 0.5f)
+      g2.fillRect(0, 0, root.width, root.height)
+      g2.color = color
+    }
   }
 }

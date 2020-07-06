@@ -111,7 +111,7 @@ class LayoutInspectorTreePanelTest {
 
     model.update(view(VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2))
     UIUtil.dispatchAllInvocationEvents()
-    Truth.assertThat(jtree.rowCount).isEqualTo(3)
-    Truth.assertThat((jtree.getPathForRow(1).lastPathComponent as ViewNode).qualifiedName).isEqualTo("DIM_BEHIND")
+    // Still 2: the dimmer is drawn but isn't in the tree
+    Truth.assertThat(jtree.rowCount).isEqualTo(2)
   }
 }
