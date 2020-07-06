@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.rendering.HtmlBuilderHelper
@@ -42,16 +41,13 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     }
   }
 
-  class LintIssueWrapper(private val myIssue: LintAnnotationsModel.IssueData) : Issue() {
-
-    private var myDescription: String = createFullDescription()
-
+  class LintIssueWrapper(private val issue: LintAnnotationsModel.IssueData) : Issue() {
     private fun createFullDescription(): String {
-      val issue = myIssue.issue
+      val issue = issue.issue
       val headerFontColor = HtmlBuilderHelper.getHeaderFontColor()
       val builder = HtmlBuilder()
 
-      builder.addHtml(TextFormat.RAW.convertTo(myIssue.message, TextFormat.HTML))
+      builder.addHtml(TextFormat.RAW.convertTo(this.issue.message, TextFormat.HTML))
       builder.newline().newline()
       builder.addHtml(issue.getExplanation(TextFormat.HTML))
       builder.newline()
@@ -82,28 +78,24 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     }
 
     override val summary: String
-      get() = myIssue.issue.getBriefDescription(TextFormat.RAW)
+      get() = issue.issue.getBriefDescription(TextFormat.RAW)
 
-    override val description: String
-      get() = myDescription
+    override val description: String = createFullDescription()
 
-    override val severity: HighlightSeverity
-      get() = myIssue.level.severity
+    override val severity: HighlightSeverity = issue.level.severity
 
-    override val source: NlComponent?
-      get() = myIssue.component
+    override val source: IssueSource = issue.issueSource
 
-    override val category: String
-      get() = myIssue.issue.category.fullName
+    override val category: String = issue.issue.category.fullName
 
     override val fixes: Stream<Fix>
       get() {
-        val inspection = myIssue.inspection
+        val inspection = issue.inspection
         val quickFixes = inspection.getQuickFixes(
-          myIssue.startElement, myIssue.endElement,
-          myIssue.message, myIssue.quickfixData
+          issue.startElement, issue.endElement,
+          issue.message, issue.quickfixData
         )
-        val intentions = inspection.getIntentions(myIssue.startElement, myIssue.endElement)
+        val intentions = inspection.getIntentions(issue.startElement, issue.endElement)
         return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
       }
 
@@ -116,27 +108,27 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         return false
       }
       return (super.equals(other)
-          && other.myIssue.startElement == this.myIssue.startElement
-          && other.myIssue.endElement == this.myIssue.endElement)
+              && other.issue.startElement == this.issue.startElement
+              && other.issue.endElement == this.issue.endElement)
     }
 
     override fun hashCode(): Int {
       var res = super.hashCode()
-      res += 31 * Objects.hash(myIssue.startElement, myIssue.endElement)
+      res += 31 * Objects.hash(issue.startElement, issue.endElement)
       return res
     }
 
     private fun createQuickFixRunnable(fix: LintIdeQuickFix): Runnable {
       return Runnable {
-        val model = myIssue.component.model
-        val editor = PsiEditorUtil.findEditor(myIssue.startElement)
+        val model = issue.component.model
+        val editor = PsiEditorUtil.findEditor(issue.startElement)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(
             project,
             {
               WriteAction.run<Throwable> {
-                fix.apply(myIssue.startElement, myIssue.endElement, AndroidQuickfixContexts.BatchContext.getInstance())
+                fix.apply(issue.startElement, issue.endElement, AndroidQuickfixContexts.BatchContext.getInstance())
               }
             },
               EXECUTE_FIX + fix.name, null
@@ -147,8 +139,8 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
 
     private fun createQuickFixRunnable(fix: IntentionAction): Runnable {
       return Runnable {
-        val model = myIssue.component.model
-        val editor = PsiEditorUtil.findEditor(myIssue.startElement)
+        val model = issue.component.model
+        val editor = PsiEditorUtil.findEditor(issue.startElement)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(

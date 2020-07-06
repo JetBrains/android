@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
+import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
 import com.google.common.annotations.VisibleForTesting
@@ -70,7 +71,13 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
   /**
    * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
    */
-  fun createIssue(result: ValidatorData.Issue, source: NlComponent?) {
+  fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
+    val source = if (component == null) {
+      IssueSource.NONE
+    }
+    else {
+      IssueSource.fromNlComponent(component)
+    }
     issues.add(object : Issue() {
       override val summary: String
         get() =
@@ -97,14 +104,13 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
           }
         }
 
-      override val source: NlComponent?
-        get() = source
+      override val source: IssueSource = source
 
       override val category: String = ACCESSIBILITY_CATEGORY
 
       override val fixes: Stream<Fix>
         get() {
-          return convertToFix(this, source, result)
+          return convertToFix(this, component, result)
         }
 
       override val hyperlinkListener: HyperlinkListener?

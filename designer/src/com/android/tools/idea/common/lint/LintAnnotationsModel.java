@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.lint;
 
+import com.android.tools.idea.common.error.IssueSource;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.RtlDetector;
@@ -26,11 +27,9 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
-import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -131,6 +130,7 @@ public class LintAnnotationsModel {
     @NotNull public final PsiElement endElement;
     @NotNull public final PsiElement startElement;
     @NotNull public final NlComponent component;
+    @NotNull public final IssueSource issueSource;
     @Nullable public final AttributeKey attribute;
     @Nullable public final LintFix quickfixData;
 
@@ -144,6 +144,7 @@ public class LintAnnotationsModel {
                       @NotNull PsiElement endElement,
                       @Nullable LintFix quickfixData) {
       this.component = component;
+      this.issueSource = IssueSource.fromNlComponent(component);
       this.attribute = attribute;
       this.inspection = inspection;
       this.issue = issue;
