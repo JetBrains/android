@@ -23,22 +23,19 @@ import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithC
 import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
 import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.gradle.internal.impldep.org.eclipse.jgit.util.StringUtils.isEmptyOrNull;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.PortField;
 import com.intellij.ui.RawCommandLineEditor;
 import java.util.Properties;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
+import javax.swing.*;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +63,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
   public ProxySettingsDialog(@NotNull Project project, @NotNull ProxySettings httpProxySettings) {
     super(project);
-    setTitle("Proxy Settings");
+    setTitle(AndroidBundle.message("android.proxy.settings.dialog.title"));
     setOKButtonText("Yes");
     setCancelButtonText("No");
 
@@ -79,12 +76,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessageTextLabel);
     myMessageTextLabel.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    String text = "<html>Android Studio is configured to use a HTTP proxy. " +
-                  "Gradle may need these HTTP proxy settings to access the Internet (e.g. for downloading dependencies.)<br/><br/>" +
-                  "Do you want to store the following HTTP settings into the global gradle.properties file?<br/><br/>" +
-                  "<b>Note:</b> You can manually set passwords in the gradle.properties file at your own risk.<br/><br/>" +
-                  "For more details, please refer to the " +
-                  "<a href='https://developer.android.com/studio/intro/studio-config.html#proxy'>Android Studio documentation</a>.<br/><br/>";
+    String text = AndroidBundle.message("android.proxy.settings.dialog.message", ApplicationNamesInfo.getInstance().getProductName());
     myMessageTextLabel.setText(text);
 
     myHttpProxyHostTextField.setText(httpProxySettings.getHost());
