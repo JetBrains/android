@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 
 /** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
@@ -37,8 +38,8 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
   public void testOverlayOrder() throws Exception {
     loadProject(PROJECT_WITH_APPAND_LIB);
     createFile(
-        getProject().getBaseDir(),
-        "app/src/debug/res/values/strings.xml",
+      PlatformTestUtil.getOrCreateProjectBaseDir(getProject()),
+      "app/src/debug/res/values/strings.xml",
         "" +
         "<resources>\n" +
         "  <string name=\"app_name\">This app_name definition should win</string>\n" +
@@ -63,7 +64,7 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
     assertThat(repository.getAllResources()).isEmpty();
 
     createFile(
-      getProject().getBaseDir(),
+      PlatformTestUtil.getOrCreateProjectBaseDir(getProject()),
       "app/src/androidTest/res/values/strings.xml",
       "" +
       "<resources>\n" +

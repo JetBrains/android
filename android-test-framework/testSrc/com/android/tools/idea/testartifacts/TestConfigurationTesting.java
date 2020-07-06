@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.testartifacts;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -33,11 +36,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.MapDataContext;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s, {@link AndroidJUnitConfiguration}s and their interactions
@@ -104,7 +105,7 @@ public class TestConfigurationTesting {
   @NotNull
   @VisibleForTesting
   public static PsiElement getPsiElement(@NotNull Project project, @NotNull String file, boolean isDirectory) {
-    VirtualFile virtualFile = findRelativeFile(file, project.getBaseDir());
+    VirtualFile virtualFile = findRelativeFile(file, PlatformTestUtil.getOrCreateProjectBaseDir(project));
     assertNotNull(virtualFile);
     PsiElement element = isDirectory ? PsiManager.getInstance(project).findDirectory(virtualFile)
                                      : PsiManager.getInstance(project).findFile(virtualFile);

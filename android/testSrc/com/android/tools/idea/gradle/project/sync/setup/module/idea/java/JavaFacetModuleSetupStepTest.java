@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -25,16 +32,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
-
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static org.mockito.Mockito.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link JavaFacetModuleSetupStep}.
@@ -54,7 +55,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
     createAndAddGradleFacet(getModule());
 
     JavaFacet facet = createAndAddJavaFacet(getModule());
-    File buildFolderPath = createTempDir("build", true);
+    File buildFolderPath = createTempDir("build");
     boolean buildable = true;
 
     JavaModuleModel javaModel = mock(JavaModuleModel.class);
@@ -76,7 +77,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   public void testDoSetUpModuleWithNewJavaFacet() throws IOException {
     createAndAddGradleFacet(getModule());
 
-    File buildFolderPath = createTempDir("build", true);
+    File buildFolderPath = createTempDir("build");
     boolean buildable = true;
 
     JavaModuleModel javaModel = mock(JavaModuleModel.class);
@@ -115,7 +116,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   }
 
   public void testDoSetUpModuleWithoutGradleFacet() throws IOException {
-    File buildFolderPath = createTempDir("build", true);
+    File buildFolderPath = createTempDir("build");
     boolean buildable = true;
 
     JavaModuleModel javaModel = mock(JavaModuleModel.class);

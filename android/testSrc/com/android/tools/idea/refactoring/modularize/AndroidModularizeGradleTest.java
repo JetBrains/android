@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.PlatformTestUtil;
 
 public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
@@ -102,10 +103,11 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
   }
 
   private void verifyMoved(String relativePath) {
-    VirtualFile srcFile = getProject().getBaseDir().findFileByRelativePath("app/" + relativePath);
+    VirtualFile projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
+    VirtualFile srcFile = projectBaseDir.findFileByRelativePath("app/" + relativePath);
     assertFalse("Expected to have moved: " + srcFile, srcFile != null && srcFile.exists());
-    VirtualFile destFile = getProject().getBaseDir().findFileByRelativePath("library/" + relativePath);
-    assertTrue("Expected to find: " + getProject().getBaseDir() + "/library/" + relativePath,
+    VirtualFile destFile = projectBaseDir.findFileByRelativePath("library/" + relativePath);
+    assertTrue("Expected to find: " + projectBaseDir + "/library/" + relativePath,
                destFile != null && destFile.exists());
   }
 }

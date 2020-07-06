@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
@@ -31,27 +37,23 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.android.tools.idea.util.FileExtensions.toIoFile;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link ContentRootsModuleSetupStep}.
  */
-public class ContentRootsModuleSetupStepTest extends PlatformTestCase {
+public class ContentRootsModuleSetupStepTest extends HeavyPlatformTestCase {
   @Mock private AndroidContentEntriesSetup.Factory myFactory;
   @Mock private AndroidContentEntriesSetup mySetup;
   @Mock private AndroidModuleModel myAndroidModel;
@@ -66,33 +68,26 @@ public class ContentRootsModuleSetupStepTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    myModuleFolder = getModuleFolder();
-    VirtualFile buildFolder = findOrCreateChildFolder(myModuleFolder, "build");
+    Path dir = getModule().getModuleNioFile().getParent();
+    Files.createDirectories(dir);
+    VirtualFile virtualDir = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(dir);
+    myModuleFolder = virtualDir;
+    VirtualFile buildFolder = findOrCreateChildFolder(virtualDir, "build");
 
-    when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
-
+    when(myAndroidProject.getBuildFolder()).thenReturn(buildFolder.toNioPath().toFile());
     when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
-    when(myAndroidModel.getRootDirPath()).thenReturn(toIoFile(myModuleFolder));
-    when(myAndroidModel.getRootDirPath()).thenReturn(virtualToIoFile(myModuleFolder));
+    when(myAndroidModel.getRootDirPath()).thenReturn(dir.toFile());
 
     addContentRoots("a", "b", "c");
 
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-
     mySetupStep = new ContentRootsModuleSetupStep(myFactory);
-  }
-
-  @NotNull
-  private VirtualFile getModuleFolder() {
-    VirtualFile imlFile = getModule().getModuleFile();
-    assertNotNull(imlFile);
-    return imlFile.getParent();
   }
 
   private void addContentRoots(@NotNull String... names) throws IOException {
     assertThat(names).isNotEmpty();
 
-    VirtualFile projectFolder = getProject().getBaseDir();
+    VirtualFile projectFolder = getOrCreateProjectBaseDir();
 
     Module module = getModule();
     ModuleRootManager manager = ModuleRootManager.getInstance(module);

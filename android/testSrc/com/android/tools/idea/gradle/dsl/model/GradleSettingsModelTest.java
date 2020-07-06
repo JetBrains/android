@@ -73,7 +73,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     ProjectBuildModel projectModel = ProjectBuildModel.get(myProject);
     GradleBuildModel buildModel = projectModel.getModuleBuildModel(newModule);
-
     assertNotNull(buildModel);
   }
 

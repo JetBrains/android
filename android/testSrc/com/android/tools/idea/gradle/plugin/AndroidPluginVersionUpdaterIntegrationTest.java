@@ -93,7 +93,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
 
   @NotNull
   private static GradleBuildModel getTopLevelBuildModel(@NotNull Project project) {
-    VirtualFile buildFile = PlatformTestUtil.getOrCreateProjectTestBaseDir(project).findChild(FN_BUILD_GRADLE);
+    VirtualFile buildFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).findChild(FN_BUILD_GRADLE);
     assertNotNull(buildFile);
     return parseBuildFile(buildFile, project);
   }

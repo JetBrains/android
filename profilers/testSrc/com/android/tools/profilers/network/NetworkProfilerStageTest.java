@@ -44,11 +44,11 @@ import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
@@ -315,7 +315,7 @@ public class NetworkProfilerStageTest {
     myStage.setSelectedConnection(data);
     assertThat(myStage.getSelectedConnection()).isEqualTo(data);
     Payload selectedConnectionPayload = Payload.newResponsePayload(myStage.getConnectionsModel(), myStage.getSelectedConnection());
-    assertThat(selectedConnectionPayload.getBytes().toString(Charsets.UTF_8)).isEqualTo(content);
+    assertThat(selectedConnectionPayload.getBytes().toString(StandardCharsets.UTF_8)).isEqualTo(content);
     assertThat(connectionChanged[0]).isEqualTo(true);
   }
 
@@ -349,7 +349,7 @@ public class NetworkProfilerStageTest {
     myTransportService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
-    String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
+    String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(StandardCharsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -366,7 +366,7 @@ public class NetworkProfilerStageTest {
     myTransportService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
-    String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
+    String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(StandardCharsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -389,7 +389,7 @@ public class NetworkProfilerStageTest {
     myTransportService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     myStage.setSelectedConnection(data);
-    String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
+    String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(StandardCharsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -406,7 +406,7 @@ public class NetworkProfilerStageTest {
     myTransportService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     myStage.setSelectedConnection(data);
-    String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
+    String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(StandardCharsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 

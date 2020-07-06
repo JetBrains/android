@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.device;
 
+import static com.android.tools.idea.device.DeviceArtPainter.DeviceData;
+import static com.android.tools.idea.device.DeviceArtPainter.FrameData;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.SdkConstants;
 import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
@@ -22,9 +28,18 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpMetadata;
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.BeforeClass;
@@ -32,20 +47,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-
-import static com.android.tools.idea.device.DeviceArtPainter.DeviceData;
-import static com.android.tools.idea.device.DeviceArtPainter.FrameData;
-import static org.junit.Assert.*;
 
 /**
  * If adding a new device (new device art), run the tests to generate crop data and insert
@@ -377,7 +378,7 @@ public class DeviceArtPainterTest {
       // (3) Rewrite emulator skin file
       File layoutFile = new File(srcDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
       if (layoutFile.exists() && !spec.getId().startsWith("tv_")) { // no crop data in tv (and lack of portrait fails below)
-        String layout = Files.toString(layoutFile, Charsets.UTF_8);
+        String layout = Files.toString(layoutFile, StandardCharsets.UTF_8);
         final Rectangle portraitCrop = spec.getCrop(ScreenOrientation.PORTRAIT);
         if (portraitCrop != null) {
           final Rectangle landscapeCrop = spec.getCrop(ScreenOrientation.LANDSCAPE);
@@ -409,7 +410,7 @@ public class DeviceArtPainterTest {
             boolean mkdirs = outputLayoutFile.getParentFile().mkdirs();
             assertTrue(mkdirs);
           }
-          Files.write(layout, outputLayoutFile, Charsets.UTF_8);
+          Files.write(layout, outputLayoutFile, StandardCharsets.UTF_8);
         } // else: No crop data found; this device frame has already been cropped
       }
 
@@ -418,7 +419,7 @@ public class DeviceArtPainterTest {
     sb.append("\n</devices>\n");
 
     File deviceArt = new File(destDir, "device-art.xml");
-    Files.write(sb.toString(), deviceArt, Charsets.UTF_8);
+    Files.write(sb.toString(), deviceArt, StandardCharsets.UTF_8);
     System.out.println("Wrote device art file " + deviceArt);
   }
 

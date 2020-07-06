@@ -34,7 +34,6 @@ import com.intellij.pom.java.LanguageLevel;
 import java.util.List;
 import org.junit.Test;
 
-
 /**
  * Tests subprojects section of the build.gradle file.
  */

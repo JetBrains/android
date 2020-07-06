@@ -16,25 +16,21 @@
 package com.android.tools.idea.gradle.dsl
 
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import junit.framework.TestCase
 import org.junit.Test
-import java.io.File
 
-class KotlinParserTest : PlatformTestCase() {
+class KotlinParserTest : HeavyPlatformTestCase() {
   @Test
   fun testKotlinParserEnabledByDefault() {
     runWriteAction {
-      val basePath = myProject.basePath
-      TestCase.assertNotNull(basePath)
-      val projectBasePath = VfsUtil.findFile(File(basePath!!).toPath(), true)!!
+      val projectBasePath = getOrCreateProjectBaseDir()
       TestCase.assertTrue(projectBasePath.isDirectory)
-      val modulePath = myModule.moduleFile!!.parent
-      TestCase.assertTrue(modulePath.isDirectory)
+      val modulePath = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(module.moduleNioFile.parent)!!
       val buildFile = modulePath.createChildData(this, FN_BUILD_GRADLE_KTS)
       VfsUtil.saveText(buildFile, """
         dependencies {

@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.template.KotlinVersionProvider;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
@@ -64,6 +63,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -133,7 +133,7 @@ public class AndroidGradleTests {
     String kotlinVersion = KotlinVersionProvider.getInstance().getKotlinVersionForGradle();
 
     if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
-      String contentsOrig = Files.toString(path, Charsets.UTF_8);
+      String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
       String contents = contentsOrig;
       if (localRepositories == null) {
         localRepositories = getLocalRepositoriesForGroovy();
@@ -158,11 +158,11 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        asCharSink(path, Charsets.UTF_8).write(contents);
+        asCharSink(path, StandardCharsets.UTF_8).write(contents);
       }
     }
     else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
-      String contentsOrig = Files.toString(path, Charsets.UTF_8);
+      String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
       String contents = contentsOrig;
       if (localRepositories == null) {
         localRepositories = getLocalRepositoriesForKotlin();
@@ -184,7 +184,7 @@ public class AndroidGradleTests {
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        asCharSink(path, Charsets.UTF_8).write(contents);
+        asCharSink(path, StandardCharsets.UTF_8).write(contents);
       }
     }
   }
@@ -235,7 +235,7 @@ public class AndroidGradleTests {
   public static void applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(File projectRoot) throws IOException {
     File projectBuildGradle = new File(projectRoot, "build.gradle");
     if (projectBuildGradle.isFile()) {
-      asCharSink(projectBuildGradle, Charsets.UTF_8, FileWriteMode.APPEND).write(
+      asCharSink(projectBuildGradle, StandardCharsets.UTF_8, FileWriteMode.APPEND).write(
         "\n\n" +
         "// Ugly workaround for OOME:Metaspace in Gradle daemon\n" +
         "gradle.services.get(org.gradle.tooling.internal.provider.serialization.PayloadSerializer.class)\n" +

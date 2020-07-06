@@ -121,10 +121,10 @@ public class InferSupportAnnotationsTest extends JavaCodeInsightTestCase {
                   "  Method d:\n" +
                   "    Parameter int id:\n" +
                   "      @DrawableRes because it calls D#something",
-           getVirtualFile(INFER_PATH + "A.java"),
-           getVirtualFile(INFER_PATH + "B.java"),
-           getVirtualFile(INFER_PATH + "C.java"),
-           getVirtualFile(INFER_PATH + "D.java"));
+           findVirtualFile(INFER_PATH + "A.java"),
+           findVirtualFile(INFER_PATH + "B.java"),
+           findVirtualFile(INFER_PATH + "C.java"),
+           findVirtualFile(INFER_PATH + "D.java"));
   }
 
   public void testPutValue() throws Exception {

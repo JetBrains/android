@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.projectImport.ProjectImportProvider;
-import com.intellij.testFramework.PlatformTestCase;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class AndroidGradleProjectImportProviderTest extends PlatformTestCase {
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.projectImport.ProjectImportProvider;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
+public class AndroidGradleProjectImportProviderTest extends HeavyPlatformTestCase {
   private GradleProjectImporter mockGradleProjectImporter;
 
   @Override
@@ -37,12 +33,7 @@ public class AndroidGradleProjectImportProviderTest extends PlatformTestCase {
   }
 
   public void testDelegatesToGradleProjectImporter() {
-    ProjectImportProvider[] providers = ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions();
-    List<ProjectImportProvider> androidProviders = Arrays.stream(providers)
-                                                         .filter(imp -> imp instanceof AndroidGradleProjectImportProvider)
-                                                         .collect(Collectors.toList());
-    assertSize(1, androidProviders);
-    androidProviders.get(0).getBuilder().commit(getProject());
+    ProjectImportProvider.PROJECT_IMPORT_PROVIDER.findExtensionOrFail(AndroidGradleProjectImportProvider.class).getBuilder().commit(getProject());
     verify(mockGradleProjectImporter, times(1)).importProjectCore(eq(getProject().getBaseDir()), eq(getProject()));
   }
 }

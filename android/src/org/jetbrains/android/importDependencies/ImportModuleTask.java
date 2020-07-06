@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.importDependencies;
 
 import com.intellij.openapi.application.ApplicationManager;
@@ -7,29 +8,26 @@ import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jdom.JDOMException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.IOException;
-
-/**
-* @author Eugene.Kudelevsky
-*/
-class ImportModuleTask extends ModuleProvidingTask {
+final class ImportModuleTask extends ModuleProvidingTask {
   private final Project myProject;
   private final String myModuleFilePath;
   private final VirtualFile myContentRoot;
 
-  public ImportModuleTask(@NotNull Project project,
-                          @NotNull String moduleFilePath,
-                          @NotNull VirtualFile contentRoot) {
+  ImportModuleTask(@NotNull Project project,
+                   @NotNull String moduleFilePath,
+                   @NotNull VirtualFile contentRoot) {
     myModuleFilePath = moduleFilePath;
     myContentRoot = contentRoot;
     myProject = project;
@@ -37,20 +35,17 @@ class ImportModuleTask extends ModuleProvidingTask {
 
   @Override
   public Exception perform() {
-    final Module[] moduleWrapper = {null};
+    Ref<Module> moduleWrapper = new Ref<>();
     final Exception exception = ApplicationManager.getApplication().runWriteAction(new Computable<Exception>() {
       @Override
       public Exception compute() {
         try {
-          moduleWrapper[0] = ModuleManager.getInstance(myProject).loadModule(myModuleFilePath);
+          moduleWrapper.set(ModuleManager.getInstance(myProject).loadModule(Paths.get(myModuleFilePath)));
         }
         catch (InvalidDataException e) {
           return e;
         }
         catch (IOException e) {
-          return e;
-        }
-        catch (JDOMException e) {
           return e;
         }
         catch (ModuleWithNameAlreadyExists e) {
@@ -63,12 +58,12 @@ class ImportModuleTask extends ModuleProvidingTask {
     if (exception != null) {
       return exception;
     }
-    assert moduleWrapper[0] != null;
-    if (AndroidFacet.getInstance(moduleWrapper[0]) == null) {
-      AndroidUtils.addAndroidFacetInWriteAction(moduleWrapper[0], myContentRoot, true);
+    Module module = moduleWrapper.get();
+    if (AndroidFacet.getInstance(module) == null) {
+      AndroidUtils.addAndroidFacetInWriteAction(module, myContentRoot, true);
     }
-    AndroidSdkUtils.setupAndroidPlatformIfNecessary(moduleWrapper[0], false);
-    setDepModule(moduleWrapper[0]);
+    AndroidSdkUtils.setupAndroidPlatformIfNecessary(module, false);
+    setDepModule(module);
     return null;
   }
 

@@ -2624,7 +2624,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
-    ApplicationManager.getApplication().runWriteAction { PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject).fileSystem.refresh(false) }
+    ApplicationManager.getApplication().runWriteAction { PlatformTestUtil.getOrCreateProjectBaseDir(myProject).fileSystem.refresh(false) }
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")

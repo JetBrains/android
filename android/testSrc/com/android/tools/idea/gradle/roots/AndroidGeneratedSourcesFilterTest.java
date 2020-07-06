@@ -15,30 +15,31 @@
  */
 package com.android.tools.idea.gradle.roots;
 
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.io.IOException;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
-public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
+public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 
@@ -74,14 +75,14 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
   }
 
   @NotNull
-  private static VirtualFile getRootFolder(@NotNull Module module) {
-    VirtualFile moduleFile = module.getModuleFile();
-    assertNotNull(moduleFile);
-    return moduleFile.getParent();
+  private static VirtualFile getRootFolder(@NotNull Module module) throws IOException {
+    Path dir = module.getModuleNioFile().getParent();
+    Files.createDirectories(dir);
+    return LocalFileSystem.getInstance().refreshAndFindFileByNioFile(dir);
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInGradleProject() throws IOException {
-    VirtualFile rootFolder = getProject().getBaseDir();
+    VirtualFile rootFolder = getOrCreateProjectBaseDir();
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
 
@@ -92,7 +93,7 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInNonGradleProject() throws IOException {
-    VirtualFile rootFolder = getProject().getBaseDir();
+    VirtualFile rootFolder = getOrCreateProjectBaseDir();
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
 
@@ -113,7 +114,7 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileOutsideBuildFolderInGradleProject() throws IOException {
-    VirtualFile rootFolder = getProject().getBaseDir();
+    VirtualFile rootFolder = getOrCreateProjectBaseDir();
     VirtualFile target = createFile(rootFolder, "foo.txt");
 
     when(myProjectInfo.findAndroidModelInModule(target)).thenReturn(null); // Android model not found.
