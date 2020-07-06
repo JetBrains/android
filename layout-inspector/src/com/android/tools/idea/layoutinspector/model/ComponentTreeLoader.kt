@@ -144,7 +144,7 @@ private class ComponentTreeLoaderImpl(
     client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
-  private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<InspectorView?, String?> {
+  private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
       val root = skiaParser.getViewTree(bytes) { isInterrupted }
@@ -202,7 +202,7 @@ private class ComponentTreeLoaderImpl(
     return if (packageName.isEmpty()) "" else "$packageName."
   }
 
-  private class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {
+  private class ComponentImageLoader(root: ViewNode, viewRoot: SkiaViewNode) {
     private val nodeMap = root.flatten().associateBy { it.drawId }
     private val viewMap = viewRoot.flatten().associateBy { it.id.toLong() }
     private val offset = root.bounds.location
@@ -220,7 +220,7 @@ private class ComponentTreeLoaderImpl(
       }
     }
 
-    private fun addChildNodeImages(node: ViewNode, view: InspectorView) {
+    private fun addChildNodeImages(node: ViewNode, view: SkiaViewNode) {
       var beforeChildren = true
       for (child in view.children) {
         val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
@@ -237,7 +237,7 @@ private class ComponentTreeLoaderImpl(
     }
 
     private fun combine(image: Image?,
-                        view: InspectorView,
+                        view: SkiaViewNode,
                         bounds: Rectangle): Image? {
       if (view.image == null) {
         return image

@@ -22,7 +22,7 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.SkiaViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.proto.SkiaParserServiceGrpc
 import com.android.tools.idea.protobuf.ByteString
@@ -75,7 +75,7 @@ class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
-  fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean = { false }): InspectorView?
+  fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean = { false }): SkiaViewNode?
 
   fun shutdownAll()
 }
@@ -97,7 +97,7 @@ object SkiaParser : SkiaParserService {
 
   @Slow
   @Throws(InvalidPictureException::class)
-  override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): InspectorView? {
+  override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): SkiaViewNode? {
     val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
     val response = server.getViewTree(data)
     return response?.root?.let {
@@ -117,7 +117,7 @@ object SkiaParser : SkiaParserService {
   }
 
   @VisibleForTesting
-  fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): InspectorView? {
+  fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): SkiaViewNode? {
     if (isInterrupted()) {
       throw InterruptedException()
     }
@@ -135,7 +135,7 @@ object SkiaParser : SkiaParserService {
       @Suppress("UndesirableClassUsage")
       image = BufferedImage(colorModel, raster, false, null)
     }
-    val res = InspectorView(node.id, node.type, node.x, node.y, width, height, image)
+    val res = SkiaViewNode(node.id, node.type, node.x, node.y, width, height, image)
     node.childrenList.mapNotNull { buildTree(it, isInterrupted) }.forEach { res.addChild(it) }
     return res
   }

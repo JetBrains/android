@@ -120,11 +120,11 @@ class ComponentTreeLoaderTest {
     val image3 = mock(Image::class.java)
     val image4 = mock(Image::class.java)
 
-    val skiaResponse = InspectorView("1", "com.example.MyViewClass1", 0, 0, 100, 200, image1, listOf(
-      InspectorView("2", "com.example.MyViewClass2", 10, 10, 50, 100, image2, listOf(
-        InspectorView("3", "com.example.MyViewClass1", 20, 20, 20, 50, image3)
+    val skiaResponse = SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, image1, listOf(
+      SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, image2, listOf(
+        SkiaViewNode("3", "com.example.MyViewClass1", 20, 20, 20, 50, image3)
       )),
-      InspectorView("4", "com.example.MyViewClass2", 30, 120, 40, 50, image4)
+      SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, image4)
     ))
 
     val client = mock(DefaultInspectorClient::class.java)

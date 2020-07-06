@@ -25,10 +25,9 @@ import java.awt.Image
  * @param x the left edge of the view from the device left edge
  * @param y the top edge of the view from the device top edge
  *
- * Currently primarily created through JNI by the skia parser.
- * TODO: Rename this class to e.g. SkiaViewNode
+ * TODO: maybe just use the proto coming from the parser directly instead of this class.
  */
-class InspectorView(
+class SkiaViewNode(
   val id: String,
   val type: String,
   var x: Int,
@@ -36,25 +35,25 @@ class InspectorView(
   var width: Int,
   var height: Int,
   var image: Image? = null,
-  children: List<InspectorView> = listOf()
+  children: List<SkiaViewNode> = listOf()
 ) {
   var imageGenerationTime: Long? = null
 
   /**
    * Map of View IDs to views.
    */
-  val children: MutableList<InspectorView> = mutableListOf()
+  val children: MutableList<SkiaViewNode> = mutableListOf()
 
   init {
     children.forEach { addChild(it) }
   }
 
   @Suppress("unused") // invoked via reflection
-  fun addChild(child: InspectorView) {
+  fun addChild(child: SkiaViewNode) {
     children.add(child)
   }
 
-  fun flatten(): Collection<InspectorView> {
+  fun flatten(): Collection<SkiaViewNode> {
     return children.flatMap { it.flatten() }.plus(this)
   }
 }
