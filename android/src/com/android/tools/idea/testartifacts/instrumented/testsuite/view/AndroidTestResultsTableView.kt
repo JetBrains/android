@@ -32,6 +32,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.Location
+import com.intellij.execution.PsiLocation
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -44,6 +46,7 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.Gray
@@ -389,16 +392,32 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   }
 
   override fun getData(dataId: String): Any? {
-    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-      val selectedTestResults = selectedObject ?: return null
-      val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
-      return selectedTestResults.getFullTestClassName().let {
-        javaPsiFacade.findClasses(it, androidTestSourceScope)
-      }.mapNotNull {
-        it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
-      }.firstOrNull()
+    return when {
+      CommonDataKeys.PROJECT.`is`(dataId) -> {
+        javaPsiFacade.project
+      }
+      CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
+        val selectedTestResults = selectedObject ?: return null
+        val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
+        val testClasses = selectedTestResults.getFullTestClassName().let {
+          javaPsiFacade.findClasses(it, androidTestSourceScope)
+        }
+        testClasses.mapNotNull {
+          it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
+        }.firstOrNull()?.let { return it }
+        testClasses.firstOrNull()?.let { return it }
+      }
+      Location.DATA_KEY.`is`(dataId) -> {
+        val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
+        val module = testArtifactSearchScopes?.module
+        if (module == null) {
+          PsiLocation.fromPsiElement(psiElement)
+        } else {
+          PsiLocation.fromPsiElement(psiElement, module)
+        }
+      }
+      else -> null
     }
-    return null
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {
