@@ -143,7 +143,7 @@
 
 
     <action id="Android.Designer.LayoutValidatorAction"
-            text="Run Layout Validator"
+            text="Run accessibility scanner"
             icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
             class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
     </action>
