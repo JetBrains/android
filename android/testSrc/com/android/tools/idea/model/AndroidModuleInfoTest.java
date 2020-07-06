@@ -116,7 +116,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void /*test*/ManifestPlaceholderCompletion() throws Exception {
     loadProject(MODULE_INFO_MERGE);
     assertNotNull(myAndroidFacet);
-    VirtualFile file = PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()).findFileByRelativePath("src/main/AndroidManifest.xml");
+    VirtualFile file = PlatformTestUtil.getOrCreateProjectBaseDir(getProject()).findFileByRelativePath("src/main/AndroidManifest.xml");
     assertNotNull(file);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);

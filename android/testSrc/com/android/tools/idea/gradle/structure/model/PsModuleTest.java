@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.hamcrest.Matcher;
 
 import java.util.List;
@@ -81,7 +82,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
   }
 
   private Document getDocument() {
-    VirtualFile buildFile = myFixture.getProject().getBaseDir().findFileByRelativePath("app/build.gradle");
+    VirtualFile buildFile = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()).findFileByRelativePath("app/build.gradle");
     return FileDocumentManager.getInstance().getDocument(buildFile);
   }
 }

@@ -89,18 +89,11 @@ public class ContentEntriesTest extends PlatformTestCase {
   }
 
   @NotNull
-  private static ContentEntry createContentEntry(@NotNull Module module) {
-    VirtualFile rootFolder = getRootFolderOf(module);
+  private ContentEntry createContentEntry(@NotNull Module module) {
+    VirtualFile rootFolder = getTempDir().createVirtualDir();
     ModifiableRootModel rootModel = ModuleRootManager.getInstance(module).getModifiableModel();
     ContentEntry contentEntry = rootModel.addContentEntry(rootFolder);
     ApplicationManager.getApplication().runWriteAction(rootModel::commit);
     return contentEntry;
-  }
-
-  @NotNull
-  private static VirtualFile getRootFolderOf(@NotNull Module module) {
-    VirtualFile moduleFile = module.getModuleFile();
-    assertNotNull(moduleFile);
-    return moduleFile.getParent();
   }
 }

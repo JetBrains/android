@@ -37,6 +37,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.MapDataContext;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.Nullable;
@@ -197,7 +198,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   public void testRuntimeQualifiedNameIsUsed() throws Exception {
     loadSimpleApplication();
 
-    File projectDir = VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir());
+    File projectDir = VfsUtilCore.virtualToIoFile(PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()));
     File newTestFile = new File(projectDir, "app/src/androidTest/java/google/simpleapplication/SomeTest.java");
     Files.createParentDirs(newTestFile);
     Files.write(

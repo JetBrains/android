@@ -30,6 +30,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -275,7 +276,7 @@ b/146019491 */
     final String mainActivityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt";
 
     loadProject(ANDROIDX_SIMPLE);
-    VirtualFile mainActivityFile = myFixture.getProject().getBaseDir().findFileByRelativePath(mainActivityPath);
+    VirtualFile mainActivityFile = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()).findFileByRelativePath(mainActivityPath);
     String mainActivityKt = getTextForFile(mainActivityPath);
     mainActivityKt = mainActivityKt.replaceAll("import androidx.appcompat.app.AppCompatActivity",
                               "import android.app.Activity");

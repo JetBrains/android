@@ -54,7 +54,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
     createAndAddGradleFacet(getModule());
 
     JavaFacet facet = createAndAddJavaFacet(getModule());
-    File buildFolderPath = createTempDir("build", true);
+    File buildFolderPath = createTempDir("build");
     boolean buildable = true;
 
     JavaModuleModel javaModel = mock(JavaModuleModel.class);
@@ -76,7 +76,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   public void testDoSetUpModuleWithNewJavaFacet() throws IOException {
     createAndAddGradleFacet(getModule());
 
-    File buildFolderPath = createTempDir("build", true);
+    File buildFolderPath = createTempDir("build");
     boolean buildable = true;
 
     JavaModuleModel javaModel = mock(JavaModuleModel.class);
@@ -113,7 +113,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   }
 
   public void testDoSetUpModuleWithoutGradleFacet() throws IOException {
-    File buildFolderPath = createTempDir("build", true);
+    File buildFolderPath = createTempDir("build");
     boolean buildable = true;
 
     JavaModuleModel javaModel = mock(JavaModuleModel.class);
