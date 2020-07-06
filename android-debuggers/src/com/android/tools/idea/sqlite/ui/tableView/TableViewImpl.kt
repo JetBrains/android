@@ -464,8 +464,8 @@ class TableViewImpl : TableView {
 
         sortIcon.icon = when (val o = orderBy) {
           is OrderBy.NotOrdered -> AllIcons.General.ArrowSplitCenterV
-          is OrderBy.Asc -> if (o.column.name == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
-          is OrderBy.Desc -> if (o.column.name == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
+          is OrderBy.Asc -> if (o.columnName == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
+          is OrderBy.Desc -> if (o.columnName == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
         }
 
         columnNameLabel.text = value as String

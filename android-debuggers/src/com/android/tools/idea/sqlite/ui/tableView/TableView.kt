@@ -117,29 +117,29 @@ interface TableView {
  * Class used to indicate how the table is sorted
  */
 sealed class OrderBy {
-  data class Asc(val column: ViewColumn) : OrderBy()
-  data class Desc(val column: ViewColumn) : OrderBy()
+  data class Asc(val columnName: String) : OrderBy()
+  data class Desc(val columnName: String) : OrderBy()
   object NotOrdered : OrderBy()
 
   /**
    * Returns the next state cycling between not sorted, desc and asc.
    * If the column changes the sorting starts from desc on the new column.
    */
-  fun nextState(newColumn: ViewColumn): OrderBy {
+  fun nextState(newColumnName: String): OrderBy {
     val column = when (this) {
-      is Asc -> column
-      is Desc -> column
+      is Asc -> columnName
+      is Desc -> columnName
       NotOrdered -> null
     }
 
     // start from desc if sorting on new column
-    if (column != newColumn) {
-      return Desc(newColumn)
+    if (column != newColumnName) {
+      return Desc(newColumnName)
     }
 
     return when(this) {
-      is NotOrdered -> Desc(newColumn)
-      is Desc -> Asc(newColumn)
+      is NotOrdered -> Desc(newColumnName)
+      is Desc -> Asc(newColumnName)
       is Asc -> NotOrdered
     }
   }

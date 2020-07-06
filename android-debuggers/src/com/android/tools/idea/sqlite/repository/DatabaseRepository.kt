@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.repository
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -24,11 +25,16 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.model.transform
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -38,6 +44,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
+import java.sql.ResultSet
 import java.util.concurrent.Executor
 
 /**
@@ -56,6 +63,7 @@ interface DatabaseRepository {
     targetColumnName: String,
     newValue: SqliteValue
   ): ListenableFuture<Unit>
+  fun selectOrdered(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement, orderBy: OrderBy): ListenableFuture<SqliteResultSet>
   suspend fun release()
 }
 
@@ -134,6 +142,28 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
         databaseConnection.execute(sqliteStatement).await()
       }
     }
+  }
+
+  override fun selectOrdered(
+    databaseId: SqliteDatabaseId,
+    sqliteStatement: SqliteStatement,
+    orderBy: OrderBy
+  ): ListenableFuture<SqliteResultSet> = projectScope.future {
+    val (order, targetColumnName) = when(orderBy) {
+      is OrderBy.Asc -> Pair("ASC", orderBy.columnName)
+      is OrderBy.Desc -> Pair("DESC", orderBy.columnName)
+      is OrderBy.NotOrdered -> Pair("", "")
+    }
+
+    val selectOrderByStatement = when (orderBy) {
+      is OrderBy.Asc, is OrderBy.Desc -> sqliteStatement.transform(SqliteStatementType.SELECT) {
+        "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(targetColumnName)} $order"
+      }
+      is OrderBy.NotOrdered -> sqliteStatement
+    }
+
+    val databaseConnection = getDatabaseConnection(databaseId)
+    databaseConnection.query(selectOrderByStatement).await()
   }
 
   override suspend fun release() = withContext(workerDispatcher) {
