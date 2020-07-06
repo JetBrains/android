@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.AsyncProcessIcon
@@ -185,8 +186,9 @@ class LocalApkProjTest {
     // NOTE: This step generates the ~/ApkProjects/app-x86-debug directory.
     chooseApkFile.select(apkFile)
       .clickOkAndWaitToClose()
-
+    waitForIdle()
     guiTest.waitForBackgroundTasks()
+    waitForIdle()
   }
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {
