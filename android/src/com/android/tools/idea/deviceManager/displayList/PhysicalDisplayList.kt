@@ -20,7 +20,6 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
 import com.android.tools.idea.deviceManager.displayList.columns.PhysicalDeviceColumnInfo
-import com.google.common.collect.Sets
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -49,6 +48,11 @@ import javax.swing.event.ListSelectionListener
 
 typealias SerialNumber = String
 
+data class NamedDevice(
+  var name: String,
+  val device: IDevice
+)
+
 /**
  * A UI component which lists the existing AVDs
  */
@@ -57,30 +61,38 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
   }
-  private val model = ListTableModel<IDevice>().apply {
+  private val model = ListTableModel<NamedDevice>().apply {
     isSortable = true
   }
-  private val table = TableView<IDevice>().apply {
+  private val table = TableView<NamedDevice>().apply {
     setModelAndUpdateColumns(this@PhysicalDisplayList.model)
     setDefaultRenderer(Any::class.java, EmulatorDisplayList.NoBorderCellRenderer(this.getDefaultRenderer(Any::class.java)))
   }
-  private val listeners: MutableSet<DeviceSelectionListener> = Sets.newHashSet()
+  private val listeners: MutableSet<DeviceSelectionListener> = mutableSetOf()
   private val logger: Logger get() = logger<PhysicalDisplayList>()
 
   private var latestSearchString: String = ""
 
   // TODO(qumeric): consider the case when serial numbers clash
-  private val deviceMap: MutableMap<SerialNumber, IDevice> = mutableMapOf()
+  private val deviceMap: MutableMap<SerialNumber, NamedDevice> = mutableMapOf()
+
+  /*private val deviceNames: MutableMap<SerialNumber, String> = mutableMapOf(
+    "xiaomi-mi_8-e1551242" to "CUSTOM DEVICE NAME"
+  )*/
 
   private val deviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
     override fun deviceChanged(device: IDevice, changeMask: Int) {
       // TODO(qumeric): can device change serial number?
-      deviceMap[device.serialNumber] = device
+      // deviceMap[device.serialNumber] = device
       refreshDevices()
     }
 
     override fun deviceConnected(device: IDevice) {
-      deviceMap[device.serialNumber]
+      if (!deviceMap.keys.contains(device.serialNumber)) {
+        deviceMap[device.serialNumber] = NamedDevice(device.serialNumber, device)
+      } else {
+        deviceMap[device.serialNumber] = NamedDevice(deviceMap[device.serialNumber]!!.name, device)
+      }
       refreshDevices()
     }
 
@@ -162,7 +174,7 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
    * table must implement this interface and register themselves through [addSelectionListener]
    */
   interface DeviceSelectionListener {
-    fun onDeviceSelected(device: IDevice?)
+    fun onDeviceSelected(device: NamedDevice?)
   }
 
   fun addSelectionListener(listener: DeviceSelectionListener) {
@@ -261,10 +273,13 @@ class PhysicalDisplayList(val project: Project?) : JPanel(), ListSelectionListen
   }
 
   // needs an initialized table
-  fun newColumns(): Collection<ColumnInfo<IDevice, *>> {
+  fun newColumns(): Collection<ColumnInfo<NamedDevice, *>> {
     return listOf(
       object : PhysicalDeviceColumnInfo("Device") {
-        override fun valueOf(item: IDevice): String? = item.name
+        override fun valueOf(item: NamedDevice): String? = item.name
+      },
+      object : PhysicalDeviceColumnInfo("Api") {
+        override fun valueOf(item: NamedDevice): String? = item.device.version.apiString
       }
     )
   }
