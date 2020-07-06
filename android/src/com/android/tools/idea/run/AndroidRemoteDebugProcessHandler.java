@@ -142,7 +142,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
       // The reference equality is intentional. We will only ever have a single IDevice instance for a device while it's connected. The
       // IntelliJ Platform expects a different IDevice when you disconnect and reconnect a device. If we used the equals method (based on
       // the serial number, say), a reconnected device would be the same and that would violate platform expectations.
-      return ((AndroidExecutionTarget)executionTarget).getDevices().stream().anyMatch(d -> d == device);
+      return ((AndroidExecutionTarget)executionTarget).getRunningDevices().stream().anyMatch(d -> d == device);
     }
 
     return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId());

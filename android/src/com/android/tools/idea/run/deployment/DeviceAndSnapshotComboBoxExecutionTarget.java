@@ -48,9 +48,14 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     return deviceStream().anyMatch(device -> device.isRunning(appPackage));
   }
 
+  @Override
+  public int getAvailableDeviceCount() {
+    return (int)deviceStream().count();
+  }
+
   @NotNull
   @Override
-  public Collection<IDevice> getDevices() {
+  public Collection<IDevice> getRunningDevices() {
     return deviceStream()
       .map(Device::getDdmlibDevice)
       .filter(Objects::nonNull)

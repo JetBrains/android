@@ -16,7 +16,6 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -52,7 +51,7 @@ public abstract class AndroidProgramRunner extends GenericProgramRunner<RunnerSe
       if (!(target instanceof AndroidExecutionTarget)) {
         return false;
       }
-      if (((AndroidExecutionTarget)target).getDevices().size() <= 1) {
+      if (((AndroidExecutionTarget)target).getAvailableDeviceCount() <= 1) {
         return true;
       }
       return canRunWithMultipleDevices(executorId);

@@ -218,7 +218,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
 
   @AnyThread
   private fun areAnyDevicesAssociated(executionTarget: AndroidExecutionTarget): Boolean {
-    return executionTarget.devices.any { isAssociated(it) }
+    return executionTarget.runningDevices.any { isAssociated(it) }
   }
 }
 

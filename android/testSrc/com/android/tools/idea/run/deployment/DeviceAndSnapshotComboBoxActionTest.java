@@ -285,7 +285,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     AndroidExecutionTarget target = service.getActiveTarget();
 
-    assertEquals(Collections.singletonList(device), target.getDevices());
+    assertEquals(Collections.singletonList(device), target.getRunningDevices());
     assertEquals("Pixel 4 API 30", target.getDisplayName());
     assertEquals(VirtualDevice.ourConnectedIcon, target.getIcon());
   }
