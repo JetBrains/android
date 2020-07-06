@@ -14,10 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <description>
-    IDE support for running Android Lint (which despite the name is not Android specific and
-    can warn about general programming issues in Kotlin and Java source files, Gradle files, etc).
-  </description>
+<!-- IDE support for running Android Lint (which despite the name is not Android specific and -->
+<!-- can warn about general programming issues in Kotlin and Java source files, Gradle files, etc). -->
 
   <resource-bundle>messages.LintBundle</resource-bundle>
 
