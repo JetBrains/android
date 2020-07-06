@@ -17,10 +17,8 @@ package com.android.tools.idea.deviceManager.displayList.columns
 
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
-import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
-import java.awt.Component
 import javax.swing.JTable
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
@@ -29,7 +27,7 @@ import javax.swing.table.TableCellRenderer
  * Custom table cell renderer that renders an action panel for a given AVD entry
  *
  */
-class AvdActionsColumnInfo(
+class DeviceActionsColumnInfo(
   name: String, private val numVisibleActions: Int = -1, private val refreshProvider: AvdActionPanel.AvdRefreshProvider
 ) : ColumnInfo<AvdInfo, AvdInfo>(name) {
   private val width: Int = if (numVisibleActions == -1) -1 else JBUI.scale(45) * numVisibleActions + JBUI.scale(75)
@@ -65,34 +63,3 @@ class AvdActionsColumnInfo(
   fun cycleFocus(info: AvdInfo?, backward: Boolean): Boolean = getComponent(info).cycleFocus(backward)
 }
 
-class ActionRenderer(
-  private var numVisibleActions: Int, info: AvdInfo?, refreshProvider: AvdActionPanel.AvdRefreshProvider
-) : AbstractTableCellEditor(), TableCellRenderer {
-  val component: AvdActionPanel = AvdActionPanel((info)!!, this.numVisibleActions, refreshProvider)
-
-  private fun getComponent(table: JTable, row: Int, column: Int) = component.apply {
-    if (table.selectedRow == row) {
-      background = table.selectionBackground
-      foreground = table.selectionForeground
-      setHighlighted(true)
-    }
-    else {
-      background = table.background
-      foreground = table.foreground
-      setHighlighted(false)
-    }
-    setFocused(table.selectedRow == row && table.selectedColumn == column)
-  }
-
-  fun cycleFocus(backward: Boolean): Boolean = component.cycleFocus(backward)
-
-  override fun getTableCellRendererComponent(
-    table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
-  ): Component = getComponent(table, row, column)
-
-  override fun getTableCellEditorComponent(
-    table: JTable, value: Any, isSelected: Boolean, row: Int, column: Int
-  ): Component = getComponent(table, row, column)
-
-  override fun getCellEditorValue(): Any? = null
-}

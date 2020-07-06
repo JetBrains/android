@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.deviceManager.displayList.columns
 
-import com.android.ddmlib.IDevice
+import com.android.tools.idea.deviceManager.displayList.NamedDevice
 import com.intellij.openapi.util.Comparing
 import com.intellij.util.ui.ColumnInfo
 import javax.swing.JTable
 
-abstract class PhysicalDeviceColumnInfo(name: String, private val width: Int = -1): ColumnInfo<IDevice, String>(name) {
-  override fun getComparator(): Comparator<IDevice> = Comparator { o1, o2 -> Comparing.compare(valueOf(o1), valueOf(o2)) }
+abstract class PhysicalDeviceColumnInfo(name: String, private val width: Int = -1): ColumnInfo<NamedDevice, String>(name) {
+  override fun getComparator(): Comparator<NamedDevice> = Comparator { o1, o2 -> Comparing.compare(valueOf(o1), valueOf(o2)) }
 
   override fun getWidth(table: JTable): Int = width
 }
