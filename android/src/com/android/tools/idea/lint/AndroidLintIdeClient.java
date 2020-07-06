@@ -88,7 +88,7 @@ import org.xmlpull.v1.XmlPullParser;
  * Android specific implementation of {@linkplain LintIdeClient}
  */
 public class AndroidLintIdeClient extends LintIdeClient {
-  protected static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.AndroidLintIdeClient");
+  protected static final Logger LOG = Logger.getInstance(AndroidLintIdeClient.class);
 
   @NonNull protected Project myProject;
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
@@ -335,7 +335,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NotNull
   @Override
   public Set<Desugaring> getDesugaring(@NotNull com.android.tools.lint.detector.api.Project project) {
-    Module module = getModule();
+    Module module = findModuleForLintProject(myProject, project);
     if (module == null) {
       return Desugaring.DEFAULT;
     }
