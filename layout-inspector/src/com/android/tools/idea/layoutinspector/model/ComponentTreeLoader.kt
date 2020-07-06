@@ -137,8 +137,10 @@ private class ComponentTreeLoaderImpl(
                          rootView: ViewNode,
                          client: InspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
-      rootView.imageBottom = it
+      rootView.drawChildren.add(DrawViewImage(it, rootView.x, rootView.y, rootView))
     }
+    rootView.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
+
     client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
@@ -199,24 +201,37 @@ private class ComponentTreeLoaderImpl(
   private fun packagePrefix(packageName: String): String {
     return if (packageName.isEmpty()) "" else "$packageName."
   }
+}
 
-  private class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, root: ViewNode, viewRoot: SkiaViewNode) {
-    private val offset = root.bounds.location
-    private val viewMap = createViewMap(viewRoot)
+@VisibleForTesting
+class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, root: ViewNode, skiaRoot: SkiaViewNode) {
+  private val offset = root.bounds.location
+  private val nonImageSkiaNodes = skiaRoot.flatten().filter { it.image == null }.associateBy { it.id.toLong() }
 
-    init {
-      val rootView = viewMap[root.drawId]
-      offset.translate(-1 * (rootView?.x ?: 0), -1 * (rootView?.y ?: 0))
-    }
+  init {
+    val skiaRootView = nonImageSkiaNodes[root.drawId]
+    offset.translate(-1 * (skiaRootView?.x ?: 0), -1 * (skiaRootView?.y ?: 0))
+  }
 
-    private fun createViewMap(viewRoot: SkiaViewNode): Map<Long, SkiaViewNode> =
-      viewRoot.flatten().filter { it.image != null }.associateBy { it.id.toLong() }
-
-    fun loadImages() {
-      for ((drawId, node) in nodeMap) {
-        val view = viewMap[drawId] ?: continue
-        node.imageBottom = view.image
+  fun loadImages() {
+    for ((drawId, node) in nodeMap) {
+      val remainingChildren = LinkedHashSet(node.children)
+      val skiaNode = nonImageSkiaNodes[drawId]
+      if (skiaNode != null) {
+        for (childSkiaNode in skiaNode.children) {
+          val image = childSkiaNode.image
+          if (image != null) {
+            node.drawChildren.add(DrawViewImage(image, childSkiaNode.x, childSkiaNode.y, node))
+          }
+          else {
+            val viewForSkiaChild = nodeMap[childSkiaNode.id.toLong()] ?: continue
+            val actualChild = viewForSkiaChild.parentSequence.find { remainingChildren.contains(it) } ?: continue
+            remainingChildren.remove(actualChild)
+            node.drawChildren.add(DrawViewChild(actualChild))
+          }
+        }
       }
+      remainingChildren.mapTo(node.drawChildren) { DrawViewChild(it) }
     }
   }
 }

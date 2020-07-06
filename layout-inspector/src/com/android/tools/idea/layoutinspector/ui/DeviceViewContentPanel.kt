@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.Gray
@@ -24,7 +25,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.Color
@@ -32,7 +32,6 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.Point
 import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
@@ -123,7 +122,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findComponentsAt(e.x, e.y).lastOrNull()
+        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)
       }
     }
     addMouseListener(listener)
@@ -131,7 +130,14 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        showViewContextMenu(findComponentsAt(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
+        // Get distinct views where only the last duplicate is retained (rather than the first as we'd get by distinct() alone).
+        val views = findComponentsAt(x, y)
+          .asReversed()
+          .asSequence()
+          .distinct()
+          .toList()
+          .asReversed()
+        showViewContextMenu(views, inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
 
@@ -145,6 +151,9 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   private fun findComponentsAt(x: Int, y: Int) = model.findViewsAt((x - size.width / 2.0) / viewSettings.scaleFraction,
                                                                       (y - size.height / 2.0) / viewSettings.scaleFraction)
 
+  private fun findTopViewAt(x: Int, y: Int) = model.findTopViewAt((x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                                  (y - size.height / 2.0) / viewSettings.scaleFraction)
+
   override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
     g2d.color = background
@@ -153,13 +162,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 
-    // ViewNode.imageBottom are images that the parents draw on before their
-    // children. Therefore draw them in the given order (parent first).
-    model.hitRects.forEach { drawView(g2d, it, it.node.imageBottom) }
-
-    // ViewNode.imageTop are images that the parents draw on top of their
-    // children. Therefore draw them in the reverse order (children first).
-    model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
+    model.hitRects.forEach { drawView(g2d, it) }
 
     if (model.overlay != null) {
       g2d.composite = AlphaComposite.SrcOver.derive(model.overlayAlpha)
@@ -176,13 +179,14 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
                    (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2)
 
   private fun drawView(g: Graphics,
-                       drawInfo: ViewDrawInfo,
-                       image: Image?) {
+                       drawInfo: ViewDrawInfo) {
     val g2 = g.create() as Graphics2D
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     val selection = inspectorModel.selection
-    val view = drawInfo.node
+    val drawView = drawInfo.node
+    val view = drawView.owner
     val hoveredNode = inspectorModel.hoveredNode
+    // TODO: what's hovered?
     if (viewSettings.drawBorders || view == selection || view == hoveredNode) {
       when (view) {
         selection, hoveredNode -> {
@@ -210,17 +214,11 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
 
-    if (image != null) {
-      val composite = g2.composite
-      // Check hasSubImages, since it doesn't make sense to dim if we're only showing one image.
-      if (selection != null && view != selection && inspectorModel.hasSubImages) {
-        g2.composite = AlphaComposite.SrcOver.derive(0.6f)
-      }
-      g2.clip(drawInfo.clip)
-      UIUtil.drawImage(g2, image, view.x, view.y, null)
-      g2.composite = composite
-    }
-    if (viewSettings.drawLabel && view == selection) {
+    val origClip = g2.clip
+    g2.clip(drawInfo.clip)
+    drawInfo.node.paint(g2, inspectorModel)
+    g2.clip = origClip
+    if (viewSettings.drawLabel && view == selection && drawView is DrawViewChild) {
       g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
       val fontMetrics = g2.fontMetrics
       val width = fontMetrics.stringWidth(view.unqualifiedName)

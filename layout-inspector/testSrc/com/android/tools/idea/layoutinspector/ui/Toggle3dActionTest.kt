@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
@@ -25,22 +26,22 @@ import icons.StudioIcons
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.awt.Image
 
 class Toggle3dActionTest {
 
   private val inspectorModel = model {
     view(1) {
-      view(2, imageBottom = mock(Image::class.java))
+      view(2) {
+        image()
+      }
     }
   }
 
   private val viewModel = DeviceViewPanelModel(inspectorModel)
 
-  private val event = mock(AnActionEvent::class.java)
-  private val presentation = mock(Presentation::class.java)
+  private val event: AnActionEvent = mock()
+  private val presentation: Presentation = mock()
 
   @Before
   fun setUp() {
@@ -67,7 +68,7 @@ class Toggle3dActionTest {
 
   @Test
   fun testOverlay() {
-    viewModel.overlay = mock(Image::class.java)
+    viewModel.overlay = mock()
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "Rotation not available when overlay is active"
@@ -75,7 +76,8 @@ class Toggle3dActionTest {
 
   @Test
   fun testRootImageOnly() {
-    val root = view(3, imageBottom = mock(Image::class.java)) {
+    val root = view(3) {
+      image()
       view(2)
     }
     inspectorModel.update(root, 3, listOf(3))
@@ -86,7 +88,8 @@ class Toggle3dActionTest {
 
   @Test
   fun testNoRendererFallback() {
-    val root = view(3, imageBottom = mock(Image::class.java), imageType = PNG_AS_REQUESTED) {
+    val root = view(3, imageType = PNG_AS_REQUESTED) {
+      image()
       view(2)
     }
     inspectorModel.update(root, 3, listOf(3))
@@ -97,7 +100,8 @@ class Toggle3dActionTest {
 
   @Test
   fun testSkpTooLargeFallback() {
-    val root = view(3, imageBottom = mock(Image::class.java), imageType = PNG_SKP_TOO_LARGE) {
+    val root = view(3, imageType = PNG_SKP_TOO_LARGE) {
+      image()
       view(2)
     }
     inspectorModel.update(root, 3, listOf(3))

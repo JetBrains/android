@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.layoutinspector.SkiaParserService
@@ -34,7 +35,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anySet
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.internal.verification.Times
 import java.awt.Image
@@ -116,22 +116,28 @@ class ComponentTreeLoaderTest {
 
   @Test
   fun testLoad() {
-    val image1 = mock(Image::class.java)
-    val image2 = mock(Image::class.java)
-    val image3 = mock(Image::class.java)
-    val image4 = mock(Image::class.java)
+    val image1: Image = mock()
+    val image2: Image = mock()
+    val image3: Image = mock()
+    val image4: Image = mock()
 
-    val skiaResponse = SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, image1, listOf(
-      SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, image2, listOf(
-        SkiaViewNode("3", "com.example.MyViewClass1", 20, 20, 20, 50, image3)
+    val skiaResponse = SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, listOf(
+      SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, image1),
+      SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, listOf(
+        SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, image2),
+        SkiaViewNode("3", "com.example.MyViewClass1", 20, 20, 20, 50, listOf(
+          SkiaViewNode("3", "com.example.MyViewClass1", 20, 20, 20, 50, image3)
+        ))
       )),
-      SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, image4)
+      SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, listOf(
+        SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, image4)
+      ))
     ))
 
-    val client = mock(DefaultInspectorClient::class.java)
+    val client: DefaultInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
-    val skiaParser = mock(SkiaParserService::class.java)!!
+    val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), eq(setOf(1L, 2L, 3L, 4L)), any ())).thenReturn(skiaResponse)
 
     val tree = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
@@ -141,7 +147,7 @@ class ComponentTreeLoaderTest {
     assertThat(tree.width).isEqualTo(100)
     assertThat(tree.height).isEqualTo(200)
     assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
-    assertThat(tree.imageBottom).isEqualTo(image1)
+    assertThat((tree.drawChildren[0] as DrawViewImage).image).isEqualTo(image1)
     assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L).inOrder()
 
     val node2 = tree.children[0]
@@ -151,7 +157,7 @@ class ComponentTreeLoaderTest {
     assertThat(node2.width).isEqualTo(50)
     assertThat(node2.height).isEqualTo(100)
     assertThat(node2.qualifiedName).isEqualTo("com.example.MyViewClass2")
-    assertThat(node2.imageBottom).isEqualTo(image2)
+    assertThat((node2.drawChildren[0] as DrawViewImage).image).isEqualTo(image2)
     assertThat(node2.children.map { it.drawId }).containsExactly(3L)
 
     val node3 = node2.children[0]
@@ -161,7 +167,7 @@ class ComponentTreeLoaderTest {
     assertThat(node3.width).isEqualTo(20)
     assertThat(node3.height).isEqualTo(50)
     assertThat(node3.qualifiedName).isEqualTo("com.example.MyViewClass1")
-    assertThat(node3.imageBottom).isEqualTo(image3)
+    assertThat((node3.drawChildren[0] as DrawViewImage).image).isEqualTo(image3)
     assertThat(node3.children).isEmpty()
 
     val node4 = tree.children[1]
@@ -171,7 +177,7 @@ class ComponentTreeLoaderTest {
     assertThat(node4.width).isEqualTo(40)
     assertThat(node4.height).isEqualTo(50)
     assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
-    assertThat(node4.imageBottom).isEqualTo(image4)
+    assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
     assertThat(node4.children).isEmpty()
   }
 
@@ -185,25 +191,25 @@ class ComponentTreeLoaderTest {
       }.build()
     }.build()
 
-    val client = mock(DefaultInspectorClient::class.java)
+    val client: DefaultInspectorClient = mock()
     `when`(client.getPayload(111)).thenReturn(imageBytes)
 
     val (tree, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
 
     assertThat(tree.imageType).isEqualTo(PNG_AS_REQUESTED)
-    ImageDiffUtil.assertImageSimilar(imageFile, tree.imageBottom as BufferedImage, 0.0)
-    assertThat(tree.flatten().minus(tree).mapNotNull { it.imageBottom }).isEmpty()
+    ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren[0] as DrawViewImage).image as BufferedImage, 0.0)
+    assertThat(tree.flatten().flatMap { it.drawChildren }.count { it is DrawViewImage }).isEqualTo(1)
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
   @Test
   fun testUnsupportedSkpVersion() {
     val banner = InspectorBanner(projectRule.project)
-    val client = mock(DefaultInspectorClient::class.java)
+    val client: DefaultInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser = mock(SkiaParserService::class.java)!!
+    val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), anySet(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
@@ -216,11 +222,11 @@ class ComponentTreeLoaderTest {
   @Test
   fun testInvalidSkp() {
     val banner = InspectorBanner(projectRule.project)
-    val client = mock(DefaultInspectorClient::class.java)
+    val client: DefaultInspectorClient = mock()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser = mock(SkiaParserService::class.java)!!
+    val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(payload), anySet(), any())).thenReturn(null)
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)

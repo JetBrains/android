@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.model.DIMMER_QNAME
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
@@ -37,7 +39,7 @@ import kotlin.math.sqrt
 
 val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
-data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
+data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: DrawViewNode, val clip: Rectangle)
 
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
@@ -106,7 +108,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
           // We got a PNG because the SKP we would have gotten was too big.
           PNG_SKP_TOO_LARGE
         }
-        model.root.children.all { it.imageType == PNG_SKP_TOO_LARGE || it.qualifiedName == DIMMER_QNAME } -> {
+        model.root.children.all { it.imageType == PNG_SKP_TOO_LARGE } -> {
           // If everything is an SKP (or a dimmer we added) then the type is SKP
           SKP
         }
@@ -119,9 +121,10 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = !model.isEmpty
 
   fun findViewsAt(x: Double, y: Double): List<ViewNode> =
-    hitRects
+    hitRects.asSequence()
       .filter { it.bounds.contains(x, y) }
-      .map { it.node }
+      .map { it.node.owner }
+      .toList()
 
   fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).lastOrNull()
 
@@ -145,9 +148,9 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     }
     val root = model.root
 
-    val levelLists = mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>()
+    val levelLists = mutableListOf<MutableList<Pair<DrawViewNode, Rectangle>>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    root.children.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
+    root.drawChildren.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
     maxDepth = levelLists.size
 
     val newHitRects = mutableListOf<ViewDrawInfo>()
@@ -174,34 +177,56 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     modificationListeners.forEach { it() }
   }
 
-  private fun buildLevelLists(root: ViewNode,
+  private fun buildLevelLists(root: DrawViewNode,
                               parentClip: Rectangle,
-                              levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
-                              level: Int) {
+                              levelListCollector: MutableList<MutableList<Pair<DrawViewNode, Rectangle>>>,
+                              minLevel: Int) {
     var childClip = parentClip
-    var newLevelIndex = level
-    if (root.visible) {
+    var newLevelIndex = levelListCollector.size
+    if (root.owner.visible) {
+      // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
+      // in the next level above that (that is, the last level, starting from the top, where there's space).
       newLevelIndex = levelListCollector
-        .subList(level, levelListCollector.size)
-        .indexOfFirst { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+        .subList(minLevel, levelListCollector.size)
+        .indexOfLast { it.any { (node, _) -> node.owner.bounds.intersects(root.owner.bounds) } }
       if (newLevelIndex == -1) {
         newLevelIndex = levelListCollector.size
-        levelListCollector.add(mutableListOf())
       }
       else {
-        newLevelIndex += level
+        newLevelIndex += minLevel + 1
       }
-      val levelList = levelListCollector[newLevelIndex]
-      childClip = parentClip.intersection(root.bounds)
+      val levelList = levelListCollector.getOrElse(newLevelIndex) {
+        mutableListOf<Pair<DrawViewNode, Rectangle>>().also { levelListCollector.add(it) }
+      }
+      childClip = parentClip.intersection(root.owner.bounds)
       levelList.add(Pair(root, childClip))
+      if (root is DrawViewChild) {
+        // Add leading images to this level
+        for (drawChild in root.owner.drawChildren) {
+          if (drawChild !is DrawViewImage) {
+            break
+          }
+          levelList.add(Pair(drawChild, childClip))
+        }
+      }
     }
-    root.children.forEach { buildLevelLists(it, childClip, levelListCollector, newLevelIndex) }
+    if (root is DrawViewChild) {
+      var sawChild = false
+      for (drawChild in root.owner.drawChildren) {
+        if (!sawChild && drawChild is DrawViewImage) {
+          // Skip leading images -- they're already added
+          continue
+        }
+        sawChild = true
+        buildLevelLists(drawChild, childClip, levelListCollector, newLevelIndex)
+      }
+    }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,
                                    magnitude: Double,
                                    angle: Double,
-                                   allLevels: List<List<Pair<ViewNode, Rectangle>>>,
+                                   allLevels: List<List<Pair<DrawViewNode, Rectangle>>>,
                                    newHitRects: MutableList<ViewDrawInfo>) {
     allLevels.forEachIndexed { level, levelList ->
       levelList.forEach { (view, clip) ->
@@ -213,7 +238,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-        val rect = viewTransform.createTransformedShape(view.bounds)
+        val rect = viewTransform.createTransformedShape(view.owner.bounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
       }
     }
