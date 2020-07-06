@@ -761,8 +761,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       }
     }
 
-  // TODO(xof): move this target to _redirects.yaml (or find some other way to be future-proof)
-  override fun getReadMoreUrl(): String? = "https://developer.android.com/studio/write/java8-support#supported_features"
+  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
 
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
