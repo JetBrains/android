@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.testFramework.PlatformTestUtil
 import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNull.nullValue
@@ -120,7 +121,7 @@ class PsProjectImplTest : DependencyTestCase() {
 
     project.removeModule(gradlePath = ":nested2")
     runWriteAction {
-      project.ideProject.baseDir.findFileByRelativePath("/nested2/build.gradle")!!.delete("test")
+      PlatformTestUtil.getOrCreateProjectBaseDir(project.ideProject).findFileByRelativePath ("/nested2/build.gradle")!!.delete("test")
     }
     assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, nullValue())
 

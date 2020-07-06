@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeThat;
+
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory;
@@ -26,14 +37,9 @@ import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.hamcrest.Matcher;
-
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
+import org.hamcrest.Matcher;
 
 public class PsModuleTest extends AndroidGradleTestCase {
 
@@ -81,7 +87,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
   }
 
   private Document getDocument() {
-    VirtualFile buildFile = myFixture.getProject().getBaseDir().findFileByRelativePath("app/build.gradle");
+    VirtualFile buildFile = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()).findFileByRelativePath("app/build.gradle");
     return FileDocumentManager.getInstance().getDocument(buildFile);
   }
 }

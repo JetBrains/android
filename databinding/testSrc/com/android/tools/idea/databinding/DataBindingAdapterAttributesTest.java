@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding;
 
-import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -32,6 +32,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.Arrays;
 import java.util.List;
@@ -78,7 +79,7 @@ public class DataBindingAdapterAttributesTest {
   public void assertCompletionAndInspections() {
     myProjectRule.getFixture().enableInspections(AndroidUnknownAttributeInspection.class);
 
-    VirtualFile file = myProjectRule.getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    VirtualFile file = PlatformTestUtil.getOrCreateProjectBaseDir(myProjectRule.getProject()).findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
     myProjectRule.getFixture().openFileInEditor(file);
     Editor editor = myProjectRule.getFixture().getEditor();
     Document document = editor.getDocument();

@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.newvfs.persistent.FSRecords;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -399,7 +400,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   // Returns full path, given relative path to root directory
   @NotNull
   private File getAbsolutionFilePath(@NotNull String relativePath) {
-    File projectRoot = virtualToIoFile(getProject().getBaseDir());
+    File projectRoot = virtualToIoFile(PlatformTestUtil.getOrCreateProjectBaseDir(getProject()));
     return new File(projectRoot, relativePath);
   }
 

@@ -129,7 +129,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   }
 
   private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot) {
-    assertNotNull("Module sources were not copied", PlatformTestUtil.getOrCreateProjectTestBaseDir(project).findFileByRelativePath(relativePath));
+    assertNotNull("Module sources were not copied", PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath(relativePath));
     final VirtualFile[] moduleChildren = moduleRoot.getChildren();
     assertNoFilesAdded(moduleChildren);
     assertEquals(SdkConstants.FN_BUILD_GRADLE, moduleChildren[0].getName());

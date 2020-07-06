@@ -24,6 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ThrowableRunnable
 import kotlin.text.Regex.Companion.escapeReplacement
 
@@ -103,7 +104,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
 
     runWriteAction {
-      val gradlePropertiesFile = project.baseDir.createChildData(this, "gradle.properties")
+      val gradlePropertiesFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).createChildData(this, "gradle.properties")
       gradlePropertiesFile.setBinaryContent("""
       # Preserve this comment and variable
       random.variable=true
@@ -130,7 +131,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   }
 
   private fun doTestVerifyPrerequisites(mainBuildScript: String, appBuildScript: String, isGroovy: Boolean) {
-    val appGradleFile = myFixture.project.baseDir.findFileByRelativePath(appBuildScript)!!
+    val appGradleFile = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project).findFileByRelativePath(appBuildScript)!!
     val appGradleContent = getTextForFile(appBuildScript)
 
     arrayOf("\"\$version_27\"", if (isGroovy) "ext.version_27" else "extra[\"version_27\"]").forEach {
@@ -148,7 +149,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     setFileContent(appGradleFile, appGradleContent.replaceCompileSdkWith("28", isGroovy))
 
     // Downgrade the gradle plugin and check it fails
-    val rootGradleFile = VfsUtil.findRelativeFile(myFixture.project.baseDir, mainBuildScript)!!
+    val rootGradleFile = VfsUtil.findRelativeFile(PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project), mainBuildScript)!!
 
     // Use the GradleBuildModel to update property accordingly to the build language.
     val buildModel = GradleBuildModel.parseBuildFile(rootGradleFile, myFixture.project)
@@ -221,7 +222,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   private fun doTestBug123303598(buildFileName: String) {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
 
-    val mainGradleFile = myFixture.project.baseDir.findFileByRelativePath(buildFileName)!!
+    val mainGradleFile = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project).findFileByRelativePath(buildFileName)!!
     var mainGradleContent = getTextForFile(buildFileName)
 
     // Remove repositories blocks and check that we do not throw an NPE when evaluating the block

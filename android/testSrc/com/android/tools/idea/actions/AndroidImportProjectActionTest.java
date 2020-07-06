@@ -38,7 +38,7 @@ public class AndroidImportProjectActionTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myProjectRootDir = PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject);
+    myProjectRootDir = PlatformTestUtil.getOrCreateProjectBaseDir(myProject);
   }
 
   public void testFindImportTargetWithDirectoryAndWithoutGradleOrEclipseFiles() {

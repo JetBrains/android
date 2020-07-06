@@ -28,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.HeavyPlatformTestCase.synchronizeTempDirVfs
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.io.File
 
@@ -35,15 +36,14 @@ import java.io.File
  * Tests for [PsModuleCollection].
  */
 class PsModuleCollectionTest : DependencyTestCase() {
-
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
   override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?) {
     AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion)
-    synchronizeTempDirVfs(project.baseDir)
+    synchronizeTempDirVfs(PlatformTestUtil.getOrCreateProjectBaseDir(project))
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
-        invoke(project.baseDir)
+        invoke(PlatformTestUtil.getOrCreateProjectBaseDir(project))
       }
       ApplicationManager.getApplication().saveAll()
     }
@@ -71,7 +71,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(project.findModuleByName("jav")).isNull()
 
     // Edit the settings file, but do not sync.
-    val virtualFile = this.project.baseDir.findFileByRelativePath("settings.gradle")!!
+    val virtualFile = PlatformTestUtil.getOrCreateProjectBaseDir(this.project).findFileByRelativePath("settings.gradle")!!
     runWriteAction { virtualFile.setBinaryContent("include ':app', ':lib', ':jav' ".toByteArray()) }
     PsiDocumentManager.getInstance(this.project).commitAllDocuments()
 
@@ -86,7 +86,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     // Edit the settings file, but do not sync.
-    val virtualFile = this.project.baseDir.findFileByRelativePath("app/build.gradle")!!
+    val virtualFile = PlatformTestUtil.getOrCreateProjectBaseDir(this.project).findFileByRelativePath("app/build.gradle")!!
     myFixture.openFileInEditor(virtualFile)
     myFixture.type("apply plugin: 'something' \n")
     PsiDocumentManager.getInstance(this.project).commitAllDocuments()
@@ -142,7 +142,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     val javModule = project.findModuleByGradlePath(":jav") as? PsJavaModule
     assertThat(javModule?.dependencies?.findLibraryDependencies("junit", "junit")?.firstOrNull()?.version).isEqualTo("4.12".asParsed())
   }
-  
+
   fun testEmptyParentsInNestedModules() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 

@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
-
 import com.intellij.psi.PsiMethod;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test for {@link AndroidTestConfigurationProducer}
@@ -151,7 +151,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   public void testRuntimeQualifiedNameIsUsed() throws Exception {
     loadSimpleApplication();
 
-    File projectDir = VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir());
+    File projectDir = VfsUtilCore.virtualToIoFile(PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()));
     File newTestFile = new File(projectDir, "app/src/androidTest/java/google/simpleapplication/SomeTest.java");
     Files.createParentDirs(newTestFile);
     Files.write(

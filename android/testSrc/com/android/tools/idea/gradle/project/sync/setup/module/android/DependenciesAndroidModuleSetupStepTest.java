@@ -48,10 +48,13 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -114,7 +117,7 @@ public class DependenciesAndroidModuleSetupStepTest extends HeavyPlatformTestCas
   }
 
   @NotNull
-  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) {
+  private AndroidModuleModel createAndroidFacetAndModuleModel(@NotNull String modelVersion) throws IOException {
     // Create mock IdeAndroidProject.
     createContentRoot(myModule);
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
@@ -132,17 +135,17 @@ public class DependenciesAndroidModuleSetupStepTest extends HeavyPlatformTestCas
     return moduleModel;
   }
 
-  private static void createContentRoot(@NotNull Module module) {
+  private static void createContentRoot(@NotNull Module module) throws IOException {
     VirtualFile moduleFolder = getModuleFolder(module);
     ModifiableRootModel modifiableRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
     modifiableRootModel.addContentEntry(moduleFolder);
     ApplicationManager.getApplication().runWriteAction(modifiableRootModel::commit);
   }
 
-  @NotNull
-  private VirtualFile createFolder(@NotNull VirtualFile parent, @NotNull String name) throws IOException {
-    return ApplicationManager.getApplication().runWriteAction(
-      (ThrowableComputable<VirtualFile, IOException>)() -> parent.createChildDirectory(this, name));
+  private @NotNull VirtualFile createFolder(@NotNull VirtualFile parent, @NotNull String name) throws IOException {
+    return ApplicationManager.getApplication().runWriteAction((ThrowableComputable<VirtualFile, IOException>)() -> {
+      return parent.createChildDirectory(this, name);
+    });
   }
 
   @NotNull
@@ -151,24 +154,23 @@ public class DependenciesAndroidModuleSetupStepTest extends HeavyPlatformTestCas
     return new LibraryDependency(path, "Gradle: __local_aars__:" + path + "@jar", COMPILE, ImmutableList.of());
   }
 
-  @NotNull
-  private static VirtualFile getModuleFolder(@NotNull Module module) {
-    VirtualFile moduleFile = module.getModuleFile();
-    assertNotNull(moduleFile);
-    return moduleFile.getParent();
+  private static @NotNull VirtualFile getModuleFolder(@NotNull Module module) throws IOException {
+    Path dir = module.getModuleNioFile().getParent();
+    Files.createDirectories(dir);
+    return LocalFileSystem.getInstance().refreshAndFindFileByNioFile(dir);
   }
 
-  public void testUpdateModuleDependencyWithPlugin2dot3() {
+  public void testUpdateModuleDependencyWithPlugin2dot3() throws IOException {
     // Verify that module dependency is exported for plugin 2.3.
     updateModuleDependency("2.3.0", true);
   }
 
-  public void testUpdateModuleDependencyWithPlugin3dot0() {
+  public void testUpdateModuleDependencyWithPlugin3dot0() throws IOException {
     // Verify that module dependency is not exported for plugin 3.0.
     updateModuleDependency("3.0.0", false);
   }
 
-  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) {
+  private void updateModuleDependency(@NotNull String modelVersion, boolean exported) throws IOException {
     String libModulePath = "mylib";
     // Create a lib module.
     Module libModule = createModule(libModulePath);

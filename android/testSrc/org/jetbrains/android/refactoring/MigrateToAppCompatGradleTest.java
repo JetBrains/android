@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
+import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
@@ -30,13 +33,10 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.Set;
 import java.util.function.BiFunction;
-
-import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
-import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class tests Migration to AppCompat for a Gradle project.
@@ -275,7 +275,7 @@ b/146019491 */
     final String mainActivityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt";
 
     loadProject(ANDROIDX_SIMPLE);
-    VirtualFile mainActivityFile = myFixture.getProject().getBaseDir().findFileByRelativePath(mainActivityPath);
+    VirtualFile mainActivityFile = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()).findFileByRelativePath(mainActivityPath);
     String mainActivityKt = getTextForFile(mainActivityPath);
     mainActivityKt = mainActivityKt.replaceAll("import androidx.appcompat.app.AppCompatActivity",
                               "import android.app.Activity");

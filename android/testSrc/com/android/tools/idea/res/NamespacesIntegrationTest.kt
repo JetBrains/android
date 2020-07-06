@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.PlatformTestUtil
 
 class NamespacesIntegrationTest : AndroidGradleTestCase() {
   private val appPackageName = "com.example.app"
@@ -40,7 +41,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     assertTrue(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
 
     WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "AndroidManifest.xml")!!)
+      myFixture.openFileInEditor(VfsUtil.findRelativeFile(PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project), "app", "src", "main", "AndroidManifest.xml")!!)
       val manifest = myFixture.editor.document
       manifest.setText(manifest.text.replace(appPackageName, "com.example.change"))
       PsiDocumentManager.getInstance(project).commitDocument(manifest)
@@ -59,7 +60,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testResolver() {
     loadProject(TestProjectPaths.NAMESPACES)
-    val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
+    val layout = VfsUtil.findRelativeFile(PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project), "app", "src", "main", "res", "layout", "simple_strings.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(myModules.appModule).getConfiguration(layout).resourceResolver
     val appNs = ResourceRepositoryManager.getInstance(myAndroidFacet).namespace
 

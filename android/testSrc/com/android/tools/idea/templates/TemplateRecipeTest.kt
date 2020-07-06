@@ -18,13 +18,11 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-
 import java.io.File
-
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 
 class TemplateRecipeTest {
   @Rule
@@ -60,10 +58,11 @@ class TemplateRecipeTest {
       .build()
 
     runWriteCommandAction(projectRule.project) {
-      val vfFrom = projectRule.project.baseDir.findOrCreateChildData(this, "childFrom")
+      val baseDir = projectRule.project.baseDir
+      val vfFrom = baseDir.findOrCreateChildData(this, "childFrom")
       val from = File(vfFrom.path)
 
-      val vfTo = projectRule.project.baseDir.findOrCreateChildData(this, "childTo")
+      val vfTo = baseDir.findOrCreateChildData(this, "childTo")
       val to = File(vfTo.path)
 
       vfFrom.getOutputStream(this).use { os -> os.write('a'.toInt()) }

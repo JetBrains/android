@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes.apk;
 
 import static com.android.tools.idea.testing.ProjectFiles.createFolder;
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
@@ -25,8 +24,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -43,11 +46,15 @@ public class SourceFoldersTest extends HeavyPlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    VirtualFile appFolder = createFolderInProjectRoot(getProject(), "app");
-    myAppModule = createModuleAt("app", getProject(), getModuleType(), appFolder.toNioPath());
-    mySrcFolder = createFolder(appFolder, "src");
+
+    Project project = getProject();
+    Path appDir = ProjectKt.getStateStore(project).getProjectBasePath().resolve("app");
+    Files.createDirectories(appDir);
+    myAppModule = createModuleAt("app", project, getModuleType(), appDir);
+    VirtualFile virtualAppDir = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(appDir);
+    mySrcFolder = createFolder(virtualAppDir, "src");
     myMypackageFolder = createFolder(mySrcFolder, "mypackage");
-    myLibFolder = createFolder(appFolder, "lib");
+    myLibFolder = createFolder(virtualAppDir, "lib");
   }
 
   public void testIsInSourceFolderForProject() {

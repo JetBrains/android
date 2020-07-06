@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.junit.Assert.assertNotNull;
+
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -27,25 +32,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
+import java.io.IOException;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 import org.jetbrains.annotations.SystemIndependent;
-
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.junit.Assert.assertNotNull;
 
 public final class ProjectFiles {
   private ProjectFiles() {
   }
 
-  @NotNull
-  public static VirtualFile createFolderInProjectRoot(@NotNull Project project, @NotNull String folderName) throws IOException {
-    return createFolder(project.getBaseDir(), folderName);
+  public static @NotNull VirtualFile createFolderInProjectRoot(@NotNull Project project, @NotNull String folderName) throws IOException {
+    return createFolder(PlatformTestUtil.getOrCreateProjectBaseDir(project), folderName);
   }
 
   @NotNull
@@ -60,10 +59,8 @@ public final class ProjectFiles {
     return folder;
   }
 
-  @NotNull
-  public static VirtualFile createFileInProjectRoot(@NotNull Project project, @NotNull String fileName) throws IOException {
-    VirtualFile parent = project.getBaseDir();
-    return createFile(parent, fileName);
+  public static @NotNull VirtualFile createFileInProjectRoot(@NotNull Project project, @NotNull String fileName) throws IOException {
+    return createFile(PlatformTestUtil.getOrCreateProjectBaseDir(project), fileName);
   }
 
   @NotNull

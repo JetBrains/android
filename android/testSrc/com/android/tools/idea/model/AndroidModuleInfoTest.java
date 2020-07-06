@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.model;
 
+import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_BOTH;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_FLAVORS;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_GRADLE_ONLY;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MANIFEST_ERROR;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MANIFEST_MERGER;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MANIFEST_ONLY;
+import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MERGE;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
@@ -31,19 +42,14 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidUtils;
-import org.w3c.dom.Element;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.util.AndroidUtils;
+import org.w3c.dom.Element;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testDisabled() {
@@ -116,7 +122,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void /*test*/ManifestPlaceholderCompletion() throws Exception {
     loadProject(MODULE_INFO_MERGE);
     assertNotNull(myAndroidFacet);
-    VirtualFile file = PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()).findFileByRelativePath("src/main/AndroidManifest.xml");
+    VirtualFile file = PlatformTestUtil.getOrCreateProjectBaseDir(getProject()).findFileByRelativePath("src/main/AndroidManifest.xml");
     assertNotNull(file);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
