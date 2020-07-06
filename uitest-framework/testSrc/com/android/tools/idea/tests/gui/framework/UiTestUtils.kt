@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
@@ -29,6 +30,7 @@ import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import sun.awt.PeerEvent
 import java.awt.Container
+import java.awt.KeyboardFocusManager
 import java.awt.Robot
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
@@ -96,29 +98,46 @@ private fun oneFullSync() {
 
   fun xQueueSync() {
     var done = false
-    val d = Disposer.newDisposable()
-    try {
-      IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
-        if (e !is KeyEvent || e.keyCode != KeyEvent.VK_F1) false
-        else {
-          if (e.id == KeyEvent.KEY_RELEASED) {
-            lock.withLock { done = true ; condition.signalAll() }
+    fun shouldContinue() = !done && System.currentTimeMillis() - start < 15_000
+
+    do {
+      val activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow?.takeIf { it.isVisible }
+                         ?: return // Nowhere to send key presses to.
+      val d = Disposer.newDisposable()
+      try {
+        IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
+          if (e is KeyEvent && e.keyCode == KeyEvent.VK_F1) {
+            if (e.id == KeyEvent.KEY_RELEASED) {
+              lock.withLock { done = true; condition.signalAll() }
+            }
+            e.consume()
+            true
           }
-          e.consume()
-          true
-        }
-      }, d)
-      awtRobot.keyPress(KeyEvent.VK_F1)
-      awtRobot.keyRelease(KeyEvent.VK_F1)
-      lock.withLock {
-        while (!done && System.currentTimeMillis() - start < 15_000) {
-          condition.await(100, TimeUnit.MILLISECONDS)
+          else false
+        }, d)
+        awtRobot.keyPress(KeyEvent.VK_F1)
+        awtRobot.keyRelease(KeyEvent.VK_F1)
+        lock.withLock {
+          do {
+            condition.await(100, TimeUnit.MILLISECONDS)
+
+            // Changing the active window might eat key presses/releases. It happens when closing a project, for example.
+            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow !== activeWindow) break
+            if (!activeWindow.isVisible) {
+              // Closing a project may bring us into this erroneous state when a closed frame remains active and focus is nowhere.
+              break;
+            }
+          }
+          while (shouldContinue())
         }
       }
-      if (!done) throw WaitTimedOutError("Timed out waiting for sync event.")
+      finally {
+        Disposer.dispose(d)
+      }
     }
-    finally {
-      Disposer.dispose(d)
+    while (shouldContinue())
+    if (!done) {
+      throw WaitTimedOutError("Timed out waiting for sync event.")
     }
   }
 
@@ -158,4 +177,4 @@ fun JListFixture.dragAndClickItem(index: Int) {
   clickItem(index)
 }
 
-fun org.fest.swing.core.Robot.fixupWaiting() = ReliableRobot(this)
+fun org.fest.swing.core.Robot.fixupWaiting(): org.fest.swing.core.Robot = (this as? ReliableRobot) ?: ReliableRobot(this)

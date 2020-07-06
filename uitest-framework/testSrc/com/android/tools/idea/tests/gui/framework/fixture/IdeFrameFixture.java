@@ -508,6 +508,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
 
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
+    waitForIdle();
+    // Wait for other tasks like native sync that might have been triggered.
     GuiTests.waitForBackgroundTasks(ideFixture.robot());
     waitForIdle();
     return ideFixture;
