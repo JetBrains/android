@@ -114,16 +114,6 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
       add(notificationPanel, BorderLayout.NORTH)
     }
 
-
-    fun openWifiPairingDialog() {
-      if (project == null) {
-        logger.error("Cannot pair device without a project")
-        return
-      }
-      val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
-      controller.showDialog()
-    }
-
     /**
      * If no AVDs are present on the system, the AvdListDialog will display this panel.
      * It contains instructional messages about AVDs and a link to create a new AVD.
@@ -133,7 +123,9 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
         label("No physical devices added. Connect a device via USB cable or pair an Android 11+ device over Wi-Fi.")
       }
       row {
-        link("Pair over Wi-Fi", action = ::openWifiPairingDialog)
+        link("Pair over Wi-Fi") {
+          openWifiPairingDialog(project!!)
+        }
       }
     }
 
@@ -309,3 +301,7 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
   }
 }
 
+fun openWifiPairingDialog(project: Project) {
+  val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
+  controller.showDialog()
+}
