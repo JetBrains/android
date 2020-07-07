@@ -36,8 +36,21 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
   }
 
   override fun showDialog() {
-    updateQrCodeImage(model.qrCodeImage)
     dlg.show()
+  }
+
+  override fun startAdbCheck() {
+    dlg.startLoading("Preparing Wi-Fi pairing...")
+  }
+
+  override fun showAdbCheckSuccess() {
+    updateQrCodeImage(model.qrCodeImage)
+    dlg.stopLoading()
+  }
+
+  override fun showAdbCheckError() {
+    //TODO: Make URL a real link
+    dlg.showLoadingError("Wi-Fi pairing requires mDNS support. See http://developer.android.com")
   }
 
   override fun showQrCodePairingStarted() {

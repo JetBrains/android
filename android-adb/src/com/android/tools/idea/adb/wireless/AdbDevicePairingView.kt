@@ -24,7 +24,10 @@ import com.android.annotations.concurrency.UiThread
 interface AdbDevicePairingView {
   val model: AdbDevicePairingModel
 
+  fun startAdbCheck()
   fun showDialog()
+  fun showAdbCheckSuccess()
+  fun showAdbCheckError()
   fun showQrCodePairingStarted()
   fun showQrCodePairingInProgress(mdnsService: MdnsService)
   fun showQrCodeMdnsPairingSuccess(pairingResult: PairingResult)

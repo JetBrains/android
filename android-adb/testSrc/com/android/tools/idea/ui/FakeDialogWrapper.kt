@@ -30,7 +30,8 @@ class FakeDialogWrapper : AbstractDialogWrapper() {
   override var title: String = ""
   override var isModal: Boolean = false
   override val disposable = Disposer.newDisposable()
-  override var okButtonText: String? = "Ok"
+  override var cancelButtonText: String? = "Cancel"
+  override var hideOkButton: Boolean = false
   var initCalled = false
   var showCalled = false
   var panel: JComponent? = null

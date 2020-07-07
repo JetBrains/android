@@ -78,8 +78,8 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
 
     // Assert
     Truth.assertThat(FakeDialogWrapper.ourLastInstance).isNotNull()
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.title).isEqualTo("Pair devices for wireless debugging")
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.okButtonText).isEqualTo("Close")
+    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.title).isEqualTo("Pair devices over Wi-Fi")
+    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.cancelButtonText).isEqualTo("Done")
     Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.initCalled).isTrue()
     Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.showCalled).isTrue()
     Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.panel).isNotNull()

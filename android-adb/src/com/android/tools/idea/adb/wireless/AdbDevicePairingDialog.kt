@@ -26,14 +26,17 @@ import javax.swing.JComponent
 @UiThread
 class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
   private val dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(project, canBeParent, ideModalityType)
-  private val pairingPanel = AdbDevicePairingPanel()
+  private val pairingPanel = AdbDevicePairingPanel(dialogWrapper.disposable)
 
   init {
-    dialogWrapper.centerPanelProvider = { createCenterPanel() }
-    dialogWrapper.isModal = true
-    dialogWrapper.title = "Pair devices for wireless debugging"
-    dialogWrapper.okButtonText = "Close"
-    dialogWrapper.init()
+    dialogWrapper.apply {
+      centerPanelProvider = { createCenterPanel() }
+      isModal = true
+      title = "Pair devices over Wi-Fi"
+      cancelButtonText = "Done"
+      hideOkButton = true
+      init()
+    }
   }
 
   val disposable: Disposable
@@ -55,6 +58,20 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
 
   fun showQrCodeStatus(label: String) {
     pairingPanel.setQrCodePairingStatus(label)
+  }
+
+  fun startLoading(text: String) {
+    pairingPanel.isLoading = true
+    pairingPanel.setLoadingText(text)
+  }
+
+  fun showLoadingError(text: String) {
+    pairingPanel.isLoading = false
+    pairingPanel.setLoadingError(text)
+  }
+
+  fun stopLoading() {
+    pairingPanel.isLoading = false
   }
 
   private val panelPreferredSize: JBDimension
