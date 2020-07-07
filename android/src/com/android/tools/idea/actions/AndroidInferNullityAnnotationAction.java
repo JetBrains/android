@@ -164,7 +164,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
-        LOG.warn("Unable to find Gradle build model for module " + module.getModuleFilePath());
+        LOG.warn("Unable to find Gradle build model for module " + module.getName());
         continue;
       }
       boolean dependencyFound = false;
