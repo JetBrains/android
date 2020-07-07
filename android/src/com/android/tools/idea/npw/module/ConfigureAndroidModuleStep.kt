@@ -110,5 +110,5 @@ class ConfigureAndroidModuleStep(
     return listOf(chooseActivityStep) + commonSteps
   }
 
-  override fun getPreferredFocusComponent(): JComponent? = appName
+  override fun getPreferredFocusComponent(): JComponent = if (appName.isVisible) appName else moduleName
 }
