@@ -16,6 +16,8 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.transform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -24,9 +26,10 @@ import java.util.concurrent.Executor
 @UiThread
 class AdbDevicePairingControllerImpl(project: Project,
                                      edtExecutor: Executor,
-                                     service: AdbDevicePairingService,
+                                     private val service: AdbDevicePairingService,
                                      private val view: AdbDevicePairingView
 ) : AdbDevicePairingController {
+  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val qrCodeScanningController = QrCodeScanningController(service, view, edtExecutor, this)
 
   init {
@@ -38,11 +41,25 @@ class AdbDevicePairingControllerImpl(project: Project,
   }
 
   override fun startPairingProcess() {
-    qrCodeScanningController.startPairingProcess()
+    view.startAdbCheck()
+
+    // Check ADB is valid and mDNS is supported on this platform
+    service.isMdnsSupported().transform(edtExecutor) { mdnsIsSupported ->
+      if (mdnsIsSupported) {
+        view.showAdbCheckSuccess()
+        qrCodeScanningController.startPairingProcess()
+      } else {
+        //TODO: Add error message (or failure cause) here?
+        view.showAdbCheckError()
+      }
+    }
+
+    // Note: This call is blocking and returns only when the dialog is closed
     view.showDialog()
   }
 
   override fun dispose() {
+    // Nothing to do (the view or project disposal is what makes us being disposed)
   }
 
   class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {

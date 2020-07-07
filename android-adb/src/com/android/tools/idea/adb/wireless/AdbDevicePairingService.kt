@@ -28,6 +28,11 @@ import java.net.InetAddress
 @UiThread
 interface AdbDevicePairingService {
   /**
+   * Returns `true` if the current platform and ADB version supports mDNS pairing
+   */
+  fun isMdnsSupported(): ListenableFuture<Boolean>
+
+  /**
    * Generates a new [QrCodeImage] instance, with a new random service name and password
    */
   fun generateQrCode(backgroundColor: Color, foregroundColor: Color) : ListenableFuture<QrCodeImage>

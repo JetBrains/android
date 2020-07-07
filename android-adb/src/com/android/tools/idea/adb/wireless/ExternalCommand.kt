@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.intellij.openapi.diagnostic.logger
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -26,12 +27,15 @@ import java.util.concurrent.TimeUnit
  * Executes a command with ability to pass `stdin` and capture `stdout` and `stderr`.
  */
 class ExternalCommand(val executable: String)  {
+  private val LOG = logger<ExternalCommand>()
+
   @Throws(IOException::class)
   fun execute(args: List<String>, stdin: InputStream, stdout: OutputStream, stderr: OutputStream, timeout: Long, unit: TimeUnit): Int {
     val command: MutableList<String> = ArrayList()
     val exe = File(executable)
     command.add(exe.absolutePath)
     command.addAll(args)
+    LOG.info("Executing command: ${command}")
     val pb = ProcessBuilder(command)
     val process = pb.start()
     val inToProcess = PipeConnector(stdin, process.outputStream)
@@ -44,15 +48,18 @@ class ExternalCommand(val executable: String)  {
     try {
       val finished = process.waitFor(timeout, unit)
       if (!finished) {
+        LOG.warn("Command did not terminate within specified timeout")
         process.destroyForcibly()
       } else {
         code = process.exitValue()
+        LOG.info("Command finished with exit value ${code}")
       }
       processToOut.join()
       stdin.close()
       inToProcess.join()
     }
     catch (e: InterruptedException) {
+      LOG.warn("Command was interrupted", e)
     }
     return code
   }

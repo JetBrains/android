@@ -15,38 +15,32 @@
  */
 package com.android.tools.idea.adb.wireless;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLabel;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class QrCodePanel {
-  @NotNull private final Logger LOG = Logger.getInstance(QrCodePanel.class);
+public class PinCodePanel {
   @NotNull private JBLabel myFirstLineLabel;
   @NotNull private JBLabel mySecondLineLabel;
-  @NotNull private ImagePanel myQrCodePanel;
   @NotNull private JPanel myRootComponent;
-  @NotNull private JBLabel myPairingStateLabel;
+  @NotNull private JPanel myPinCodeContainer;
 
-  public QrCodePanel() {
-    myQrCodePanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
+  public PinCodePanel() {
+    myPinCodeContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myRootComponent.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    myPairingStateLabel.setForeground(UIColors.PAIRING_STATUS_LABEL);
     myFirstLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
     mySecondLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
   }
 
   @NotNull
-  public JPanel getComponent() {
+  public JComponent getComponent() {
     return myRootComponent;
   }
 
-  public void setStatusLabel(@NotNull String line) {
-    myPairingStateLabel.setText(line);
-  }
-
-  public void setQrCode(@NotNull QrCodeImage image) {
-    LOG.info("New QR Code generated: " + image.getPairingString());
-    myQrCodePanel.setImage(image.getImage());
+  public void setInnerComponent(@NotNull JComponent component) {
+    myPinCodeContainer.removeAll();
+    myPinCodeContainer.add(component, BorderLayout.CENTER);
   }
 }
