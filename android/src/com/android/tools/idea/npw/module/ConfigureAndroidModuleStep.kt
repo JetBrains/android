@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
@@ -28,7 +27,6 @@ import com.android.tools.idea.npw.validator.ProjectNameValidator
 import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
@@ -49,7 +47,7 @@ class ConfigureAndroidModuleStep(
   private val appName: JTextField = JBTextField(model.applicationName.get())
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
 
-  private val panel: DialogPanel = panel {
+  override fun createMainPanel(): DialogPanel = panel {
     row {
       labelFor("Application/Library name", appName)
       appName()
@@ -92,7 +90,6 @@ class ConfigureAndroidModuleStep(
       }
     }
   }
-  override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
     bindings.bindTwoWay(TextProperty(appName), model.applicationName)
