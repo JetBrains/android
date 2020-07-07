@@ -108,7 +108,6 @@ import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.XmlElementFactory;
-import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -283,10 +282,7 @@ public final class AndroidResourceUtil {
    * </p>
    */
   public static void scheduleNewResolutionAndHighlighting(@NotNull PsiManager psiManager) {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      psiManager.dropResolveCaches();
-      ((PsiModificationTrackerImpl)psiManager.getModificationTracker()).incCounter();
-    });
+    ApplicationManager.getApplication().invokeLater(() -> psiManager.dropPsiCaches(), psiManager.getProject().getDisposed());
   }
 
   private static void findResourceFieldsFromClass(@NotNull PsiClass rClass,
