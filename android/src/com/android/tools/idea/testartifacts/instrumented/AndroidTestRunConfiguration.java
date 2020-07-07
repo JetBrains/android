@@ -43,6 +43,7 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -314,7 +315,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
     return (parent, handler, executor) -> {
       final ConsoleView consoleView;
-      if (runOnMultipleDevices
+      if ((runOnMultipleDevices || AndroidTestConfiguration.getInstance().getALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX())
           && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()
           && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
         consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule());
