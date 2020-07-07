@@ -65,18 +65,32 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
   fun multiModuleTest() {
     projectRule.requestSyncAndWait()
 
-    // check contents for app module
+    // check contents when providing app package name in app module.
     val appModule = fixture.project.findAppModule()
     val appModuleDescriptor = appModule.toDescriptor()
 
-    val classesMetadataInApp = appModuleDescriptor!!
+    val classesMetadataAppPackageInApp = appModuleDescriptor!!
       .getPackage(FqName("com.example.myapplication"))
       .memberScope
       .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
-    assertThat(classesMetadataInApp.map { it.fqcn to it.file }).containsExactly(
+    assertThat(classesMetadataAppPackageInApp.map { it.fqcn to it.file }).containsExactly(
       "com.example.myapplication.SecondFragmentArgs" to "nav_graph.xml",
       "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml"
+    )
+
+    // check contents when providing lib package name in app module.
+    val classesMetadataLibPackageInApp = appModuleDescriptor
+      .getPackage(FqName("com.example.mylibrary"))
+      .memberScope
+      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+
+    // It collects 'packageFragmentProviderForWholeModuleWithDependencies'
+    assertThat(classesMetadataLibPackageInApp.map { it.fqcn to it.file }).containsExactly(
+      "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
+      "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
+      "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
+      "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
     )
 
     // check contents for library module
@@ -89,8 +103,6 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
       .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
     assertThat(classesMetadataInLib.map { it.fqcn to it.file }).containsExactly(
-      "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
-      "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
       "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
       "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
     )
@@ -105,8 +117,8 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
       .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
     assertThat(classesMetadataInLibExcluded.map { it.fqcn to it.file }).containsExactly(
-      "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
-      "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
+      "com.example.mylibrary.SecondFragmentArgs" to "excludedlibnav_graph.xml",
+      "com.example.mylibrary.SecondFragmentDirections" to "excludedlibnav_graph.xml"
     )
   }
 }

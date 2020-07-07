@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/libnav_graph"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/excludedlibnav_graph"
     app:startDestination="@id/firstFragment">
     <fragment
         android:id="@+id/SecondFragment"
@@ -11,7 +11,7 @@
           android:name="arg1"
           app:argType="integer" />
       <action
-          android:id="@+id/action_SecondFragment_to_Libnav_Graph"
-          app:destination="@id/libnav_graph" />
+          android:id="@+id/action_SecondFragment_to_Excludedlibnav_Graph"
+          app:destination="@id/excludedlibnav_graph" />
     </fragment>
 </navigation>

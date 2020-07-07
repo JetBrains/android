@@ -16,7 +16,6 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService
-import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
@@ -58,41 +57,16 @@ internal fun findAndroidModuleByPackageName(fqName: FqName, project: Project, mo
   return null
 }
 
-internal fun getDescriptorsByModule(module: Module, project: Project): Map<FqName, List<PackageFragmentDescriptor>> {
-  return project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java).modulesUsingSafeArgs
+internal fun Module.getDescriptorsByModulesWithDependencies(): Map<FqName, List<PackageFragmentDescriptor>> {
+  val descriptorsFromThisModule = KtDescriptorCacheModuleService.getInstance(this).getDescriptors().toMutableMap()
+  return ModuleRootManager.getInstance(this).getDependencies(false)
     .asSequence()
-    .map { it.module }
-    .filter { it == module || ModuleRootManager.getInstance(it).isDependsOn(module) }
-    .flatMap {
-      KtDescriptorCacheModuleService.getInstance(it).getDescriptors().entries.asSequence()
-    }
-    .filter { (_, descriptors) ->
-      descriptors.first().containingDeclaration.toModule().let { it == module }
-    }
-    .fold(mutableMapOf()) { acc, curr ->
-      // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
-      //  resolved.
-      acc.merge(curr.key, curr.value) { old, new -> old + new }
-      acc
-    }
-}
-
-internal fun getDescriptorsByModulesWithDependencies(module: Module): Map<FqName, List<PackageFragmentDescriptor>> {
-  val project = module.project
-  return project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java)
-    .modulesUsingSafeArgs
-    .asSequence()
-    .map { it.module }
     .map { ProgressManager.checkCanceled(); it }
-    .flatMap { KtDescriptorCacheModuleService.getInstance(it).getDescriptors().entries.asSequence() }
-    .filter { (_, descriptors) ->
-      descriptors.first().containingDeclaration.toModule()
-        ?.let { it == module || ModuleRootManager.getInstance(module).isDependsOn(it) } == true
-    }
-    .fold(mutableMapOf()) { acc, curr ->
+    .map { KtDescriptorCacheModuleService.getInstance(it).getDescriptors() }
+    .fold(descriptorsFromThisModule) { acc, curr ->
       // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
       //  resolved.
-      acc.merge(curr.key, curr.value) { old, new -> old + new }
+      curr.entries.forEach { entry -> acc.merge(entry.key, entry.value) { old, new -> old + new } }
       acc
     }
 }

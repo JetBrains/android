@@ -17,11 +17,10 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.psi.kotlin.getDescriptorsByModule
+import com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService
 import com.android.tools.idea.nav.safeargs.psi.kotlin.toModule
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -49,7 +48,8 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
     val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
 
-    val packageDescriptors = getDescriptorsByModule(facet.module, project).takeIf { it.isNotEmpty() } ?: return null
+    val packageDescriptors = KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors().takeIf { it.isNotEmpty() }
+                             ?: return null
     return SafeArgsSyntheticPackageProvider(packageDescriptors)
   }
 }
