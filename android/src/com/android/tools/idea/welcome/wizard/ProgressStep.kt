@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis
 
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -85,7 +85,7 @@ abstract class ProgressStep(parent: Disposable, name: String) : ModelWizardStep.
   }
   private var myProgressIndicator: ProgressIndicator? = null
   private var fraction = 0.0
-  private val root: JBScrollPane = StudioWizardStepPanel.wrappedWithVScroll(outerPanel)
+  private val root: JBScrollPane = wrapWithVScroll(outerPanel)
 
   // TODO (what is this?) @Override
   //public JComponent getPreferredFocusedComponent() {

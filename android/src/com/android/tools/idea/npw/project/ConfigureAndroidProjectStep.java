@@ -22,7 +22,7 @@ import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
+import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -115,7 +115,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
-    myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+    myValidatorPanel = new ValidatorPanel(this, wrapWithVScroll(myPanel));
 
     myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
     HelpTooltip helpTooltip = new HelpTooltip()

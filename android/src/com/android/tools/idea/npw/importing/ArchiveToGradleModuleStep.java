@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.observable.BindingsManager;
@@ -63,6 +66,9 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
     super(model, AndroidBundle.message("android.wizard.module.import.library.title"));
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      myValidatorPanel.setBorder(SMALL.border);
+    }
 
     myArchivePath.addBrowseFolderListener(AndroidBundle.message("android.wizard.module.import.library.browse.title"),
                                           AndroidBundle.message("android.wizard.module.import.library.browse.description"),

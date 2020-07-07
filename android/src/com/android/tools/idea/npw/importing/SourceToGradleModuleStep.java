@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.EMPTY;
+import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL;
+import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.project.ProjectUtil.guessProjectDir;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.observable.BindingsManager;
@@ -30,7 +34,6 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.util.FormatUtil;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
@@ -72,7 +75,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private final ListenerManager myListeners = new ListenerManager();
   private final BindingsManager myBindings = new BindingsManager();
 
-  @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private final JComponent myRootPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
 
   private final BoolProperty myCanGoForward = new BoolValueProperty();
@@ -113,7 +116,13 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
     myListeners.listen(myValidatorPanel.getValidationResult(), result -> applyValidationResult(result));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      myRootPanel = wrapWithVScroll(myValidatorPanel, EMPTY);
+      myValidatorPanel.setBorder(SMALL.border);
+    }
+    else {
+      myRootPanel = wrapWithVScroll(myValidatorPanel);
+    }
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
