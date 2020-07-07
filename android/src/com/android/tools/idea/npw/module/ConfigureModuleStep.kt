@@ -44,17 +44,17 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.refactoring.isAndroidx
 import java.util.function.Consumer
 import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JTextField
 
 abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
@@ -76,8 +76,16 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
   protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
+  protected val validatorPanel: ValidatorPanel by lazy {
+    ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(createMainPanel())).apply {
+      registerValidator(model.moduleName, moduleValidator)
+      registerValidator(model.packageName, PackageNameValidator())
+      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
+      FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
+    }
+  }
 
-  abstract val validatorPanel: ValidatorPanel
+  abstract fun createMainPanel(): JPanel
 
   private val moduleValidator = ModuleValidator(model.project)
   init {
@@ -104,24 +112,6 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
     bindings.bind(moduleNameText, computedModuleName, isModuleNameSynced)
     bindings.bind(model.moduleName, moduleNameText)
     listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }
-  }
-
-  // This is a separate function only because onWizardStarting is protected
-  // and we need to initialize validators in some unit (non UI) tests.
-  @VisibleForTesting
-  fun registerValidators() {
-    validatorPanel.apply {
-      registerValidator(model.moduleName, moduleValidator)
-      registerValidator(model.packageName, PackageNameValidator())
-      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
-    }
-  }
-
-  override fun onWizardStarting(wizard: ModelWizard.Facade) {
-    // TODO(qumeric): we register validators here because validatorPanel is abstract. Consider finding a way to do it in init.
-    //                The obvious way is to pass validatorPanel as an argument but it looks dubious syntactically because panel is huge
-    registerValidators()
-    FormScalingUtil.scaleComponentTree(this.javaClass, validatorPanel)
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {

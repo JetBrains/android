@@ -159,9 +159,7 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title").apply {
-      registerValidators()
-    }
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
