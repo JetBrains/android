@@ -94,14 +94,18 @@ class ChooseModuleTypeWizard(
 
     fun setNewModelWizard(galleryEntry: Optional<ModuleGalleryEntry>) {
       if (galleryEntry.isPresent && selectedEntry != galleryEntry.get()) {
-        selectedEntry = galleryEntry.get()
         currentModelWizard = ModelWizard.Builder().addStep(galleryEntry.get().createStep(project, moduleParent, projectSyncInvoker)).build()
-        modelWizardListeners.releaseAll()
+
+        // Ignore first initialization, as currentModelWizard is supplied in modelWizardDialog constructor
+        if (selectedEntry != null) {
+          modelWizardListeners.releaseAll()
+          modelWizardDialog.setModelWizard(currentModelWizard)
+        }
+        selectedEntry = galleryEntry.get()
+
         modelWizardListeners.listen(currentModelWizard.onFirstStep()) {
           leftPanel.isVisible = currentModelWizard.onFirstStep().get()
         }
-
-        modelWizardDialog.setModelWizard(currentModelWizard)
       }
     }
 
