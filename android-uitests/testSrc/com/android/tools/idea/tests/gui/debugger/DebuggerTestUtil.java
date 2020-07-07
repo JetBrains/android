@@ -77,10 +77,7 @@ public class DebuggerTestUtil {
                                                                         @NotNull String configName,
                                                                         @NotNull String avdName,
                                                                         @NotNull Wait wait) {
-    ideFrameFixture.debugApp(configName, avdName);
-
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), wait);
+    ideFrameFixture.debugApp(configName, avdName, wait);
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
 

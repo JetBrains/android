@@ -71,9 +71,6 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
 
     ideFrame.runApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
     // This step is to make sure the process is running.
     ideFrame.getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);

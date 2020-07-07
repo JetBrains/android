@@ -100,9 +100,6 @@ public class LaunchAndroidApplicationTest {
 
     ideFrameFixture.debugApp("classic-teapot", emulator.getDefaultAvdName());
 
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
     Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
       .expecting("emulator with the app launched in debug mode")
       .until(() -> ideFrameFixture.getDebugToolWindow().getContentCount() >= 2);
