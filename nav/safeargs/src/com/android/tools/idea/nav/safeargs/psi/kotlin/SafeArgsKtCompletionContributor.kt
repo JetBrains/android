@@ -64,7 +64,7 @@ class SafeArgsKtCompletionContributor : CompletionContributor() {
 
           val importedDirectives = getImportedDirectives(element)
 
-          val lookupElements = getDescriptorsByModulesWithDependencies(facet.module).values.asSequence()
+          val lookupElements = facet.module.getDescriptorsByModulesWithDependencies().values.asSequence()
             .flatten()
             .map { ProgressManager.checkCanceled(); it }
             .filter { element.containingKtFile.packageFqName != it.fqName }
