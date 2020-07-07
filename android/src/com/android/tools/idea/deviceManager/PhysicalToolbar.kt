@@ -16,48 +16,40 @@
 package com.android.tools.idea.deviceManager
 
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.deviceManager.avdmanager.AvdActionPanel
-import com.android.tools.idea.deviceManager.avdmanager.actions.AvdUiAction
-import com.android.tools.idea.deviceManager.avdmanager.actions.CreateAvdAction
+import com.android.tools.idea.deviceManager.displayList.openWifiPairingDialog
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.project.Project
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Graphics
-import javax.swing.JComponent
-import javax.swing.border.Border
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
 /**
  * A toolbar which contains a [panel] which is an UI element.
  */
-class CommonToolbar(
-  avdInfoProvider: AvdUiAction.AvdInfoProvider,
-  private val avdRefreshProvider: AvdActionPanel.AvdRefreshProvider,
+class PhysicalToolbar(
+  val project: Project?,
   searchDocumentListener: DocumentListener
 ) {
-  private val createAvdAction = CreateAvdAction(avdInfoProvider)
   private val newButton = CommonButton(AllIcons.General.Add).apply {
-    addActionListener(createAvdAction)
+    addActionListener { if (project != null) openWifiPairingDialog(project) }
   }
 
   private val refreshButton = CommonButton(AllIcons.Actions.Refresh).apply {
-    addActionListener { avdRefreshProvider.refreshAvds() }
+    // TODO(qumeric): do we need it? (supposed to run `adb` reconnect)
   }
 
+  // TODO(qumeric): set correct link
   private val helpButton = CommonButton(AllIcons.Actions.Help).apply {
     addActionListener { BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html") }
   }
 
-  // TODO(qumeric): consider moving it to adtui?
   private val separator = Separator()
 
-  private val SEARCH_FIELD_LABEL = "Search resources by name"
+  private val SEARCH_FIELD_LABEL = "Search physical devices by name"
   private val searchField = createSearchField(SEARCH_FIELD_LABEL).apply {
     addDocumentListener(searchDocumentListener)
   }
@@ -88,26 +80,3 @@ private fun createSearchField(name: String, gap: Int = JBUI.scale(10)) = SearchT
   })
 }
 
-class Separator(
-  border: Border = JBUI.Borders.empty(0, 4),
-  background: Color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-) : JComponent() {
-
-  private val lineWidth = 1
-
-  init {
-    this.background = background
-    this.border = border
-  }
-
-  override fun paint(g: Graphics) = with(g) {
-    color = background
-    fillRect(insets.left, insets.top, JBUI.scale(lineWidth), height - insets.top - insets.bottom)
-  }
-
-  override fun getPreferredSize(): Dimension {
-    val width = JBUI.scale(lineWidth) + insets.left + insets.right
-    val height: Int = JBUI.scale(16)
-    return Dimension(width, height)
-  }
-}
