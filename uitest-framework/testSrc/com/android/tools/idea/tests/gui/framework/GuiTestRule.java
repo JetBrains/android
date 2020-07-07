@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
 import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Files.asCharSource;
@@ -352,7 +353,7 @@ public class GuiTestRule implements TestRule {
   public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir, @NotNull Wait waitForSync) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
-    return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> reliableIdeFrame());
   }
 
   /**
@@ -504,6 +505,13 @@ public class GuiTestRule implements TestRule {
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;
+  }
+
+  @NotNull
+  public IdeFrameFixture reliableIdeFrame() {
+    IdeFrameFixture result = IdeFrameFixture.find(fixupWaiting(robot()));
+    result.requestFocusIfLost();
+    return result;
   }
 
   @NotNull
