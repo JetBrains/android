@@ -22,6 +22,7 @@ import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -44,7 +45,9 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
+import com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.EMPTY
+import com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
@@ -77,7 +80,14 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
   protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
   protected val validatorPanel: ValidatorPanel by lazy {
-    ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(createMainPanel())).apply {
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      ValidatorPanel(this, wrapWithVScroll(createMainPanel(), EMPTY)).apply {
+        border = SMALL.border
+      }
+    }
+    else {
+      ValidatorPanel(this, wrapWithVScroll(createMainPanel()))
+    }.apply {
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
       registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))

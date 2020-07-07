@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ide.customize.CustomizeUIThemeStepPanel
 import com.intellij.ide.ui.laf.darcula.DarculaInstaller
@@ -28,7 +28,7 @@ import javax.swing.JComponent
  */
 class SelectThemeStep : ModelWizardStep.WithoutModel("Select UI Theme") {
   private val themePanel: CustomizeUIThemeStepPanel = CustomizeUIThemeStepPanel()
-  private val root: JBScrollPane = StudioWizardStepPanel.wrappedWithVScroll(themePanel)
+  private val root: JBScrollPane = wrapWithVScroll(themePanel)
 
   override fun onProceeding() {
     // This code is duplicated from LafManager.initComponent(). But our Welcome Wizard is started AFTER that call so we repeat it here.
