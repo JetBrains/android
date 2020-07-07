@@ -19,15 +19,11 @@ import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.BuildMode;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleProjectEventListener implements GradleBuildListener {
-  @GuardedBy("myLock")
-  private BuildMode myBuildMode;
-
   @GuardedBy("myLock")
   private BuildStatus myBuildStatus;
 
@@ -48,21 +44,7 @@ public class GradleProjectEventListener implements GradleBuildListener {
   public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
     synchronized (myLock) {
       myBuildFinished = System.currentTimeMillis();
-      myBuildMode = context != null ? context.getBuildMode() : null;
       myBuildStatus = status;
-    }
-  }
-
-  public void reset() {
-    synchronized (myLock) {
-      myBuildMode = null;
-      myBuildFinished = -1;
-    }
-  }
-
-  public boolean isBuildFinished(@NotNull BuildMode mode) {
-    synchronized (myLock) {
-      return myBuildFinished > 0 && myBuildMode == mode;
     }
   }
 

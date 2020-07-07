@@ -99,7 +99,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   private EditorFixture myEditor;
   private boolean myIsClosed;
-  private GradleProjectEventListener myGradleProjectEventListener = new GradleProjectEventListener();
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot) {
@@ -108,12 +107,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   private IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(IdeFrameFixture.class, robot, target);
-    Project project = getProject();
-
-    Disposable disposable = new NoOpDisposable();
-    Disposer.register(project, disposable);
-
-    GradleBuildState.subscribe(project, myGradleProjectEventListener);
   }
 
   @NotNull
@@ -354,18 +347,26 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public BuildStatus actAndWaitForBuildToFinish(@Nullable Wait wait, @NotNull Consumer<IdeFrameFixture> actions) {
-    long beforeStartedTimeStamp = System.currentTimeMillis();
-    Project project = getProject();
-    actions.accept(this);
+    GradleProjectEventListener gradleProjectEventListener = new GradleProjectEventListener();
+    Disposable disposable = Disposer.newDisposable();
+    try {
+      GradleBuildState.subscribe(getProject(), gradleProjectEventListener, disposable);
+      long beforeStartedTimeStamp = System.currentTimeMillis();
+      Project project = getProject();
+      actions.accept(this);
 
-    (wait != null ? wait : Wait.seconds(60))
-      .expecting("build '" + project.getName() + "' to finish")
-      .until(() -> myGradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
+      (wait != null ? wait : Wait.seconds(60))
+        .expecting("build '" + project.getName() + "' to finish")
+        .until(() -> gradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
-    GuiTests.waitForProjectIndexingToFinish(getProject());
-    GuiTests.waitForBackgroundTasks(robot());
-    waitForIdle();
-    return myGradleProjectEventListener.getBuildStatus();
+      GuiTests.waitForProjectIndexingToFinish(getProject());
+      GuiTests.waitForBackgroundTasks(robot());
+      waitForIdle();
+      return gradleProjectEventListener.getBuildStatus();
+    }
+    finally {
+      Disposer.dispose(disposable);
+    }
   }
 
   /**
@@ -385,8 +386,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public void requestProjectSync() {
-    myGradleProjectEventListener.reset();
-
     GuiTests.waitForBackgroundTasks(robot(), null);
     waitAndInvokeMenuPath(20, "File", "Sync Project with Gradle Files");
   }
