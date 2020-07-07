@@ -154,6 +154,12 @@ class NdkModuleModel
 
   val variants: Collection<NdkVariant> get() = ndkVariantsByVariantAbi.values
 
+  fun getSymbolFolders(): Map<VariantAbi, Set<File>> = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
+    ndkVariant.artifacts.mapNotNull { artifact ->
+      artifact.outputFile?.takeIf { it.exists() }?.parentFile
+    }.toSet()
+  }
+
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
 
   fun findToolchain(toolchainName: String) = toolchainsByName[toolchainName]
