@@ -26,9 +26,11 @@ import static java.awt.event.InputEvent.CTRL_MASK;
 import static java.awt.event.InputEvent.META_MASK;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
@@ -174,12 +176,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public GradleInvocationResult invokeProjectMake() {
+  public BuildStatus invokeProjectMake() {
     return invokeProjectMake(null);
   }
 
   @NotNull
-  public GradleInvocationResult invokeProjectMake(@Nullable Wait wait) {
+  public BuildStatus invokeProjectMake(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
 
     AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
@@ -196,7 +198,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Wait.seconds(10)
       .expecting("Listeners to be notified of build-finished event")
       .until(() -> resultRef.get() != null);
-    return resultRef.get();
+    return myGradleProjectEventListener.getBuildStatus();
   }
 
   @NotNull
@@ -389,6 +391,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       .expecting("build '" + project.getName() + "' to finish")
       .until(() -> myGradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
+    assertTrue(myGradleProjectEventListener.getBuildStatus().isBuildSuccessful());
     GuiTests.waitForProjectIndexingToFinish(getProject());
     GuiTests.waitForBackgroundTasks(robot());
     waitForIdle();
