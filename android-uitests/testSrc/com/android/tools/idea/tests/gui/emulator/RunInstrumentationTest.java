@@ -111,9 +111,6 @@ public class RunInstrumentationTest {
 
     ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME, avdRule.getMyAvd().getName());
 
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
     ideFrameFixture.getRunToolWindow()
       .findContent(INSTRUMENTED_TEST_CONF_NAME)
       .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);

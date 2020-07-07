@@ -116,9 +116,6 @@ public class DebugOnEmulatorTest {
 
     ideFrameFixture.debugApp("app", avdName);
 
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);

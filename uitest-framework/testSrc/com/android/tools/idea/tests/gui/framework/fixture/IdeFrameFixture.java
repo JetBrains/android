@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
 import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
@@ -240,11 +241,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public void debugApp(@NotNull String appName, @NotNull String deviceName) {
+    debugApp(appName, deviceName, null);
+  }
+
+  public void debugApp(@NotNull String appName, @NotNull String deviceName, @Nullable Wait wait) {
     new DeviceSelectorFixture(robot(), this).debugApp(appName, deviceName);
+    waitForBackgroundTasks(robot(), wait);
   }
 
   public void runApp(@NotNull String appName, @NotNull String deviceName) {
+    runApp(appName, deviceName, null);
+  }
+
+  public void runApp(@NotNull String appName, @NotNull String deviceName, @Nullable Wait wait) {
     new DeviceSelectorFixture(robot(), this).runApp(appName, deviceName);
+    waitForBackgroundTasks(robot(), wait);
   }
 
   @NotNull

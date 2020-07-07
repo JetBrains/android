@@ -125,9 +125,6 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     // Request debugging and wait for Gradle build to finish.
     assertTrue("Build failed", ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X")).isBuildSuccessful());
 
-    // Wait for build to complete
-    guiTest.waitForBackgroundTasks();
-
     File projectRoot = ideFrame.getProjectPath();
     File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
 
