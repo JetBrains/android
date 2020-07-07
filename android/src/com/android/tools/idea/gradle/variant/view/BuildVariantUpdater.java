@@ -189,7 +189,12 @@ public class BuildVariantUpdater {
 
     // Keep using the same existing build variant.
     VariantAbi currentSelectedVariantAbi = ndkFacet.getSelectedVariantAbi();
-    VariantAbi newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModuleModel, currentSelectedVariantAbi.getVariant(), selectedAbiName);
+    VariantAbi newVariantAbi;
+    if (currentSelectedVariantAbi == null) {
+      newVariantAbi = null;
+    } else {
+      newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModuleModel, currentSelectedVariantAbi.getVariant(), selectedAbiName);
+    }
     if (newVariantAbi == null) {
       logAndShowAbiNameFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
       return false;
@@ -346,7 +351,7 @@ public class BuildVariantUpdater {
                                                           @NotNull NdkModuleModel ndkModuleModel,
                                                           @NotNull VariantAbi variantAbiToSelect,
                                                           @NotNull List<NdkFacet> affectedNdkFacets) {
-    if (ndkFacet.getSelectedVariantAbi().equals(variantAbiToSelect) && ndkModuleModel.getSyncedVariantAbis().contains(variantAbiToSelect)) {
+    if (variantAbiToSelect.equals(ndkFacet.getSelectedVariantAbi()) && ndkModuleModel.getSyncedVariantAbis().contains(variantAbiToSelect)) {
       return true;
     }
     affectedNdkFacets.add(ndkFacet);
@@ -487,7 +492,9 @@ public class BuildVariantUpdater {
 
     // If the user did not provide an ABI in their selection, or the variant+ABI combination they selected for some parent/ancestor module
     // does not exist in the current module, then we try to preserve the ABI for this module.
-    String existingAbi = ndkFacet.getSelectedVariantAbi().getAbi();
+    VariantAbi selectedVariantAbi = ndkFacet.getSelectedVariantAbi();
+    if (selectedVariantAbi == null) return null;
+    String existingAbi = selectedVariantAbi.getAbi();
     VariantAbi proposedVariantAbi = new VariantAbi(newVariant, existingAbi);  // e.g., debug-x86
 
     if (ndkModel.getAllVariantAbis().contains(proposedVariantAbi)) {

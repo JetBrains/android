@@ -24,7 +24,6 @@ data class VariantAbi(val variant: String, val abi: String) {
   companion object {
     @JvmStatic
     fun fromString(variantAbiString: String): VariantAbi? {
-      if (variantAbiString == NdkModuleModel.DUMMY_VARIANT_ABI.displayName) return NdkModuleModel.DUMMY_VARIANT_ABI
       for (abi in Abi.values()) {
         if (variantAbiString.endsWith(abi.toString())) {
           val abiName = abi.toString()

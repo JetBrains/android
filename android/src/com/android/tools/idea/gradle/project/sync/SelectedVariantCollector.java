@@ -66,6 +66,7 @@ public class SelectedVariantCollector {
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (ndkFacet != null && ndkModuleModel != null) {
         VariantAbi selected = ndkFacet.getSelectedVariantAbi();
+        if (selected == null) return null;
         return new SelectedVariant(rootFolder, projectPath, selected.getVariant(), selected.getAbi());
       }
       if (androidFacet != null) {

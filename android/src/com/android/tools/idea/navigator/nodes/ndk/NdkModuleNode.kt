@@ -102,7 +102,7 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
                                        ndkModel: NdkModuleModel,
                                        project: Project,
                                        settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val variant = ndkModel.getNdkVariant(ndkFacet.selectedVariantAbi)
+  val variant = ndkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, NativeArtifact>()
   for (artifact in variant.artifacts) {
     val file = artifact.outputFile
@@ -155,7 +155,7 @@ fun containedInIncludeFolders(project: Project, ndkModuleModel: NdkModuleModel, 
   }
   val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)!!
   val ndkFacet = NdkFacet.getInstance(module)!!
-  val selectedVariantAbi = ndkFacet.selectedVariantAbi
+  val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return false
   val variant = selectedVariantAbi.variant
   val abi = selectedVariantAbi.abi
   val nativeWorkspaceService = NativeWorkspaceService.getInstance(project)

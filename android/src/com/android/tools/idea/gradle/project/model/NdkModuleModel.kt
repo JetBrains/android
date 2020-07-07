@@ -82,15 +82,8 @@ class NdkModuleModel
   @Transient
   val syncedVariantAbis: Collection<VariantAbi> = ndkVariantsByVariantAbi.keys
 
-  /**
-   * Returns a list of all NdkVariant names. For single-variant sync, some variant names may not synced.
-   */
-  val ndkVariantAbis: Set<String>
-    get() = allVariantAbis.map { it.displayName }.toSet()
-
-  fun getDefaultVariantAbi(): VariantAbi =
+  fun getDefaultVariantAbi(): VariantAbi? =
     allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && abi == "x86" } ?: allVariantAbis.firstOrNull()
-    ?: DUMMY_VARIANT_ABI
 
   init {
     if (nativeVariantAbis.isEmpty()) {
@@ -161,8 +154,7 @@ class NdkModuleModel
 
   val variants: Collection<NdkVariant> get() = ndkVariantsByVariantAbi.values
 
-  fun getNdkVariant(variantAbi: VariantAbi): NdkVariant =
-    ndkVariantsByVariantAbi[variantAbi] ?: NdkVariant(DUMMY_VARIANT_ABI.displayName, features.isExportedHeadersSupported)
+  fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
 
   fun findToolchain(toolchainName: String) = toolchainsByName[toolchainName]
 
@@ -179,8 +171,5 @@ class NdkModuleModel
     fun get(ndkFacet: NdkFacet): NdkModuleModel? {
       return ndkFacet.ndkModuleModel ?: return null
     }
-
-    @JvmField
-    val DUMMY_VARIANT_ABI = VariantAbi("---", "--")
   }
 }
