@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -103,5 +102,7 @@ public class BuildAndRunCMakeProjectTest {
     ContentFixture contentFixture = runToolWindowFixture.findContent(RUN_CONFIG_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 10);
     contentFixture.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), 60);
+    contentFixture.waitForStopClick();
+    contentFixture.waitForExecutionToFinish();
   }
 }
