@@ -185,8 +185,13 @@ public class BuildVariantView {
       NdkModuleModel ndkModel = ndkFacet == null ? null : getNdkModuleModelIfNotJustDummy(ndkFacet);
       if (ndkModel != null) {
         VariantAbi variantAbi = ndkFacet.getSelectedVariantAbi();
-        variantNameWithoutAbi = variantAbi.getVariant();
-        abiName = variantAbi.getAbi();
+        if (variantAbi == null) {
+          variantNameWithoutAbi = "---";
+          abiName = "--";
+        } else {
+          variantNameWithoutAbi = variantAbi.getVariant();
+          abiName = variantAbi.getAbi();
+        }
       } else {
         assert androidFacet != null;  // getGradleModules() returns only relevant modules.
         variantNameWithoutAbi = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
@@ -940,7 +945,7 @@ public class BuildVariantView {
   @Nullable
   private static NdkModuleModel getNdkModuleModelIfNotJustDummy(@NotNull NdkFacet ndkFacet) {
     NdkModuleModel ndkModel = NdkModuleModel.get(ndkFacet);
-    if (ndkModel == null || ndkFacet.getSelectedVariantAbi() == NdkModuleModel.DUMMY_VARIANT_ABI) {
+    if (ndkModel == null || ndkFacet.getSelectedVariantAbi() == null) {
       // There are no valid NDK variants. Treat as if NdkModuleModel does not exist.
       return null;
     }

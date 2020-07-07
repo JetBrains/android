@@ -67,7 +67,7 @@ class IncludesViewNodeV2(
       val sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(NativeSourceRootType)
       val project = module.project
       val projectFileIndex = ProjectFileIndex.getInstance(project)
-      val selectedVariantAbi = ndkFacet.selectedVariantAbi
+      val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return null
       val variant = selectedVariantAbi.variant
       val abi = selectedVariantAbi.abi
       val nativeWorkspaceService = NativeWorkspaceService.getInstance(project)

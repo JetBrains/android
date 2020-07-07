@@ -138,6 +138,6 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   return symDirs
 }
 
-fun NdkVariant.isDebugVariant(): Boolean {
-  return this.name.contains("debug")
+fun NdkVariant?.isDebugVariant(): Boolean {
+  return this?.name?.contains("debug") ?: false
 }

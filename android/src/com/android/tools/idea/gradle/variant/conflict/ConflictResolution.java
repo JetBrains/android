@@ -119,11 +119,14 @@ public final class ConflictResolution {
   private static VariantAbi resolveNewVariantAbi(@NotNull NdkFacet ndkFacet,
                                                  @NotNull NdkModuleModel ndkModel,
                                                  @NotNull String newVariant) {
-    String userSelectedAbi = ndkFacet.getSelectedVariantAbi().getAbi();
-    VariantAbi newVariantAbi = new VariantAbi(newVariant, userSelectedAbi);
+    VariantAbi selectedVariantAbi = ndkFacet.getSelectedVariantAbi();
+    if (selectedVariantAbi != null) {
+      String userSelectedAbi = selectedVariantAbi.getAbi();
+      VariantAbi newVariantAbi = new VariantAbi(newVariant, userSelectedAbi);
 
-    if (ndkModel.getAllVariantAbis().contains(newVariantAbi)) {
-      return newVariantAbi;
+      if (ndkModel.getAllVariantAbis().contains(newVariantAbi)) {
+        return newVariantAbi;
+      }
     }
 
     // The given newVariant does not have the same ABI available. For instance, we are trying to fix a conflict by changing variant from

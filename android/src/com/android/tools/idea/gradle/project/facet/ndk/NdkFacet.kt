@@ -35,9 +35,19 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
     writeConfigurationToDisk()
   }
 
-  var selectedVariantAbi: VariantAbi
+  /**
+   * The currently selected variant and ABI for this module.
+   *
+   * The getter would always try to return a sensible value. That is, if the internally stored value is null or nonsense, the getter would
+   * pick a default variant and ABI that's available. In the rare case that this module has no variant and ABI available at all (for
+   * example, an ABI filter has filtered out all ABIs), the getter will return null.
+   *
+   * The setter accepts any value and internally this value is stored for later even if it's not among the available variant ABIs. This
+   * ensures the behavior is stable across (possibly incorrect) changes on ABI filters.
+   */
+  var selectedVariantAbi: VariantAbi?
     get() = configuration.selectedVariantAbi.takeIf { it in ndkModuleModel?.allVariantAbis ?: emptySet() }
-            ?: ndkModuleModel?.getDefaultVariantAbi() ?: NdkModuleModel.DUMMY_VARIANT_ABI
+            ?: ndkModuleModel?.getDefaultVariantAbi()
     set(value) {
       configuration.selectedVariantAbi = value
       writeConfigurationToDisk()
