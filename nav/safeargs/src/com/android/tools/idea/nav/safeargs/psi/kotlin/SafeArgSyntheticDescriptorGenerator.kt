@@ -42,7 +42,7 @@ internal fun ClassDescriptorImpl.createMethod(
   returnType: KotlinType,
   dispatchReceiver: ClassDescriptor,
   valueParametersProvider: (SimpleFunctionDescriptorImpl) -> List<ValueParameterDescriptor> = { emptyList() },
-  sourceElement: SourceElement = this.source.withMethodIcon()
+  sourceElement: SourceElement = this.source.withMethodIcon(name)
 ): SimpleFunctionDescriptorImpl {
 
   val method = object : SimpleFunctionDescriptorImpl(

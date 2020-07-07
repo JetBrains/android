@@ -37,6 +37,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.PlatformIcons
 import net.jcip.annotations.GuardedBy
@@ -86,7 +87,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
   fun getDescriptors(): Map<FqName, List<PackageFragmentDescriptor>> {
     ProgressManager.checkCanceled()
 
-    if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN ) return emptyMap()
+    if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
 
     if (DumbService.isDumb(module.project)) {
       LOG.warn("Safe Args classes may by temporarily stale due to indices not being ready right now.")
@@ -156,7 +157,10 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
                                       ?.findXmlTagById(destination.id)
-                                      ?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.CLASS_ICON)) }
+                                      ?.let {
+                                        XmlSourceElement(
+                                          SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
+                                      }
                                     ?: sourceElement
 
         val packageDescriptor = KtDirectionsPackageDescriptor(moduleDescriptor, entry.project, packageName, className, destination,
@@ -190,7 +194,10 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
                                       ?.findXmlTagById(fragment.id)
-                                      ?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.CLASS_ICON)) }
+                                      ?.let {
+                                        XmlSourceElement(
+                                          SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
+                                      }
                                     ?: sourceElement
 
         val superTypesProvider = { packageDescriptor: PackageFragmentDescriptorImpl ->
