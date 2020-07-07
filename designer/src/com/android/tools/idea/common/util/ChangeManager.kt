@@ -108,8 +108,7 @@ fun setupChangeListener(
   }, parentDisposable)
 }
 
-private fun BuildStatus?.isSuccess(): Boolean =
-  this == BuildStatus.SKIPPED || this == BuildStatus.SUCCESS
+private fun BuildStatus?.isSuccess(): Boolean = this == BuildStatus.SUCCESS
 
 interface BuildListener {
   fun buildSucceeded()

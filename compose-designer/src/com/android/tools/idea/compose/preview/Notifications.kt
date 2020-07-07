@@ -186,7 +186,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
 
     val status = GradleBuildState.getInstance(project).summary?.status
     // If there was no build or the project is loading, we won't have a status. We do not consider that as a build failure yet.
-    val lastBuildSuccessful = status == null || status == BuildStatus.SKIPPED || status == BuildStatus.SUCCESS
+    val lastBuildSuccessful = status == null || status == BuildStatus.SUCCESS
 
     return when {
       // Check if the project has compiled correctly
