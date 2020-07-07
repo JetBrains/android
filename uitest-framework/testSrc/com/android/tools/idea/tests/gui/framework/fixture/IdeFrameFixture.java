@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
@@ -31,16 +29,11 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
-import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -85,7 +78,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -182,23 +174,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public BuildStatus invokeProjectMake(@Nullable Wait wait) {
-    myGradleProjectEventListener.reset();
-
-    AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
-    AndroidProjectBuildNotifications.subscribe(
-      getProject(), context -> {
-        if (context instanceof GradleBuildContext) {
-          resultRef.set(((GradleBuildContext)context).getBuildResult());
-        }
-      });
-    selectProjectMakeAction();
-
-    waitForBuildToFinish(ASSEMBLE, wait);
-
-    Wait.seconds(10)
-      .expecting("Listeners to be notified of build-finished event")
-      .until(() -> resultRef.get() != null);
-    return myGradleProjectEventListener.getBuildStatus();
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Make Project"));
   }
 
   @NotNull
@@ -207,7 +183,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       throw new ExternalSystemException(failure);
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
-    selectProjectMakeAction();
+    waitAndInvokeMenuPath("Build", "Make Project");
     return this;
   }
 
@@ -315,10 +291,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return new DebugToolWindowFixture(this);
   }
 
-  protected void selectProjectMakeAction() {
-    waitAndInvokeMenuPath("Build", "Make Project");
-  }
-
   /**
    * Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
    */
@@ -394,36 +366,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     GuiTests.waitForBackgroundTasks(robot());
     waitForIdle();
     return myGradleProjectEventListener.getBuildStatus();
-  }
-
-  @NotNull
-  private IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode, @Nullable Wait wait) {
-    Project project = getProject();
-    if (wait == null) {
-      // http://b/72834057 - If we keep tweaking this value we should consider a different way of waiting for this.
-      wait = Wait.seconds(60);
-    }
-    wait.expecting("Build (" + buildMode + ") for project '" + project.getName() + "' to finish'")
-      .until(() -> {
-        if (buildMode == SOURCE_GEN) {
-          if (PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp() != null ||
-              GradleSyncState.getInstance(project).isSourceGenerationFinished()) {
-            // This will happen when creating a new project. Source generation happens before the IDE frame is found and build listeners
-            // are created. It is fairly safe to assume that source generation happened if we have a timestamp for a "last performed build".
-            return true;
-          }
-        }
-        return myGradleProjectEventListener.isBuildFinished(buildMode);
-      });
-
-    GuiTests.waitForBackgroundTasks(robot());
-
-    return this;
-  }
-
-  @NotNull
-  public FileFixture findExistingFileByRelativePath(@NotNull String relativePath) {
-    return new FileFixture(getProject(), findFileByRelativePath(relativePath));
   }
 
   /**
