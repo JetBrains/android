@@ -373,16 +373,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture invokeAndWaitForBuildAction(@Nullable Wait wait, @NotNull String... menuPath) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath(menuPath));
+    assertTrue("Build failed", actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath(menuPath)).isBuildSuccessful());
+    return this;
   }
 
-  @NotNull
-  public IdeFrameFixture actAndWaitForBuildToFinish(@NotNull Consumer<IdeFrameFixture> actions) {
+  public BuildStatus actAndWaitForBuildToFinish(@NotNull Consumer<IdeFrameFixture> actions) {
     return actAndWaitForBuildToFinish(null, actions);
   }
 
-  @NotNull
-  public IdeFrameFixture actAndWaitForBuildToFinish(@Nullable Wait wait, @NotNull Consumer<IdeFrameFixture> actions) {
+  public BuildStatus actAndWaitForBuildToFinish(@Nullable Wait wait, @NotNull Consumer<IdeFrameFixture> actions) {
     long beforeStartedTimeStamp = System.currentTimeMillis();
     Project project = getProject();
     actions.accept(this);
@@ -391,11 +390,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       .expecting("build '" + project.getName() + "' to finish")
       .until(() -> myGradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
-    assertTrue(myGradleProjectEventListener.getBuildStatus().isBuildSuccessful());
     GuiTests.waitForProjectIndexingToFinish(getProject());
     GuiTests.waitForBackgroundTasks(robot());
     waitForIdle();
-    return this;
+    return myGradleProjectEventListener.getBuildStatus();
   }
 
   @NotNull
