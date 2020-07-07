@@ -110,8 +110,7 @@ else false
 fun hasBeenBuiltSuccessfully(psiFilePointer: SmartPsiElementPointer<PsiFile>): Boolean {
   val summary = GradleBuildState.getInstance(psiFilePointer.project).summary
   if (summary != null) {
-    return (summary.status == BuildStatus.SUCCESS)
-           && summary.context?.buildMode != BuildMode.CLEAN
+    return summary.status.isBuildSuccessful && summary.context?.buildMode != BuildMode.CLEAN
 
   }
 

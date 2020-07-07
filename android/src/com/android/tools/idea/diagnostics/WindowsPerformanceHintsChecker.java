@@ -103,7 +103,7 @@ public class WindowsPerformanceHintsChecker {
             @Override
             public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
               BuildMode mode = context != null ? context.getBuildMode() : null;
-              if (status == BuildStatus.SUCCESS) {
+              if (status.isBuildSuccessful()) {
                 if (mode == BuildMode.ASSEMBLE || mode == BuildMode.ASSEMBLE_TRANSLATE || mode == BuildMode.REBUILD ||
                     mode == BuildMode.BUNDLE || mode == BuildMode.APK_FROM_BUNDLE) {
                   application.executeOnPooledThread(() -> checkWindowsDefender(project, true));

@@ -108,7 +108,7 @@ fun setupChangeListener(
   }, parentDisposable)
 }
 
-private fun BuildStatus?.isSuccess(): Boolean = this == BuildStatus.SUCCESS
+private fun BuildStatus?.isSuccess(): Boolean = this?.isBuildSuccessful ?: false
 
 interface BuildListener {
   fun buildSucceeded()
