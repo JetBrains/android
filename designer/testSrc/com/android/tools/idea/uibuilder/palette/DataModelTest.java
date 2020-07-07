@@ -32,17 +32,17 @@ import static com.android.SdkConstants.TAB_ITEM;
 import static com.android.SdkConstants.TAB_LAYOUT;
 import static com.android.SdkConstants.TEXT_INPUT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.uibuilder.palette.DataModel.FAVORITE_ITEMS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants.PreferenceTags;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.concurrency.FutureUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -159,8 +159,8 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
       .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
-                       SCROLL_VIEW, SWITCH,
-                       FLOATING_ACTION_BUTTON.newName()).inOrder();
+                       SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
+                       PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY, FLOATING_ACTION_BUTTON.newName()).inOrder();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "FragmentContainerView", "ScrollView", "Switch",
@@ -173,7 +173,9 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-                                                                           .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW, SCROLL_VIEW, SWITCH).inOrder();
+      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
+                       SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
+                       PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY).inOrder();
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "ImageView", "RecyclerView", "FragmentContainerView", "ScrollView", "Switch").inOrder();
   }
