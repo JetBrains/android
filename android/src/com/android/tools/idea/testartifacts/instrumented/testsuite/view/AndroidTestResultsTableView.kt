@@ -62,6 +62,7 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
 import com.intellij.ui.treeStructure.treetable.TreeTableCellRenderer
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.ColumnInfo
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
@@ -76,10 +77,12 @@ import java.time.Duration
 import java.util.Comparator
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
+import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
@@ -289,6 +292,24 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     autoResizeMode = AUTO_RESIZE_OFF
     tableHeader.resizingAllowed = false
     tableHeader.reorderingAllowed = false
+    val originalDefaultHeaderRenderer = tableHeader.defaultRenderer
+    tableHeader.defaultRenderer = object: TableCellRenderer {
+      override fun getTableCellRendererComponent(table: JTable,
+                                                 value: Any,
+                                                 isSelected: Boolean,
+                                                 hasFocus: Boolean,
+                                                 row: Int,
+                                                 column: Int): Component {
+        val renderComponent = originalDefaultHeaderRenderer.getTableCellRendererComponent(
+          table, value, isSelected, hasFocus, row, column)
+        val label = renderComponent as? JLabel ?: return renderComponent
+        if (column > 0) {
+          label.horizontalAlignment = SwingConstants.CENTER
+          label.border = JBUI.Borders.empty()
+        }
+        return renderComponent
+      }
+    }
     showHorizontalLines = false
     rowSorter = DefaultColumnInfoBasedRowSorter(getModel())
     tree.isRootVisible = true
