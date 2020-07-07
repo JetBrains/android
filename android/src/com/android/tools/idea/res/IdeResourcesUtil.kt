@@ -128,7 +128,6 @@ import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.XmlElementFactory
-import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
@@ -1434,7 +1433,7 @@ fun findStyleableAttrFieldsForStyleable(facet: AndroidFacet, styleableName: Stri
 fun scheduleNewResolutionAndHighlighting(psiManager: PsiManager) {
   ApplicationManager.getApplication().invokeLater {
     psiManager.dropResolveCaches()
-    (psiManager.modificationTracker as PsiModificationTrackerImpl).incCounter()
+    psiManager.dropPsiCaches()
   }
 }
 
