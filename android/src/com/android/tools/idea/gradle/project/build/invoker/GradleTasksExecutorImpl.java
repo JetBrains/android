@@ -507,8 +507,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     BuildSummary summary = state.getSummary();
     if (summary != null) {
       switch (summary.getStatus()) {
-        case SKIPPED:
-          return "skipped";
         case SUCCESS:
           return "finished";
         case FAILED:

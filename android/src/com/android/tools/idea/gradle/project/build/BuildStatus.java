@@ -16,5 +16,5 @@
 package com.android.tools.idea.gradle.project.build;
 
 public enum BuildStatus {
-  SKIPPED, SUCCESS, FAILED, CANCELED
+  SUCCESS, FAILED, CANCELED
 }

@@ -92,7 +92,6 @@ public class GradleSyncExecutor {
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
