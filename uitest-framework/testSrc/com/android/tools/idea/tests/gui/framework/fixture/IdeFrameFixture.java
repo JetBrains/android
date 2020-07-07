@@ -246,7 +246,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public void debugApp(@NotNull String appName, @NotNull String deviceName, @Nullable Wait wait) {
     new DeviceSelectorFixture(robot(), this).debugApp(appName, deviceName);
+    waitForIdle();
     waitForBackgroundTasks(robot(), wait);
+    waitForIdle();
   }
 
   public void runApp(@NotNull String appName, @NotNull String deviceName) {
@@ -255,7 +257,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public void runApp(@NotNull String appName, @NotNull String deviceName, @Nullable Wait wait) {
     new DeviceSelectorFixture(robot(), this).runApp(appName, deviceName);
+    waitForIdle();
     waitForBackgroundTasks(robot(), wait);
+    waitForIdle();
   }
 
   @NotNull
