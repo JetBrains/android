@@ -321,7 +321,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  public IdeFrameFixture waitAndInvokeMenuPath(int timeToWait, @NotNull String... path) {
+  private IdeFrameFixture waitAndInvokeMenuPath(int timeToWait, @NotNull String... path) {
     getMenuFixture().invokeMenuPath(timeToWait, path);
     return this;
   }
