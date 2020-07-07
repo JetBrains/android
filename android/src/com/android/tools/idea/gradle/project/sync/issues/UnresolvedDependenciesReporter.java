@@ -22,32 +22,23 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import com.android.annotations.NonNull;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
+  private boolean myAssumeProjectNotInitialized = false;
 
   @Override
   int getSupportedIssueType() {
@@ -96,8 +88,6 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       if (isOfflineBuildModeEnabled(project)) {
         quickFixes.add(0, new DisableOfflineModeHyperlink());
       }
-
-      return quickFixes;
     }
     else {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
@@ -119,9 +109,8 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }
       }
-
-      return quickFixes;
     }
+    return quickFixes;
   }
 
   @NotNull
@@ -187,13 +176,6 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
               buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile), syncIssueUsageReporter);
   }
 
-  @NotNull
-  private static Collection<RemotePackage> getRemotePackages(@NotNull ProgressIndicator indicator) {
-    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    RepositoryPackages packages = sdkHandler.getSdkManager(indicator).getPackages();
-    return packages.getRemotePackages().values();
-  }
-
   /**
    * Append a quick fix to add Google Maven repository to solve dependencies in a module in a list of fixes if needed.
    *
@@ -201,10 +183,10 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
    * @param buildFiles Build files where the dependencies are.
    * @param fixes      List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
-  private static void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
+  private void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
                                                         @NotNull List<VirtualFile> buildFiles,
                                                         @NotNull List<NotificationHyperlink> fixes) {
-    if (!project.isInitialized()) {
+    if ((!project.isInitialized()) || myAssumeProjectNotInitialized) {
       // No way to tell if the project contains the Google repository, add quick fix anyway (it will do nothing if it already has it)
       fixes.add(new AddGoogleMavenRepositoryHyperlink(project));
       return;
@@ -243,5 +225,10 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
 
     // Add to all modules
     fixes.add(new AddGoogleMavenRepositoryHyperlink(filesToFix));
+  }
+
+  @VisibleForTesting
+  void assumeProjectNotInitialized(boolean assumeNotInitialized) {
+    myAssumeProjectNotInitialized = assumeNotInitialized;
   }
 }
