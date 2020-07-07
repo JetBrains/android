@@ -150,7 +150,7 @@ class LocalApkProjTest {
 
     guiTest.waitForBackgroundTasks();
 
-    ideFrame.actAndWaitForBuildToFinish { it.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)") }
+    ideFrame.invokeAndWaitForBuildAction("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
     val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
