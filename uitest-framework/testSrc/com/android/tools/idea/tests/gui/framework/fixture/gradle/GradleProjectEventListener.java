@@ -43,7 +43,7 @@ public class GradleProjectEventListener implements GradleBuildListener {
 
   @Override
   public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
-    if (status == BuildStatus.SUCCESS) {
+    if (status.isBuildSuccessful()) {
       synchronized (myLock) {
       myBuildFinished = System.currentTimeMillis();
       myBuildMode = context != null ? context.getBuildMode() : null;
