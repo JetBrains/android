@@ -90,6 +90,7 @@ public class NewCppProjectTestUtil {
     String cppFlags = toolChain == CppStandardType.DEFAULT ? "" : toolChain.getCompilerFlag();
     Assert.assertEquals(String.format("cppFlags '%s'", cppFlags), gradleCppFlags.trim());
 
+    guiTest.waitForBackgroundTasks();
     runAppOnEmulator(ideFrame);
   }
 
