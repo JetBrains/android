@@ -17,14 +17,16 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitTreeForPopup;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.intellij.psi.impl.DebugUtil.sleep;
 
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.application.options.ModulesComboBox;
-import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.impl.EditConfigurationsDialog;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
 import javax.swing.JCheckBox;
@@ -32,6 +34,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import org.fest.swing.cell.JComboBoxCellReader;
 import org.fest.swing.cell.JListCellReader;
+import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -39,6 +42,7 @@ import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 
 public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfigurationsDialog> {
@@ -60,8 +64,8 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
   private static final JComboBoxCellReader DEBUGGER_PICKER_READER =
     (jComboBox, index) -> (GuiQuery.getNonNull(() -> ((AndroidDebugger)jComboBox.getItemAt(index)).getDisplayName()));
 
-  private static final JListCellReader CONFIGURATION_CELL_READER = (jList, index) ->
-    ((ConfigurationType)jList.getModel().getElementAt(index)).getDisplayName();
+  private static final JTreeCellReader CONFIGURATION_CELL_READER = (jList, value) ->
+    value.toString();
 
   private static final JComboBoxCellReader MODULE_PICKER_READER = (jComboBox, index) -> {
     Object element = jComboBox.getItemAt(index);
@@ -90,7 +94,12 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
-        return button.isShowing() && button.getAction().getTemplatePresentation().getText().equals("Add New Configuration");
+        if (!button.isShowing()) return false;
+        AnAction buttonAction = button.getAction();
+        if (buttonAction == null) return false;
+        Presentation presentation = buttonAction.getTemplatePresentation();
+        if (presentation == null) return false;
+        return "Add New Configuration".equals(presentation.getText());
       }
     });
     robot().click(addNewConfigurationButton);
@@ -99,9 +108,9 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
 
   @NotNull
   public EditConfigurationsDialogFixture selectConfigurationType(@NotNull String confTypeName) {
-    JListFixture listFixture= new JListFixture(robot(), waitForPopup(robot()));
+    JTreeFixture listFixture= new JTreeFixture(robot(), waitTreeForPopup(robot()));
     listFixture.replaceCellReader(CONFIGURATION_CELL_READER);
-    listFixture.clickItem(confTypeName);
+    listFixture.clickPath(confTypeName);
     return this;
   }
 
@@ -115,6 +124,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
   @NotNull
   public EditConfigurationsDialogFixture selectModuleForAndroidInstrumentedTestsConfiguration(@NotNull String moduleName) {
     JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(ModulesComboBox.class, true));
+
     comboBoxFixture.replaceCellReader(MODULE_PICKER_READER);
     comboBoxFixture.selectItem(moduleName);
     return this;

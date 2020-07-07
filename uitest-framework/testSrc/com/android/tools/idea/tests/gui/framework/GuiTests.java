@@ -61,7 +61,9 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
+import com.intellij.ui.popup.WizardPopup;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.containers.ConcurrentLongObjectMap;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Component;
@@ -374,6 +376,21 @@ public final class GuiTests {
       }
     });
   }
+
+  public static SimpleTree waitTreeForPopup(@NotNull Robot robot) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<SimpleTree>(SimpleTree.class) {
+      @Override
+      protected boolean isMatching(@NotNull SimpleTree tree) {
+        Container container = tree.getParent();
+        while (container != null){
+          if (container.getClass().getName().contains("WizardPopup")) return true;
+          container = container.getParent();
+        }
+        return false;
+      }
+    });
+  }
+
 
   /**
    * Clicks an IntelliJ/Studio popup menu item with the given label prefix
