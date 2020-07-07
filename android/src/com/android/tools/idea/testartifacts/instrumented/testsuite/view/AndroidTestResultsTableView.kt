@@ -67,12 +67,15 @@ import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
 import java.time.Duration
 import java.util.Comparator
 import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListSelectionModel
@@ -193,9 +196,13 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    * Returns a root component of the table view.
    */
   @UiThread
-  fun getComponent(): Component {
-    return myTableViewContainer
-  }
+  fun getComponent(): JComponent = myTableViewContainer
+
+  /**
+   * Returns a component which should request a user focus.
+   */
+  @UiThread
+  fun getPreferredFocusableComponent(): JComponent = myTableView
 
   /**
    * Returns an internal model class for testing.
@@ -439,6 +446,24 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
         }
       }
     }
+  }
+
+  override fun processKeyEvent(e: KeyEvent) {
+    // Moves the keyboard focus to the next component instead of the next row in the table.
+    if (e.keyCode == KeyEvent.VK_TAB) {
+      if (e.id == KeyEvent.KEY_PRESSED) {
+        val keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+        if (e.isShiftDown) {
+          keyboardFocusManager.focusPreviousComponent(this)
+        } else {
+          keyboardFocusManager.focusNextComponent(this)
+        }
+      }
+      e.consume()
+      return
+    }
+
+    super.processKeyEvent(e)
   }
 
   /**

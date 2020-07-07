@@ -618,7 +618,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   @Override
   public JComponent getPreferredFocusableComponent() {
-    return myRootPanel;
+    return myTable.getPreferredFocusableComponent();
   }
 
   @Override
