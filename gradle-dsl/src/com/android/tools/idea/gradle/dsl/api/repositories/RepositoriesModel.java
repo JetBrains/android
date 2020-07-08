@@ -24,6 +24,8 @@ public interface RepositoriesModel extends GradleDslModel {
   @NotNull
   List<RepositoryModel> repositories();
 
+  void removeRepository(@NotNull RepositoryModel repository);
+
   void addRepositoryByMethodName(@NotNull String methodName);
 
   void addFlatDirRepository(@NotNull String dirName);
