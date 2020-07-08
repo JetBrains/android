@@ -21,25 +21,20 @@ import com.android.tools.idea.compose.preview.findComposePreviewManagersForConte
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.ui.JBColor
-import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-internal fun requestBuildForSurface(surface: DesignSurface) =
-  surface.models.map { it.module }.distinct()
-    .onEach {
-      requestBuild(surface.project, it)
-    }
-    .isNotEmpty()
+
+internal fun requestBuildForSurface(surface: DesignSurface) {
+  surface.models.map { it.module }.distinct().forEach {
+    requestBuild(surface.project, it)
+  }
+}
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
@@ -47,15 +42,7 @@ internal fun requestBuildForSurface(surface: DesignSurface) =
  */
 internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
   AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
-  override fun actionPerformed(e: AnActionEvent) {
-    if (!requestBuildForSurface(surface)) {
-      // If there are no models in the surface, we can not infer which models we should trigger
-      // the build for. The fallback is to find the module for the editor and trigger that.
-      LangDataKeys.MODULE.getData(e.dataContext)?.let {
-        requestBuild(surface.project, it)
-      }
-    }
-  }
+  override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
