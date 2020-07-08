@@ -54,6 +54,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
+        "//tools/idea/.idea/libraries:jaxb-api",
     ],
 )
 

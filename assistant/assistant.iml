@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
   </component>
 </module>

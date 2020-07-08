@@ -71,6 +71,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/platform/indexing-api:intellij.platform.indexing[module]",
         "//tools/idea/platform/indexing-impl:intellij.platform.indexing.impl[module]",
+        "//tools/idea/.idea/libraries:jaxb-api",
     ],
 )
 

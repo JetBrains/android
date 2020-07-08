@@ -24,5 +24,6 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
   </component>
 </module>
