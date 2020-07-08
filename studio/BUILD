@@ -1,9 +1,9 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/adt/idea/studio:studio.bzl", "studio_plugin")
 
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "unb.studio",
-    srcs = ["src"],
     iml_files = ["studio.iml"],
     tags = [
         "manual",
@@ -30,4 +30,180 @@ iml_module(
         "//tools/studio/google/cloud/testing/test-recorder:unb.test-recorder[module]",
         "//tools/vendor/google/url-assistant:unb.url-assistant[module]",
     ],
+)
+
+studio_plugin(
+    name = "intellij.android.plugin",
+    directory = "android",
+    modules = {
+        "adt-ui.jar": [
+            "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model",
+            "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui",
+        ],
+        "android-common.jar": [
+            "//tools/adt/idea/android-common:unb.intellij.android.common",
+        ],
+        "android-extensions-ide.jar": [
+            "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions",
+        ],
+        "android-kotlin.jar": [
+            "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.idea",
+            "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.output.parser",
+        ],
+        "android-profilers.jar": [
+            "//tools/adt/idea/profilers-atrace:unb.intellij.android.profilers.atrace",
+            "//tools/adt/idea/profilers-ui:unb.intellij.android.profilers.ui",
+            "//tools/adt/idea/profilers:unb.intellij.android.profilers",
+            "//tools/adt/idea/transport-database:unb.intellij.android.transportDatabase",
+        ],
+        "android-rt.jar": [
+            "//tools/adt/idea/rt:unb.intellij.android.rt",
+        ],
+        "android.jar": [
+            "//tools/adt/idea/analytics:unb.analytics",
+            "//tools/adt/idea/android-layout-inspector:unb.android-layout-inspector",
+            "//tools/base/flags:unb.studio.android.sdktools.flags",
+            "//tools/adt/idea/assistant:unb.assistant",
+            "//tools/adt/idea/connection-assistant:unb.connection-assistant",
+            "//tools/adt/idea/android-adb:unb.intellij.android.adb",
+            "//tools/adt/idea/apkanalyzer:unb.intellij.android.apkanalyzer",
+            "//tools/adt/idea/app-inspection/api:unb.intellij.android.app-inspection.api",
+            "//tools/adt/idea/app-inspection/ide:unb.intellij.android.app-inspection.ide",
+            "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api",
+            "//tools/adt/idea/app-inspection/inspector/ide:unb.intellij.android.app-inspection.inspector.ide",
+            "//tools/adt/idea/app-inspection/inspectors/workmanager/ide:unb.intellij.android.app-inspection.inspectors.workmanager.ide",
+            "//tools/adt/idea/app-inspection/inspectors/workmanager/model:unb.intellij.android.app-inspection.inspectors.workmanager.model",
+            "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.intellij.android.app-inspection.inspectors.workmanager.view",
+            "//tools/adt/idea/build-attribution:unb.intellij.android.build-attribution",
+            "//tools/adt/idea/compose-designer:unb.intellij.android.compose-designer",
+            "//tools/adt/idea/android:unb.intellij.android.core",
+            "//tools/adt/idea/dagger:unb.intellij.android.dagger",
+            "//tools/adt/idea/databinding:unb.intellij.android.databinding",
+            "//tools/adt/idea/android-debuggers:unb.intellij.android.debuggers",
+            "//tools/adt/idea/deploy:unb.intellij.android.deploy",
+            "//tools/adt/idea/designer/customview:unb.intellij.android.designer.customview",
+            "//tools/adt/idea/designer:unb.intellij.android.designer",
+            "//tools/adt/idea/emulator:unb.intellij.android.emulator",
+            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
+            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
+            "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl",
+            "//tools/adt/idea/android-lang-databinding:unb.intellij.android.lang-databinding",
+            "//tools/adt/idea/android-lang:unb.intellij.android.lang",
+            "//tools/adt/idea/layout-inspector:unb.intellij.android.layout-inspector",
+            "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui",
+            "//tools/adt/idea/mlkit:unb.intellij.android.mlkit",
+            "//tools/adt/idea/nav/editor:unb.intellij.android.nav.editor",
+            "//tools/adt/idea/nav/safeargs:unb.intellij.android.nav.safeargs",
+            "//tools/adt/idea/android-npw:unb.intellij.android.newProjectWizard",
+            "//tools/adt/idea/observable-ui:unb.intellij.android.observable.ui",
+            "//tools/adt/idea/observable:unb.intellij.android.observable",
+            "//tools/adt/idea/android-plugin:unb.intellij.android.plugin",
+            "//tools/adt/idea/profilers-android:unb.intellij.android.profilersAndroid",
+            "//tools/adt/idea/project-system-gradle-psd:unb.intellij.android.projectSystem.gradle.psd",
+            "//tools/adt/idea/project-system-gradle-sync:unb.intellij.android.projectSystem.gradle.sync",
+            "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle",
+            "//tools/adt/idea/project-system:unb.intellij.android.projectSystem",
+            "//tools/adt/idea/resources-base:unb.intellij.android.resources-base",
+            "//tools/adt/idea/room:unb.intellij.android.room",
+            "//tools/adt/idea/sdk-updates:unb.intellij.android.sdkUpdates",
+            "//tools/adt/idea/android-test-retention:unb.intellij.android.testRetention",
+            "//tools/adt/idea/android-transport:unb.intellij.android.transport",
+            "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model",
+            "//tools/adt/idea/wizard:unb.intellij.android.wizard",
+            "//tools/adt/idea/native-symbolizer:unb.native-symbolizer",
+            "//tools/adt/idea/whats-new-assistant:unb.whats-new-assistant",
+        ],
+        "artwork.jar": [
+            "//tools/adt/idea/artwork:unb.intellij.android.artwork",
+        ],
+        "repository.jar": [
+            "//tools/base/repository:unb.studio.android.sdktools.repository",
+        ],
+        "build-common.jar": [
+            "//tools/adt/idea/build-common:unb.intellij.android.buildCommon",
+        ],
+        "data-binding.jar": [
+            "//tools/data-binding:unb.studio.baseLibrary",
+            "//tools/data-binding:unb.studio.baseLibrarySupport",
+            "//tools/data-binding:unb.studio.compiler",
+            "//tools/data-binding:unb.studio.compilerCommon",
+        ],
+        "game-tools.jar": [
+            "//tools/vendor/google/game-tools/main:unb.android.game-tools.main",
+        ],
+        "jps/android-jps-plugin.jar": [
+            "//tools/adt/idea/jps-plugin:unb.intellij.android.jps",
+        ],
+        "layoutlib-loader.jar": [
+            "//tools/adt/idea/layoutlib-loader:unb.intellij.android.layoutlib-loader",
+        ],
+        "lint-ide.jar": [
+            "//tools/adt/idea/lint:unb.intellij.lint",
+        ],
+        "manifest-merger.jar": [
+            "//tools/base/build-system:unb.studio.android.sdktools.manifest-merger",
+        ],
+        "pixelprobe.jar": [
+            "//tools/base/chunkio:unb.studio.android.sdktools.chunkio",
+            "//tools/base/pixelprobe:unb.studio.android.sdktools.pixelprobe",
+        ],
+        "sdk-common.jar": [
+            "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common",
+        ],
+        "sdk-tools.jar": [
+            "//tools/base/apkparser/analyzer:unb.studio.android.sdktools.analyzer",
+            "//tools/base/annotations:unb.studio.android.sdktools.android-annotations",
+            "//tools/base/apkparser:unb.studio.android.sdktools.binary-resources",
+            "//tools/base/build-system/builder-model:unb.studio.android.sdktools.builder-model",
+            "//tools/base/build-system/builder-test-api:unb.studio.android.sdktools.builder-test-api",
+            "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib",
+            "//tools/base/deploy/deployer:unb.studio.android.sdktools.deployer",
+            "//tools/base/draw9patch:unb.studio.android.sdktools.draw9patch",
+            "//tools/base/device_validator:unb.studio.android.sdktools.dvlib",
+            "//tools/base/layoutinspector:unb.studio.android.sdktools.layoutinspector",
+            "//tools/base/lint:unb.studio.android.sdktools.lint-api",
+            "//tools/base/lint:unb.studio.android.sdktools.lint-checks",
+            "//tools/base/lint:unb.studio.android.sdktools.lint-model",
+            "//tools/base/mlkit-common:unb.studio.android.sdktools.mlkit-common",
+            "//tools/base/ninepatch:unb.studio.android.sdktools.ninepatch",
+            "//tools/base/perflib:unb.studio.android.sdktools.perflib",
+            "//tools/base/tracer:unb.studio.android.sdktools.tracer",
+            "//tools/base/zipflinger:unb.studio.android.sdktools.zipflinger",
+            "//tools/base/usb-devices:unb.studio.usb-devices",
+        ],
+        "sdklib.jar": [
+            "//tools/base/sdklib:unb.studio.android.sdktools.sdklib",
+        ],
+        "wizard-template.jar": [
+            "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl",
+            "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
+        ],
+    },
+    resources = {
+        "lib": [
+            "//tools/adt/idea/android/lib:unb.asm-5.0.3",
+            "//tools/adt/idea/android/lib:unb.asm-analysis-5.0.3",
+            "//tools/adt/idea/android/lib:unb.asm-tree-5.0.3",
+            "//tools/adt/idea/android/lib:bundled-libs",
+            "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
+            "//tools/adt/idea/android/lib:sample-data-bundle",
+            "//tools/adt/idea/android/annotations:androidAnnotations",
+            "//prebuilts/studio/layoutlib:layoutlib",
+            "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
+            "//tools/adt/idea/adt-ui/lib/libwebp:libwebp-bundle",
+        ],
+        "resources": [
+            "//tools/base/profiler/transform:profilers-transform",
+            "//tools/base/profiler/app:perfa",
+            "//tools/base/profiler/app:perfa_okhttp",
+            "//tools/base/transport:transport-bundle",
+            "//prebuilts/tools:simpleperf-bundle",
+            "//prebuilts/tools/common/perfetto:perfetto-bundle",
+            "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite-inspection-bundle",
+            "//tools/base/deploy/installer:android-installer-bundle",
+            "//tools/adt/idea/android:images-bundle",  # duplicated in android.jar
+            "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
+        ],
+    },
+    tags = ["manual"],
 )
