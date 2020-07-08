@@ -285,9 +285,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override var animationInspectionPreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
-      LOG.debug("Animation Inspector open for preview: $newValue")
       animationInspection.set(newValue != null)
       if (animationInspection.get()) {
+        LOG.debug("Animation Inspector open for preview: $newValue")
         previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
         // Open the animation inspection panel
@@ -506,7 +506,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (isFirstActivation.getAndSet(false)) onInit()
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    animationInspectionPreviewElementInstanceId = null
+  }
 
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
     get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
