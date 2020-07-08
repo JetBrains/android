@@ -1,3 +1,5 @@
+load("//tools/adt/idea/studio:studio.bzl", "studio_data")
+
 # managed by go/iml_to_build
 java_import(
     name = "asm-5.0.3",
@@ -59,6 +61,16 @@ filegroup(
 filegroup(
     name = "sample-data",
     srcs = glob(["sampleData/**"]),
+    visibility = ["//visibility:public"],
+)
+
+# Data that gets bundled in studio
+studio_data(
+    name = "sample-data-bundle",
+    files = glob(["sampleData/**"]),
+    mappings = {
+        "tools/adt/idea/android/lib/": "",
+    },
     visibility = ["//visibility:public"],
 )
 

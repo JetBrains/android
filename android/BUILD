@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
+load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 
 # managed by go/iml_to_build
 iml_module(
@@ -975,6 +976,15 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/xmlpull/xmlpull/1.1.3.1:jar",
         "//prebuilts/tools/common/m2/repository/xpp3/xpp3/1.1.4c:jar",
     ],
+    visibility = ["//visibility:public"],
+)
+
+studio_data(
+    name = "images-bundle",
+    files = glob(["resources/images/**"]),
+    mappings = {
+        "tools/adt/idea/android/resources/": "",
+    },
     visibility = ["//visibility:public"],
 )
 

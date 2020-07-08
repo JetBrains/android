@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 
 # managed by go/iml_to_build
 iml_module(
@@ -24,6 +25,15 @@ iml_module(
 filegroup(
     name = "device-art-resources",
     srcs = glob(["resources/device-art-resources/**"]),
+    visibility = ["//visibility:public"],
+)
+
+studio_data(
+    name = "device-art-resources-bundle",
+    files = glob(["resources/device-art-resources/**"]),
+    mappings = {
+        "tools/adt/idea/artwork/resources/": "",
+    },
     visibility = ["//visibility:public"],
 )
 
