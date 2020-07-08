@@ -28,7 +28,7 @@ import org.junit.Assert
 /**
  * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
  */
-private fun checkSimpleLayoutResult(result: RenderResult) {
+fun checkSimpleLayoutResult(result: RenderResult) {
   TestCase.assertEquals(Result.Status.SUCCESS,
                         result.renderResult.status)
   val views = result.rootViews[0].children
@@ -46,7 +46,7 @@ private fun checkSimpleLayoutResult(result: RenderResult) {
 }
 
 @Language("XML")
-private val SIMPLE_LAYOUT = """
+val SIMPLE_LAYOUT = """
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_height="match_parent"
   android:layout_width="match_parent"

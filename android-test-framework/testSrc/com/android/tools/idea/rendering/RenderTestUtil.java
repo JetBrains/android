@@ -172,11 +172,13 @@ public class RenderTestUtil {
   }
 
   protected static void withRenderTask(@NotNull AndroidFacet facet,
-                                        @NotNull VirtualFile file,
-                                        @NotNull Configuration configuration,
-                                        @NotNull RenderLogger logger,
-                                        @NotNull Consumer<RenderTask> f) {
+                                       @NotNull VirtualFile file,
+                                       @NotNull Configuration configuration,
+                                       @NotNull RenderLogger logger,
+                                       @NotNull Consumer<RenderTask> f,
+                                       boolean layoutValidatorEnabled) {
     final RenderTask task = createRenderTask(facet, file, configuration, logger);
+    task.setEnableLayoutValidator(layoutValidatorEnabled);
     try {
       f.accept(task);
     } finally {
@@ -188,6 +190,14 @@ public class RenderTestUtil {
         throw new RuntimeException(ex);
       }
     }
+  }
+
+  protected static void withRenderTask(@NotNull AndroidFacet facet,
+                                        @NotNull VirtualFile file,
+                                        @NotNull Configuration configuration,
+                                        @NotNull RenderLogger logger,
+                                        @NotNull Consumer<RenderTask> f) {
+    withRenderTask(facet, file, configuration, logger, f, false);
   }
 
   /**
@@ -208,6 +218,15 @@ public class RenderTestUtil {
                                      @NotNull Consumer<RenderTask> f) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
     withRenderTask(facet, file, configuration, renderService.createLogger(facet), f);
+  }
+
+  public static void withRenderTask(@NotNull AndroidFacet facet,
+                                    @NotNull VirtualFile file,
+                                    @NotNull Configuration configuration,
+                                    boolean enableLayoutValidator,
+                                    @NotNull Consumer<RenderTask> f) {
+    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f, enableLayoutValidator);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,

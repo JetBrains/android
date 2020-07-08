@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,30 +21,19 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.validator.ValidatorResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import junit.framework.TestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-fun checkComplexLayoutInflateResult(result: RenderResult) {
-  AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
-}
-
-/**
- * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
- */
-fun checkComplexLayoutRenderResult(result: RenderResult) {
-  AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
-
-  AndroidGradleTestCase.assertNotNull(result.renderedImage)
-}
-
-class RenderComplexPerfgateTest {
+class RenderATFComplexPerfgateTest {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
   private lateinit var facet: AndroidFacet
@@ -78,28 +67,23 @@ class RenderComplexPerfgateTest {
   }
 
   @Test
-  fun testComplexInflate() {
+  fun testATFComplexRender() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
       var metric: PerfgateRenderMetric? = null
-      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
-        metric = getInflateMetric(it, ::checkComplexLayoutInflateResult)
+      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration, true) {
+        metric = getRenderMetric(it, {_ -> }, ::checkATFComplexLayoutRenderResult)
       }
       metric!!
     }
 
-    computeAndRecordMetric("inflate_time_complex", "inflate_memory_complex", computable)
+    computeAndRecordMetric("render_time_atf_complex", "render_memory_atf_complex", computable)
   }
 
-  @Test
-  fun testComplexRender() {
-    val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      var metric: PerfgateRenderMetric? = null
-      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
-        metric = getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
-      }
-      metric!!
-    }
-
-    computeAndRecordMetric("render_time_complex", "render_memory_complex", computable)
+  /**
+   * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
+   */
+  fun checkATFComplexLayoutRenderResult(result: RenderResult) {
+    checkComplexLayoutRenderResult(result)
+    verifyValidatorResult(result)
   }
 }
