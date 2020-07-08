@@ -27,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 
@@ -36,7 +37,8 @@ import java.util.concurrent.ExecutorService
 @AnyThread
 internal class AppInspectionTargetManager internal constructor(
   private val executor: ExecutorService,
-  private val transportClient: TransportClient
+  private val transportClient: TransportClient,
+  private val scope: CoroutineScope
 ) : ProcessListener {
   @VisibleForTesting
   internal val targets = ConcurrentHashMap<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
@@ -54,7 +56,7 @@ internal class AppInspectionTargetManager internal constructor(
     return targets.computeIfAbsent(processDescriptor) {
       val processDescriptor = processDescriptor.toTransportImpl()
       val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
-      attachAppInspectionTarget(transport, jarCopier, projectName)
+      attachAppInspectionTarget(transport, jarCopier, projectName, scope)
     }.also {
       it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectionTarget> {
         override fun onSuccess(result: AppInspectionTarget?) {}

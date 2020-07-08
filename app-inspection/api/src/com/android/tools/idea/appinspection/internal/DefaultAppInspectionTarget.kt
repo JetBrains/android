@@ -22,7 +22,6 @@ import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Stat
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
@@ -41,6 +40,10 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -51,7 +54,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 internal fun attachAppInspectionTarget(
   transport: AppInspectionTransport,
   jarCopier: AppInspectionJarCopier,
-  projectName: String
+  projectName: String,
+  scope: CoroutineScope
 ): ListenableFuture<AppInspectionTarget> {
   return Futures.submitAsync(
     AsyncCallable {
@@ -74,7 +78,7 @@ internal fun attachAppInspectionTarget(
           filter = { it.agentData.status == ATTACHED },
           isTransient = true
         ) {
-          connectionFuture.set(DefaultAppInspectionTarget(transport, jarCopier, projectName))
+          connectionFuture.set(DefaultAppInspectionTarget(transport, jarCopier, projectName, scope))
         })
       transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
       connectionFuture
@@ -86,9 +90,11 @@ internal fun attachAppInspectionTarget(
 internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,
-  override val projectName: String
+  override val projectName: String,
+  scope: CoroutineScope
 ) : AppInspectionTarget {
   private val isDisposed = AtomicBoolean(false)
+  private val targetScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
 
   @VisibleForTesting
   internal val clients = ConcurrentHashMap<AppInspectorLauncher.LaunchParameters, ListenableFuture<AppInspectorClient>>()
@@ -154,8 +160,11 @@ internal class DefaultAppInspectionTarget(
    */
   override fun dispose() {
     if (isDisposed.compareAndSet(false, true)) {
-      clients.values.forEach { if (it.isDone) it.get().messenger.disposeInspector() }
-      clients.clear()
+      targetScope.launch {
+        clients.values.forEach { if (it.isDone) it.get().messenger.disposeInspector() }
+        clients.clear()
+        this.cancel()
+      }
     }
   }
 }

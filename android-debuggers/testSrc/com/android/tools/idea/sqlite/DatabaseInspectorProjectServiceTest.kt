@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -34,7 +34,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.SameThreadExecutor
 import junit.framework.TestCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -50,6 +53,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var fileOpened: VirtualFile
   private lateinit var model: MockDatabaseInspectorModel
   private lateinit var repository: DatabaseRepositoryImpl
+  private val scope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
 
   override fun setUp() {
     super.setUp()
@@ -89,13 +93,13 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
       2,
       EdtExecutorService.getInstance()
     )
@@ -153,7 +157,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
       0,
       EdtExecutorService.getInstance()
     )

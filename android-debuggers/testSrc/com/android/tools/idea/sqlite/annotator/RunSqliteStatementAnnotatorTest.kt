@@ -36,13 +36,17 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
 import javax.swing.Icon
+import kotlin.coroutines.EmptyCoroutineContext
 
 class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
 
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var sqliteDatabaseId1: SqliteDatabaseId
+
+  private val scope = CoroutineScope(EmptyCoroutineContext)
 
   override fun setUp() {
     super.setUp()
@@ -195,7 +199,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
-    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), EdtExecutorService.getInstance())
+    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope)
     return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
   }
 }

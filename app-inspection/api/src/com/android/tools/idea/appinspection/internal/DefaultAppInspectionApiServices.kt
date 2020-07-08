@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * This serves as the entry point to all public AppInspection API services, specifically:
@@ -27,7 +28,8 @@ import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 internal class DefaultAppInspectionApiServices internal constructor(
   private val targetManager: AppInspectionTargetManager,
   override val processNotifier: ProcessNotifier,
-  override val launcher: AppInspectorLauncher
+  override val launcher: AppInspectorLauncher,
+  override val scope: CoroutineScope
 ) : AppInspectionApiServices {
 
   override fun disposeClients(project: String) {

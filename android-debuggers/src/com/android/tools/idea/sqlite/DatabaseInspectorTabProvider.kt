@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
@@ -29,6 +30,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.ide.PooledThreadExecutor
 import javax.swing.JComponent
 
@@ -61,8 +64,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
       private val onDatabasePossiblyChanged: () -> Unit = { databaseInspectorProjectService.databasePossiblyChanged() }
-      private val onDatabaseClosed: (SqliteDatabaseId) -> Unit = {
-        databaseId -> databaseInspectorProjectService.handleDatabaseClosed(databaseId)
+      private val onDatabaseClosed: (SqliteDatabaseId) -> Unit = { databaseId ->
+        databaseInspectorProjectService.handleDatabaseClosed(databaseId)
       }
 
       override val client = DatabaseInspectorClient(
@@ -73,6 +76,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
         onDatabasePossiblyChanged,
         onDatabaseClosed,
         taskExecutor,
+        CoroutineScope(databaseInspectorProjectService.projectScope.coroutineContext + AndroidDispatchers.workerThread),
         errorsSideChannel
       )
 
@@ -84,18 +88,20 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       init {
         databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
-        client.startTrackingDatabaseConnections()
-        client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-          override fun onDispose() {
-            savedState = databaseInspectorProjectService.stopAppInspectionSession()
-          }
-        }, EdtExecutorService.getInstance())
+        DatabaseInspectorProjectService.getInstance(project).projectScope.launch {
+          client.startTrackingDatabaseConnections()
+          client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+            override fun onDispose() {
+              savedState = databaseInspectorProjectService.stopAppInspectionSession()
+            }
+          }, EdtExecutorService.getInstance())
+        }
       }
     }
   }
 }
 
-fun createErrorSideChannel(project: Project) : ErrorsSideChannel = { command, errorResponse ->
+fun createErrorSideChannel(project: Project): ErrorsSideChannel = { command, errorResponse ->
   handleError(project, command, errorResponse.content, logger<DatabaseInspectorMessenger>())
 }
 
