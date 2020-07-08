@@ -50,9 +50,9 @@ public abstract class DependencyModelImpl implements DependencyModel {
   protected abstract GradleDslElement getDslElement();
 
   /**
-   * Replaces the attached element without updating othe rinternal state.
+   * Replaces the attached element without updating other internal state.
    *
-   * <p>This method is implementation details of the setConfigurationName and should not be used directly.
+   * <p>This method is an implementation detail of {@link #setConfigurationName(String)} and should not be used directly.
    */
   abstract void setDslElement(@NotNull GradleDslElement dslElement);
 
