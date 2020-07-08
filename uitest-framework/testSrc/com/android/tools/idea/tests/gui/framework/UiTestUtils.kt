@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
@@ -89,8 +90,6 @@ internal fun ContainerFixture<*>.getList(): JBList<*> {
 }
 
 private val awtRobot = Robot()
-private const val SYNC_KEY_CODE = KeyEvent.VK_F10
-private const val SYNC_KEY_TIMEOUT_SEC = 3
 
 private fun oneFullSync() {
   val lock = ReentrantLock()
@@ -99,7 +98,7 @@ private fun oneFullSync() {
 
   fun xQueueSync() {
     var done = false
-    fun shouldContinue() = !done && System.currentTimeMillis() - start < 1000 * SYNC_KEY_TIMEOUT_SEC
+    fun shouldContinue() = !done && System.currentTimeMillis() - start < 15_000
 
     do {
       val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
@@ -108,7 +107,7 @@ private fun oneFullSync() {
       val d = Disposer.newDisposable()
       try {
         IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
-          if (e is KeyEvent && e.keyCode == SYNC_KEY_CODE) {
+          if (e is KeyEvent && e.keyCode == KeyEvent.VK_F1) {
             if (e.id == KeyEvent.KEY_RELEASED) {
               lock.withLock { done = true; condition.signalAll() }
             }
@@ -117,8 +116,8 @@ private fun oneFullSync() {
           }
           else false
         }, d)
-        awtRobot.keyPress(SYNC_KEY_CODE)
-        awtRobot.keyRelease(SYNC_KEY_CODE)
+        awtRobot.keyPress(KeyEvent.VK_F1)
+        awtRobot.keyRelease(KeyEvent.VK_F1)
         lock.withLock {
           do {
             condition.await(100, TimeUnit.MILLISECONDS)
@@ -140,7 +139,7 @@ private fun oneFullSync() {
     }
     while (shouldContinue())
     if (!done) {
-      println("Sync key KEY_RELEASED event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...");
+      throw WaitTimedOutError("Timed out waiting for sync event.")
     }
   }
 
