@@ -170,7 +170,7 @@ public class NewProjectTest {
   }
 
   /**
-   * Java source compatibility for older Android API levels was 1.6. For Api 21 and above, it should be 1.7 by default.
+   * Java source compatibility for older Android API levels was 1.6. For Api 21 and above, it should be at least 1.7 by default.
    */
   @Test
   public void testLanguageLevelForApi21() {
@@ -189,13 +189,13 @@ public class NewProjectTest {
     ApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
-    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isAtLeast(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
     Module appModule = guiTest.ideFrame().getModule("app");
     LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(appModule);
     assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + appModule.getName())
-      .isSameAs(LanguageLevel.JDK_1_7);
+      .isAtLeast(LanguageLevel.JDK_1_7);
   }
 
   @Test
