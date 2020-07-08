@@ -72,6 +72,7 @@ iml_module(
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native",
     ],
 )
 
