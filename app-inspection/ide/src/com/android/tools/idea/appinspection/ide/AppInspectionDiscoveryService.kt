@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
@@ -58,7 +59,7 @@ class AppInspectionDiscoveryService : Disposable {
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
   val apiServices: AppInspectionApiServices = AppInspectionApiServices.createDefaultAppInspectionApiServices(
-    AppExecutorUtil.getAppScheduledExecutorService(), client, streamManager) { device ->
+    AppExecutorUtil.getAppScheduledExecutorService(), client, streamManager, AndroidCoroutineScope(this)) { device ->
     val jarCopier = findDevice(device)?.createJarCopier()
     if (jarCopier == null) {
       logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))

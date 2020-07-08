@@ -60,6 +60,8 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-guava",
     ],
 )
 

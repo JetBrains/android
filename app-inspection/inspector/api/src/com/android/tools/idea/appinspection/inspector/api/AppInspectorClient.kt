@@ -32,24 +32,24 @@ abstract class AppInspectorClient(
   /** Interface for defining a connection that sends basic commands and receives callbacks between studio and inspectors. */
   interface CommandMessenger {
     /**
-     * Disposes the inspector and returns a future of the service response.
+     * Disposes the inspector. This suspending function returns when a response to the dispose command is received.
      *
      * Upon response this inspector will be considered disposed, no matter if the call succeeded or failed (completed exceptionally with
      * [AppInspectionConnectionException]). The inspector will be considered unusable in either case. All pending commands at the moment of
      * disposal are resolved exceptionally.
      */
     @WorkerThread
-    fun disposeInspector(): ListenableFuture<Unit>
+    suspend fun disposeInspector()
 
     /**
-     * Sends a raw command using the provided [rawData]. Returns a future of a raw response.
+     * Sends a raw command using the provided [rawData]. Returns the raw response.
      *
-     * The result future can complete exceptionally with an [AppInspectionConnectionException] when App Inspection framework encounters an
+     * This function can throw [AppInspectionConnectionException] which happens when App Inspection framework encounters an
      * issue with the underlying connection to the process. Clients must be able to handle it gracefully.
      * An example would be the connection ended because the app crashed.
      */
     @WorkerThread
-    fun sendRawCommand(rawData: ByteArray): ListenableFuture<ByteArray>
+    suspend fun sendRawCommand(rawData: ByteArray): ByteArray
   }
 
   /**

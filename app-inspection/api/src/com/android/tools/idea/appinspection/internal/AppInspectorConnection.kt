@@ -25,10 +25,10 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.guava.await
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -102,29 +102,28 @@ internal class AppInspectorConnection(
     transport.registerEventListener(processEndListener)
   }
 
-  override fun disposeInspector(): ListenableFuture<Unit> {
-    return disposeFuture.also {
-      if (disposeCalled.compareAndSet(false, true)) {
-        val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().build()
-        val appInspectionCommand = AppInspectionCommand.newBuilder()
-          .setInspectorId(inspectorId)
-          .setDisposeInspectorCommand(disposeInspectorCommand)
-          .build()
-        val commandId = transport.executeCommand(appInspectionCommand)
-        val listener = transport.createStreamEventListener(
-          eventKind = APP_INSPECTION_RESPONSE,
-          filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.commandId == commandId },
-          startTimeNs = { connectionStartTimeNs }
-        ) {
-          cleanup("Inspector $inspectorId was disposed.", it.appInspectionResponse)
-          // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
-        }
-        transport.registerEventListener(listener)
-        disposeFuture.addListener(Runnable {
-          transport.unregisterEventListener(listener)
-        }, MoreExecutors.directExecutor())
+  override suspend fun disposeInspector() {
+    if (disposeCalled.compareAndSet(false, true)) {
+      val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().build()
+      val appInspectionCommand = AppInspectionCommand.newBuilder()
+        .setInspectorId(inspectorId)
+        .setDisposeInspectorCommand(disposeInspectorCommand)
+        .build()
+      val commandId = transport.executeCommand(appInspectionCommand)
+      val listener = transport.createStreamEventListener(
+        eventKind = APP_INSPECTION_RESPONSE,
+        filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.commandId == commandId },
+        startTimeNs = { connectionStartTimeNs }
+      ) {
+        cleanup("Inspector $inspectorId was disposed.", it.appInspectionResponse)
+        // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
       }
+      transport.registerEventListener(listener)
+      disposeFuture.addListener(Runnable {
+        transport.unregisterEventListener(listener)
+      }, MoreExecutors.directExecutor())
     }
+    return disposeFuture.await()
   }
 
   private fun sendCancellationCommand(commandId: Int) {
@@ -139,9 +138,9 @@ internal class AppInspectorConnection(
     transport.executeCommand(cancellationCommand)
   }
 
-  override fun sendRawCommand(rawData: ByteArray): ListenableFuture<ByteArray> {
+  override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
     if (isDisposed.get()) {
-      return Futures.immediateFailedFuture(AppInspectionConnectionException(connectionClosedMessage))
+      throw AppInspectionConnectionException(connectionClosedMessage)
     }
     val settableFuture = SettableFuture.create<ByteArray>()
     val rawCommand = RawCommand.newBuilder().setContent(ByteString.copyFrom(rawData)).build()
@@ -153,15 +152,6 @@ internal class AppInspectorConnection(
     val commandId = transport.executeCommand(appInspectionCommand)
     pendingCommands[commandId] = settableFuture
 
-    settableFuture.addListener(
-      Runnable {
-        if (settableFuture.isCancelled) {
-          sendCancellationCommand(commandId)
-        }
-      },
-      MoreExecutors.directExecutor()
-    )
-
     // cleanup() might have gotten called from a different thread, so we double-check if connection is disposed by now.
     // if it is disposed, then there is a race between pendingCommands.clear / future completion in cleanup method and
     // "pendingCommands[commandId] =" in this method. To make sure that a future isn't leaked, we remove it ourselves from the map
@@ -172,7 +162,12 @@ internal class AppInspectorConnection(
       settableFuture.setException(AppInspectionConnectionException(connectionClosedMessage))
     }
 
-    return settableFuture
+    try {
+      return settableFuture.await()
+    } catch (e: CancellationException) {
+      sendCancellationCommand(commandId)
+      throw e
+    }
   }
 
   /**
