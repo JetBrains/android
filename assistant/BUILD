@@ -53,6 +53,7 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/idea/.idea/libraries:jaxb-api",
     ],
 )
 

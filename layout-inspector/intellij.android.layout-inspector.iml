@@ -38,5 +38,6 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.platform.indexing" />
     <orderEntry type="module" module-name="intellij.platform.indexing.impl" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
   </component>
 </module>

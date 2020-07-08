@@ -183,5 +183,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="xml-apis" level="project" />
   </component>
 </module>

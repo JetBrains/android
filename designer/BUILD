@@ -75,6 +75,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:layoutlib_native",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//tools/idea/.idea/libraries:jaxb-api",
     ],
 )
 
