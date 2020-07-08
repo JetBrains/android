@@ -166,6 +166,10 @@ class NdkModuleModel
 
   fun findSettings(settingsName: String) = settingsByName[settingsName]
 
+  fun getBuildFiles(): Collection<File> = androidProject.buildFiles
+  fun getBuildSystems(): Collection<String> = androidProject.buildSystems
+  fun getDefaultNdkVersion(): String = androidProject.defaultNdkVersion
+
   companion object {
     @JvmStatic
     fun get(module: Module): NdkModuleModel? {

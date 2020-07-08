@@ -70,7 +70,7 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
       if (ndkModuleModel == null) {
         continue;
       }
-      for (File file : ndkModuleModel.getAndroidProject().getBuildFiles()) {
+      for (File file : ndkModuleModel.getBuildFiles()) {
         VirtualFile virtualFile = findFileByIoFile(file, false);
         if (virtualFile != null) {
           buildFiles.put(virtualFile, module.getName());
