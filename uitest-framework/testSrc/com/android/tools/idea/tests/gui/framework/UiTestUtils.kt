@@ -101,8 +101,9 @@ private fun oneFullSync() {
     fun shouldContinue() = !done && System.currentTimeMillis() - start < 15_000
 
     do {
-      val activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow?.takeIf { it.isVisible }
-                         ?: return // Nowhere to send key presses to.
+      val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+      if (focusManager.focusOwner?.isShowing != true) return // Nowhere to send key presses to.
+      val activeWindow = focusManager.activeWindow?.takeIf { it.isShowing } ?: return // Nowhere to send key presses to.
       val d = Disposer.newDisposable()
       try {
         IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
@@ -122,8 +123,9 @@ private fun oneFullSync() {
             condition.await(100, TimeUnit.MILLISECONDS)
 
             // Changing the active window might eat key presses/releases. It happens when closing a project, for example.
-            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().activeWindow !== activeWindow) break
-            if (!activeWindow.isVisible) {
+            if (focusManager.activeWindow !== activeWindow) break
+            if (focusManager.focusOwner?.isShowing != true) break
+            if (!activeWindow.isShowing) {
               // Closing a project may bring us into this erroneous state when a closed frame remains active and focus is nowhere.
               break;
             }
