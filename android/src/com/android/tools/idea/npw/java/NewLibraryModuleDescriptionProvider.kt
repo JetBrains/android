@@ -32,7 +32,7 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
     private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(
-        Template.CATEGORY_APPLICATION, message("android.wizard.module.new.java.or.kotlin.library"))!!)
+        Template.CATEGORY_APPLICATION, "Java or Kotlin Library")!!)
 
     override val icon: Icon? = getTemplateIcon(templateHandle, false)
     override val name: String = templateHandle.metadata.title!!

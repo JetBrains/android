@@ -50,6 +50,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,15 +72,15 @@ public class NewAndroidComponentAction extends AnAction {
   private final boolean myAndroidXRequired;
   private boolean myShouldOpenFiles = true;
 
-  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
+  public NewAndroidComponentAction(@NonNls @NotNull String templateCategory, @NonNls @NotNull String templateName, int minSdkVersion) {
     this(templateCategory, templateName, minSdkVersion, minSdkVersion);
   }
 
-  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
+  public NewAndroidComponentAction(@NonNls @NotNull String templateCategory, @NonNls @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
     this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, false);
   }
 
-  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
+  public NewAndroidComponentAction(@NonNls @NotNull String templateCategory, @NonNls @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
                                    boolean androidXRequired) {
     this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, androidXRequired,
          TemplateManager.getInstance().getTemplateFile(templateCategory, templateName));

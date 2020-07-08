@@ -26,16 +26,17 @@ import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
 class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry?> = listOf(
-    SourceImportModuleGalleryEntry(message("android.wizard.module.import.eclipse.title")),
-    SourceImportModuleGalleryEntry(message("android.wizard.module.import.gradle.title")),
+    SourceImportModuleGalleryEntry("Import Eclipse ADT Project"),
+    SourceImportModuleGalleryEntry("Import Gradle Project"),
     ArchiveImportModuleGalleryEntry()
   )
 
-  private class SourceImportModuleGalleryEntry(templateName: String) : ModuleGalleryEntry {
+  private class SourceImportModuleGalleryEntry(@NonNls templateName: String) : ModuleGalleryEntry {
     private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, templateName)!!)
 
     override val icon: Icon? = getTemplateIcon(templateHandle, false)

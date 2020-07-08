@@ -87,6 +87,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -733,7 +734,7 @@ public class TemplateManager {
   /**
    * Search the given folder for a list of templates and populate the display list.
    */
-  private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull String category, @Nullable Set<String> excluded) {
+  private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NonNls @NotNull String category, @Nullable Set<String> excluded) {
     List<File> templates = getTemplatesInCategory(category);
     List<TemplateHandle> metadataList = new ArrayList<>(templates.size());
     for (File template : templates) {
@@ -756,7 +757,7 @@ public class TemplateManager {
   }
 
   @Nullable
-  public File getTemplateFile(@Nullable String category, @Nullable String templateName) {
+  public File getTemplateFile(@NonNls @Nullable String category, @NonNls @Nullable String templateName) {
     synchronized (CATEGORY_TABLE_LOCK) {
       return getCategoryTable().get(category, templateName);
     }
@@ -767,7 +768,7 @@ public class TemplateManager {
    * direct file path.
    */
   @Nullable
-  public TemplateMetadata getTemplateMetadata(@Nullable String category, @Nullable String templateName) {
+  public TemplateMetadata getTemplateMetadata(@NonNls @Nullable String category, @NonNls @Nullable String templateName) {
     File templateDir = getTemplateFile(category, templateName);
     return templateDir != null ? getTemplateMetadata(templateDir) : null;
   }
