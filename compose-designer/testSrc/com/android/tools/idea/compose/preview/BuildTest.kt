@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -51,9 +52,11 @@ class BuildTest {
 
     assertFalse(hasBeenBuiltSuccessfully(psiFilePointer))
     assertFalse(hasExistingClassFile(psiFile))
-    projectRule.invokeTasks("compileDebugSources").apply {
-      buildError?.printStackTrace()
-      assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+    ApplicationManager.getApplication().invokeAndWait {
+      projectRule.invokeTasks("compileDebugSources").apply {
+        buildError?.printStackTrace()
+        assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+      }
     }
     assertTrue(hasBeenBuiltSuccessfully(psiFilePointer))
     assertTrue(hasExistingClassFile(psiFile))
