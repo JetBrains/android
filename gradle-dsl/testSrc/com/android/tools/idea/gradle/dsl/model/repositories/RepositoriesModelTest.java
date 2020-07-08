@@ -28,7 +28,9 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenCredentialsModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
@@ -735,6 +737,36 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.ADD_GOOGLE_REPOSITORY_WITH_WITH);
   }
 
+  @Test
+  public void testRemoveMavenRepository() throws IOException {
+    writeToBuildFile(TestFile.REMOVE_MAVEN_REPOSITORY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    RepositoryModel mavenModel = repositoriesModel.repositories().stream()
+      .filter((x) -> x instanceof MavenRepositoryModel && ((MavenRepositoryModel)x).url().forceString().equals("http://example.com/"))
+      .findFirst().get();
+    repositoriesModel.removeRepository(mavenModel);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_MAVEN_REPOSITORY_EXPECTED);
+  }
+
+  @Test
+  public void testRemoveGoogleRepository() throws IOException {
+    writeToBuildFile(TestFile.REMOVE_GOOGLE_REPOSITORY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    RepositoryModel googleModel = repositoriesModel.repositories().stream()
+      .filter((x) -> x instanceof GoogleDefaultRepositoryModel)
+      .findFirst().get();
+    repositoriesModel.removeRepository(googleModel);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_GOOGLE_REPOSITORY_EXPECTED);
+  }
+
   enum TestFile implements TestFileName {
     PARSE_J_CENTER_DEFAULT_REPOSITORY("parseJCenterDefaultRepository"),
     PARSE_J_CENTER_CUSTOM_REPOSITORY("parseJCenterCustomRepository"),
@@ -781,6 +813,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     SET_CREDENTIALS_IN_MAVEN("setCredentialsInMaven"),
     SET_CREDENTIALS_IN_MAVEN_EXPECTED("setCredentialsInMavenExpected"),
     MULTIPLE_LOCAL_REPOS("multipleLocalRepos"),
+    REMOVE_MAVEN_REPOSITORY("removeMavenRepository"),
+    REMOVE_MAVEN_REPOSITORY_EXPECTED("removeMavenRepositoryExpected"),
+    REMOVE_GOOGLE_REPOSITORY("removeGoogleRepository"),
+    REMOVE_GOOGLE_REPOSITORY_EXPECTED("removeGoogleRepositoryExpected")
     ;
 
     @NotNull private @SystemDependent String path;
