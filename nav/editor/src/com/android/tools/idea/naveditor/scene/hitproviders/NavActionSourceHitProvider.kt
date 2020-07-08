@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.scene
+package com.android.tools.idea.naveditor.scene.hitproviders
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
@@ -22,6 +22,8 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.naveditor.model.isFragment
+import com.android.tools.idea.naveditor.scene.ACTION_HANDLE_OFFSET
+import com.android.tools.idea.naveditor.scene.OUTER_RADIUS_LARGE
 
 /*
   Augments the hit region for destinations which support actions to include the action handle
