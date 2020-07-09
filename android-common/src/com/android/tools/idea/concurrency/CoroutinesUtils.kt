@@ -164,15 +164,22 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
 
   private var taskJob: Job? = null
 
-  fun launch(task: suspend () -> Unit): Job {
+  /**
+   * Returns a coroutine [Job] that wraps the task to be executed. If the task was overridden by the next task during scheduling the
+   * returned [Job] is null.
+   */
+  suspend fun launch(task: suspend () -> Unit): Job? {
     taskJob?.cancel()
-    return coroutineScope.launch(taskDispatcher) {
+    var newJob: Job? = null
+    coroutineScope.launch(taskDispatcher) {
       jobMutex.withLock {
         taskJob?.join()
-        taskJob = launch(taskDispatcher) {
+        newJob = launch(taskDispatcher) {
           task()
         }
+        taskJob = newJob
       }
-    }
+    }.join()
+    return newJob
   }
 }
