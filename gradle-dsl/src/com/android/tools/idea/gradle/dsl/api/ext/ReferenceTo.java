@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Objects;
@@ -28,14 +29,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ReferenceTo {
   @NotNull private static final String SIGNING_CONFIGS = "signingConfigs";
-  @NotNull private String myReferenceText;
-  private GradlePropertyModel propertyModel;
-
-  // TODO(karimai): This to be deleted.
-  @Deprecated
-  public ReferenceTo(@NotNull String text) {
-    myReferenceText = text;
-  }
+  @NotNull private String myReferenceText;  // The internal fully qualified name of the DSL reference.
+  @NotNull private GradlePropertyModel propertyModel;
 
   /**
    * Create a reference to a {@link GradlePropertyModel}.
@@ -54,18 +49,6 @@ public final class ReferenceTo {
   public ReferenceTo(@NotNull SigningConfigModel model) {
     myReferenceText = SIGNING_CONFIGS + "." + GradleNameElement.escape(model.name());
     propertyModel = GradlePropertyModelBuilder.createModelFromDslElement(model.getDslElement());
-  }
-
-  /**
-   * create a reference to a {@link SigningConfigModel} from its name.
-   * The name is specified by the client, and therefore, is in external format.
-   * @param signingConfigName the name of the signingConfigModel we are trying to refer to.
-   * @param context the property context from which we are creating the reference.
-   * @return Reference to a {@link GradlePropertyModel} of the signingConfigModel element if found, or null.
-   */
-  @Nullable
-  public static ReferenceTo createForSigningConfig(@NotNull String signingConfigName, @NotNull GradlePropertyModel context) {
-    return createReferenceFromText(SIGNING_CONFIGS + "." + signingConfigName, context);
   }
 
   /**
@@ -91,9 +74,13 @@ public final class ReferenceTo {
 
   @Nullable
   public GradleDslElement getReferredElement() {
-    return (propertyModel != null) ? propertyModel.getRawElement() : null;
+    return propertyModel.getRawElement();
   }
 
+  /**
+   * Get the reference fully qualified dsl name.
+   * @return the reference text.
+   */
   @NotNull
   public String getText() {
     return myReferenceText;
@@ -115,6 +102,8 @@ public final class ReferenceTo {
   @Override
   @NotNull
   public String toString() {
-    return myReferenceText;
+    // Special treatment for signingConfigs.
+    if (propertyModel.getRawPropertyHolder() instanceof SigningConfigsDslElement) return SIGNING_CONFIGS + "." + propertyModel.getName();
+    return propertyModel.getName();
   }
 }

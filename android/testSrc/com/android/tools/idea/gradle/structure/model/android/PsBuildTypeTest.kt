@@ -100,12 +100,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(2))
 
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
-      // TODO(b/142454204): DslText is not language-agnostic
-      val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
-        is GroovyLanguage -> "signingConfigs.myConfig"
-        is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
-        else -> "***unknown language for signingConfig Dsl text***"
-      }
+      val mySigningConfigDslText =  "signingConfigs.myConfig"
       assertThat(
         signingConfig.parsedValue,
         equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
