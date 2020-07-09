@@ -999,6 +999,14 @@ iml_module(
     ] + glob([
         "build.xml",
     ]),
+    bundled_deps = [
+        "//tools/adt/idea/android/lib:unb.spantable",
+        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/squareup/moshi/moshi/1.6.0:jar",
+        "//tools/adt/idea/android/lib:unb.instantapps-api-1.8",
+        "//tools/adt/idea/android/lib:unb.pepk",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
+    ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
     lint_timeout = "long",
@@ -1078,6 +1086,10 @@ iml_module(
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "unb.intellij.android.core.tests",
+    bundled_deps = [
+        "//tools/adt/idea/android/lib:unb.instantapps-api-1.8",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
+    ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {

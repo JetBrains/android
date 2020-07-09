@@ -85,6 +85,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.buildCommon",
     srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/android/lib:unb.jarutils"],
     iml_files = ["intellij.android.buildCommon.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],

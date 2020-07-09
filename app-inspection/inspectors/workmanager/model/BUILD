@@ -50,6 +50,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.app-inspection.inspectors.workmanager.model",
     srcs = ["src"],
+    bundled_deps = ["//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.model.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [

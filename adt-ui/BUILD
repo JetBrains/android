@@ -107,6 +107,7 @@ java_binary(
 iml_module(
     name = "unb.intellij.android.adt.ui",
     srcs = ["src/main/java"],
+    bundled_deps = ["//tools/adt/idea/adt-ui/lib:unb.libwebp"],
     iml_files = ["intellij.android.adt.ui.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
