@@ -806,12 +806,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                   .requestComposeRender()
                   .await()
               }
-          }.join()
+          }?.join()
         }
         else {
           uniqueRefreshLauncher.launch {
             doRefreshSync(filePreviewElements)
-          }.join()
+          }?.join()
         }
       }
       catch (t: Throwable) {

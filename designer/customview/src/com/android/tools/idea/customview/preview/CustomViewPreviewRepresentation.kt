@@ -59,6 +59,7 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
@@ -322,7 +323,9 @@ class CustomViewPreviewRepresentation(
   }
 
   private fun updateModel() {
-    uniqueTaskLauncher.launch(::updateModelSync)
+    launch(uiThread) {
+      uniqueTaskLauncher.launch(::updateModelSync)
+    }
   }
 
   private suspend fun updateModelSync() {
