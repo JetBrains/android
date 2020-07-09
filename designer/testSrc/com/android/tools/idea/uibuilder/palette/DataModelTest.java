@@ -37,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants.PreferenceTags;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
@@ -157,8 +158,9 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-                                                                           .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH,
-                                                                                            FLOATING_ACTION_BUTTON.newName()).inOrder();
+      .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT,
+                       SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
+                       PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY, FLOATING_ACTION_BUTTON.newName()).inOrder();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch", "FloatingActionButton")
@@ -170,7 +172,9 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-                                                                           .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH).inOrder();
+      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT,
+                       SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
+                       PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY).inOrder();
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("TextView", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();
   }
