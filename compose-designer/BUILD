@@ -159,6 +159,7 @@ java_import(
 iml_module(
     name = "unb.intellij.android.compose-designer",
     srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/compose-designer:lib/unb.ui-animation-tooling-internal"],
     iml_files = ["intellij.android.compose-designer.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [

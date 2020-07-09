@@ -92,6 +92,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.profilersAndroid",
     srcs = ["src"],
+    bundled_deps = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [
