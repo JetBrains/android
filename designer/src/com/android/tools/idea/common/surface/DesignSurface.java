@@ -267,7 +267,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myZoomControlsLayerPane.setBorder(JBUI.Borders.empty(UIUtil.getScrollBarWidth()));
     myZoomControlsLayerPane.setOpaque(false);
     myZoomControlsLayerPane.setLayout(new BorderLayout());
-    myZoomControlsLayerPane.setFocusable(true);
+    myZoomControlsLayerPane.setFocusable(false);
 
     mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());

@@ -59,6 +59,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
@@ -93,7 +94,9 @@ public class PreviewProvider implements Disposable {
   private RenderTask myRenderTask;
 
   @VisibleForTesting
-  public long myRenderTimeoutSeconds = 1L;
+  public long myRenderTaskTimeoutMillis = 300L;
+  @VisibleForTesting
+  public long myRenderTimeoutMillis = 300L;
 
   public PreviewProvider(@NotNull Supplier<DesignSurface> supplier, @NotNull DependencyManager manager) {
     myDesignSurfaceSupplier = supplier;
@@ -163,9 +166,21 @@ public class PreviewProvider implements Disposable {
     }
 
     // Some components require a parent to render correctly.
-    xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTagDeprecated().getText());
+    XmlTag componentTag = component.getTag();
+    if (componentTag == null) {
+      return null;
+    }
+    xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, componentTag.getText());
+    try {
+      myRenderTask = getRenderTask(model.getConfiguration()).get(myRenderTaskTimeoutMillis, TimeUnit.MILLISECONDS);
+    }
+    catch (InterruptedException|ExecutionException|TimeoutException ex) {
+      myRenderTask = null;
+      return null;
+    }
 
-    RenderResult result = renderImage(myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
+    RenderResult result = renderImage(myRenderTimeoutMillis, myRenderTask, xml);
+    disposeRenderTaskNoWait();
     if (result == null) {
       return null;
     }
@@ -208,7 +223,7 @@ public class PreviewProvider implements Disposable {
   }
 
   @Nullable
-  private static RenderResult renderImage(long renderTimeoutSeconds, @Nullable RenderTask renderTask, @NotNull String xml) {
+  private static RenderResult renderImage(long renderTimeoutMillis, @Nullable RenderTask renderTask, @NotNull String xml) {
     if (renderTask == null) {
       return null;
     }
@@ -225,7 +240,7 @@ public class PreviewProvider implements Disposable {
 
     renderTask.inflate();
     try {
-      return renderTask.render().get(renderTimeoutSeconds, TimeUnit.SECONDS);
+      return renderTask.render().get(renderTimeoutMillis, TimeUnit.MILLISECONDS);
     }
     catch (InterruptedException | ExecutionException | TimeoutException e) {
       Logger.getInstance(PreviewProvider.class).debug(e);
@@ -245,28 +260,28 @@ public class PreviewProvider implements Disposable {
     return surface != null ? surface.getFocusedSceneView() : null;
   }
 
-  @Nullable
-  private RenderTask getRenderTask(@NotNull Configuration configuration) {
+  @NotNull
+  private Future<RenderTask> getRenderTask(@NotNull Configuration configuration) {
     Module module = configuration.getModule();
 
-    if (myRenderTask == null || myRenderTask.getContext().getModule() != module) {
-      disposeRenderTaskNoWait();
-
-      if (module == null) {
-        return null;
-      }
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        return null;
-      }
-      RenderService renderService = RenderService.getInstance(module.getProject());
-      RenderLogger logger = renderService.createLogger(facet);
-      myRenderTask = renderService.taskBuilder(facet, configuration)
-        .withLogger(logger)
-        .buildSynchronously();
+    if (myRenderTask != null && myRenderTask.getContext().getModule() == module) {
+      return Futures.immediateFuture(myRenderTask);
     }
 
-    return myRenderTask;
+    disposeRenderTaskNoWait();
+
+    if (module == null) {
+      return Futures.immediateFuture(null);
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return Futures.immediateFuture(null);
+    }
+    RenderService renderService = RenderService.getInstance(module.getProject());
+    RenderLogger logger = renderService.createLogger(facet);
+    return renderService.taskBuilder(facet, configuration)
+      .withLogger(logger)
+      .build();
   }
 
   @Override

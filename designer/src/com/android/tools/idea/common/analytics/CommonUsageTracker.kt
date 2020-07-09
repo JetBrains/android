@@ -24,6 +24,7 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.function.Consumer
 
@@ -68,17 +69,19 @@ interface CommonUsageTracker {
 }
 
 fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStudioEvent.Builder {
-  val appId = getApplicationId(facet)
-  return setRawProjectId(appId).setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+  getApplicationId(facet)?.let {
+    setRawProjectId(it).setProjectId(AnonymizerUtil.anonymizeUtf8(it))
+  }
+  return this
 }
 
-@Throws(ApkProvisionException::class)
-private fun getApplicationId(facet: AndroidFacet): String {
+internal fun getApplicationId(facet: AndroidFacet): String? {
   return try {
     @Suppress("DEPRECATION")
     facet.getModuleSystem().getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse().packageName
   }
   catch (e: ApkProvisionException) {
-    AndroidModel.get(facet)?.applicationId ?: throw e
+    Logger.getInstance(CommonUsageTracker.javaClass).warn(e)
+    AndroidModel.get(facet)?.applicationId
   }
 }
