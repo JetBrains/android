@@ -60,6 +60,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
@@ -315,6 +316,20 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myDataModel.categorySelectionChanged(newSelection);
     myLastSelectedGroup = newSelection;
     myItemList.setSelectedIndex(0);
+    myItemList.setEmptyText(generateEmptyText(newSelection));
+  }
+
+  @NotNull
+  private static Pair<String, String> generateEmptyText(@NotNull Palette.Group group) {
+    if (group == DataModel.COMMON) {
+      return Pair.create("No favorites", "Right click to add");
+    }
+    else if (group == DataModel.RESULTS) {
+      return Pair.create("No matches found", "");
+    }
+    else {
+      return Pair.create("Empty group", "");
+    }
   }
 
   @NotNull

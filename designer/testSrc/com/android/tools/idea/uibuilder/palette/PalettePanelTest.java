@@ -33,7 +33,6 @@ import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
@@ -437,15 +436,29 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testPopupMenuWithPreferences() {
-    ActionManager actionManager = mock(ActionManager.class);
-    registerApplicationService(ActionManager.class, actionManager);
-
     setUpPreferenceDesignSurface();
     ItemList itemList = myPanel.getItemList();
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true));
 
-    // There are no items in the common group for preferences, so no popup should be shown:
-    verifyZeroInteractions(actionManager);
+
+    // Popup shown for first item in the item list:
+    verify(myPopupMenuComponent).show(eq(itemList), eq(10), eq(10));
+    assertThat(itemList.getSelectedIndex()).isEqualTo(0);
+  }
+
+  public void testEmptyText() {
+    setUpLayoutDesignSurface();
+    ItemList itemList = myPanel.getItemList();
+    assertThat(itemList.getEmptyText().getText()).isEqualTo("No favorites");
+    assertThat(itemList.getEmptyText().getSecondaryComponent().getCharSequence(false)).isEqualTo("Right click to add");
+
+    myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
+    assertThat(itemList.getEmptyText().getText()).isEqualTo("Empty group");
+    assertThat(itemList.getEmptyText().getSecondaryComponent().getCharSequence(false)).isEqualTo("");
+
+    myPanel.setFilter("<NOT-FOUND>!!");
+    assertThat(itemList.getEmptyText().getText()).isEqualTo("No matches found");
+    assertThat(itemList.getEmptyText().getSecondaryComponent().getCharSequence(false)).isEqualTo("");
   }
 
   @NotNull
