@@ -84,7 +84,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
   @GuardedBy("lock")
   var descriptorsCache = emptyMap<FqName, List<PackageFragmentDescriptor>>()
 
-  fun getDescriptors(): Map<FqName, List<PackageFragmentDescriptor>> {
+  fun getDescriptors(moduleDescriptor: ModuleDescriptor): Map<FqName, List<PackageFragmentDescriptor>> {
     ProgressManager.checkCanceled()
 
     if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
@@ -101,13 +101,6 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
     synchronized(lock) {
       val now = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
-
-      val moduleDescriptor = module.toDescriptor()
-
-      if (moduleDescriptor == null) {
-        LOG.warn("Safe Args classes may by temporarily stale due to null value of module descriptor of $module.")
-        return descriptorsCache
-      }
 
       if (lastModificationCount != now) {
         lastModificationCount = now
