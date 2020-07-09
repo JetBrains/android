@@ -91,7 +91,7 @@ interface ProjectModelData {
 
 class NewProjectModel : WizardModel(), ProjectModelData {
   override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-  override val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
   override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))

@@ -53,7 +53,7 @@ import java.util.ArrayList
 private val log: Logger get() = logger<NewModuleModel>()
 
 class ExistingNewProjectModelData(project: Project, override val projectSyncInvoker: ProjectSyncInvoker) : ProjectModelData {
-  override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val applicationName: StringValueProperty = StringValueProperty("My Application")
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val enableCppSupport: BoolValueProperty = BoolValueProperty()
@@ -227,10 +227,10 @@ open class NewModuleModel(
   }
 
   private fun updateApplicationName() {
-    val msgId: String = when {
-      isLibrary.get() -> "android.wizard.module.config.new.library"
-      else -> "android.wizard.module.config.new.application"
+    val msg: String = when {
+      isLibrary.get() -> "My Library"
+      else -> "My Application"
     }
-    applicationName.set(message(msgId))
+    applicationName.set(msg)
   }
 }
