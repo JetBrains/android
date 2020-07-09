@@ -125,7 +125,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     run {
       val configModel = buildModel.configurations()
       val newConfig = configModel.addConfiguration("otherNewConfig")
-      newConfig.visible().setValue(ReferenceTo("var1"))
+      ReferenceTo.createReferenceFromText("var1", newConfig.visible())?.let { newConfig.visible().setValue(it) }
     }
 
     applyChangesAndReparse(buildModel)

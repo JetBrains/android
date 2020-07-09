@@ -516,7 +516,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       val beforePropModel = extModel.findProperty("prop")
       val afterPropModel = extModel.findProperty("prop2")
 
-      propertyModel.setValue(ReferenceTo("prop"))
+      ReferenceTo.createReferenceFromText("prop", propertyModel)?.let { propertyModel.setValue(it) }
 
       verifyPropertyModel(propertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
       verifyPropertyModel(beforePropModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
@@ -550,7 +550,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       val secondPropertyModel = extModel.findProperty("prop1")
       val thirdPropertyModel = extModel.findProperty("prop2")
 
-      secondPropertyModel.setValue(ReferenceTo("prop"))
+      ReferenceTo.createReferenceFromText("prop", secondPropertyModel)?.let { secondPropertyModel.setValue(it) }
 
       verifyPropertyModel(firstPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 0, "prop")
       verifyPropertyModel(secondPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 1, "prop1")
@@ -624,7 +624,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
       firstPropertyModel.setValue("hello")
       thirdPropertyModel.setValue("goodbye")
-      seventhPropertyModel.setValue(ReferenceTo("prop5"))
+      ReferenceTo.createReferenceFromText("prop5", seventhPropertyModel)?.let { seventhPropertyModel.setValue(it) }
 
       verifyPropertyModel(firstPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
       verifyPropertyModel(secondPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")

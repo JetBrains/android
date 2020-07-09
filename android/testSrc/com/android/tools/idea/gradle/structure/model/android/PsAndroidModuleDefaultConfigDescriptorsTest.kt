@@ -204,12 +204,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     // defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
     defaultConfig.versionNameSuffix = "newVns".asParsed()
-    // TODO(b/142454204): DslText is not language-agnostic
-    val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
-      is GroovyLanguage -> "signingConfigs.myConfig"
-      is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
-      else -> "***unknown language for signingConfig Dsl text***"
-    }
+    val mySigningConfigDslText = "signingConfigs.myConfig"
     PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).setParsedValue(
       ParsedValue.Set.Parsed(Unit, DslText.Reference(mySigningConfigDslText)))
     PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run {

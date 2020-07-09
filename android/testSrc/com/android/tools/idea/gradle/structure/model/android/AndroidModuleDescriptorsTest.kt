@@ -171,10 +171,18 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
         ?.artifacts()
 
     assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
-    existingAgpDependency!![0].version().setValue(ReferenceTo("myVariable"))
-    existingAgpDependency!![1].version().setValue(ReferenceTo("versionVal"))
-    existingAgpDependency!![2].version().setValue(ReferenceTo("localList[0]"))
-    existingAgpDependency!![3].version().setValue(ReferenceTo("dependencyVersion"))
+    ReferenceTo.createReferenceFromText("myVariable", existingAgpDependency!![0].version())?.let {
+      existingAgpDependency!![0].version().setValue(it)
+    }
+    ReferenceTo.createReferenceFromText("versionVal", existingAgpDependency!![1].version())?.let {
+      existingAgpDependency!![1].version().setValue(it)
+    }
+    ReferenceTo.createReferenceFromText("localList[0]", existingAgpDependency!![2].version())?.let {
+      existingAgpDependency!![2].version().setValue(it)
+    }
+    ReferenceTo.createReferenceFromText("dependencyVersion", existingAgpDependency!![3].version())?.let {
+      existingAgpDependency!![3].version().setValue(it)
+    }
 
     project.applyChanges()
 

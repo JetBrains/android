@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import java.io.File;
@@ -702,7 +703,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel androidModel = buildModel.android();
 
     SigningConfigModel signingConfig = androidModel.addSigningConfig("release");
-    signingConfig.storeFile().setValue(new ReferenceTo("keystorefile"));
+    signingConfig.storeFile().setValue(new RawText("keystorefile", "keystorefile"));
     signingConfig.storePassword().setValue("123456");
     signingConfig.keyAlias().setValue("demo");
     signingConfig.keyPassword().setValue("123456");

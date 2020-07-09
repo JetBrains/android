@@ -232,7 +232,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     // Add the missing variable to the buildscript block.
     buildModel.buildscript().ext().findProperty("VERSION").setValue("2.1.2");
     // Add a new normal dependency that uses the VERSION property to ensure we don't resolve to the buildscript one.
-    buildModel.android().defaultConfig().applicationId().setValue(new ReferenceTo("VERSION"));
+    ResolvedPropertyModel applicationIdModel = buildModel.android().defaultConfig().applicationId();
+    applicationIdModel.setValue(ReferenceTo.createReferenceFromText("VERSION", applicationIdModel));
 
     applyChangesAndReparse(buildModel);
     // TODO(b/148271448): this passes and both language syntaxes are legal, but (in some sense) only by accident: the

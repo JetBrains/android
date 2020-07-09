@@ -27,7 +27,9 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -155,7 +157,8 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     File rootDir = virtualToIoFile(myGradleDslFile.getFile().getParent());
     if (VfsUtilCore.isAncestor(rootDir, moduleDir, false)) {
       GradleDslLiteral rootDirArg = new GradleDslLiteral(methodCall, GradleNameElement.empty());
-      rootDirArg.setValue(new ReferenceTo("rootDir"));
+      GradlePropertyModel elementModel = GradlePropertyModelBuilder.create(rootDirArg).build();
+      rootDirArg.setValue(ReferenceTo.createReferenceFromText("rootDir", elementModel));
       methodCall.addNewArgument(rootDirArg);
       methodCall.setMethodName(FILE_CONSTRUCTOR_NAME);
       methodCall.setIsConstructor(true);

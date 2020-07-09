@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.ext;
 
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class RawText {
@@ -34,5 +35,23 @@ public class RawText {
   @NotNull
   public String getGroovyText() {
     return myGroovyRawText;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    RawText text = (RawText)o;
+    return Objects.equal(myGroovyRawText, text.myGroovyRawText) && Objects.equal(myKtsRawText, text.myKtsRawText);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(myGroovyRawText) + Objects.hashCode(myKtsRawText);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.equal(myKtsRawText, myGroovyRawText) ? myKtsRawText : "KTS: " + myKtsRawText + ", Groovy: " + myGroovyRawText;
   }
 }

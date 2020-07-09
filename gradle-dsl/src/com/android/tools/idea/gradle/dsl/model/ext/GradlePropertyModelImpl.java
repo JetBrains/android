@@ -15,6 +15,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
@@ -580,7 +581,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       GradleDslSimpleExpression ref = (GradleDslSimpleExpression)element;
       String refText = ref.getReferenceText();
       if (typeReference.getType() == Object.class || typeReference.getType() == ReferenceTo.class) {
-        value = refText == null ? null : typeReference.castTo(new ReferenceTo(refText));
+        if (refText != null) {
+          ReferenceTo referenceVal = ReferenceTo.createReferenceFromText(refText, this);
+          value = referenceVal != null ? typeReference.castTo(referenceVal) : typeReference.castTo(new RawText(refText, refText));
+        } else {
+          value = null;
+        }
       }
       else {
         value = refText == null ? null : typeReference.castTo(refText);
