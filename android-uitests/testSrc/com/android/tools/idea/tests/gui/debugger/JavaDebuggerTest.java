@@ -104,9 +104,6 @@ public class JavaDebuggerTest extends DebuggerTestBase {
 
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME, avdRule.getMyAvd().getName());
 
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
     waitForJavaDebuggerSessionStart(debugToolWindowFixture);
 

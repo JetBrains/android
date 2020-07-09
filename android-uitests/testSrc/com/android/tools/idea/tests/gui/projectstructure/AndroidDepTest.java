@@ -22,7 +22,7 @@ import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -123,7 +123,7 @@ public class AndroidDepTest {
       .select("public class LibraryClass \\{()")
       .enterText("\nGson gson = new Gson();\n");
 
-    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
+    BuildStatus result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
   }
 

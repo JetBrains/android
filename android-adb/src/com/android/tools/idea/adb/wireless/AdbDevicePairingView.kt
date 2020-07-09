@@ -15,9 +15,27 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+
 /**
  * Definition of the view (in the context of a Model-View-Controller pattern) used to pair devices
  */
+@UiThread
 interface AdbDevicePairingView {
+  val model: AdbDevicePairingModel
+
   fun showDialog()
+  fun showQrCodePairingStarted()
+  fun showQrCodePairingInProgress(mdnsService: MdnsService)
+  fun showQrCodeMdnsPairingSuccess(pairingResult: PairingResult)
+  fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice)
+  fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable)
+
+  fun addListener(listener: Listener)
+  fun removeListener(listener: Listener)
+
+  @UiThread
+  interface Listener {
+    fun onClose()
+  }
 }

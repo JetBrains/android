@@ -25,10 +25,12 @@ import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
 import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.support.FragmentTagUtil.isFragmentTag;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
 
@@ -750,7 +752,7 @@ public class HtmlLinkManager {
       protected void run(@NotNull Result<Void> result) throws Throwable {
         Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : tags) {
-          if (!tag.getName().equals(VIEW_FRAGMENT)) {
+          if (!isFragmentTag(tag.getName())) {
             continue;
           }
 
@@ -769,7 +771,7 @@ public class HtmlLinkManager {
 
         if (id == null) {
           for (XmlTag tag : tags) {
-            if (!tag.getName().equals(VIEW_FRAGMENT)) {
+            if (!isFragmentTag(tag.getName())) {
               continue;
             }
 
@@ -849,7 +851,7 @@ public class HtmlLinkManager {
         IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
-          if (tag.getName().equals(VIEW_FRAGMENT)) {
+          if (isFragmentTag(tag.getName())) {
             String name = tag.getAttributeValue(ATTR_CLASS);
             if (name == null || name.isEmpty()) {
               name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);

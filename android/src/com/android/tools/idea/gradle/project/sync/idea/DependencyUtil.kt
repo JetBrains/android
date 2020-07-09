@@ -296,10 +296,10 @@ private fun setupAndroidDependenciesForArtifact(
     // Add all the required binary paths from the library.
     val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
     when (library.type) {
-      LIBRARY_JAVA -> {
+      IdeLibrary.LibraryType.LIBRARY_JAVA -> {
         libraryData.addPath(BINARY, library.artifact.absolutePath)
       }
-      LIBRARY_ANDROID -> {
+      IdeLibrary.LibraryType.LIBRARY_ANDROID -> {
         libraryData.addPath(BINARY, library.compileJarFile)
         libraryData.addPath(BINARY, library.resFolder)
         // TODO: Should this be binary? Do we need the platform to allow custom types here?
@@ -328,7 +328,7 @@ private fun setupAndroidDependenciesForArtifact(
     // Add external annotations.
     // TODO: Why do we only do this for Android modules?
     // TODO: Add this to the model instead!
-    if (library.type == LIBRARY_ANDROID) {
+    if (library.type == IdeLibrary.LibraryType.LIBRARY_ANDROID) {
       (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
         FilePaths.toSystemDependentPath(it)?.path
       }.forEach { binaryPath ->

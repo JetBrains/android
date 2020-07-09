@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.intellij.execution.RunManager;
@@ -28,8 +30,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
@@ -70,7 +72,7 @@ final class AsyncDevicesGetter {
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
     this(project,
-         () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
+         StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get,
          new KeyToConnectionTimeMap(),
          new NameGetter(project));
   }
@@ -117,10 +119,16 @@ final class AsyncDevicesGetter {
       return Optional.empty();
     }
 
-    boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
-    FileSystem fileSystem = FileSystems.getDefault();
-    AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(snapshotsEnabled, fileSystem, myChecker);
+    AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
+      .setExecutorService(AppExecutorUtil.getAppExecutorService())
+      .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled)
+      .setFileSystem(FileSystems.getDefault())
+      .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
+      .setChecker(myChecker)
+      .build();
 
+    boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
     AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);

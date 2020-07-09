@@ -28,7 +28,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -336,8 +335,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     assertEquals(1, actions.size());
     IntentionAction action = actions.get(0);
     assertInstanceOf(action, klass);
-    WriteCommandAction.runWriteCommandAction(
-      null, () -> (klass.cast(action)).invoke(getProject(), myFixture.getEditor(), null));
+    myFixture.launchAction(action);
     myFixture.checkResultByFile(myTestFolder + "/" + expectedFile);
   }
 }

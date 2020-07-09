@@ -1440,9 +1440,9 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
-    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorIdColumn.toViewColumn()))
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorIdColumn.name))
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
-    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Asc(authorIdColumn.toViewColumn()))
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Asc(authorIdColumn.name))
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).toCellUpdates())
     orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.NotOrdered)
     orderVerifier.verify(tableView).updateRows(emptyList())
@@ -1473,9 +1473,9 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
-    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorIdColumn.toViewColumn()))
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorIdColumn.name))
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
-    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorNameColumn.toViewColumn()))
+    orderVerifier.verify(tableView).setColumnSortIndicator(OrderBy.Desc(authorNameColumn.name))
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
 

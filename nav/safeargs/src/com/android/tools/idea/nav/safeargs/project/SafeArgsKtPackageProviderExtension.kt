@@ -17,26 +17,18 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKotlinPackageDescriptor
-import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgSyntheticPackageResourceData
-import com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors
+import com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService
+import com.android.tools.idea.nav.safeargs.psi.kotlin.toModule
 import com.android.tools.idea.nav.safeargs.safeArgsMode
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
-import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.StorageManager
@@ -53,48 +45,25 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
                                           lookupTracker: LookupTracker): PackageFragmentProvider? {
     if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
-    val moduleSourceInfo = moduleInfo?.unwrapModuleSourceInfo()?.takeIf { it.platform.isJvm() } ?: return null
-    val facet = moduleSourceInfo.module.let { AndroidFacet.getInstance(it) } ?: return null
+    val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
 
-    val moduleNavResources = SafeArgsResourceForKtDescriptors.getInstance(facet.module).getNavResource()
-
-    val packageFqName = getPackageName(facet)?.let {
-      FqName(it)
-    } ?: return null
-
-    val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
-    // TODO(b/157918926) Cache package descriptors
-    val packageDescriptor = SafeArgsKotlinPackageDescriptor(module, packageFqName, packageResourceData, storageManager)
-
-    return SafeArgSyntheticPackageProvider(packageDescriptor, packageFqName, facet.module)
+    val packageDescriptors = KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors().takeIf { it.isNotEmpty() }
+                             ?: return null
+    return SafeArgsSyntheticPackageProvider(packageDescriptors)
   }
 }
 
-class SafeArgSyntheticPackageProvider(
-  private val packageDescriptorProvider: PackageFragmentDescriptor,
-  private val packageFqName: FqName,
-  private val module: Module
+class SafeArgsSyntheticPackageProvider(
+  private val packageDescriptorProvider: Map<FqName, List<PackageFragmentDescriptor>>
 ) : PackageFragmentProvider {
   override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
-    // If this package is the currently resolving package, descriptors from this package are returned.
-    if (packageFqName == fqName) {
-      return listOf(packageDescriptorProvider)
-    }
-
-    // If this package is directly depended by the currently resolving package, descriptors from this package are
-    // returned.
-    val project = module.project
-    project.getProjectSystem()
-      .getAndroidFacetsWithPackageName(project, fqName.asString(), GlobalSearchScope.projectScope(project))
-      .asSequence()
-      .mapNotNull { ModuleRootManager.getInstance(it.module) }
-      .firstOrNull {
-        it.isDependsOn(module)
-      } ?: return emptyList()
-
-    return listOf(packageDescriptorProvider)
+    return packageDescriptorProvider[fqName] ?: emptyList()
   }
 
-  override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean) = emptyList<FqName>()
+  override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): List<FqName> {
+    return packageDescriptorProvider.asSequence()
+      .filter { (k, _) -> !k.isRoot && k.parent() == fqName }
+      .mapTo(mutableListOf()) { it.key }
+  }
 }

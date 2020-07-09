@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.ui.animation.tooling.ComposeAnimation
+import androidx.ui.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
@@ -33,7 +35,9 @@ private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
  * animations and closing tabs corresponding to unsubscribed animations.
  */
 object ComposePreviewAnimationManager {
-  private var currentInspector: AnimationInspectorPanel? = null
+  @get:VisibleForTesting
+  var currentInspector: AnimationInspectorPanel? = null
+    private set
 
   @get:VisibleForTesting
   val subscribedAnimations = mutableSetOf<Any>()
@@ -54,11 +58,18 @@ object ComposePreviewAnimationManager {
   /**
    * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding tab in the [AnimationInspectorPanel].
    */
-  fun onAnimationSubscribed(clock: Any?, animation: Any) {
-    currentInspector?.takeIf { it.clock != clock }?.let { it.clock = clock }
+  fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation) {
+    currentInspector?.takeIf { it.animationClock?.clock != clock }?.let {
+      it.animationClock = clock?.let { clock ->
+        AnimationClock(clock)
+      }
+    }
     if (subscribedAnimations.add(animation)) {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.addTab(animation)
+        if (animation.getType() == ComposeAnimationType.TRANSITION_ANIMATION) {
+          currentInspector?.updateTransitionStates(animation, animation.getStates())
+        }
       }
     }
   }
@@ -66,7 +77,7 @@ object ComposePreviewAnimationManager {
   /**
    * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationInspectorPanel].
    */
-  fun onAnimationUnsubscribed(animation: Any) {
+  fun onAnimationUnsubscribed(animation: ComposeAnimation) {
     if (subscribedAnimations.remove(animation)) {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.removeTab(animation)
@@ -74,8 +85,15 @@ object ComposePreviewAnimationManager {
     }
     if (subscribedAnimations.isEmpty()) {
       // No more animations. Set the clock to null, so the panel can update accordingly.
-      currentInspector?.let { it.clock = null }
+      currentInspector?.let { it.animationClock = null }
     }
+  }
+
+  /**
+   * Invalidates the current animation inspector, so it doesn't display animations out-of-date.
+   */
+  fun invalidate() {
+    currentInspector?.let { UIUtil.invokeLaterIfNeeded { it.invalidatePanel() } }
   }
 }
 
@@ -84,9 +102,7 @@ fun animationSubscribed(clock: Any?, animation: Any?) {
   if (LOG.isDebugEnabled) {
     LOG.debug("Animation subscribed: $animation")
   }
-  if (animation == null) return
-
-  onAnimationSubscribed(clock, animation)
+  (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
 }
 
 @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
@@ -95,6 +111,5 @@ fun animationUnsubscribed(animation: Any?) {
     LOG.debug("Animation unsubscribed: $animation")
   }
   if (animation == null) return
-
-  onAnimationUnsubscribed(animation)
+  (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
 }

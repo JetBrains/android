@@ -259,12 +259,13 @@ class ComposePreviewTest {
       .getNotificationsFixture()
       .waitForNotificationContains("out of date")
 
-    fixture.actAndWaitForBuildToFinish {
-      composePreview
-        .findActionButtonByText("Build  Refresh")
-        .waitUntilEnabledAndShowing()
-        .click()
-    }
+    assertTrue("Build failed",
+               fixture.actAndWaitForBuildToFinish {
+                 composePreview
+                   .findActionButtonByText("Build  Refresh")
+                   .waitUntilEnabledAndShowing()
+                   .click()
+               }.isBuildSuccessful)
 
     composePreview.waitForRenderToFinish()
 

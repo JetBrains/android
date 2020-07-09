@@ -49,10 +49,11 @@ class TaskViewDetailPagesFactory(
   fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskDetailsNodeDescriptor -> createTaskDetailsPage(nodeDescriptor)
     is PluginDetailsNodeDescriptor -> createPluginDetailsPage(nodeDescriptor)
+  }.apply {
+    name = nodeDescriptor.pageId.id
   }
 
   private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = JPanel().apply {
-    name = descriptor.pageId.toString()
     layout = BorderLayout()
     add(htmlTextLabelWithFixedLines("<b>${descriptor.taskData.taskPath}</b>"), BorderLayout.NORTH)
     add(taskDetailsPanel(
@@ -99,7 +100,6 @@ class TaskViewDetailPagesFactory(
     }
 
     return JPanel().apply {
-      name = descriptor.pageId.toString()
       layout = BorderLayout()
       val tasksNumber = descriptor.pluginData.criticalPathTasks.size
       val pluginInfoText = """

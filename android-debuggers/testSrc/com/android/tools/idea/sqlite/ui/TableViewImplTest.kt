@@ -914,6 +914,28 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(0, tableModel.columnCount)
   }
 
+  fun testEditNullCellToEmptyStringDoesNothing() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    view.showTableColumns(listOf(ViewColumn("c1", false, false)))
+    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
+    view.setEditable(true)
+
+    // Act
+    table.model.setValueAt(null, 0, 1)
+
+    // Assert
+    assertEquals(null, table.model.getValueAt(0, 1))
+
+    // Act
+    table.model.setValueAt("", 0, 1)
+
+    // Assert
+    assertEquals(null, table.model.getValueAt(0, 1))
+  }
+
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
     val values = mutableListOf<String?>()
     for (i in 0 until table.model.rowCount) {

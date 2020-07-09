@@ -131,3 +131,56 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.adb",
+    srcs = ["src"],
+    iml_files = ["intellij.android.adb.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/adt/idea/.idea/libraries:unb.jsr305",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:unb.zxing-core",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.adb.tests",
+    iml_files = ["intellij.android.adb.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android-adb:unb.intellij.android.adb[module, test]",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.zxing-core[test]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+    ],
+)

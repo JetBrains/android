@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
@@ -41,7 +41,8 @@ import java.util.concurrent.TimeUnit
 
 
 /**
- * This service holds a reference to [AppInspectionDiscoveryHost]. It will establish new connections when they are discovered.
+ * This service holds a reference to [DefaultAppInspectionApiServices], which holds references to [ProcessNotifier] and [InspectorLauncher].
+ * The first is used to discover and track processes as they come online. The latter is used to launch inspectors on discovered processes.
  */
 @Service
 class AppInspectionDiscoveryService : Disposable {
@@ -56,11 +57,8 @@ class AppInspectionDiscoveryService : Disposable {
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
-  val discoveryHost = AppInspectionDiscoveryHost(
-    AppExecutorUtil.getAppScheduledExecutorService(),
-    client,
-    streamManager
-  ) { device ->
+  val apiServices: AppInspectionApiServices = AppInspectionApiServices.createDefaultAppInspectionApiServices(
+    AppExecutorUtil.getAppScheduledExecutorService(), client, streamManager) { device ->
     val jarCopier = findDevice(device)?.createJarCopier()
     if (jarCopier == null) {
       logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
@@ -71,7 +69,7 @@ class AppInspectionDiscoveryService : Disposable {
   init {
     applicationMessageBus.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
       override fun projectClosing(project: Project) {
-        discoveryHost.disposeClients(project.name)
+        apiServices.disposeClients(project.name)
       }
     })
   }

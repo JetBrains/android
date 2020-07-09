@@ -126,3 +126,66 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.projectSystem.gradle.sync",
+    srcs = ["src"],
+    iml_files = ["intellij.android.projectSystem.gradle.sync.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.projectSystem.gradle.sync.tests",
+    iml_files = ["intellij.android.projectSystem.gradle.sync.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.projectsystem.gradle.sync.GradleProjectSystemSyncTestSuite",
+    test_data = [
+        "//tools/base/build-system/previous-versions:2.2.0.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_srcs = ["testSrc"],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/project-system-gradle-sync:unb.intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module, test]",
+    ],
+)

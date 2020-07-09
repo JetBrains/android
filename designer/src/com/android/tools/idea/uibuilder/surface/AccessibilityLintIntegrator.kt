@@ -21,7 +21,6 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Strings
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
 import java.awt.Desktop
@@ -73,51 +72,52 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
    */
   fun createIssue(result: ValidatorData.Issue, source: NlComponent?) {
     issues.add(object : Issue() {
-      override fun getSummary(): String {
-        return when (result.mLevel) {
-          ValidatorData.Level.ERROR -> ACCESSIBILITY_ERROR
-          ValidatorData.Level.WARNING -> ACCESSIBILITY_WARNING
-          else -> ACCESSIBILITY_INFO
+      override val summary: String
+        get() =
+          when (result.mLevel) {
+            ValidatorData.Level.ERROR -> ACCESSIBILITY_ERROR
+            ValidatorData.Level.WARNING -> ACCESSIBILITY_WARNING
+            else -> ACCESSIBILITY_INFO
+          }
+
+      override val description: String
+        get() {
+          if (result.mHelpfulUrl.isNullOrEmpty()) {
+            return result.mMsg
+          }
+          return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
         }
-      }
 
-      override fun getDescription(): String {
-        if (result.mHelpfulUrl.isNullOrEmpty()) {
-          return result.mMsg
-        }
-        return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
-      }
-
-      override fun getSeverity(): HighlightSeverity {
-        return when (result.mLevel) {
-          ValidatorData.Level.ERROR -> HighlightSeverity.ERROR
-          ValidatorData.Level.WARNING -> HighlightSeverity.WARNING
-          else ->  HighlightSeverity.INFORMATION
-        }
-      }
-
-      override fun getSource(): NlComponent? {
-        return source
-      }
-
-      override fun getCategory(): String {
-        return ACCESSIBILITY_CATEGORY
-      }
-
-      override fun getFixes(): Stream<Fix> {
-        return convertToFix(this, source, result)
-      }
-
-      override fun getHyperlinkListener(): HyperlinkListener? {
-        if (result.mHelpfulUrl.isNullOrEmpty()) {
-          return null
-        }
-        return HyperlinkListener {
-          if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-            Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
+      override val severity: HighlightSeverity
+        get() {
+          return when (result.mLevel) {
+            ValidatorData.Level.ERROR -> HighlightSeverity.ERROR
+            ValidatorData.Level.WARNING -> HighlightSeverity.WARNING
+            else -> HighlightSeverity.INFORMATION
           }
         }
-      }
+
+      override val source: NlComponent?
+        get() = source
+
+      override val category: String = ACCESSIBILITY_CATEGORY
+
+      override val fixes: Stream<Fix>
+        get() {
+          return convertToFix(this, source, result)
+        }
+
+      override val hyperlinkListener: HyperlinkListener?
+        get() {
+          if (result.mHelpfulUrl.isNullOrEmpty()) {
+            return null
+          }
+          return HyperlinkListener {
+            if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+              Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
+            }
+          }
+        }
     })
   }
 

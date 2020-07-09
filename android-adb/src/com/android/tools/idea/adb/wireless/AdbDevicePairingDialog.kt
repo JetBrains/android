@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.ui.AbstractDialogWrapper
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
 
+@UiThread
 class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
   private val dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(project, canBeParent, ideModalityType)
   private val pairingPanel = AdbDevicePairingPanel()
@@ -33,6 +36,9 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
     dialogWrapper.init()
   }
 
+  val disposable: Disposable
+    get() = dialogWrapper.disposable
+
   fun createCenterPanel(): JComponent {
     // Set a preferred size so that the containing dialog shows big enough
     pairingPanel.rootComponent.preferredSize = panelPreferredSize
@@ -43,6 +49,14 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
     dialogWrapper.show()
   }
 
+  fun setQrCodeImage(qrCodeImage: QrCodeImage) {
+    pairingPanel.setQrCodeImage(qrCodeImage)
+  }
+
+  fun showQrCodeStatus(label: String) {
+    pairingPanel.setQrCodePairingStatus(label)
+  }
+
   private val panelPreferredSize: JBDimension
-    get() = JBDimension(650, 450)
+    get() = JBDimension(1000, 600)
 }

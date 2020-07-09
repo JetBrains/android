@@ -51,8 +51,9 @@ public class CommonTabbedPane extends JTabbedPane {
     }
   }
 
-  public CommonTabbedPane() {
-    myUi = new CommonTabbedPaneUI();
+  public CommonTabbedPane() { this(new CommonTabbedPaneUI()); }
+  public CommonTabbedPane(@NotNull CommonTabbedPaneUI ui) {
+    myUi = ui;
     setUI(myUi);
     getActionMap().put("navigatePrevious", new NavigateAction(ActionDirection.LEFT));
     getActionMap().put("navigateNext", new NavigateAction(ActionDirection.RIGHT));

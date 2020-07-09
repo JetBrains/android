@@ -46,15 +46,17 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     @NotNull FileStructure fileStructure,
     @Nullable String dimension
   ) {
+    String nameSuffix = flavorName.equals("main") ? "" : capitalize(flavorName);
     myFlavor = new ProductFlavorStub(flavorName, dimension);
-    mySourceProvider = new SourceProviderStub(fileStructure);
-    myInstrumentationTestSourceProvider = new SourceProviderStub(fileStructure);
+    mySourceProvider = new SourceProviderStub(fileStructure, "src/" + flavorName + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myInstrumentationTestSourceProvider =
+      new SourceProviderStub(fileStructure, "src/instrumentTest" + nameSuffix + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
     myExtraArtifactSourceProviders.add(
       new SourceProviderContainerStub(AndroidProject.ARTIFACT_ANDROID_TEST, myInstrumentationTestSourceProvider));
-    setUpPaths(flavorName);
+    setUpPaths(flavorName, nameSuffix);
   }
 
-  private void setUpPaths(@NotNull String flavorName) {
+  private void setUpPaths(@NotNull String flavorName, @NotNull String nameSuffix) {
     mySourceProvider.addAidlDirectory("src/" + flavorName + "/aidl");
     mySourceProvider.addAssetsDirectory("src/" + flavorName + "/assets");
     mySourceProvider.addJavaDirectory("src/" + flavorName + "/java");
@@ -63,9 +65,6 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     mySourceProvider.addRenderscriptDirectory("src/" + flavorName + "/renderscript");
     mySourceProvider.addResDirectory("src/" + flavorName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + flavorName + "/resources");
-    mySourceProvider.setManifestFile("src/" + flavorName + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
-
-    String nameSuffix = flavorName.equals("main") ? "" : capitalize(flavorName);
 
     myInstrumentationTestSourceProvider.addAidlDirectory("src/instrumentTest" + nameSuffix + "/aidl");
     myInstrumentationTestSourceProvider.addAssetsDirectory("src/instrumentTest" + nameSuffix + "/assets");

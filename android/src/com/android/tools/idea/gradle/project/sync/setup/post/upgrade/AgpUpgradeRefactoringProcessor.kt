@@ -29,16 +29,24 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.isUpdatablePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
@@ -51,6 +59,8 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
 import java.io.File
+
+private val LOG = Logger.getInstance("Upgrade Assistant")
 
 abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   constructor(project: Project) : super(project) {
@@ -69,15 +79,18 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 
   var foundUsages: Boolean = false
 
-  override fun performRefactoring(usages: Array<out UsageInfo>?) {
-    usages?.forEach {
+  override fun performRefactoring(usages: Array<out UsageInfo>) {
+    val size = usages.size
+    LOG.info("performing refactoring \"${this.commandName}\" with $size ${pluralize("usage", size)}")
+    usages.forEach {
       if (it is GradleBuildModelUsageInfo) {
-        it.performBuildModelRefactoring(this)
+        it.performRefactoringFor(this)
       }
     }
   }
 
   override fun performPsiSpoilingRefactoring() {
+    LOG.info("applying changes from \"${this.commandName}\" refactoring to build model")
     buildModel.applyChanges()
 
     // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
@@ -86,8 +99,8 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
     // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
     // at which point the manipulation could be done in performRefactoring().
     psiSpoilingUsageInfos.forEach {
-      if (it is GradleBuildModelUsageInfo)
-        it.performPsiSpoilingBuildModelRefactoring(this)
+      if (it is SpoilingGradleBuildModelUsageInfo)
+        it.performPsiSpoilingRefactoringFor(this)
     }
 
     super.performPsiSpoilingRefactoring()
@@ -97,14 +110,49 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 /**
  * Instances of [GradleBuildModelUsageInfo] should perform their refactor through the buildModel, and must not
  * invalidate either the BuildModel or the underlying Psi in their [performBuildModelRefactoring] method.  Any spoiling
- * should be done in the [performPsiSpoilingBuildModelRefactoring] method, which will run after the changes in the
- * buildModel have been applied.
+ * should be done using [SpoilingGradleBuildModelUsageInfo] instances.
  */
-abstract class GradleBuildModelUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
-  open fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+abstract class GradleBuildModelUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion) : UsageInfo(element) {
+  fun performRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
+    logBuildModelRefactoring()
+    performBuildModelRefactoring(processor)
+  }
+
+  abstract fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor)
+
+  private fun logBuildModelRefactoring() {
+    val path = when (val basePath = project.basePath) {
+      null -> this.virtualFile?.name
+      else -> this.virtualFile?.toIoFile()?.toRelativeString(File(basePath)) ?: this.virtualFile?.name
+    }
+    LOG.info("performing \"${this.tooltipText}\" build model refactoring in '${path}'")
+  }
+}
+
+/**
+ * Instances of [SpoilingGradleBuildModelUsageInfo] should perform their refactor in the [performPsiSpoilingBuildModelRefactoring] method
+ * in any way they desire, operating after changes to the buildModel have been applied.
+ */
+abstract class SpoilingGradleBuildModelUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion
+) : GradleBuildModelUsageInfo(element, current, new) {
+  final override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    noteForPsiSpoilingBuildModelRefactoring(processor)
+  }
+
+  fun performPsiSpoilingRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
+    LOG.info("performing \"${this.tooltipText}\" Psi-spoiling refactoring")
+    performPsiSpoilingBuildModelRefactoring(processor)
+  }
+
+  abstract fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor)
+
+  private fun noteForPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    LOG.info("adding usage \"${this.tooltipText}\" to psiSpoilingUsageInfos")
     processor.psiSpoilingUsageInfos.add(this)
   }
-  open fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) = Unit
 }
 
 class AgpUpgradeRefactoringProcessor(
@@ -164,6 +212,53 @@ class AgpUpgradeRefactoringProcessor(
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
 }
 
+/**
+One common way to characterise a compatibility change is that some old feature f_o is deprecated in favour of some new feature f_n from
+version v_n (when the new feature f_n is available); the old feature f_o is finally removed in version v_o.  That is, feature f_n is
+available in the versions [v_n, +∞), and f_o is available in versions (-∞, v_o) -- note the exclusion of v_o, which is the first version
+in which f_o is *not* available.  For the rest of this analysis to hold, we also assume that v_n <= v_o -- that is, there is a set
+of versions where the features overlap, or else a feature is replaced wholesale in a single version, but that there is no period where
+neither of the features is present.
+
+If we can characterise the upgrade from a (cur, new > cur) pair of AGP versions, a compatibility change (implemented by a single
+component refactoring) can be put into one of six categories:
+
+| 1 | 2 | 3 | 4 | Necessity
+|---|---|---|---|----------
+|v_n|v_o|cur|new| [IRRELEVANT_PAST]
+|cur|new|v_n|v_o| [IRRELEVANT_FUTURE]
+|cur|v_n|v_o|new| [MANDATORY_CODEPENDENT] (must do the refactoring in the same action as the AGP version upgrade)
+|v_n|cur|v_o|new| [MANDATORY_INDEPENDENT] (must do the refactoring, but can do it before the AGP version upgrade)
+|cur|v_n|new|v_o| [OPTIONAL_CODEPENDENT] (need not do the refactoring, but if done must be with or after the AGP version upgrade)
+|v_n|cur|new|v_o| [OPTIONAL_INDEPENDENT] (need not do the refactoring, but if done can be at any point in the process)
+
+with the conventions for v_n and v_o as described above, equality in version numbers (e.g. if we are upgrading to the first version
+where a feature appears or disappears) is handled by v_n/v_o sorting before cur/new -- so that when comparing a feature version against
+an version associated with an AGP dependency, we must use the < or >= operators depending on whether the feature version is on the left
+or right of the operator respectively.
+
+For the possibly-simpler case where we have a discontinuity in behaviour, v_o = v_n = vvv, and the three possible cases are:
+
+| 1 | 2 | 3 | Necessity
++---+---+---+----------
+|vvv|cur|new| [IRRELEVANT_PAST]
+|cur|vvv|new| [MANDATORY_CODEPENDENT]
+|cur|new|vvv| [IRRELEVANT_FUTURE]
+
+(again in case of equality, vvv sorts before cur and new)
+
+If other refactorings come along which are more complicated than can be supported by this model of a single feature replaced by another,
+we might need more necessity values.
+*/
+enum class AgpUpgradeComponentNecessity {
+  IRRELEVANT_PAST,
+  IRRELEVANT_FUTURE,
+  MANDATORY_CODEPENDENT,
+  MANDATORY_INDEPENDENT,
+  OPTIONAL_CODEPENDENT,
+  OPTIONAL_INDEPENDENT,
+}
+
 // Each individual refactoring involved in an AGP Upgrade is implemented as its own refactoring processor.  For a "batch" upgrade, most
 // of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
@@ -173,9 +268,18 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val new: GradleVersion
   private var _isEnabled: Boolean? = null
   var isEnabled: Boolean
-    set(value) { _isEnabled = value }
+    set(value) {
+      LOG.info("setting isEnabled for \"${this.commandName}\" refactoring to $value")
+      _isEnabled = value
+    }
     get() {
-      if (_isEnabled == null) _isEnabled = isApplicable()
+      if (_isEnabled == null) {
+        LOG.info("initializing isEnabled for \"${this.commandName}\" refactoring from ${necessity()}")
+        _isEnabled = when (necessity()) {
+          IRRELEVANT_FUTURE, IRRELEVANT_PAST -> false
+          MANDATORY_CODEPENDENT, MANDATORY_INDEPENDENT, OPTIONAL_CODEPENDENT, OPTIONAL_INDEPENDENT -> true
+        }
+      }
       return _isEnabled!!
     }
 
@@ -189,16 +293,22 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.new = processor.new
   }
 
-  protected abstract fun isApplicable(): Boolean
+  abstract fun necessity(): AgpUpgradeComponentNecessity
 
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) return UsageInfo.EMPTY_ARRAY
-    return findComponentUsages()
+    val usages = findComponentUsages()
+    val size = usages.size
+    LOG.info("found $size ${pluralize("usage", size)} for \"${this.commandName}\" refactoring")
+    foundUsages = usages.isNotEmpty()
+    return usages
   }
 
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
 
   public abstract override fun getCommandName(): String
+
+  open fun getReadMoreUrl(): String? = null
 }
 
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -206,7 +316,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() = true
+  override fun necessity() = MANDATORY_CODEPENDENT
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -231,7 +341,6 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -283,9 +392,14 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     this.gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION)!!
   }
 
-  val gradleVersion: GradleVersion
+  var gradleVersion: GradleVersion
+    @VisibleForTesting set
 
-  override fun isApplicable() = current < GradleVersion(3, 0, 0)
+  override fun necessity() = when {
+    current < GradleVersion(3, 0, 0) && new >= GradleVersion(3, 0, 0) -> MANDATORY_CODEPENDENT
+    new < GradleVersion(3, 0, 0) -> IRRELEVANT_FUTURE
+    else -> IRRELEVANT_PAST
+  }
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -311,7 +425,6 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -357,7 +470,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   val gradleVersion: GradleVersion
 
-  override fun isApplicable() = true
+  override fun necessity() = MANDATORY_CODEPENDENT
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -377,7 +490,6 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -424,10 +536,20 @@ class GradleVersionUsageInfo(
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
+  var noLanguageLevelAction = INSERT_OLD_DEFAULT
+    set(value) {
+      LOG.info("setting noLanguageLevelAction to ${value.name}")
+      field = value
+    }
+
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() = current < ACTIVATED_VERSION && new >= ACTIVATED_VERSION
+  override fun necessity() = when {
+    current < ACTIVATED_VERSION && new >= ACTIVATED_VERSION -> MANDATORY_CODEPENDENT
+    new < ACTIVATED_VERSION -> IRRELEVANT_FUTURE
+    else -> IRRELEVANT_PAST
+  }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -438,36 +560,35 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       pluginNames.firstOrNull { it.startsWith("java") || it == "application" }?.let { _ ->
         model.java().sourceCompatibility().let {
           val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.java().targetCompatibility().let {
           val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "targetCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "targetCompatibility"))
         }
       }
 
       pluginNames.firstOrNull { it.startsWith("com.android") }?.let { _ ->
         model.android().compileOptions().sourceCompatibility().let {
           val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.android().compileOptions().targetCompatibility().let {
           val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "targetCompatibility"))
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "targetCompatibility"))
         }
         pluginNames.firstOrNull { it.startsWith("org.jetbrains.kotlin") || it.startsWith("kotlin") }?.let { _ ->
           model.android().kotlinOptions().jvmTarget().let {
             val psiElement = it.psiElement ?: model.android().kotlinOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "jvmOptions"))
+            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "jvmOptions"))
           }
         }
       }
     }
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = "Add explicit LanguageLevel properties"
+  override fun getCommandName(): String = "Update implicit LanguageLevel properties"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
 
@@ -477,12 +598,23 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Add explicit LanguageLevel properties"
+      override fun getProcessedElementsHeader() = "Update implicit LanguageLevel properties"
     }
   }
 
+  // TODO(xof): move this target to _redirects.yaml (or find some other way to be future-proof)
+  override fun getReadMoreUrl(): String? = "https://developer.android.com/studio/write/java8-support#supported_features"
+
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
+  }
+
+  enum class NoLanguageLevelAction(val text: String) {
+    ACCEPT_NEW_DEFAULT("Accept the new default of Java 8"),
+    INSERT_OLD_DEFAULT("Insert directives to continue using Java 7"),
+    ;
+
+    override fun toString() = text
   }
 }
 
@@ -492,24 +624,28 @@ class JavaLanguageLevelUsageInfo(
   new: GradleVersion,
   private val model: LanguageLevelPropertyModel,
   private val existing: Boolean,
-  private val name: String
+  private val noLanguageLevelAction: NoLanguageLevelAction,
+  private val propertyName: String
 ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
-      false -> "insert explicit $name to preserve previous behaviour"
-      true -> "preserve existing explicit $name"
+      false -> when (noLanguageLevelAction) {
+        INSERT_OLD_DEFAULT -> "insert explicit $propertyName to preserve previous behaviour"
+        ACCEPT_NEW_DEFAULT -> "accept new default"
+      }
+      true -> "preserve existing explicit $propertyName"
     }
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    when (existing) {
-      false -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
+    when {
+      !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
     }
   }
 
-  // don't need hashCode for correctness because this is stricter than the superclass's equals()
+  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
   override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is JavaLanguageLevelUsageInfo && name == other.name
+    return super.equals(other) && other is JavaLanguageLevelUsageInfo && propertyName == other.propertyName
   }
 }
 
@@ -519,20 +655,29 @@ class KotlinLanguageLevelUsageInfo(
     new: GradleVersion,
     private val model: LanguageLevelPropertyModel,
     private val existing: Boolean,
-    private val name: String
+    private val noLanguageLevelAction: NoLanguageLevelAction,
+    private val propertyName: String
   ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
-      false -> "insert explicit $name to preserve previous behaviour"
-      true -> "preserve existing explicit $name"
+      false -> when (noLanguageLevelAction) {
+        INSERT_OLD_DEFAULT -> "insert explicit $propertyName to preserve previous behaviour"
+        ACCEPT_NEW_DEFAULT -> "accept new default"
+
+      }
+      true -> "preserve existing explicit $propertyName"
     }
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    when (existing) {
-      // if we can find a path to a JDK_1_7 we could include that for jdkHome, but the Internet suggests it's not high-value
-      false -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
+    when {
+      !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
     }
+  }
+
+  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
+  override fun equals(other: Any?): Boolean {
+    return super.equals(other) && other is KotlinLanguageLevelUsageInfo && propertyName == other.propertyName
   }
 }
 
@@ -540,8 +685,14 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun isApplicable() =
-    current < GradleVersion(5, 0, 0) && new >= GradleVersion(3, 5, 0)
+  override fun necessity() = when {
+    current < IMPLEMENTATION_API_INTRODUCED && new >= COMPILE_REMOVED -> MANDATORY_CODEPENDENT
+    current < COMPILE_REMOVED && new >= COMPILE_REMOVED -> MANDATORY_INDEPENDENT
+    new < IMPLEMENTATION_API_INTRODUCED -> IRRELEVANT_FUTURE
+    current >= COMPILE_REMOVED -> IRRELEVANT_PAST
+    current < IMPLEMENTATION_API_INTRODUCED -> OPTIONAL_CODEPENDENT
+    else -> OPTIONAL_INDEPENDENT
+  }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -595,12 +746,9 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
           val psiElement = dependency.psiElement ?: model.dependencies().psiElement ?: modelPsiElement
           maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
         }
-      model.buildscript().dependencies().all()
-        .forEach { dependency ->
-          val psiElement = dependency.psiElement ?: model.buildscript().dependencies().psiElement ?: model.buildscript().psiElement
-                           ?: modelPsiElement
-          maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
-        }
+      // Although there might be a buildscript with dependencies, those dependencies cannot be added to a compile/runtime configuration
+      // out of the box -- and if somehow a user manages to configure things to have compile/runtime configurations there, there's no
+      // guarantee that they mean the same as the deprecated gradle ones.
       model.configurations().all()
         .forEach { configuration ->
           // this PsiElement is used for displaying in the refactoring preview window, rather than for performing the refactoring; it is
@@ -610,8 +758,6 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
           maybeAddUsageForConfiguration(configuration, compileReplacement, psiElement)
         }
     }
-
-    foundUsages = usages.size > 0
     return usages.toTypedArray()
   }
 
@@ -626,6 +772,11 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.CompileRuntimeConfiguration"
 
   override fun getCommandName(): String = "Replace deprecated configurations"
+
+  companion object {
+    val IMPLEMENTATION_API_INTRODUCED = GradleVersion(3, 5, 0)
+    val COMPILE_REMOVED = GradleVersion(5, 0, 0)
+  }
 }
 
 class ObsoleteConfigurationDependencyUsageInfo(
@@ -639,7 +790,7 @@ class ObsoleteConfigurationDependencyUsageInfo(
     dependency.setConfigurationName(newConfigurationName)
   }
 
-  override fun getTooltipText() = "Update configuration to $newConfigurationName"
+  override fun getTooltipText() = "Update configuration from ${dependency.configurationName()} to $newConfigurationName"
 
   // Don't need hashCode() because this is stricter than the superclass method.
   override fun equals(other: Any?): Boolean {
@@ -659,7 +810,7 @@ class ObsoleteConfigurationConfigurationUsageInfo(
     configuration.rename(newConfigurationName)
   }
 
-  override fun getTooltipText() = "Rename configuration to $newConfigurationName"
+  override fun getTooltipText() = "Rename configuration from ${configuration.name()} to $newConfigurationName"
 
   // Don't need hashCode() because this is stricter than the superclass method.
   override fun equals(other: Any?): Boolean {

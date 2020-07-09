@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.error.Issue;
+import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
@@ -68,6 +70,7 @@ public class NlTreeBadgeHandler {
   private int myBadgeX;
   private int myLockIconX;
   @Nullable private IssuePanel myIssuePanel;
+  @Nullable private IssueModel myIssueModel;
 
   /**
    * Save the width occupied by the badges at a given row.
@@ -83,13 +86,16 @@ public class NlTreeBadgeHandler {
     myIssuePanel = issuePanel;
   }
 
+  public void setIssueModel(@Nullable IssueModel issueModel) {
+    myIssueModel = issueModel;
+  }
+
   public void paintBadges(@NotNull Graphics2D g, @NotNull NlComponentTree tree) {
     myBadgeX = Integer.MAX_VALUE;
     myBadgeWidthForRows.clear();
     if (myNlModel == null) {
       return;
     }
-    LintAnnotationsModel lintAnnotationsModel = myNlModel.getLintAnnotationsModel();
 
     for (int i = 0; i < tree.getRowCount(); i++) {
       TreePath path = tree.getPathForRow(i);
@@ -99,11 +105,15 @@ public class NlTreeBadgeHandler {
       }
       NlComponent component = (NlComponent)last;
       Rectangle pathBounds = tree.getPathBounds(path);
+      Issue issue = null;
+      if (myIssueModel != null) {
+        issue = myIssueModel.getHighestSeverityIssue(component);
+      }
       if (pathBounds != null) {
         int y = pathBounds.y + pathBounds.height / 2;
         Icon firstIcon = null;
-        if (lintAnnotationsModel != null) {
-          firstIcon = lintAnnotationsModel.getIssueIcon(component, tree.isRowSelected(i) && tree.hasFocus());
+        if (issue != null) {
+          firstIcon = IssueModel.getIssueIcon(issue.getSeverity(), tree.isRowSelected(i) && tree.hasFocus());
           if (firstIcon != null) {
             int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
             int iy = y - firstIcon.getIconHeight() / 2;
@@ -232,15 +242,18 @@ public class NlTreeBadgeHandler {
    * @return The issue message or null if no issue
    */
   @Nullable
-  private static String getIssueMessage(@NotNull TreePath path) {
+  private String getIssueMessage(@NotNull TreePath path) {
     Object last = path.getLastPathComponent();
     if (!(last instanceof NlComponent)) {
       return null;
     }
     NlComponent component = (NlComponent)last;
-    LintAnnotationsModel lintAnnotationsModel = component.getModel().getLintAnnotationsModel();
-    if (lintAnnotationsModel != null) {
-      return lintAnnotationsModel.getIssueMessage(component);
+    Issue max = null;
+    if (myIssueModel != null) {
+      max = myIssueModel.getHighestSeverityIssue(component);
+    }
+    if (max != null) {
+      return max.getDescription();
     }
     return null;
   }

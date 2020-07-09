@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgSyntheticPackageProvider
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
@@ -27,9 +27,7 @@ import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
@@ -67,7 +65,7 @@ class SafeArgsKotlinPackageDescriptorTest {
           </fragment>
           <fragment
               android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
+              android:name="test.safeargs.sub1.Fragment2"
               android:label="Fragment2" >
             <argument
                 android:name="arg2"
@@ -100,24 +98,27 @@ class SafeArgsKotlinPackageDescriptorTest {
       trace = traceMock,
       moduleInfo = moduleSourceInfo,
       lookupTracker = LookupTracker.DO_NOTHING
-    ) as SafeArgSyntheticPackageProvider
+    ) as SafeArgsSyntheticPackageProvider
 
-    val renderer = DescriptorRenderer.COMPACT_WITH_MODIFIERS
+    // Check contents for Fragment1
+    val classesMetadata1 = fragmentProvider
+      .getPackageFragments(FqName("test.safeargs"))
+      .flatMap { it.getMemberScope().classesInScope() }
 
-    val classDescriptors = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
-      .first()
-      .getMemberScope()
-      .getContributedDescriptors()
-      .sortedWith(MemberComparator.INSTANCE)
-      .map { renderer.render(it) }
+    assertThat(classesMetadata1.map { it.toString() }).containsExactly(
+      "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
+      "test.safeargs.Fragment1Directions",
+      "test.safeargs.MainDirections"
+    )
 
-    assertThat(classDescriptors).containsExactly(
-      // unresolved type is due to the missing library module dependency in test setup
-      "public final class Fragment1Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment1Directions",
-      "public final class Fragment2Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment2Directions",
-      "public final class MainDirections"
+    // Check contents for Fragment2
+    val classesMetadata2 = fragmentProvider
+      .getPackageFragments(FqName("test.safeargs.sub1"))
+      .flatMap { it.getMemberScope().classesInScope() }
+
+    assertThat(classesMetadata2.map { it.toString() }).containsExactly(
+      "test.safeargs.sub1.Fragment2Args: androidx.navigation.NavArgs",
+      "test.safeargs.sub1.Fragment2Directions"
     )
   }
 }

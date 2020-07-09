@@ -58,7 +58,8 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
         .mapNotNull { module -> module.androidFacet }
 
       val scopeIncludingDeps = allFacets
-        .filter { it.isSafeArgsEnabled() }
+        // TODO(b/157922851): Mixed kotlin/java projects are not supported
+        .filter { it.safeArgsMode == SafeArgsMode.JAVA }
         .map { it.getLocalScope() }
         .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 

@@ -15,13 +15,39 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import java.util.concurrent.Executor
 
-class AdbDevicePairingControllerImpl(private val project: Project,
-                                     private val service: AdbDevicePairingService,
-                                     private val view: AdbDevicePairingView,
-                                     private val model: AdbDevicePairingModel) : AdbDevicePairingController {
+@UiThread
+class AdbDevicePairingControllerImpl(project: Project,
+                                     edtExecutor: Executor,
+                                     service: AdbDevicePairingService,
+                                     private val view: AdbDevicePairingView
+) : AdbDevicePairingController {
+  private val qrCodeScanningController = QrCodeScanningController(service, view, edtExecutor, this)
+
+  init {
+    // Ensure we are disposed when the project closes
+    Disposer.register(project, this)
+
+    // Ensure we are disposed when the view closes
+    view.addListener(MyViewListener(this))
+  }
+
   override fun startPairingProcess() {
+    qrCodeScanningController.startPairingProcess()
     view.showDialog()
+  }
+
+  override fun dispose() {
+  }
+
+  class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {
+    override fun onClose() {
+      Disposer.dispose(parentDisposable)
+    }
   }
 }

@@ -497,9 +497,35 @@ public class ColumnTreeBuilder {
     @NotNull private final Color myHoverColor;
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
     @Nullable private final JTable myTable;
+    private ChangeListener stateChangeListener;
 
     ColumnTreeUI() {
       this(null, null, null, null);
+    }
+
+    @Override
+    protected void uninstallListeners() {
+      super.uninstallListeners();
+      if (stateChangeListener != null) {
+        myHScrollBarPanel.getModel().removeChangeListener(stateChangeListener);
+        stateChangeListener = null;
+      }
+    }
+
+    @Override
+    protected void installListeners() {
+      super.installListeners();
+      if (stateChangeListener == null) {
+        stateChangeListener = new ChangeListener() {
+          @Override
+          public void stateChanged(ChangeEvent e) {
+            setTreeOffset(tree, myHScrollBarPanel.getModel().getValue());
+            treeState.invalidateSizes();
+            tree.repaint();
+          }
+        };
+        myHScrollBarPanel.getModel().addChangeListener(stateChangeListener);
+      }
     }
 
     /**
@@ -512,14 +538,6 @@ public class ColumnTreeBuilder {
       myHoverConfig = hoverConfig != null ? hoverConfig : ColumnTreeHoverListener.EMPTY_LISTENER;
       myTable = table;
       myHScrollBarPanel = hsb;
-      hsb.getModel().addChangeListener(new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent e) {
-          setTreeOffset(tree, hsb.getModel().getValue());
-          treeState.invalidateSizes();
-          tree.repaint();
-        }
-      });
     }
 
     @Override

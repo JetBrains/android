@@ -20,6 +20,7 @@ import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -733,7 +734,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
 
-          Icon i = StudioIcons.Common.WARNING;
+          Icon i = mySelected && isFocused()
+                   ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
+                   : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
           int iconHeight = i.getIconHeight();
           i.paintIcon(this, g, width - iconWidth - textWidth - 6, (height - iconHeight) / 2);
@@ -742,6 +745,10 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         // paint real content last
         super.paintComponent(g);
+      }
+
+      private void setIconColorized(Icon icon) {
+        setIcon(mySelected && isFocused() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       }
 
       @Override
@@ -760,7 +767,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         if (node.getAdapter() instanceof ClassSet) {
           ClassSet classSet = (ClassSet)node.getAdapter();
 
-          setIcon(((ClassSet)node.getAdapter()).hasStackInfo() ? StudioIcons.Profiler.Overlays.CLASS_STACK : PlatformIcons.CLASS_ICON);
+          setIconColorized(((ClassSet)node.getAdapter()).hasStackInfo()
+                           ? StudioIcons.Profiler.Overlays.CLASS_STACK
+                           : PlatformIcons.CLASS_ICON);
 
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
@@ -774,12 +783,12 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof PackageSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof MethodSet) {
-          setIcon(PlatformIcons.METHOD_ICON);
+          setIconColorized(PlatformIcons.METHOD_ICON);
 
           MethodSet methodObject = (MethodSet)node.getAdapter();
           String name = methodObject.getMethodName();
@@ -794,25 +803,25 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           }
         }
         else if (node.getAdapter() instanceof ThreadSet) {
-          setIcon(AllIcons.Debugger.ThreadSuspended);
+          setIconColorized(AllIcons.Debugger.ThreadSuspended);
           String threadName = node.getAdapter().getName();
           append(threadName, SimpleTextAttributes.REGULAR_ATTRIBUTES, threadName);
         }
         else if (node.getAdapter() instanceof HeapSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName() + " heap";
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof NativeCallStackSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(StudioIcons.Profiler.Overlays.METHOD_STACK);
+          setIconColorized(StudioIcons.Profiler.Overlays.METHOD_STACK);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof NativeAllocationMethodSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(StudioIcons.Profiler.Overlays.ARRAY_STACK);
+          setIconColorized(StudioIcons.Profiler.Overlays.ARRAY_STACK);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }

@@ -86,7 +86,7 @@ public class WindowsPerformanceHintsChecker {
   public void run() {
     if (SystemInfo.isWindows && (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get() || StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get())) {
       Application application = ApplicationManager.getApplication();
-      application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      application.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
         public void projectOpened(@NotNull Project project) {
           // perform check, but do not show dialog, when project is opened.
@@ -103,7 +103,7 @@ public class WindowsPerformanceHintsChecker {
             @Override
             public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
               BuildMode mode = context != null ? context.getBuildMode() : null;
-              if (status == BuildStatus.SUCCESS) {
+              if (status.isBuildSuccessful()) {
                 if (mode == BuildMode.ASSEMBLE || mode == BuildMode.ASSEMBLE_TRANSLATE || mode == BuildMode.REBUILD ||
                     mode == BuildMode.BUNDLE || mode == BuildMode.APK_FROM_BUNDLE) {
                   application.executeOnPooledThread(() -> checkWindowsDefender(project, true));

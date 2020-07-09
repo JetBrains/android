@@ -102,3 +102,36 @@ java_binary(
     main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
     runtime_deps = [":intellij.android.adt.ui_testlib"],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.adt.ui",
+    srcs = ["src/main/java"],
+    iml_files = ["intellij.android.adt.ui.iml"],
+    lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.adtui.AdtUiTestSuite",
+    test_data = [
+    ],
+    test_resources = ["src/test/resources"],
+    test_srcs = ["src/test/java"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
+        "//tools/adt/idea/adt-ui/lib:unb.libwebp",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+    ],
+)

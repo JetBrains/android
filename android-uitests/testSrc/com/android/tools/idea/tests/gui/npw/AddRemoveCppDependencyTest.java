@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -152,7 +152,7 @@ public class AddRemoveCppDependencyTest {
 
     assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp
 
-    GradleInvocationResult result = ideFixture.invokeProjectMake();
+    BuildStatus result = ideFixture.invokeProjectMake();
     assertThat(result.isBuildSuccessful()).isTrue();
   }
 }

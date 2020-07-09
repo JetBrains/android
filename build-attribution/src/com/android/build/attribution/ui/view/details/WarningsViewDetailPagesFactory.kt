@@ -53,6 +53,8 @@ class WarningsViewDetailPagesFactory(
     is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData)
     is AnnotationProcessorsRootNodeDescriptor -> createAnnotationProcessorsRootDetailsPage(nodeDescriptor.annotationProcessorsReport)
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
+  }.apply {
+    name = nodeDescriptor.pageId.id
   }
 
 

@@ -8,7 +8,7 @@ MODULE              : project.app
     BuildFolder         : <ROOT>/app/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbsolutePaths       : true

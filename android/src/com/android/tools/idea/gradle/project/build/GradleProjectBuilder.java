@@ -57,18 +57,4 @@ public class GradleProjectBuilder {
       myBuildInvoker.cleanProject();
     }
   }
-
-  public void generateSources() {
-    doGenerateSources(false /* do not clean project */);
-  }
-
-  private void doGenerateSources(boolean cleanProject) {
-    if (myAndroidProjectInfo.requiresAndroidModel()) {
-      if (cleanProject) {
-        myBuildInvoker.cleanAndGenerateSources();
-        return;
-      }
-      myBuildInvoker.generateSources();
-    }
-  }
 }

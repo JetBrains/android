@@ -24,6 +24,9 @@ import java.io.File
  * Per-module helper for determining if a file is a test and if so, which kind.
  */
 interface TestArtifactSearchScopes {
+  /** Returns a [Module] that this search scopes belong to. */
+  val module: Module
+
   /** Returns a [GlobalSearchScope] that contains android tests of the given module.  */
   val androidTestSourceScope: GlobalSearchScope
 

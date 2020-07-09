@@ -124,36 +124,36 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     }, 10);
   }
 
-  public BuildAttributionViewFixture waitTabOpened(@NotNull String displayName) {
-    JComponent contentComponent = getContent(displayName).getComponent();
-    Wait.seconds(10).expecting("Build tab '" + displayName + "' to be visible")
+  public BuildAnalyzerViewFixture waitBuildAnalyzerTabOpened() {
+    JComponent contentComponent = getContent("Build Analyzer").getComponent();
+    Wait.seconds(10).expecting("Build tab 'Build Analyzer' to be visible")
       .until(contentComponent::isVisible);
-    return new BuildAttributionViewFixture(myRobot, (JPanel)contentComponent);
+    return new BuildAnalyzerViewFixture(myRobot, (JPanel)contentComponent);
   }
 
   private void clickTab(@NotNull String name) {
-    ContentTabLabelFixture buildSpeedTab = ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
-    buildSpeedTab.click();
+    ContentTabLabelFixture buildTab = ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
+    buildTab.click();
   }
 
   private void clickCloseTab(@NotNull String name) {
-    ContentTabLabelFixture buildSpeedTab =
+    ContentTabLabelFixture buildTab =
       ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
-    buildSpeedTab.close();
+    buildTab.close();
   }
 
-  public BuildAttributionViewFixture openBuildAttributionUsingTabHeaderClick() {
+  public BuildAnalyzerViewFixture openBuildAnalyzerUsingTabHeaderClick() {
     clickTab("Build Analyzer");
-    return waitTabOpened("Build Analyzer");
+    return waitBuildAnalyzerTabOpened();
   }
 
-  public BuildAttributionViewFixture openBuildAttributionUsingBuildOutputLink() {
+  public BuildAnalyzerViewFixture openBuildAnalyzerUsingBuildOutputLink() {
     findHyperlinkByTextAndClick(getGradleBuildConsoleView(), "Build Analyzer");
     waitTabExist("Build Analyzer");
-    return waitTabOpened("Build Analyzer");
+    return waitBuildAnalyzerTabOpened();
   }
 
-  public void closeBuildAttributionTab() {
+  public void closeBuildAnalyzerTab() {
     clickCloseTab("Build Analyzer");
     waitTabNotExist("Build Analyzer");
   }

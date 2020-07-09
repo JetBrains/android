@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -65,9 +65,9 @@ public class SelectedVariantCollector {
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (ndkFacet != null && ndkModuleModel != null) {
-        String ndkVariantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
-        return new SelectedVariant(rootFolder, projectPath, ndkModuleModel.getVariantName(ndkVariantName),
-                                   ndkModuleModel.getAbiName(ndkVariantName));
+        VariantAbi selected = ndkFacet.getSelectedVariantAbi();
+        if (selected == null) return null;
+        return new SelectedVariant(rootFolder, projectPath, selected.getVariant(), selected.getAbi());
       }
       if (androidFacet != null) {
         return new SelectedVariant(rootFolder, projectPath, androidFacet.getProperties().SELECTED_BUILD_VARIANT, null);

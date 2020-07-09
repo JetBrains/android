@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import java.io.File
+import java.time.Duration
 
 /**
  * An interface to access to instrumentation test results of a single test case executed
@@ -66,6 +67,11 @@ interface AndroidTestResults {
    * Returns the logcat message emitted during the test on a given device.
    */
   fun getLogcat(device: AndroidDevice): String
+
+  /**
+   * Returns an elapsed time of a test case execution of a given device.
+   */
+  fun getDuration(device: AndroidDevice): Duration?
 
   /**
    * Returns an error stack trace or empty if a test passes.
@@ -133,5 +139,17 @@ fun AndroidTestResultStats.getSummaryResult(): AndroidTestCaseResult {
     passed > 0 -> AndroidTestCaseResult.PASSED
     skipped > 0 -> AndroidTestCaseResult.SKIPPED
     else -> AndroidTestCaseResult.SCHEDULED
+  }
+}
+
+/**
+ * Returns a test execution duration rounded down by second if it is longer than a second.
+ */
+fun AndroidTestResults.getRoundedDuration(device: AndroidDevice): Duration? {
+  val duration = getDuration(device) ?: return null
+  return if (duration < Duration.ofSeconds(1)) {
+    duration
+  } else {
+    Duration.ofSeconds(duration.seconds)
   }
 }

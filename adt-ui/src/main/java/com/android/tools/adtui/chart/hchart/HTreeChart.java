@@ -195,6 +195,11 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     return mySelectedNode;
   }
 
+  @Nullable
+  public N getFocusedNode() {
+    return myFocusedNode;
+  }
+
   private void changed() {
     myDataUpdated = true;
     myCachedMaxHeight = calculateMaximumHeight();

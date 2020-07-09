@@ -22,7 +22,7 @@ import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -64,10 +64,10 @@ import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**
- * A {@link LayoutLog} which records the problems it encounters and offers them as a
+ * A {@link ILayoutLog} which records the problems it encounters and offers them as a
  * single summary at the end
  */
-public class RenderLogger extends LayoutLog implements IRenderLogger {
+public class RenderLogger implements IRenderLogger {
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
@@ -200,7 +200,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     return myModule;
   }
 
-  // ---- extends LayoutLog ----
+  // ---- extends ILayoutLog ----
 
   @Nullable
   public Project getProject() {
@@ -306,11 +306,11 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     // Workaround: older layout libraries don't provide a tag for this error
     if (tag == null && message != null &&
         (message.startsWith("Failed to find style ") || message.startsWith("Unable to resolve parent style name: "))) {
-      tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+      tag = ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
 
-    if (LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
+    if (ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
         && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       if (facet != null && AndroidModel.isRequired(facet)) {
@@ -785,7 +785,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   private static final int ANDROID_LOG_SILENT = 8;
 
   @Override
-  public void logAndroidFramework(int priority, String tag, String message) {
+  public void logAndroidFramework(int priority, String tag, @NotNull String message) {
     if (StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {

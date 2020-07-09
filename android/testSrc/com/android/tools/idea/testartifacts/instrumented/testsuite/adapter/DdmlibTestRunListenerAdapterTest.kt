@@ -37,6 +37,7 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.argThat
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -57,6 +58,13 @@ class DdmlibTestRunListenerAdapterTest {
     `when`(mockDevice.avdName).thenReturn("mockDeviceAvdName")
     `when`(mockDevice.version).thenReturn(AndroidVersion(29))
     `when`(mockDevice.isEmulator).thenReturn(true)
+  }
+
+  private fun eq(arg: AndroidTestCase): AndroidTestCase {
+    argThat<AndroidTestCase> {
+      arg.copy(startTimestampMillis = 0, endTimestampMillis = 0) == it.copy(startTimestampMillis = 0, endTimestampMillis = 0)
+    }
+    return arg
   }
 
   @Test
@@ -289,6 +297,31 @@ class DdmlibTestRunListenerAdapterTest {
                                                               "exampleTestClass\$NestedClassName",
                                                               "com.example.test",
                                                               AndroidTestCaseResult.IN_PROGRESS)))
+  }
+
+  @Test
+  fun timestamp() {
+    lateinit var result: AndroidTestCase
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, object: AndroidTestResultListener {
+      override fun onTestSuiteScheduled(device: AndroidDevice) {}
+      override fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {}
+      override fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
+        result = testCase
+      }
+      override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {}
+      override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {}
+    })
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1"))
+
+    assertThat(result.startTimestampMillis).isNotNull()
+    assertThat(result.endTimestampMillis).isNull()
+
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"), mutableMapOf())
+
+    assertThat(result.startTimestampMillis).isNotNull()
+    assertThat(result.endTimestampMillis).isNotNull()
   }
 
   private fun device(id: String = "mockDeviceSerialNumber",

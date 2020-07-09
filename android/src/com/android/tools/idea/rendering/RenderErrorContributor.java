@@ -23,20 +23,22 @@ import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_FLEXBOX_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.VALUE_FILL_PARENT;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_PREFIX;
+import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.Lint.editDistance;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
@@ -80,7 +82,6 @@ import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
@@ -795,15 +796,15 @@ public class RenderErrorContributor {
       seenTags.add(tag);
 
       if (tag != null) {
-        if (LayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
+        if (ILayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
           reportTagResourceFormat(myResult, message);
           continue;
         }
-        else if (LayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
+        else if (ILayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
           reportRtlNotEnabled(logger, task);
           continue;
         }
-        else if (LayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
+        else if (ILayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
           addIssue()
             .setSeverity(HighlightSeverity.ERROR)
             .setSummary("RTL support requires API level >= 17")
@@ -1268,8 +1269,17 @@ public class RenderErrorContributor {
       return;
     }
 
+    final String fragmentTagName;
+    if (MigrateToAndroidxUtil.isAndroidx(logger.getProject())) {
+      fragmentTagName = FRAGMENT_CONTAINER_VIEW;
+    }
+    else {
+      fragmentTagName = VIEW_FRAGMENT;
+    }
+    final String fragmentTagDisplayName = "<" + fragmentTagName + ">";
+
     HtmlBuilder builder = new HtmlBuilder();
-    builder.add("A ").addHtml("<code>").add("<fragment>").addHtml("</code>").add(" tag allows a layout file to dynamically include " +
+    builder.add("A ").addHtml("<code>").add(fragmentTagDisplayName).addHtml("</code>").add(" tag allows a layout file to dynamically include " +
                                                                                  "different layouts at runtime. ")
       .add("At layout editing time the specific layout to be used is not known. You can choose which layout you would " +
            "like previewed while editing the layout.");
@@ -1282,10 +1292,10 @@ public class RenderErrorContributor {
       boolean isIdentified = className != null && !className.isEmpty();
       boolean isActivityKnown = isIdentified && !className.startsWith(PREFIX_RESOURCE_REF);
       if (isIdentified) {
-        builder.add("<fragment ").addBold(className).add(" ...>");
+        builder.add("<").add(fragmentTagName).add(" ").addBold(className).add(" ...>");
       }
       else {
-        builder.add("<fragment>");
+        builder.add(fragmentTagDisplayName);
       }
       builder.add(" (");
 
@@ -1346,7 +1356,7 @@ public class RenderErrorContributor {
     builder.endList()
       .newline()
       // TODO: URLs
-      .addLink("Do not warn about <fragment> tags in this session", myLinkManager.createIgnoreFragmentsUrl())
+      .addLink("Do not warn about " + fragmentTagDisplayName + " tags in this session", myLinkManager.createIgnoreFragmentsUrl())
       .newline();
 
     addIssue()

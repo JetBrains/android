@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
+import org.jetbrains.android.compose.COMPOSE_VIEW_ADAPTER_FQNS
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -62,7 +62,7 @@ fun parseViewInfo(rootViewInfo: ViewInfo,
 }
 
 private fun findComposeViewAdapter(viewObj: Any): Any? {
-  if (COMPOSE_VIEW_ADAPTER == viewObj.javaClass.name) {
+  if (COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObj.javaClass.name)) {
     return viewObj
   }
 

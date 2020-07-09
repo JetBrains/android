@@ -268,7 +268,7 @@ class EmulatorView(
     get() = Dimension(realWidth, realHeight)
 
   override val screenScalingFactor
-    get() = screenScale.toFloat()
+    get() = screenScale
 
   override val scale: Double
     get() = computeScaleToFit(realSize, screenshotShape.rotation)

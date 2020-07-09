@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import javax.swing.JComponent
@@ -25,6 +26,8 @@ import javax.swing.JComponent
 class DefaultDialogWrapper(private val project: Project, private val canBeParent: Boolean, private val ideModalityType: DialogWrapper.IdeModalityType) : AbstractDialogWrapper() {
   private var innerDialogWrapper: DialogWrapperInner? = null
   override var isModal = false
+  override val disposable: Disposable
+    get() = innerDialogWrapper!!.disposable
   override var title = ""
   override var okButtonText: String? = null
 

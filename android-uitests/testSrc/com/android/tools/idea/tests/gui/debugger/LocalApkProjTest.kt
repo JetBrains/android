@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.AsyncProcessIcon
@@ -110,12 +111,21 @@ class LocalApkProjTest {
 
     profileOrDebugApk(guiTest.welcomeFrame(), File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"))
 
-    // Handle the APK Import dialog pop up.
-    val downloadDialog = WindowFinder.findDialog(DialogMatcher.withTitle("APK Import"))
-      .withTimeout(TimeUnit.SECONDS.toMillis(30)).using(guiTest.robot())
-    val UseExistFolder = downloadDialog.button(JButtonMatcher.withText("Use existing folder"))
-    Wait.seconds(120).expecting("Android source to be installed").until { UseExistFolder.isEnabled }
-    UseExistFolder.click()
+    // Handle the APK Import dialog pop up if running in the IDE etc.
+    val downloadDialog = try {
+      WindowFinder
+        .findDialog(DialogMatcher.withTitle("APK Import"))
+        .withTimeout(1, TimeUnit.SECONDS)
+        .using(guiTest.robot())
+    }
+    catch (e: WaitTimedOutError) {
+      null
+    }
+    if (downloadDialog != null) {
+      val useExistFolder = downloadDialog.button(JButtonMatcher.withText("Use existing folder"))
+      Wait.seconds(120).expecting("Android source to be installed").until { useExistFolder.isEnabled }
+      useExistFolder.click()
+    }
 
     val ideFrame = guiTest.ideFrame()
     val editor = ideFrame.editor
@@ -140,7 +150,7 @@ class LocalApkProjTest {
 
     guiTest.waitForBackgroundTasks();
 
-    ideFrame.actAndWaitForBuildToFinish { it.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)") }
+    ideFrame.invokeAndWaitForBuildAction("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
     val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
@@ -185,8 +195,9 @@ class LocalApkProjTest {
     // NOTE: This step generates the ~/ApkProjects/app-x86-debug directory.
     chooseApkFile.select(apkFile)
       .clickOkAndWaitToClose()
-
+    waitForIdle()
     guiTest.waitForBackgroundTasks()
+    waitForIdle()
   }
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {

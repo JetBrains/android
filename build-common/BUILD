@@ -80,3 +80,44 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.buildCommon",
+    srcs = ["src"],
+    iml_files = ["intellij.android.buildCommon.iml"],
+    lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_resources = ["testResources"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    exports = [
+        "//tools/adt/idea/android/lib:unb.jarutils",
+        "//tools/base/common:unb.studio.android.sdktools.common",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib",
+        "//tools/base/device_validator:unb.studio.android.sdktools.dvlib",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api",
+        "//tools/base/lint:unb.studio.android.sdktools.lint-api",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common",
+        "//tools/base/sdklib:unb.studio.android.sdktools.sdklib",
+    ],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android/lib:unb.jarutils",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/base/device_validator:unb.studio.android.sdktools.dvlib[module]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/lint:unb.studio.android.sdktools.lint-api[module]",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/base/sdklib:unb.studio.android.sdktools.sdklib[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+    ],
+)

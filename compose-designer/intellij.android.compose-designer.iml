@@ -26,5 +26,14 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
+    <orderEntry type="module-library">
+      <library name="ui-animation-tooling-internal">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/ui-animation-tooling-internal.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

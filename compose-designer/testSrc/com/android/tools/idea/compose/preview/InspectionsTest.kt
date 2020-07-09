@@ -24,10 +24,13 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Returns the [HighlightInfo] description adding the relative line number
@@ -36,9 +39,19 @@ private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<Strin
   "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
 }
 
-class InspectionsTest  {
+@RunWith(Parameterized::class)
+class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+  }
+
+  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
   private val fixture get() = projectRule.fixture
 
   @After
@@ -53,7 +66,7 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -80,9 +93,9 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.ui.tooling.preview.PreviewParameter
-      import androidx.ui.tooling.preview.PreviewParameterProvider
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
       import androidx.compose.Composable
 
       @Preview
@@ -143,9 +156,9 @@ class InspectionsTest  {
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.ui.tooling.preview.PreviewParameter
-      import androidx.ui.tooling.preview.PreviewParameterProvider
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
       import androidx.compose.Composable
 
       class IntProvider: PreviewParameterProvider<Int> {
@@ -178,7 +191,7 @@ class InspectionsTest  {
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -252,7 +265,7 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -282,7 +295,7 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -312,7 +325,7 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -347,12 +360,12 @@ class InspectionsTest  {
       import androidx.compose.Composable
 
       @Composable
-      @androidx.ui.tooling.preview.Preview
+      @$PREVIEW_TOOLING_PACKAGE.Preview
       fun Preview1() {
       }
 
       // Missing Composable annotation
-      @androidx.ui.tooling.preview.Preview(name = "preview2")
+      @$PREVIEW_TOOLING_PACKAGE.Preview(name = "preview2")
       fun Preview2() {
       }
     """.trimIndent()

@@ -116,9 +116,7 @@ public class LegacyLayoutInspectorUITest {
         new File(layoutDumpDir, "recorded_layout_inspector.png")
       );
 
-      ideFrame.runApp(appConfigName, "Google Nexus 5X");
-      // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
-      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(240));
+      ideFrame.runApp(appConfigName, "Google Nexus 5X", Wait.seconds(240));
 
       // The following includes a wait for the run tool window to appear.
       // Also show the run tool window in case of failure so we have more information.

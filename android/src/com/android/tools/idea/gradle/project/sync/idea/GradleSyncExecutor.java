@@ -92,7 +92,6 @@ public class GradleSyncExecutor {
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
@@ -243,43 +242,5 @@ public class GradleSyncExecutor {
     }
 
     return builder.build();
-  }
-
-  /**
-   * @return true if the expected jars from cached libraries don't exist on disk.
-   */
-  public static boolean areCachedFilesMissing(@NotNull Project project) {
-    final Ref<Boolean> missingFileFound = Ref.create(false);
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-      rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
-        for (OrderRootType type : OrderRootType.getAllTypes()) {
-          List<String> expectedUrls = asList(entry.getUrls(type));
-          if (expectedUrls.isEmpty()) {
-            continue;
-          }
-          // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
-          // all files are missing.
-          if (type.equals(CLASSES)) {
-            if (expectedUrls.stream().noneMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) != null)) {
-              missingFileFound.set(true);
-              return false; // Don't continue with processor.
-            }
-          }
-          // For other types of root, fail validation if any file is missing. This includes annotation processor, sources and javadoc.
-          else {
-            if (expectedUrls.stream().anyMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) == null)) {
-              missingFileFound.set(true);
-              return false; // Don't continue with processor.
-            }
-          }
-        }
-        return true;
-      });
-      if (missingFileFound.get()) {
-        return true;
-      }
-    }
-    return missingFileFound.get();
   }
 }

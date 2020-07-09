@@ -22,46 +22,67 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedDuration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getSummaryResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.plus
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.Location
+import com.intellij.execution.PsiLocation
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.actions.EditSourceAction
+import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.RelativeFont
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
+import com.intellij.ui.treeStructure.treetable.TreeTableCellRenderer
+import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
 import java.awt.Component
+import java.awt.Graphics
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.time.Duration
 import java.util.Comparator
 import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
+import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
@@ -70,6 +91,7 @@ import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeNode
+import kotlin.math.max
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
@@ -77,9 +99,10 @@ import javax.swing.tree.TreeNode
  */
 class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
                                   javaPsiFacade: JavaPsiFacade,
-                                  testArtifactSearchScopes: TestArtifactSearchScopes?) {
+                                  testArtifactSearchScopes: TestArtifactSearchScopes?,
+                                  logger: AndroidTestSuiteLogger) {
   private val myModel = AndroidTestResultsTableModel()
-  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes)
+  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
   private val myTableViewContainer = JBScrollPane(myTableView)
 
   /**
@@ -138,6 +161,15 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   }
 
   /**
+   * Shows an elapsed time of a test execution in table rows for a given device.
+   *
+   * @param device a device to retrieve the time or null to hide the string.
+   */
+  fun showTestDuration(device: AndroidDevice?) {
+    myTableView.showTestDuration(device)
+  }
+
+  /**
    * Refreshes and redraws the table.
    */
   @UiThread
@@ -160,15 +192,20 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   @UiThread
   fun clearSelection() {
     myTableView.clearSelection()
+    myTableView.resetLastReportedValues()
   }
 
   /**
    * Returns a root component of the table view.
    */
   @UiThread
-  fun getComponent(): Component {
-    return myTableViewContainer
-  }
+  fun getComponent(): JComponent = myTableViewContainer
+
+  /**
+   * Returns a component which should request a user focus.
+   */
+  @UiThread
+  fun getPreferredFocusableComponent(): JComponent = myTableView
 
   /**
    * Returns an internal model class for testing.
@@ -241,19 +278,45 @@ private val SKIPPED_TEST_TEXT_COLOR = JBColor(Gray._130, Gray._200)
 private class AndroidTestResultsTableViewComponent(private val model: AndroidTestResultsTableModel,
                                                    private val listener: AndroidTestResultsTableListener,
                                                    private val javaPsiFacade: JavaPsiFacade,
-                                                   private val testArtifactSearchScopes: TestArtifactSearchScopes?)
+                                                   private val testArtifactSearchScopes: TestArtifactSearchScopes?,
+                                                   private val logger: AndroidTestSuiteLogger)
   : TreeTableView(model), DataProvider {
+
+  private var myDeviceToShowTestDuration: AndroidDevice? = null
+  private var myLastReportedResults: AndroidTestResults? = null
+  private var myLastReportedDevice: AndroidDevice? = null
+
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     autoResizeMode = AUTO_RESIZE_OFF
     tableHeader.resizingAllowed = false
     tableHeader.reorderingAllowed = false
+    val originalDefaultHeaderRenderer = tableHeader.defaultRenderer
+    tableHeader.defaultRenderer = object: TableCellRenderer {
+      override fun getTableCellRendererComponent(table: JTable,
+                                                 value: Any,
+                                                 isSelected: Boolean,
+                                                 hasFocus: Boolean,
+                                                 row: Int,
+                                                 column: Int): Component {
+        val renderComponent = originalDefaultHeaderRenderer.getTableCellRendererComponent(
+          table, value, isSelected, hasFocus, row, column)
+        val label = renderComponent as? JLabel ?: return renderComponent
+        if (column > 0) {
+          label.horizontalAlignment = SwingConstants.CENTER
+          label.border = JBUI.Borders.empty()
+        }
+        return renderComponent
+      }
+    }
     showHorizontalLines = false
     rowSorter = DefaultColumnInfoBasedRowSorter(getModel())
     tree.isRootVisible = true
     tree.showsRootHandles = true
     tree.cellRenderer = object: ColoredTreeCellRenderer() {
+      private var myDurationTextWidth: Int = 0
+      private var myDurationText: String = ""
       override fun customizeCellRenderer(tree: JTree,
                                          value: Any?,
                                          selected: Boolean,
@@ -274,6 +337,28 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           }
         })
         icon = getIconFor(results.getTestResultSummary())
+
+        val duration = myDeviceToShowTestDuration?.let { results.getRoundedDuration(it) }
+        if (duration == null) {
+          myDurationTextWidth = 0
+          myDurationText = ""
+        } else {
+          myDurationText = StringUtil.formatDuration(duration.toMillis(), "\u2009")
+          val fontMetrics = getFontMetrics(RelativeFont.SMALL.derive(font))
+          myDurationTextWidth = fontMetrics.stringWidth(myDurationText + "\u2009")
+        }
+      }
+
+      // Note: Override paintComponent and draw the test duration text manually. Ideally,
+      // ColoredTreeCellRenderer should support drawing a right aligned text but it doesn't.
+      // I referred how com.intellij.execution.testframework.sm.runner.ui.TestTreeRenderer
+      // renders the duration text to implement it.
+      override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        setupAntialiasing(g)
+        g.color = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+        g.font = RelativeFont.SMALL.derive(font)
+        g.drawString(myDurationText, width - myDurationTextWidth, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
       }
     }
 
@@ -281,14 +366,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.ANDROID_TEST_SUITE_TABLE)
     addMouseListener(object: MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
+        logger.reportInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
         when (e?.clickCount) {
-          1 -> {
-            selectedObject?.let {
-              listener.onAndroidTestResultsRowSelected(
-                it,
-                (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
-            }
-          }
           2 -> {
             EditSourceAction().actionPerformed(
               AnActionEvent.createFromInputEvent(
@@ -305,11 +384,32 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
+
+    // Ignore intermediate values.
+    if (event.valueIsAdjusting) {
+      return
+    }
+
     selectedObject?.let {
-      listener.onAndroidTestResultsRowSelected(
+      notifyAndroidTestResultsRowSelectedIfValueChanged(
         it,
         (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
     }
+  }
+
+  private fun notifyAndroidTestResultsRowSelectedIfValueChanged(results: AndroidTestResults,
+                                                                device: AndroidDevice?) {
+    if (myLastReportedResults == results && myLastReportedDevice == device) {
+      return
+    }
+    myLastReportedResults = results
+    myLastReportedDevice = device
+    listener.onAndroidTestResultsRowSelected(results, device)
+  }
+
+  fun resetLastReportedValues() {
+    myLastReportedResults = null
+    myLastReportedDevice = null
   }
 
   override fun tableChanged(e: TableModelEvent?) {
@@ -320,20 +420,79 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   }
 
   override fun getData(dataId: String): Any? {
-    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-      val selectedTestResults = selectedObject ?: return null
-      val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
-      return selectedTestResults.getFullTestClassName().let {
-        javaPsiFacade.findClasses(it, androidTestSourceScope)
-      }.mapNotNull {
-        it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
-      }.firstOrNull()
+    return when {
+      CommonDataKeys.PROJECT.`is`(dataId) -> {
+        javaPsiFacade.project
+      }
+      CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
+        val selectedTestResults = selectedObject ?: return null
+        val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
+        val testClasses = selectedTestResults.getFullTestClassName().let {
+          javaPsiFacade.findClasses(it, androidTestSourceScope)
+        }
+        testClasses.mapNotNull {
+          it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
+        }.firstOrNull()?.let { return it }
+        testClasses.firstOrNull()?.let { return it }
+      }
+      Location.DATA_KEY.`is`(dataId) -> {
+        val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
+        val module = testArtifactSearchScopes?.module
+        if (module == null) {
+          PsiLocation.fromPsiElement(psiElement)
+        } else {
+          PsiLocation.fromPsiElement(psiElement, module)
+        }
+      }
+      else -> null
     }
-    return null
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {
-    return getColumnInfo(column).getRenderer(getRowElement(row)) ?: super.getCellRenderer(row, column)
+    getColumnInfo(column).getRenderer(getRowElement(row))?.let { return it }
+    getColumnModel().getColumn(column).cellRenderer?.let { return it }
+    return getDefaultRenderer(getColumnClass(column))
+  }
+
+  override fun createTableRenderer(treeTableModel: TreeTableModel): TreeTableCellRenderer {
+    return object: TreeTableCellRenderer(this, tree) {
+      override fun getTableCellRendererComponent(table: JTable,
+                                                 value: Any,
+                                                 isSelected: Boolean,
+                                                 hasFocus: Boolean,
+                                                 row: Int,
+                                                 column: Int): Component {
+        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column).also {
+          tree.border = null
+        }
+      }
+    }
+  }
+
+  override fun processKeyEvent(e: KeyEvent) {
+    // Moves the keyboard focus to the next component instead of the next row in the table.
+    if (e.keyCode == KeyEvent.VK_TAB) {
+      if (e.id == KeyEvent.KEY_PRESSED) {
+        val keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+        if (e.isShiftDown) {
+          keyboardFocusManager.focusPreviousComponent(this)
+        } else {
+          keyboardFocusManager.focusNextComponent(this)
+        }
+      }
+      e.consume()
+      return
+    }
+
+    super.processKeyEvent(e)
+  }
+
+  /**
+   * Shows an elapsed time of a test execution in table rows for a given device. Set null to hide
+   * the duration string.
+   */
+  fun showTestDuration(device: AndroidDevice?) {
+    myDeviceToShowTestDuration = device
   }
 
   fun refreshTable() {
@@ -441,8 +600,7 @@ private object TestStatusColumn : ColumnInfo<AndroidTestResults, AndroidTestResu
 }
 
 private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty()
-  override fun getTableCellRendererComponent(table: JTable?,
+  override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
                                              hasFocus: Boolean,
@@ -453,7 +611,7 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
     horizontalAlignment = CENTER
     horizontalTextPosition = CENTER
     foreground = getColorFor(results.getTestResultSummary())
-    border = myEmptyBorder
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
   }
 }
@@ -498,8 +656,7 @@ private class AndroidTestResultsColumn(val device: AndroidDevice) :
 }
 
 private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty()
-  override fun getTableCellRendererComponent(table: JTable?,
+  override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
                                              hasFocus: Boolean,
@@ -510,14 +667,13 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
     horizontalAlignment = CENTER
     horizontalTextPosition = CENTER
     icon = getIconFor(stats.getSummaryResult())
-    border = myEmptyBorder
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
   }
 }
 
 private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty()
-  override fun getTableCellRendererComponent(table: JTable?,
+  override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
                                              hasFocus: Boolean,
@@ -529,8 +685,8 @@ private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCell
     horizontalTextPosition = CENTER
     icon = null
     foreground = getColorFor(stats.getSummaryResult())
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     setValue("${stats.passed + stats.skipped}/${stats.total}")
-    border = myEmptyBorder
     return this
   }
 }
@@ -562,6 +718,12 @@ private class AndroidTestResultsRow(override val methodName: String,
    * Returns a logcat message for a given [device].
    */
   override fun getLogcat(device: AndroidDevice): String = myTestCases[device.id]?.logcat ?: ""
+
+  override fun getDuration(device: AndroidDevice): Duration? {
+    val start = myTestCases[device.id]?.startTimestampMillis ?: return null
+    val end = myTestCases[device.id]?.endTimestampMillis ?: System.currentTimeMillis()
+    return Duration.ofMillis(max(end - start, 0))
+  }
 
   /**
    * Returns an error stack for a given [device].
@@ -663,6 +825,16 @@ private class AggregationRow(override val packageName: String = "",
         }
       }
     }?:""
+  }
+  override fun getDuration(device: AndroidDevice): Duration? {
+    return  children?.fold(null as Duration?) { acc, result ->
+      val childDuration = (result as? AndroidTestResults)?.getDuration(device) ?: return@fold acc
+      if (acc == null) {
+        childDuration
+      } else {
+        acc + childDuration
+      }
+    }
   }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
   override fun getBenchmark(device: AndroidDevice): String {

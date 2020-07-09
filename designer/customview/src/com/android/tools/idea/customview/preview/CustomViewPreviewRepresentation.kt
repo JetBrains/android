@@ -85,7 +85,7 @@ fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
   val prevBuildStatus = gradleState.summary?.status
   return when {
     gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
-    prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
+    prevBuildStatus == null || prevBuildStatus.isBuildSuccessful ->
       CustomViewVisualStateTracker.BuildState.SUCCESSFUL
     else -> CustomViewVisualStateTracker.BuildState.FAILED
   }

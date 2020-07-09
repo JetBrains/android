@@ -852,7 +852,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   @NotNull
-  public Map<Object, String> getDefaultStyles() {
+  public Map<Object, ResourceReference> getDefaultStyles() {
     myRenderResultLock.readLock().lock();
     try {
       if (myRenderResult == null) {
@@ -958,7 +958,17 @@ public class LayoutlibSceneManager extends SceneManager {
         if (newTask != null) {
           newTask.getLayoutlibCallback()
             .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
-          return newTask.inflate().whenComplete((result, exception) -> {
+          return newTask.inflate().whenComplete((result, inflateException) -> {
+            Throwable exception = null;
+            if (inflateException != null) {
+              exception = inflateException;
+            }
+            else {
+              if (result != null) {
+                exception = result.getRenderResult().getException();
+              }
+            }
+
             if (exception != null) {
               if (result == null || !result.getRenderResult().isSuccess()) {
                 logger.error("INFLATE", "Error inflating the preview", exception, null, null);
@@ -1159,10 +1169,6 @@ public class LayoutlibSceneManager extends SceneManager {
           myRenderResultLock.writeLock().lock();
           try {
             updateCachedRenderResult(result);
-            // TODO(nro): this may not be ideal -- forcing direct results immediately
-            if (!isDisposed.get()) {
-              update();
-            }
             // Downgrade the write lock to read lock
             myRenderResultLock.readLock().lock();
           }

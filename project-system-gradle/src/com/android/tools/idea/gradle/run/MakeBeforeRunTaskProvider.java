@@ -301,7 +301,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // If the project has native modules, and there're any un-synced variants.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
-      if (ndkModel != null && ndkModel.getVariants().size() < ndkModel.getNdkVariantNames().size()) {
+      if (ndkModel != null && ndkModel.getSyncedVariantAbis().size() < ndkModel.getAllVariantAbis().size()) {
         return SyncNeeded.FULL_SYNC_NEEDED;
       }
     }

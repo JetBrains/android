@@ -52,10 +52,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -74,16 +72,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -384,6 +378,7 @@ public class Scene implements SelectionListener, Disposable {
    */
   private static void markSelection(SceneComponent component, SelectionModel model) {
     component.setSelected(model.isSelected(component.getNlComponent()));
+    component.setHighlighted(model.isHighlighted(component.getNlComponent()));
 
     for (SceneComponent child : component.getChildren()) {
       markSelection(child, model);

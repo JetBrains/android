@@ -20,16 +20,16 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.CompactResourcePickerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.ex.EditorGutterComponentEx
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
@@ -50,14 +50,14 @@ class GutterIconTest {
     // Wait for the gutter to be populated
     val editorGutter = guiTest.robot().finder().findByType(EditorGutterComponentEx::class.java)
     Wait.seconds(10L).expecting("Drawable gutter icon to be available").until {
-      runReadAction {
+      runInEdtAndGet {
         editorGutter.getGutterRenderers(editorLine).isNotEmpty()
       }
     }
 
     // Find and click the drawable gutter Icon
     val gutterIconPoint =
-      runReadAction { editorGutter.getCenterPoint(editorGutter.getGutterRenderers(editorLine).firstIsInstance<GutterIconRenderer>())!! }
+      runInEdtAndGet { editorGutter.getCenterPoint(editorGutter.getGutterRenderers(editorLine).firstIsInstance<GutterIconRenderer>())!! }
     guiTest.robot().click(editorGutter, gutterIconPoint)
 
     // It should open the CompactResourcePicker popup, select a different drawable in it
@@ -65,6 +65,6 @@ class GutterIconTest {
       .selectResource("ic_launcher")
 
     // The editor should reflect the change of the new selected drawable
-    assertTrue(editor.currentLine.trimIndent() == "android:background=\"@drawable/ic_launcher\"")
+    assertEquals("android:background=\"@drawable/ic_launcher\"", editor.currentLine.trimIndent())
   }
 }

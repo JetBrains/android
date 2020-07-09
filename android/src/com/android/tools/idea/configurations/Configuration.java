@@ -71,7 +71,6 @@ import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -95,6 +94,20 @@ import org.jetbrains.annotations.Nullable;
 public class Configuration implements Disposable, ModificationTracker {
   public static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   public static final String CUSTOM_DEVICE_ID = "Custom";
+
+  // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
+  private static final int UI_MODE_TYPE_MASK = 0x0000000f;
+  private static final int UI_MODE_TYPE_APPLIANCE = 0x00000005;
+  private static final int UI_MODE_TYPE_CAR = 0x00000003;
+  private static final int UI_MODE_TYPE_DESK = 0x00000002;
+  private static final int UI_MODE_TYPE_NORMAL = 0x00000001;
+  private static final int UI_MODE_TYPE_TELEVISION = 0x00000004;
+  private static final int UI_MODE_TYPE_VR_HEADSET = 0x00000007;
+  private static final int UI_MODE_TYPE_WATCH = 0x00000006;
+
+  private static final int UI_MODE_NIGHT_MASK = 0x00000030;
+  private static final int UI_MODE_NIGHT_YES = 0x00000020;
+  private static final int UI_MODE_NIGHT_NO = 0x00000010;
 
   /**
    * The associated file.
@@ -209,6 +222,7 @@ public class Configuration implements Disposable, ModificationTracker {
   private long myModificationCount;
 
   private float myFontScale = 1f;
+  private int myUiModeFlagValue;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -317,6 +331,7 @@ public class Configuration implements Disposable, ModificationTracker {
     copy.myNightMode = original.getNightMode();
     copy.myDisplayName = original.getDisplayName();
     copy.myFontScale = original.myFontScale;
+    copy.myUiModeFlagValue = original.myUiModeFlagValue;
 
     return copy;
   }
@@ -325,53 +340,6 @@ public class Configuration implements Disposable, ModificationTracker {
   public Configuration clone() {
     return copy(this);
   }
-
-  /**
-   * Copies attributes from the given source configuration into the given destination configuration,
-   * as long as the attributes are compatible with the folder of the destination file.
-   *
-   * @param source the original to copy from
-   * @return a new configuration copied from the original
-   */
-  @NotNull
-  public static Configuration copyCompatible(@NotNull Configuration source, @NotNull Configuration destination) {
-    assert !Comparing.equal(source.myFile, destination.myFile); // This method is intended to sync configurations for resource variations
-
-    FolderConfiguration editedConfig = destination.getEditedConfig();
-
-    if (editedConfig.getVersionQualifier() == null) {
-      destination.myTarget = source.myTarget;  // avoid getTarget() since it fetches project state
-    }
-    if (editedConfig.getScreenSizeQualifier() == null) {
-      destination.mySpecificDevice = source.mySpecificDevice; // avoid getDevice() since it fetches project state
-    }
-    if (editedConfig.getScreenOrientationQualifier() == null && editedConfig.getSmallestScreenWidthQualifier() == null) {
-      destination.myStateName = source.myStateName;
-      destination.myState = source.myState;
-    }
-    if (editedConfig.getLocaleQualifier() == null) {
-      destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
-    }
-    if (editedConfig.getUiModeQualifier() == null) {
-      destination.myUiMode = source.getUiMode();
-    }
-    if (editedConfig.getNightModeQualifier() == null) {
-      destination.myNightMode = source.getNightMode();
-    }
-    destination.myActivity = source.getActivity();
-    destination.myTheme = source.getTheme();
-    //destination.myDisplayName = source.getDisplayName();
-
-    ConfigurationMatcher matcher = new ConfigurationMatcher(destination, destination.myFile);
-    //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
-      matcher.adaptConfigSelection(true /*needBestMatch*/);
-    //}
-
-    destination.myFontScale = source.myFontScale;
-
-    return destination;
-  }
-
 
   public void save() {
     ConfigurationStateManager stateManager = ConfigurationStateManager.get(myManager.getModule().getProject());
@@ -718,15 +686,6 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Copies the full, complete {@link FolderConfiguration} into the given folder config instance.
-   *
-   * @param dest the {@link FolderConfiguration} instance to copy into
-   */
-  public void copyFullConfig(FolderConfiguration dest) {
-    dest.set(myFullConfig);
-  }
-
-  /**
    * Returns the edited {@link FolderConfiguration} (this is not a full configuration, so you can think of it as the "constraints" used by
    * the {@link ConfigurationMatcher} to produce a full configuration.
    *
@@ -943,9 +902,12 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void setNightMode(@NotNull NightMode night) {
     if (myNightMode != night) {
-      myNightMode = night;
-
-      updated(CFG_NIGHT_MODE);
+      if (night == NightMode.NIGHT) {
+        setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_YES);
+      }
+      else {
+        setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_NO);
+      }
     }
   }
 
@@ -956,10 +918,65 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void setUiMode(@NotNull UiMode uiMode) {
     if (myUiMode != uiMode) {
-      myUiMode = uiMode;
+      int newUiTypeFlags = 0;
+      switch (uiMode) {
+        case NORMAL: newUiTypeFlags = UI_MODE_TYPE_NORMAL; break;
+        case DESK: newUiTypeFlags = UI_MODE_TYPE_DESK; break;
+        case WATCH: newUiTypeFlags = UI_MODE_TYPE_WATCH; break;
+        case TELEVISION: newUiTypeFlags = UI_MODE_TYPE_TELEVISION; break;
+        case APPLIANCE: newUiTypeFlags = UI_MODE_TYPE_APPLIANCE; break;
+        case CAR: newUiTypeFlags = UI_MODE_TYPE_CAR; break;
+        case VR_HEADSET: newUiTypeFlags = UI_MODE_TYPE_VR_HEADSET; break;
+      }
 
-      updated(CFG_UI_MODE);
+      setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_NIGHT_MASK) | newUiTypeFlags);
     }
+  }
+
+  /**
+   * Sets the raw value for uiMode. When setting it using this method, both UiMode and night mode might be updated as result.
+   */
+  public void setUiModeFlagValue(int uiMode) {
+    int modifiedElements = myUiModeFlagValue ^ uiMode;
+    myUiModeFlagValue = uiMode;
+
+    int updatedFlags = 0;
+
+    // Check if we need to update night mode
+    if ((modifiedElements & UI_MODE_NIGHT_MASK) != 0) {
+      if ((uiMode & UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES) {
+        myNightMode = NightMode.NIGHT;
+      }
+      else {
+        myNightMode = NightMode.NOTNIGHT;
+      }
+      updatedFlags |= CFG_NIGHT_MODE;
+    }
+
+    // Check if we need to update ui mode
+    if ((modifiedElements & UI_MODE_TYPE_MASK) != 0) {
+      switch (uiMode & UI_MODE_TYPE_MASK) {
+        case UI_MODE_TYPE_APPLIANCE: myUiMode = UiMode.APPLIANCE; break;
+        case UI_MODE_TYPE_CAR: myUiMode = UiMode.CAR; break;
+        case UI_MODE_TYPE_TELEVISION: myUiMode = UiMode.TELEVISION; break;
+        case UI_MODE_TYPE_WATCH: myUiMode = UiMode.WATCH; break;
+        case UI_MODE_TYPE_DESK: myUiMode = UiMode.DESK; break;
+        case UI_MODE_TYPE_VR_HEADSET: myUiMode = UiMode.VR_HEADSET; break;
+        default: myUiMode = UiMode.NORMAL;
+      }
+      updatedFlags |= CFG_UI_MODE;
+    }
+
+    if (updatedFlags != 0) {
+      updated(updatedFlags);
+    }
+  }
+
+  /**
+   * Returns the current flags for uiMode.
+   */
+  public int getUiModeFlagValue() {
+    return myUiModeFlagValue;
   }
 
   /**
@@ -1286,10 +1303,6 @@ public class Configuration implements Disposable, ModificationTracker {
 
   public Module getModule() {
     return myManager.getModule();
-  }
-
-  public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    return new ConfigurationMatcher(this, file).isCurrentFileBestMatchFor(config);
   }
 
   @Override

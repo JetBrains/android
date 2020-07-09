@@ -15,7 +15,7 @@
     <orderEntry type="module-library">
       <library name="compose-compiler-hosted">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/kotlin-compose/compose-compiler-hosted-0.1.0-dev06.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compose-compiler-hosted/0.1.0-dev14/compose-compiler-hosted-0.1.0-dev14.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

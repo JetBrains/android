@@ -85,6 +85,11 @@ public final class StudioFlags {
     NPW, "show.gradle.kts.option", "Show gradle kts option",
     "Shows an option on new Project/Module to allow the use of Kotlin script",
     false);
+
+  public static final Flag<Boolean> NPW_NEW_MODULE_WITH_SIDE_BAR = Flag.create(
+    NPW, "new.module.with.side.bar", "New Module with sidebar",
+    "Shows latest UX implementation of New Module with a left side bar",
+    false);
   //endregion
 
   //region Profiler
@@ -448,7 +453,7 @@ public final class StudioFlags {
     "run.on.multiple.devices.action.enabled",
     "Enable the Run on Multiple Devices action",
     "To revert to the 4.0 behavior until multiple devices are properly supported for the other executors",
-    true);
+    false);
 
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
@@ -545,7 +550,7 @@ public final class StudioFlags {
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
-    "Enable the Upgrade Assistant for helping with AGP upgrades", false);
+    "Enable the Upgrade Assistant for helping with AGP upgrades", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false
@@ -926,13 +931,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_SURROUND_WITH_WIDGET = Flag.create(
-    COMPOSE, "editor.surround.with.widget.action",
-    "Enables \"Surround with widget\" intention and template",
-    "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_FUNCTION_EXTRACTION = Flag.create(
     COMPOSE, "editor.function.extraction",
     "Enables extracting @Composable function from other composables",
@@ -972,6 +970,13 @@ public final class StudioFlags {
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
     "If enabled, the user can enable/disable the painting of debug bounds",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_ELEMENT_PICKER = Flag.create(
+    COMPOSE, "preview.element.picker.enable",
+    "Enable @Preview picker",
+    "If enabled, the picker for @Preview elements will be available",
     false
   );
   //endregion

@@ -88,3 +88,40 @@ iml_module(
         "//tools/idea:intellij.java.impl[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.common",
+    srcs = ["src"],
+    iml_files = ["intellij.android.common.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "no_test_windows",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.AndroidCommonTestSuite",
+    test_data = [
+        "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/artwork:device-art-resources",
+    ],
+    test_srcs = ["test"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/analytics-library/shared:unb.analytics-shared[module]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/ninepatch:unb.studio.android.sdktools.ninepatch[module]",
+        "//tools/base/sdklib:unb.studio.android.sdktools.sdklib[module]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+    ],
+)

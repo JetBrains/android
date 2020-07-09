@@ -51,7 +51,10 @@ public abstract class ActionManager<S extends DesignSurface> {
   protected static void registerAction(@NotNull AnAction action,
                                        @NotNull KeyStroke keyStroke,
                                        @NotNull JComponent component) {
-    KeyBindingKt.registerAnActionKey(component, () -> action, keyStroke, action.getClass().getSimpleName(), JComponent.WHEN_FOCUSED);
+    KeyBindingKt.registerAnActionKey(component,
+                                     () -> action, keyStroke,
+                                     action.getClass().getSimpleName(),
+                                     JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
   @NotNull

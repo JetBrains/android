@@ -66,9 +66,10 @@ public class PreviewProviderTest extends LayoutTestCase {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getFocusedSceneView()).thenReturn(screenView);
     when(surface.getScale()).thenReturn(1.0);
-    when(surface.getScreenScalingFactor()).thenReturn(1.0f);
+    when(surface.getScreenScalingFactor()).thenReturn(1.0);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);
-    myPreviewProvider.myRenderTimeoutSeconds = Long.MAX_VALUE;
+    myPreviewProvider.myRenderTimeoutMillis = 10000L;
+    myPreviewProvider.myRenderTaskTimeoutMillis = 10000L;
     RenderService.shutdownRenderExecutor(5);
     RenderService.initializeRenderExecutor();
     RenderService.setForTesting(getProject(), new MyRenderService(getProject()));
@@ -103,7 +104,8 @@ public class PreviewProviderTest extends LayoutTestCase {
 
   // b/110835489
   public void ignore_testBug229723WorkAround() throws Exception {
-    myPreviewProvider.myRenderTimeoutSeconds = 0L;
+    myPreviewProvider.myRenderTimeoutMillis = 0L;
+    myPreviewProvider.myRenderTaskTimeoutMillis = 0L;
     assertNull(myPreviewProvider.renderDragImage(myTextViewItem));
   }
 

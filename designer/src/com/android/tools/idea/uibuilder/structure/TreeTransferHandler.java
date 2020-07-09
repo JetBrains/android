@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import java.awt.AlphaComposite;
 import java.awt.Component;
@@ -27,6 +29,7 @@ import java.awt.Image;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import javax.swing.tree.TreePath;
@@ -68,8 +71,10 @@ public final class TreeTransferHandler extends TransferHandler {
       // are in a single undo transaction.
       NlComponentTree tree = (NlComponentTree)c;
       NlModel model = tree.getDesignerModel();
-      assert model != null;
-      TransactionGuard.submitTransaction(model, () -> model.delete(tree.getSelectedComponents()));
+      List<NlComponent> selected = tree.getSelectedComponents();
+      if (model != null && !selected.isEmpty()) {
+        ApplicationManager.getApplication().invokeLater(() -> model.delete(selected));
+      }
     }
   }
 

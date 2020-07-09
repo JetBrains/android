@@ -17,18 +17,24 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.largeFilesEditor.GuiUtils;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.AnimatedIcon;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.time.Duration;
 import java.util.Locale;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
@@ -198,6 +204,7 @@ public class DetailsViewDeviceSelectorListView {
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
       super.getListCellRendererComponent(list, " ", index, isSelected, cellHasFocus);
+      setBackground(UIUtil.getTableBackground(isSelected, list.hasFocus()));
 
       myCellRendererComponent.setBackground(list.getBackground());
       myCellRendererComponent.setForeground(list.getForeground());
@@ -207,9 +214,28 @@ public class DetailsViewDeviceSelectorListView {
 
       if (value instanceof AndroidDevice) {
         AndroidDevice device = (AndroidDevice) value;
-        myDeviceLabel.setText(
-          String.format(Locale.US, "<html>%s<br>API %d</html>",
-                        AndroidDeviceKt.getName(device), device.getVersion().getApiLevel()));
+
+        String testDurationText = "";
+        if (myTestResults != null) {
+          Duration testDuration = AndroidTestResultsKt.getRoundedDuration(myTestResults, device);
+          if (testDuration != null) {
+            testDurationText = StringUtil.formatDuration(testDuration.toMillis(), "\u2009");
+          }
+        }
+        if (StringUtil.isNotEmpty(testDurationText)) {
+          myDeviceLabel.setText(
+            String.format(Locale.US, "<html>%s<br><font color='#%s'>API %d - %s</font></html>",
+                          AndroidDeviceKt.getName(device),
+                          ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.getFgColor()),
+                          device.getVersion().getApiLevel(),
+                          testDurationText));
+        } else {
+          myDeviceLabel.setText(
+            String.format(Locale.US, "<html>%s<br><font color='#%s'>API %d</font></html>",
+                          AndroidDeviceKt.getName(device),
+                          ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.getFgColor()),
+                          device.getVersion().getApiLevel()));
+        }
         myDeviceLabel.setIcon(getIconForDeviceType(device.getDeviceType()));
       } else if (value instanceof RawOutputItem) {
         myDeviceLabel.setText("Raw Output");

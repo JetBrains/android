@@ -16,25 +16,26 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeLaunchParameters
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createSuccessfulServiceResponse
-import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.AsyncFunction
-import com.google.common.util.concurrent.Futures
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.concurrent.CountDownLatch
-
-private const val TEST_PROJECT_NAME = "TestProject"
 
 class AppInspectionTargetTest {
   private val timer = FakeTimer()
@@ -48,21 +49,17 @@ class AppInspectionTargetTest {
 
   @Test
   fun launchInspector() {
-    val clientFuture = Futures.transformAsync(
-      appInspectionRule.launchTarget(),
-      AsyncFunction<AppInspectionTarget, TestInspectorClient> { target ->
-        target!!.launchInspector(INSPECTOR_ID, TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
-          assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
-          TestInspectorClient(commandMessenger)
-        }
-      }, appInspectionRule.executorService
-    )
-    assertThat(clientFuture.get()).isNotNull()
+    appInspectionRule.launchTarget(createFakeProcessDescriptor()).transformAsync(appInspectionRule.executorService) { target ->
+      target.launchInspector(createFakeLaunchParameters()) { commandMessenger ->
+        assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
+        TestInspectorClient(commandMessenger)
+      }
+    }.get()
   }
 
   @Test
   fun launchInspectorReturnsCorrectConnection() {
-    val target = appInspectionRule.launchTarget().get()
+    val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()).get()
 
     // We set the App Inspection command handler to not do anything with commands, because the test will manually insert responses. This is
     // done to better control the timing of events.
@@ -77,7 +74,7 @@ class AppInspectionTargetTest {
 
     // Launch an inspector connection that will never be established (if the test passes).
     val unsuccessfulConnection =
-      target.launchInspector("never_connects", TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
+      target.launchInspector(createFakeLaunchParameters(inspectorId = "never_connects")) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
@@ -87,7 +84,8 @@ class AppInspectionTargetTest {
       appInspectionRule.addAppInspectionResponse(createSuccessfulServiceResponse(12345))
 
       // Launch an inspector connection that will be successfully established.
-      val successfulConnection = target.launchInspector("connects_successfully", TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
+      val successfulConnection = target.launchInspector(
+        createFakeLaunchParameters(inspectorId = "connects_successfully")) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
@@ -104,9 +102,65 @@ class AppInspectionTargetTest {
       // Verify the first connection is still pending and the second connection is successful.
       assertThat(successfulConnection.get()).isNotNull()
       assertThat(unsuccessfulConnection.isDone).isFalse()
-    } finally {
+    }
+    finally {
       unsuccessfulConnection.cancel(false)
     }
+  }
+
+  @Test
+  fun clientIsCached() {
+    val process = createFakeProcessDescriptor()
+    val target = appInspectionRule.launchTarget(process).get()
+
+    // Launch an inspector.
+    val firstClient = target.launchInspector(createFakeLaunchParameters(process)) { StubTestAppInspectorClient(it) }.get()
+
+    // Launch another inspector with same parameters.
+    val secondClient = target.launchInspector(createFakeLaunchParameters(process)) { StubTestAppInspectorClient(it) }.get()
+
+    // Check they are the same.
+    assertThat(firstClient).isSameAs(secondClient)
+  }
+
+
+  @Test
+  fun processTerminationDisposesClient() {
+    val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()).get() as DefaultAppInspectionTarget
+
+    // Launch an inspector client.
+    target.launchInspector(createFakeLaunchParameters()) { StubTestAppInspectorClient(it) }.get()
+
+    // Verify there is one new client.
+    assertThat(target.clients).hasSize(1)
+
+    // Set up latch to wait for client disposal.
+    // Note: The callback below must use the same executor as discovery service because we rely on the knowledge that the single threaded
+    // executor will execute them AFTER executing the system's cleanup code. Otherwise, the latch may get released too early due to race,
+    // and cause the test to flake.
+    val clientDisposedLatch = CountDownLatch(1)
+    target.clients.values.first().get().addServiceEventListener(
+      object : AppInspectorClient.ServiceEventListener {
+        override fun onDispose() {
+          clientDisposedLatch.countDown()
+        }
+      }, appInspectionRule.executorService)
+
+    // Fake target termination to dispose of client.
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setTimestamp(timer.currentTimeNs)
+        .setKind(Common.Event.Kind.PROCESS)
+        .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
+        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+        .setIsEnded(true)
+        .build()
+    )
+
+    // Wait and verify
+    clientDisposedLatch.await()
+    assertThat(target.clients).isEmpty()
   }
 }
 

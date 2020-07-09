@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -50,7 +51,7 @@ public class ValueColumnRenderer extends ColoredTreeCellRenderer {
     }
 
     ValueObject valueObject = (ValueObject)adapter;
-    setIcon(MemoryProfilerStageView.getValueObjectIcon(valueObject));
+    setIconColorized(MemoryProfilerStageView.getValueObjectIcon(valueObject));
 
     setTextAlign(SwingConstants.LEFT);
 
@@ -70,5 +71,9 @@ public class ValueColumnRenderer extends ColoredTreeCellRenderer {
     else {
       append(toStringText, SimpleTextAttributes.REGULAR_ATTRIBUTES, toStringText);
     }
+  }
+
+  private void setIconColorized(Icon icon) {
+    setIcon(mySelected && isFocused() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
   }
 }

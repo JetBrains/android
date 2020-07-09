@@ -7,7 +7,7 @@ MODULE              : My_First_App.app
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/firstapp/app/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true
@@ -695,7 +695,7 @@ MODULE              : My_First_App.app.mysharedlibrary
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/shared/mysharedlibrary/build [-]
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
-    JavaSourceLevel     : 1.7
+    JavaSourceLevel     : 1.8
     CompileTarget       : android-29
     LintOptions
         AbortOnError        : true

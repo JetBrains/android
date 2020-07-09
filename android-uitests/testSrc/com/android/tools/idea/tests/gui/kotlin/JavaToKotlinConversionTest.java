@@ -90,8 +90,7 @@ public class JavaToKotlinConversionTest {
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project");
-    ideFrameFixture.waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(120));
+    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(120), "Build", "Rebuild Project");
   }
 
   private static void openJavaAndPressConvertToKotlin(@NotNull IdeFrameFixture ideFrameFixture) {

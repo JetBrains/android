@@ -412,6 +412,9 @@
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
+    <applicationConfigurable groupId="build" id="testing.instrumented.configuration"
+                             provider="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfigurableProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration"/>
     <projectConfigurable provider="com.android.tools.idea.flags.StudioExperimentalConfigurableProvider"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
     <projectConfigurable provider="com.android.tools.idea.flags.PluginExperimentalConfigurableProvider"
@@ -471,7 +474,7 @@
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer" order="first"/>
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
-    <programRunner implementation="com.android.tools.idea.run.AndroidProgramRunner" order="first"/>
+    <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
@@ -994,6 +997,11 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueChecker"/>
   </extensions>
+
+  <applicationListeners>
+    <listener class="com.android.tools.idea.startup.AdbFileProviderInitializer"
+              topic="com.intellij.openapi.project.ProjectManagerListener"/>
+  </applicationListeners>
 
   <projectListeners>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"

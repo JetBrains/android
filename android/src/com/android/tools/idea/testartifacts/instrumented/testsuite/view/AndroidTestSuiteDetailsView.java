@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -82,7 +83,8 @@ public class AndroidTestSuiteDetailsView {
   public AndroidTestSuiteDetailsView(@NotNull Disposable parentDisposable,
                                      @NotNull AndroidTestSuiteViewController controller,
                                      @NotNull AndroidTestSuiteDetailsViewListener listener,
-                                     @NotNull Project project) {
+                                     @NotNull Project project,
+                                     @NotNull AndroidTestSuiteLogger logger) {
     myHeaderPanel.setBorder(new SideBorder(UIUtil.getBoundsColor(), SideBorder.BOTTOM));
 
     myCloseButton.addActionListener(new ActionListener() {
@@ -107,7 +109,7 @@ public class AndroidTestSuiteDetailsView {
       }
     });
 
-    myContentView = new DetailsViewContentView(parentDisposable, project);
+    myContentView = new DetailsViewContentView(parentDisposable, project, logger);
     myRawTestLogConsoleView = new ConsoleViewImpl(project, /*viewer=*/true);
     Disposer.register(parentDisposable, myRawTestLogConsoleView);
 
@@ -214,7 +216,7 @@ public class AndroidTestSuiteDetailsView {
 
     // If a user hasn't select a device yet, set the first come device as default.
     if (mySelectedDevice == null) {
-      selectDevice(device);
+      mySelectedDevice = device;
     }
   }
 

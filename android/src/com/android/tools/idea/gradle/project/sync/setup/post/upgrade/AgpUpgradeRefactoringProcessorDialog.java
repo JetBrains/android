@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT;
 import static javax.swing.Action.NAME;
 
 import com.intellij.openapi.ui.DialogWrapper;
@@ -24,7 +28,10 @@ import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -40,6 +47,12 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   private JBList<AgpUpgradeComponentRefactoringProcessor> myList;
 
   private AgpUpgradeRefactoringProcessor myProcessor;
+
+  private static final Set<AgpUpgradeComponentNecessity> SELECTED_NECESSITIES =
+    Arrays.stream(new AgpUpgradeComponentNecessity[] {
+      MANDATORY_CODEPENDENT, MANDATORY_INDEPENDENT,
+      OPTIONAL_CODEPENDENT, OPTIONAL_INDEPENDENT
+    }).collect(Collectors.toSet());
 
   AgpUpgradeRefactoringProcessorDialog(@NotNull AgpUpgradeRefactoringProcessor processor) {
     super(processor.getProject());
@@ -57,7 +70,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     components.add(processor.getClasspathRefactoringProcessor());
     myList = new JBList<>(components);
     int[] indices = IntStream.range(0, components.size())
-      .filter(i -> components.get(i).isApplicable())
+      .filter(i -> SELECTED_NECESSITIES.contains(components.get(i).necessity()) )
       .toArray();
     myList.setSelectedIndices(indices);
     myList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> label.setText(value.getCommandName())));

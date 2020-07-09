@@ -28,7 +28,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import android.view.Gravity;
 import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.layoutlib.bridge.MockView;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
@@ -99,7 +99,7 @@ public class ViewLoader {
   }
 
   /**
-   * Sets the {@link LayoutLog} logger to use for error messages during problems.
+   * Sets the {@link ILayoutLog} logger to use for error messages during problems.
    *
    * @param logger the new logger to use
    */

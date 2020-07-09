@@ -25,6 +25,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -34,6 +35,8 @@ iml_module(
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
         "//tools/idea/plugins/eclipse:intellij.eclipse",
         "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     test_shard_count = 2,
     test_srcs = ["testSrc"],
@@ -46,7 +49,6 @@ iml_module(
     runtime_deps = [
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
-        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
@@ -64,10 +66,6 @@ iml_module(
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/adt/idea/databinding:intellij.android.databinding",
-        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     # do not sort: must match IML order
     deps = [
@@ -133,5 +131,60 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/2.7.1:jar",
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.5:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.kotlin-integration-tests",
+    iml_files = ["kotlin-integration-tests.iml"],
+    tags = [
+        "manual",
+        "no_test_windows",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
+    test_data = [
+        ":test_deps.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/adt/idea/kotlin-integration/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+    ],
+    test_shard_count = 2,
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "no_test_mac",
+    ],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-plugin:unb.intellij.android.plugin[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/shared:unb.analytics-shared[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.output.parser[module, test]",
+        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module, test]",
     ],
 )

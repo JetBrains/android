@@ -150,3 +150,90 @@ iml_module(
         "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.mlkit",
+    srcs = ["src"],
+    iml_files = ["intellij.android.mlkit.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/base/mlkit-common:unb.studio.android.sdktools.mlkit-common[module]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model[module]",
+        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/observable-ui:unb.intellij.android.observable.ui[module]",
+        "//tools/adt/idea/wizard:unb.intellij.android.wizard[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/base/wizard/template-plugin:unb.studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.mlkit.tests",
+    iml_files = ["intellij.android.mlkit.tests.iml"],
+    tags = [
+        "manual",
+        "no_test_windows",  # b/135665870
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.mlkit.MlModelBindingTestSuite",
+    test_data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//prebuilts/tools/common/mlkit/testData",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/mlkit/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_resources = ["testData"],
+    test_srcs = ["testSrc"],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/mlkit:unb.intellij.android.mlkit[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/sdk-updates:unb.intellij.android.sdkUpdates[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/base/wizard/template-plugin:unb.studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model[module, test]",
+        "//tools/base/mlkit-common:unb.studio.android.sdktools.mlkit-common[module, test]",
+    ],
+)

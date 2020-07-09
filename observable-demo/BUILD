@@ -74,3 +74,19 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.observable-demo",
+    srcs = ["src"],
+    iml_files = ["observable-demo.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
+        "//tools/adt/idea/observable-ui:unb.intellij.android.observable.ui[module]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+    ],
+)

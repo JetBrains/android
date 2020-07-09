@@ -61,3 +61,33 @@ iml_module(
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.native-symbolizer",
+    srcs = ["src"],
+    iml_files = ["native-symbolizer.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "no_test_windows",
+        "unb",
+    ],
+    test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
+    test_data = glob(["testData/**"]) + [
+        "//prebuilts/tools:lldb",
+    ],
+    test_resources = ["testData"],
+    test_srcs = ["testSrc"],
+    test_timeout = "short",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+    ],
+)

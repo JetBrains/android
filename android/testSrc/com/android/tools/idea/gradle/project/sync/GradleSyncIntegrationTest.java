@@ -50,7 +50,7 @@ import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -272,7 +272,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module library1Module = TestModuleUtil.findModule(getProject(), "library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
-    assertEquals(JDK_1_7, javaLanguageLevel);
+    assertEquals(JDK_1_8, javaLanguageLevel);
   }
 
   @Nullable

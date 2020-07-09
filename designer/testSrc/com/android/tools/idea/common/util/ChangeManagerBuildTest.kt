@@ -64,15 +64,6 @@ class ChangeManagerBuildTest : PlatformTestCase() {
     Mockito.verify(buildListener).buildSucceeded()
   }
 
-  fun testBuildSkipped() {
-    buildContext = createContext(BuildMode.ASSEMBLE)
-
-    buildState.buildStarted(buildContext)
-    buildState.buildFinished(BuildStatus.SKIPPED)
-
-    Mockito.verify(buildListener).buildSucceeded()
-  }
-
   fun testBuildFailed() {
     buildContext = createContext(BuildMode.ASSEMBLE)
 

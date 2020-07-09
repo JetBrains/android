@@ -44,3 +44,25 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.app-inspection.inspector.api",
+    srcs = ["src"],
+    iml_files = ["intellij.android.app-inspection.inspector.api.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:unb.jsr305",
+    ],
+)

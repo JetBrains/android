@@ -21,9 +21,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.PlatformIcons
+import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
+import org.jetbrains.kotlin.resolve.source.getPsi
+import javax.swing.Icon
 
-internal fun XmlFile.findXmlTagById(attrId: String): PsiElement? {
+internal fun XmlFile.findXmlTagById(attrId: String): XmlTag? {
   var resultTag: XmlTag? = null
   val visitor = object : XmlRecursiveElementWalkingVisitor() {
     override fun visitXmlTag(tag: XmlTag) {
@@ -44,13 +48,13 @@ internal fun XmlTag.isTagIdEqualTo(id: String): Boolean {
   return ResourceUrl.parse(tagId)?.name == id
 }
 
-internal fun XmlTag.findChildTagElementByNameAttr(tagName: String, nameAttr: String): PsiElement? {
+internal fun XmlTag.findChildTagElementByNameAttr(tagName: String, nameAttr: String): XmlTag? {
   return this.subTags.firstOrNull {
     it != null && it.localName == tagName && it.hasMatchedNameAttr(nameAttr)
   }
 }
 
-internal fun XmlTag.findChildTagElementById(tagName: String, idAttr: String): PsiElement? {
+internal fun XmlTag.findChildTagElementById(tagName: String, idAttr: String): XmlTag? {
   return this.subTags.firstOrNull {
     it != null && it.localName == tagName && it.hasMatchedIdAttr(idAttr)
   }
@@ -69,3 +73,13 @@ internal fun XmlTag.hasMatchedIdAttr(id: String): Boolean {
 }
 
 class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
+
+class SafeArgsXmlTag(xmlTag: XmlTag, private val icon: Icon) : XmlTag by xmlTag {
+  override fun getIcon(flags: Int): Icon {
+    return icon
+  }
+}
+
+internal fun SourceElement.withMethodIcon(): SourceElement {
+  return (this.getPsi() as? SafeArgsXmlTag)?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.METHOD_ICON)) } ?: this
+}

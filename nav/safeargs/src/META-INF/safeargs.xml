@@ -18,7 +18,7 @@
     <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
-    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors" />
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService" />
     <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
     <projectService
         serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
@@ -30,6 +30,7 @@
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsClassFinder"/>
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ArgsBuilderShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsBuilderClassFinder"/>
+    <completion.contributor language="kotlin" implementationClass="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKtCompletionContributor" order="after KotlinCompletionContributor"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">

@@ -55,6 +55,20 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     }
   }
 
+  fun testReopenCompositeBuildProject() {
+    prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
+    openPreparedProject("project") { it: Project -> }
+    openPreparedProject("project") { project ->
+      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
+      project.verifyModelsAttached()
+      var completed = false
+      project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
+        completed = true
+      })
+      assertThat(completed).isTrue()
+    }
+  }
+
   fun testReopenWithoutModules() {
     val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { it: Project -> }
@@ -127,6 +141,6 @@ private fun Project.verifyModelsAttached() {
       module.verifyModel(JavaFacet::getInstance, JavaFacet::getJavaModuleModel)
     }
     module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
-    module.verifyModel(NdkFacet::getInstance, NdkFacet::getNdkModuleModel)
+    module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }
 }

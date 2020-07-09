@@ -25,6 +25,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
@@ -33,6 +34,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
@@ -166,7 +168,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
-  private JProgressBar myProgressBar;
+  @VisibleForTesting JProgressBar myProgressBar;
   private JBLabel myStatusText;
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
@@ -191,10 +193,16 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private static final String IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myInProgressToggleButton";
 
   private final Project myProject;
+  @VisibleForTesting final AndroidTestSuiteLogger myLogger;
 
   private final JBSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
+
+  // Number of devices which we will run tests against.
+  private int myScheduledDevices = 0;
+  // Number of devices which we have started running tests on.
+  private int myStartedDevices = 0;
 
   private int scheduledTestCases = 0;
   private int passedTestCases = 0;
@@ -244,6 +252,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project, @Nullable Module module) {
     myProject = project;  // Note: this field assignment is called before createUIComponents().
+    myLogger = new AndroidTestSuiteLogger();
 
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
@@ -260,7 +269,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     if (module != null) {
       testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module);
     }
-    myTable = new AndroidTestResultsTableView(this, JavaPsiFacade.getInstance(project), testArtifactSearchScopes);
+    myTable = new AndroidTestResultsTableView(this, JavaPsiFacade.getInstance(project), testArtifactSearchScopes, myLogger);
     myTable.setRowFilter(testResults -> {
       if (AndroidTestResultsKt.isRootAggregationResult(testResults)) {
         return true;
@@ -317,7 +326,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myRootPanel.setMinimumSize(new Dimension());
     myComponentsSplitter.setFirstComponent(myRootPanel);
 
-    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, this, project);
+    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, this, project, myLogger);
     myDetailsView.getRootPanel().setVisible(false);
     myDetailsView.getRootPanel().setMinimumSize(new Dimension());
     myComponentsSplitter.setSecondComponent(myDetailsView.getRootPanel());
@@ -325,6 +334,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myTable.selectRootItem();
 
     updateProgress();
+
+    myLogger.addImpressions(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
+                            ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW);
 
     Disposer.register(parentDisposable, this);
   }
@@ -376,8 +388,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       myProgressBar.setIndeterminate(false);
       myProgressBar.setForeground(ColorProgressBar.BLUE);
     } else {
-      myProgressBar.setMaximum(scheduledTestCases);
-      myProgressBar.setValue(completedTestCases);
+      myProgressBar.setMaximum(scheduledTestCases * myScheduledDevices);
+      myProgressBar.setValue(completedTestCases * myStartedDevices);
       myProgressBar.setIndeterminate(false);
       if (failedTestCases > 0) {
         myProgressBar.setForeground(ColorProgressBar.RED);
@@ -405,8 +417,15 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
         myApiLevelFilterComboBoxModel.add(apiLevelFilterItem);
       }
 
+      myScheduledDevices++;
+      if (myScheduledDevices == 1) {
+        myTable.showTestDuration(device);
+      } else {
+        myTable.showTestDuration(null);
+      }
       myTable.addDevice(device);
       myDetailsView.addDevice(device);
+      updateProgress();
     });
   }
 
@@ -415,6 +434,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   public void onTestSuiteStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
     AppUIUtil.invokeOnEdt(() -> {
       scheduledTestCases += testSuite.getTestCaseCount();
+      myStartedDevices++;
       updateProgress();
     });
   }
@@ -476,6 +496,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @UiThread
   private void openAndroidTestSuiteDetailsView(@NotNull AndroidTestResults results,
                                                @Nullable AndroidDevice selectedDevice) {
+    myLogger.addImpression(
+      getOrientation() == Orientation.HORIZONTAL
+      ? ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW
+      : ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_VERTICAL_VIEW);
+
     myDetailsView.setAndroidTestResults(results);
     if (selectedDevice != null) {
       myDetailsView.selectDevice(selectedDevice);
@@ -593,11 +618,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   @Override
   public JComponent getPreferredFocusableComponent() {
-    return myRootPanel;
+    return myTable.getPreferredFocusableComponent();
   }
 
   @Override
-  public void dispose() { }
+  public void dispose() {
+    myLogger.reportImpressions();
+  }
 
   @VisibleForTesting
   public AndroidTestResultsTableView getTableForTesting() {

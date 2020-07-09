@@ -70,10 +70,10 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
                equalTo(true))
     assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
 
-    assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
+    assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
     assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())
 
-    assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
+    assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
     assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
 
     assertThat(viewBindingEnabled.resolved.asTestValue(), equalTo(false))

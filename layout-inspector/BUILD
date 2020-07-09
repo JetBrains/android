@@ -71,6 +71,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/platform/indexing-api:intellij.platform.indexing[module]",
         "//tools/idea/platform/indexing-impl:intellij.platform.indexing.impl[module]",
+        "//tools/idea/.idea/libraries:jaxb-api",
     ],
 )
 
@@ -150,5 +151,95 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/idea/platform/testFramework/core:intellij.platform.testFramework.core[module, test]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.layout-inspector",
+    srcs = ["src"],
+    iml_files = ["intellij.android.layout-inspector.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module]",
+        "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module]",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/adt/idea/android-adb:unb.intellij.android.adb[module]",
+        "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto",
+        "//tools/adt/idea/wizard:unb.intellij.android.wizard[module]",
+        "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model[module]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.layout-inspector.tests",
+    iml_files = ["intellij.android.layout-inspector.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/layout-inspector/testData",
+    ],
+    test_resources = ["testResources"],
+    test_srcs = ["testSrc"],
+    test_tags = ["no_test_windows"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
+        "//tools/base/common:unb.studio.android.sdktools.common[module, test]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module, test]",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/layout-inspector:unb.intellij.android.layout-inspector[module, test]",
+        "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.transport-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/android-transport:unb.intellij.android.transport[module, test]",
+        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
+        "//tools/adt/idea/transport-database:unb.intellij.android.transportDatabase[module, test]",
+        "//tools/base/fakeadbserver:unb.studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module, test]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module, test]",
     ],
 )

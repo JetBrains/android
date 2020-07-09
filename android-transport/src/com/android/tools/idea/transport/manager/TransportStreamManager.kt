@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.util.concurrent.Executor
 
@@ -46,7 +47,7 @@ interface TransportStreamListener {
  * automatically associating them with the stream.
  */
 @ThreadSafe
-class TransportStreamManager private constructor(private val poller: TransportPoller) {
+class TransportStreamManager private constructor(@VisibleForTesting val poller: TransportPoller) {
   private val streamLock = Any()
 
   @GuardedBy("streamLock")

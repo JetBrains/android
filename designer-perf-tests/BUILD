@@ -74,3 +74,51 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.designer-perf-tests",
+    iml_files = ["intellij.android.designer-perf-tests.iml"],
+    tags = [
+        "manual",
+        "no_mac",
+        "no_test_windows",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
+    test_data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/designer-perf-tests/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+    ],
+    test_resources = ["testData"],
+    test_srcs = ["testSrc"],
+    test_timeout = "eternal",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/compose-designer:unb.intellij.android.compose-designer[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+    ],
+)

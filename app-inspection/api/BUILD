@@ -63,3 +63,39 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.app-inspection.api",
+    srcs = ["src"],
+    iml_files = ["intellij.android.app-inspection.api.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
+        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.jsr305",
+        "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api[module]",
+    ],
+)

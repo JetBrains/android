@@ -96,14 +96,13 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
     // Note: First try to download the file as the default user. If we get a permission error,
     //       download the file via a temp. directory using the "su 0" user.
     ListenableFuture<Void> futureDownload = myDevice.getAdbFileTransfer().downloadFile(this.myEntry, localPath, progress);
-    return myDevice.getTaskExecutor().catchingAsync(futureDownload, UndeclaredThrowableException.class, syncError -> {
-      assert syncError != null;
-      Throwable exception = syncError.getCause();
-      if (exception instanceof SyncException && isSyncPermissionError((SyncException)exception) && isDeviceSuAndNotRoot()) {
+    return myDevice.getTaskExecutor().catchingAsync(futureDownload, SyncException.class, syncException -> {
+      assert syncException != null;
+      if (isSyncPermissionError(syncException) && isDeviceSuAndNotRoot()) {
         return myDevice.getAdbFileTransfer().downloadFileViaTempLocation(getFullPath(), getSize(), localPath, progress, null);
       }
       else {
-        return Futures.immediateFailedFuture(exception);
+        return Futures.immediateFailedFuture(syncException);
       }
     });
   }

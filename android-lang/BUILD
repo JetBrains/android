@@ -141,3 +141,67 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.lang",
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+        "resources",
+    ],
+    iml_files = ["intellij.android.lang.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.lang.tests",
+    iml_files = ["intellij.android.lang.tests.iml"],
+    tags = [
+        "manual",
+        "no_test_windows",  # b/135665870
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
+    test_data = glob(["testData/**"]) + [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android-lang:unb.intellij.android.lang[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+    ],
+)

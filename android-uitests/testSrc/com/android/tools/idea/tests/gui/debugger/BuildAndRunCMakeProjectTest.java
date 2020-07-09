@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -93,12 +92,9 @@ public class BuildAndRunCMakeProjectTest {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
+    ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project");
 
     ideFrame.runApp(RUN_CONFIG_NAME, avdRule.getMyAvd().getName());
-
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
 
     RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
     Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching 'app'.*", Pattern.DOTALL);
@@ -106,5 +102,7 @@ public class BuildAndRunCMakeProjectTest {
     ContentFixture contentFixture = runToolWindowFixture.findContent(RUN_CONFIG_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 10);
     contentFixture.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), 60);
+    contentFixture.waitForStopClick();
+    contentFixture.waitForExecutionToFinish();
   }
 }

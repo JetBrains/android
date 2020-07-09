@@ -21,6 +21,7 @@ import com.android.SdkConstants
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Paths
 
 /**
  * A [ClassFileFinder] searches build output to find the class file corresponding to a
@@ -50,11 +51,10 @@ fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFil
 
   val pathSegments = fqcn.split(".").toTypedArray()
   pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
+  val outputBase = (JarFileSystem.getInstance().getJarRootForLocalFile(outputRoot) ?: outputRoot)
 
-  val classFile = VfsUtil.findRelativeFile(
-    JarFileSystem.getInstance().getJarRootForLocalFile(outputRoot) ?: outputRoot,
-    *pathSegments
-  )
+  val classFile = VfsUtil.findRelativeFile(outputBase, *pathSegments)
+                  ?: VfsUtil.findFile(Paths.get(outputBase.path, *pathSegments), true)
 
   return if (classFile != null && classFile.exists()) classFile else null
 }

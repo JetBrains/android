@@ -45,6 +45,7 @@ import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
@@ -213,7 +214,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     return shouldRecommendPluginUpgrade(project)
   }
   override fun updateAgpToLatest(project: Project) {
-    performRecommendedPluginUpgrade(project)
+    ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
   }
 
   override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.Facet
@@ -81,7 +82,7 @@ private fun ProjectDumper.dump(module: Module) {
     prop("ExternalModuleVersion") { externalPropertyManager.getExternalModuleVersion() }
     prop("ExternalSystemId") { externalPropertyManager.getExternalSystemId()?.takeUnless { it == "GRADLE" } }
     prop("LinkedProjectId") { externalPropertyManager.getLinkedProjectId() }
-    prop("LinkedProjectPath") { externalPropertyManager.getLinkedProjectPath()?.toPrintablePath() }
+    prop("LinkedProjectPath") { externalPropertyManager.getLinkedProjectPath()?.toSystemIndependent()?.toPrintablePath() }
     prop("RootProjectPath") { externalPropertyManager.getRootProjectPath()?.toPrintablePath() }
     prop("IsMavenized") { externalPropertyManager.isMavenized().takeIf { it }?.toString() }
     val compilerModuleExtension = CompilerModuleExtension.getInstance(module)
@@ -312,7 +313,7 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
 }
 
 private fun ProjectDumper.dump(ndkFacetConfiguration: NdkFacetConfiguration) {
-  prop("SelectedBuildVariant") { ndkFacetConfiguration.SELECTED_BUILD_VARIANT.nullize() }
+  prop("SelectedVariantAbi") { ndkFacetConfiguration.selectedVariantAbi.toString().nullize() }
 }
 
 private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguration) {
@@ -406,3 +407,4 @@ private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension)
   }
 }
 
+private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(this)

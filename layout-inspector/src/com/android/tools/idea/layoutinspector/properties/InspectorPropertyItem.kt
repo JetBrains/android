@@ -77,14 +77,20 @@ open class InspectorPropertyItem(
    */
   val dimensionValue: Int = when (type) {
     Type.DIMENSION -> initialValue?.toIntOrNull() ?: -1
-    Type.DIMENSION_FLOAT -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
+    Type.DIMENSION_EM,
+    Type.DIMENSION_DP,
+    Type.DIMENSION_FLOAT,
+    Type.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
     else -> -1
   }
 
   override var value: String?
     get() = when (type) {
       Type.DIMENSION -> formatDimension(dimensionValue)
+      Type.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
+      Type.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
       Type.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
+      Type.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
       else -> initialValue
     }
     set(_) {}
@@ -133,13 +139,51 @@ open class InspectorPropertyItem(
       return "${formatFloat(pixels)}px"
     }
     if (name == ATTR_TEXT_SIZE && resourceLookup.fontScale != 0.0f && PropertiesSettings.dimensionUnits == DimensionUnits.DP) {
-      return "${DecimalFormat("0.0").format(pixels * 160.0f / resourceLookup.fontScale / resourceLookup.dpi)}sp"
+      return "${DecimalFormat("0.0").format(pixels * pixelsToSpFactor)}sp"
     }
     return when (PropertiesSettings.dimensionUnits) {
       DimensionUnits.PIXELS -> "${formatFloat(pixels)}px"
       DimensionUnits.DP -> "${formatFloat(pixels * 160.0f / resourceLookup.dpi)}dp"
     }
   }
+
+  private fun formatDimensionFloatDp(dp: Float): String? {
+    if (dp.isNaN()) {
+      return initialValue
+    }
+    if (resourceLookup.dpi <= 0) {
+      // If we are unable to get the dpi from the device, just show dp
+      return "${formatFloat(dp)}dp"
+    }
+    return when (PropertiesSettings.dimensionUnits) {
+      DimensionUnits.DP -> "${formatFloat(dp)}dp"
+      DimensionUnits.PIXELS -> "${formatFloat(dp / 160.0f * resourceLookup.dpi)}px"
+    }
+  }
+
+  private fun formatDimensionFloatAsSp(sp: Float): String? {
+    if (sp.isNaN()) {
+      return initialValue
+    }
+    if (resourceLookup.dpi <= 0) {
+      // If we are unable to get the dpi from the device, just show in sp
+      return "${formatFloat(sp)}sp"
+    }
+    return when (PropertiesSettings.dimensionUnits) {
+      DimensionUnits.PIXELS -> "${formatFloat(sp / pixelsToSpFactor)}px"
+      DimensionUnits.DP -> "${formatFloat(sp)}sp"
+    }
+  }
+
+  private fun formatDimensionFloatAsEm(em: Float): String? {
+    if (em.isNaN()) {
+      return initialValue
+    }
+    return "${formatFloat(em)}em"
+  }
+
+  private val pixelsToSpFactor: Float
+    get() = 160.0f / resourceLookup.fontScale / resourceLookup.dpi
 
   private fun formatFloat(value: Float): String = if (value == 0.0f) "0" else DecimalFormat("0.0##").format(value)
 

@@ -122,7 +122,8 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "short", Type.INT16, "70", PropertySection.DEFAULT, null)
     checkProperty(table, view, "text", Type.STRING, "Hello My World!", PropertySection.DECLARED, demo, ANDROID_URI, true)
     checkProperty(table, view, "textColor", Type.COLOR, "#FF0000", PropertySection.DECLARED, demo, ANDROID_URI, true,
-                  detail = listOf(PropertyDetail("#888800", textAppearanceExtra), PropertyDetail("#2122F8", textAppearance)))
+                  detail = listOf(PropertyDetail("", Type.COLOR, "#888800", textAppearanceExtra),
+                                  PropertyDetail("", Type.COLOR, "#2122F8", textAppearance)))
     checkProperty(table, view, "foregroundGravity", Type.GRAVITY, "top|fill_horizontal", PropertySection.DEFAULT, null)
     checkProperty(table, view, "visibility", Type.INT_ENUM, "invisible", PropertySection.DEFAULT, null)
     checkProperty(table, view, "labelFor", Type.RESOURCE, "@id/other", PropertySection.DEFAULT, null)
@@ -177,7 +178,9 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "double_null", Type.DOUBLE, null, PropertySection.DEFAULT, null)
     checkProperty(table, view, "float_zero", Type.FLOAT, "0.0", PropertySection.DEFAULT, null)
     checkProperty(table, view, "float_null", Type.FLOAT, null, PropertySection.DEFAULT, null)
-    assertThat(table.size).isEqualTo(44)
+    checkProperty(table, view, "padding", Type.STRING, "Padding", PropertySection.DEFAULT, null, expandable = true,
+      detail = listOf(PropertyDetail("x", Type.DIMENSION_DP, "20.0px"), PropertyDetail("y", Type.DIMENSION_DP, "40.0px")))
+    assertThat(table.size).isEqualTo(45)
   }
 
   private fun findNavigatableFor(className: String): Navigatable {
@@ -215,7 +218,7 @@ class DefaultPropertiesProviderTest {
       assertThat(property).isInstanceOf(InspectorGroupPropertyItem::class.java)
       val exProperty = property as InspectorGroupPropertyItem
       assertThat(exProperty.classLocation).isEqualTo(className)
-      assertThat(exProperty.children.map { detailFromResolutionStackItem(it) }).containsExactlyElementsIn(detail).inOrder()
+      assertThat(exProperty.children.map { detailFromItem(it) }).containsExactlyElementsIn(detail).inOrder()
     }
   }
 
@@ -300,6 +303,10 @@ class DefaultPropertiesProviderTest {
         addString(StringEntry.newBuilder().apply { id = 63; str = "style"})
         addString(StringEntry.newBuilder().apply { id = 64; str = "MyTextStyle"})
         addString(StringEntry.newBuilder().apply { id = 65; str = "MyTextStyle.Extra"})
+        addString(StringEntry.newBuilder().apply { id = 66; str = "padding"})
+        addString(StringEntry.newBuilder().apply { id = 67; str = "Padding"})
+        addString(StringEntry.newBuilder().apply { id = 68; str = "x"})
+        addString(StringEntry.newBuilder().apply { id = 69; str = "y"})
         addProperty(Property.newBuilder().apply { name = 2; namespace = 1; type = Type.BOOLEAN; int32Value = 1 })
         addProperty(Property.newBuilder().apply { name = 3; namespace = 1; type = Type.BYTE; int32Value = 7 })
         addProperty(Property.newBuilder().apply { name = 4; namespace = 1; type = Type.CHAR; int32Value = 'g'.toInt() })
@@ -340,6 +347,9 @@ class DefaultPropertiesProviderTest {
         addProperty(Property.newBuilder().apply { name = 60; namespace = 1; type = Type.DOUBLE })
         addProperty(Property.newBuilder().apply { name = 61; namespace = 1; type = Type.FLOAT; floatValue = 0.0f })
         addProperty(Property.newBuilder().apply { name = 62; namespace = 1; type = Type.FLOAT })
+        addProperty(Property.newBuilder().apply { name = 66; namespace = 1; type = Type.STRING; int32Value = 67 }
+                      .addElement(Property.newBuilder().apply { name = 68; namespace = 1; type = Type.DIMENSION_DP; floatValue = 20.0f })
+                      .addElement(Property.newBuilder().apply { name = 69; namespace = 1; type = Type.DIMENSION_DP; floatValue = 40.0f }))
       }
     }.build())
   }
@@ -364,8 +374,8 @@ class DefaultPropertiesProviderTest {
     }
   }
 
-  private fun detailFromResolutionStackItem(item: InspectorPropertyItem) =
-    PropertyDetail(item.value, item.source)
+  private fun detailFromItem(item: InspectorPropertyItem) =
+    PropertyDetail(item.name, item.type, item.value, item.source)
 
-  private data class PropertyDetail(val value: String?, val source: ResourceReference?)
+  private data class PropertyDetail(val name: String, val type: Type, val value: String?, val source: ResourceReference? = null)
 }

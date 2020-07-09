@@ -136,6 +136,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -176,6 +177,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
+
+  @NotNull private final Map<String, String> myStrings = new HashMap<>();
   private boolean myIsImportPre3Dot0;
 
   @SuppressWarnings("unused")
@@ -326,6 +329,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         rootModulePath,
         androidProject,
         selectedVariant.getName(),
+        myStrings,
         myDependenciesFactory,
         (variantGroup == null) ? null : variantGroup.getVariants(),
         (cachedVariants == null) ? emptyList() : cachedVariants.getVariants(),
@@ -446,7 +450,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
         NdkModuleModel nativeModel = NdkModuleModel.get(module);
         if (nativeModel != null) {
-          cachedVariants.getNativeVariants().addAll(nativeModel.getVariantAbi());
+          cachedVariants.getNativeVariants().addAll(nativeModel.getNativeVariantAbis());
         }
         return cachedVariants;
       }
@@ -751,7 +755,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         if (gradleProject != null) {
           try {
             String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-            myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+            myDependenciesFactory.addBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
           }
           catch (UnsupportedOperationException exception) {
             // getBuildDirectory is not available for Gradle older than 2.0.

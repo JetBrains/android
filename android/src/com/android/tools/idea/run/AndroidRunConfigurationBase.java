@@ -37,12 +37,14 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -62,8 +64,18 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Base {@link com.intellij.execution.configurations.RunConfiguration} for all Android run configs.
+ *
+ * This class serves as the base model of Android build + run execution data.
+ *
+ * Note this class inherits from {@link RunConfigurationWithSuppressedDefaultDebugAction} so as to
+ * prevent the {@link com.intellij.debugger.impl.GenericDebuggerRunner} from recognizing this run
+ * config as runnable. This allows Studio to disable the debug button when this type of run config
+ * is selected, but the Debug action doesn't support running on multiple devices.
+ */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element>
-  implements PreferGradleMake {
+  implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 

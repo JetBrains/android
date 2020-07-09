@@ -484,7 +484,7 @@ class SettingsFragment : PreferenceFragmentCompat()
                                                    xmlns:app="http://schemas.android.com/apk/res-auto"
                                                    xmlns:android="http://schemas.android.com/apk/res/android"
                                                    tools:context=".$name">
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/navhost"
             android:name="androidx.navigation.fragment.NavHostFragment"
             app:defaultNavHost="true"

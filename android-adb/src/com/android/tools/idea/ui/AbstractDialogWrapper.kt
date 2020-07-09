@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -46,6 +48,11 @@ abstract class AbstractDialogWrapper {
    * `true` if the dialog should be modal
    */
   abstract var isModal: Boolean
+
+  /**
+   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or disposed
+   */
+  abstract val disposable: Disposable
 
   /**
    * The text of the `OK` button (default is "ok")

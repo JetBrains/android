@@ -283,4 +283,45 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(layoutDirectionQualifier);
     assertEquals(LayoutDirection.LTR, layoutDirectionQualifier.getValue());
   }
+
+  public void testSetUiModeAsFlag() {
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
+    int[] modificationFlags = {0};
+    configuration.addListener((flags) -> {
+      modificationFlags[0] |= flags;
+      return true;
+    });
+
+    final int UI_MODE_TYPE_TELEVISION = 0x00000004;
+    final int UI_MODE_TYPE_WATCH = 0x00000006;
+    final int UI_MODE_NIGHT_YES = 0x00000020;
+
+    assertEquals(UiMode.NORMAL, configuration.getUiMode());
+    assertEquals(NightMode.NOTNIGHT, configuration.getNightMode());
+    configuration.setUiModeFlagValue(UI_MODE_TYPE_WATCH);
+    assertEquals(UiMode.WATCH, configuration.getUiMode());
+    assertEquals(CFG_UI_MODE, modificationFlags[0]);
+    modificationFlags[0] = 0;
+
+    configuration.setUiModeFlagValue(UI_MODE_TYPE_WATCH | UI_MODE_NIGHT_YES);
+    assertEquals(UiMode.WATCH, configuration.getUiMode());
+    assertEquals(NightMode.NIGHT, configuration.getNightMode());
+    // Only night mode changed
+    assertEquals(CFG_NIGHT_MODE, modificationFlags[0]);
+    modificationFlags[0] = 0;
+
+    configuration.setUiModeFlagValue(UI_MODE_TYPE_TELEVISION | UI_MODE_NIGHT_YES);
+    assertEquals(UiMode.TELEVISION, configuration.getUiMode());
+    assertEquals(NightMode.NIGHT, configuration.getNightMode());
+    // Only UI mode changed
+    assertEquals(CFG_UI_MODE, modificationFlags[0]);
+    modificationFlags[0] = 0;
+
+    configuration.setUiModeFlagValue(0);
+    assertEquals(UiMode.NORMAL, configuration.getUiMode());
+    assertEquals(NightMode.NOTNIGHT, configuration.getNightMode());
+    assertEquals(CFG_UI_MODE | CFG_NIGHT_MODE, modificationFlags[0]);
+    modificationFlags[0] = 0;
+  }
 }

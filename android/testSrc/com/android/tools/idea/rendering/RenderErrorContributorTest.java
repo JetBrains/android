@@ -410,7 +410,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
         "\tat java.lang.Thread.run(Thread.java:680)\n");
-      logger.error(null, null, throwable, null);
+      logger.error(null, null, throwable, null, null);
       //noinspection ConstantConditions
       target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
 
@@ -524,7 +524,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
         "\tat java.lang.Thread.run(Thread.java:680)\n");
-      logger.error(null, "Failed to configure parser for " + path, throwable, null);
+      logger.error(null, "Failed to configure parser for " + path, throwable, null, null);
     };
 
     List<RenderErrorModel.Issue> issues =
@@ -648,7 +648,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.lang.Thread.run(Thread.java:695)\n",
         RenderSecurityException.create("Read access not allowed during rendering (/)"));
 
-      logger.error(null, null, throwable, null);
+      logger.error(null, null, throwable, null, null);
 
       //noinspection ConstantConditions
       target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
@@ -734,7 +734,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     operation = (logger, render) -> {
       logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
-      logger.error("Error", "An error", null);
+      logger.error("Error", "An error", null, null);
     };
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(3, issues);

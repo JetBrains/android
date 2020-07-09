@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
-
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -38,27 +35,20 @@ public class PostSyncProjectSetup {
     myProject = project;
   }
 
-  public void notifySyncFinished(@NotNull Request request) {
+  public void notifySyncFinished() {
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
-    if (request.usingCachedGradleModels) {
-      syncState.syncSkipped(null);
-      GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
+    if (syncState.lastSyncFailed()) {
+      syncState.syncFailed("", null, null);
     }
     else {
-      if (syncState.lastSyncFailed()) {
-        syncState.syncFailed("", null, null);
-      }
-      else {
-        syncState.syncSucceeded();
-      }
-      ProjectBuildFileChecksums.saveToDisk(myProject);
+      syncState.syncSucceeded();
     }
+    ProjectBuildFileChecksums.saveToDisk(myProject);
   }
 
   public static class Request {
-    public boolean usingCachedGradleModels;
     public long lastSyncTimestamp = -1L;
 
     @Override
@@ -70,13 +60,12 @@ public class PostSyncProjectSetup {
         return false;
       }
       Request request = (Request)o;
-      return usingCachedGradleModels == request.usingCachedGradleModels &&
-             lastSyncTimestamp == request.lastSyncTimestamp;
+      return lastSyncTimestamp == request.lastSyncTimestamp;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(usingCachedGradleModels, lastSyncTimestamp);
+      return Objects.hash(lastSyncTimestamp);
     }
   }
 }

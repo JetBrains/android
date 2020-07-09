@@ -47,12 +47,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState.NON_MODAL
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.util.SystemProperties
 import java.util.concurrent.TimeUnit
 
-private val LOG = Logger.getInstance("AndroidGradlePluginUpdates")
+private val LOG = Logger.getInstance(if (AGP_UPGRADE_ASSISTANT.get()) "Upgrade Assistant" else "AndroidGradlePluginUpdates")
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 // **************************************************************************
@@ -150,18 +151,6 @@ fun performRecommendedPluginUpgrade(
 
   LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
 
-  if (AGP_UPGRADE_ASSISTANT.get()) {
-    val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
-    val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
-      val dialog = AgpUpgradeRefactoringProcessorDialog(processor)
-      dialog.showAndGet()
-    }
-    if (userAccepted) {
-      processor.run()
-    }
-    return false
-  }
-
   val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
     val updateDialog = dialogFactory.create(project, currentVersion, recommendedVersion)
     updateDialog.showAndGet()
@@ -169,6 +158,19 @@ fun performRecommendedPluginUpgrade(
 
   if (userAccepted) {
     // The user accepted the upgrade
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
+      val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor)
+        dialog.showAndGet()
+      }
+      if (runProcessor) {
+        DumbService.getInstance(project).smartInvokeLater { processor.run() }
+      }
+      // The AgpUpgradeRefactoringProcessor requests a sync itself when executed.
+      return false
+    }
+
     val updater = AndroidPluginVersionUpdater.getInstance(project)
 
     val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
@@ -289,7 +291,7 @@ fun shouldForcePluginUpgrade(
 @Slow
 fun performForcedPluginUpgrade(
   project: Project,
-  currentPluginVersion: GradleVersion?,
+  currentPluginVersion: GradleVersion,
   newPluginVersion: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 ) : Boolean {
   val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
@@ -298,8 +300,21 @@ fun performForcedPluginUpgrade(
 
   if (upgradeAccepted) {
     // The user accepted the upgrade
-    val versionUpdater = AndroidPluginVersionUpdater.getInstance(project)
-    versionUpdater.updatePluginVersion(newPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), currentPluginVersion)
+    if (AGP_UPGRADE_ASSISTANT.get()) {
+      val processor = AgpUpgradeRefactoringProcessor(project, currentPluginVersion, newPluginVersion)
+      val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor)
+        dialog.showAndGet()
+      }
+      if (runProcessor) {
+        DumbService.getInstance(project).smartInvokeLater { processor.run() }
+      }
+      return false
+    }
+    else {
+      val versionUpdater = AndroidPluginVersionUpdater.getInstance(project)
+      versionUpdater.updatePluginVersion(newPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), currentPluginVersion)
+    }
   } else {
     // The user did not accept the upgrade
     val syncMessage = SyncMessage(

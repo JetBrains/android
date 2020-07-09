@@ -29,6 +29,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
@@ -242,6 +243,72 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
         listOf("new", "0").toSqliteValues(),
         "UPDATE t1 SET c2 = 'new' WHERE rowid = '0'"
       )
+    )
+  }
+
+  fun testSelectOrderedAsc() {
+    // Prepare
+    val databaseConnection1 = mock<DatabaseConnection>()
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
+
+    // Act
+    runDispatching {
+      databaseRepository.selectOrdered(
+        databaseId1,
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
+        OrderBy.Asc("c1")
+      )
+    }
+
+    // Assert
+    verify(databaseConnection1).query(
+      SqliteStatement(SqliteStatementType.SELECT,"SELECT * FROM (SELECT * FROM t1) ORDER BY c1 ASC")
+    )
+  }
+
+  fun testSelectOrderedDesc() {
+    // Prepare
+    val databaseConnection1 = mock<DatabaseConnection>()
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
+
+    // Act
+    runDispatching {
+      databaseRepository.selectOrdered(
+        databaseId1,
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
+        OrderBy.Desc("c1")
+      )
+    }
+
+    // Assert
+    verify(databaseConnection1).query(
+      SqliteStatement(SqliteStatementType.SELECT,"SELECT * FROM (SELECT * FROM t1) ORDER BY c1 DESC")
+    )
+  }
+
+  fun testSelectOrderedNotOrder() {
+    // Prepare
+    val databaseConnection1 = mock<DatabaseConnection>()
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
+
+    // Act
+    runDispatching {
+      databaseRepository.selectOrdered(
+        databaseId1,
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
+        OrderBy.NotOrdered
+      )
+    }
+
+    // Assert
+    verify(databaseConnection1).query(
+      SqliteStatement(SqliteStatementType.SELECT,"SELECT * FROM t1")
     )
   }
 

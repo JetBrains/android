@@ -86,7 +86,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Placeholder application id if the project is never built before, there is no way to get application id.
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-  private final static String ourAndroidSyncVersion = "2020-05-27/1";
+  private final static String ourAndroidSyncVersion = "2020-06-28/3";
 
   @Nullable private transient Module myModule;
 
@@ -122,12 +122,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
+  @VisibleForTesting
   public static AndroidModuleModel create(@NotNull String moduleName,
                                           @NotNull File rootDirPath,
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String selectedVariantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory) {
-    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, emptyList(), emptyList());
+    return
+      create(moduleName, rootDirPath, androidProject, selectedVariantName, new HashMap<>(), dependenciesFactory, null, emptyList(), emptyList());
   }
 
   public static AndroidModuleModel create(@NotNull String moduleName,
@@ -151,11 +153,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull File rootDirPath,
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String variantName,
+                                          @NotNull Map<String, String> strings,
                                           @NotNull IdeDependenciesFactory dependenciesFactory,
                                           @Nullable Collection<Variant> variantsToAdd,
                                           @NotNull Collection<IdeVariant> cachedVariants,
                                           @NotNull Collection<SyncIssue> syncIssues) {
-    IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+    IdeAndroidProject ideAndroidProject =
+      IdeAndroidProjectImpl.create(androidProject, strings, dependenciesFactory, variantsToAdd, syncIssues
+      );
     ideAndroidProject.addVariants(cachedVariants);
     return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, ideAndroidProject, variantName);
   }

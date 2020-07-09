@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgSyntheticPackageProvider
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
@@ -91,13 +91,11 @@ class SafeArgNavigationKtTest {
       trace = traceMock,
       moduleInfo = moduleSourceInfo,
       lookupTracker = LookupTracker.DO_NOTHING
-    ) as SafeArgSyntheticPackageProvider
+    ) as SafeArgsSyntheticPackageProvider
 
 
     val argsClassDescriptors: List<LightArgsKtClass> = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
-      .first()
-      .getMemberScope()
-      .getContributedDescriptors()
+      .flatMap { it.getMemberScope().getContributedDescriptors() }
       .sortedWith(MemberComparator.INSTANCE)
       .mapNotNull { it as? LightArgsKtClass }
 
@@ -251,12 +249,10 @@ class SafeArgNavigationKtTest {
       trace = traceMock,
       moduleInfo = moduleSourceInfo,
       lookupTracker = LookupTracker.DO_NOTHING
-    ) as SafeArgSyntheticPackageProvider
+    ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassDescriptors: List<LightDirectionsKtClass> = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
-      .first()
-      .getMemberScope()
-      .getContributedDescriptors()
+      .flatMap { it.getMemberScope().getContributedDescriptors() }
       .sortedWith(MemberComparator.INSTANCE)
       .mapNotNull { it as? LightDirectionsKtClass }
 

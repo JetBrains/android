@@ -17,7 +17,6 @@ package com.android.tools.idea.ndk
 
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import java.io.File
 import java.util.stream.Stream
 
 class NativeWorkspaceService private constructor(val project: Project) {
@@ -26,8 +25,9 @@ class NativeWorkspaceService private constructor(val project: Project) {
     fun getInstance(project: Project) = project.service<NativeWorkspaceService>()
   }
 
-  fun getIncludePaths(filter: (ModuleVariantAbi) -> Boolean): Stream<File> = NativeWorkspaceProvider.getIncludePaths(project, filter)
+  fun getNativeHeaderDirs(moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> =
+    NativeWorkspaceProvider.getNativeHeaderDirs(project, moduleVariantAbi)
 
-  fun getCompilerSettings(filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> = NativeWorkspaceProvider.getCompilerSettings(
-    project, filter)
+  fun getCompilerSettings(filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> =
+    NativeWorkspaceProvider.getCompilerSettings(project, filter)
 }

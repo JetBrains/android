@@ -464,8 +464,8 @@ class TableViewImpl : TableView {
 
         sortIcon.icon = when (val o = orderBy) {
           is OrderBy.NotOrdered -> AllIcons.General.ArrowSplitCenterV
-          is OrderBy.Asc -> if (o.column.name == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
-          is OrderBy.Desc -> if (o.column.name == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
+          is OrderBy.Asc -> if (o.columnName == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
+          is OrderBy.Desc -> if (o.columnName == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
         }
 
         columnNameLabel.text = value as String
@@ -538,7 +538,13 @@ class TableViewImpl : TableView {
         return
       }
 
-      val newSqliteValue = SqliteValue.fromAny(newValue)
+      // if old value was null and new value is empty string, set back to null
+      val newSqliteValue = if (oldValue == null && (newValue as? String)?.isEmpty() == true) {
+        SqliteValue.NullValue
+      }
+      else {
+        SqliteValue.fromAny(newValue)
+      }
 
       // the first column doesn't exist, it's used to show the row index
       val actualColumnIndex = modelColumnIndex - 1

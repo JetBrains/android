@@ -68,6 +68,7 @@ public class SceneComponent {
 
   private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
+  private boolean myIsHighlighted = false;
   protected boolean myDragging = false;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
@@ -291,6 +292,13 @@ public class SceneComponent {
 
   public boolean isSelected() {
     return myIsSelected;
+  }
+
+  /**
+   * Returns true if the component is supposed to be highlighted.
+   */
+  public boolean isHighlighted() {
+    return myIsHighlighted;
   }
 
   public boolean canShowBaseline() {
@@ -521,6 +529,11 @@ public class SceneComponent {
   @AndroidDpCoordinate
   public int getBaseline() {
     return Coordinates.pxToDp(getScene().getSceneManager(), NlComponentHelperKt.getBaseline(myNlComponent));
+  }
+
+  public void setHighlighted(boolean highlighted) {
+    myIsHighlighted = highlighted;
+    setDrawState(DrawState.NORMAL);
   }
 
   public void setSelected(boolean selected) {

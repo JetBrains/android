@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.Slow
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
+import java.awt.Color
+import java.awt.image.BufferedImage
 import java.nio.charset.StandardCharsets
 import java.util.EnumMap
 
@@ -38,8 +41,8 @@ object QrCodeGenerator {
    * small.
    */
   @JvmStatic
-  @JvmOverloads
   @Throws(WriterException::class)
+  @Slow
   fun encodeQrCode(contents: String, size: Int = 0): BitMatrix {
     val hints = EnumMap<EncodeHintType, Any?>(EncodeHintType::class.java)
     if (!isIso88591(contents)) {
@@ -50,6 +53,31 @@ object QrCodeGenerator {
       hints[EncodeHintType.CHARACTER_SET] = StandardCharsets.UTF_8.name()
     }
     return MultiFormatWriter().encode(contents, BarcodeFormat.QR_CODE, size, size, hints)
+  }
+
+  /**
+   * Encode the [String] [contents] into a QR code represented as a [BufferedImage].
+   * The returned [BufferedImage] contains 1 pixel per QR Code "bit". If the QR Code
+   * bit is set, the corresponding [BufferedImage] pixel is set to the RGB color
+   * black (0x000000), otherwise it is set to the RGB color white (0xffffff)
+   */
+  @JvmStatic
+  @Throws(WriterException::class)
+  @Slow
+  fun encodeQrCodeToImage(contents: String, backgroundColor: Color, foregroundColor: Color): BufferedImage {
+    val bits = encodeQrCode(contents)
+
+    // Note: Since we set individual pixels, we use a non-hidpi aware image
+    //       (i.e. we use BufferedImage directly). It is up to the caller
+    //       to scale the image to the desired dpi scale.
+    @Suppress("UndesirableClassUsage")
+    val img = BufferedImage(bits.width, bits.height, BufferedImage.TYPE_INT_ARGB)
+    for (y in 0 until bits.height) {
+      for (x in 0 until bits.width) {
+        img.setRGB(x, y, if (bits.get(x, y)) foregroundColor.rgb else backgroundColor.rgb)
+      }
+    }
+    return img
   }
 
   private fun isIso88591(contents: String): Boolean {

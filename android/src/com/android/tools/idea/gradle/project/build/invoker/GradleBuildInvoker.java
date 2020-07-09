@@ -106,6 +106,7 @@ import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 
 /**
@@ -165,10 +166,7 @@ public class GradleBuildInvoker {
     }
   }
 
-  public void cleanAndGenerateSources() {
-    generateSources(true /* clean project */, ModuleManager.getInstance(myProject).getModules());
-  }
-
+  @TestOnly
   public void generateSources() {
     generateSources(false /* do not clean project */, ModuleManager.getInstance(myProject).getModules());
   }

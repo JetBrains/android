@@ -133,6 +133,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/idea/.idea/libraries:jaxb-api",
     ],
 )
 
@@ -144,5 +145,77 @@ maven_repo(
     # keep sorted
     artifacts = [
         "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/trove4j/1.0.20181211:jar",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.nav.safeargs",
+    srcs = ["src"],
+    iml_files = ["intellij.android.nav.safeargs.iml"],
+    lint_baseline = "lint_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.nav.safeargs.tests",
+    iml_files = ["intellij.android.nav.safeargs.tests.iml"],
+    tags = [
+        "manual",
+        "no_test_windows",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
+    test_data = [
+        ":testdeps_repo.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/nav/safeargs/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
+    ],
+    test_srcs = ["testSrc"],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/nav/safeargs:unb.intellij.android.nav.safeargs[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/base/build-system/builder-model:unb.studio.android.sdktools.builder-model[module, test]",
+        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
     ],
 )

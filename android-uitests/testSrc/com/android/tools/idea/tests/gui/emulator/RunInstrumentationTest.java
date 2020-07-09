@@ -47,7 +47,7 @@ public class RunInstrumentationTest {
     .outerRule(avdRule)
     .around(guiTest);
 
-  private static final String APP_NAME = "app";
+  private static final String APP_NAME = "InstrumentationTest.app";
   private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
   private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
@@ -110,9 +110,6 @@ public class RunInstrumentationTest {
       .clickOk();
 
     ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME, avdRule.getMyAvd().getName());
-
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
 
     ideFrameFixture.getRunToolWindow()
       .findContent(INSTRUMENTED_TEST_CONF_NAME)

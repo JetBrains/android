@@ -171,3 +171,86 @@ gradle_build(
     tags = ["manual"],
     tasks = [":publishGradleApiToMavenLocal"],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.projectSystem.gradle",
+    srcs = ["src"],
+    iml_files = ["intellij.android.projectSystem.gradle.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/base/apkparser/analyzer:unb.studio.android.sdktools.analyzer[module]",
+        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module]",
+        "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/apkanalyzer:unb.intellij.android.apkanalyzer[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.projectSystem.gradle.tests",
+    iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
+    tags = [
+        "manual",
+        "no_test_windows",
+        "unb",
+    ],
+    test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
+    test_data = [
+        "//tools/base/build-system/previous-versions:2.2.0.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/designer/testData",
+        "//tools/adt/idea/project-system-gradle/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_shard_count = 2,
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "block-network",
+        "no_test_mac",
+    ],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module, test]",
+    ],
+)

@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
@@ -37,6 +38,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.io.File
+import java.time.Duration
 
 /**
  * Unit tests for [AndroidTestSuiteDetailsView].
@@ -55,6 +57,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Mock lateinit var mockController: AndroidTestSuiteViewController
   @Mock lateinit var mockListener: AndroidTestSuiteDetailsViewListener
+  @Mock lateinit var mockLogger: AndroidTestSuiteLogger
 
   @Before
   fun setup() {
@@ -63,7 +66,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
     view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
@@ -74,7 +77,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponentsNoTestResultAvailable() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
     view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
 
     view.setAndroidTestResults(createTestResults(null))
@@ -85,7 +88,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsWithNoMethodName() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, ""))
 
     assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className")
@@ -93,7 +96,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsWithNoClassName() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, "", "", ""))
 
     assertThat(view.titleTextViewForTesting.text).isEqualTo("Test Results")
@@ -101,7 +104,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
 
     view.closeButtonForTesting.doClick()
 
@@ -122,6 +125,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getResultStats() = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getDuration(device: AndroidDevice): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
       override fun getBenchmark(device: AndroidDevice): String = ""
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null

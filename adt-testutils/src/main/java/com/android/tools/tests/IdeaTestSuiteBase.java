@@ -20,7 +20,6 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
-import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
@@ -40,7 +39,6 @@ public class IdeaTestSuiteBase {
   static {
     try {
       System.setProperty("NO_FS_ROOTS_ACCESS_CHECK", "true"); // Bazel tests are sandboxed so we disable VfsRoot checks.
-      BazelRunfilesManifestProcessor.setUpRunfiles();
       setProperties();
       setupKotlinPlugin();
     } catch(Throwable e) {

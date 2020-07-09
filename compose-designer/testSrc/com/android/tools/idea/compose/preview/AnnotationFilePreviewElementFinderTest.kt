@@ -19,8 +19,8 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
-import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
-import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
+import com.android.tools.idea.compose.preview.util.sortByDisplayName
+import com.android.tools.idea.compose.preview.util.sortBySourcePosition
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
@@ -28,6 +28,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.After
@@ -40,6 +41,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Asserts that the given [methodName] body has the actual given [actualBodyRange]
@@ -58,9 +61,19 @@ private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRan
 private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
-class AnnotationFilePreviewElementFinderTest {
+@RunWith(Parameterized::class)
+class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNamespace) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+  }
+
+  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
 
@@ -80,7 +93,8 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Devices
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -94,7 +108,7 @@ class AnnotationFilePreviewElementFinderTest {
         }
 
         @Composable
-        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)
+        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)
         fun Preview3() {
         }
 
@@ -120,7 +134,7 @@ class AnnotationFilePreviewElementFinderTest {
         }
 
         @Composable
-        @androidx.ui.tooling.preview.Preview(name = "FQN")
+        @$PREVIEW_TOOLING_PACKAGE.Preview(name = "FQN")
         fun FullyQualifiedAnnotationPreview() {
 
         }
@@ -173,11 +187,13 @@ class AnnotationFilePreviewElementFinderTest {
       assertFalse(it.displaySettings.showBackground)
       assertTrue(it.displaySettings.showDecoration)
       assertEquals(0, it.configuration.uiMode)
+      assertEquals("id:Nexus 7", it.configuration.deviceSpec)
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)",
+          it.previewElementDefinitionPsi?.element?.text)
       }
     }
 
@@ -211,7 +227,7 @@ class AnnotationFilePreviewElementFinderTest {
         import androidx.compose.Composable
 
         @Composable
-        @androidx.ui.tooling.preview.Preview
+        @$PREVIEW_TOOLING_PACKAGE.Preview
         fun Preview1() {
         }
       """.trimIndent()).toUElement() as UFile
@@ -230,7 +246,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
         
         @Composable
@@ -296,7 +312,8 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.compose.Composableimport androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Composable
         @Preview
@@ -329,9 +346,9 @@ class AnnotationFilePreviewElementFinderTest {
       """
         package test
 
-        import androidx.ui.tooling.preview.Preview
-        import androidx.ui.tooling.preview.PreviewParameter
-        import androidx.ui.tooling.preview.PreviewParameterProvider
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+        import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
         import androidx.compose.Composable
 
         @Composable
@@ -400,7 +417,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -425,7 +442,7 @@ class AnnotationFilePreviewElementFinderTest {
           // Randomize to make sure the ordering works
           shuffle()
         }
-        .sortedWith(previewElementComparatorBySourcePosition)
+        .sortBySourcePosition()
         .map { it.composableMethodFqn }
         .toTypedArray()
         .let {
@@ -438,7 +455,7 @@ class AnnotationFilePreviewElementFinderTest {
         // Randomize to make sure the ordering works
         shuffle()
       }
-      .sortedWith(previewElementComparatorByDisplayName)
+      .sortByDisplayName()
       .map { it.composableMethodFqn }
       .toTypedArray()
       .let {
@@ -452,7 +469,7 @@ class AnnotationFilePreviewElementFinderTest {
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import $PREVIEW_TOOLING_PACKAGE.Preview
         import androidx.compose.Composable
 
         @Composable

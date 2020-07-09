@@ -24,6 +24,9 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes
+import com.android.tools.idea.ndk.ModuleVariantAbi
+import com.android.tools.idea.ndk.NativeWorkspaceService
+import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ViewSettings
@@ -34,6 +37,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Queryable
 import com.intellij.openapi.util.text.StringUtil.trimEnd
 import com.intellij.openapi.util.text.StringUtil.trimStart
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.ArrayList
 
@@ -47,7 +51,7 @@ class NdkModuleNode(
     val module = value ?: return emptyList()
 
     val facet = NdkFacet.getInstance(module)
-    if (facet == null || facet.ndkModuleModel == null) {
+    if (facet?.ndkModuleModel == null) {
       return emptyList()
     }
 
@@ -80,11 +84,13 @@ class NdkModuleNode(
 fun getNativeSourceNodes(project: Project,
                          ndkModel: NdkModuleModel,
                          settings: ViewSettings): Collection<AbstractTreeNode<*>> {
+  val module = ModuleManager.getInstance(project).findModuleByName(ndkModel.moduleName)!!
   if (StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get()) {
-    return getContentRootBasedNativeNodes(project, ModuleManager.getInstance(project).findModuleByName(ndkModel.moduleName)!!, settings)
+    return getContentRootBasedNativeNodes(module, settings)
   }
   else {
-    return getLibraryBasedNativeNodes(ndkModel, project, settings)
+    val ndkFacet = NdkFacet.getInstance(module) ?: return emptyList()
+    return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings)
   }
 }
 
@@ -92,10 +98,11 @@ fun getNativeSourceNodes(project: Project,
  * Gets nodes for project view and Android view populated by native targets (aka, native libraries, for example, declared by add_library in
  * CMakeLists.txt).
  */
-private fun getLibraryBasedNativeNodes(ndkModel: NdkModuleModel,
+private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
+                                       ndkModel: NdkModuleModel,
                                        project: Project,
                                        settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val variant = ndkModel.selectedVariant
+  val variant = ndkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, NativeArtifact>()
   for (artifact in variant.artifacts) {
     val file = artifact.outputFile
@@ -141,26 +148,17 @@ private fun getLibraryBasedNativeNodes(ndkModel: NdkModuleModel,
   else children
 }
 
-fun containedInIncludeFolders(model: NdkModuleModel, file: VirtualFile): Boolean {
+fun containedInIncludeFolders(project: Project, ndkModuleModel: NdkModuleModel, file: VirtualFile): Boolean {
   if (!LexicalIncludePaths.hasHeaderExtension(file.name)) {
+    // Skip directly if the file does not look like a header.
     return false
   }
-
-  val variant = model.selectedVariant
-  val nativeLibraries = HashMultimap.create<String, NativeArtifact>()
-  for (artifact in variant.artifacts) {
-    val outputFile = artifact.outputFile ?: continue
-    val artifactOutputFileName = outputFile.name
-    nativeLibraries.put(artifactOutputFileName, artifact)
-  }
-
-  for (name in nativeLibraries.keySet()) {
-    if (NdkLibraryEnhancedHeadersNode
-        .containedInIncludeFolders(
-          NativeIncludes({ model.findSettings(it) }, nativeLibraries.get(name)), file)) {
-      return true
-    }
-  }
-  return false
+  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)!!
+  val ndkFacet = NdkFacet.getInstance(module)!!
+  val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return false
+  val variant = selectedVariantAbi.variant
+  val abi = selectedVariantAbi.abi
+  val nativeWorkspaceService = NativeWorkspaceService.getInstance(project)
+  val nativeHeaderDirs = nativeWorkspaceService.getNativeHeaderDirs(ModuleVariantAbi(ndkModuleModel.moduleName, variant, abi))
+  return nativeHeaderDirs.any { VfsUtil.isAncestor(it.dir, file.toIoFile(), false) }
 }
-

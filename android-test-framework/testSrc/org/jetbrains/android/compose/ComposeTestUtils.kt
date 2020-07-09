@@ -29,14 +29,22 @@ fun CodeInsightTestFixture.stubComposableAnnotation() {
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation() {
+fun CodeInsightTestFixture.stubPreviewAnnotation(namespace: ComposeLibraryNamespace) {
   addFileToProject(
     "src/com/android/tools/preview/Preview.kt",
     // language=kotlin
     """
-    package androidx.ui.tooling.preview
+    package ${namespace.packageName}.tooling.preview
 
     import kotlin.reflect.KClass
+
+    object Devices {
+        const val DEFAULT = ""
+
+        const val NEXUS_7 = "id:Nexus 7"
+        const val NEXUS_10 = "name:Nexus 10"
+    }
+
 
     @Repeatable
     annotation class Preview(
@@ -50,7 +58,8 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
       val showDecoration: Boolean = false,
       val showBackground: Boolean = false,
       val backgroundColor: Long = 0,
-      val uiMode: Int = 0
+      val uiMode: Int = 0,
+      val device: String = ""
     )
 
     interface PreviewParameterProvider<T> {

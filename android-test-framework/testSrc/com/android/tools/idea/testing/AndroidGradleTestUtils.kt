@@ -70,7 +70,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import com.android.tools.idea.gradle.project.sync.issues.syncIssues
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
@@ -82,7 +81,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.collect.ImmutableList
@@ -121,9 +119,6 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 import java.io.IOException
-import java.util.Arrays
-import java.util.function.Function
-import java.util.stream.Collectors
 
 typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
@@ -482,7 +477,6 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     InstantRunStub(),
     "defaultConfig",
     null,
-    null,
     listOf(),
     null,
     null,
@@ -522,7 +516,6 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     mapOf(),
     InstantRunStub(),
     "defaultConfig",
-    null,
     null,
     listOf(),
     null,
@@ -835,6 +828,7 @@ private fun createAndroidModuleDataNode(
         moduleBasePath,
         IdeAndroidProjectImpl.create(
           androidProjectStub,
+          HashMap(),
           IdeDependenciesFactory(),
           null,
           ImmutableList.of()),
@@ -969,6 +963,7 @@ interface GradleIntegrationTest {
 /**
  * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
  */
+@JvmOverloads
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,

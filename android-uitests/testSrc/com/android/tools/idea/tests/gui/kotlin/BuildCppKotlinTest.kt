@@ -16,18 +16,14 @@
 package com.android.tools.idea.tests.gui.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,13 +70,8 @@ class BuildCppKotlinTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   fun buildCppKotlinProj() {
-    val ideFrame = try {
-      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin")
-    } catch(timeout: WaitTimedOutError) {
-      // Ignore. We do not care about project indexing or syncing timeouts in QA tests
-      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
-      guiTest.ideFrame()
-    }
+    val ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
 
     // TODO remove the following hack: b/110174414
     val androidSdk = IdeSdks.getInstance().androidSdkPath
@@ -111,10 +102,11 @@ class BuildCppKotlinTest {
     if (errorsWhileModifyingBuild != null) {
       throw errorsWhileModifyingBuild
     }
+    // Request syncing with the new changes to make sure all indexing tasks complete before attempting to build. This is to prevent
+    // timing out when selecting menu items.
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish()
     // TODO end hack for b/110174414
 
-    ideFrame
-      .waitAndInvokeMenuPath("Build", "Rebuild Project")
-      .waitForBuildToFinish(BuildMode.REBUILD)
+    ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project")
   }
 }

@@ -45,8 +45,8 @@ import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.modelAffinity
-import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.compose.preview.util.requestComposeRender
+import com.android.tools.idea.compose.preview.util.sortBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -78,7 +78,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolderBase
@@ -90,6 +89,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
+import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.await
@@ -196,7 +196,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider,
                                                                         ModificationTracker {
-                                                                          psiFilePointer.element?.modificationStamp ?: -1
+                                                                          ReadAction.compute<Long, Throwable> {
+                                                                            psiFilePointer.element?.modificationStamp ?: -1
+                                                                          }
                                                                         })
   private val previewElementProvider = PreviewFilters(memoizedElementsProvider)
 
@@ -333,7 +335,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .build()
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
-      setMaxFitIntoScale(2f) // Set fit into limit to 200%
+      setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     }
   private val staticPreviewInteractionHandler = NlInteractionHandler(surface)
   private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(surface) }
@@ -373,7 +375,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Vertical splitter where the top component is the main Compose Preview panel and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
-  private val mainPanelSplitter = Splitter(true, 0.7f)
+  private val mainPanelSplitter = JBSplitter(true, 0.7f)
 
   /**
    * [WorkBench] used to contain all the preview elements.
@@ -438,7 +440,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         val file = psiFilePointer.element
@@ -463,6 +464,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           workbench.showLoading(message("panel.building"))
           workbench.hideContent()
         }
+        // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
+        // build is complete and refresh is triggered.
+        ComposePreviewAnimationManager.invalidate()
         EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
       }
     }, this)
@@ -472,7 +476,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       psiFile,
       {
         if (isAutoBuildEnabled && !hasSyntaxErrors()) requestBuildForSurface(surface)
-        else ApplicationManager.getApplication().invokeLater { refresh() }
+        else ApplicationManager.getApplication().invokeLater {
+          // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
+          // the new ones after a successful build.
+          ComposePreviewAnimationManager.invalidate()
+          refresh()
+        }
       },
       this)
 
@@ -480,9 +489,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
       launch {
         // Update the current build status in the background
-        ReadAction.run<Throwable> {
-          hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
-        }
+        hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
       }
       refresh()
     })
@@ -586,7 +593,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private suspend fun doRefreshSync(filePreviewElements: Sequence<PreviewElement>) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
@@ -735,10 +742,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
     }
 
-    previewElements = ReadAction.compute<List<PreviewElement>, Throwable> {
-      filePreviewElements
-        .sortedWith(previewElementComparatorBySourcePosition)
-        .toList()
+    if (models.size >= filePreviewElements.size) {
+      previewElements = filePreviewElements
+    }
+    else {
+      // Some preview elements did not result in model creations. This could be because of failed PreviewElements instantiation.
+      // TODO(b/160300892): Add better error handling for failed instantiations.
+      LOG.warn("Some preview elements have failed")
     }
 
     withContext(uiThread) {
@@ -752,8 +762,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  fun refresh() =
-    launch(uiThread) {
+  fun refresh(): Job {
+    var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
+    return launch(uiThread) {
+      LOG.debug("Refresh triggered", refreshTrigger)
       if (DumbService.isDumb(project)) {
         LOG.debug("Project is in dumb mode, not able to refresh")
         return@launch
@@ -764,9 +776,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       try {
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
+            .toList()
+            .sortBySourcePosition()
         }
 
-        if (filePreviewElements.toList() == previewElements) {
+        if (filePreviewElements == previewElements) {
           LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
           // In this case, there are no new previews. We need to make sure that the surface is still correctly
           // configured and that we are showing the right size for components. For example, if the user switches on/off
@@ -795,11 +809,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             doRefreshSync(filePreviewElements)
           }.join()
         }
-      } finally {
+      }
+      catch (t: Throwable) {
+        LOG.warn("Refresh request failed", t)
+      }
+      finally {
         isContentBeingRendered.set(false)
         updateSurfaceVisibilityAndNotifications()
       }
     }
+  }
 
   /**
    * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,

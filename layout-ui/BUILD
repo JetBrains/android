@@ -89,3 +89,36 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "unb.intellij.android.layout-ui",
+    srcs = ["src/main/java"],
+    iml_files = ["intellij.android.layout-ui.iml"],
+    lint_baseline = "lint_baseline.xml",
+    tags = [
+        "manual",
+        "unb",
+    ],
+    test_class = "com.android.tools.LayoutUiTestSuite",
+    test_srcs = ["src/test/java"],
+    test_tags = [
+        "no_test_mac",  # b/127340859
+        "no_test_windows",
+    ],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
+        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+    ],
+)

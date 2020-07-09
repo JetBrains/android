@@ -126,5 +126,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="jaxb-api" level="project" />
   </component>
 </module>
