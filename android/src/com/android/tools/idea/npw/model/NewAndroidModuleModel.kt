@@ -56,7 +56,7 @@ class ExistingProjectModelData(
   override var project: Project,
   override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
 ) : ProjectModelData {
-  override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val applicationName: StringValueProperty = StringValueProperty("My Application")
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useAppCompat = BoolValueProperty()
@@ -132,11 +132,11 @@ class NewAndroidModuleModel(
   val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
-    val msgId: String = when {
-      isLibrary -> "android.wizard.module.config.new.library"
-      else -> "android.wizard.module.config.new.application"
+    val msg: String = when {
+      isLibrary -> "My Library"
+      else -> "My Application"
     }
-    applicationName.set(message(msgId))
+    applicationName.set(msg)
   }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
