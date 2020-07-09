@@ -567,7 +567,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun updateNotifications() = UIUtil.invokeLaterIfNeeded {
     // Make sure all notifications are cleared-up
-    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
+    if (!project.isDisposed) {
+      EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
+    }
   }
 
   /**
