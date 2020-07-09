@@ -134,6 +134,8 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/idea/.idea/libraries:jaxb-api",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
     ],
 )
 

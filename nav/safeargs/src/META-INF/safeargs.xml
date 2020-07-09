@@ -36,6 +36,7 @@
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
     <packageFragmentProviderExtension implementation="com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension"/>
+    <quickFixContributor implementation="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsImportKtResolver"/>
   </extensions>
 
   <project-components>

@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.analyzer.moduleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.platform.jvm.isJvm
@@ -58,11 +59,15 @@ internal fun findAndroidModuleByPackageName(fqName: FqName, project: Project, mo
 }
 
 internal fun Module.getDescriptorsByModulesWithDependencies(): Map<FqName, List<PackageFragmentDescriptor>> {
-  val descriptorsFromThisModule = KtDescriptorCacheModuleService.getInstance(this).getDescriptors().toMutableMap()
+  val moduleDescriptor = this.toDescriptor() ?: return emptyMap()
+  val descriptorsFromThisModule = KtDescriptorCacheModuleService.getInstance(this).getDescriptors(moduleDescriptor).toMutableMap()
   return ModuleRootManager.getInstance(this).getDependencies(false)
     .asSequence()
     .map { ProgressManager.checkCanceled(); it }
-    .map { KtDescriptorCacheModuleService.getInstance(it).getDescriptors() }
+    .mapNotNull {
+      val descriptor = it?.toDescriptor() ?: return@mapNotNull null
+      KtDescriptorCacheModuleService.getInstance(it).getDescriptors(descriptor)
+    }
     .fold(descriptorsFromThisModule) { acc, curr ->
       // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
       //  resolved.
