@@ -17,6 +17,7 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.ui.AbstractDialogWrapper
+import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -65,9 +66,9 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
     pairingPanel.setLoadingText(text)
   }
 
-  fun showLoadingError(text: String) {
+  fun showLoadingError(html: HtmlBuilder) {
     pairingPanel.isLoading = false
-    pairingPanel.setLoadingError(text)
+    pairingPanel.setLoadingError(html)
   }
 
   fun stopLoading() {

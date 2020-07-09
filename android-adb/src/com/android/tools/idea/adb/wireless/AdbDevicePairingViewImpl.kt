@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
+import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -25,6 +26,8 @@ import com.intellij.openapi.util.Disposer
 class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
   private val dlg: AdbDevicePairingDialog
   private val listeners = ArrayList<AdbDevicePairingView.Listener>()
+  //TODO: Enter final URL here
+  private val mdnsDocUrl = "http://developer.android.com/docs"
 
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
@@ -39,18 +42,46 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
     dlg.show()
   }
 
-  override fun startAdbCheck() {
+  override fun startMdnsCheck() {
     dlg.startLoading("Preparing Wi-Fi pairing...")
   }
 
-  override fun showAdbCheckSuccess() {
+  override fun showMdnsCheckSuccess() {
     updateQrCodeImage(model.qrCodeImage)
     dlg.stopLoading()
   }
 
-  override fun showAdbCheckError() {
-    //TODO: Make URL a real link
-    dlg.showLoadingError("Wi-Fi pairing requires mDNS support. See http://developer.android.com")
+  override fun showMdnsNotSupportedError() {
+    dlg.showLoadingError(buildErrorHtml(arrayOf(
+      "This system does not meet the requirements to support Wi-Fi pairing.",
+      "Please update to the latest version of \"platform-tools\" using the SDK manager."
+    )))
+  }
+
+  override fun showMdnsNotSupportedByAdbError() {
+    dlg.showLoadingError(buildErrorHtml(arrayOf(
+      "The currently installed version of the \"Android Debug Bridge\" (adb) does not support Wi-Fi pairing.",
+      "Please update to the latest version of \"platform-tools\" using the SDK manager."
+    )))
+  }
+
+  override fun showMdnsCheckError() {
+    dlg.showLoadingError(buildErrorHtml(arrayOf(
+      "There was an unexpected error during Wi-Fi pairing initialization."
+    )))
+  }
+
+  private fun buildErrorHtml(lines: Array<String>): HtmlBuilder {
+    return HtmlBuilder().apply {
+      beginDiv("text-align: center;")
+      lines.forEach { line ->
+        add(line)
+        newline()
+      }
+      newline()
+      addLink("Learn more", mdnsDocUrl)
+      endDiv()
+    }
   }
 
   override fun showQrCodePairingStarted() {
