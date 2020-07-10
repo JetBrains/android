@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
@@ -37,11 +38,30 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8Defaul
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentEvent
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Java8DefaultProcessorSettings
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.PREVIEW_REFACTORING
+import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.navigation.ItemPresentation
@@ -76,6 +96,7 @@ import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.io.File
+import java.util.UUID
 import javax.swing.Icon
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
@@ -179,6 +200,7 @@ class AgpUpgradeRefactoringProcessor(
   val new: GradleVersion
 ) : GradleBuildModelRefactoringProcessor(project) {
 
+  val uuid = UUID.randomUUID().toString()
   val classpathRefactoringProcessor = AgpClasspathDependencyRefactoringProcessor(this)
   val componentRefactoringProcessors = listOf(
     GMavenRepositoryRefactoringProcessor(this),
@@ -215,7 +237,18 @@ class AgpUpgradeRefactoringProcessor(
     }
 
     foundUsages = usages.size > 0
+    trackProcessorUsage(FIND_USAGES, usages.size)
     return usages.toTypedArray()
+  }
+
+  override fun previewRefactoring(usages: Array<out UsageInfo>) {
+    trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
+    super.previewRefactoring(usages)
+  }
+
+  override fun execute(usages: Array<out UsageInfo>) {
+    trackProcessorUsage(EXECUTE, usages.size)
+    super.execute(usages)
   }
 
   override fun performPsiSpoilingRefactoring() {
@@ -287,6 +320,7 @@ enum class AgpUpgradeComponentNecessity {
 sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
   val current: GradleVersion
   val new: GradleVersion
+  val uuid: String
   private var _isEnabled: Boolean? = null
   var isEnabled: Boolean
     set(value) {
@@ -320,25 +354,42 @@ sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactorin
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current
     this.new = new
+    this.uuid = UUID.randomUUID().toString()
   }
 
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
     this.current = processor.current
     this.new = processor.new
+    this.uuid = processor.uuid
   }
 
   abstract fun necessity(): AgpUpgradeComponentNecessity
 
   public final override fun findUsages(): Array<out UsageInfo> {
-    if (!isEnabled) return UsageInfo.EMPTY_ARRAY
+    if (!isEnabled) {
+      trackComponentUsage(FIND_USAGES, 0)
+      LOG.info("\"${this.commandName}\" refactoring is disabled")
+      return UsageInfo.EMPTY_ARRAY
+    }
     val usages = findComponentUsages()
     val size = usages.size
+    trackComponentUsage(FIND_USAGES, size)
     LOG.info("found $size ${pluralize("usage", size)} for \"${this.commandName}\" refactoring")
     foundUsages = usages.isNotEmpty()
     return usages
   }
 
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
+
+  override fun previewRefactoring(usages: Array<out UsageInfo>) {
+    trackComponentUsage(PREVIEW_REFACTORING, usages.size)
+    super.previewRefactoring(usages)
+  }
+
+  override fun execute(usages: Array<out UsageInfo>) {
+    trackComponentUsage(EXECUTE, usages.size)
+    super.execute(usages)
+  }
 
   public abstract override fun getCommandName(): String
 
@@ -351,6 +402,11 @@ sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactorin
    * true if not and false otherwise; component processors may override or extend.
    */
   protected open fun computeIsAlwaysNoOpForProject(): Boolean = findComponentUsages().isEmpty()
+
+  fun getComponentInfo(): UpgradeAssistantComponentInfo.Builder =
+    completeComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(isEnabled))
+
+  abstract fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder
 }
 
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -385,6 +441,9 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
     }
     return usages.toTypedArray()
   }
+
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(AGP_CLASSPATH_DEPENDENCY)
 
   override fun getCommandName(): String = "Upgrade AGP dependency from $current to $new"
 
@@ -475,6 +534,9 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     return usages.toTypedArray()
   }
 
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(GMAVEN_REPOSITORY)
+
   override fun getCommandName(): String = "Add google() GMaven to buildscript repositories"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gmaven"
@@ -543,6 +605,9 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     }
     return usages.toTypedArray()
   }
+
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(GRADLE_VERSION)
 
   override fun getCommandName(): String = "Upgrade Gradle version to $gradleVersion"
 
@@ -662,6 +727,15 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       }
     }
     return usages.toTypedArray()
+  }
+
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder {
+    val protoNoLanguageLevelAction = when (noLanguageLevelAction) {
+      INSERT_OLD_DEFAULT -> Java8DefaultProcessorSettings.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+      ACCEPT_NEW_DEFAULT -> Java8DefaultProcessorSettings.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+    }
+    val java8Settings = Java8DefaultProcessorSettings.newBuilder().setNoLanguageLevelAction(protoNoLanguageLevelAction).build()
+    return builder.setKind(JAVA8_DEFAULT).setJava8DefaultSettings(java8Settings)
   }
 
   override fun getCommandName(): String = "Update default Java language level"
@@ -852,6 +926,9 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     return usages.toTypedArray()
   }
 
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(COMPILE_RUNTIME_CONFIGURATION)
+
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
@@ -1015,4 +1092,44 @@ data class ComponentUsageGroup(val usageName: String) : UsageGroup {
     is ComponentUsageGroup -> usageName.compareTo(other.usageName)
     else -> -1
   }
+}
+
+/**
+ * Helper functions for metrics, placed out of the way of the main logic, which are responsible for building and logging
+ * AndroidStudioEvent messages at various stages:
+ * - of the operation of the overall processor: [AgpUpgradeRefactoringProcessor.trackProcessorUsage]
+ * - of an individual component: [AgpUpgradeComponentRefactoringProcessor.trackComponentUsage].
+ *
+ * Currently, the difference between these messages is simply that the Processor reports on the state of all its
+ * Components, while each Component reports only on itself.
+ */
+private fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int) {
+  val processorEvent = UpgradeAssistantProcessorEvent.newBuilder()
+    .setUpgradeUuid(uuid)
+    .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
+    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).build())
+  processorEvent.addComponentInfo(classpathRefactoringProcessor.getComponentInfo())
+  componentRefactoringProcessors.forEach {
+    processorEvent.addComponentInfo(it.getComponentInfo())
+  }
+
+  val studioEvent = AndroidStudioEvent.newBuilder()
+    .setCategory(PROJECT_SYSTEM).setKind(UPGRADE_ASSISTANT_PROCESSOR_EVENT).withProjectId(project)
+    .setUpgradeAssistantProcessorEvent(processorEvent.build())
+
+  UsageTracker.log(studioEvent)
+}
+
+private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(kind: UpgradeAssistantEventKind, usages: Int) {
+  val componentEvent = UpgradeAssistantComponentEvent.newBuilder()
+    .setUpgradeUuid(uuid)
+    .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
+    .setComponentInfo(getComponentInfo().build())
+    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).build())
+    .build()
+  val studioEvent = AndroidStudioEvent.newBuilder()
+    .setCategory(PROJECT_SYSTEM).setKind(UPGRADE_ASSISTANT_COMPONENT_EVENT).withProjectId(project)
+    .setUpgradeAssistantComponentEvent(componentEvent)
+
+  UsageTracker.log(studioEvent)
 }
