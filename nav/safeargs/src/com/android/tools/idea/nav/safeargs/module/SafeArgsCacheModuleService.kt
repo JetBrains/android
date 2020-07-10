@@ -125,7 +125,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   }
 
   private fun createLightArgsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightArgsClass> {
-    return entry.data.root.allFragments
+    return entry.data.root.allDestinations
       .filter { fragment -> fragment.arguments.isNotEmpty() }
       .map { fragment -> LightArgsClass(facet, modulePackage, entry.resource, fragment) }
       .toSet()

@@ -47,30 +47,13 @@ interface NavActionData {
 }
 
 /**
- * A useful abstraction across multiple destination types
+ * A useful abstraction across multiple destination types, e.g. <activity> and <fragment>
  */
 interface NavDestinationData {
   val id: String
   val name: String
   val arguments: List<NavArgumentData>
   val actions: List<NavActionData>
-}
-
-/**
- * An entry representing a fragment destination.
- */
-interface NavFragmentData {
-  val id: String
-  val name: String
-  val arguments: List<NavArgumentData>
-  val actions: List<NavActionData>
-
-  fun toDestination() = object : NavDestinationData {
-    override val id: String = this@NavFragmentData.id
-    override val name: String = this@NavFragmentData.name
-    override val arguments: List<NavArgumentData> = this@NavFragmentData.arguments
-    override val actions: List<NavActionData> = this@NavFragmentData.actions
-  }
 }
 
 /**
@@ -82,7 +65,9 @@ interface NavNavigationData {
   val id: String?
   val startDestination: String
   val actions: List<NavActionData>
-  val fragments: List<NavFragmentData>
+  val activities: List<NavDestinationData>
+  val dialogs: List<NavDestinationData>
+  val fragments: List<NavDestinationData>
   val navigations: List<NavNavigationData>
 
   fun toDestination(): NavDestinationData? {
@@ -95,18 +80,17 @@ interface NavNavigationData {
     }
   }
 
-  val allFragments: List<NavFragmentData>
-    get() = fragments + navigations.flatMap { nested -> nested.fragments }
-
-  val allNavigations: List<NavNavigationData>
-    get() {
-      val result = mutableListOf(this)
-      result.addAll(navigations.flatMap { nested -> nested.allNavigations })
-      return result
-    }
+  private val allNavigations: List<NavNavigationData>
+    get() = listOf(this) + navigations.flatMap { it.allNavigations }
 
   val allDestinations: List<NavDestinationData>
-    get() = allFragments.map { it.toDestination() } + allNavigations.mapNotNull { it.toDestination() }
+    get() {
+      val allNavigations = allNavigations // Avoid recalculating over and over
+      return allNavigations.mapNotNull { it.toDestination() } +
+        allNavigations.flatMap { it.activities } +
+        allNavigations.flatMap { it.dialogs } +
+        allNavigations.flatMap { it.fragments }
+    }
 }
 
 /**
