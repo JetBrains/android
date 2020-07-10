@@ -148,6 +148,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private fun showNoAnimationsPanel() {
     remove(tabbedPane)
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
+    // Reset tabs counter, so when new tabs are added they start as #1
+    currentTab = 1
   }
 
   /**
