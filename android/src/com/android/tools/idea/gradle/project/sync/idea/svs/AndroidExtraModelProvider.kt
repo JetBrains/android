@@ -20,6 +20,8 @@ import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.level2.GlobalLibraryMap
+import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
+import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
@@ -57,9 +59,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    *
    * We do this by going through each module and query Gradle for the following models:
    *   1. Query for the AndroidProject for the module
-   *   2. Query for the NativeAndroidProject (only if we also obtain an Android project)
-   *   3. Query for the GlobalLibraryMap for the module (we ALWAYS do this regardless of the other two models)
-   *   4. (Single Variant Sync only) Work out which variant for which models we need to request, and request them.
+   *   2. Query for the NativeModule (V2 API) (only if we also obtain an AndroidProject)
+   *   3. Query for the NativeAndroidProject (V1 API) (only if we can obtain AndroidProject but cannot obtain V2 NativeModule)
+   *   4. Query for the GlobalLibraryMap for the module (we ALWAYS do this regardless of the other two models)
+   *   5. (Single Variant Sync only) Work out which variant for which models we need to request, and request them.
    *      See IdeaSelectedVariantChooser for more details.
    *
    * If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradle parameterized model builder API
@@ -77,10 +80,17 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)?.also { androidProject ->
         consumer.consumeProjectModel(gradleProject, androidProject, AndroidProject::class.java)
 
+        val nativeModule = controller.getNativeModuleFromGradle(gradleProject)?.also {
+          consumer.consumeProjectModel(gradleProject, it, NativeModule::class.java)
+        }
+        if (nativeModule != null) {
+          androidModules.add(AndroidModule(gradleProject, androidProject, nativeModule))
+          return@forEach
+        }
+
         val nativeAndroidProject = findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)?.also {
           consumer.consumeProjectModel(gradleProject, it, NativeAndroidProject::class.java)
         }
-
         androidModules.add(AndroidModule(gradleProject, androidProject, nativeAndroidProject))
       }
     }
@@ -146,5 +156,29 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
     return controller.findModel(project, modelType)
+  }
+
+  private fun BuildController.getNativeModuleFromGradle(project: BasicGradleProject): NativeModule? {
+    try {
+      if (syncActionOptions.isSingleVariantSyncEnabled) {
+        // With single variant mode, we first only collect basic project information. The more complex information will be collected later
+        // for the selected variant and ABI.
+        return getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+          it.variantsToGenerateBuildInformation = emptyList()
+          it.abisToGenerateBuildInformation = emptyList()
+        }
+      }
+      else {
+        // If single variant is not enabled, we sync all variant and ABIs at once.
+        return getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+          it.variantsToGenerateBuildInformation = null
+          it.abisToGenerateBuildInformation = null
+        }
+      }
+    }
+    catch (e: UnsupportedVersionException) {
+      // Using old version of Gradle that does not support V2 models.
+      return null
+    }
   }
 }
