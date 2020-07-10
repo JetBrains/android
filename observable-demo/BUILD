@@ -80,6 +80,10 @@ iml_module(
     name = "unb.observable-demo",
     srcs = ["src"],
     iml_files = ["observable-demo.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

@@ -71,6 +71,10 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.testFramework",
     iml_files = ["intellij.android.testFramework.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
