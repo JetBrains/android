@@ -132,6 +132,11 @@
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
+
+    <group id="Android.SyncProject.ActionGroup">
+      <reference id="Android.SyncProject" />
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
