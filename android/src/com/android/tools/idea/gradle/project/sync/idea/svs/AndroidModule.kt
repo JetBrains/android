@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.Dependencies
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.Variant
+import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -27,11 +28,25 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 @UsedInBuildAction
-class AndroidModule(
+class AndroidModule private constructor(
   val gradleProject: BasicGradleProject,
   val androidProject: AndroidProject,
-  val nativeAndroidProject: NativeAndroidProject?
+  /** Old V1 model. It's only set if [NaiveModule] is not set. */
+  val nativeAndroidProject: NativeAndroidProject?,
+  /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
+  val nativeModule: NativeModule?
 ) {
+
+  /** Constructs from V2 [NativeModule]. */
+  constructor(gradleProject: BasicGradleProject,
+              androidProject: AndroidProject,
+              nativeModule: NativeModule?) : this(gradleProject, androidProject, null, nativeModule)
+
+  /** Constructs from V1 [NativeAndroidProject]. */
+  constructor(gradleProject: BasicGradleProject,
+              androidProject: AndroidProject,
+              nativeAndroidProject: NativeAndroidProject?) : this(gradleProject, androidProject, nativeAndroidProject, null)
+
   data class ModuleDependency(val id: String, val variant: String?, val abi: String?)
 
   private val _moduleDependencies: MutableList<ModuleDependency> = mutableListOf()
@@ -39,6 +54,7 @@ class AndroidModule(
 
   val variantGroup: VariantGroup = VariantGroup()
   val moduleDependencies: List<ModuleDependency> get() = _moduleDependencies
+  val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
 
   fun containsVariant(variantName: String) = variantsByName.containsKey(variantName)
 

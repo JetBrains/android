@@ -44,6 +44,22 @@ interface INdkModel {
 
 sealed class NdkModel : INdkModel
 
+/**
+ * Native information fetched from Android Gradle Plugin about this module using V1 API.
+ *
+ * Specifically, if single variant sync is turned on (default),
+ *
+ * - [androidProject] contains the overview of the native information in this module, including
+ *   - available variants in this module
+ *   - available ABIs for each variants
+ * - [nativeVariantAbis] contains detailed build information for the synced variant and ABI
+ *
+ * If single variant sync is turned off,
+ *
+ * - [androidProject] contains the overview and additionally
+ *   - detailed build information of all variants and ABIs avaialbe in this module
+ * - [nativeVariantAbis] is always empty
+ */
 class V1NdkModel(
   val androidProject: IdeNativeAndroidProject,
   val nativeVariantAbis: List<IdeNativeVariantAbi>
@@ -161,8 +177,17 @@ class V1NdkModel(
   fun findSettings(settingsName: String): NativeSettings? = settingsByName[settingsName]
 }
 
+/**
+ * Native information fetched from Android Gradle Plugin about this module using V2 API.
+ *
+ * Regardless of whether single varaint sync or full sync is used, the model contains the exact same [NativeModule] that contains an
+ * overview of the native module.
+ *
+ * synced variant and ABIs would have the [NativeAbi.compileCommandsJsonFile], [NativeAbi.symbolFolderIndexFile], and
+ * [NativeAbi.buildFileIndexFile] generated, containing detailed build information.
+ */
 class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor(
-  private val agpVersion: String,
+  private val /* `val` declaration needed for serialization */ agpVersion: String,
   nativeModuleArg: NativeModule) : NdkModel() {
   
   val nativeModule: NativeModule = nativeModuleArg as? IdeNativeModule ?: IdeNativeModule(nativeModuleArg)
