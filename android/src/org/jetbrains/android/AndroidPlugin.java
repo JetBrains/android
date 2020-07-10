@@ -22,8 +22,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 final class AndroidPlugin {
-  private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
-
   AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
@@ -34,14 +32,6 @@ final class AndroidPlugin {
   static final class AndroidActionConfigurationCustomizer implements ActionConfigurationCustomizer {
     @Override
     public void customize(@NotNull ActionManager manager) {
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
-        // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
-        moveAction("Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null), manager);
-        // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
-        moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
-                   new Constraints(Anchor.LAST, null), manager);
-      }
-
       setUpActionsUnderFlag(manager);
     }
   }
