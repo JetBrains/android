@@ -541,11 +541,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         manager.updateSceneView();
         manager.requestLayoutAndRender(false);
       }
-
-      if (!contentResizeSkipped()) {
-        zoomToFit();
-        revalidateScrollArea();
-      }
+      revalidateScrollArea();
     }
   }
 

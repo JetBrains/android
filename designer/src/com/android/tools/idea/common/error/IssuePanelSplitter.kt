@@ -34,13 +34,6 @@ class IssuePanelSplitter(
     secondComponent = issuePanel
   }
 
-  override fun setDragging(dragging: Boolean) {
-    super.setDragging(dragging)
-
-    // Do not resize surface's content while dragging the splitter
-    surface.setSkipResizeContent(dragging)
-  }
-
   private fun updateSplitter(isMinimized: Boolean, height: Int) {
     val showDivider = !isMinimized
     isShowDividerIcon = showDivider
@@ -57,8 +50,5 @@ class IssuePanelSplitter(
   private fun createIssuePanelMinimizeListener(issuePanel: IssuePanel) = IssuePanel.MinimizeListener { isMinimized ->
     surface.analyticsManager.trackIssuePanel(isMinimized)
     updateSplitter(isMinimized, issuePanel.suggestedHeight)
-
-    // Do not resize surface's content while opening the splitter
-    surface.skipContentResizeOnce()
   }
 }

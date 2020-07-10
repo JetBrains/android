@@ -110,7 +110,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertTrue(surface.setScale(0.335, -1, -1))
   }
 
-  fun testResizeSurfaceRebuildTheScene() {
+  fun testResizeSurfaceDoNotRebuildTheScene() {
+    // We want to keep the Design Surface always has same zoom level when the window is resized.
     val builder = model("relative.xml",
                         component(RELATIVE_LAYOUT)
                           .withBounds(0, 0, 1000, 1000)
@@ -130,8 +131,8 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
 
-    assert(scene1.displayListVersion > oldVersion1)
-    assert(scene2.displayListVersion > oldVersion2)
+    assert(scene1.displayListVersion == oldVersion1)
+    assert(scene2.displayListVersion == oldVersion2)
   }
 
   fun testDesignSurfaceModelOrdering() {
