@@ -97,6 +97,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
@@ -106,7 +107,6 @@ iml_module(
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.benchmark
 
-import com.android.tools.idea.device.FormFactor.MOBILE
+import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage

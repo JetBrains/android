@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device
+package com.android.tools.adtui.device
 
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH

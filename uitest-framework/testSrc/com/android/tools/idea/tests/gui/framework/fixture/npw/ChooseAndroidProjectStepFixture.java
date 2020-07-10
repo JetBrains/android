@@ -20,7 +20,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
 
 import com.android.tools.adtui.ASGallery;
-import com.android.tools.idea.device.FormFactor;
+import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import javax.swing.JRootPane;

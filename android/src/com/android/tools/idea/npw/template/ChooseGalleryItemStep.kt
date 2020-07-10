@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
