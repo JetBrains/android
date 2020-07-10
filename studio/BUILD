@@ -207,3 +207,114 @@ studio_plugin(
     },
     tags = ["manual"],
 )
+
+studio_plugin(
+    name = "com.android.tools.apk",
+    directory = "android-apk",
+    modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:unb.android-apk"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.android.tools.ndk",
+    directory = "android-ndk",
+    modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:unb.android-ndk"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "intellij.android.layoutlib",
+    directory = "android-layoutlib",
+    modules = {
+        "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:unb.intellij.android.layoutlib"],
+        "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
+    },
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.android.layoutlib.native",
+    directory = "android-layoutlib-native",
+    modules = {
+        "android-layoutlib-native.jar": ["//tools/adt/idea/layoutlib-native:unb.intellij.android.layoutlib-native"],
+        "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
+    },
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "androidx.compose.plugins.idea",
+    directory = "android-compose-ide-plugin",
+    modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:unb.intellij.android.compose-ide-plugin"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.services.firebase",
+    directory = "firebase",
+    modules = {"firebase.jar": ["//tools/vendor/google/firebase:unb.firebase"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.gct.testing",
+    directory = "firebase-testing",
+    modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:unb.firebase-testing"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.appindexing",
+    directory = "google-appindexing",
+    modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:unb.google-appindexing"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.gct",
+    directory = "google-cloud-tools-as",
+    modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:unb.google-cloud-tools-as"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.gct.core",
+    directory = "google-cloud-tools-core-as",
+    modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:unb.google-cloud-tools-core-as"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.gct.login",
+    directory = "google-login-as",
+    modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:unb.google-login-as"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.cluestick.studioclient",
+    directory = "google-samples",
+    modules = {"google-samples.jar": ["//tools/studio/google/samples:unb.google-samples"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.android.tools.idea.smali",
+    directory = "smali",
+    modules = {"smali.jar": ["//tools/adt/idea/smali:unb.intellij.android.smali"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.gct.test.recorder",
+    directory = "test-recorder",
+    modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:unb.test-recorder"]},
+    tags = ["manual"],
+)
+
+studio_plugin(
+    name = "com.google.urlassistant",
+    directory = "url-assistant",
+    modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:unb.url-assistant"]},
+    tags = ["manual"],
+)
