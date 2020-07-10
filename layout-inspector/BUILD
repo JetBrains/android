@@ -79,9 +79,6 @@ iml_module(
 iml_module(
     name = "intellij.android.layout-inspector.tests",
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
-    tags = [
-        "no_test_windows",  # local cygwin error => missing dependencies
-    ],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
