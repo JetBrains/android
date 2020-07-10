@@ -41,24 +41,16 @@ class AdbDevicePairingControllerImpl(project: Project,
   }
 
   override fun startPairingProcess() {
-    view.startMdnsCheck()
+    view.startAdbCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
-    service.checkMdnsSupport().transform(edtExecutor) { supportState ->
-      when(supportState) {
-        MdnsSupportState.Supported -> {
-          view.showMdnsCheckSuccess()
-          qrCodeScanningController.startPairingProcess()
-        }
-        MdnsSupportState.NotSupported -> {
-          view.showMdnsNotSupportedError()
-        }
-        MdnsSupportState.AdbVersionTooLow -> {
-          view.showMdnsNotSupportedByAdbError()
-        }
-        MdnsSupportState.AdbInvocationError -> {
-          view.showMdnsCheckError()
-        }
+    service.isMdnsSupported().transform(edtExecutor) { mdnsIsSupported ->
+      if (mdnsIsSupported) {
+        view.showAdbCheckSuccess()
+        qrCodeScanningController.startPairingProcess()
+      } else {
+        //TODO: Add error message (or failure cause) here?
+        view.showAdbCheckError()
       }
     }
 
