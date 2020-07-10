@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/adt/idea/studio:studio.bzl", "studio_plugin")
+load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
 
 # managed by go/iml_to_build [unb]
 iml_module(
@@ -181,9 +181,7 @@ studio_plugin(
     },
     resources = {
         "lib": [
-            "//tools/adt/idea/android/lib:unb.asm-5.0.3",
-            "//tools/adt/idea/android/lib:unb.asm-analysis-5.0.3",
-            "//tools/adt/idea/android/lib:unb.asm-tree-5.0.3",
+            "//tools/adt/idea/android/lib:unb.asm-tools_files",
             "//tools/adt/idea/android/lib:bundled-libs",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/lib:sample-data-bundle",
@@ -316,5 +314,85 @@ studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:unb.url-assistant"]},
+    tags = ["manual"],
+)
+
+android_studio(
+    name = "android-studio",
+    jre = "//prebuilts/studio/jdk:jdk-bundle",
+    modules = {
+        "android-base-common.jar": [
+            "//tools/base/common:unb.studio.android.sdktools.common",
+        ],
+        "google-analytics-library.jar": [
+            "//tools/base/annotations:unb.studio.android.sdktools.android-annotations",
+            "//tools/analytics-library/shared:unb.analytics-shared",
+            "//tools/analytics-library/tracker:unb.analytics-tracker",
+            "//tools/analytics-library/publisher:unb.analytics-publisher",
+            "//tools/analytics-library/crash:unb.analytics-crash",
+        ],
+    },
+    platform = "//prebuilts/studio/intellij-sdk:studio-platform",
+    plugins = [
+        ":intellij.android.plugin",
+        ":com.android.tools.apk",
+        ":com.android.tools.ndk",
+        ":intellij.android.layoutlib",
+        ":com.android.layoutlib.native",
+        ":androidx.compose.plugins.idea",
+        ":com.google.services.firebase",
+        ":com.google.gct.testing",
+        ":com.google.appindexing",
+        ":com.google.gct",
+        ":com.google.gct.core",
+        ":com.google.gct.login",
+        ":com.google.cluestick.studioclient",
+        ":com.android.tools.idea.smali",
+        ":com.google.gct.test.recorder",
+        ":com.google.urlassistant",
+    ],
+    resources = {
+        "bin/lldb": [
+            "//prebuilts/tools:lldb-bundle",
+        ],
+        "lib": [
+            # For now listing all the project library needed until we get them from deps
+            "//tools/adt/idea/.idea/libraries:unb.javax-inject",
+            "//tools/adt/idea/.idea/libraries:unb.jsr305",
+            "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+            "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+            "//tools/adt/idea/.idea/libraries:unb.dexlib2",
+            "//tools/adt/idea/.idea/libraries:unb.asm-tools",
+            "//tools/adt/idea/.idea/libraries:unb.kxml2",
+            "//tools/adt/idea/.idea/libraries:unb.libam-instrumentation-data-proto",
+            "//tools/adt/idea/.idea/libraries:unb.sqlite",
+            "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
+            "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+            "//tools/adt/idea/.idea/libraries:unb.aia-proto",
+            "//tools/adt/idea/.idea/libraries:unb.baksmali",
+            "//tools/adt/idea/.idea/libraries:unb.zxing-core",
+            "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+            "//tools/adt/idea/.idea/libraries:unb.emulator-proto",
+            "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
+            "//tools/adt/idea/.idea/libraries:unb.sqlite-inspector-proto",
+            "//tools/adt/idea/.idea/libraries:unb.kotlinx-coroutines-guava",
+            "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto",
+            "//tools/adt/idea/.idea/libraries:unb.tightvnc",
+        ],
+    },
+    tags = ["manual"],
+)
+
+py_test(
+    name = "test_studio",
+    srcs = ["tests/test_studio.py"],
+    data = [
+        "tests/expected_linux.txt",
+        "tests/expected_mac.txt",
+        "tests/expected_win.txt",
+        ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
+        ":android-studio.win.zip",
+    ],
     tags = ["manual"],
 )
