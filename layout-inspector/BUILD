@@ -80,7 +80,6 @@ iml_module(
     name = "intellij.android.layout-inspector.tests",
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
     tags = [
-        "no_test_mac",  # b/159020683
         "no_test_windows",  # local cygwin error => missing dependencies
     ],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
@@ -118,6 +117,7 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
