@@ -247,5 +247,9 @@ iml_module(
 java_import(
     name = "lib/unb.ui-animation-tooling-internal",
     jars = ["lib/ui-animation-tooling-internal.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
 )

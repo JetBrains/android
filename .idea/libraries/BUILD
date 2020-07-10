@@ -1,6 +1,10 @@
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.kotlin-stdlib-jdk8",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -21,6 +25,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.truth",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -37,6 +45,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.Guava",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -55,6 +67,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.javax-inject",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar"],
@@ -63,6 +79,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.equalsverifier",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/2.5.1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/2.5.1:jar"],
@@ -71,6 +91,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.mockito",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -89,6 +113,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.jsr305",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar"],
@@ -97,6 +125,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.compile-testing",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:jar"],
@@ -105,6 +137,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.jimfs",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1:jar"],
@@ -113,6 +149,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.studio-grpc",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/bazel:studio-grpc"],
     runtime_deps = ["//tools/base/bazel:studio-grpc"],
@@ -121,6 +161,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.studio-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/bazel:studio-proto"],
     runtime_deps = ["//tools/base/bazel:studio-proto"],
@@ -129,6 +173,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.dexlib2",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -145,6 +193,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.asm-tools",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -163,6 +215,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.truth-java8-extension",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42:jar"],
@@ -171,6 +227,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.kxml2",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/net/sf/kxml/kxml2/2.3.0:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/net/sf/kxml/kxml2/2.3.0:jar"],
@@ -179,6 +239,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.easymock",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2:jar"],
@@ -187,6 +251,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.protobuf",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:jar"],
@@ -195,6 +263,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.libam-instrumentation-data-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/ddmlib:am-instrumentation-data-proto"],
     runtime_deps = ["//tools/base/ddmlib:am-instrumentation-data-proto"],
@@ -203,6 +275,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.sqlite",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.21.0.1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.21.0.1:jar"],
@@ -211,6 +287,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.aapt-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/android/tools/build/aapt2-proto/0.3.1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/android/tools/build/aapt2-proto/0.3.1:jar"],
@@ -219,6 +299,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.studio-analytics-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
     runtime_deps = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
@@ -227,6 +311,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.aia-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto"],
     runtime_deps = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto"],
@@ -235,6 +323,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.baksmali",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/org/smali/baksmali/2.2.4:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/org/smali/baksmali/2.2.4:jar"],
@@ -243,6 +335,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.zxing-core",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0:jar"],
@@ -251,6 +347,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.transport-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/transport/proto:transport_java_proto"],
     runtime_deps = ["//tools/base/transport/proto:transport_java_proto"],
@@ -259,6 +359,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.emulator-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/emulator/proto:emulator_java_proto"],
     runtime_deps = ["//tools/base/emulator/proto:emulator_java_proto"],
@@ -267,6 +371,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.perfetto-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/profiler:perfetto-protos"],
     runtime_deps = ["//tools/base/profiler:perfetto-protos"],
@@ -275,6 +383,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.sqlite-inspector-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto"],
     runtime_deps = ["//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto"],
@@ -283,6 +395,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.kotlinx-coroutines-guava",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.2.1:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.2.1:jar"],
@@ -291,6 +407,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.layoutinspector-proto",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto"],
     runtime_deps = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto"],
@@ -299,6 +419,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.guava-testlib",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre:jar"],
@@ -307,6 +431,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.auto-value-annotations",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:jar"],
     runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:jar"],
@@ -315,6 +443,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.kotlin-plugin-test",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
@@ -337,6 +469,10 @@ java_library(
 # managed by go/iml_to_build [unb]
 java_library(
     name = "unb.tightvnc",
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/tools/common/tightvnc:unb.tightvnc"],
     runtime_deps = ["//prebuilts/tools/common/tightvnc:unb.tightvnc"],

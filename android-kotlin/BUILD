@@ -382,5 +382,9 @@ iml_module(
 java_import(
     name = "lib/unb.dx",
     jars = ["lib/dx.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
 )

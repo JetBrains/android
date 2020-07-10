@@ -107,6 +107,10 @@ iml_module(
     name = "unb.intellij.android.testRetention",
     srcs = ["src"],
     iml_files = ["intellij.android.testRetention.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -126,6 +130,10 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.testRetention.tests",
     iml_files = ["intellij.android.testRetention.tests.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
