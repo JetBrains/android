@@ -1,3 +1,10 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="configurables-idea.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <actions>
+    <group id="Android.SyncProject.ActionGroup">
+      <reference id="Android.SyncProject"/>
+      <add-to-group group-id="AndroidToolsGroup" anchor="first"/>
+    </group>
+  </actions>
 </idea-plugin>

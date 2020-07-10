@@ -75,9 +75,8 @@
       <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
     </group>
 
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
-      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
-    </action>
+    <!-- Sync action has different location in IDEA and AS. Do not specify location here. -->
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC" />
 
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip">
       <override-text place="MainMenu" text="Project to Zip File..."/>
