@@ -23,3 +23,9 @@ following build/query command:
 bazel build `bazel query "attr(tags, unb, //...)"` --config=remote
 ```
 
+To ensure all unb. rules are manual run:
+
+```
+bazel query "attr(name, "unb.", //...) except attr(tags, manual, //...)"
+```
+
