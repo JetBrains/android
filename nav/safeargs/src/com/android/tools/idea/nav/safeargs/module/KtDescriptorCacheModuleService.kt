@@ -172,7 +172,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
     modulePackage: String,
     storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
   ): Collection<QualifiedDescriptor> {
-    return entry.data.root.allFragments
+    return entry.data.root.allDestinations
       .asSequence()
       .filter { fragment -> fragment.arguments.isNotEmpty() }
       .mapNotNull { fragment ->

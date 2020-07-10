@@ -85,7 +85,7 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
       .addParameter("original", PsiTypesUtil.getClassType(argsClass))
 
     val argsConstructor = createConstructor().apply {
-      argsClass.fragment.arguments.forEach { arg ->
+      argsClass.destination.arguments.forEach { arg ->
         if (arg.defaultValue == null) {
           this.addParameter(arg.name, parsePsiType(modulePackage, arg.type, arg.defaultValue, this))
         }
@@ -99,7 +99,7 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
     val thisType = PsiTypesUtil.getClassType(this)
 
     // Create a getter and setter per argument
-    val argMethods: Array<PsiMethod> = containingClass.fragment.arguments.flatMap { arg ->
+    val argMethods: Array<PsiMethod> = containingClass.destination.arguments.flatMap { arg ->
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       val setter = createMethod(name = "set${arg.name.capitalize()}",
                                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),

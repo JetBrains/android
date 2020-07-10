@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.tools.idea.nav.safeargs.index.NavFragmentData
+import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
@@ -75,7 +75,7 @@ import org.jetbrains.kotlin.utils.Printer
  */
 class LightArgsKtClass(
   name: Name,
-  private val fragment: NavFragmentData,
+  private val destination: NavDestinationData,
   superTypes: Collection<KotlinType>,
   sourceElement: SourceElement,
   containingDescriptor: DeclarationDescriptor,
@@ -94,7 +94,7 @@ class LightArgsKtClass(
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
     val valueParametersProvider = { constructor: ClassConstructorDescriptor ->
       var index = 0
-      fragment.arguments
+      destination.arguments
         .asSequence()
         .map { arg ->
           val pName = Name.identifier(arg.name)
@@ -200,7 +200,7 @@ class LightArgsKtClass(
     }
 
     private val properties = storageManager.createLazyValue {
-      fragment.arguments
+      destination.arguments
         .asSequence()
         .map { arg ->
           val pName = arg.name

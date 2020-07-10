@@ -84,6 +84,43 @@ data class MutableNavActionData(
   constructor() : this("", "", mutableListOf())
 }
 
+@XmlRootElement(name = "activity")
+@XmlAccessorType(XmlAccessType.FIELD)
+data class MutableNavActivityData(
+  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+  @field:XmlAttribute(namespace = ANDROID_URI)
+  override var id: String,
+
+  @field:XmlAttribute(namespace = ANDROID_URI)
+  override var name: String,
+
+  @field:XmlElement(name = "argument")
+  override var arguments: List<MutableNavArgumentData>,
+
+  @field:XmlElement(name = "action")
+  override var actions: List<MutableNavActionData>
+) : NavDestinationData {
+  constructor() : this("", "", mutableListOf(), mutableListOf())
+}
+
+@XmlRootElement(name = "dialog")
+@XmlAccessorType(XmlAccessType.FIELD)
+data class MutableNavDialogData(
+  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+  @field:XmlAttribute(namespace = ANDROID_URI)
+  override var id: String,
+
+  @field:XmlAttribute(namespace = ANDROID_URI)
+  override var name: String,
+
+  @field:XmlElement(name = "argument")
+  override var arguments: List<MutableNavArgumentData>,
+
+  @field:XmlElement(name = "action")
+  override var actions: List<MutableNavActionData>
+) : NavDestinationData {
+  constructor() : this("", "", mutableListOf(), mutableListOf())
+}
 
 @XmlRootElement(name = "fragment")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -100,7 +137,7 @@ data class MutableNavFragmentData(
 
   @field:XmlElement(name = "action")
   override var actions: List<MutableNavActionData>
-) : NavFragmentData {
+) : NavDestinationData {
   constructor() : this("", "", mutableListOf(), mutableListOf())
 }
 
@@ -118,11 +155,17 @@ data class MutableNavNavigationData(
   @field:XmlElement(name = "action")
   override var actions: List<MutableNavActionData>,
 
+  @field:XmlElement(name = "activity")
+  override val activities: List<MutableNavActivityData>,
+
+  @field:XmlElement(name = "dialog")
+  override val dialogs: List<MutableNavDialogData>,
+
   @field:XmlElement(name = "fragment")
   override var fragments: List<MutableNavFragmentData>,
 
   @field:XmlElement(name = "navigation")
   override var navigations: List<MutableNavNavigationData>
 ) : NavNavigationData {
-  constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf())
+  constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
 }
