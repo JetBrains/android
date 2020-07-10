@@ -28,9 +28,11 @@ import java.net.InetAddress
 @UiThread
 interface AdbDevicePairingService {
   /**
-   * Returns `true` if the current platform and ADB version supports mDNS pairing
+   * Returns a [MdnsSupportState] for the current platform and current ADB version.
+   *
+   * The future never fails, except for catastrophic failures (e.g. out of memory)
    */
-  fun isMdnsSupported(): ListenableFuture<Boolean>
+  fun checkMdnsSupport(): ListenableFuture<MdnsSupportState>
 
   /**
    * Generates a new [QrCodeImage] instance, with a new random service name and password
@@ -127,3 +129,14 @@ data class QrCodeImage(
    * wide around the image to allow for cameras to frame the QR Code.
    */
   val image: BufferedImage)
+
+enum class MdnsSupportState {
+  /** mDNS is supported on the current platform with the current version of ADB */
+  Supported,
+  /** mDNS is not supported on the current platform, even though ADB is of the right version */
+  NotSupported,
+  /** ADB version is outdated, it does not support mDNS */
+  AdbVersionTooLow,
+  /** There was an error invoking ADB, so we don't know if mDNS is supported or not */
+  AdbInvocationError,
+}
