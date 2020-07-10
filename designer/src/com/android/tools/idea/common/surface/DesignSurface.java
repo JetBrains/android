@@ -184,20 +184,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   private final boolean myIsEditable;
 
-  /**
-   * Flag to indicate if the surface should resize its content when
-   * it's being resized.
-   */
-  private boolean mySkipResizeContent;
-
-  /**
-   * Flag to indicate that the surface should not resize its content
-   * on the next resize event.
-   */
-  private boolean mySkipResizeContentOnce;
-
   private final ConfigurationListener myConfigurationListener;
-  private ZoomType myCurrentZoomType;
 
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
@@ -317,28 +304,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     add(myLayeredPane);
 
     // TODO: Do this as part of the layout/validate operation instead
+    // Add a one shot listener which scales the size of content when DesignSurface becomes visibile.
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        boolean scaled = false;
-        if (isShowing() && getWidth() > 0 && getHeight() > 0
-            && !contentResizeSkipped()) {
-          // We skip the resize only if the flag is set to true
-          // and the content size will be increased.
-          // Like this, when the issue panel is opened, the content size stays the
-          // same but if the user clicked "zoom to fit" while the issue panel was open,
-          // we zoom to fit when the panel is closed so the content retake the optimal
-          // space.
-          scaled = zoomToFit();
+        if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED && isShowing() && getWidth() > 0 && getHeight() > 0) {
+          // Zoom to fit to decide the initial content size.
+          zoomToFit();
 
-          // zoomToFit may decide to do nothing.
-          // If that is the case we still need to be sure the design is positioned correctly.
-          // For example NlDesignSurface need to center the design image.
+          // The one shot scaling is done, remove this listener.
+          removeComponentListener(this);
         }
-        if (!scaled) {
-          revalidateScrollArea();
-        }
-        getSceneManagers().forEach(it -> it.getScene().needsRebuildList());
       }
     });
 
@@ -635,6 +611,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
         zoomToFit();
+        revalidateScrollArea();
 
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
         //       to address that.
@@ -872,12 +849,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
       case ACTUAL:
         scaled = setScale(1d / getScreenScalingFactor());
-        myCurrentZoomType = type;
         break;
       case FIT:
       case FIT_INTO:
         scaled = setScale(getFitScale(type == ZoomType.FIT_INTO));
-        myCurrentZoomType = type;
         break;
       default:
       case SCREEN:
@@ -1068,7 +1043,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (Math.abs(newScale - myScale) < SCALING_THRESHOLD / getScreenScalingFactor()) {
       return false;
     }
-    myCurrentZoomType = null;
 
     Point oldViewPosition = getScrollPosition();
 
@@ -1295,39 +1269,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     finally {
       myModelToSceneManagersLock.readLock().unlock();
     }
-  }
-
-  /**
-   * Set to true if the content should automatically
-   * resize when its surface is resized.
-   * <p>
-   * If once is set to true, the skip flag will be reset to false after the first
-   * skip. The once flag is ignored if skipLayout is false.
-   */
-  public void setSkipResizeContent(boolean skipLayout) {
-    mySkipResizeContent = skipLayout;
-  }
-
-  public void skipContentResizeOnce() {
-    mySkipResizeContentOnce = true;
-  }
-
-  /**
-   * Return true if the content resize should be skipped
-   */
-  public boolean isSkipContentResize() {
-    return mySkipResizeContent || mySkipResizeContentOnce
-           || myCurrentZoomType != ZoomType.FIT;
-  }
-
-  /**
-   * Return true if the content resize step should skipped and reset mySkipResizeContentOnce to
-   * false
-   */
-  protected boolean contentResizeSkipped() {
-    boolean skip = isSkipContentResize();
-    mySkipResizeContentOnce = false;
-    return skip;
   }
 
   /**
