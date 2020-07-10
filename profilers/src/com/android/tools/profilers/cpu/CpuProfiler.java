@@ -25,10 +25,6 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -168,11 +164,7 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session) {
-    // TODO: handle different status of the response
-    CpuStartResponse response =
-        myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setSession(session).build());
-  }
+  public void startProfiling(Common.Session session) { }
 
   @Override
   public void stopProfiling(Common.Session session) {
@@ -185,10 +177,6 @@ public class CpuProfiler extends StudioProfiler {
                   mostRecentTrace.getConfiguration(),
                   null);
     }
-
-    // TODO: handle different status of the response
-    CpuStopResponse response =
-        myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setSession(session).build());
   }
 
   /**
