@@ -36,6 +36,7 @@ import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModifiableRootModel
 import icons.AndroidIcons
+import org.jetbrains.android.util.AndroidBundle
 import javax.swing.Icon
 
 /**
@@ -58,11 +59,8 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   private var wizardAdapter: IdeaWizardAdapter? = null // null if no adapter has been instantiated
 
   override fun getBuilderId(): String? = javaClass.name
-  override fun getPresentableName(): String = "Android"
-  override fun getDescription(): String =
-    "Android modules are used for developing apps to run on the <b>Android</b> operating system. An <b>Android</b> module " +
-    "consists of one or more <b>Activities</b> and may support a number of form-factors including <b>Phone and Tablet</b>, <b>Wear</b> " +
-    "and <b>Android Auto</b>."
+  override fun getPresentableName(): String = AndroidBundle.message("android.wizard.module.presentable.name")
+  override fun getDescription(): String = AndroidBundle.message("android.wizard.module.description")
 
   override fun getNodeIcon(): Icon = AndroidIcons.Android
   override fun getParentGroup(): String? = JavaModuleType.JAVA_GROUP
