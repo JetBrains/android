@@ -88,15 +88,7 @@ data class PairingResult(
 /**
  * A device/service as exposed by the "adb mdns services" command
  */
-data class MdnsService(val serviceName: String, val ipAddress: InetAddress, val port: Int) {
-  fun isPairing(): Boolean {
-    return serviceName.contains("pairing")
-  }
-
-  fun isConnect() : Boolean {
-    return serviceName.contains("connect")
-  }
-
+data class MdnsService(val serviceName: String, val serviceType: ServiceType, val ipAddress: InetAddress, val port: Int) {
   /**
    * A user friendly string representation of the device
    */
@@ -104,6 +96,11 @@ data class MdnsService(val serviceName: String, val ipAddress: InetAddress, val 
     get() {
       return ipAddress.hostAddress + ":" + port
     }
+}
+
+enum class ServiceType {
+  QrCode,
+  PinCode
 }
 
 /**

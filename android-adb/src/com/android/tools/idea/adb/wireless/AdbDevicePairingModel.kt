@@ -23,10 +23,16 @@ import java.util.ArrayList
  */
 @UiThread
 class AdbDevicePairingModel {
-  var mdnsServices: List<MdnsService> = emptyList()
+  var qrCodeServices: List<MdnsService> = emptyList()
     set(value) {
       field = value
-      listeners.forEach { it.mdnsServicesDiscovered(value) }
+      listeners.forEach { it.qrCodeServicesDiscovered(value) }
+    }
+
+  var pinCodeServices: List<MdnsService> = emptyList()
+    set(value) {
+      field = value
+      listeners.forEach { it.pinCodeServicesDiscovered(value) }
     }
 
   /** The list of listeners */
@@ -62,5 +68,10 @@ interface AdbDevicePairingModelListener {
   /**
    * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
    */
-  fun mdnsServicesDiscovered(services: List<MdnsService>)
+  fun qrCodeServicesDiscovered(services: List<MdnsService>)
+
+  /**
+   * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
+   */
+  fun pinCodeServicesDiscovered(services: List<MdnsService>)
 }
