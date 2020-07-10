@@ -277,14 +277,6 @@ public class RenderSecurityManager extends SecurityManager {
   }
 
   @Override
-  public void checkMemberAccess(Class<?> clazz, int which) {
-    if (which == Member.DECLARED && isRelevant() &&
-        RenderSecurityException.class.getName().equals(clazz.getName())) {
-      throw RenderSecurityException.create("Reflection", clazz.getName());
-    }
-  }
-
-  @Override
   public void checkPropertyAccess(String property) {
   }
 
@@ -538,13 +530,6 @@ public class RenderSecurityManager extends SecurityManager {
     }
   }
 
-  @Override
-  public void checkAwtEventQueueAccess() {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Event", null);
-    }
-  }
-
   // Prevent writes
 
   @Override
@@ -572,21 +557,6 @@ public class RenderSecurityManager extends SecurityManager {
     if (isRelevant()) {
       throw RenderSecurityException.create("Print", null);
     }
-  }
-
-  @Override
-  public void checkSystemClipboardAccess() {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Clipboard", null);
-    }
-  }
-
-  @Override
-  public boolean checkTopLevelWindow(Object context) {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Window", null);
-    }
-    return false;
   }
 
   @Override
@@ -624,6 +594,21 @@ public class RenderSecurityManager extends SecurityManager {
       }
       else if (mLogger != null) {
         mLogger.warning("RenderSecurityManager being replaced by another thread");
+      }
+    }
+    else if ("accessEventQueue".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("Event", null);
+      }
+    }
+    else if ("accessClipboard".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("Clipboard", null);
+      }
+    }
+    else if ("showWindowWithoutWarningBanner".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("Window", null);
       }
     }
     else if (isRelevant()) {
