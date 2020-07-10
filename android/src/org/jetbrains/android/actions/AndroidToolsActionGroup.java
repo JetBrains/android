@@ -32,6 +32,6 @@ public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbA
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getData(CommonDataKeys.PROJECT);
     e.getPresentation().setVisible(project != null && !project.isDisposed()
-                                   && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
+                                   && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID));
   }
 }
