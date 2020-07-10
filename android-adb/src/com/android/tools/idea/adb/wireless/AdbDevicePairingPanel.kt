@@ -38,7 +38,6 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
   private val learnMoreUrl = "http://developer.android.com/docs"
 
   private val qrCodePanel by lazy { QrCodePanel() }
-  private val pinCodePanel by lazy { PinCodePanel() }
   private val centerPanel by lazy { PairingCenterPanel() }
 
   private val loadingPanel: JBLoadingPanel by lazy {
@@ -56,6 +55,8 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       add(loadingPanel, BorderLayout.CENTER)
     }
   }
+
+  val pinCodePanel by lazy { PinCodePanel(parentDisposable) }
 
   var isLoading: Boolean
     get() = loadingPanel.isLoading

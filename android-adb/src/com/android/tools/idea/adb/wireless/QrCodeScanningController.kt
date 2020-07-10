@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.debugOrInfoIfTestMode
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
@@ -102,7 +103,8 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
 
     val futureServices = service.scanMdnsServices()
     edtExecutor.transform(futureServices) { services ->
-      view.model.mdnsServices = services
+      view.model.pinCodeServices = services.filter { it.serviceType == ServiceType.PinCode }
+      view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
     }.catching(edtExecutor, Throwable::class.java) {
       //TODO: Display/log error
     }.finallySync(edtExecutor) {
@@ -127,10 +129,10 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
     override fun qrCodeGenerated(newImage: QrCodeImage) {
     }
 
-    override fun mdnsServicesDiscovered(services: List<MdnsService>) {
-      LOG.info("${services.size} mDNS services discovered")
+    override fun qrCodeServicesDiscovered(services: List<MdnsService>) {
+      LOG.info("${services.size} QR code connect services discovered")
       services.forEachIndexed { index, it ->
-        LOG.info("  mDNS service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
+        LOG.info("  QR code connect service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
       }
 
       // If there is a QR Code displayed, look for a mDNS service with the same service name
@@ -140,6 +142,13 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
             // We found the service we created, meaning the phone is in "paring" mode
             startParingDevice(it, qrCodeImage.password)
           }
+      }
+    }
+
+    override fun pinCodeServicesDiscovered(services: List<MdnsService>) {
+      LOG.info("${services.size} Pin code pairing services discovered")
+      services.forEachIndexed { index, it ->
+        LOG.info("  Pin code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
       }
     }
   }

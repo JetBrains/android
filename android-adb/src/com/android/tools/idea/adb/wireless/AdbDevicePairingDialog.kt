@@ -53,6 +53,10 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
     dialogWrapper.show()
   }
 
+  fun showPinCodeServices(services: List<MdnsService>) {
+    pairingPanel.pinCodePanel.showAvailableServices(services)
+  }
+
   fun setQrCodeImage(qrCodeImage: QrCodeImage) {
     pairingPanel.setQrCodeImage(qrCodeImage)
   }
