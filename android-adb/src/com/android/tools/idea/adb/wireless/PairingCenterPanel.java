@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.adb.wireless;
 
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.utils.HtmlBuilder;
 import com.intellij.ui.border.CustomLineBorder;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -32,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public class PairingCenterPanel {
   @NotNull private JPanel myContentPanel;
   @NotNull private JPanel myErrorContainerPanel;
-  @NotNull private JEditorPane myErrorText;
+  @NotNull private JBLabel myErrorText;
   @NotNull private JPanel myRoot;
   @NotNull private JBScrollPane myScrollPane;
   private JPanel myErrorTopPanel;
@@ -42,7 +40,8 @@ public class PairingCenterPanel {
   public PairingCenterPanel() {
     myContentPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myErrorTextPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
+    //TODO: Add dependency to adt-ui?
+    //myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
     myErrorText.setForeground(UIColors.ERROR_TEXT);
 
     Border line = new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 1, 0, 0, 0);
@@ -55,7 +54,7 @@ public class PairingCenterPanel {
     myErrorBottomPanel.setBorder(c2);
     myErrorBottomPanel.setMinimumSize(new JBDimension(0, 30));
 
-    myErrorTextPanel.setBorder(new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 1, 1, 1, 1));
+    myErrorText.setBorder(new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 1, 1, 1, 1));
   }
 
   @NotNull
@@ -69,11 +68,11 @@ public class PairingCenterPanel {
   }
 
   public void showEmptyContent() {
-    showError(new HtmlBuilder());
+    showError("");
   }
 
-  public void showError(@NotNull HtmlBuilder html) {
-    EditorPaneUtils.setHtml(myErrorText, html, null);
+  public void showError(@NotNull String text) {
+    myErrorText.setText(text);
     myScrollPane.setVisible(false);
     myErrorContainerPanel.setVisible(true);
   }
@@ -82,9 +81,5 @@ public class PairingCenterPanel {
     myErrorText.setText("");
     myScrollPane.setVisible(true);
     myErrorContainerPanel.setVisible(false);
-  }
-
-  private void createUIComponents() {
-    myErrorText = EditorPaneUtils.createHtmlEditorPane();
   }
 }

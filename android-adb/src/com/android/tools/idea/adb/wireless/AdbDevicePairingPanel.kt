@@ -17,16 +17,23 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.utils.HtmlBuilder
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
+import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.SwingHelper
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.net.URL
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JPanel
+import javax.swing.event.HyperlinkEvent
 
 @UiThread
 internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
@@ -84,7 +91,18 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       font = JBUI.Fonts.label(16f).asBold()
     }
 
-    val editorPane = createHtmlEditorPane()
+    val viewer: JEditorPane = SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK)
+    viewer.isOpaque = false
+    viewer.isFocusable = false
+    UIUtil.doNotScrollToCaret(viewer)
+    viewer.addHyperlinkListener(object : HyperlinkAdapter() {
+      override fun hyperlinkActivated(e: HyperlinkEvent) {
+        val url: URL? = e.url
+        if (url != null) {
+          BrowserUtil.browse(url)
+        }
+      }
+    })
     val htmlBuilder = HtmlBuilder().apply {
       add("Pair devices over Wi-Fi for wireless debugging scanning a QR code manually or using a 6 digit code.")
       add(" ")
@@ -92,12 +110,12 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       add("  ")
       addLink("Learn more", learnMoreUrl)
     }
-    editorPane.setHtml(htmlBuilder, UIColors.HEADER_LABEL)
+    SwingHelper.setHtml(viewer, htmlBuilder.html, UIColors.HEADER_LABEL)
 
     return JPanel(BorderLayout()).apply {
       border = JBUI.Borders.empty(10, 10, 15, 10)
       add(topLabel, BorderLayout.NORTH)
-      add(editorPane, BorderLayout.CENTER)
+      add(viewer, BorderLayout.CENTER)
     }
   }
 
@@ -126,8 +144,8 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
     centerPanel.showEmptyContent()
   }
 
-  fun setLoadingError(html: HtmlBuilder) {
+  fun setLoadingError(text: String) {
     loadingPanel.stopLoading()
-    centerPanel.showError(html)
+    centerPanel.showError(text)
   }
 }

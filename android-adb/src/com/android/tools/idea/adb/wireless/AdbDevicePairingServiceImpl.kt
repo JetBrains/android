@@ -18,6 +18,7 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.catching
+import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -35,40 +36,30 @@ class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
   private val LOG = logger<AdbDevicePairingServiceImpl>()
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
-  override fun checkMdnsSupport(): ListenableFuture<MdnsSupportState> {
+  override fun isMdnsSupported(): ListenableFuture<Boolean> {
     // TODO: Investigate updating (then using) ddmlib instead of spawning an adb client command, so that
     //       we don't have to rely on parsing command line output
     LOG.info("Checking if mDNS is supported (`adb mdns check` command)")
     val futureResult = adbService.executeCommand(listOf("mdns", "check"))
     return futureResult.transform(taskExecutor) { result ->
-      when {
-        result.errorCode != 0 -> {
-          LOG.warn("`adb mdns check` returned a non-zero error code (${result.errorCode})")
-          val isUnknownCommand = result.stderr.any { line -> line.contains(Regex("unknown.*command")) }
-          if (isUnknownCommand)
-            MdnsSupportState.AdbVersionTooLow
-          else
-            MdnsSupportState.AdbInvocationError
-        }
-        result.stdout.isEmpty() -> {
-          LOG.warn("`adb mdns check` returned an empty output (why?)")
-          MdnsSupportState.AdbInvocationError
-        }
-        // See https://android-review.googlesource.com/c/platform/system/core/+/1274009/5/adb/client/transport_mdns.cpp#553
-        result.stdout.first().contains("mdns daemon version") -> {
-          MdnsSupportState.Supported
-        }
-        else -> {
-          MdnsSupportState.NotSupported
-        }
+      if (result.errorCode != 0) {
+        LOG.info("adb mdns check returned a non-zero error code (${result.errorCode})")
+        return@transform false
       }
+
+      if (result.stdout.isEmpty()) {
+        LOG.warn("adb mdns check returned an empty output (why?)")
+        return@transform false
+      }
+
+      // See https://android-review.googlesource.com/c/platform/system/core/+/1274009/5/adb/client/transport_mdns.cpp#553
+      return@transform result.stdout.first().contains("mdns daemon version")
     }.catching(taskExecutor, Throwable::class.java) { t ->
-      LOG.warn("Error executing `adb mdns check`", t)
-      MdnsSupportState.AdbInvocationError
-    }.transform(taskExecutor) { supportState ->
-      // This `tansform` is just for logging purposes
-      LOG.info("Checking if mDNS is supportState result: ${supportState}")
-      supportState
+      LOG.warn("Error running `adb mdns check`", t)
+      false
+    }.transform(taskExecutor) { supported ->
+      LOG.info("Checking if mDNS is supported result: ${supported}")
+      supported
     }
   }
 
