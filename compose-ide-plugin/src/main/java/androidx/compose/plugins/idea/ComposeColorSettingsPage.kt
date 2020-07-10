@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
 import javax.swing.Icon
 
 // This class is used by AndroidStudio to allow the user to change the style of Compose attributes.
-class IdeComposeColorSettingsPage : ColorSettingsPage {
+class ComposeColorSettingsPage : ColorSettingsPage {
     override fun getHighlighter(): SyntaxHighlighter {
         return KotlinColorSettingsPage().highlighter
     }
@@ -34,8 +34,8 @@ class IdeComposeColorSettingsPage : ColorSettingsPage {
     override fun getAdditionalHighlightingTagToDescriptorMap(): MutableMap<String,
             TextAttributesKey> {
         val attributes = HashMap<String, TextAttributesKey>()
-        attributes[IdeComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME] =
-            IdeComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
+        attributes[ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME] =
+            ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
         attributes["ANNOTATION"] = KotlinHighlightingColors.ANNOTATION
         attributes["KEYWORD"] = KotlinHighlightingColors.KEYWORD
         attributes["FUNCTION_DECLARATION"] = KotlinHighlightingColors.FUNCTION_DECLARATION
@@ -50,7 +50,7 @@ class IdeComposeColorSettingsPage : ColorSettingsPage {
     override fun getAttributeDescriptors(): Array<AttributesDescriptor> {
         // TODO: this needs to be localized.
         return arrayOf(AttributesDescriptor("Calls to @Compose functions",
-            IdeComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY))
+                                            ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY))
     }
 
     override fun getColorDescriptors(): Array<ColorDescriptor> {

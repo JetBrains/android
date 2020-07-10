@@ -16,8 +16,6 @@
 
 package androidx.compose.plugins.idea
 
-import androidx.compose.plugins.kotlin.ComposableEmitDescriptor
-import androidx.compose.plugins.kotlin.ComposableFunctionDescriptor
 import com.intellij.lang.annotation.Annotation
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -34,7 +32,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 
 // Used to apply styles for calls to @Composable functions.
-class IdeComposableAnnotator : Annotator {
+class ComposableAnnotator : Annotator {
     companion object TextAttributeRegistry {
         val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey
         val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
@@ -74,12 +72,7 @@ class IdeComposableAnnotator : Annotator {
         annotation.textAttributes = COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
     }
 
-    private fun shouldStyleCall(bindingContext: BindingContext, element: KtCallExpression):
-            Boolean {
-        return when (element.getResolvedCall(bindingContext)?.candidateDescriptor) {
-            is ComposableEmitDescriptor -> true
-            is ComposableFunctionDescriptor -> true
-            else -> false
-        }
+    private fun shouldStyleCall(bindingContext: BindingContext, element: KtCallExpression): Boolean {
+        return element.getResolvedCall(bindingContext)?.isComposableInvocation() == true
     }
 }
