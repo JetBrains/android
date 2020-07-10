@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.java
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep

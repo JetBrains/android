@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw
 
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 
 // TODO(qumeric): Probably two classes should be merged
 fun FormFactor.toTemplateFormFactor(): com.android.tools.idea.wizard.template.FormFactor = when(this) {

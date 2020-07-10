@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewAndroidModuleModel

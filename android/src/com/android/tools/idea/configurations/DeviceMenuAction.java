@@ -18,7 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.device.DeviceArtPainter;
+import com.android.tools.adtui.device.DeviceArtPainter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
