@@ -676,7 +676,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.setReadEditorMarkupModel(true);
 
-    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(getProject(), getTestRootDisposable(), () -> {
       List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
       // With new resources pipeline, all highlight usages of resources are found.
       assertThat(highlightInfos).hasSize(2);
