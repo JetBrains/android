@@ -17,10 +17,10 @@ package com.android.tools.property.testing
 
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.IdeFrame
 import org.junit.rules.ExternalResource
@@ -30,7 +30,6 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
-import sun.awt.CausedFocusEvent
 import java.awt.Component
 import java.awt.Container
 import java.awt.DefaultKeyboardFocusManager
@@ -38,7 +37,9 @@ import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.KeyboardFocusManager
 import java.awt.Window
+import java.awt.event.FocusEvent
 import java.awt.peer.ComponentPeer
+import java.lang.reflect.Constructor
 import javax.swing.JComponent
 
 /**
@@ -55,11 +56,13 @@ import javax.swing.JComponent
 class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalResource() {
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
+  private val eventConstructor = findEventConstructor()
+  private val getPeerMethod = AWTAccessor.ComponentAccessor::class.java.getDeclaredMethod("getPeer", Component::class.java)
   private val answer = Answer { invocation ->
     val componentToGainFocus = invocation.getArgument<Component>(0)
     val temporary = invocation.getArgument<Boolean>(1)
-    val cause = invocation.getArgument<CausedFocusEvent.Cause>(4)
-    val event = CausedFocusEvent(componentToGainFocus, 0, temporary, focusOwner, cause)
+    val cause = invocation.getArgument<Any>(4)
+    val event = eventConstructor.newInstance(componentToGainFocus, 0, temporary, focusOwner, cause) as FocusEvent
     val oldFocusOwner = focusOwner
     focusOwner?.focusListeners?.forEach { it.focusLost(event) }
     focusOwner = componentToGainFocus
@@ -88,6 +91,15 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
   private var ideFocusManager: IdeFocusManager? = null
 
+  private fun findEventConstructor(): Constructor<*> {
+    val eventName = if (SystemInfoRt.IS_AT_LEAST_JAVA9) "java.awt.event.FocusEvent" else "sun.awt.CausedFocusEvent"
+    val causeName = "$eventName\$Cause"
+    val eventClass = Class.forName(eventName)
+    val causeClass = Class.forName(causeName)
+    return eventClass.getDeclaredConstructor(
+      Component::class.java, Integer.TYPE, java.lang.Boolean.TYPE, Component::class.java, causeClass)
+  }
+
   /**
    * Make [component] the top component for the test.
    *
@@ -114,7 +126,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
   private fun setSinglePeer(component: Component) {
     val accessor = AWTAccessor.getComponentAccessor()
-    if (accessor.getPeer(component) == null) {
+    if (getPeerMethod.invoke(accessor, component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
       Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
                                        ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
