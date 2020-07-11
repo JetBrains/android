@@ -16,8 +16,6 @@
 
 package org.jetbrains.android.dom;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
@@ -39,12 +37,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -55,12 +48,15 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for code editor features when working with resources under res/values.
@@ -702,7 +698,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
                                               "</resources>");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
 
-    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(getProject(), getTestRootDisposable(), () -> {
       List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
       assertThat(highlightInfos).hasSize(1);
       HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
