@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -186,7 +187,7 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
 
     DataNode<NdkModuleModel> nativeAndroidModelNode = getFirstItem(ndkModuleModelNodes);
     assertNotNull(nativeAndroidModelNode);
-    assertSame(myIdeNativeAndroidProject, nativeAndroidModelNode.getData().getAndroidProject());
+    assertSame(myIdeNativeAndroidProject, ((V1NdkModel)nativeAndroidModelNode.getData().getNdkModel()).getAndroidProject());
 
     // Verify module has IdeaGradleProject.
     Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODULE_MODEL);

@@ -102,9 +102,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
 fun NdkModuleModel.format(): String = "\n" + """
     moduleName = ${moduleName}
     rootDirPath = ${rootDirPath}
-    androidProject = ${androidProject.format()}
-    variantAbi = ${nativeVariantAbis.format()}
-    variants = ${variants.format{ format()}}
+    ndkModel = ${ndkModel.format()}
     features = ${features.format()}
   """
 
