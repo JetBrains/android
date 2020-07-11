@@ -181,9 +181,11 @@ class LayoutPanel extends JPanel {
       .filter(Objects::nonNull)
       .collect(Collectors.toSet());
 
+    // As of JDK 11 DefaultTableModel.getDataVector has generic type Vector<Vector>, so we need to cast the resulting element to String,
+    // such that the outer unchecked cast to Set<String> succeeds.
     //noinspection unchecked
     Set<String> found = (Set<String>)mConstraintSetModel.getDataVector().stream()
-      .map(row -> ((Vector)row).get(1))
+      .map(row -> (String)((Vector)row).get(1))
       .collect(Collectors.toSet());
 
     if (!ids.equals(found)) {
