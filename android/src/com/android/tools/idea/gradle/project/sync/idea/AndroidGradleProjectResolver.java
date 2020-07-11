@@ -79,7 +79,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
@@ -448,9 +450,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         if (androidModel != null) {
           cachedVariants.getVariants().addAll(androidModel.getVariants());
         }
-        NdkModuleModel nativeModel = NdkModuleModel.get(module);
-        if (nativeModel != null) {
-          cachedVariants.getNativeVariants().addAll(nativeModel.getNativeVariantAbis());
+        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+        if (ndkModuleModel != null) {
+          NdkModel ndkModel = ndkModuleModel.getNdkModel();
+          if (ndkModel instanceof V1NdkModel) {
+            // Only V1 has NativeVariant tht needs to be cached. V2 instead stores the information directly on disk.
+            cachedVariants.getNativeVariants().addAll(((V1NdkModel)ndkModel).getNativeVariantAbis());
+          }
         }
         return cachedVariants;
       }
