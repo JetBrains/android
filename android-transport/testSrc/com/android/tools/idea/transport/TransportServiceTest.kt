@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.transport
 
-import com.google.common.truth.Truth.*
-
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Rule
@@ -34,16 +33,16 @@ import java.util.concurrent.CountDownLatch
  */
 class TransportServiceTest : LightPlatformTestCase() {
 
-  private lateinit var myService: TransportService
+  private lateinit var service: TransportService
 
   @get:Rule
-  val timeout = Timeout.seconds(10)
+  val timeout: Timeout = Timeout.seconds(10)
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    myService = TransportService()
-    Disposer.register(testRootDisposable, myService)
+    service = TransportServiceImpl()
+    Disposer.register(testRootDisposable, service)
   }
 
   /**
@@ -74,11 +73,11 @@ class TransportServiceTest : LightPlatformTestCase() {
     catch (ignored: IOException) {
     }
 
-    val stream = myService.registerStreamServer(Common.Stream.Type.FILE, testStreamServer)
+    val stream = service.registerStreamServer(Common.Stream.Type.FILE, testStreamServer)
     waitForQueueDrained(testStreamServer.eventDeque)
 
     // Validates that we can query all events from the database.
-    var client = TransportClient(TransportService.CHANNEL_NAME)
+    val client = TransportClient(TransportService.CHANNEL_NAME)
     val request = Transport.GetEventGroupsRequest.newBuilder().apply {
       streamId = stream.streamId
       kind = Common.Event.Kind.ECHO
@@ -129,7 +128,7 @@ class TransportServiceTest : LightPlatformTestCase() {
       .isEqualTo(testBytes)
 
     // Validates that bytes can't be queried after server stopped.
-    myService.unregisterStreamServer(stream.streamId)
+    service.unregisterStreamServer(stream.streamId)
     testStreamServer.byteCacheMap["test2"] = ByteString.copyFrom("DeadBeef2".toByteArray())
     assertThat(client.transportStub
                  .getBytes(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test2").build()))
@@ -138,7 +137,7 @@ class TransportServiceTest : LightPlatformTestCase() {
   }
 
   // Wait for the events to be drained from the deque. This ensures that they are in the database ready to be queried.
-  fun waitForQueueDrained(deque: BlockingDeque<Common.Event>) {
+  private fun waitForQueueDrained(deque: BlockingDeque<Common.Event>) {
     val doneLatch = CountDownLatch(1)
     Thread {
       while (!deque.isEmpty()) {

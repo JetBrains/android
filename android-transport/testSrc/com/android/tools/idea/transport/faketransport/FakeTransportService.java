@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
@@ -49,8 +50,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *  This class is thread-safe, allowing {@link CommandHandler} to publish new events on one thread (usually test) and
- *  {@link com.android.tools.idea.transport.poller.TransportEventPoller} to poll on a thread from itsown thread-pool
+ * This class is thread-safe, allowing {@link CommandHandler} to publish new events on one thread (usually test) and
+ * {@link com.android.tools.idea.transport.poller.TransportEventPoller} to poll on a thread from its own thread-pool
  */
 @AnyThread
 public class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
@@ -85,6 +86,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private final Map<Long, List<Common.Event>> myStreamEvents;
   private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
   private final Map<Long, Integer> myEventPositionMarkMap;
+  private final Map<Long, EventStreamServer> myStreamServerMap;
   private final FakeTimer myTimer;
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
@@ -104,6 +106,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myStreamEvents = new HashMap<>();
     myCommandHandlers = new HashMap<>();
     myEventPositionMarkMap = new HashMap<>();
+    myStreamServerMap = new HashMap<>();
     myTimer = timer;
     if (connected) {
       addDevice(FAKE_DEVICE);
@@ -261,6 +264,14 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myCache.put(id, contents);
   }
 
+  public void connectToStreamServer(Common.Stream stream, EventStreamServer streamServer) {
+    myStreamServerMap.put(stream.getStreamId(), streamServer);
+  }
+
+  public void disconnectFromStreamServer(long streamId) {
+    myStreamServerMap.remove(streamId);
+  }
+
   @Override
   public void getVersion(Transport.VersionRequest request, StreamObserver<Transport.VersionResponse> responseObserver) {
     responseObserver.onNext(Transport.VersionResponse.newBuilder().setVersion(VERSION).build());
@@ -306,7 +317,13 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   @Override
   public void getBytes(Transport.BytesRequest request, StreamObserver<Transport.BytesResponse> responseObserver) {
     Transport.BytesResponse.Builder builder = Transport.BytesResponse.newBuilder();
-    ByteString bytes = myCache.get(request.getId());
+    ByteString bytes;
+    if (myStreamServerMap.containsKey(request.getStreamId())) {
+      bytes = myStreamServerMap.get(request.getStreamId()).getByteCacheMap().get(request.getId());
+    }
+    else {
+      bytes = myCache.get(request.getId());
+    }
     if (bytes != null) {
       builder.setContents(bytes);
     }
@@ -395,6 +412,15 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
       responseObserver.onError(new RuntimeException("Server error"));
       return;
     }
+
+    // Drain all stream servers' event queue and insert the events as if they were inserted to the datastore.
+    myStreamServerMap.forEach((streamId, streamServer) -> {
+      while (!streamServer.getEventDeque().isEmpty()) {
+        Common.Event event = streamServer.getEventDeque().poll();
+        addEventToStream(streamId, event);
+      }
+    });
+
     // This logic mirrors that logic of transport-database. We do proper filtering of all events here so our test, behave as close to
     // runtime as possible.
     HashMap<Long, Transport.EventGroup.Builder> eventGroups = new HashMap<>();
