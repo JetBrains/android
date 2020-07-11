@@ -304,7 +304,7 @@ iml_module(
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/android-kotlin:lib/unb.dx",
+        "//tools/adt/idea/android-kotlin:unb.dx",
         "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
@@ -380,7 +380,7 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "lib/unb.dx",
+    name = "unb.dx",
     jars = ["lib/dx.jar"],
     tags = [
         "manual",

@@ -92,7 +92,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.profilersAndroid",
     srcs = ["src"],
-    bundled_deps = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos"],
+    bundled_deps = ["//tools/adt/idea/profilers-android:unb.traceprocessor-proto"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [
@@ -134,7 +134,18 @@ iml_module(
         "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
-        "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
+        "//tools/adt/idea/profilers-android:unb.traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.traceprocessor-proto",
+    jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
 )
