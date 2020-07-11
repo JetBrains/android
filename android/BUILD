@@ -1001,11 +1001,11 @@ iml_module(
     ]),
     bundled_deps = [
         "//tools/adt/idea/android/lib:unb.spantable",
-        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/squareup/moshi/moshi/1.6.0:jar",
-        "//tools/adt/idea/android/lib:unb.instantapps-api-1.8",
+        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:unb.okio",
+        "//tools/adt/idea/android:unb.moshi",
+        "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/adt/idea/android/lib:unb.pepk",
-        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
@@ -1031,8 +1031,8 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/android/lib:unb.spantable",
         "//tools/adt/idea/.idea/libraries:unb.jsr305",
-        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/squareup/moshi/moshi/1.6.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:unb.okio",
+        "//tools/adt/idea/android:unb.moshi",
         "//tools/base/repository:unb.studio.android.sdktools.repository[module]",
         "//tools/data-binding:unb.studio.baseLibrary[module]",
         "//tools/data-binding:unb.studio.baseLibrarySupport[module]",
@@ -1061,7 +1061,7 @@ iml_module(
         "//tools/adt/idea/apkanalyzer:unb.intellij.android.apkanalyzer[module]",
         "//tools/adt/idea/android-lang:unb.intellij.android.lang[module]",
         "//tools/adt/idea/android-adb:unb.intellij.android.adb[module]",
-        "//tools/adt/idea/android/lib:unb.instantapps-api-1.8",
+        "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/analytics-library/crash:unb.analytics-crash[module]",
         "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
         "//tools/adt/idea/android/lib:unb.pepk",
@@ -1079,7 +1079,7 @@ iml_module(
         "//tools/adt/idea/lint:unb.intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:unb.intellij.android.dagger[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
 )
 
@@ -1087,8 +1087,8 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.core.tests",
     bundled_deps = [
-        "//tools/adt/idea/android/lib:unb.instantapps-api-1.8",
-        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
+        "//tools/adt/idea/android/lib:unb.instantapps-api",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
@@ -1293,7 +1293,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-lang:unb.intellij.android.lang[module, test]",
-        "//tools/adt/idea/android/lib:unb.instantapps-api-1.8",
+        "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/analytics-library/crash:unb.analytics-crash[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
         "//tools/adt/idea/android/lib:unb.pepk[test]",
@@ -1315,6 +1315,21 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:unb.intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:unb.studio.android.sdktools.builder-model[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.moshi",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/com/squareup/moshi/moshi/1.6.0:unb.moshi_files",
+        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:unb.moshi_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
 )

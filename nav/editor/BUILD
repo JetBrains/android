@@ -154,13 +154,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.nav.editor",
     srcs = ["src"],
-    bundled_deps = [
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
-    ],
+    bundled_deps = ["//tools/adt/idea/nav/editor:unb.eclipse-layout-kernel"],
     iml_files = ["intellij.android.nav.editor.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -181,11 +175,7 @@ iml_module(
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
+        "//tools/adt/idea/nav/editor:unb.eclipse-layout-kernel",
         "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
@@ -242,4 +232,22 @@ iml_module(
         "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module, test]",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.eclipse-layout-kernel",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:unb.eclipse-layout-kernel_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
 )
