@@ -16,14 +16,11 @@
 package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
-import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -41,7 +38,6 @@ class DefaultInspectorClientTest {
     transportRule.attach()
     val window1 = view(123)
     val window2 = view(321)
-    val window3 = view(555)
 
     // Run an event and verify it's run
     transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent(2000, window1, window2))

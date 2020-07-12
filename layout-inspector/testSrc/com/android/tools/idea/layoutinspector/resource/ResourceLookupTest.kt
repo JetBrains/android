@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE

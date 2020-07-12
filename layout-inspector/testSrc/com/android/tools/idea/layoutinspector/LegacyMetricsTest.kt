@@ -26,7 +26,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
-import io.grpc.StatusRuntimeException
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

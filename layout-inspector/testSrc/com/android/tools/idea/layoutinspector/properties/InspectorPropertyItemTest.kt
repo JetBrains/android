@@ -47,11 +47,9 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 
-@RunsInEdt
-class InspectorPropertyItemTest {
+abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
   private var componentStack: ComponentStack? = null
-  private var model: InspectorModel? = null
-  private val projectRule = AndroidProjectRule.withSdk()
+  protected var model: InspectorModel? = null
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -76,6 +74,63 @@ class InspectorPropertyItemTest {
     model = null
   }
 
+  protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
+    val node = fakeComposeNode
+    return InspectorPropertyItem(ANDROID_URI, "x", Type.DIMENSION_DP, value, PropertySection.DECLARED, null, node, model!!.resourceLookup)
+  }
+
+  protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
+    val node = fakeComposeNode
+    return InspectorPropertyItem(ANDROID_URI, "textSize", Type.DIMENSION_SP, value, PropertySection.DECLARED, null, node,
+                                 model!!.resourceLookup)
+  }
+
+  protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
+    val node = fakeComposeNode
+    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", Type.DIMENSION_EM, value, PropertySection.DECLARED, null, node,
+                                 model!!.resourceLookup)
+  }
+
+  protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, node,
+                                 model!!.resourceLookup)
+  }
+
+  protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
+                                 model!!.resourceLookup)
+  }
+
+  protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
+                                 model!!.resourceLookup)
+  }
+
+  private val fakeComposeNode: ComposeViewNode =
+    ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, "", 0, "Text.kt", "method", 17)
+
+  protected fun browseProperty(attrName: String,
+                             type: Type,
+                             source: ResourceReference?): OpenFileDescriptor {
+    val node = model!!["title"]!!
+    val property = InspectorPropertyItem(
+      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node, model!!.resourceLookup)
+    val fileManager = FileEditorManager.getInstance(projectRule.project)
+    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+
+    property.helpSupport.browse()
+    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    return file.value
+  }
+}
+
+@RunsInEdt
+class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRule.onDisk()) {
   @Test
   fun testFormatDimensionInPixels() {
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
@@ -277,7 +332,10 @@ class InspectorPropertyItemTest {
     assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
       .isEqualTo("framework:background=\"@drawable/battery\"")
   }
+}
 
+@RunsInEdt
+class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(AndroidProjectRule.withSdk()) {
   @Test
   fun testBrowseTextSizeFromTextAppearance() {
     val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
@@ -285,59 +343,5 @@ class InspectorPropertyItemTest {
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
     assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
       .isEqualTo("<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
-  }
-
-  private fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun textSizePropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
-    val node = fakeComposeNode
-    return InspectorPropertyItem(ANDROID_URI, "x", Type.DIMENSION_DP, value, PropertySection.DECLARED, null, node, model!!.resourceLookup)
-  }
-
-  private fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
-    val node = fakeComposeNode
-    return InspectorPropertyItem(ANDROID_URI, "textSize", Type.DIMENSION_SP, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
-    val node = fakeComposeNode
-    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", Type.DIMENSION_EM, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private val fakeComposeNode: ComposeViewNode =
-    ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, "", 0, "Text.kt", "method", 17)
-
-  private fun browseProperty(attrName: String,
-                             type: Type,
-                             source: ResourceReference?): OpenFileDescriptor {
-    val node = model!!["title"]!!
-    val property = InspectorPropertyItem(
-      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node, model!!.resourceLookup)
-    val fileManager = FileEditorManager.getInstance(projectRule.project)
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
-
-    property.helpSupport.browse()
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    return file.value
   }
 }
