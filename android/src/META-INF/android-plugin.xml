@@ -823,6 +823,8 @@
     Android Property Files Updating;Android Module Importing;APK Analyzer (Important);APK Analyzer (Info);UnifiedDeployTask;
     JDK Location different to JAVA_HOME;Gradle Sync;Android;Invalid Sketch file;Device File Explorer;Emulator;Screen Capture;
     Low Memory;Importing Error;Android Autogeneration;"/>
+
+    <webHelpProvider implementation="com.android.tools.idea.help.StudioWebHelpProvider" />
   </extensions>
 
   <projectListeners>

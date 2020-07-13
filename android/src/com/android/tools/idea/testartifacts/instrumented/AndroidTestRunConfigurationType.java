@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
+
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -26,11 +28,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 public final class AndroidTestRunConfigurationType implements ConfigurationType {
   private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = new NotNullLazyValue<Icon>() {
@@ -85,7 +86,7 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
 
   @Override
   public String getHelpTopic() {
-    return "reference.dialogs.rundebug.AndroidTestRunConfigurationType";
+    return STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.AndroidTestRunConfigurationType";
   }
 
   public ConfigurationFactory getFactory() {
