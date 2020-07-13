@@ -2,176 +2,202 @@
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
+import com.android.SdkConstants.CLASS_VIEW
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.codeInsight.completion.JavaLookupElementBuilder
+import com.android.tools.idea.psi.TagToClassMapper
+import com.android.tools.idea.res.isClassPackageNeeded
+import com.android.tools.idea.util.androidFacet
+import com.intellij.codeInsight.completion.PrioritizedLookupElement
+import com.intellij.codeInsight.completion.XmlTagInsertHandler
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.lang.ASTNode
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.ElementManipulators
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiPackage
+import com.intellij.psi.PsiQualifiedNamedElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.PsiReferenceProvider
+import com.intellij.psi.impl.migration.MigrationClassImpl
 import com.intellij.psi.impl.source.resolve.ResolveCache
-import com.intellij.psi.search.searches.ClassInheritorsSearch
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlChildRole
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.ArrayUtil
 import com.intellij.util.ProcessingContext
+import com.intellij.util.xml.DomManager
+import org.jetbrains.android.dom.layout.LayoutViewElement
+import org.jetbrains.android.dom.layout.View
+import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil.PreferenceSource
+import org.jetbrains.android.dom.xml.PreferenceElement
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.isVisibleInXml
+import org.jetbrains.android.facet.TagFromClassDescriptor
+import org.jetbrains.android.facet.findClassValidInXMLByName
 import java.util.ArrayList
 
 class AndroidXmlReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
     if (element !is XmlTag) {
-      return PsiReference.EMPTY_ARRAY
+      return emptyArray()
     }
-    val module = ModuleUtilCore.findModuleForPsiElement(element)
-    if (module == null || AndroidFacet.getInstance(module) == null) {
-      return PsiReference.EMPTY_ARRAY
-    }
-    val startTagName = XmlChildRole.START_TAG_NAME_FINDER.findChild(element.getNode())
-    val baseClassQName = computeBaseClass(element) ?: return PsiReference.EMPTY_ARRAY
+    val facet = element.androidFacet ?: return emptyArray()
+
+    val baseClassQName = computeBaseClass(element) ?: return emptyArray()
     val result: MutableList<PsiReference> = ArrayList()
-    val tag = element
-    if (startTagName != null && areReferencesProvidedByReferenceProvider(startTagName)) {
-      addReferences(tag, startTagName.psi, result, module, baseClassQName, true)
+    val startTagName = XmlChildRole.START_TAG_NAME_FINDER.findChild(element.getNode())
+    if (startTagName != null) {
+      addReferences(element, startTagName, result, facet, baseClassQName, true)
     }
+
     val closingTagName = XmlChildRole.CLOSING_TAG_NAME_FINDER.findChild(element.getNode())
-    if (closingTagName != null && areReferencesProvidedByReferenceProvider(closingTagName)) {
-      addReferences(tag, closingTagName.psi, result, module, baseClassQName, false)
+    if (closingTagName != null) {
+      addReferences(element, closingTagName, result, facet, baseClassQName, false)
     }
     return result.toTypedArray()
   }
 
   private class MyClassOrPackageReference(tag: XmlTag,
-                                          private val myNameElement: PsiElement,
+                                          private val myNameElement: ASTNode,
                                           private val myRangeInNameElement: TextRange,
-                                          private val myIsPackage: Boolean,
-                                          private val myModule: Module,
+                                          private val facet: AndroidFacet,
                                           private val myBaseClassQName: String,
-                                          private val myStartTag: Boolean) : PsiReferenceBase<PsiElement?>(tag, rangeInParent(
-    myNameElement, myRangeInNameElement), true) {
+                                          private val myStartTag: Boolean) : PsiReferenceBase<PsiElement?>(tag, true) {
+    private val project = tag.project
+    private val packagePrefix = myNameElement.text.substring(0, myRangeInNameElement.startOffset)
+    private val isParentContainer by lazy {
+      val parentTagFromClassDescriptor = ((tag.parent as? XmlTag)
+        ?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
+      parentTagFromClassDescriptor.isContainer
+    }
+
     override fun resolve(): PsiElement? {
-      return ResolveCache.getInstance(myElement!!.project)
-        .resolveWithCaching(this, { reference: MyClassOrPackageReference?, incompleteCode: Boolean -> resolveInner() }, false, false)
+      return ResolveCache.getInstance(project).resolveWithCaching(this, { _, _ -> resolveInner() }, false, false)
     }
 
     private fun resolveInner(): PsiElement? {
       val end = myRangeInNameElement.endOffset
       val value = myNameElement.text.substring(0, end)
-      val facade = JavaPsiFacade.getInstance(myElement!!.project)
-      return if (myIsPackage) facade.findPackage(value)
-      else facade.findClass(value, myModule.getModuleSystem().getResolveScope(
-        ScopeType.MAIN))
+      val facade = JavaPsiFacade.getInstance(project)
+      return findClassValidInXMLByName(facet, value, myBaseClassQName) as? PsiElement
+             ?: facade.findPackage(value) as? PsiElement
+             // Special case for migration, because InheritanceUtil.isInheritorOrSelf works incorrectly with MigrationClassImpl
+             ?: facade.findClass(value, facet.module.getModuleSystem().getResolveScope(ScopeType.MAIN)).takeIf { it is MigrationClassImpl }
     }
 
     override fun getVariants(): Array<Any> {
-      val prefix = myNameElement.text.substring(0, myRangeInNameElement.startOffset)
-      if (!myStartTag) {
-        val startTagNode = XmlChildRole.START_TAG_NAME_FINDER.findChild(myElement!!.node)
-        if (startTagNode != null) {
-          val startTagName = startTagNode.text
-          if (startTagName.startsWith(prefix)) {
-            return arrayOf(startTagName.substring(prefix.length))
-          }
-        }
+      if (!isParentContainer) {
         return emptyArray()
       }
-      val project = myModule.project
-      val baseClass = JavaPsiFacade
-                        .getInstance(project)
-                        .findClass(myBaseClassQName, myModule.getModuleWithDependenciesAndLibrariesScope(false))
-                      ?: return emptyArray()
-      val result: MutableList<Any?> = ArrayList()
-      ClassInheritorsSearch
-        .search(baseClass, myModule.getModuleWithDependenciesAndLibrariesScope(false), true, true, false)
-        .forEach { psiClass: PsiClass ->
-          if (psiClass.containingClass != null) {
-            return@forEach
+      if (!myStartTag) {
+        // Lookup elements for closing tag are provided by TagNameReferenceCompletionProvider.createClosingTagLookupElements.
+        // Essentially it just duplicates opening tag. It's a common logic for all XML tags.
+        // It works because for every tag we have reference - [TagNameReference]. See [TagNameReference.createTagNameReference]
+        return emptyArray()
+      }
+
+      val apiLevel = AndroidModuleInfo.getInstance(facet).moduleMinApi
+
+      return TagToClassMapper.getInstance(facet.module).getClassMap(myBaseClassQName)
+        .filter { (name, psiClass) ->
+          return@filter if (packagePrefix.isEmpty() && name == psiClass.qualifiedName) {
+            // Don't suggest FQN when we can use short one.
+            isClassPackageNeeded(psiClass.qualifiedName!!, psiClass, apiLevel, myBaseClassQName)
           }
-          var name = psiClass.qualifiedName
-          if (name != null && name.startsWith(prefix) && psiClass.isVisibleInXml()) {
-            name = name.substring(prefix.length)
-            result.add(JavaLookupElementBuilder.forClass(psiClass, name, true))
+          else {
+            name.startsWith(packagePrefix)
           }
         }
-      return ArrayUtil.toObjectArray(result)
+        .map { (name, psiClass) -> createClassAsTagXmlElement(name.removePrefix(packagePrefix), psiClass) }.toTypedArray()
     }
 
     override fun bindToElement(element: PsiElement): PsiElement {
-      val newName = if (myIsPackage) (element as PsiPackage).qualifiedName else (element as PsiClass).qualifiedName!!
+      val newName = (element as PsiQualifiedNamedElement).qualifiedName
       val range = TextRange(0, myRangeInNameElement.endOffset)
-      return ElementManipulators.handleContentChange(myNameElement, range, newName)
+      return ElementManipulators.handleContentChange(myNameElement.psi, range, newName)
     }
 
     override fun handleElementRename(newElementName: String): PsiElement? {
-      return ElementManipulators.handleContentChange(myNameElement, myRangeInNameElement, newElementName)
+      return ElementManipulators.handleContentChange(myNameElement.psi, myRangeInNameElement, newElementName)
     }
 
-    companion object {
-      private fun rangeInParent(element: PsiElement, range: TextRange): TextRange {
-        val offset = element.startOffsetInParent
-        return TextRange(range.startOffset + offset, range.endOffset + offset)
-      }
+    override fun getRangeInElement(): TextRange {
+      val parentOffset = myNameElement.startOffsetInParent
+      return TextRange(parentOffset + myRangeInNameElement.startOffset, parentOffset + myRangeInNameElement.endOffset)
     }
   }
 
   companion object {
     private fun addReferences(tag: XmlTag,
-                              nameElement: PsiElement,
+                              nameElement: ASTNode,
                               result: MutableList<PsiReference>,
-                              module: Module,
+                              facet: AndroidFacet,
                               baseClassQName: String,
                               startTag: Boolean) {
-      val text = nameElement.text ?: return
-      val nameParts = text.split("\\.".toRegex()).toTypedArray()
-      if (nameParts.size == 0) {
-        return
-      }
+      val text = nameElement.text
+      val nameParts = text.split(".")
+
       var offset = 0
-      for (i in nameParts.indices) {
-        val name = nameParts[i]
-        if (!name.isEmpty()) {
+      for (name in nameParts) {
+        if (name.isNotEmpty()) {
           offset += name.length
           val range = TextRange(offset - name.length, offset)
-          val isPackage = i < nameParts.size - 1
-          result.add(MyClassOrPackageReference(tag, nameElement, range, isPackage, module, baseClassQName, startTag))
+          result.add(MyClassOrPackageReference(tag, nameElement, range, facet, baseClassQName, startTag))
         }
         offset++
       }
     }
 
-    @JvmStatic
-    fun areReferencesProvidedByReferenceProvider(nameElement: ASTNode?): Boolean {
-      if (nameElement != null) {
-        val psiNameElement = nameElement.psi
-        val tag = if (psiNameElement != null) PsiTreeUtil.getParentOfType(psiNameElement, XmlTag::class.java) else null
-        if (tag != null) {
-          val baseClassQName = computeBaseClass(tag)
-          if (baseClassQName != null) {
-            return nameElement.text.contains(".")
-          }
+    private fun computeBaseClass(tag: XmlTag): String? {
+      val domElement = DomManager.getDomManager(tag.project).getDomElement(tag)
+      return when {
+        domElement is LayoutViewElement && domElement !is View -> CLASS_VIEW
+        domElement is PreferenceElement -> {
+          val facet = tag.androidFacet ?: return null
+          PreferenceSource.getPreferencesSource(tag, facet).qualifiedBaseClass
         }
+        else -> null
       }
-      return false
-    }
-
-    private fun computeBaseClass(context: XmlTag): String? {
-      var parentTag = context.parentTag
-      if (parentTag != null && SdkConstants.TAG_LAYOUT == parentTag.name) {
-        // If the tag parent is "layout", let's consider the given tag as the root to compute the base class
-        parentTag = null
-      }
-      val pair = AndroidDomElementDescriptorProvider.getDomElementAndBaseClassQName(parentTag ?: context)
-      return pair?.getSecond()
     }
   }
+}
+
+/**
+ * Creates a [LookupElement] for layout tags, to improve editing UX.
+ *
+ * Makes possible to do completions like "TvV" to "android.media.tv.TvView".
+ * Adds [XmlTagInnerClassInsertHandler] for inner classes.
+ * Adds low priority for deprecated classes and high priority for androidx and support library alternative.
+ */
+fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
+
+  var lookupElement = LookupElementBuilder.create(clazz, name)
+
+  val qualifiedName = clazz.qualifiedName!!
+  val shortClassName = clazz.name!!
+
+  lookupElement = lookupElement.withLookupString(qualifiedName)
+  lookupElement = lookupElement.withLookupString(shortClassName)
+
+  val priority = when {
+    clazz.isDeprecated -> -1
+    clazz.name == name -> 1
+    qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) || qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 2
+    else -> 0
+  }
+
+  AndroidDomElementDescriptorProvider.getIconForViewTag(shortClassName)?.let {
+    lookupElement = lookupElement.withIcon(it)
+  }
+
+  if (clazz.containingClass != null) {
+    lookupElement = lookupElement.withInsertHandler(XmlTagInnerClassInsertHandler.INSTANCE)
+  }
+  else {
+    lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE)
+  }
+
+  return PrioritizedLookupElement.withPriority(lookupElement, priority.toDouble())
 }
