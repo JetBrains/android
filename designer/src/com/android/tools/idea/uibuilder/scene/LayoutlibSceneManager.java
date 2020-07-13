@@ -139,7 +139,10 @@ public class LayoutlibSceneManager extends SceneManager {
   @GuardedBy("myRenderingQueueLock")
   private MergingUpdateQueue myRenderingQueue;
   private static final int RENDER_DELAY_MS = 10;
+  @GuardedBy("myRenderingTaskLock")
   private RenderTask myRenderTask;
+  @GuardedBy("myRenderingTaskLock")
+  private long myTaskStartTimeNanos;
   // Protects all accesses to the myRenderTask reference. RenderTask calls to render and layout do not need to be protected
   // since RenderTask is able to handle those safely.
   private final Object myRenderingTaskLock = new Object();
@@ -991,6 +994,7 @@ public class LayoutlibSceneManager extends SceneManager {
                     Logger.getInstance(LayoutlibSceneManager.class).warn(t);
                   }
                 }
+                myTaskStartTimeNanos = System.nanoTime();
                 myRenderTask = newTask;
               }
             }
@@ -1496,6 +1500,11 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   public CompletableFuture<Boolean> executeCallbacks() {
+    return executeCallbacks(currentTimeNanos());
+  }
+
+  @NotNull
+  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
@@ -1504,8 +1513,13 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(false);
       }
-      myRenderTask.setSessionTimeNanos(System.nanoTime());
-      return myRenderTask.executeCallbacks();
+      return myRenderTask.executeCallbacks(timeNanos);
+    }
+  }
+
+  private long currentTimeNanos() {
+    synchronized (myRenderingTaskLock) {
+      return System.nanoTime() - myTaskStartTimeNanos;
     }
   }
 
@@ -1517,8 +1531,8 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(
-    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+  protected CompletableFuture<Void> triggerTouchEvent(
+    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y, long timeNanos) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
@@ -1527,9 +1541,14 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(null);
       }
-      myRenderTask.setSessionTimeNanos(System.nanoTime());
-      return myRenderTask.triggerTouchEvent(type, x, y);
+      return myRenderTask.triggerTouchEvent(type, x, y, timeNanos);
     }
+  }
+
+  @NotNull
+  public CompletableFuture<Void> triggerTouchEvent(
+    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    return triggerTouchEvent(type, x, y, currentTimeNanos());
   }
 
   /**
