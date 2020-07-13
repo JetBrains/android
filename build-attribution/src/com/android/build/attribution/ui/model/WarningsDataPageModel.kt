@@ -20,7 +20,6 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
-import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
@@ -28,6 +27,8 @@ import com.android.build.attribution.ui.warningsCountString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import javax.swing.tree.DefaultMutableTreeNode
 
 interface WarningsDataPageModel {
@@ -45,6 +46,8 @@ interface WarningsDataPageModel {
   /** True if there are no warnings to show. */
   val isEmpty: Boolean
 
+  var filter: WarningsFilter
+
   /**
    * Selects node in a tree to provided.
    * Provided node object should be the one created in this model and exist in the trees it holds.
@@ -56,7 +59,7 @@ interface WarningsDataPageModel {
   fun selectPageById(warningsPageId: WarningsPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun setModelUpdatedListener(listener: () -> Unit)
+  fun setModelUpdatedListener(listener: (Boolean) -> Unit)
 
   /** Retrieve node descriptor by it's page id. Null if node does not exist in currently presented tree structure. */
   fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor?
@@ -66,19 +69,37 @@ class WarningsDataPageModelImpl(
   override val reportData: BuildAttributionReportUiData
 ) : WarningsDataPageModel {
   @VisibleForTesting
-  var modelUpdatedListener: (() -> Unit)? = null
+  var modelUpdatedListener: ((Boolean) -> Unit)? = null
     private set
 
   override val treeHeaderText: String =
     "${reportData.totalIssuesCount} ${StringUtil.pluralize("Warning", reportData.totalIssuesCount)}"
 
-  private val treeStructure = WarningsTreeStructure(reportData)
+  override var filter: WarningsFilter = WarningsFilter.default()
+    set(value) {
+      field = value
+      treeStructure.updateStructure(value)
+      dropSelectionIfMissing()
+      treeStructureChanged = true
+      modelChanged = true
+      notifyModelChanges()
+    }
+
+  private val treeStructure = WarningsTreeStructure(reportData).apply {
+    updateStructure(filter)
+  }
 
   override val treeRoot: DefaultMutableTreeNode
     get() = treeStructure.groupedByTypeNodes
 
   // True when there are changes since last listener call.
   private var modelChanged = false
+
+  // TODO (mlazeba): this starts look wrong. Can we provide TreeModel instead of a root node? what are the pros and cons? what are the other options?
+  //   idea 1) make listener have multiple methods: tree updated, selection updated, etc.
+  //   idea 2) provide TreeModel instead of root. then that model updates tree itself on changes.
+  // True when tree changed it's structure since last listener call.
+  private var treeStructureChanged = false
 
   private var selectedPageId: WarningsPageId = WarningsPageId.emptySelection
     private set(value) {
@@ -102,17 +123,24 @@ class WarningsDataPageModelImpl(
     treeStructure.pageIdToNode[warningsPageId]?.let { selectNode(it) }
   }
 
-  override fun setModelUpdatedListener(listener: () -> Unit) {
+  override fun setModelUpdatedListener(listener: (Boolean) -> Unit) {
     modelUpdatedListener = listener
   }
 
   override fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor? =
     treeStructure.pageIdToNode[pageId]?.descriptor
 
+  private fun dropSelectionIfMissing() {
+    if (!treeStructure.pageIdToNode.containsKey(selectedPageId)) {
+      selectedPageId = WarningsPageId.emptySelection
+    }
+  }
+
   private fun notifyModelChanges() {
     if (modelChanged) {
-      modelUpdatedListener?.invoke()
+      modelUpdatedListener?.invoke(treeStructureChanged)
       modelChanged = false
+      treeStructureChanged = false
     }
   }
 }
@@ -127,20 +155,36 @@ private class WarningsTreeStructure(
     pageIdToNode[descriptor.pageId] = this
   }
 
-  val groupedByTypeNodes = DefaultMutableTreeNode().apply {
-    reportData.issues.forEach { warningsGroup ->
-      add(treeNode(TaskWarningTypeNodeDescriptor(warningsGroup)).apply {
-        warningsGroup.issues.forEach { taskWarning ->
-          add(treeNode(TaskWarningDetailsNodeDescriptor(taskWarning)))
+  var groupedByTypeNodes = DefaultMutableTreeNode()
+
+  fun updateStructure(filter: WarningsFilter) {
+    pageIdToNode.clear()
+    groupedByTypeNodes.let { rootNode ->
+      rootNode.removeAllChildren()
+      reportData.issues.asSequence()
+        .flatMap { it.issues.asSequence() }
+        .map { TaskWarningDetailsNodeDescriptor(it) }
+        .filter { filter.acceptTaskIssue(it.issueData) }
+        .groupBy { it.issueData.type }
+        .forEach {
+          val warningTypeGroupingNodeDescriptor = TaskWarningTypeNodeDescriptor(it.key, it.value.map { it.issueData })
+          val warningTypeGroupingNode = treeNode(warningTypeGroupingNodeDescriptor)
+          rootNode.add(warningTypeGroupingNode)
+          it.value.forEach { taskIssueNodeDescriptor ->
+            warningTypeGroupingNode.add(treeNode(taskIssueNodeDescriptor))
+          }
         }
-      })
-    }
-    if (reportData.annotationProcessors.issueCount > 0) {
-      add(treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors)).apply {
-        reportData.annotationProcessors.nonIncrementalProcessors.forEach {
-          add(treeNode(AnnotationProcessorDetailsNodeDescriptor(it)))
+      reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+        .map { AnnotationProcessorDetailsNodeDescriptor(it) }
+        .filter { filter.acceptAnnotationProcessorIssue(it.annotationProcessorData) }
+        .toList()
+        .ifNotEmpty {
+          val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
+          rootNode.add(annotationProcessorsRootNode)
+          forEach {
+            annotationProcessorsRootNode.add(treeNode(it))
+          }
         }
-      })
     }
   }
 }
@@ -183,19 +227,21 @@ sealed class WarningsTreePresentableNodeDescriptor {
 
 /** Descriptor for the task warning type group node. */
 class TaskWarningTypeNodeDescriptor(
-  val warningTypeData: TaskIssuesGroup
+  val warningType: TaskIssueType,
+  val presentedWarnings: List<TaskIssueUiData>
+
 ) : WarningsTreePresentableNodeDescriptor() {
-  override val pageId: WarningsPageId = WarningsPageId.warningType(warningTypeData.type)
-  override val analyticsPageType = when (warningTypeData.type) {
+  override val pageId: WarningsPageId = WarningsPageId.warningType(warningType)
+  override val analyticsPageType = when (warningType) {
     TaskIssueType.ALWAYS_RUN_TASKS -> PageType.ALWAYS_RUN_ISSUE_ROOT
     TaskIssueType.TASK_SETUP_ISSUE -> PageType.TASK_SETUP_ISSUE_ROOT
   }
 
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
-      mainText = warningTypeData.type.uiName,
-      suffix = warningsCountString(warningTypeData.warningCount),
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(warningTypeData.timeContribution.timeMs)
+      mainText = warningType.uiName,
+      suffix = warningsCountString(presentedWarnings.size),
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(presentedWarnings.sumByLong { it.task.executionTime.timeMs })
     )
 }
 
