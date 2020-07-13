@@ -15,14 +15,12 @@
  */
 package org.jetbrains.android;
 
-import static com.android.SdkConstants.CLASS_VIEW;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
-import com.android.tools.idea.psi.TagToClassMapper;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResult;
@@ -36,7 +34,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
@@ -59,8 +56,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
@@ -71,10 +66,8 @@ import org.jetbrains.android.dom.color.AndroidColorDomUtil;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.layout.Data;
 import org.jetbrains.android.dom.layout.DataBindingDomFileDescription;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
@@ -85,7 +78,6 @@ import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -99,7 +91,6 @@ import org.jetbrains.annotations.NotNull;
  *   <li>combinations of flag values to be used with attr's with {@code format="flags"}
  * </ul>
  *
- * @see org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider
  */
 public class AndroidXmlCompletionContributor extends CompletionContributor {
 
@@ -184,32 +175,6 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       resultSet.addElement(LookupElementBuilder.create("manifest"));
       return false;
     }
-    else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      final Map<String, PsiClass> classMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_VIEW);
-
-      for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
-        final PsiClass aClass = classMap.get(rootTag);
-        LookupElementBuilder builder;
-        if (aClass != null) {
-          builder = LookupElementBuilder.create(aClass, rootTag);
-          final String qualifiedName = aClass.getQualifiedName();
-          final String name = qualifiedName == null ? null : AndroidUtils.getUnqualifiedName(qualifiedName);
-          if (name != null) {
-            builder = builder.withLookupString(name);
-          }
-        }
-        else {
-          builder = LookupElementBuilder.create(rootTag);
-        }
-        final Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(rootTag);
-
-        if (icon != null) {
-          builder = builder.withIcon(icon);
-        }
-        resultSet.addElement(builder);
-      }
-      return false;
-    }
     else if (AndroidResourceDomFileDescription.isFileInResourceFolderType(xmlFile, ResourceFolderType.ANIM)) {
       addAll(AndroidAnimationUtils.getPossibleRoots(), resultSet);
       return false;
@@ -219,7 +184,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (XmlResourceDomFileDescription.isXmlResourceFile(xmlFile)) {
-      addAll(AndroidXmlResourcesUtil.getPossibleRoots(facet), resultSet);
+      addAll(AndroidXmlResourcesUtil.ROOT_TAGS, resultSet);
       return false;
     }
     else if (AndroidDrawableDomUtil.isDrawableResourceFile(xmlFile)) {
@@ -246,6 +211,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       resultSet.addElement(LookupElementBuilder.create(FontFamilyDomFileDescription.TAG_NAME));
       return false;
     }
+
     return true;
   }
 

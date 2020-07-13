@@ -73,7 +73,6 @@ import static com.android.SdkConstants.VIEW_TAG;
 import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.findViewClassByName;
 import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.findViewValidInXMLByName;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
-import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -125,6 +124,7 @@ import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.LayoutViewElementDescriptor;
 import org.jetbrains.android.dom.layout.Tag;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -370,7 +370,7 @@ public class AttributeProcessingUtil {
     // Handle preferences:
     Map<String, PsiClass> prefClassMap;
     AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
-    prefClassMap = getClassMap(facet, preferenceSource.getQualifiedBaseClass());
+    prefClassMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(preferenceSource.getQualifiedBaseClass());
     PsiClass psiClass = prefClassMap.get(tagName);
     if (psiClass == null) {
       return;
@@ -390,14 +390,6 @@ public class AttributeProcessingUtil {
         }
       }
     }
-  }
-
-  private static Map<String, PsiClass> getClassMap(AndroidFacet facet, String qualifiedClassName) {
-    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(qualifiedClassName);
-  }
-
-  private static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, VIEW_CLASS_NAME);
   }
 
   /**
@@ -523,7 +515,6 @@ public class AttributeProcessingUtil {
     }
   }
 
-
   /**
    * Entry point for XML elements in layout XMLs
    */
@@ -544,8 +535,10 @@ public class AttributeProcessingUtil {
         registerToolsAttribute(ATTR_VIEW_BINDING_IGNORE, callback);
       }
 
-      if (findViewValidInXMLByName(facet, tag.getName()) != null) {
-        PsiClass viewClass = findViewValidInXMLByName(facet, tag.getName());
+      XmlElementDescriptor descriptor = tag.getDescriptor();
+      if (descriptor instanceof LayoutViewElementDescriptor &&
+          ((LayoutViewElementDescriptor)descriptor).getClazz() != null) {
+        PsiClass viewClass = ((LayoutViewElementDescriptor)descriptor).getClazz();
 
         if (InheritanceUtil.isInheritor(viewClass, FQCN_ADAPTER_VIEW)) {
           registerToolsAttribute(ATTR_LISTITEM, callback);
