@@ -56,7 +56,10 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTarget,
+                        @NotNull SceneContext sceneContext) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
       int dx = getTargetNotchSnapper().trySnapHorizontal(x).orElse(x);
@@ -65,7 +68,7 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
       scene.needsRebuildList();
     }
     else {
-      super.mouseDrag(x, y, closestTarget);
+      super.mouseDrag(x, y, closestTarget, sceneContext);
     }
   }
 

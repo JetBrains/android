@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -48,7 +49,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
     SyncNlModel model = model("model.xml", preferenceCategory(0, 162, 768, 65).id("@+id/category")).build();
     DragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(180, 90, 0);
+    handler.update(180, 90, 0, SceneContext.get());
     handler.paint(myGraphics);
 
     @AndroidDpCoordinate Rectangle bounds = new Rectangle(0, 81, 384, 34);
@@ -66,7 +67,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
     SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
     PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(180, 175, 0);
+    handler.update(180, 175, 0, SceneContext.get());
     handler.drawDropRecipientLines(myGraphics);
 
     @AndroidDpCoordinate Rectangle bounds = new Rectangle(0, 166, 384, 190);
@@ -81,7 +82,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
     SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
     PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(180, 240, 0);
+    handler.update(180, 240, 0, SceneContext.get());
     handler.drawDropZoneLines(myGraphics);
 
     List<SceneComponent> preferences = handler.myGroup.getChildren();
@@ -94,7 +95,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
     SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
     PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
-    handler.update(180, 265, 0);
+    handler.update(180, 265, 0, SceneContext.get());
     handler.drawDropZoneLines(myGraphics);
 
     List<SceneComponent> preferences = handler.myGroup.getChildren();

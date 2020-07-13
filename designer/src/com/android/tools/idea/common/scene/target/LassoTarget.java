@@ -140,12 +140,15 @@ public class LassoTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext context) {
     myLastX = x;
     myLastY = y;
     myShowRect = true;
     myHasDragged = true;
-    fillSelectedComponents();
+    fillSelectedComponents(context);
     myComponent.getScene().needsRebuildList();
   }
 
@@ -160,7 +163,7 @@ public class LassoTarget extends BaseTarget {
    *
    * @param components
    */
-  private void fillSelectedComponents() {
+  private void fillSelectedComponents(@NotNull SceneContext sceneTransform) {
     int count = myComponent.getChildCount();
     float x1 = Math.min(myOriginX, myLastX);
     float x2 = Math.max(myOriginX, myLastX);
@@ -175,7 +178,7 @@ public class LassoTarget extends BaseTarget {
     for (int i = 0; i < count; i++) {
       SceneComponent component = myComponent.getChild(i);
 
-      boolean intersects = component.intersects(bounds);
+      boolean intersects = component.intersects(sceneTransform, bounds);
       boolean contains = myIntersectingComponents.contains(component);
       if (intersects == contains) {
         continue;

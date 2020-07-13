@@ -652,12 +652,12 @@ public class SceneComponent {
 
   /**
    * Returns true if the component intersects with the given rect
-   *
+   * @param sceneTransform
    * @param rectangle
    * @return true if intersecting with the rectangle
    */
-  public boolean intersects(@AndroidDpCoordinate Rectangle rectangle) {
-    return myHitProvider.intersects(this, rectangle);
+  public boolean intersects(@NotNull SceneContext sceneTransform, @AndroidDpCoordinate Rectangle rectangle) {
+    return myHitProvider.intersects(this, sceneTransform, rectangle);
   }
 
   //endregion

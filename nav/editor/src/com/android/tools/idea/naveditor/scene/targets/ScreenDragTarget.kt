@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene.targets
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.LegacyDragTarget
 import com.android.tools.idea.common.scene.target.MultiComponentTarget
@@ -53,7 +54,7 @@ class ScreenDragTarget(component: SceneComponent) : DragBaseTarget(), MultiCompo
     component.children.forEachIndexed { i, child -> childOffsets[i] = Point(x - child.drawX, y - child.drawY) }
   }
 
-  override fun mouseDrag(@NavCoordinate x: Int, @NavCoordinate y: Int, closestTarget: List<Target>) {
+  override fun mouseDrag(@NavCoordinate x: Int, @NavCoordinate y: Int, closestTarget: List<Target>, context: SceneContext) {
     val parent = myComponent.parent ?: return
 
     myComponent.isDragging = true

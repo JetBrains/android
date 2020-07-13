@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.hitproviders
 
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
@@ -51,5 +52,5 @@ object NavRegularActionHitProvider : NavActionHitProviderBase() {
   }
 
   // TODO (b/148756121): Implement this
-  override fun intersects(component: SceneComponent, rectangle: Rectangle) = false
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean = false
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -133,8 +134,8 @@ final class GridDragHandler extends DragHandler {
   }
 
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-    String successful = super.update(x, y, modifiers);
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
+    String successful = super.update(x, y, modifiers, sceneContext);
 
     row = info.getRow(editor.dpToPx(y));
     column = info.getColumn(editor.dpToPx(x));

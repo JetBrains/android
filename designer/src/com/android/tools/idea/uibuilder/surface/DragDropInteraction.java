@@ -300,8 +300,9 @@ public class DragDropInteraction extends Interaction {
 
     Project project = mySceneView.getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(x, y);
+    SceneContext sceneContext = SceneContext.get(mySceneView);
     SceneComponent viewgroup =
-      mySceneView.getScene().findComponent(SceneContext.get(mySceneView),
+      mySceneView.getScene().findComponent(sceneContext,
                                            Coordinates.getAndroidXDip(mySceneView, x),
                                            Coordinates.getAndroidYDip(mySceneView, y));
 
@@ -384,7 +385,7 @@ public class DragDropInteraction extends Interaction {
     }
 
     if ((myDragHandler instanceof CommonDragHandler) || (myDragHandler != null && myCurrentHandler != null)) {
-      String error = myDragHandler.update(Coordinates.pxToDp(mySceneView, ax), Coordinates.pxToDp(mySceneView, ay), modifiers);
+      String error = myDragHandler.update(Coordinates.pxToDp(mySceneView, ax), Coordinates.pxToDp(mySceneView, ay), modifiers, sceneContext);
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
         added.addAll(myDraggedComponents);

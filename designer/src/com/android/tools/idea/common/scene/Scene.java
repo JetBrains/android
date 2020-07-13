@@ -738,7 +738,8 @@ public class Scene implements SelectionListener, Disposable {
   private void delegateMouseDragToSelection(@AndroidDpCoordinate int x,
                                             @AndroidDpCoordinate int y,
                                             @Nullable Target closestTarget,
-                                            @NotNull SceneComponent currentComponent) {
+                                            @NotNull SceneComponent currentComponent,
+                                            @NotNull SceneContext context) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -752,7 +753,7 @@ public class Scene implements SelectionListener, Disposable {
             if (target instanceof MultiComponentTarget) {
               ArrayList<Target> list = new ArrayList<>();
               list.add(closestTarget);
-              target.mouseDrag(x, y, list);
+              target.mouseDrag(x, y, list, context);
             }
           }
         }
@@ -901,9 +902,9 @@ public class Scene implements SelectionListener, Disposable {
         myNewSelectedComponentsOnRelease.add(targetComponent);
         select(myNewSelectedComponentsOnRelease);
       }
-      myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
+      myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets, transform);
       if (myHitTarget instanceof MultiComponentTarget) {
-        delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(modifiersEx), myHitTarget.getComponent());
+        delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(modifiersEx), myHitTarget.getComponent(), transform);
       }
       myHitListener.setTargetFilter(null);
     }

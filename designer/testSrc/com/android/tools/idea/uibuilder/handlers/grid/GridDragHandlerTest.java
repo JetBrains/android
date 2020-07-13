@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
@@ -90,7 +91,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
 
   public void testCommit() {
     handler.start(315, 105, 0);
-    handler.update(235, 105, 0);
+    handler.update(235, 105, 0, SceneContext.get());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       handler.commit(470, 210, 0, InsertType.MOVE_INTO);

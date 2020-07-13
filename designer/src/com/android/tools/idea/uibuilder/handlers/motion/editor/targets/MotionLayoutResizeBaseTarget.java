@@ -71,7 +71,10 @@ public abstract class MotionLayoutResizeBaseTarget extends ResizeBaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext ignored) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(myComponent.getNlComponent().getParent());
     if (!motionLayout.isInTransition()) {
