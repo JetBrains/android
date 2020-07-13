@@ -617,6 +617,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_VALIDATOR, myEnableLayoutValidator);
+    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_VALIDATOR_IMAGE_CHECK, myEnableLayoutValidator);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
