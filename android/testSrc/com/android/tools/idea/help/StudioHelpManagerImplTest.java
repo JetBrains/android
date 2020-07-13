@@ -15,14 +15,23 @@ package com.android.tools.idea.help;
 
 import static com.android.tools.idea.help.StudioHelpManagerImpl.Browser;
 import static com.android.tools.idea.help.StudioHelpManagerImpl.REDIRECT_URL_EXTENSION;
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
 import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.help.HelpManager;
 import org.jetbrains.android.AndroidTestCase;
+import java.util.Calendar;
 
+@Bombed(year = 2022, month = Calendar.JULY, day = 1,
+  user = "andrei.kuznetsov", description = "This test is for AndroidStudio specific components, " +
+                                           "it shall not pass (c) in IDEA, and should be moved to " +
+                                           "adt.branding module. Unfortunately, at the moment some shared " +
+                                           "(between AS and IDEA) modules depend on adt.branding, so " +
+                                           "(in addition to the risk that IDEA may use classes that are " +
+                                           "not good for IDEA) adt.branding may not depend on android.core " +
+                                           "due to cyclic dependencies which will appear.")
 public class StudioHelpManagerImplTest extends AndroidTestCase {
   private HelpManager myHelpManager;
   private Browser myMockBrowser;
@@ -36,18 +45,6 @@ public class StudioHelpManagerImplTest extends AndroidTestCase {
 
   public void testIsStudioHelp() {
     assertTrue(myHelpManager instanceof StudioHelpManagerImpl);
-  }
-
-  public void testStudioHelpPrefix() {
-    ((StudioHelpManagerImpl)myHelpManager).setBrowser(myMockBrowser);
-    myHelpManager.invokeHelp(STUDIO_HELP_PREFIX + "test");
-    verify(myMockBrowser).browse(STUDIO_HELP_URL + "test");
-  }
-
-  public void testStudioHelpSpecialCase() {
-    ((StudioHelpManagerImpl)myHelpManager).setBrowser(myMockBrowser);
-    myHelpManager.invokeHelp(STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.Android");
-    verify(myMockBrowser).browse(STUDIO_HELP_URL + "r/studio-ui/rundebugconfig.html");
   }
 
   public void testStudioHelpRedirectIntellijHelp() {
