@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
+
 import com.android.tools.idea.IdeInfo;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -27,9 +29,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
@@ -108,6 +109,6 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
 
   @Override
   public String getHelpTopic() {
-    return "reference.dialogs.rundebug.AndroidJUnit";
+    return STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.AndroidJUnit";
   }
 }

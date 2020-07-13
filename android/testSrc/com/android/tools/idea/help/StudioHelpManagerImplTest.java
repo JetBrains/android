@@ -13,12 +13,15 @@
 // limitations under the License.
 package com.android.tools.idea.help;
 
-import com.intellij.openapi.help.HelpManager;
-import org.jetbrains.android.AndroidTestCase;
-
-import static com.android.tools.idea.help.StudioHelpManagerImpl.*;
+import static com.android.tools.idea.help.StudioHelpManagerImpl.Browser;
+import static com.android.tools.idea.help.StudioHelpManagerImpl.REDIRECT_URL_EXTENSION;
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
+import com.intellij.openapi.help.HelpManager;
+import org.jetbrains.android.AndroidTestCase;
 
 public class StudioHelpManagerImplTest extends AndroidTestCase {
   private HelpManager myHelpManager;
@@ -43,8 +46,8 @@ public class StudioHelpManagerImplTest extends AndroidTestCase {
 
   public void testStudioHelpSpecialCase() {
     ((StudioHelpManagerImpl)myHelpManager).setBrowser(myMockBrowser);
-    myHelpManager.invokeHelp("reference.dialogs.rundebug.Android");
-    verify(myMockBrowser).browse(STUDIO_HELP_URL + "/r/studio-ui/rundebugconfig.html");
+    myHelpManager.invokeHelp(STUDIO_HELP_PREFIX + "reference.dialogs.rundebug.Android");
+    verify(myMockBrowser).browse(STUDIO_HELP_URL + "r/studio-ui/rundebugconfig.html");
   }
 
   public void testStudioHelpRedirectIntellijHelp() {

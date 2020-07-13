@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.help;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.IdeInfo;
 import com.intellij.help.impl.HelpManagerImpl;
 import com.intellij.ide.BrowserUtil;
@@ -60,31 +59,21 @@ public class StudioHelpManagerImpl extends HelpManagerImpl {
 
   @Override
   public void invokeHelp(@Nullable @NonNls String id) {
+    assert IdeInfo.getInstance().isAndroidStudio(): "StudioHelpManagerImpl should never be used in IDEA. It is for Android Studio only.";
+
     if (id == null) return;
 
     if (id.startsWith(STUDIO_HELP_PREFIX)) {
-      openStudioHelpPage(id.substring(STUDIO_HELP_PREFIX.length()));
-      return;
-    }
-
-    // The run debug configuration help topic is set deep in the platform (see SingleConfigurationConfigurable)
-    if (id.startsWith("reference.dialogs.rundebug.Android")) {
-      openStudioHelpPage("/r/studio-ui/rundebugconfig.html");
-      return;
-    }
-
-    // open to https://developer.android.com/r/studio-help/ for all other helpIds. Including Intellij ones so map the version and redirect
-    // see b/63761943
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      openStudioHelpPage(REDIRECT_URL_EXTENSION + getVersion() + "/?" + id);
-    }
-    else {
       super.invokeHelp(id);
+    } else {
+      // open to https://developer.android.com/r/studio-help/ for all other helpIds. Including Intellij ones so map the version and redirect
+      // see b/63761943
+      openStudioHelpPage(REDIRECT_URL_EXTENSION + getVersion() + "/?" + id);
     }
   }
 
   private void openStudioHelpPage(@NotNull @NonNls String urlPath) {
-    myBrowser.browse(STUDIO_HELP_URL + urlPath);
+    myBrowser.browse(StudioWebHelpProvider.studioWebHelpUrl(urlPath));
   }
 
   public static String getVersion() {
