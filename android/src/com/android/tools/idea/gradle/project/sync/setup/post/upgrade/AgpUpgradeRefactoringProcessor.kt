@@ -283,6 +283,19 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
       return _isEnabled!!
     }
 
+  private var _isAlwaysNoOpForProject: Boolean? = null
+  var isAlwaysNoOpForProject: Boolean
+    @VisibleForTesting // only exists for testing
+    set(value) {
+      _isAlwaysNoOpForProject = value
+    }
+    get() {
+      if (_isAlwaysNoOpForProject == null) {
+        _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
+      }
+      return _isAlwaysNoOpForProject!!
+    }
+
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current
     this.new = new
@@ -309,6 +322,14 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   public abstract override fun getCommandName(): String
 
   open fun getReadMoreUrl(): String? = null
+
+  /**
+   * Return whether this refactoring processor is known to perform no changes to the project, no matter what the settings
+   * of the processor are; a return value of false may nevertheless lead to no changes, but true must never be returned
+   * if the processor does in fact make changes.  The default method checks whether the processor finds any usages, returning
+   * true if not and false otherwise; component processors may override or extend.
+   */
+  protected open fun computeIsAlwaysNoOpForProject(): Boolean = findComponentUsages().isEmpty()
 }
 
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -602,6 +623,15 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     }
   }
 
+  override fun computeIsAlwaysNoOpForProject(): Boolean =
+    findComponentUsages().all {
+      when (it) {
+        is JavaLanguageLevelUsageInfo -> it.existing
+        is KotlinLanguageLevelUsageInfo -> it.existing
+        else -> false // shouldn't happen; if it does, return conservative value
+      }
+    }
+
   // TODO(xof): move this target to _redirects.yaml (or find some other way to be future-proof)
   override fun getReadMoreUrl(): String? = "https://developer.android.com/studio/write/java8-support#supported_features"
 
@@ -623,7 +653,7 @@ class JavaLanguageLevelUsageInfo(
   current: GradleVersion,
   new: GradleVersion,
   private val model: LanguageLevelPropertyModel,
-  private val existing: Boolean,
+  internal val existing: Boolean,
   private val noLanguageLevelAction: NoLanguageLevelAction,
   private val propertyName: String
 ): GradleBuildModelUsageInfo(element, current, new) {
@@ -650,13 +680,13 @@ class JavaLanguageLevelUsageInfo(
 }
 
 class KotlinLanguageLevelUsageInfo(
-    element: PsiElement,
-    current: GradleVersion,
-    new: GradleVersion,
-    private val model: LanguageLevelPropertyModel,
-    private val existing: Boolean,
-    private val noLanguageLevelAction: NoLanguageLevelAction,
-    private val propertyName: String
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val model: LanguageLevelPropertyModel,
+  internal val existing: Boolean,
+  private val noLanguageLevelAction: NoLanguageLevelAction,
+  private val propertyName: String
   ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
