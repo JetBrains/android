@@ -93,17 +93,17 @@ class SafeArgsImportKtResolverTest {
     fixture.checkResult(
       // language=kotlin
       """
-            package com.example.myapplication
-            
-            import com.example.mylibrary.FirstFragmentArgs
-            
-            class FooClass {
-                fun myTest() {
-                    val argsClass1 = First${caret}FragmentArgs.
-                    val argsClass2 = FirstFragmentArgs().
-                }
+        package com.example.myapplication
+        
+        import com.example.mylibrary.FirstFragmentArgs
+        
+        class FooClass {
+            fun myTest() {
+                val argsClass1 = First${caret}FragmentArgs.
+                val argsClass2 = FirstFragmentArgs().
             }
-          """.trimIndent())
+        }
+      """.trimIndent())
   }
 
   @Test
@@ -115,13 +115,13 @@ class SafeArgsImportKtResolverTest {
       file!!.setText(
         //language=kotlin
         """
-        class FooClass {
-            fun myTest() {
-                val argsClass1 = Second${caret}FragmentArgs.
-                val argsClass2 = SecondFragmentArgs().
-            }
-        }
-      """.trimIndent(),
+          class FooClass {
+              fun myTest() {
+                  val argsClass1 = Second${caret}FragmentArgs.
+                  val argsClass2 = SecondFragmentArgs().
+              }
+          }
+        """.trimIndent(),
         fixture.project)
     }
     fixture.configureFromExistingVirtualFile(file!!)
@@ -142,14 +142,14 @@ class SafeArgsImportKtResolverTest {
     fixture.checkResult(
       // language=kotlin
       """
-            import com.example.mylibrary.SecondFragmentArgs
-            
-            class FooClass {
-                fun myTest() {
-                    val argsClass1 = Second${caret}FragmentArgs.
-                    val argsClass2 = SecondFragmentArgs().
-                }
+        import com.example.mylibrary.SecondFragmentArgs
+        
+        class FooClass {
+            fun myTest() {
+                val argsClass1 = Second${caret}FragmentArgs.
+                val argsClass2 = SecondFragmentArgs().
             }
-          """.trimIndent())
+        }
+      """.trimIndent())
   }
 }

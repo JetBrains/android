@@ -92,7 +92,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     return true
   }
 
-  override fun getText() = KotlinBundle.message("fix.import") // or have some custom name for safe args specific
+  override fun getText() = KotlinBundle.message("fix.import")
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     if (editor == null || file !is KtFile) return
