@@ -609,7 +609,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = "Update implicit LanguageLevel properties"
+  override fun getCommandName(): String = "Update default Java language level"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
 
@@ -619,7 +619,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Update implicit LanguageLevel properties"
+      override fun getProcessedElementsHeader() = "Update default Java language level"
     }
   }
 
