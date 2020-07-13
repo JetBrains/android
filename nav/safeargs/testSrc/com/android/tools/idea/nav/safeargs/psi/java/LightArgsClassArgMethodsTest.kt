@@ -86,6 +86,13 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     // Classes can be found with context
     val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
+    // Check supers
+    argClass.supers.asList().let {
+      assertThat(it).hasSize(1)
+      assertThat(it.first().name).isEqualTo("NavArgs")
+    }
+
+    // Check methods
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(4)
       methods[0].checkSignaturesAndReturnType(
