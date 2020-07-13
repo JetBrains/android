@@ -15,13 +15,9 @@
  */
 package org.jetbrains.android.dom;
 
-import static com.android.SdkConstants.CLASS_VIEW;
-
-import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import java.lang.reflect.Type;
@@ -31,15 +27,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import org.jetbrains.android.dom.layout.LayoutElement;
-import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
-import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
-import org.jetbrains.android.dom.xml.PreferenceElement;
+import org.jetbrains.android.dom.xml.PreferenceElementBase;
 import org.jetbrains.android.dom.xml.PreferenceElementBase;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
-import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,39 +89,6 @@ public class SubtagsProcessingUtil {
         subtagProcessor.processSubtag("header", PreferenceElementBase.class);
         break;
     }
-
-    // for preferences
-    AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
-    PsiClass psiClass = AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, tagName, preferenceSource.getQualifiedBaseClass());
-
-    if (InheritanceUtil.isInheritor(psiClass, preferenceSource.getQualifiedGroupClass())) {
-      Map<String, PsiClass> preferences =
-        TagToClassMapper.getInstance(facet.getModule()).getClassMap(preferenceSource.getQualifiedBaseClass());
-      registerClassNameSubtags(tag, preferences, PreferenceElement.class, subtagProcessor, processExistingSubTags);
-    }
-  }
-
-  private static void registerClassNameSubtags(XmlTag tag,
-                                               Map<String, PsiClass> classMap,
-                                               Type type,
-                                               SubtagProcessor subtagProcessor,
-                                               boolean processExistingSubTags) {
-    final Set<String> allAllowedTags = new HashSet<>();
-    final Map<String, String> class2Name = new HashMap<>();
-
-    for (Map.Entry<String, PsiClass> entry : classMap.entrySet()) {
-      final String tagName = entry.getKey();
-      final PsiClass aClass = entry.getValue();
-
-      allAllowedTags.add(tagName);
-      final String qName = aClass.getQualifiedName();
-      final String prevTagName = class2Name.get(qName);
-
-      if (prevTagName == null || tagName.indexOf('.') == -1) {
-        class2Name.put(qName, tagName);
-      }
-    }
-    registerSubtags(tag, allAllowedTags, class2Name.values(), type, subtagProcessor, processExistingSubTags);
   }
 
   private static void registerSubtags(@NotNull XmlTag tag,
@@ -155,12 +114,7 @@ public class SubtagsProcessingUtil {
                                     @NotNull AndroidDomElement element,
                                     boolean processExistingSubTags,
                                     @NotNull SubtagProcessor subtagProcessor) {
-    if (element instanceof LayoutElement) {
-      registerClassNameSubtags(element.getXmlTag(), TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_VIEW),
-                               LayoutViewElement.class,
-                               subtagProcessor, processExistingSubTags);
-    }
-    else if (element instanceof XmlResourceElement) {
+    if (element instanceof XmlResourceElement) {
       XmlTag tag = element.getXmlTag();
       if (tag != null) {
         registerXmlResourcesSubtags(facet, tag, subtagProcessor, true);

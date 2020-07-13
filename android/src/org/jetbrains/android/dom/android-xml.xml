@@ -74,7 +74,6 @@
 
     <!-- Extensions affecting code completion and XML in general: -->
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
-    <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first"/>
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
