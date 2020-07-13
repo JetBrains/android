@@ -19,8 +19,10 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
-import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.model.warningsFilterActions
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -31,6 +33,7 @@ import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
@@ -62,7 +65,16 @@ class WarningsPageView(
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  override val additionalControls = JPanel().apply { name = "warnings-view-additional-controls" }
+
+  override val additionalControls = JPanel().apply {
+    name = "warnings-view-additional-controls"
+    layout = HorizontalLayout(10)
+
+    val warningsFilterActions = warningsFilterActions(model, actionHandlers)
+    val defaultActionGroup = DefaultActionGroup().apply { add(warningsFilterActions) }
+    val filtersDropdown = ActionManager.getInstance().createActionToolbar("BuildAnalyzerView", defaultActionGroup, true)
+    add(filtersDropdown.component)
+  }
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
@@ -131,15 +143,17 @@ class WarningsPageView(
   }
 
   init {
-    updateViewFromModel()
+    updateViewFromModel(true)
     model.setModelUpdatedListener(this::updateViewFromModel)
   }
 
-  private fun updateViewFromModel() {
+  private fun updateViewFromModel(treeStructureChanged: Boolean) {
     fireActionHandlerEvents = false
     treeHeaderLabel.text = model.treeHeaderText
-    if (tree.model.root != model.treeRoot) {
+    if (treeStructureChanged) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)
+      // Need to remove cached details pages as content might change on tree structure change, especially for grouping nodes.
+      detailsPanel.removeAll()
     }
 
     model.selectedNode.let { selectedNode ->

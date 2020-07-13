@@ -18,8 +18,8 @@ package com.android.build.attribution.ui.view.details
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
+import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
-import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
@@ -30,7 +30,6 @@ import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
-import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
@@ -38,6 +37,7 @@ import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JComponent
@@ -76,7 +76,7 @@ class WarningsViewDetailPagesFactory(
   }
 
   fun createDetailsPage(nodeDescriptor: WarningsTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
-    is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningTypeData)
+    is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningType, nodeDescriptor.presentedWarnings)
     is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData)
     is AnnotationProcessorsRootNodeDescriptor -> createAnnotationProcessorsRootDetailsPage(nodeDescriptor.annotationProcessorsReport)
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
@@ -85,20 +85,20 @@ class WarningsViewDetailPagesFactory(
   }
 
 
-  private fun createTaskWarningTypeDetailsPage(warningTypeData: TaskIssuesGroup) = JPanel().apply {
+  private fun createTaskWarningTypeDetailsPage(warningType: TaskIssueType, warnings: List<TaskIssueUiData>) = JPanel().apply {
     layout = BorderLayout()
 
-    val timeContribution = warningTypeData.timeContribution
+    val timeContribution = warnings.sumByLong { it.task.executionTime.timeMs }
     val text = """
-      <b>${warningTypeData.type.uiName}</b><br/>
-      Duration: ${timeContribution.durationString()} / ${timeContribution.percentageString()}<br/>
+      <b>${warningType.uiName}</b><br/>
+      Duration: ${durationString(timeContribution)}<br/>
       <br/>
-      <b>${warningsCountString(warningTypeData.warningCount)}</b>
+      <b>${warningsCountString(warnings.size)}</b>
     """.trimIndent()
     add(htmlTextLabelWithFixedLines(text), BorderLayout.NORTH)
     add(JPanel().apply {
       layout = TabularLayout("Fit,30px,Fit")
-      warningTypeData.issues.forEachIndexed { index, issue ->
+      warnings.forEachIndexed { index, issue ->
         add(JBLabel(issue.task.taskPath), TabularLayout.Constraint(index, 0))
         add(JBLabel(issue.task.executionTime.durationString()), TabularLayout.Constraint(index, 2))
       }
