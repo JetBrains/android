@@ -6,6 +6,7 @@ import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.junit.Assert
@@ -27,9 +28,11 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
     projectRule.load(projectPath)
     projectRule.requestSyncAndWait()
 
-    projectRule.invokeTasks("compileDebugSources").apply {
-      buildError?.printStackTrace()
-      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+    ApplicationManager.getApplication().invokeAndWait {
+      projectRule.invokeTasks("compileDebugSources").apply {
+        buildError?.printStackTrace()
+        Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+      }
     }
   }
 
