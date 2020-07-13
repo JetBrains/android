@@ -88,7 +88,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
       .ifPresent((p) -> myJava8Processor = (Java8DefaultRefactoringProcessor)p);
 
     if (myJava8Processor != null && myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
-      JBLabel label = new JBLabel("Action on no explicit Language Level: ");
+      JBLabel label = new JBLabel("Action on no explicit Java language level: ");
       myJava8SettingsPanel.add(label);
       myNoLanguageLevelActionComboBox = new ComboBox<>(new NoLanguageLevelAction[] {ACCEPT_NEW_DEFAULT, INSERT_OLD_DEFAULT});
       myJava8SettingsPanel.add(myNoLanguageLevelActionComboBox);
@@ -138,4 +138,3 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     }
   }
 }
-
