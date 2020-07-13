@@ -81,11 +81,12 @@ public abstract class BaseAction extends AnAction {
 
   public BaseAction(@NotNull String id,
                     @NotNull String name,
+                    @NotNull String acceleratorName,
                     @NotNull SwapType swapType,
                     @NotNull Icon icon,
                     @NotNull Shortcut shortcut,
                     @NotNull String description) {
-    super(name, description, icon);
+    super(acceleratorName, description, icon);
     myName = name;
     mySwapType = swapType;
     myIcon = icon;
