@@ -174,30 +174,28 @@ class NavXmlIndexTest {
     assertThat(data.root.id).isEqualTo("top_level_nav")
     assertThat(data.root.toDestination()!!.name).isEqualTo(".TopLevelNav")
     assertThat(data.root.startDestination).isEqualTo("fragment1")
-    assertThat(data.root.actions.size).isEqualTo(1)
+    assertThat(data.root.actions).hasSize(1)
     data.root.actions[0].let { action ->
       assertThat(action.id).isEqualTo("action_to_fragment2")
       assertThat(action.destination).isEqualTo("fragment2")
     }
 
-    assertThat(data.root.activities.size).isEqualTo(1)
-    data.root.activities[0].let { destination ->
+    assertThat(data.root.potentialDestinations).hasSize(3)
+    data.root.potentialDestinations[0].toDestination()!!.let { destination ->
       assertThat(destination.id).isEqualTo("activity1")
       assertThat(destination.name).isEqualTo("test.safeargs.Activity1")
-      assertThat(destination.arguments.size).isEqualTo(0)
-      assertThat(destination.actions.size).isEqualTo(1)
+      assertThat(destination.arguments).isEmpty()
+      assertThat(destination.actions).hasSize(1)
       destination.actions[0].let { action ->
         assertThat(action.id).isEqualTo("action_activity1_to_activity2")
         assertThat(action.destination).isEqualTo("activity2")
       }
     }
-
-    assertThat(data.root.fragments.size).isEqualTo(2)
-    data.root.fragments[0].let { destination ->
+    data.root.potentialDestinations[1].toDestination()!!.let { destination ->
       assertThat(destination.id).isEqualTo("fragment1")
       assertThat(destination.name).isEqualTo("test.safeargs.Fragment1")
-      assertThat(destination.arguments.size).isEqualTo(0)
-      assertThat(destination.actions.size).isEqualTo(2)
+      assertThat(destination.arguments).isEmpty()
+      assertThat(destination.actions).hasSize(2)
       destination.actions[0].let { action ->
         assertThat(action.id).isEqualTo("action_fragment1_to_fragment2")
         assertThat(action.destination).isEqualTo("fragment2")
@@ -207,12 +205,11 @@ class NavXmlIndexTest {
         assertThat(action.destination).isEqualTo("fragment3")
       }
     }
-
-    data.root.fragments[1].let { destination ->
+    data.root.potentialDestinations[2].toDestination()!!.let { destination ->
       assertThat(destination.id).isEqualTo("fragment2")
       assertThat(destination.name).isEqualTo("test.safeargs.Fragment2")
-      assertThat(destination.arguments.size).isEqualTo(1)
-      assertThat(destination.actions.size).isEqualTo(1)
+      assertThat(destination.arguments).hasSize(1)
+      assertThat(destination.actions).hasSize(1)
       destination.arguments[0].let { argument ->
         assertThat(argument.type).isEqualTo("string")
         assertThat(argument.name).isEqualTo("arg")
@@ -224,18 +221,16 @@ class NavXmlIndexTest {
       }
     }
 
-    assertThat(data.root.navigations.size).isEqualTo(1)
+    assertThat(data.root.navigations).hasSize(1)
     data.root.navigations[0].let { nested ->
       nested.navigations[0].let { doubleNested ->
         assertThat(doubleNested.id).isEqualTo("double_nested_nav")
-        assertThat(doubleNested.activities).isEmpty()
-        assertThat(doubleNested.fragments).isEmpty()
-        assertThat(doubleNested.dialogs).hasSize(1)
-        doubleNested.dialogs[0].let { destination ->
+        assertThat(doubleNested.potentialDestinations).hasSize(1)
+        doubleNested.potentialDestinations[0].toDestination()!!.let { destination ->
           assertThat(destination.id).isEqualTo("dialog1")
           assertThat(destination.name).isEqualTo("test.safeargs.Dialog1")
-          assertThat(destination.arguments.size).isEqualTo(1)
-          assertThat(destination.actions.size).isEqualTo(1)
+          assertThat(destination.arguments).hasSize(1)
+          assertThat(destination.actions).hasSize(1)
           destination.arguments[0].let { argument ->
             assertThat(argument.type).isEqualTo("long")
             assertThat(argument.name).isEqualTo("arg1")
@@ -252,12 +247,13 @@ class NavXmlIndexTest {
       assertThat(nested.toDestination()!!.name).isEqualTo(".NestedNav")
       assertThat(nested.actions).isEmpty()
       assertThat(nested.startDestination).isEqualTo("fragment3")
-      assertThat(nested.activities.size).isEqualTo(1)
-      nested.activities[0].let { destination ->
+
+      assertThat(nested.potentialDestinations).hasSize(2)
+      nested.potentialDestinations[0].toDestination()!!.let { destination ->
         assertThat(destination.id).isEqualTo("activity2")
         assertThat(destination.name).isEqualTo("test.safeargs.Activity2")
-        assertThat(destination.arguments.size).isEqualTo(2)
-        assertThat(destination.actions.size).isEqualTo(1)
+        assertThat(destination.arguments).hasSize(2)
+        assertThat(destination.actions).hasSize(1)
         destination.arguments[0].let { argument ->
           assertThat(argument.type).isEqualTo("string")
           assertThat(argument.name).isEqualTo("arg1")
@@ -273,12 +269,11 @@ class NavXmlIndexTest {
           assertThat(action.destination).isEqualTo("activity1")
         }
       }
-      assertThat(nested.fragments.size).isEqualTo(1)
-      nested.fragments[0].let { destination ->
+      nested.potentialDestinations[1].toDestination()!!.let { destination ->
         assertThat(destination.id).isEqualTo("fragment3")
         assertThat(destination.name).isEqualTo("test.safeargs.Fragment3")
-        assertThat(destination.arguments.size).isEqualTo(2)
-        assertThat(destination.actions.size).isEqualTo(1)
+        assertThat(destination.arguments).hasSize(2)
+        assertThat(destination.actions).hasSize(1)
         destination.arguments[0].let { argument ->
           assertThat(argument.type).isEqualTo("float")
           assertThat(argument.name).isEqualTo("arg1")
@@ -331,6 +326,45 @@ class NavXmlIndexTest {
     val data = map.values.first()
     assertThat(data.root.id).isNull()
     assertThat(data.root.startDestination).isEqualTo("fragment1")
+
+    verifySerializationLogic(navXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun customTagsAreTreatedAsPotentialDestinations() {
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
+
+    val file = fixture.addFileToProject(
+      "navigation/main.xml",
+      //language=XML
+      """
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  app:startDestination="@id/fragment1">
+
+          <fragment android:id="@+id/fragment1"
+                    android:name="test.safeargs.Fragment1"
+                    tools:layout="@layout/fragment1" />
+
+          <customDestination android:id="@+id/custom1"
+                             android:name="test.safeargs.Custom1"
+                             tools:layout="@layout/custom1" />
+
+          <unknownTag /> <!-- Probably breaks compiling but shouldn't break indexing -->
+          
+      </navigation>
+    """.trimIndent()).virtualFile
+
+    val navXmlIndex = NavXmlIndex()
+    val map = navXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    assertThat(map).hasSize(1)
+
+    val data = map.values.first()
+    assertThat(data.root.potentialDestinations).hasSize(3)
+    // unknownTag, though potential, doesn't meet destination requirements, so it is stripped out at this time
+    assertThat(data.root.potentialDestinations.mapNotNull { it.toDestination()?.id }).containsExactly("fragment1", "custom1")
 
     verifySerializationLogic(navXmlIndex.valueExternalizer, data)
   }

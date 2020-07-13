@@ -56,21 +56,30 @@ interface NavDestinationData {
   val actions: List<NavActionData>
 }
 
+interface MaybeNavDestinationData {
+  fun toDestination(): NavDestinationData?
+}
+
 /**
  * A navigation is a container of destinations (fragments, nested navigations, etc.)
  *
  * Every navigation XML file has a root navigation tag.
  */
-interface NavNavigationData {
+interface NavNavigationData : MaybeNavDestinationData {
   val id: String?
   val startDestination: String
   val actions: List<NavActionData>
-  val activities: List<NavDestinationData>
-  val dialogs: List<NavDestinationData>
-  val fragments: List<NavDestinationData>
   val navigations: List<NavNavigationData>
 
-  fun toDestination(): NavDestinationData? {
+  /**
+   * We can't predict all possible tag types, because navigation allows custom tags. Instead, we
+   * catch all remaining tags and assume they are destinations, but even if they aren't, we will
+   * still successfully complete parsing (and callers can strip out invalid destinations later by
+   * checking if [MaybeNavDestinationData.toDestination] returns null.
+   */
+  val potentialDestinations: List<MaybeNavDestinationData>
+
+  override fun toDestination(): NavDestinationData? {
     val id = this.id ?: return null
     return object : NavDestinationData {
       override val id = id
@@ -87,9 +96,9 @@ interface NavNavigationData {
     get() {
       val allNavigations = allNavigations // Avoid recalculating over and over
       return allNavigations.mapNotNull { it.toDestination() } +
-        allNavigations.flatMap { it.activities } +
-        allNavigations.flatMap { it.dialogs } +
-        allNavigations.flatMap { it.fragments }
+             allNavigations
+               .flatMap { it.potentialDestinations }
+               .mapNotNull { it.toDestination() }
     }
 }
 
