@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,11 +112,12 @@ public abstract class DragHandler {
    * @param x         the x coordinate in the Android screen pixel coordinate system
    * @param y         the y coordinate in the Android screen pixel coordinate system
    * @param modifiers the modifier key state
+   * @param context   the scene context for this operation
    * @return null if the drag is successful so far, or an empty string (or a short error
    * message describing the problem to be shown to the user) if not
    */
   @Nullable
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, SceneContext sceneContext) {
     lastX = x;
     lastY = y;
     return null;

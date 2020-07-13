@@ -963,7 +963,7 @@ class NavSceneTest : NavTestCase() {
   private fun moveComponentTo(component: SceneComponent, x: Int, y: Int) {
     val dragTarget = component.targets.filterIsInstance(ScreenDragTarget::class.java).first()
     dragTarget.mouseDown(component.drawX, component.drawY)
-    dragTarget.mouseDrag(x, y, listOf())
+    dragTarget.mouseDrag(x, y, listOf(), SceneContext.get())
     // the release position isn't used
     dragTarget.mouseRelease(x, y, listOf())
   }

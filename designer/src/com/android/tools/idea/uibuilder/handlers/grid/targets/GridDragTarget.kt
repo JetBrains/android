@@ -90,7 +90,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>, ignored: SceneContext) {
     myComponent.isDragging = true
 
     val parent = myComponent.parent ?: return

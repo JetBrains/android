@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.annotations.NonNull;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.scene.Placeholder;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -44,8 +45,8 @@ public class AdapterViewHandler extends ViewGroupHandler {
     return new DragHandler(editor, this, layout, components, type) {
       @Nullable
       @Override
-      public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-        super.update(x, y, modifiers);
+      public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
+        super.update(x, y, modifiers, sceneContext);
 
         return String.format(
           "%1$s cannot be configured via XML; add content to the AdapterView using Java code",

@@ -257,7 +257,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     targetSnapper.gatherNotches(myComponent)
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>, ignored: SceneContext) {
     draggedComponents.forEach { it.isDragging = true }
     snap(x, y)
     myComponent.scene.repaint()
