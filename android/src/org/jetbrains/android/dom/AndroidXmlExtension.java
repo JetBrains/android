@@ -26,18 +26,22 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.impl.source.xml.TagNameReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.xml.DefaultXmlExtension;
 import com.intellij.xml.XmlNSDescriptor;
 import org.jetbrains.android.dom.layout.AndroidLayoutNSDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceNSDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.TagFromClassDescriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,9 +65,32 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
   @Nullable
   @Override
   public TagNameReference createTagNameReference(ASTNode nameElement, boolean startTagFlag) {
-    return AndroidXmlReferenceProvider.areReferencesProvidedByReferenceProvider(nameElement)
-           ? null
-           : new AndroidClassTagNameReference(nameElement, startTagFlag);
+    return new TagNameReference(nameElement, startTagFlag) {
+      @Override
+      public boolean isSoft() {
+        // To avoid default errors for unresolved tags.
+        return true;
+      }
+
+      @Override
+      public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+        if (element instanceof PsiQualifiedNamedElement) {
+          // This case is handled by AndroidXmlReferenceProvider.
+          return null;
+        }
+        return super.bindToElement(element);
+      }
+
+      @Override
+      public @Nullable PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
+        final XmlTag element = getTagElement();
+        if (element != null && element.getDescriptor() instanceof TagFromClassDescriptor) {
+          // This case is handled by AndroidXmlReferenceProvider.
+          return null;
+        }
+        return super.handleElementRename(newElementName);
+      }
+    };
   }
 
   @Override
