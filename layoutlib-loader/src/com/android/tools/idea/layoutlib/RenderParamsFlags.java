@@ -93,6 +93,13 @@ public final class RenderParamsFlags {
     public static final Key<Boolean> FLAG_KEY_ENABLE_LAYOUT_VALIDATOR =
       new Key<>("enableLayoutValidator", Boolean.class);
 
+    /**
+     * Enables image-related validation checks within layout validation.
+     * {@link FLAG_ENABLE_LAYOUT_VALIDATOR} must be enabled before this can be effective.
+     */
+    public static final Key<Boolean> FLAG_ENABLE_LAYOUT_VALIDATOR_IMAGE_CHECK =
+      new Key<>("enableLayoutValidatorImageCheck", Boolean.class);
+
     // Disallow instances.
     private RenderParamsFlags() {}
 }
