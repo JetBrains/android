@@ -36,14 +36,11 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -54,7 +51,6 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +66,6 @@ public class BuildVariantUpdater {
     new Key<>("module.with.build.variant.switched.from.ui");
   @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
     new Key<>("use.variants.from.previous.gradle.syncs");
-  @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
     ContainerUtil.createLockFreeCopyOnWriteList();
 
@@ -81,15 +76,7 @@ public class BuildVariantUpdater {
 
   // called by IDEA.
   @SuppressWarnings("unused")
-  BuildVariantUpdater() {
-    this(new IdeModifiableModelsProviderFactory());
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  BuildVariantUpdater(@NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory) {
-    myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
-  }
+  BuildVariantUpdater() { }
 
   /**
    * Add an {@link BuildVariantView.BuildVariantSelectionChangeListener} to the updater. Listeners are
@@ -650,13 +637,5 @@ public class BuildVariantUpdater {
   @NotNull
   private static Logger getLog() {
     return Logger.getInstance(BuildVariantUpdater.class);
-  }
-
-  @VisibleForTesting
-  static class IdeModifiableModelsProviderFactory {
-    @NotNull
-    IdeModifiableModelsProvider create(@NotNull Project project) {
-      return new IdeModifiableModelsProviderImpl(project);
-    }
   }
 }
