@@ -4,6 +4,22 @@
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+      <location
+          file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
+          line="81"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+      <location
+          file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
+          line="86"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsBuilderClass.kt"
             line="104"/>
@@ -27,10 +43,10 @@
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/nav/safeargs/psi/java/SafeArgsLightClassUtils.kt"
-            line="195"/>
+        message="Implicitly using the default locale is a common source of bugs: Use `decapitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+      <location
+          file="src/com/android/tools/idea/nav/safeargs/psi/java/LightDirectionsClass.kt"
+          line="113"/>
     </issue>
 
     <issue
@@ -39,6 +55,14 @@
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/SafeArgsLightClassUtils.kt"
             line="195"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+      <location
+          file="src/com/android/tools/idea/nav/safeargs/psi/java/SafeArgsLightClassUtils.kt"
+          line="196"/>
     </issue>
 
     <issue

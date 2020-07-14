@@ -192,4 +192,5 @@ internal fun PsiClass.createMethod(
     }
 }
 
-internal fun String.toCamelCase() = this.split("_").joinToString("") { it.capitalize() }.decapitalize()
+internal fun String.toCamelCase() = this.toUpperCamelCase().decapitalize()
+internal fun String.toUpperCamelCase() = this.split("_").joinToString("") { it.capitalize() }
