@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.application.Application;
@@ -216,21 +215,16 @@ public class BuildVariantUpdater {
       // Build file is not changed, the cached variants should be cached and reused.
       project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
-      requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
+      requestVariantOnlyGradleSync(project, moduleName, invokeVariantSelectionChangeListeners);
     }
     else {
       // For now we need to update every facet to ensure content entries are accurate.
       // TODO: Remove this once content entries use DataNodes.
       List<AndroidFacet> allAndroidFacets = new ArrayList<>();
-      List<NdkFacet> allNdkFacets = new ArrayList<>();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
         if (androidFacet != null) {
           allAndroidFacets.add(androidFacet);
-        }
-        NdkFacet ndkFacet = NdkFacet.getInstance(module);
-        if (ndkFacet != null) {
-          allNdkFacets.add(ndkFacet);
         }
       }
       setupCachedVariant(project, allAndroidFacets, invokeVariantSelectionChangeListeners);
@@ -508,7 +502,6 @@ public class BuildVariantUpdater {
 
   private static void requestVariantOnlyGradleSync(@NotNull Project project,
                                                    @NotNull String moduleName,
-                                                   @NotNull String buildVariantName,
                                                    @NotNull Runnable variantSelectionChangeListeners) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
@@ -520,26 +513,16 @@ public class BuildVariantUpdater {
       return;
     }
     AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
-    NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(moduleToUpdate);
     GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
     if (androidModel != null && gradleModel != null) {
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      String variantName = buildVariantName;
-      String abiName = null;
-      VariantAbi variantAbi = VariantAbi.fromString(buildVariantName);
-      if (ndkModuleModel != null && ndkModuleModel.getAllVariantAbis().contains(variantAbi)) {
-        variantName = variantAbi.getVariant();
-        abiName = variantAbi.getAbi();
-      }
-      request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }
 
-  private void setupCachedVariant(@NotNull Project project,
-                                  @NotNull List<AndroidFacet> affectedAndroidFacets,
-                                  @NotNull Runnable variantSelectionChangeListeners) {
+  private static void setupCachedVariant(@NotNull Project project,
+                                         @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                         @NotNull Runnable variantSelectionChangeListeners) {
     Application application = ApplicationManager.getApplication();
 
     Task.Backgroundable task = new Task.Backgroundable(project, "Setting up Project", false/* cannot be canceled*/) {

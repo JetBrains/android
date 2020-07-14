@@ -190,7 +190,6 @@ public class GradleSyncInvoker {
     public boolean forceCreateDirs;
 
     // Perform a variant-only sync if not null.
-    @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
     @VisibleForTesting
     @NotNull
@@ -228,15 +227,14 @@ public class GradleSyncInvoker {
              runInBackground == request.runInBackground &&
              forceFullVariantsSync == request.forceFullVariantsSync &&
              skipPreSyncChecks == request.skipPreSyncChecks &&
-             forceCreateDirs == request.forceCreateDirs &&
-             Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
+             forceCreateDirs == request.forceCreateDirs;
     }
 
     @Override
     public int hashCode() {
       return Objects
         .hash(trigger, runInBackground,
-              forceFullVariantsSync, skipPreSyncChecks, forceCreateDirs, variantOnlySyncOptions);
+              forceFullVariantsSync, skipPreSyncChecks, forceCreateDirs);
     }
 
     @Override
@@ -247,7 +245,6 @@ public class GradleSyncInvoker {
              ", forceFullVariantsSync=" + forceFullVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +
              ", forceCreateDirs=" + forceCreateDirs +
-             ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }
   }
