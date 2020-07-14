@@ -25,4 +25,9 @@ interface IdeaWizardDelegate: WizardDelegate, Disposable {
    * Custom UI to be shown on the first wizard page
    */
   fun getCustomOptionsStep(): ModuleWizardStep
+
+  /**
+   * Update the buttons on the host wizard to reflect the state of the guest wizard
+   */
+  fun updateButtons()
 }
