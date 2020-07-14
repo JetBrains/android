@@ -46,6 +46,12 @@ import javax.swing.JPanel
 private const val TOP_BAR_BOTTOM_MARGIN = 3
 
 /**
+ * Distance between the top bound of bottom bar and bottom bound of SceneView.
+ */
+@SwingCoordinate
+private const val BOTTOM_BAR_TOP_MARGIN = 3
+
+/**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
  */
 class SinglePositionableContentLayoutManager : PositionableContentLayoutManager() {
@@ -97,7 +103,8 @@ private data class LayoutData private constructor(
  */
 @VisibleForTesting
 class SceneViewPeerPanel(val sceneView: SceneView,
-                         private val sceneViewToolbar: JComponent?) : JPanel() {
+                         private val sceneViewToolbar: JComponent?,
+                         private val sceneViewBottomBar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -126,6 +133,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
         val sceneViewMargin = sceneView.margin.also {
           // Extend top to account for the top toolbar
           it.top += sceneViewTopPanel.preferredSize.height
+          it.bottom += sceneViewBottomPanel.preferredSize.height
         }
         return if (contentSize.width < minimumSize.width ||
                    contentSize.height < minimumSize.height) {
@@ -200,11 +208,21 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
   }
 
+  val sceneViewBottomPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN)
+    isOpaque = false
+    isVisible = true
+    if (sceneViewBottomBar != null) {
+      add(sceneViewBottomBar, BorderLayout.CENTER)
+    }
+  }
+
   init {
     isOpaque = false
     layout = null
 
     add(sceneViewTopPanel)
+    add(sceneViewBottomPanel)
   }
 
   override fun isValid(): Boolean {
@@ -231,6 +249,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                                   sceneViewTopPanel.preferredSize.height)
       sceneViewTopPanel.isVisible = true
     }
+    sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + positionableAdapter.scaledContentSize.height, width + insets.horizontal, sceneViewBottomPanel.preferredSize.height)
 
     super.doLayout()
   }
@@ -242,7 +261,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   }
 
   override fun getMinimumSize(): Dimension =
-    Dimension(sceneViewTopPanel.minimumSize.width, sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
+    Dimension(
+      sceneViewTopPanel.minimumSize.width,
+      sceneViewBottomPanel.preferredSize.height + sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
 }
 
 /**
@@ -352,7 +373,13 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
         null
       }
 
-      add(SceneViewPeerPanel(sceneView, toolbar))
+      val bottomBar = if(StudioFlags.NELE_SCENEVIEW_BOTTOM_BAR.get()) {
+        sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
+      } else {
+        null
+      }
+
+      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar))
     }
   }
 
