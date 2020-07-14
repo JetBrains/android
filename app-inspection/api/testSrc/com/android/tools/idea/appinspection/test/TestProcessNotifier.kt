@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.appinspection.test
 
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import java.util.concurrent.Executor
 
 class TestProcessNotifier: ProcessNotifier {

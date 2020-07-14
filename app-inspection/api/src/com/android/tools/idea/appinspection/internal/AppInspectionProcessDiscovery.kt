@@ -16,10 +16,11 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.isInspectable
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamEventListener
 import com.android.tools.idea.transport.manager.TransportStreamListener
@@ -146,23 +147,13 @@ internal class AppInspectionProcessDiscovery(
       processData.processesMap.computeIfAbsent(
         StreamProcessIdPair(
           streamChannel.stream.streamId, process.pid)) {
-        val descriptor = ProcessDescriptor(streamChannel.stream, process)
+        val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
         if (descriptor.isInspectable()) {
           processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(descriptor) } }
         }
         descriptor
       }
     }
-  }
-
-  /**
-   * Return true if the process it represents is inspectable.
-   *
-   * Currently, a process is deemed inspectable if the device it's running on is O+ and if it's debuggable. The latter condition is
-   * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
-   */
-  private fun ProcessDescriptor.isInspectable(): Boolean {
-    return stream.device.apiLevel >= AndroidVersion.VersionCodes.O
   }
 
   /**

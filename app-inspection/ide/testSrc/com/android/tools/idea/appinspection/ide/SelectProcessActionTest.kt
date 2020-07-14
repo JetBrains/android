@@ -1,8 +1,9 @@
 package com.android.tools.idea.appinspection.ide
 
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -41,7 +42,7 @@ class SelectProcessActionTest {
       .build()
   }
   private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
-    return ProcessDescriptor(this, FakeTransportService.FAKE_PROCESS.toBuilder()
+    return TransportProcessDescriptor(this, FakeTransportService.FAKE_PROCESS.toBuilder()
       .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
       .setPid(pid)
       .build())
