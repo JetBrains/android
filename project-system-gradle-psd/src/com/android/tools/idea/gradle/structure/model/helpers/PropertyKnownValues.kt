@@ -61,7 +61,7 @@ fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<Stri
   immediateFuture(installedEnvironments().buildTools)
 
 fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescriptor<String>>> {
-  val defaultNdkVersion = model?.resolvedNativeModel?.androidProject?.defaultNdkVersion?.let { ValueDescriptor(it) }
+  val defaultNdkVersion = model?.resolvedNativeModel?.getDefaultNdkVersion()?.let { ValueDescriptor(it) }
   return immediateFuture((listOfNotNull(defaultNdkVersion) + installedEnvironments().ndks).distinct())
 }
 

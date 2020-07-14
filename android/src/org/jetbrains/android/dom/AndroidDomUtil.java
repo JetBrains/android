@@ -478,13 +478,11 @@ public class AndroidDomUtil {
 
     for (String tagName : viewClassMap.keySet()) {
       PsiClass viewClass = viewClassMap.get(tagName);
-      if (!AndroidUtils.isAbstract(viewClass)) {
-        String qName = viewClass.getQualifiedName();
-        String prevTagName = class2Name.get(qName);
+      String qName = viewClass.getQualifiedName();
+      String prevTagName = class2Name.get(qName);
 
-        if (prevTagName == null || tagName.indexOf('.') < 0) {
-          class2Name.put(qName, tagName);
-        }
+      if (prevTagName == null || tagName.indexOf('.') < 0) {
+        class2Name.put(qName, tagName);
       }
     }
     return class2Name.values();

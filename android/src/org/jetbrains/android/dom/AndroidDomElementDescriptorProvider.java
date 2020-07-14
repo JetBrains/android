@@ -41,11 +41,10 @@ import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.layout.View;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
+import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,15 +57,12 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     if (facet == null) return null;
     final String name = domElement.getXmlTag().getName();
     final PsiClass aClass = baseClassName != null
-                            ? LayoutViewClassUtils.findClassByTagName(facet, name, baseClassName)
+                            ? AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, name, baseClassName)
                             : null;
     final Icon icon = getIconForTag(name, domElement);
 
     final DefinesXml definesXml = domElement.getAnnotation(DefinesXml.class);
     if (definesXml != null) {
-      if (domElement instanceof LayoutViewElement) {
-        return createAndroidXmlLayoutViewDescriptor(domElement, new DomElementXmlDescriptor(domElement), aClass, icon);
-      }
       return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), baseClassName, icon);
     }
     final PsiElement parent = tag.getParent();
@@ -76,27 +72,11 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (parentDescriptor != null && parentDescriptor instanceof AndroidXmlTagDescriptor) {
         XmlElementDescriptor domDescriptor = parentDescriptor.getElementDescriptor(tag, (XmlTag)parent);
         if (domDescriptor != null) {
-          if (domElement instanceof LayoutViewElement) {
-            return createAndroidXmlLayoutViewDescriptor(domElement, domDescriptor, aClass, icon);
-          }
           return new AndroidXmlTagDescriptor(aClass, domDescriptor, baseClassName, icon);
         }
       }
     }
     return null;
-  }
-
-  private static AndroidXmlLayoutViewDescriptor createAndroidXmlLayoutViewDescriptor(
-    @NotNull DomElement element,
-    @NotNull XmlElementDescriptor baseDescriptor,
-    @Nullable PsiClass viewClassFromTag,
-    @Nullable Icon icon
-  ) {
-    PsiClass viewClass = viewClassFromTag;
-    if (element instanceof View) {
-      viewClass = ((View)element).getViewClass().getValue();
-    }
-    return new AndroidXmlLayoutViewDescriptor(viewClass, baseDescriptor, icon);
   }
 
   @Override
@@ -117,7 +97,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
     final DomManager domManager = DomManager.getDomManager(project);
     if (domManager.getFileElement((XmlFile)file, AndroidDomElement.class) == null) return null;
-    
+
     final DomElement domElement = domManager.getDomElement(tag);
     // DataBindingElements are handled by a different provider.
     if (!(domElement instanceof AndroidDomElement) || domElement instanceof DataBindingElement) {

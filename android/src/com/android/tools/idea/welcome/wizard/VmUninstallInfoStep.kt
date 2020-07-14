@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.welcome.install.VmType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.uiDesigner.core.Spacer
@@ -40,7 +40,7 @@ class VmUninstallInfoStep(
       label("Click 'Next' to proceed")
     }
   }
-  private val root = wrappedWithVScroll(panel)
+  private val root = wrapWithVScroll(panel)
 
   override fun getComponent() = root
   override fun getPreferredFocusComponent() = panel

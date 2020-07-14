@@ -56,12 +56,14 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:zxing-core",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
     ],
 )
 

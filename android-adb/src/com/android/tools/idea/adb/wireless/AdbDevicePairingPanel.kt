@@ -16,144 +16,118 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.openapi.ui.Splitter
+import com.android.utils.HtmlBuilder
+import com.intellij.openapi.Disposable
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.ui.JBDimension
+import com.intellij.ui.components.JBLoadingPanel
+import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Component
-import javax.swing.GroupLayout
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 
 @UiThread
-internal class AdbDevicePairingPanel {
-  val rootComponent: JComponent by lazy {
-    createPanel()
+internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
+  /**
+   * URL to the "Learn mode" page
+   *
+   * TODO: Update to final URL
+   */
+  private val learnMoreUrl = "http://developer.android.com/docs"
+
+  private val qrCodePanel by lazy { QrCodePanel() }
+  private val pinCodePanel by lazy { PinCodePanel() }
+  private val centerPanel by lazy { PairingCenterPanel() }
+
+  private val loadingPanel: JBLoadingPanel by lazy {
+    JBLoadingPanel(BorderLayout(), parentDisposable).apply {
+      val centerComponent = createCenterPanel()
+      add(centerComponent, BorderLayout.CENTER)
+      name = "wifiPairing"
+    }
   }
-  private var qrCodeImagePanel = QrCodePanel()
+
+  val rootComponent: JComponent by lazy {
+    JPanel(BorderLayout()).apply {
+      val headerPanel = createHeaderPanel()
+      add(headerPanel, BorderLayout.PAGE_START)
+      add(loadingPanel, BorderLayout.CENTER)
+    }
+  }
+
+  var isLoading: Boolean
+    get() = loadingPanel.isLoading
+    set(value) = if (value) {
+      loadingPanel.startLoading()
+      centerPanel.showEmptyContent()
+    } else {
+      centerPanel.showContent()
+      loadingPanel.stopLoading()
+    }
 
   fun setQrCodeImage(image: QrCodeImage) {
-    qrCodeImagePanel.setQrCode(image)
+    qrCodePanel.setQrCode(image)
   }
 
-  private fun createPanel(): JComponent {
-    val leftPanel = createQrCodePairingPanel()
-    val rightPanel = createPinCodePairingPanel()
-
-    // Create a non-movable splitter as a shortcut to create a view split 50/50
-    // on the x-axis.
-    // TODO: This should be done using a proper JSeparator and LayoutManager
-    val splitter = Splitter(false, .5f, .5f, .5f)
-    splitter.setResizeEnabled(false)
-    splitter.firstComponent = leftPanel
-    splitter.secondComponent = rightPanel
-    splitter.isShowDividerControls = false
-    splitter.setHonorComponentsMinimumSize(false)
-
-    // Setup container panel
-    // TODO: Add support for scroll bars (needed to properly support resizing)
-    val rootPanel: JComponent = JPanel()
-    val layout = BorderLayout()
-    rootPanel.layout = layout
-    rootPanel.add(splitter, BorderLayout.CENTER)
-    return rootPanel
-  }
-
-  private fun createQrCodePairingPanel(): JComponent {
-    val rootPanel: JComponent = JPanel()
-    val layout = GroupLayout(rootPanel)
-
-    val label1 = JBLabel("Pair using QR")
-    scaleFontSize(label1, 1.2f)
-
-    val label2 = JBLabel("Pair new devices by scanning QR Code")
-
-    val qrCodePanel = createQrCodePanel()
-
-    val bottomPanel = createQrCodeBottomPanel()
-
-    val horizontalGroup: GroupLayout.Group = layout.createParallelGroup()
-      .addComponent(label1)
-      .addComponent(label2)
-      .addComponent(qrCodePanel)
-      .addComponent(bottomPanel)
-    val verticalGroup: GroupLayout.Group = layout.createSequentialGroup()
-      .addComponent(label1)
-      .addComponent(label2)
-      .addGap(JBUIScale.scale(20))
-      .addComponent(qrCodePanel)
-      .addComponent(bottomPanel)
-
-    layout.autoCreateGaps = true
-    layout.setHorizontalGroup(horizontalGroup)
-    layout.setVerticalGroup(verticalGroup)
-
-    rootPanel.layout = layout
-    return rootPanel
-  }
-
-  private fun createPinCodePairingPanel(): JComponent {
-    val rootPanel: JComponent = JPanel()
-    val layout = GroupLayout(rootPanel)
-
-    val label1 = JBLabel("Pair using pin code")
-    scaleFontSize(label1, 1.2f)
-
-    val label2 = JBLabel("Pair new devices manually using 6 digit code")
-
-    val bottomPanel = createPairWithCodePanel()
-
-    val horizontalGroup: GroupLayout.Group = layout.createParallelGroup()
-      .addComponent(label1)
-      .addComponent(label2)
-      .addComponent(bottomPanel)
-
-    val verticalGroup: GroupLayout.Group = layout.createSequentialGroup()
-      .addComponent(label1)
-      .addComponent(label2)
-      .addGap(JBUIScale.scale(20))
-      .addComponent(bottomPanel)
-
-    layout.autoCreateGaps = true
-    layout.setHorizontalGroup(horizontalGroup)
-    layout.setVerticalGroup(verticalGroup)
-
-    rootPanel.layout = layout
-    return rootPanel
-  }
-
-  private fun scaleFontSize(comp: Component, @Suppress("SameParameterValue") scaleFactor: Float) {
-    val font = comp.font
-    comp.font = font.deriveFont(font.style, font.size.toFloat() * scaleFactor)
-  }
-
-  private fun createQrCodePanel(): JPanel {
-    qrCodeImagePanel = QrCodePanel()
-    return qrCodeImagePanel.component
-  }
-
-  private fun createQrCodeBottomPanel(): JComponent {
-    val panel = JPanel(BorderLayout())
-
-    val link = HyperlinkLabel("Where to find scanner on phone?")
+  private fun createHelpLink(): JComponent {
+    val link = HyperlinkLabel("Can't connect your device?")
     //TODO: Update with actual link
     link.setHyperlinkTarget("https://developer.android.com/docs")
-    panel.add(link, BorderLayout.SOUTH)
-    return panel
+    return link
   }
 
-  private fun createPairWithCodePanel(): JPanel {
-    val rootPanel = JPanel()
-    rootPanel.border = IdeBorderFactory.createBorder(Color.BLACK)
-    rootPanel.minimumSize = JBDimension(100, 300)
-    return rootPanel
+  private fun createHeaderPanel(): JComponent {
+    val topLabel = JBLabel("Pair over Wi-Fi").apply {
+      border = JBEmptyBorder(0, 0, 5, 0)
+      font = JBUI.Fonts.label(16f).asBold()
+    }
+
+    val editorPane = createHtmlEditorPane()
+    val htmlBuilder = HtmlBuilder().apply {
+      add("Pair devices over Wi-Fi for wireless debugging scanning a QR code manually or using a 6 digit code.")
+      add(" ")
+      add("Wireless debugging allows for cable free workflows but can be slower than USB connection.")
+      add("  ")
+      addLink("Learn more", learnMoreUrl)
+    }
+    editorPane.setHtml(htmlBuilder, UIColors.HEADER_LABEL)
+
+    return JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty(10, 10, 15, 10)
+      add(topLabel, BorderLayout.NORTH)
+      add(editorPane, BorderLayout.CENTER)
+    }
+  }
+
+  private fun createCenterPanel(): JComponent {
+    val qrCodePanel = qrCodePanel.component
+    val pinCodePanel = pinCodePanel.component
+    val helpLink = createHelpLink()
+
+    val contentPanel = PairingContentPanel().apply {
+      setQrCodeComponent(qrCodePanel)
+      setPinCodeComponent(pinCodePanel)
+      setHelpLinkComponent(helpLink)
+    }.component
+
+    return centerPanel.apply {
+      setContentComponent(contentPanel)
+    }.component
   }
 
   fun setQrCodePairingStatus(label: String) {
-    qrCodeImagePanel.setStatusLabel(label)
+    qrCodePanel.setStatusLabel(label)
+  }
+
+  fun setLoadingText(text: String) {
+    loadingPanel.setLoadingText(text)
+    centerPanel.showEmptyContent()
+  }
+
+  fun setLoadingError(html: HtmlBuilder) {
+    loadingPanel.stopLoading()
+    centerPanel.showError(html)
   }
 }

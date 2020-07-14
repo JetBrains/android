@@ -38,6 +38,7 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
       SceneMode.BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
       SceneMode.RENDER_AND_BLUEPRINT -> LayoutEditorState.Surfaces.BOTH
       SceneMode.COMPOSE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.COMPOSE_BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
       SceneMode.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE

@@ -147,7 +147,7 @@ public class ProjectStructureUsageTracker {
         if (ndkModel != null) {
           shouldReportNative = true;
           if (ndkModel.getFeatures().isBuildSystemNameSupported()) {
-            for (String buildSystem : ndkModel.getAndroidProject().getBuildSystems()) {
+            for (String buildSystem : ndkModel.getBuildSystems()) {
               buildSystemType = stringToBuildSystemType(buildSystem);
             }
           }

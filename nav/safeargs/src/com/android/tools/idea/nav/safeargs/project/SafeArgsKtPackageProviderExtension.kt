@@ -48,7 +48,7 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
     val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
 
-    val packageDescriptors = KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors().takeIf { it.isNotEmpty() }
+    val packageDescriptors = KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors(module).takeIf { it.isNotEmpty() }
                              ?: return null
     return SafeArgsSyntheticPackageProvider(packageDescriptors)
   }

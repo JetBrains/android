@@ -15,31 +15,31 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.common.scene.target.CommonDragTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import java.awt.Rectangle;
-import org.intellij.lang.annotations.JdkConstants;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.concurrent.GuardedBy;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.annotation.concurrent.GuardedBy;
+import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
@@ -657,7 +657,7 @@ public class SceneComponent {
    * @return true if intersecting with the rectangle
    */
   public boolean intersects(@AndroidDpCoordinate Rectangle rectangle) {
-    return rectangle.intersects(fillRect(null));
+    return myHitProvider.intersects(this, rectangle);
   }
 
   //endregion

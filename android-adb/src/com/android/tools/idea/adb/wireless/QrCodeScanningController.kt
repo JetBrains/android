@@ -64,7 +64,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
   }
 
   private fun generateQrCode(model: AdbDevicePairingModel) {
-    val futureQrCode = service.generateQrCode(QrCodeColors.BACKGROUND, QrCodeColors.FOREGROUND)
+    val futureQrCode = service.generateQrCode(UIColors.QR_CODE_BACKGROUND, UIColors.QR_CODE_FOREGROUND)
     edtExecutor.transform(futureQrCode) {
       model.qrCodeImage = it
     }

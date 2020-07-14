@@ -17,8 +17,7 @@ package com.android.tools.idea.npw.dynamicapp
 
 import com.android.AndroidProjectTypes
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
@@ -30,7 +29,6 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.project.AndroidProjectInfo
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
@@ -55,7 +53,7 @@ class ConfigureDynamicModuleStep(
   private val moduleTitle: JTextField = JBTextField()
   private val fusingCheckbox: JCheckBox = JBCheckBox("Fusing (install module on pre-Lollipop devices)")
 
-  private val panel: DialogPanel = panel {
+  override fun createMainPanel(): DialogPanel = panel {
     row {
       labelFor("Base Application Module", baseApplication)
       baseApplication()
@@ -103,8 +101,6 @@ class ConfigureDynamicModuleStep(
       }
     }
   }
-
-  override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
     AndroidProjectInfo.getInstance(model.project)

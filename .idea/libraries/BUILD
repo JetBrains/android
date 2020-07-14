@@ -1,343 +1,397 @@
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.kotlin-stdlib-jdk8",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.70:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.70:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.70:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.70:unb.kotlin-stdlib-jdk8_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.70:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.70:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.70:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.70:jar",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.70:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.70:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.70:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.70:jar",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.truth",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/com/google/truth/truth/0.42:unb.truth_files",
+        "//prebuilts/tools/common/m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0:unb.truth_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/m2/repository/com/google/truth/truth/0.42:jar",
-        "//prebuilts/tools/common/m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0:jar",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//prebuilts/tools/common/m2/repository/com/google/truth/truth/0.42:jar",
-        "//prebuilts/tools/common/m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0:jar",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.Guava",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/com/google/guava/failureaccess/1.0.1:unb.Guava_files",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/28.2-jre:unb.Guava_files",
+        "//prebuilts/tools/common/m2/repository/com/google/j2objc/j2objc-annotations/1.3:unb.Guava_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/m2/repository/com/google/guava/failureaccess/1.0.1:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/28.2-jre:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/j2objc/j2objc-annotations/1.3:jar",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//prebuilts/tools/common/m2/repository/com/google/guava/failureaccess/1.0.1:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/28.2-jre:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/j2objc/j2objc-annotations/1.3:jar",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.javax-inject",
+    jars = ["//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:unb.javax-inject_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.equalsverifier",
+    jars = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/2.5.1:unb.equalsverifier_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/2.5.1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/2.5.1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.mockito",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:unb.mockito_files",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:unb.mockito_files",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:unb.mockito_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:jar",
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:jar",
-        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:jar",
-        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:jar",
-        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.jsr305",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:unb.jsr305_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.compile-testing",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:unb.compile-testing_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.jimfs",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1:unb.jimfs_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.studio-grpc",
+    jars = ["//tools/base/bazel:studio-grpc.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/bazel:studio-grpc"],
-    runtime_deps = ["//tools/base/bazel:studio-grpc"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.studio-proto",
+    jars = ["//tools/base/bazel:studio-proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/bazel:studio-proto"],
-    runtime_deps = ["//tools/base/bazel:studio-proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.dexlib2",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/org/smali/dexlib2/2.2.4:unb.dexlib2_files",
+        "//prebuilts/tools/common/m2/repository/org/smali/util/2.2.4:unb.dexlib2_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/m2/repository/org/smali/dexlib2/2.2.4:jar",
-        "//prebuilts/tools/common/m2/repository/org/smali/util/2.2.4:jar",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//prebuilts/tools/common/m2/repository/org/smali/dexlib2/2.2.4:jar",
-        "//prebuilts/tools/common/m2/repository/org/smali/util/2.2.4:jar",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.asm-tools",
+    jars = ["//tools/adt/idea/android/lib:unb.asm-tools_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//tools/adt/idea/android/lib:unb.asm-5.0.3",
-        "//tools/adt/idea/android/lib:unb.asm-analysis-5.0.3",
-        "//tools/adt/idea/android/lib:unb.asm-tree-5.0.3",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/adt/idea/android/lib:unb.asm-5.0.3",
-        "//tools/adt/idea/android/lib:unb.asm-analysis-5.0.3",
-        "//tools/adt/idea/android/lib:unb.asm-tree-5.0.3",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.truth-java8-extension",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42:unb.truth-java8-extension_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.kxml2",
+    jars = ["//prebuilts/tools/common/m2/repository/net/sf/kxml/kxml2/2.3.0:unb.kxml2_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/net/sf/kxml/kxml2/2.3.0:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/net/sf/kxml/kxml2/2.3.0:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.easymock",
+    jars = ["//prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2:unb.easymock_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.protobuf",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:unb.protobuf_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.libam-instrumentation-data-proto",
+    jars = ["//tools/base/ddmlib:libam-instrumentation-data-proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/ddmlib:am-instrumentation-data-proto"],
-    runtime_deps = ["//tools/base/ddmlib:am-instrumentation-data-proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.sqlite",
+    jars = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.21.0.1:unb.sqlite_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.21.0.1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.21.0.1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.aapt-proto",
+    jars = ["//prebuilts/tools/common/m2/repository/com/android/tools/build/aapt2-proto/0.3.1:unb.aapt-proto_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/android/tools/build/aapt2-proto/0.3.1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/android/tools/build/aapt2-proto/0.3.1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.studio-analytics-proto",
+    jars = ["//tools/analytics-library/protos/src/main/proto:libstudio.proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
-    runtime_deps = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.aia-proto",
+    jars = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto"],
-    runtime_deps = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.baksmali",
+    jars = ["//prebuilts/tools/common/m2/repository/org/smali/baksmali/2.2.4:unb.baksmali_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/smali/baksmali/2.2.4:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/smali/baksmali/2.2.4:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.zxing-core",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0:unb.zxing-core_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.transport-proto",
+    jars = ["//tools/base/transport/proto:transport_java_proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/transport/proto:transport_java_proto"],
-    runtime_deps = ["//tools/base/transport/proto:transport_java_proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.emulator-proto",
+    jars = ["//tools/base/emulator/proto:emulator_java_proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/emulator/proto:emulator_java_proto"],
-    runtime_deps = ["//tools/base/emulator/proto:emulator_java_proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.perfetto-proto",
+    jars = ["//tools/base/profiler:perfetto-protos.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/profiler:perfetto-protos"],
-    runtime_deps = ["//tools/base/profiler:perfetto-protos"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.sqlite-inspector-proto",
+    jars = ["//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto"],
-    runtime_deps = ["//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.kotlinx-coroutines-guava",
+    jars = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.2.1:unb.kotlinx-coroutines-guava_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.2.1:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.2.1:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.layoutinspector-proto",
+    jars = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto"],
-    runtime_deps = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.guava-testlib",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre:unb.guava-testlib_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.auto-value-annotations",
+    jars = ["//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:unb.auto-value-annotations_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:jar"],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.kotlin-plugin-test",
+    jars = ["//prebuilts/tools/common/android-kotlin:unb.kotlin-plugin-test_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/android-kotlin:unb.android-extensions-compiler-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.idea-gradle-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.idea-test-framework-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.idea-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.tests-common-tests",
-    ],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//prebuilts/tools/common/android-kotlin:unb.android-extensions-compiler-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.idea-gradle-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.idea-test-framework-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.idea-tests",
-        "//prebuilts/tools/common/android-kotlin:unb.tests-common-tests",
-    ],
 )
 
 # managed by go/iml_to_build [unb]
-java_library(
+java_import(
     name = "unb.tightvnc",
+    jars = ["//prebuilts/tools/common/tightvnc:unb.tightvnc_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/tightvnc:unb.tightvnc"],
-    runtime_deps = ["//prebuilts/tools/common/tightvnc:unb.tightvnc"],
 )

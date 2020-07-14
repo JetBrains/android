@@ -87,14 +87,16 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     myRecommendedPluginVersion = pluginVersion;
     myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
     if (AGP_UPGRADE_ASSISTANT.get()) {
-      myMessage = "<p><b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b></p>" +
-                  "<p>To continue importing the project, Android Studio will upgrade the project's build files to use version " +
+      myMessage = "<p><b>This project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b></p>" +
+                  "<p>To continue importing this project (" + myProject.getName() +
+                  "), Android Studio will upgrade the project's build files to use version " +
                   pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
                   "from the <a href='https://developer.android.com/studio/releases/gradle-plugin.html'>release notes</a>).</p>";
     }
     else {
-      myMessage = "<b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/><br/>" +
-                  "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
+      myMessage = "<b>This project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/><br/>" +
+                  "To continue opening this project (" + myProject.getName() +
+                  "), the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
                   "You can learn more about this version of the plugin from the " +
                   "<a href='https://developer.android.com/studio/releases/gradle-plugin.html" +
                   "'>release notes</a>.<br/><br/>";

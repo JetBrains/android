@@ -70,8 +70,6 @@
 
     <!--  The dynamic DOM extender:  -->
     <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement" extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>
-    <dom.extender domClass="org.jetbrains.android.dom.layout.LayoutElement"
-                  extenderClass="org.jetbrains.android.dom.AndroidLayoutDomExtender"/>
 
     <!-- Extensions affecting code completion and XML in general: -->
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>

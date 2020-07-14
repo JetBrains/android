@@ -15,13 +15,22 @@
  */
 package com.android.tools.idea.run;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfile;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.command.impl.DummyProject;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,9 +44,16 @@ public class DefaultStudioProgramRunnerTest {
   @Mock private RunProfile runProfile;
   @Mock private GradleSyncState syncState;
 
+  private StudioProgramRunner myRunner;
+
   @Before
   public void before() {
     MockitoAnnotations.initMocks(this);
+  }
+
+  @Before
+  public void newDefaultStudioProgramRunner() {
+    myRunner = new DefaultStudioProgramRunner(project -> syncState, project -> target);
   }
 
   /**
@@ -48,36 +64,85 @@ public class DefaultStudioProgramRunnerTest {
     Mockito.when(target.getRunningDevices()).thenReturn(Collections.emptyList());
     Mockito.when(runConfig.getProject()).thenReturn(DummyProject.getInstance());
 
-    DefaultStudioProgramRunner runner = new DefaultStudioProgramRunner(p -> syncState, p -> target);
-
     // Check that the program runner doesn't support non-AndroidRunConfigurationBase profiles.
     Mockito.when(syncState.isSyncInProgress()).thenReturn(false);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.NO);
-    Assert.assertFalse(runner.canRun(DefaultRunExecutor.EXECUTOR_ID, runProfile));
+    Assert.assertFalse(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runProfile));
 
     // Check that the program runner can run when Gradle is ready.
     Mockito.when(syncState.isSyncInProgress()).thenReturn(false);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.NO);
-    Assert.assertTrue(runner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
+    Assert.assertTrue(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
 
     // Check that the program runner cannot run when Gradle is syncing.
     Mockito.when(syncState.isSyncInProgress()).thenReturn(true);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.NO);
-    Assert.assertFalse(runner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
+    Assert.assertFalse(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
 
     // Check that the program runner cannot run when Gradle needs syncing.
     Mockito.when(syncState.isSyncInProgress()).thenReturn(false);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
-    Assert.assertFalse(runner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
+    Assert.assertFalse(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
 
     // Check that the program runner cannot run when Gradle isn't sure if it needs to sync.
     Mockito.when(syncState.isSyncInProgress()).thenReturn(false);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.UNSURE);
-    Assert.assertFalse(runner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
+    Assert.assertFalse(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
 
     // Check that the program runner cannot run when Gradle is completely out of whack.
     Mockito.when(syncState.isSyncInProgress()).thenReturn(true);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
-    Assert.assertFalse(runner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
+    Assert.assertFalse(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
+  }
+
+  @Test
+  public void doExecuteCaseDebug() {
+    // Arrange
+    Mockito.when(target.getAvailableDeviceCount()).thenReturn(2);
+
+    RunProfileState state = Mockito.mock(RunProfileState.class);
+    ExecutionEnvironment environment = mockEnvironment("Debug");
+
+    // Act
+    try {
+      myRunner.doExecute(state, environment);
+      fail();
+    }
+    // Assert
+    catch (ExecutionException exception) {
+      assertEquals("Debugging is not supported on multiple devices", exception.getMessage());
+    }
+  }
+
+  @Test
+  public void doExecuteDefault() {
+    // Arrange
+    Mockito.when(target.getAvailableDeviceCount()).thenReturn(2);
+
+    RunProfileState state = Mockito.mock(RunProfileState.class);
+    ExecutionEnvironment environment = mockEnvironment("Android Profiler");
+
+    // Act
+    try {
+      myRunner.doExecute(state, environment);
+      fail();
+    }
+    // Assert
+    catch (ExecutionException exception) {
+      assertEquals("The Android Profiler executor is not supported on multiple devices", exception.getMessage());
+    }
+  }
+
+  private static @NotNull ExecutionEnvironment mockEnvironment(@NotNull String executorId) {
+    Project project = Mockito.mock(Project.class);
+
+    Executor executor = Mockito.mock(Executor.class);
+    Mockito.when(executor.getId()).thenReturn(executorId);
+
+    ExecutionEnvironment environment = Mockito.mock(ExecutionEnvironment.class);
+    Mockito.when(environment.getProject()).thenReturn(project);
+    Mockito.when(environment.getExecutor()).thenReturn(executor);
+
+    return environment;
   }
 }

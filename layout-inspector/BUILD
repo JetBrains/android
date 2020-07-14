@@ -114,7 +114,7 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     test_srcs = ["testSrc"],
-    test_tags = ["no_test_windows"],  # local cygwin error => missing dependencies
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -198,6 +198,7 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
     tags = [
         "manual",
+        "no_test_windows",  # local cygwin error => missing dependencies
         "unb",
     ],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
@@ -208,6 +209,7 @@ iml_module(
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = ["no_test_windows"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

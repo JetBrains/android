@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -159,9 +159,7 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title").apply {
-      registerValidators()
-    }
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)

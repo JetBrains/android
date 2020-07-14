@@ -16,53 +16,28 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.analyzer.moduleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.platform.jvm.isJvm
 
-/**
- * Returns the android module associate with the specified package within the context that either it's the dependency
- * or it's the module itself.
- *
- * An android module should usually be found, but as it relies on APIs under the hood which querying indices, and
- * in some cases like we query when dumb mode or primary manifest files are malformed, we might get null.
- */
-internal fun findAndroidModuleByPackageName(fqName: FqName, project: Project, moduleContext: Module): Module? {
-  val projectSystem = project.getProjectSystem()
-  val projectScope = GlobalSearchScope.projectScope(project)
-  var packageFqName = fqName
-
-  while (!packageFqName.isRoot) {
-    val facets = projectSystem.getAndroidFacetsWithPackageName(project, packageFqName.asString(), projectScope)
-
-    if (facets.isNotEmpty()) {
-      return facets.firstOrNull {
-        moduleContext == it.module || ModuleRootManager.getInstance(moduleContext).isDependsOn(it.module)
-      }?.module
-    }
-
-    packageFqName = packageFqName.parent()
-  }
-
-  return null
-}
-
 internal fun Module.getDescriptorsByModulesWithDependencies(): Map<FqName, List<PackageFragmentDescriptor>> {
-  val descriptorsFromThisModule = KtDescriptorCacheModuleService.getInstance(this).getDescriptors().toMutableMap()
+  val moduleDescriptor = this.toDescriptor() ?: return emptyMap()
+  val descriptorsFromThisModule = KtDescriptorCacheModuleService.getInstance(this).getDescriptors(moduleDescriptor).toMutableMap()
   return ModuleRootManager.getInstance(this).getDependencies(false)
     .asSequence()
     .map { ProgressManager.checkCanceled(); it }
-    .map { KtDescriptorCacheModuleService.getInstance(it).getDescriptors() }
+    .mapNotNull {
+      val descriptor = it?.toDescriptor() ?: return@mapNotNull null
+      KtDescriptorCacheModuleService.getInstance(it).getDescriptors(descriptor)
+    }
     .fold(descriptorsFromThisModule) { acc, curr ->
       // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
       //  resolved.

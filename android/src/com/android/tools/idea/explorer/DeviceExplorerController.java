@@ -80,6 +80,7 @@ import java.util.Stack;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -452,14 +453,8 @@ public class DeviceExplorerController {
       }
 
       DeviceFileSystem device = myModel.getActiveDevice();
-      Map<DeviceFileEntryNode, Path> downloadedNodes = new HashMap<>();
 
       myEdtExecutor.executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
-        if (downloadedNodes.containsKey(treeNode)) {
-          myFileOpener.openFile(downloadedNodes.get(treeNode));
-          return null;
-        }
-
         if (!Objects.equals(device, myModel.getActiveDevice())) {
           return Futures.immediateFuture(null);
         }
@@ -473,24 +468,38 @@ public class DeviceExplorerController {
           return Futures.immediateFuture(null);
         }
 
-        ListenableFuture<Path> futurePath = downloadFileEntryToDefaultLocation(treeNode);
+        return myEdtExecutor.transformAsync(treeNode.getEntry().isSymbolicLinkToDirectory(), isSymlinkToDir -> {
+          assert isSymlinkToDir != null;
 
-        ListenableFuture<Void> done = myEdtExecutor.transform(futurePath, path -> {
-          ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(path);
+          if (isSymlinkToDir) {
+            return Futures.<Void>immediateFuture(null);
+          }
+          else {
+            return downloadAndOpenFile(treeNode);
+          }
+        });
+      });
+    }
 
-          myEdtExecutor.transform(getVirtualFile, virtualFile -> {
-            myFileOpener.openFile(virtualFile); return null;
-          });
+    private ListenableFuture<Void> downloadAndOpenFile(DeviceFileEntryNode treeNode) {
+      ListenableFuture<Path> futurePath = downloadFileEntryToDefaultLocation(treeNode);
 
+      ListenableFuture<Void> done = myEdtExecutor.transformAsync(futurePath, path -> {
+        assert path != null;
+
+        ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(path);
+
+        return myEdtExecutor.transform(getVirtualFile, virtualFile -> {
+          myFileOpener.openFile(virtualFile);
           return null;
         });
+      });
 
-        // handle exceptions
-        return myEdtExecutor.catching(done, Throwable.class, t -> {
-          String message = String.format("Error opening contents of device file %s", getUserFacingNodeName(treeNode));
-          myView.reportErrorRelatedToNode(treeNode, message, t);
-          return null;
-        });
+      // handle exceptions
+      return myEdtExecutor.catching(done, Throwable.class, t -> {
+        String message = String.format("Error opening contents of device file %s", getUserFacingNodeName(treeNode));
+        myView.reportErrorRelatedToNode(treeNode, message, t);
+        return null;
       });
     }
 
