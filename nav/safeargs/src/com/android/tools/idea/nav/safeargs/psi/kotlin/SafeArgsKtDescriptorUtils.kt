@@ -20,8 +20,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.roots.ModuleRootManager
 import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.analyzer.moduleInfo
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
@@ -48,8 +46,4 @@ internal fun Module.getDescriptorsByModulesWithDependencies(): Map<FqName, List<
 
 internal fun ModuleInfo.toModule(): Module? {
   return this.unwrapModuleSourceInfo()?.takeIf { it.platform.isJvm() }?.module
-}
-
-internal fun ModuleDescriptor.toModule(): Module? {
-  return this.moduleInfo?.toModule()
 }
