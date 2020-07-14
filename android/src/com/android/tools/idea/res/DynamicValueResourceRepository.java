@@ -25,10 +25,7 @@ import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -55,7 +52,7 @@ import org.jetbrains.annotations.TestOnly;
  * repositories.
  */
 public class DynamicValueResourceRepository extends LocalResourceRepository
-    implements Disposable, BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
+  implements Disposable, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   @NotNull private final ResourceNamespace myNamespace;
   @SuppressWarnings("InstanceGuardedByStatic")
@@ -71,14 +68,10 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
 
   private void registerListeners() {
     myFacet.getModule().getProject().getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      if (result == ProjectSystemSyncManager.SyncResult.SUCCESS) {
+      if (result.isSuccessful()) {
         notifyProjectSynced();
       }
     });
-
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(myFacet.getModule().getProject());
-    buildVariantUpdater.addSelectionChangeListener(this);
-    Disposer.register(this, () -> buildVariantUpdater.removeSelectionChangeListener(this));
   }
 
   @Override
@@ -196,13 +189,6 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
     }
 
     return myResourceTable;
-  }
-
-  // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
-
-  @Override
-  public void selectionChanged() {
-    notifyProjectSynced();
   }
 
   @Override
