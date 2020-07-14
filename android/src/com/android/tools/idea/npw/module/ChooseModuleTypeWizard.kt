@@ -55,6 +55,8 @@ class ChooseModuleTypeWizard(
   private val projectSyncInvoker: ProjectSyncInvoker
 ): Disposable {
 
+  val mainPanel = JPanel(BorderLayout())
+
   private val moduleGalleryEntryList: List<ModuleGalleryEntry> = sortModuleEntries(moduleGalleryEntries)
   private var selectedEntry: ModuleGalleryEntry? = null
   private lateinit var currentModelWizard: ModelWizard
@@ -71,15 +73,15 @@ class ChooseModuleTypeWizard(
   }
 
   private val dialogCustomLayout = DialogCustomLayout()
-  private val mainPanel = JPanel(BorderLayout())
   private val leftPanel = JPanel(BorderLayout())
-
   private val listEntriesListeners = ListenerManager()
   private val modelWizardListeners = ListenerManager()
 
+  private var wizardModelChangedListener: (ModelWizard) -> Unit = {}
+
   init {
-    val leftList = JBList<ModuleGalleryEntry>(moduleGalleryEntryList).apply {
-      setCellRenderer { list, value, index, isSelected, cellHasFocus ->
+    val leftList = JBList(moduleGalleryEntryList).apply {
+      setCellRenderer { _, value, _, isSelected, cellHasFocus ->
         JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, cellHasFocus)
@@ -107,10 +109,12 @@ class ChooseModuleTypeWizard(
         modelWizardListeners.listen(currentModelWizard.onFirstStep()) {
           leftPanel.isVisible = currentModelWizard.onFirstStep().get()
         }
+
+        wizardModelChangedListener(currentModelWizard)
       }
     }
 
-    listEntriesListeners.listenAndFire(SelectedListValueProperty<ModuleGalleryEntry>(leftList), ::setNewModelWizard)
+    listEntriesListeners.listenAndFire(SelectedListValueProperty(leftList), ::setNewModelWizard)
 
     Disposer.register(modelWizardDialog.disposable, this)
 
@@ -120,6 +124,11 @@ class ChooseModuleTypeWizard(
     mainPanel.add(leftPanel, BorderLayout.WEST)
 
     FormScalingUtil.scaleComponentTree(this.javaClass, mainPanel)
+  }
+
+  fun setWizardModelListenerAndFire(listener: (ModelWizard) -> Unit) {
+    wizardModelChangedListener  = listener
+    listener(currentModelWizard)
   }
 
   fun show() {
