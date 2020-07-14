@@ -163,7 +163,7 @@ class AppInspectionView(
           )
         ) { messenger ->
           invokeAndWaitIfNeeded {
-            provider.createTab(project, messenger, ideServices)
+            provider.createTab(project, ideServices, currentProcess, messenger)
               .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
               .also { updateUi() }
           }.client

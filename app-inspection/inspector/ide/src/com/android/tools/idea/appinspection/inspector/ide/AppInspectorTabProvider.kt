@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspector.ide
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
@@ -33,9 +34,20 @@ interface AppInspectorTabProvider {
   val displayName: String
   val inspectorAgentJar: AppInspectorJar
   fun isApplicable(): Boolean = true
+
+  /**
+   * Extension point for creating UI that communicates with some target inspector and is shown in
+   * the app inspection tool window.
+   *
+   * @param ideServices Various functions which clients may use to request IDE-specific behaviors
+   * @param processDescriptor Information about the process and device that the associated inspector
+   *   that will drive this UI is attached to
+   * @param messenger A class for communicating to the associated inspector
+   */
   fun createTab(
     project: Project,
-    messenger: AppInspectorClient.CommandMessenger,
-    ideServices: AppInspectionIdeServices
+    ideServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    messenger: AppInspectorClient.CommandMessenger
   ): AppInspectorTab
 }
