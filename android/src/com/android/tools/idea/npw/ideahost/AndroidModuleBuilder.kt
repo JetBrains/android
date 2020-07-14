@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.npw.ideahost
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.module.ChooseModuleTypeWizard
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.createWithDefaultGallery
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep
@@ -107,6 +110,19 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
 
   private fun createWizardAdaptor(hostWizard: AbstractWizard<*>, type: WizardType, project: Project?) {
     Preconditions.checkState(wizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.")
+
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() && type == WizardType.MODULE) {
+      val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
+      val chooseModuleWizard =
+        ChooseModuleTypeWizard(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+
+      wizardAdapter = IdeaMultiWizardAdapter(hostWizard, chooseModuleWizard.mainPanel).apply {
+        chooseModuleWizard.setWizardModelListenerAndFire { modelWizard ->
+          setModelWizard(modelWizard)
+        }
+      }
+      return
+    }
 
     val builder = ModelWizard.Builder().apply {
       if (IdeSdks.getInstance().androidSdkPath == null) {
