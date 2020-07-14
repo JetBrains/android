@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.JarCopierCreator
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.concurrency.transformAsync
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -30,9 +31,10 @@ internal class DefaultAppInspectorLauncher(private val targetManager: AppInspect
     params: AppInspectorLauncher.LaunchParameters,
     creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
   ): ListenableFuture<AppInspectorClient> {
-    val jarCopierCreator = createJarCopier(params.processDescriptor.stream.device)
+    val processDescriptor = params.processDescriptor.toTransportImpl()
+    val jarCopierCreator = createJarCopier(processDescriptor.stream.device)
                            ?: return Futures.immediateFailedFuture(RuntimeException("Cannot find ADB device."))
-    val streamChannel = discovery.getStreamChannel(params.processDescriptor.stream.streamId)
+    val streamChannel = discovery.getStreamChannel(processDescriptor.stream.streamId)
                         ?: return Futures.immediateFailedFuture(ProcessNoLongerExistsException(
                           "Cannot attach to process because the device does not exist. Process: ${params.processDescriptor}"))
     return targetManager

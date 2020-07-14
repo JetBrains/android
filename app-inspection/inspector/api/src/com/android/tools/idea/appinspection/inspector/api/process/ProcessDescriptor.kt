@@ -13,34 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api.process
-
-import com.android.tools.profiler.proto.Common
+package com.android.tools.idea.appinspection.inspector.api.process
 
 /**
- * Simple data class containing basic information about a process running on a device. This is created using [Common.Stream] and
- * [Common.Process] which are supplied by the transport pipeline.
+ * Basic information about a process running on a device.
  */
-class ProcessDescriptor(
-  val stream: Common.Stream,
-  val process: Common.Process
-) {
+interface ProcessDescriptor {
   /** The manufacturer of the device. */
-  val manufacturer: String = stream.device.manufacturer
+  val manufacturer: String
 
   /** The model of the device. */
-  val model: String = stream.device.model
+  val model: String
 
   /** The serial number of the device. */
-  val serial: String = stream.device.serial
+  val serial: String
 
   /** The name of the process running on the device. */
-  val processName: String = process.name
+  val processName: String
 
   /** Whether this process is running on a virtual device or a physical one. */
-  val isEmulator: Boolean = stream.device.isEmulator
-
-  override fun toString(): String {
-    return "ProcessDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', processName='$processName', isEmulator='$isEmulator')"
-  }
+  val isEmulator: Boolean
 }

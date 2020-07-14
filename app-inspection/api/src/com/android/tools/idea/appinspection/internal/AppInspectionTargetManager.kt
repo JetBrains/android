@@ -16,8 +16,9 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
@@ -51,6 +52,7 @@ internal class AppInspectionTargetManager internal constructor(
     projectName: String
   ): ListenableFuture<AppInspectionTarget> {
     return targets.computeIfAbsent(processDescriptor) {
+      val processDescriptor = processDescriptor.toTransportImpl()
       val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
       attachAppInspectionTarget(transport, jarCopier, projectName)
     }.also {
