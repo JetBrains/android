@@ -37,6 +37,7 @@ import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
+import org.jetbrains.android.dom.xml.PreferenceElementBase;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -93,7 +94,7 @@ public class SubtagsProcessingUtil {
 
       // DevicePolicyManager API
       case "preference-headers":
-        subtagProcessor.processSubtag("header", PreferenceElement.class);
+        subtagProcessor.processSubtag("header", PreferenceElementBase.class);
         break;
     }
 
