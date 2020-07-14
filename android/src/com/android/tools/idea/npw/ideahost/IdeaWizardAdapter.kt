@@ -38,7 +38,7 @@ import javax.swing.JComponent
  * [WizardDelegate] class is specific to the IDEA New Project Wizard (see [AndroidModuleBuilder] for more details) so the
  * [IdeaWizardAdapter] does not need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
  */
-internal class IdeaWizardAdapter(
+class IdeaWizardAdapter(
   private val ideaWizard: AbstractWizard<*>, private val modelWizard: ModelWizard
 ) : ModelWizard.WizardListener, WizardDelegate, Disposable {
   private val listeners = ListenerManager()
