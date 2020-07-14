@@ -37,6 +37,8 @@ object NavHorizontalActionHitProvider : NavActionHitProviderBase() {
     return getHorizontalActionIconRect(source, sceneTransform.inlineScale)
   }
 
-  // TODO (b/148756121): Implement this
-  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean = false
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle) : Boolean {
+    val source = component.fillDrawRect(0, null)
+    return rectangle.intersects(source)
+  }
 }
