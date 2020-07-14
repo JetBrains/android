@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jetbrains.android.dom.xml
 
-package org.jetbrains.android.dom.xml;
+import com.intellij.util.xml.CustomChildren
+import com.intellij.util.xml.DefinesXml
 
-import java.util.List;
+@DefinesXml
+interface PreferenceElement : PreferenceElementBase {
+  @CustomChildren
+  fun getSubPreferences(): List<PreferenceElement>
+}
 
-public interface PreferenceElement extends XmlResourceElement {
-  List<Intent> getIntents();
-
-  List<Extra> getExtras();
+interface PreferenceElementBase : XmlResourceElement {
+  val intents: List<Intent>
+  val extras: List<Extra>
 }

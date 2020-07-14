@@ -16,45 +16,23 @@
 
 package org.jetbrains.android.dom.xml;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription;
+import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
 import org.jetbrains.android.dom.motion.MotionDomFileDescription;
 import org.jetbrains.android.dom.motion.MotionScene;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Describes all files in {@link ResourceFolderType.XML}, except for {@link MotionScene}.
+ * Describes all files in {@link ResourceFolderType.XML}, except for {@link MotionScene} and for {@link PreferenceElement}.
  *
  * @see MotionDomFileDescription
+ * @see PreferenceClassDomFileDescription
  */
-public class XmlResourceDomFileDescription extends CustomLogicResourceDomFileDescription<XmlResourceElement> {
+public class XmlResourceDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<XmlResourceElement> {
   public XmlResourceDomFileDescription() {
-    super(XmlResourceElement.class, ResourceFolderType.XML, SdkConstants.TAG_PREFERENCE_SCREEN);
-  }
-
-  /**
-   * If the root tag uses a custom namespace, leave it alone and don't provide any schema. See IDEA-105294.
-   */
-  @Override
-  public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
-    final XmlTag rootTag = file.getRootTag();
-
-    if (rootTag == null || !rootTag.getNamespace().isEmpty()) {
-      return false;
-    }
-    for (XmlAttribute attribute : rootTag.getAttributes()) {
-      if (attribute.getName().equals("xmlns")) {
-        return false;
-      }
-    }
-    return true;
+    super(XmlResourceElement.class, ResourceFolderType.XML, AndroidXmlResourcesUtil.ROOT_TAGS);
   }
 
   public static boolean isXmlResourceFile(@NotNull final XmlFile file) {

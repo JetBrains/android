@@ -49,6 +49,7 @@ import com.intellij.xml.XmlSchemaProvider;
 import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -94,7 +95,9 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
         ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
 
         // Don't run on custom XML files with defined namespaces. Users may want to validate them.
-        return resType != ResourceFolderType.XML || XmlResourceDomFileDescription.isXmlResourceFile(originalFile);
+        return resType != ResourceFolderType.XML ||
+               XmlResourceDomFileDescription.isXmlResourceFile(originalFile) ||
+               PreferenceClassDomFileDescription.Companion.isPreferenceClassFile(originalFile);
       }
 
       return ManifestDomFileDescription.isManifestFile(originalFile);
