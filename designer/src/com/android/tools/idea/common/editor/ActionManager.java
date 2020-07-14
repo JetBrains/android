@@ -107,4 +107,13 @@ public abstract class ActionManager<S extends DesignSurface> {
   public JComponent getSceneViewContextToolbar(@NotNull SceneView sceneView) {
     return null;
   }
+
+  /**
+   * Returns the bottom bar for a {@link SceneView}. This is similar to {@link #getSceneViewContextToolbar(SceneView)} but this bar is at
+   * the bottom of the {@link SceneView} while context toolbar is at the top.
+   */
+  @Nullable
+  public JComponent getSceneViewBottomBar(@NotNull SceneView sceneView) {
+    return null;
+  }
 }
