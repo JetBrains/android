@@ -129,7 +129,7 @@ public class IdeaWizardAdapterTest {
     DummyStep step2 = new DummyStep(new DummyModel());
     ModelWizard guest = new ModelWizard.Builder(step1, step2).build();
 
-    IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
+    IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
     myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isFalse();
 
@@ -152,7 +152,7 @@ public class IdeaWizardAdapterTest {
     DummyStep step1 = new DummyStep(model);
     ModelWizard guest = new ModelWizard.Builder(step1).build();
 
-    IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
+    IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
     myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isTrue();
 
@@ -180,7 +180,7 @@ public class IdeaWizardAdapterTest {
     DummyStep step3 = new DummyStep(new DummyModel());
     ModelWizard guest = new ModelWizard.Builder(step1, step2, step3).build();
 
-    IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
+    IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
     myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
@@ -212,7 +212,7 @@ public class IdeaWizardAdapterTest {
     DummyStep step = new DummyStep(new DummyModel());
     ModelWizard guest = new ModelWizard.Builder(step).build();
 
-    IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
+    IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
     myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
