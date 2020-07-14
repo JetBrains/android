@@ -95,15 +95,8 @@ public class BuildVariantUpdater {
    * Add an {@link BuildVariantView.BuildVariantSelectionChangeListener} to the updater. Listeners are
    * invoked when the project's selected build variant changes.
    */
-  public void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
+  void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
     mySelectionChangeListeners.add(listener);
-  }
-
-  /**
-   * Remove the {@link BuildVariantView.BuildVariantSelectionChangeListener} from the updater.
-   */
-  public void removeSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
-    mySelectionChangeListeners.remove(listener);
   }
 
   public boolean updateSelectedBuildVariant(@NotNull Project project,
