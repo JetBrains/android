@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
@@ -573,8 +572,7 @@ public class BuildVariantUpdater {
         // using the remainder of out setup steps.
         VariantSwitcher.switchVariant(project, affectedAndroidFacets);
 
-        // Setup Project
-        setUpProject(project, indicator);
+        GradleSyncState.getInstance(project).syncSkipped(null);
 
         // Commit changes and dispose models providers
         if (application.isUnitTestMode()) {
@@ -585,12 +583,6 @@ public class BuildVariantUpdater {
         }
 
         getLog().info("Finished setup of cached variant");
-      }
-
-
-      private void setUpProject(@NotNull Project project, @NotNull ProgressIndicator indicator) {
-        indicator.setText("Setting up project");
-        PostSyncProjectSetup.getInstance(project).notifySyncFinished();
       }
     };
 
