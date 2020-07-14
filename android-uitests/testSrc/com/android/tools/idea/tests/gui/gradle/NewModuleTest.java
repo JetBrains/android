@@ -23,6 +23,8 @@ import static com.android.tools.idea.wizard.template.impl.activities.blankWearAc
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.flags.junit.RestoreFlagRule;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
@@ -31,6 +33,7 @@ import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +45,13 @@ import org.junit.runner.RunWith;
 public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Rule public final RestoreFlagRule<Boolean> restoreNpwFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR);
+
+  @Before
+  public void setup() {
+    StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.override(true);
+  }
 
   @Test
   public void createNewModuleFromJar() throws IOException {
