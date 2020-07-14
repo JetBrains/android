@@ -71,7 +71,7 @@ class IdeaWizardAdapter(
   /**
    * Update the buttons on the host wizard to reflect the state of the guest wizard
    */
-  private fun updateButtons() {
+  override fun updateButtons() {
     ideaWizard.updateButtons(modelWizard.onLastStep().get(), modelWizard.canGoForward().get(), !modelWizard.canGoBack().get())
   }
 
