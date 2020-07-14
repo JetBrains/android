@@ -24,8 +24,8 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.util.function.Consumer
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JPanel
 
 @UiThread
@@ -56,7 +56,9 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
     }
   }
 
-  val pinCodePanel by lazy { PinCodePanel(parentDisposable) }
+  val pinCodePanel by lazy {
+    PinCodePanel(parentDisposable, Consumer<MdnsService> { service -> pinCodePairInvoked(service) })
+  }
 
   var isLoading: Boolean
     get() = loadingPanel.isLoading
@@ -67,6 +69,8 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       centerPanel.showContent()
       loadingPanel.stopLoading()
     }
+
+  var pinCodePairInvoked: (MdnsService) -> Unit = {}
 
   fun setQrCodeImage(image: QrCodeImage) {
     qrCodePanel.setQrCode(image)

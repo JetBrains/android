@@ -45,6 +45,7 @@ interface AdbDevicePairingView {
 
   @UiThread
   interface Listener {
+    fun onPinCodePairAction(mdnsService: MdnsService)
     fun onClose()
   }
 }

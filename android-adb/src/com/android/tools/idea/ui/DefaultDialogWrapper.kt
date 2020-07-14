@@ -15,24 +15,50 @@
  */
 package com.android.tools.idea.ui
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
 import javax.swing.Action
+import javax.swing.JButton
 import javax.swing.JComponent
 
 /**
  * Implementation of [AbstractDialogWrapper] that uses the [DialogWrapper] class from the platform.
  */
-class DefaultDialogWrapper(private val project: Project, private val canBeParent: Boolean, private val ideModalityType: DialogWrapper.IdeModalityType) : AbstractDialogWrapper() {
+class DefaultDialogWrapper(private val options: DialogWrapperOptions) : AbstractDialogWrapper() {
   private val innerDialogWrapper: DialogWrapperInner by lazy {
-    DialogWrapperInner(project, canBeParent, ideModalityType)
+    DialogWrapperInner()
   }
-  override var isModal = false
+
   override val disposable = Disposer.newDisposable()
-  override var title = ""
-  override var cancelButtonText: String? = null
-  override var hideOkButton = false
+
+  override var title: String
+    get() = innerDialogWrapper.title
+    set(value) { innerDialogWrapper.title = value }
+
+  override var cancelButtonText: String
+    get() = innerDialogWrapper.cancelAction.getValue(Action.NAME)?.toString() ?: ""
+    set(value) { innerDialogWrapper.cancelAction.putValue(Action.NAME, value) }
+
+  override var cancelButtonVisible: Boolean
+    get() = innerDialogWrapper.cancelButton?.isVisible ?: false
+    set(value) { innerDialogWrapper.cancelButton?.isVisible = value }
+
+  override var cancelButtonEnabled: Boolean
+    get() = innerDialogWrapper.cancelButton?.isEnabled ?: false
+    set(value) { innerDialogWrapper.cancelButton?.isEnabled = value }
+
+  override var okButtonText: String
+    get() = innerDialogWrapper.okAction.getValue(Action.NAME)?.toString() ?: ""
+    set(value) { innerDialogWrapper.okAction.putValue(Action.NAME, value) }
+
+  override var okButtonVisible: Boolean
+    get() = innerDialogWrapper.okButton?.isVisible ?: false
+    set(value) { innerDialogWrapper.okButton?.isVisible = value }
+
+  override var okButtonEnabled: Boolean
+    get() = innerDialogWrapper.okButton?.isEnabled ?: false
+    set(value) { innerDialogWrapper.okButton?.isEnabled = value }
 
   override fun init() {
     // Ensure we are disposed if our inner dialog is disposed (e.g. "Close" or "Cancel" button)
@@ -44,24 +70,45 @@ class DefaultDialogWrapper(private val project: Project, private val canBeParent
     innerDialogWrapper.show()
   }
 
-  private inner class DialogWrapperInner(project: Project, canBeParent: Boolean, ideModalityType: IdeModalityType) : DialogWrapper(project, canBeParent, ideModalityType) {
+  private inner class DialogWrapperInner
+    : DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
+
     public override fun init() {
-      this@DefaultDialogWrapper.cancelButtonText?.let { setCancelButtonText(it) }
-      if (hideOkButton) {
+      options.preferredFocusProvider()?.let { super.myPreferredFocusedComponent = it }
+      options.cancelButtonText?.let { setCancelButtonText(it) }
+      options.okButtonText?.let { setOKButtonText(it) }
+      if (!options.hasOkButton) {
         cancelAction.putValue(DEFAULT_ACTION, true)
       }
-      isModal = this@DefaultDialogWrapper.isModal
-      title = this@DefaultDialogWrapper.title
+      isModal = options.isModal
+      title = options.title
       super.init()
     }
 
-    override fun createCenterPanel(): JComponent? {
-      return centerPanelProvider()
+    /** Make [DialogWrapper.getOKAction] publicly accessible */
+    val okAction = super.getOKAction()
+
+    /** Make [DialogWrapper.getCancelAction] publicly accessible */
+    @get:JvmName("getCancelAction_")
+    val cancelAction = super.getCancelAction()
+
+    val okButton: JButton?
+      get() {
+        return getButton(okAction)
+      }
+
+    val cancelButton: JButton?
+      get() {
+        return getButton(cancelAction)
+      }
+
+    override fun createCenterPanel(): JComponent {
+      return options.centerPanelProvider()
     }
 
     override fun createActions(): Array<Action> {
       val helpAction = helpAction
-      if (hideOkButton) {
+      if (!options.hasOkButton) {
         return if (helpAction === myHelpAction && helpId == null) arrayOf(cancelAction)
         else arrayOf(cancelAction, helpAction)
       }
@@ -69,6 +116,17 @@ class DefaultDialogWrapper(private val project: Project, private val canBeParent
         return if (helpAction === myHelpAction && helpId == null) arrayOf(okAction, cancelAction)
         else arrayOf(okAction, cancelAction, helpAction)
       }
+    }
+
+    override fun doOKAction() {
+      val handled = options.okActionHandler()
+      if (!handled) {
+        super.doOKAction()
+      }
+    }
+
+    override fun doValidate(): ValidationInfo? {
+      return options.validationHandler()
     }
   }
 }

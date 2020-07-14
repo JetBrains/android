@@ -25,12 +25,14 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class PinCodePanel {
+  @NotNull private final Consumer<MdnsService> myPinCodePairInvoked;
   @NotNull private final PinCodeContentPanel myContentPanel;
   @NotNull private final JBLoadingPanel myLoadingPanel;
   @NotNull private JBLabel myFirstLineLabel;
@@ -38,7 +40,8 @@ public class PinCodePanel {
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myContentPanelContainer;
 
-  public PinCodePanel(@NotNull Disposable parentDisposable) {
+  public PinCodePanel(@NotNull Disposable parentDisposable, @NotNull Consumer<MdnsService> pinCodePairInvoked) {
+    myPinCodePairInvoked = pinCodePairInvoked;
     myContentPanelContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myRootComponent.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myFirstLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
@@ -67,7 +70,7 @@ public class PinCodePanel {
     } else {
       myLoadingPanel.stopLoading();
     }
-    myContentPanel.showDevices(devices);
+    myContentPanel.showDevices(devices, myPinCodePairInvoked);
   }
 
   @NotNull
