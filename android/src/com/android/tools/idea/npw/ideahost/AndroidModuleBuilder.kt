@@ -55,7 +55,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   /**
    * This adapter class hosts the Android Studio [ModelWizard] instance
    */
-  private var wizardAdapter: IdeaWizardAdapter? = null // null if no adapter has been instantiated
+  private var wizardAdapter: IdeaWizardDelegate? = null // null if no adapter has been instantiated
 
   override fun getBuilderId(): String? = javaClass.name
   override fun getPresentableName(): String = "Android"
@@ -87,7 +87,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
       createWizardAdaptor(ctx.wizard, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
     }
 
-    return wizardAdapter!!.proxyStep
+    return wizardAdapter!!.getCustomOptionsStep()
   }
 
   override fun doNextAction() = wizardAdapter!!.doNextAction()

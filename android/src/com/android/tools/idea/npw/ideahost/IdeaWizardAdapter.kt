@@ -40,14 +40,14 @@ import javax.swing.JComponent
  */
 class IdeaWizardAdapter(
   private val ideaWizard: AbstractWizard<*>, private val modelWizard: ModelWizard
-) : ModelWizard.WizardListener, WizardDelegate, Disposable {
+) : ModelWizard.WizardListener, IdeaWizardDelegate {
   private val listeners = ListenerManager()
   private val customLayout = StudioWizardLayout()
 
   /**
    * Returns a [ModuleWizardStep] that embeds the guest wizard, for use in the host wizard.
    */
-  val proxyStep: ModuleWizardStep
+  private val proxyStep: ModuleWizardStep
     get() = object : ModuleWizardStep() {
       override fun getComponent(): JComponent = customLayout.decorate(modelWizard.titleHeader, modelWizard.contentPanel)
       override fun updateDataModel() {
@@ -65,6 +65,8 @@ class IdeaWizardAdapter(
     Disposer.register(this, modelWizard)
     Disposer.register(this, customLayout)
   }
+
+  override fun getCustomOptionsStep(): ModuleWizardStep  = proxyStep
 
   /**
    * Update the buttons on the host wizard to reflect the state of the guest wizard
