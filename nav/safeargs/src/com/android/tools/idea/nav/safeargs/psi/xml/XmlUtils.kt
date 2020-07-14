@@ -32,7 +32,7 @@ internal fun XmlFile.findXmlTagById(attrId: String): XmlTag? {
     override fun visitXmlTag(tag: XmlTag) {
       super.visitXmlTag(tag)
       // unique resource id in the same xml file
-      if ((tag.name == SdkConstants.TAG_FRAGMENT || tag.name == SdkConstants.TAG_NAVIGATION) && tag.isTagIdEqualTo(attrId)) {
+      if (tag.isTagIdEqualTo(attrId)) {
         resultTag = tag
         stopWalking()
       }
