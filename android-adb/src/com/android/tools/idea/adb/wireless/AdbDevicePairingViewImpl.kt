@@ -33,6 +33,9 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
     dlg = AdbDevicePairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+    dlg.pinCodePairInvoked = { service ->
+      listeners.forEach { it.onPinCodePairAction(service) }
+    }
     Disposer.register(dlg.disposable, Disposable {
       listeners.forEach { it.onClose() }
     })

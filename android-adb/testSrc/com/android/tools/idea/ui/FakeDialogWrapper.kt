@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.ui
 
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 
@@ -26,31 +24,38 @@ import javax.swing.JComponent
  * Use the [setUpFactory] method or the [FakeDialogWrapperRule] rule to override the default factory with the factory
  * for this class.
  */
-class FakeDialogWrapper : AbstractDialogWrapper() {
-  override var title: String = ""
-  override var isModal: Boolean = false
+class FakeDialogWrapper(private val options: DialogWrapperOptions) : AbstractDialogWrapper() {
   override val disposable = Disposer.newDisposable()
-  override var cancelButtonText: String? = "Cancel"
-  override var hideOkButton: Boolean = false
+  override var title: String = options.title
+  override var cancelButtonText: String = "Cancel"
+  override var cancelButtonVisible: Boolean = true
+  override var cancelButtonEnabled: Boolean = true
+  override var okButtonText: String = "OK"
+  override var okButtonVisible: Boolean = options.hasOkButton
+  override var okButtonEnabled: Boolean = options.hasOkButton
+
   var initCalled = false
   var showCalled = false
   var panel: JComponent? = null
+
+  init {
+    options.cancelButtonText?.let { cancelButtonText = it }
+    options.okButtonText?.let { okButtonText = it }
+  }
 
   override fun init() {
     initCalled = true
   }
 
   override fun show() {
-    panel = centerPanelProvider()
+    panel = options.centerPanelProvider()
     showCalled = true
   }
 
   companion object {
     private val ourFakeFactory = object : DialogWrapperFactory {
-      override fun createDialogWrapper(project: Project,
-                                       canBeParent: Boolean,
-                                       ideModalityType: DialogWrapper.IdeModalityType): AbstractDialogWrapper {
-        val result = FakeDialogWrapper()
+      override fun createDialogWrapper(options: DialogWrapperOptions): AbstractDialogWrapper {
+        val result = FakeDialogWrapper(options)
         ourLastInstance = result
         return result
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.tools.idea.ui.AbstractDialogWrapper.Companion.factory
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -34,10 +35,9 @@ import javax.swing.JPanel
  */
 abstract class AbstractDialogWrapper {
   /**
-   * Function that creates the center panel of the dialog. This property should be set by the consumer
-   * before calling [init]
+   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or disposed
    */
-  var centerPanelProvider: () -> JComponent = { JPanel() }
+  abstract val disposable: Disposable
 
   /**
    * The title of the dialog
@@ -45,34 +45,42 @@ abstract class AbstractDialogWrapper {
   abstract var title: String
 
   /**
-   * `true` if the dialog should be modal
-   */
-  abstract var isModal: Boolean
-
-  /**
-   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or disposed
-   */
-  abstract val disposable: Disposable
-
-  /**
    * The text of the `Cancel` button (default is "Cancel")
    */
-  abstract var cancelButtonText: String?
+  abstract var cancelButtonText: String
 
   /**
-   * Should the "Ok" button be shown
+   * Should the `Cancel` button be visible
    */
-  abstract var hideOkButton: Boolean
+  abstract var cancelButtonVisible: Boolean
+
+  /**
+   * Should the `Cancel` button be enabled
+   */
+  abstract var cancelButtonEnabled: Boolean
+
+  /**
+   * The text of the `OK` button (default is "OK")
+   */
+  abstract var okButtonText: String
+
+  /**
+   * Should the `Ok` button be shown
+   */
+  abstract var okButtonVisible: Boolean
+
+  /**
+   * Should the `Ok` button be shown
+   */
+  abstract var okButtonEnabled: Boolean
 
   abstract fun show()
   abstract fun init()
 
   companion object {
     private var defaultFactory = object : DialogWrapperFactory {
-      override fun createDialogWrapper(project: Project,
-                                       canBeParent: Boolean,
-                                       ideModalityType: DialogWrapper.IdeModalityType): AbstractDialogWrapper {
-        return DefaultDialogWrapper(project, canBeParent, ideModalityType)
+      override fun createDialogWrapper(options: DialogWrapperOptions): AbstractDialogWrapper {
+        return DefaultDialogWrapper(options)
       }
     }
     var factory = defaultFactory
