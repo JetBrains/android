@@ -290,6 +290,14 @@ class ComposePreviewTest {
       .allSceneViews
       .size)
 
+    var animButton =
+      composePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+    assertTrue(animButton.isEnabled)
+
     composePreview.designSurface
       .allSceneViews
       .first()
@@ -303,12 +311,30 @@ class ComposePreviewTest {
       .allSceneViews
       .size)
 
+    animButton =
+      composePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+    // Animation inspector can't be open for a preview if it's in interactive mode.
+    assertFalse(animButton.isEnabled)
+
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
       .click()
 
     composePreview
       .waitForRenderToFinish()
+
+    animButton =
+      composePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+    // Animation inspector can be open again after exiting interactive mode.
+    assertTrue(animButton.isEnabled)
 
     assertEquals(3, composePreview.designSurface
       .allSceneViews
@@ -393,11 +419,34 @@ class ComposePreviewTest {
       .toolbar()
       .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
 
+    var interactivePreviewButton =
+      composePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+    assertTrue(interactivePreviewButton.isEnabled)
+
     guiTest.robot().click(animButton)
     composePreview.waitForRenderToFinish()
 
     // The button should be enabled, so we can close the animation inspector
+    animButton =
+      composePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
     assertTrue(animButton.isEnabled)
+
+    interactivePreviewButton =
+      composePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+    // We can't enter interactive mode for a preview being inspected in the animation inspector
+    assertFalse(interactivePreviewButton.isEnabled)
 
     val otherComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
 
@@ -410,6 +459,16 @@ class ComposePreviewTest {
 
     // The button should be disabled, as the animation inspector is open in Animations.kt
     assertFalse(animButton.isEnabled)
+
+    // We can enter interactive mode for a preview even if another preview is being inspected in the animation inspector
+    assertTrue(
+      otherComposePreview.designSurface
+        .allSceneViews
+        .first()
+        .toolbar()
+        .findButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+        .isEnabled
+    )
 
     fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations.kt")
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())

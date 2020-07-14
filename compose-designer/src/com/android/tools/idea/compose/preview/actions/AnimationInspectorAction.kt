@@ -35,12 +35,11 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   ToggleAction(message("action.animation.inspector.title"), message("action.animation.inspector.description"), VIEW_ANIMATOR) {
 
   private val isSelected: Boolean
-    get() {
-      val modelDataContext = dataContextProvider()
-      return modelDataContext.getData(COMPOSE_PREVIEW_MANAGER)?.animationInspectionPreviewElementInstanceId != null
-    }
+    get() = getComposePreviewManager()?.animationInspectionPreviewElementInstanceId != null
 
-  override fun isSelected(e: AnActionEvent): Boolean = isSelected
+  private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
+
+  override fun isSelected(e: AnActionEvent) = isSelected
 
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
     val modelDataContext = dataContextProvider()
@@ -51,7 +50,9 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    // Enable the button if the animation inspector is closed, or if it's open for this Compose Preview
-    e.presentation.isEnabled = !ComposePreviewAnimationManager.isInspectorOpen() || isSelected(e)
+    val isInteractive = getComposePreviewManager()?.interactivePreviewElementInstanceId != null
+    // If interactive mode is enabled for this preview, the animation inspector button should be disabled. Otherwise, only enable the button
+    // if the animation inspector is closed, or if it's open for this Compose Preview.
+    e.presentation.isEnabled = !isInteractive && (!ComposePreviewAnimationManager.isInspectorOpen() || isSelected(e))
   }
 }
