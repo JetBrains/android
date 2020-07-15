@@ -199,6 +199,11 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
     shutdown()
   }
 
+  /**
+   * Returns true if the current thread is the render thread managed by this executor.
+   */
+  fun isCurrentThreadARenderThread() = Thread.currentThread() == renderingThread.get()
+
   @get:TestOnly
   val accumulatedTimeouts: Int
     get() = accumulatedTimeoutExceptions.get()
