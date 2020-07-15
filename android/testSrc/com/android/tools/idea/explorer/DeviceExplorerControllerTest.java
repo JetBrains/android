@@ -29,8 +29,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
-import com.android.tools.idea.device.fs.DownloadedFileData;
-import com.android.tools.idea.deviceExplorer.FileHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -469,24 +467,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
-  }
-
-  public void testFileHandlerExtensionIsCalled() throws Exception {
-    FileHandler mockFileHandler = mock(FileHandler.class);
-    ServiceContainerUtil.registerExtension(ApplicationManager.getApplication(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
-
-    downloadFile(myFile1, () -> {
-      // Send a VK_ENTER key event
-      fireEnterKey(myMockView.getTree());
-
-      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
-    });
-    pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
-
-    verify(mockFileHandler).getAdditionalDevicePaths(
-      eq(myFile1.getFullPath()),
-      argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt"))
-    );
   }
 
   public void testDownloadFileWithMouseClick() throws Exception {
@@ -1676,7 +1656,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                  activeDevice.getRoot().getMockEntries().size(), rootEntry.getChildCount());
   }
 
-  public DownloadedFileData downloadFile(MockDeviceFileEntry file, Runnable trigger) throws Exception {
+  public VirtualFile downloadFile(MockDeviceFileEntry file, Runnable trigger) throws Exception {
     // Prepare
     DeviceExplorerController controller = createController();
 

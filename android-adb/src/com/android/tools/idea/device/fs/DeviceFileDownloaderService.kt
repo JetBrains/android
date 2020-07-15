@@ -18,6 +18,7 @@ package com.android.tools.idea.device.fs
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Service used to download a file from its [DeviceFileId].
@@ -33,5 +34,5 @@ interface DeviceFileDownloaderService {
   /**
    * Downloads the file corresponding to the [DeviceFileId] passed as argument, from the device to the local machine.
    */
-  fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<DownloadedFileData>
+  fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<VirtualFile>
 }

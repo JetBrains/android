@@ -15,29 +15,19 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.deviceExplorer.FileHandler
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.registerExtension
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.argThat
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -102,63 +92,14 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
     // Act
     val downloadEntryFuture = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val (deviceFileId, virtualFile, additionalFiles) = pumpEventsAndWaitForFuture(downloadEntryFuture)
+    val virtualFile = pumpEventsAndWaitForFuture(downloadEntryFuture)
 
     // Assert
-    assertEquals(deviceFileId.deviceId, mockDeviceFileSystem.name)
-    assertEquals("/foo/bar1", FileUtil.toSystemIndependentName(deviceFileId.devicePath))
     assertEquals("bar1", virtualFile.name)
-    assertEmpty(additionalFiles)
 
     orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
     orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
     orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
     verifyNoMoreInteractions(downloadProgress)
-  }
-
-  fun testDownloadFileEntryAdditionalEntriesSameParent() {
-    // Setup
-    val mockFileHandler = mock(FileHandler::class.java)
-    `when`(mockFileHandler.getAdditionalDevicePaths(eq("/foo/bar1"), any(VirtualFile::class.java))).thenReturn(listOf("/foo/bar2"))
-    ApplicationManager.getApplication().registerExtension(FileHandler.EP_NAME, mockFileHandler, testRootDisposable)
-
-    val downloadProgress = mock(DownloadProgress::class.java)
-
-    val orderVerifier = Mockito.inOrder(downloadProgress)
-
-    // Act
-    val future = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val (_, _, additionalFiles) = pumpEventsAndWaitForFuture(future)
-
-    // Assert
-    verify(mockFileHandler).getAdditionalDevicePaths(
-      eq("/foo/bar1"),
-      argThat(Utils.VirtualFilePathArgumentMatcher("/foo/bar1"))
-    )
-
-    assertTrue(Utils.VirtualFilePathArgumentMatcher("/foo/bar2").matches(additionalFiles.first()))
-
-    orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
-    orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
-    orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
-
-    orderVerifier.verify(downloadProgress).onStarting("/foo/bar2")
-    orderVerifier.verify(downloadProgress).onProgress("/foo/bar2", 0, 0)
-    orderVerifier.verify(downloadProgress).onCompleted("/foo/bar2")
-  }
-
-  fun testDownloadFileEntryAdditionalEntriesDifferentParent() {
-    // Setup
-    val fileHandler = FileHandler { _, _ -> listOf("/foo2/bar1") }
-    ApplicationManager.getApplication().registerExtension(FileHandler.EP_NAME, fileHandler, testRootDisposable)
-
-    val downloadProgress = mock(DownloadProgress::class.java)
-
-    // Act
-    val future = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val (_, _, additionalFiles) = pumpEventsAndWaitForFuture(future)
-
-    // Assert
-    assertTrue(Utils.VirtualFilePathArgumentMatcher("/foo2/bar1").matches(additionalFiles.first()))
   }
 }

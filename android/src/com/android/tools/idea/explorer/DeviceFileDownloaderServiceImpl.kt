@@ -19,11 +19,11 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.ide.PooledThreadExecutor
 
@@ -34,8 +34,8 @@ class DeviceFileDownloaderServiceImpl(
 
   private val taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
-  override fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<DownloadedFileData> {
-    val settableFuture = SettableFuture.create<DownloadedFileData>()
+  override fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<VirtualFile> {
+    val settableFuture = SettableFuture.create<VirtualFile>()
 
     val startServiceFuture = adbDeviceFileSystemService.start { AndroidSdkUtils.getAdb(project) }
     taskExecutor.transform(startServiceFuture) {
@@ -47,7 +47,7 @@ class DeviceFileDownloaderServiceImpl(
     return settableFuture
   }
 
-  private fun doDownloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<DownloadedFileData> {
+  private fun doDownloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<VirtualFile> {
     return taskExecutor.transformAsync(adbDeviceFileSystemService.devices) { devices ->
       val device = devices!!.find { it.name == deviceFileId.deviceId }
       require(device != null)

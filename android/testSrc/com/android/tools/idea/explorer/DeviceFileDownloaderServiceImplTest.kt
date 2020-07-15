@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
@@ -40,10 +39,14 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
   lateinit var mockAdbDeviceFileSystemService: AdbDeviceFileSystemService
   lateinit var mockDeviceExplorerFileManager: DeviceExplorerFileManager
 
+  lateinit var mockVirtualFile: VirtualFile
+
   override fun setUp() {
     super.setUp()
 
     val path = Paths.get("test/path")
+
+    mockVirtualFile = mock(VirtualFile::class.java)
 
     mockAdbDeviceFileSystemService = mock(AdbDeviceFileSystemService::class.java)
     mockDeviceExplorerFileManager = object : DeviceExplorerFileManager {
@@ -53,10 +56,8 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
         entry: DeviceFileEntry,
         localPath: Path,
         progress: DownloadProgress
-      ): ListenableFuture<DownloadedFileData> {
-        return Futures.immediateFuture(
-          DownloadedFileData(DeviceFileId("deviceId", "fileId"), mock(VirtualFile::class.java), emptyList())
-        )
+      ): ListenableFuture<VirtualFile> {
+        return Futures.immediateFuture(mockVirtualFile)
       }
     }
 
@@ -78,12 +79,10 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     val downloadProgress = mock(DownloadProgress::class.java)
 
     // Act
-    val downloadedFileData = pumpEventsAndWaitForFuture(deviceFileDownloaderService.downloadFile(deviceFileId, downloadProgress))
+    val downloadedFile = pumpEventsAndWaitForFuture(deviceFileDownloaderService.downloadFile(deviceFileId, downloadProgress))
 
     // Assert
     verify(mockAdbDeviceFileSystemService).start(ArgumentMatchers.any())
-
-    assertEquals(downloadedFileData.deviceFileId.deviceId, "deviceId")
-    assertEquals(downloadedFileData.deviceFileId.devicePath, "fileId")
+    assertEquals(downloadedFile, mockVirtualFile)
   }
 }
