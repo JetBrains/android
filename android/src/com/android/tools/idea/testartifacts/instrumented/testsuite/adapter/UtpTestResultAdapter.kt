@@ -24,10 +24,28 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.google.common.annotations.VisibleForTesting
+import com.google.testing.platform.plugin.android.info.host.proto.AndroidTestDeviceInfoProto
+import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.openapi.util.io.FileUtil.exists
 import java.io.File
+
+@VisibleForTesting
+const val DEVICE_INFO_LABEL = "device-info"
+
+@VisibleForTesting
+const val DEVICE_INFO_NAMESPACE = "android"
+
+private const val DEFAULT_DEVICE_NAME = "Unknown device"
+private val DEFAULT_DEVICE_TYPE = AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+
+private data class DeviceTestSuite(val device: AndroidDevice) {
+  lateinit var testSuite: AndroidTestSuite
+}
+
+private typealias DeviceMap = Map<Pair<String, AndroidDeviceType>, DeviceTestSuite>
 
 /**
  * An adapter to parse Unified Test Platform (UTP) result protobuf, and forward them to
@@ -36,6 +54,7 @@ import java.io.File
  * @param listener the listener to receive the test results
  */
 class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
+
   /**
    * Parse UTP test results and forward to the listener
    *
@@ -44,48 +63,70 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
   @WorkerThread
   fun importResult(file: File) {
     val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream())
-    // TODO(b/154140562): Populate device data in test result protobuf
-    val device = AndroidDevice("external",
-                               "external device",
-                               AndroidDeviceType.LOCAL_PHYSICAL_DEVICE,
-                               AndroidVersion.DEFAULT)
-    val testSuite = AndroidTestSuite(resultProto.testSuiteMetaData.testSuiteName,
-                                     resultProto.testSuiteMetaData.testSuiteName,
-                                     resultProto.testResultCount,
-                                     null)
-    var testSuiteResult = AndroidTestSuiteResult.PASSED
-    listener.onTestSuiteScheduled(device)
-    listener.onTestSuiteStarted(device, testSuite)
+    val dir = file.parentFile
+    val deviceMap = getDeviceMap(dir, resultProto)
+    startAll(deviceMap, resultProto)
+    runAll(deviceMap, dir, resultProto)
+    finishAll(deviceMap)
+  }
+
+  private fun getDeviceMap(dir: File, resultProto: TestSuiteResultProto.TestSuiteResult): DeviceMap {
+    val defaultDevice = AndroidDevice(DEFAULT_DEVICE_NAME,
+                                      DEFAULT_DEVICE_NAME,
+                                      DEFAULT_DEVICE_TYPE,
+                                      AndroidVersion.DEFAULT)
+    val defaultDeviceSuite = DeviceTestSuite(defaultDevice)
+    var id = 0
+    val deviceSequence = resultProto.testResultList.asSequence().map<TestResultProto.TestResult, DeviceTestSuite> {
+      val deviceInfo = it.getDeviceInfo(dir)
+      if (deviceInfo == null) {
+        return@map defaultDeviceSuite
+      } else {
+        val deviceType = if (deviceInfo.avdName == "") {
+          AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+        } else {
+          AndroidDeviceType.LOCAL_EMULATOR
+        }
+        val device = AndroidDevice(id.toString(), deviceInfo.name, deviceType, AndroidVersion(deviceInfo.apiLevel))
+        id += 1
+        return@map DeviceTestSuite(device)
+      }
+    }
+    return deviceSequence.associateBy { deviceSuite: DeviceTestSuite ->
+      Pair(deviceSuite.device.deviceName, deviceSuite.device.deviceType)
+    }
+  }
+
+  private fun startAll(deviceMap: DeviceMap, resultProto: TestSuiteResultProto.TestSuiteResult) {
+    for (deviceTestSuite in deviceMap.values) {
+      listener.onTestSuiteScheduled(deviceTestSuite.device)
+      deviceTestSuite.testSuite = AndroidTestSuite(resultProto.testSuiteMetaData.testSuiteName,
+                                                   resultProto.testSuiteMetaData.testSuiteName,
+                                                   resultProto.testResultCount,
+                                                   AndroidTestSuiteResult.PASSED)
+      listener.onTestSuiteStarted(deviceTestSuite.device, deviceTestSuite.testSuite)
+    }
+  }
+
+  private fun runAll(deviceMap: DeviceMap, dir: File, resultProto: TestSuiteResultProto.TestSuiteResult) {
+    val defaultDeviceKey = Pair(DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_TYPE)
     for (testResultProto in resultProto.testResultList) {
+      val deviceInfo = testResultProto.getDeviceInfo(dir)
+      val deviceKey = if (deviceInfo == null) {
+        defaultDeviceKey
+      } else {
+        Pair(deviceInfo.name, deviceInfo.deviceType())
+      }
+      val deviceTestSuite = deviceMap[deviceKey]!!
+      val device = deviceTestSuite.device
+      val testSuite = deviceTestSuite.testSuite
       val testCaseProto = testResultProto.testCase
       val fullName = "${testCaseProto.testPackage}.${testCaseProto.testClass}#${testCaseProto.testMethod}"
       val iceboxArtifactRegrex = "snapshot-.*-.*-snapshot.tar.gz".toRegex()
       val iceboxArtifact = testResultProto.outputArtifactList.find {
         iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
       }
-      val dir = file.parentFile
-      // The fallbacks of file path is as follows:
-      //
-      // (1) Try absolute path.
-      // (2) Try relative path.
-      // (3) Try to get the file name and use it as relative path. This is useful because currently UTP writes absolute path in the proto.
-      val retentionArtifactFile = iceboxArtifact?.sourcePath?.path?.let {
-        if (exists(it)) {
-          File(it)
-        } else {
-          val file2 = dir.resolve(it)
-          if (file2.exists()) {
-            file2
-          } else {
-            val file3 = dir.resolve(File(it).name)
-            if (file3.exists()) {
-              file3
-            } else {
-              null
-            }
-          }
-        }
-      }
+      val retentionArtifactFile = resolveFile(dir, iceboxArtifact?.sourcePath?.path)
       val testCase = AndroidTestCase(id = fullName,
                                      methodName = testCaseProto.testMethod,
                                      className = testCaseProto.testClass,
@@ -97,12 +138,63 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
                                        else -> AndroidTestCaseResult.SKIPPED
                                      })
       if (testResultProto.testStatus == TestStatusProto.TestStatus.FAILED) {
-        testSuiteResult = AndroidTestSuiteResult.FAILED
+        testSuite.result = AndroidTestSuiteResult.FAILED
       }
       listener.onTestCaseStarted(device, testSuite, testCase)
       listener.onTestCaseFinished(device, testSuite, testCase)
     }
-    testSuite.result = testSuiteResult
-    listener.onTestSuiteFinished(device, testSuite)
   }
+
+  private fun finishAll(deviceMap: DeviceMap) {
+    for (deviceTestSuite in deviceMap.values) {
+      listener.onTestSuiteFinished(deviceTestSuite.device, deviceTestSuite.testSuite)
+    }
+  }
+}
+
+private fun TestResultProto.TestResult.getDeviceInfo(dir: File): AndroidTestDeviceInfoProto.AndroidTestDeviceInfo? {
+  val info_artifact = outputArtifactList.find { artifact ->
+    artifact.label.label == DEVICE_INFO_LABEL && artifact.label.namespace == DEVICE_INFO_NAMESPACE
+  }
+  if (info_artifact == null) {
+    return null
+  } else {
+    val deviceInfoFile = resolveFile(dir, info_artifact.sourcePath?.path)
+    if (deviceInfoFile == null) {
+      return null
+    } else {
+      return AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.parseFrom(deviceInfoFile.inputStream())
+    }
+  }
+}
+
+private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.deviceType(): AndroidDeviceType {
+  if (avdName == "") {
+    return AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+  } else {
+    return AndroidDeviceType.LOCAL_EMULATOR
+  }
+}
+
+// Try to find a file. The fallbacks of file path is as follows:
+//
+// (1) Try absolute path.
+// (2) Try relative path.
+// (3) Try to get the file name and use it as relative path. This is useful because currently UTP writes absolute path in the proto.
+private fun resolveFile(dir: File, filename: String?): File? {
+  if (filename == null) {
+    return null
+  }
+  if (exists(filename)) {
+    return File(filename)
+  }
+  val file2 = dir.resolve(filename)
+  if (file2.exists()) {
+    return file2
+  }
+  val file3 = dir.resolve(File(filename).name)
+  if (file3.exists()) {
+    return file3
+  }
+  return null
 }
