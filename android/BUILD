@@ -1014,6 +1014,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:unb.okio",
         "//tools/adt/idea/android:unb.moshi",
         "//tools/adt/idea/android/lib:unb.instantapps-api",
+        "//tools/adt/idea/android/lib:unb.pepk",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:unb.androidx-test-core-proto",
     ],
     iml_files = ["intellij.android.core.iml"],

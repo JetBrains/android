@@ -66,7 +66,6 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.compose-ide-plugin",
     srcs = ["src/main/java"],
-    bundled_deps = ["//prebuilts/tools/common/m2/repository/androidx/compose/compose-compiler-hosted/0.1.0-dev14:unb.compose-compiler-hosted"],
     iml_files = ["intellij.android.compose-ide-plugin.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["src/main/resources"],
@@ -79,6 +78,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//prebuilts/tools/common/m2/repository/androidx/compose/compose-compiler-hosted/0.1.0-dev14:unb.compose-compiler-hosted",
+        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
     ],
 )
