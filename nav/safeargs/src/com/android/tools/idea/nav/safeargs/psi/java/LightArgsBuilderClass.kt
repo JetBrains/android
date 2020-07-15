@@ -54,7 +54,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * See also: [LightArgsClass], which own this builder.
  */
 class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: String, private val argsClass: LightArgsClass)
-  : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL)) {
+  : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
   companion object {
     const val BUILDER_NAME = "Builder"
   }
