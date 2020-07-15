@@ -32,10 +32,16 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.concurrent.CountDownLatch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class AppInspectionTargetTest {
   private val timer = FakeTimer()
@@ -161,6 +167,42 @@ class AppInspectionTargetTest {
     // Wait and verify
     clientDisposedLatch.await()
     assertThat(target.clients).isEmpty()
+  }
+
+  @Test
+  fun disposeTarget() = runBlocking<Unit> {
+    val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()).get() as DefaultAppInspectionTarget
+
+    val clientLaunchParams1 = createFakeLaunchParameters(inspectorId = "a")
+    val clientLaunchParams2 = createFakeLaunchParameters(inspectorId = "b")
+
+    suspendCoroutine<Unit> { cont ->
+      val messenger = object : AppInspectorClient.CommandMessenger {
+        override suspend fun disposeInspector() {
+          cont.resume(Unit)
+        }
+
+        override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+          throw NotImplementedError()
+        }
+      }
+      val client = object : AppInspectorClient(messenger) {
+        override val rawEventListener: RawEventListener
+          get() = throw NotImplementedError()
+      }
+
+      val clientFuture1 = Futures.immediateFuture<AppInspectorClient>(client)
+      val clientFuture2 = SettableFuture.create<AppInspectorClient>()
+
+      target.clients[clientLaunchParams1] = clientFuture1
+      target.clients[clientLaunchParams2] = clientFuture2
+
+      target.dispose()
+
+      // TODO(b/144771043): Can't reliably assert these until AppInspectionTarget is migrated to coroutines.
+      //assertThat(target.clients).isEmpty()
+      //assertThat(clientFuture2.isCancelled).isTrue()
+    }
   }
 }
 

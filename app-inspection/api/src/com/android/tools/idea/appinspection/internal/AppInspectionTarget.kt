@@ -25,11 +25,6 @@ import com.google.common.util.concurrent.ListenableFuture
  */
 internal interface AppInspectionTarget {
   /**
-   * The name of the project this target belongs to.
-   */
-  val projectName: String
-
-  /**
    * Creates an inspector in the connected process.
    *
    * @param [inspectorJar] is the path to a jar on the host filesystem that contains ".dex" code of an inspector and

@@ -17,18 +17,19 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
+import com.android.tools.idea.appinspection.internal.AppInspectionTarget
+import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
-import com.android.tools.idea.appinspection.test.TEST_PROJECT
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
 
 class AppInspectionTargetManagerTest {
   private val timer = FakeTimer()
@@ -42,43 +43,45 @@ class AppInspectionTargetManagerTest {
 
   @Test
   fun launchTarget() {
-    val target = appInspectionRule.launchTarget(AppInspectionTestUtils.createFakeProcessDescriptor()).get()
-    assertThat(target.projectName).isEqualTo(TEST_PROJECT)
+    appInspectionRule.launchTarget(AppInspectionTestUtils.createFakeProcessDescriptor()).get()
     assertThat(appInspectionRule.targetManager.targets).hasSize(1)
   }
 
   @Test
   fun disposesClientsForProject() {
-    val terminatedProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("dispose").setPid(1).build()
+    val terminatedProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("process1").setPid(1).build()
     val terminateProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = terminatedProcess)
 
-    val otherProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("normal").setPid(2).build()
+    val otherProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("process2").setPid(2).build()
     val otherProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = otherProcess)
 
-    val target = appInspectionRule.launchTarget(otherProcessDescriptor, TEST_PROJECT).get()
-    val disposeTarget = appInspectionRule.launchTarget(terminateProcessDescriptor, "dispose").get()
-    target.launchInspector(AppInspectionTestUtils.createFakeLaunchParameters(otherProcessDescriptor, project = "normal")) {
-      StubTestAppInspectorClient(it)
-    }.get()
-    val disposeClient = disposeTarget.launchInspector(
-      AppInspectionTestUtils.createFakeLaunchParameters(terminateProcessDescriptor, project = "dispose")) {
-      StubTestAppInspectorClient(it)
-    }.get()
+    val unfinishedProcess = terminatedProcess.toBuilder().setName("process3").setPid(3).build()
+    val unfinishedProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = unfinishedProcess)
+    val unfinishedTargetFuture = SettableFuture.create<AppInspectionTarget>()
 
-    assertThat(appInspectionRule.targetManager.targets).hasSize(2)
-
-    val clientDisposedLatch = CountDownLatch(1)
-    disposeClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-      override fun onDispose() {
-        clientDisposedLatch.countDown()
+    // The makeup of this object does not matter for this test.
+    val mockTarget = object : AppInspectionTarget {
+      override fun launchInspector(params: AppInspectorLauncher.LaunchParameters,
+                                   creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient): ListenableFuture<AppInspectorClient> {
+        throw NotImplementedError()
       }
-    }, MoreExecutors.directExecutor())
+
+      override fun dispose() {
+      }
+    }
+
+    appInspectionRule.targetManager.targets[terminateProcessDescriptor] = AppInspectionTargetManager.TargetInfo(
+      Futures.immediateFuture(mockTarget), "dispose")
+    appInspectionRule.targetManager.targets[unfinishedProcessDescriptor] = AppInspectionTargetManager.TargetInfo(unfinishedTargetFuture,
+                                                                                                                 "dispose")
+    appInspectionRule.targetManager.targets[otherProcessDescriptor] = AppInspectionTargetManager.TargetInfo(
+      Futures.immediateFuture(mockTarget), "don't dispose")
 
     appInspectionRule.targetManager.disposeClients("dispose")
 
-    clientDisposedLatch.await()
     assertThat(appInspectionRule.targetManager.targets).hasSize(1)
-    assertThat(appInspectionRule.targetManager.targets.values.first().get()).isSameAs(target)
+    assertThat(appInspectionRule.targetManager.targets.values.first().projectName).isEqualTo("don't dispose")
+    assertThat(unfinishedTargetFuture.isCancelled).isTrue()
   }
 
   @Test

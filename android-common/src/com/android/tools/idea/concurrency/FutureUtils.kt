@@ -300,3 +300,15 @@ fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFutur
   }
   return this
 }
+
+/**
+ * Tries to get the result of the future without blocking. If result is not ready for any reason, return null.
+ */
+fun <V> ListenableFuture<V>.getDoneOrNull(): V? {
+  try {
+    return Futures.getDone(this)
+  }
+  catch (e: Exception) {
+    return null
+  }
+}

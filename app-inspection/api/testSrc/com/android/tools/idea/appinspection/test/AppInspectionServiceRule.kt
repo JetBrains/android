@@ -113,6 +113,7 @@ class AppInspectionServiceRule(
     TransportStreamManager.unregisterManager(streamManager)
     scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
+    client.shutdown()
     timer.currentTimeNs += 1
   }
 
