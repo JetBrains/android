@@ -21,7 +21,6 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.databinding.DataBindingAnnotationsService;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -185,8 +184,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       resultSet.addElement(LookupElementBuilder.create("manifest"));
       return false;
     }
-    else if (StudioFlags.LAYOUT_XML_MODE.get() != StudioFlags.LayoutXmlMode.CUSTOM_CHILDREN &&
-             LayoutDomFileDescription.isLayoutFile(xmlFile)) {
+    else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
       final Map<String, PsiClass> classMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_VIEW);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
