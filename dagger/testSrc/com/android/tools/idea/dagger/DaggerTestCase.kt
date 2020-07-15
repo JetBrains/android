@@ -105,6 +105,22 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
       public @interface EntryPoint {}
       """.trimIndent()
     )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package androidx.hilt.work;
+
+      public @interface WorkerInject {}
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package androidx.hilt.lifecycle;
+
+      public @interface ViewModelInject {}
+      """.trimIndent()
+    )
   }
 
   override fun tearDown() {

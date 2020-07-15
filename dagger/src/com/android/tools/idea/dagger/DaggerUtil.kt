@@ -61,6 +61,8 @@ const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
 const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
 const val DAGGER_ENTRY_POINT_ANNOTATION = "dagger.hilt.EntryPoint"
+const val DAGGER_VIEW_MODEL_INJECT_ANNOTATION = "androidx.hilt.lifecycle.ViewModelInject"
+const val DAGGER_WORKER_INJECT_ANNOTATION = "androidx.hilt.work.WorkerInject"
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -185,8 +187,9 @@ private fun getDaggerBindsMethodsForType(type: PsiType, scope: GlobalSearchScope
 /**
  * True if PsiModifierListOwner has @Inject annotation.
  */
-private val PsiModifierListOwner.isInjected get() = hasAnnotation(INJECT_ANNOTATION)
-
+private val PsiModifierListOwner.isInjected get() = hasAnnotation(INJECT_ANNOTATION) ||
+                                                    hasAnnotation(DAGGER_VIEW_MODEL_INJECT_ANNOTATION) ||
+                                                    hasAnnotation(DAGGER_WORKER_INJECT_ANNOTATION)
 /**
  * True if KtProperty has @Inject annotation.
  */
