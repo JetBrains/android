@@ -33,7 +33,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 
 internal val MODIFIERS_PUBLIC_CONSTRUCTOR = arrayOf(PsiModifier.PUBLIC)
-internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
+internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC)
 internal val MODIFIERS_STATIC_PUBLIC_METHOD = MODIFIERS_PUBLIC_METHOD + arrayOf(PsiModifier.STATIC)
 
 private const val STRING_FQCN = "java.lang.String"

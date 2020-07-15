@@ -41,7 +41,7 @@ class LightActionBuilderClass(
   private val modulePackage: String,
   private val directionsClass: LightDirectionsClass,
   private val action: NavActionData
-) : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL)) {
+) : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
   private val NAV_DIRECTIONS_FQCN = "androidx.navigation.NavDirections"
   private val name: String = className
   private val qualifiedName: String = "${directionsClass.qualifiedName}.$name"
