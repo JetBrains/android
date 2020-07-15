@@ -170,27 +170,25 @@ class InspectorModel(val project: Project) {
       oldNode.children.clear()
       oldNode.drawChildren.clear()
       for (newChild in newNode.drawChildren) {
-        when (newChild) {
-          is DrawViewChild -> {
-            val newChildView = newChild.owner
-            val oldChild = oldNodes[newChildView.drawId]
-            if (oldChild != null && oldChild.javaClass == newChildView.javaClass) {
-              modified = update(oldChild, oldNode, newChildView) || modified
-              oldNode.children.add(oldChild)
-              oldNode.drawChildren.add(newChild)
-              newChild.owner = oldChild
-            }
-            else {
-              modified = true
-              oldNode.children.add(newChildView)
-              oldNode.drawChildren.add(newChild)
-              newChildView.parent = oldNode
-            }
-          }
-          is DrawViewImage -> {
+        val newChildView = newChild.owner
+        if (newChildView != newNode) {
+          val oldChild = oldNodes[newChildView.drawId]
+          if (oldChild != null && oldChild.javaClass == newChildView.javaClass) {
+            modified = update(oldChild, oldNode, newChildView) || modified
+            oldNode.children.add(oldChild)
             oldNode.drawChildren.add(newChild)
-            newChild.owner = oldNode
+            newChild.owner = oldChild
           }
+          else {
+            modified = true
+            oldNode.children.add(newChildView)
+            oldNode.drawChildren.add(newChild)
+            newChildView.parent = oldNode
+          }
+        }
+        else {
+          oldNode.drawChildren.add(newChild)
+          newChild.owner = oldNode
         }
       }
       return modified
