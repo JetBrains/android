@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
@@ -42,8 +41,6 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -170,32 +167,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     catch (IllegalStateException e) {
       assertThat(e.getMessage()).startsWith("The project is using an unsupported version of the Android Gradle plug-in (0.0.1)");
     }
-  }
-
-  public void testPopulateModuleContentRootsWithNativeAndroidProject() {
-    DataNode<ProjectData> projectNode = createProjectNode();
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModuleModel, projectNode);
-    myProjectResolver.populateModuleContentRoots(myNativeAndroidModuleModel, moduleDataNode);
-
-    // Verify module does not have AndroidGradleModel.
-    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
-    assertThat(androidModelNodes).isEmpty();
-
-    // Verify module has NativeAndroidGradleModel.
-    Collection<DataNode<NdkModuleModel>> ndkModuleModelNodes = getChildren(moduleDataNode, NDK_MODEL);
-    assertThat(ndkModuleModelNodes).hasSize(1);
-
-    DataNode<NdkModuleModel> nativeAndroidModelNode = getFirstItem(ndkModuleModelNodes);
-    assertNotNull(nativeAndroidModelNode);
-    assertSame(myIdeNativeAndroidProject, ((V1NdkModel)nativeAndroidModelNode.getData().getNdkModel()).getAndroidProject());
-
-    // Verify module has IdeaGradleProject.
-    Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODULE_MODEL);
-    assertThat(gradleModelNodes).hasSize(1);
-
-    DataNode<GradleModuleModel> gradleModelNode = getFirstItem(gradleModelNodes);
-    assertNotNull(gradleModelNode);
-    assertEquals(myNativeAndroidModuleModel.getGradleProject().getPath(), gradleModelNode.getData().getGradlePath());
   }
 
   public void testPopulateModuleContentRootsWithJavaProject() {

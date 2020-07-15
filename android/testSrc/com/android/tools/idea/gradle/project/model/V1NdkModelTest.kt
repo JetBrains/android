@@ -182,13 +182,13 @@ class V1NdkModelTest {
       VariantAbi("debug", "arm64-v8a"),
       VariantAbi("debug", "x86")
     )
-    Truth.assertThat(fullSyncV1NdkModel.getSymbolFolders()).containsExactly(
+    Truth.assertThat(fullSyncV1NdkModel.symbolFolders).containsExactly(
       VariantAbi("debug", "x86"), setOf(x86SoFolder),
       VariantAbi("debug", "arm64-v8a"), setOf(arm64V8aSoFolder)
     )
-    Truth.assertThat(fullSyncV1NdkModel.getBuildFiles()).containsExactly(File("buildFile1"), File("buildFile2"))
-    Truth.assertThat(fullSyncV1NdkModel.getBuildSystems()).containsExactly("cmake")
-    Truth.assertThat(fullSyncV1NdkModel.getDefaultNdkVersion()).isEqualTo("21.1.12345")
+    Truth.assertThat(fullSyncV1NdkModel.buildFiles).containsExactly(File("buildFile1"), File("buildFile2"))
+    Truth.assertThat(fullSyncV1NdkModel.buildSystems).containsExactly("cmake")
+    Truth.assertThat(fullSyncV1NdkModel.defaultNdkVersion).isEqualTo("21.1.12345")
 
     // Accessors only available from V1NdkModel
     Truth.assertThat(fullSyncV1NdkModel.getNdkVariant(VariantAbi("debug", "x86"))!!.artifacts)
@@ -210,12 +210,12 @@ class V1NdkModelTest {
     Truth.assertThat(singleVariantSyncV1NdkModel.syncedVariantAbis).containsExactly(
       VariantAbi("debug", "x86")
     )
-    Truth.assertThat(singleVariantSyncV1NdkModel.getSymbolFolders()).containsExactly(
+    Truth.assertThat(singleVariantSyncV1NdkModel.symbolFolders).containsExactly(
       VariantAbi("debug", "x86"), setOf(x86SoFolder)
     )
-    Truth.assertThat(singleVariantSyncV1NdkModel.getBuildFiles()).containsExactly(File("buildFile1"), File("buildFile2"))
-    Truth.assertThat(singleVariantSyncV1NdkModel.getBuildSystems()).containsExactly("cmake")
-    Truth.assertThat(singleVariantSyncV1NdkModel.getDefaultNdkVersion()).isEqualTo("21.1.12345")
+    Truth.assertThat(singleVariantSyncV1NdkModel.buildFiles).containsExactly(File("buildFile1"), File("buildFile2"))
+    Truth.assertThat(singleVariantSyncV1NdkModel.buildSystems).containsExactly("cmake")
+    Truth.assertThat(singleVariantSyncV1NdkModel.defaultNdkVersion).isEqualTo("21.1.12345")
 
     // Accessors only available from V1NdkModel
     Truth.assertThat(singleVariantSyncV1NdkModel.getNdkVariant(VariantAbi("debug", "x86"))!!.artifacts).containsExactly(
