@@ -24,13 +24,7 @@
     <component>
       <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>
     </component>
-    <!-- Unregister DefaultJdkConfigurator b/112481251 -->
-    <component>
-      <interface-class>com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator</interface-class>
-      <option name="overrides" value="true"/>
-      <headless-implementation-class/>
-      <implementation-class/>
-    </component>
+
   </application-components>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -136,6 +130,13 @@
     <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
                         overrides="true"/>
+
+    <!-- Unregister DefaultJdkConfigurator b/112481251 -->
+    <applicationService serviceInterface="com.intellij.openapi.projectRoots.DefaultJdkConfigurator"
+                        serviceImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
+                        overrides="true"
+                        headlessImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
+    />
 
     <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
