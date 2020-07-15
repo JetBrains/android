@@ -151,4 +151,40 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAloneExpected"))
   }
+
+  @Test
+  fun testIsNotAlwaysNoOpOnSimpleApplication() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    assertFalse(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testIsAlwaysNoOpOnSimpleApplicationExpected() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplicationExpected"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    assertTrue(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testIsNotAlwaysNoOpOnApplicationWith2DVariant() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariant"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    assertFalse(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testIsAlwaysNoOpOnUnknownPlugin() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/UnknownPlugin"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    assertTrue(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testIsNotAlwaysNoOpOnBuildscriptDependenciesLeftAlone() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAlone"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    // the test file has some dependencies needing update not in the buildscript block
+    assertFalse(processor.isAlwaysNoOpForProject)
+  }
 }
