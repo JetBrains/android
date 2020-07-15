@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.kotlin
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
-import java.io.IOException
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(GuiTestRemoteRunner::class)
 class BuildCppKotlinTest {
@@ -72,41 +65,6 @@ class BuildCppKotlinTest {
   fun buildCppKotlinProj() {
     val ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
-
-    // TODO remove the following hack: b/110174414
-    val androidSdk = IdeSdks.getInstance().androidSdkPath
-    val ninja = File(androidSdk, "cmake/3.10.4819442/bin/ninja")
-
-    val buildGradleFailure = AtomicReference<IOException>()
-    ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(ideFrame.project) {
-        val pbm = ProjectBuildModel.get(ideFrame.project)
-        val buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"))
-        val cmakeModel = buildModel!!
-          .android()
-          .defaultConfig()
-          .externalNativeBuild()
-          .cmake()
-
-        val cmakeArgsModel = cmakeModel.arguments()
-        try {
-          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.canonicalPath)
-          buildModel.applyChanges()
-        }
-        catch (failureToWrite: IOException) {
-          buildGradleFailure.set(failureToWrite)
-        }
-      }
-    }
-    val errorsWhileModifyingBuild = buildGradleFailure.get()
-    if (errorsWhileModifyingBuild != null) {
-      throw errorsWhileModifyingBuild
-    }
-    // Request syncing with the new changes to make sure all indexing tasks complete before attempting to build. This is to prevent
-    // timing out when selecting menu items.
-    ideFrame.requestProjectSyncAndWaitForSyncToFinish()
-    // TODO end hack for b/110174414
-
     ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project")
   }
 }
