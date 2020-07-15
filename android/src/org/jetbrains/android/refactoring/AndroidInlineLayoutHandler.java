@@ -1,5 +1,8 @@
 package org.jetbrains.android.refactoring;
 
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
+import com.android.resources.ResourceFolderType;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.lang.Language;
 import com.intellij.lang.refactoring.InlineActionHandler;
@@ -13,9 +16,7 @@ import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
-import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -53,8 +54,7 @@ public class AndroidInlineLayoutHandler extends InlineActionHandler {
           ((XmlFile)element).getRootTag() == null) {
         return false;
       }
-      return DomManager.getDomManager(element.getProject()).getDomFileDescription((XmlFile)element)
-        instanceof LayoutDomFileDescription;
+      return isFileInResourceFolderType((XmlFile)element, ResourceFolderType.LAYOUT);
     }
     return false;
   }

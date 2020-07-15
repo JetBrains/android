@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NAV_GRAPH
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.stripPrefixFromId
+import com.android.resources.ResourceFolderType
 import com.android.support.FragmentTagUtil.isFragmentTag
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
@@ -56,7 +57,7 @@ import com.intellij.util.Query
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription
+import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
 import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
@@ -243,7 +244,7 @@ fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
   for (ref: PsiReference in query) {
     val element = ref.element as? XmlAttributeValue ?: continue
     val file = element.containingFile as? XmlFile ?: continue
-    if (!LayoutDomFileDescription.isLayoutFile(file)) {
+    if (!isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
       continue
     }
     val attribute = element.parent as? XmlAttribute ?: continue

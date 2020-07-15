@@ -7,12 +7,11 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.layout.LayoutViewElementDomFileDescription;
 
 public class AndroidFindStyleApplicationsTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/findPossibleUsages/";
@@ -34,8 +33,8 @@ public class AndroidFindStyleApplicationsTest extends AndroidTestCase {
     Collection<PsiFile> files = processor.collectFilesToProcess();
     assertEquals(1, files.size());
     XmlFile layoutFile = (XmlFile)files.iterator().next();
-    assertInstanceOf(DomManager.getDomManager(myFixture.getProject()).getDomFileDescription(
-      (XmlFile)layoutFile), LayoutDomFileDescription.class);
+    assertInstanceOf(DomManager.getDomManager(myFixture.getProject()).getDomFileDescription(layoutFile),
+                     LayoutViewElementDomFileDescription.class);
     final List<UsageInfo> usages = new ArrayList<>();
     processor.collectPossibleStyleApplications(layoutFile, usages);
     assertEquals(2, usages.size());
