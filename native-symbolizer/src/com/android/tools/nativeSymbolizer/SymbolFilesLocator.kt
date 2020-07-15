@@ -114,7 +114,7 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   val ndkFacet = NdkFacet.getInstance(module)
   val ndkModuleModel = NdkModuleModel.get(module)
   if (ndkModuleModel != null && ndkFacet != null) {
-    ndkModuleModel.getSymbolFolders().forEach { (variant, abiName), symbolFolders: Set<File> ->
+    ndkModuleModel.symbolFolders.forEach { (variant, abiName), symbolFolders: Set<File> ->
       val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return@forEach
       if (abi.toString() == abiName && variant == selectedVariantAbi.variant) {
         symDirs.addAll(symbolFolders)
