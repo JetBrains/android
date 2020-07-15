@@ -95,6 +95,9 @@ import org.jetbrains.annotations.Nullable;
  * reading files, reporting issues, logging errors, etc.
  */
 public class LintIdeClient extends LintClient implements Disposable {
+  static {
+    LintClient.setClientName(CLIENT_STUDIO);
+  }
   /**
    * Whether we support running .class file checks. No class file checks are currently registered as inspections.
    * Since IntelliJ doesn't perform background compilation (e.g. only parsing, so there are no bytecode checks)

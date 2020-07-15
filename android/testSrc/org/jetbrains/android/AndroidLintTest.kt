@@ -135,6 +135,7 @@ import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.lint.checks.IconDetector
 import com.android.tools.lint.checks.TextViewDetector
 import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.CharSequences
 import com.google.common.collect.ImmutableMap
@@ -174,6 +175,10 @@ import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
 
 class AndroidLintTest : AndroidTestCase() {
+  init {
+    LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
+  }
+
   public override fun setUp() {
     super.setUp()
     val analyticsSettings = AnalyticsSettingsData()

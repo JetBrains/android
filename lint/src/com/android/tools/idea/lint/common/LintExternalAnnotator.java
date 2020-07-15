@@ -26,6 +26,7 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.IssueRegistry;
+import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
@@ -77,6 +78,10 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, LintEditorResult> {
+  static {
+    LintClient.setClientName(LintClient.CLIENT_STUDIO);
+  }
+
   static final String LINK_PREFIX = "#lint/"; // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
   static final boolean INCLUDE_IDEA_SUPPRESS_ACTIONS = false;
 
