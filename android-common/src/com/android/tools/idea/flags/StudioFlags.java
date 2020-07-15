@@ -699,30 +699,6 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     true);
 
-  public enum LayoutXmlMode {
-    DEFAULT,
-    /**
-     * Don't run AndroidDomExtender at all, to see how other parts of the XML stack work.
-     */
-    NO_DOM_EXTENDER,
-    /**
-     * Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil.
-     */
-    ATTRIBUTES_FROM_STYLEABLES,
-
-    /**
-     * Use @CustomChildren instead of DomExtender.
-     */
-    CUSTOM_CHILDREN,
-  }
-
-  public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
-    EDITOR,
-    "layout.mode",
-    "Layout XML editing mode",
-    "Controls how XML editing in layout files works.",
-    LayoutXmlMode.DEFAULT);
-
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
     EDITOR, "multidexkeepfile.support.enabled",
     "Enable support for MultiDexKeepFile format",
