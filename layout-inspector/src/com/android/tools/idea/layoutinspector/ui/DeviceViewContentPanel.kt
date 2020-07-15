@@ -17,17 +17,11 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.intellij.ui.Gray
-import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.AlphaComposite
-import java.awt.BasicStroke
-import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -38,25 +32,9 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.geom.GeneralPath
-import java.awt.geom.Path2D.WIND_NON_ZERO
-import java.awt.geom.Rectangle2D
 
 private const val MARGIN = 50
 
-private const val NORMAL_BORDER_THICKNESS = 1f
-private const val EMPHASIZED_BORDER_THICKNESS = 5f
-private const val EMPHASIZED_BORDER_OUTLINE_THICKNESS = 7f
-private const val LABEL_FONT_SIZE = 30f
-
-private val EMPHASIZED_LINE_COLOR = Color(106, 161, 211)
-private val EMPHASIZED_LINE_STROKE = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
-private val EMPHASIZED_LINE_OUTLINE_STROKE = BasicStroke(EMPHASIZED_BORDER_OUTLINE_THICKNESS)
-private val SELECTED_LINE_COLOR = Color(24, 134, 247)
-private val SELECTED_LINE_STROKE = EMPHASIZED_LINE_STROKE
-private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
-private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
-private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
 
 class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
@@ -155,7 +133,8 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 
-    model.hitRects.forEach { drawView(g2d, it) }
+    model.hitRects.forEach { drawImages(g2d, it) }
+    model.hitRects.forEach { drawBorders(g2d, it) }
 
     if (model.overlay != null) {
       g2d.composite = AlphaComposite.SrcOver.derive(model.overlayAlpha)
@@ -171,76 +150,29 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2,
                    (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2)
 
-  private fun drawView(g: Graphics,
-                       drawInfo: ViewDrawInfo) {
-    val g2 = g.create() as Graphics2D
-    g2.setRenderingHints(HQ_RENDERING_HINTS)
-    val selection = inspectorModel.selection
+  private fun drawBorders(g: Graphics2D, drawInfo: ViewDrawInfo) {
+    val hoveredNode = inspectorModel.hoveredNode
+
     val drawView = drawInfo.node
     val view = drawView.owner
-    val hoveredNode = inspectorModel.hoveredNode
-    // TODO: what's hovered?
-    if (viewSettings.drawBorders || view == selection || view == hoveredNode) {
-      when (view) {
-        selection, hoveredNode -> {
-          g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
-          g2.stroke = EMPHASIZED_LINE_OUTLINE_STROKE
-          g2.draw(drawInfo.bounds)
-        }
-      }
-      when (view) {
-        selection -> {
-          g2.color = SELECTED_LINE_COLOR
-          g2.stroke = SELECTED_LINE_STROKE
-        }
-        hoveredNode -> {
-          g2.color = EMPHASIZED_LINE_COLOR
-          g2.stroke = EMPHASIZED_LINE_STROKE
-        }
-        else -> {
-          g2.color = NORMAL_LINE_COLOR
-          g2.stroke = NORMAL_LINE_STROKE
-        }
-      }
-      g2.draw(drawInfo.bounds)
-    }
+    val selection = inspectorModel.selection
 
+    if (!drawInfo.isCollapsed && (viewSettings.drawBorders || view == selection || view == hoveredNode)) {
+      val g2 = g.create() as Graphics2D
+      g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings.drawLabel)
+    }
+  }
+
+  private fun drawImages(g: Graphics, drawInfo: ViewDrawInfo) {
+    val g2 = g.create() as Graphics2D
+    g2.setRenderingHints(HQ_RENDERING_HINTS)
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
 
     val origClip = g2.clip
     g2.clip(drawInfo.clip)
     drawInfo.node.paint(g2, inspectorModel)
     g2.clip = origClip
-    if (viewSettings.drawLabel && view == selection && drawView is DrawViewChild) {
-      g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
-      val fontMetrics = g2.fontMetrics
-      val width = fontMetrics.stringWidth(view.unqualifiedName)
-      val height = fontMetrics.maxAscent + fontMetrics.maxDescent
-      val border = height * 0.3f
-      g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
-      g2.stroke = EMPHASIZED_LINE_OUTLINE_STROKE
-      val outlinePath = GeneralPath(WIND_NON_ZERO)
-      outlinePath.moveTo(view.x.toFloat(), view.y.toFloat() - EMPHASIZED_BORDER_OUTLINE_THICKNESS)
-      outlinePath.lineTo(view.x.toFloat(),
-                         view.y - height.toFloat() - border + EMPHASIZED_BORDER_THICKNESS)
-      outlinePath.lineTo(view.x.toFloat() + width + 2f * border - EMPHASIZED_BORDER_THICKNESS,
-                         view.y - height.toFloat() - border + EMPHASIZED_BORDER_THICKNESS)
-      outlinePath.lineTo(view.x.toFloat() + width + 2f * border - EMPHASIZED_BORDER_THICKNESS,
-                         view.y.toFloat() - EMPHASIZED_BORDER_OUTLINE_THICKNESS)
-      if (width + 2f * border - EMPHASIZED_BORDER_THICKNESS > view.width) {
-        outlinePath.lineTo(view.x.toFloat() + width + 2f * border - EMPHASIZED_BORDER_THICKNESS,
-                           view.y.toFloat())
-        outlinePath.lineTo(view.x.toFloat() + view.width.toFloat() + EMPHASIZED_BORDER_OUTLINE_THICKNESS,
-                           view.y.toFloat())
-      }
-      g2.draw(outlinePath)
-      g2.color = SELECTED_LINE_COLOR
-      g2.fill(Rectangle2D.Float(view.x.toFloat() - EMPHASIZED_BORDER_THICKNESS / 2f,
-                                view.y - height - border + EMPHASIZED_BORDER_THICKNESS / 2f,
-                                width + 2f * border, height + border))
-      g2.color = Color.WHITE
-      g2.drawString(view.unqualifiedName, view.x + border, view.y - border)
-    }
   }
 
   @Suppress("UNUSED_PARAMETER")
