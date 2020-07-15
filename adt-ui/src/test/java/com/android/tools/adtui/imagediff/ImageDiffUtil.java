@@ -217,6 +217,11 @@ public final class ImageDiffUtil {
                                         @NotNull Image goldenImage,
                                         @NotNull Image image,
                                         double maxPercentDifferent) throws IOException {
+    // If we get exactly the same object, no need to check--and they might be mocks anyway.
+    if (goldenImage == image) {
+      return;
+    }
+
     BufferedImage bufferedGoldenImage = convertToARGB(goldenImage);
     BufferedImage bufferedImage = convertToARGB(image);
 

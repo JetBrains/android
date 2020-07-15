@@ -22,9 +22,8 @@ import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.junit.Assert
-import org.junit.Assert.*
-import org.mockito.Mockito
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 
 /**
  * Various checks for tests.
@@ -56,16 +55,10 @@ object CheckUtil {
       assertDrawTreesEqual(expected.owner, actual.owner)
     }
     else if (expected is DrawViewImage && actual is DrawViewImage) {
-      if (Mockito.mockingDetails(expected.image).isMock) {
-        assertEquals(expected.image, actual.image)
-      }
-      else {
-        ImageDiffUtil.assertImageSimilar("image", expected.image, actual.image, 0.0)
-      }
+      ImageDiffUtil.assertImageSimilar("image", expected.image, actual.image, 0.0)
     }
     else {
       fail("$actual was expected to be a ${expected.javaClass.name}")
     }
   }
-
 }
