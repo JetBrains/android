@@ -114,8 +114,8 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @NotNull
   @Override
   public ListenableFuture<VirtualFile> downloadFileEntry(@NotNull DeviceFileEntry entry,
-                                                                @NotNull Path localPath,
-                                                                @NotNull DownloadProgress progress) {
+                                                         @NotNull Path localPath,
+                                                         @NotNull DownloadProgress progress) {
     SettableFuture<VirtualFile> futureResult = SettableFuture.create();
     FileUtils.mkdirs(localPath.getParent().toFile());
 

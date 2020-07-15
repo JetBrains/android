@@ -59,7 +59,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
     val downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true)
-    myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, edtExecutor, Supplier<Path> { downloadPath.toPath() })
+    myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, Supplier<Path> { downloadPath.toPath() })
 
     mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
     mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")
@@ -95,7 +95,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     val virtualFile = pumpEventsAndWaitForFuture(downloadEntryFuture)
 
     // Assert
-    assertEquals("bar1", virtualFile.name)
+    assertTrue(virtualFile.path.endsWith("/foo/bar1"))
 
     orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
     orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)

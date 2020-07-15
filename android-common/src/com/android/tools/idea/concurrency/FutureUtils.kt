@@ -64,6 +64,17 @@ fun <I, O> ListenableFuture<I>.transformAsync(executor: Executor, func: (I) -> L
 }
 
 /**
+ * @see Futures.transformAsync
+ *
+ * This function is useful for interoperability between Java and Kotlin
+ * When in Java the future is ListenableFuture<Void> we set a `null` value to complete the future, if that future is used
+ * from Kotlin with the [transformAsync] defined above it throws exception because we are assigning null to a non-nullable variable (I)
+ */
+fun <I, O> ListenableFuture<I>.transformAsyncNullable(executor: Executor, func: (I?) -> ListenableFuture<O>): ListenableFuture<O> {
+  return Futures.transformAsync(this, AsyncFunction { i -> func(i) }, executor)
+}
+
+/**
  * Transforms a [ListenableFuture] by throwing out the result.
  */
 fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform { null }
