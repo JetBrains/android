@@ -83,15 +83,16 @@ class NdkModuleNode(
 }
 
 fun getNativeSourceNodes(project: Project,
-                         ndkModel: NdkModuleModel,
+                         ndkModuleModel: NdkModuleModel,
                          settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val module = ModuleManager.getInstance(project).findModuleByName(ndkModel.moduleName)!!
-  if (StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get()) {
-    return getContentRootBasedNativeNodes(module, settings)
-  }
-  else {
+  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)!!
+  val ndkModel = ndkModuleModel.ndkModel
+  if (!StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get() && ndkModel is V1NdkModel) {
     val ndkFacet = NdkFacet.getInstance(module) ?: return emptyList()
     return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings)
+  }
+  else {
+    return getContentRootBasedNativeNodes(module, settings)
   }
 }
 
@@ -100,12 +101,9 @@ fun getNativeSourceNodes(project: Project,
  * CMakeLists.txt).
  */
 private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
-                                       ndkModuleModel: NdkModuleModel,
+                                       v1NdkModel: V1NdkModel,
                                        project: Project,
                                        settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val v1NdkModel = when (val model = ndkModuleModel.ndkModel) {
-    is V1NdkModel -> model
-  }
 
   val variant = v1NdkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, NativeArtifact>()

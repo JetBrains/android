@@ -243,17 +243,19 @@ class V1NdkModelTest {
     assertSerializable(singleVariantSyncV1NdkModel)
   }
 
-  private inline fun <reified T : Any> assertSerializable(value: T): T {
-    val configuration = WriteConfiguration(
-      allowAnySubTypes = true,
-      binary = false,
-      filter = SkipNullAndEmptySerializationFilter
-    )
-    val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
-    val deserialized = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
-    val bytes2 = ObjectSerializer.instance.writeAsBytes(deserialized, configuration)
-    TestCase.assertEquals(String(bytes), String(bytes2))
-    EqualsBuilder.reflectionEquals(value, deserialized)
-    return deserialized
+  companion object {
+    inline fun <reified T : Any> assertSerializable(value: T): T {
+      val configuration = WriteConfiguration(
+        allowAnySubTypes = true,
+        binary = false,
+        filter = SkipNullAndEmptySerializationFilter
+      )
+      val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
+      val deserialized = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
+      val bytes2 = ObjectSerializer.instance.writeAsBytes(deserialized, configuration)
+      TestCase.assertEquals(String(bytes), String(bytes2))
+      EqualsBuilder.reflectionEquals(value, deserialized)
+      return deserialized
+    }
   }
 }
