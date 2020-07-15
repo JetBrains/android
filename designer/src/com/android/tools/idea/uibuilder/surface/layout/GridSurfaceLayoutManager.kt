@@ -25,11 +25,13 @@ import kotlin.math.max
  *
  * The [horizontalPadding] and [verticalPadding] are minimum gaps between [PositionableContent] and the boundaries of `NlDesignSurface`.
  * The [horizontalViewDelta] and [verticalViewDelta] are the gaps between different [PositionableContent]s.
+ * The [centralizeContent] decides if the content should be placed at the center when the content is smaller then the surface size.
  */
 class GridSurfaceLayoutManager(private val horizontalPadding: Int,
                                private val verticalPadding: Int,
                                private val horizontalViewDelta: Int,
-                               private val verticalViewDelta: Int)
+                               private val verticalViewDelta: Int,
+                               private val centralizeContent: Boolean = true)
   : SurfaceLayoutManager {
 
   private var previousHorizontalPadding = 0
@@ -113,7 +115,11 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
 
     val startX: Int
     val startY: Int
-    if (keepPreviousPadding) {
+    if (!centralizeContent) {
+      startX = horizontalPadding
+      startY = verticalPadding
+    }
+    else if (keepPreviousPadding) {
       startX = previousHorizontalPadding
       startY = previousVerticalPadding
     }
