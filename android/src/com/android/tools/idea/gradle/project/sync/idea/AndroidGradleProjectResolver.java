@@ -454,7 +454,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         if (ndkModuleModel != null) {
           NdkModel ndkModel = ndkModuleModel.getNdkModel();
           if (ndkModel instanceof V1NdkModel) {
-            // Only V1 has NativeVariant tht needs to be cached. V2 instead stores the information directly on disk.
+            // Only V1 has NativeVariant that needs to be cached. V2 instead stores the information directly on disk.
             cachedVariants.getNativeVariants().addAll(((V1NdkModel)ndkModel).getNativeVariantAbis());
           }
         }
