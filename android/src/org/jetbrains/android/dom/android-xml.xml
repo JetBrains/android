@@ -41,7 +41,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewLayoutDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.LayoutViewElementDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription"/>

@@ -1,5 +1,8 @@
 package org.jetbrains.android.refactoring;
 
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -11,7 +14,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.util.AndroidBundle;
@@ -91,7 +93,7 @@ public class AndroidInlineStyleReferenceAction extends AndroidBaseXmlRefactoring
   protected boolean isMyFile(PsiFile file) {
     final DomFileDescription<?> description = DomManager.getDomManager(file.getProject()).getDomFileDescription((XmlFile)file);
 
-    return description instanceof LayoutDomFileDescription ||
+    return isFileInResourceFolderType((XmlFile)file, ResourceFolderType.LAYOUT) ||
            description instanceof ResourcesDomFileDescription;
   }
 }
