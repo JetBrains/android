@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.testutils.TestUtils
 import com.android.tools.lint.checks.CommentDetector
+import com.android.tools.lint.client.api.LintClient
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
@@ -61,6 +62,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 class LintIdeTest : UsefulTestCase() {
+  init {
+    LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
+  }
+
   private lateinit var myFixture: JavaCodeInsightTestFixture
   private lateinit var myModule: Module
   override fun setUp() {
@@ -87,7 +92,7 @@ class LintIdeTest : UsefulTestCase() {
     myModule = moduleFixtureBuilder.fixture!!.module
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     fixture.allowTreeAccessForAllFiles()
-    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics());
+    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics())
   }
 
   override fun tearDown() {
