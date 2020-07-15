@@ -444,11 +444,17 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       }
 
       fun updateMajorTicks() {
-        // First, set the label table to null, so the labels can be recalculated based on the current maximum.
-        setLabelTable(null)
-        setMajorTickSpacing(maximum / 5)
+        // First, calculate where the major ticks and labels are going to be painted, based on the maximum.
+        val tickIncrement = maximum / 5
+        setMajorTickSpacing(tickIncrement)
         // Now, add the "ms" suffix to each label.
-        setLabelTable(createMsLabelTable(getLabelTable()))
+        if (tickIncrement == 0) {
+          // Handle the special case where maximum == 0 and we only have the "0ms" label.
+          labelTable = createMsLabelTable(labelTable)
+        }
+        else {
+          labelTable = createMsLabelTable(createStandardLabels(tickIncrement))
+        }
       }
 
     }.apply {
