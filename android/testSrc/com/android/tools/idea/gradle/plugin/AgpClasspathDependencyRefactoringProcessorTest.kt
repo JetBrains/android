@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspat
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -79,5 +80,19 @@ class AgpClasspathDependencyRefactoringProcessorTest : UpgradeGradleFileModelTes
     processor.isEnabled = false
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/VersionInInterpolatedVariable"))
+  }
+
+  @Test
+  fun testIsNotNoOpOnVersionInLiteral() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    assertFalse(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testIsNotNoOpOnVersionInInterpolatedVariable() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInInterpolatedVariable"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    assertFalse(processor.isAlwaysNoOpForProject)
   }
 }
