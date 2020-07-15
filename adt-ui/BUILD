@@ -139,8 +139,8 @@ iml_module(
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
-        "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/sdklib:unb.studio.android.sdktools.sdklib[module]",
+        "//tools/base/ninepatch:unb.studio.android.sdktools.ninepatch[module]",
     ],
 )

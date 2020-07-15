@@ -104,7 +104,6 @@ iml_module(
         "//tools/analytics-library/shared:unb.analytics-shared[module]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
         "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
         "//tools/base/ninepatch:unb.studio.android.sdktools.ninepatch[module]",
         "//tools/base/sdklib:unb.studio.android.sdktools.sdklib[module]",

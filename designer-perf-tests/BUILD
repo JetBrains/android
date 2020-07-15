@@ -121,5 +121,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/compose-designer:unb.intellij.android.compose-designer[module, test]",
         "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native",
     ],
 )
