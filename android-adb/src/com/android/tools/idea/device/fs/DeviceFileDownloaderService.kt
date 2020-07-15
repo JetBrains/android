@@ -32,7 +32,11 @@ interface DeviceFileDownloaderService {
   }
 
   /**
-   * Downloads the file corresponding to the [DeviceFileId] passed as argument, from the device to the local machine.
+   * Downloads the files corresponding to [onDevicePaths], from the device [deviceId] to the local machine.
+   * If the file corresponding to a path is not found, that path is skipped.
+   * Returns a map where each on-device path is mapped to the corresponding VirtualFile.
+   *
+   * If the device corresponding to [deviceId] is not found, the future fails with IllegalArgumentException.
    */
-  fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<VirtualFile>
+  fun downloadFiles(deviceId: String, onDevicePaths: List<String>): ListenableFuture<Map<String, VirtualFile>>
 }

@@ -15,74 +15,116 @@
  */
 package com.android.tools.idea.explorer
 
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.device.fs.DeviceFileDownloaderService
-import com.android.tools.idea.device.fs.DeviceFileId
-import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
-import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.vfs.VirtualFile
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
+import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.jetbrains.ide.PooledThreadExecutor
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.function.Supplier
 
 class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
-  lateinit var deviceFileDownloaderService: DeviceFileDownloaderService
-  lateinit var mockAdbDeviceFileSystemService: AdbDeviceFileSystemService
-  lateinit var mockDeviceExplorerFileManager: DeviceExplorerFileManager
+  private lateinit var deviceFileDownloaderService: DeviceFileDownloaderServiceImpl
+  private lateinit var edtExecutor: FutureCallbackExecutor
+  private lateinit var taskExecutor: FutureCallbackExecutor
 
-  lateinit var mockVirtualFile: VirtualFile
+  private lateinit var mockDeviceFileSystemService: MockDeviceFileSystemService
+  private lateinit var mockDeviceFileSystem: MockDeviceFileSystem
+  private lateinit var rootEntry: MockDeviceFileEntry
+  private lateinit var emptyDirEntry: MockDeviceFileEntry
+  private lateinit var fooDirEntry: MockDeviceFileEntry
+  private lateinit var fooBar1Entry: MockDeviceFileEntry
+  private lateinit var fooBar2Entry: MockDeviceFileEntry
+  private lateinit var foo2DirEntry: MockDeviceFileEntry
+  private lateinit var foo2Bar1Entry: MockDeviceFileEntry
+  private lateinit var foo2Bar2Entry: MockDeviceFileEntry
+
+  private lateinit var fooBar1LocalPath: Path
 
   override fun setUp() {
     super.setUp()
 
-    val path = Paths.get("test/path")
+    edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
+    taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
-    mockVirtualFile = mock(VirtualFile::class.java)
+    val downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true)
+    val myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, Supplier<Path> { downloadPath.toPath() })
 
-    mockAdbDeviceFileSystemService = mock(AdbDeviceFileSystemService::class.java)
-    mockDeviceExplorerFileManager = object : DeviceExplorerFileManager {
-      override fun getDefaultLocalPathForEntry(entry: DeviceFileEntry) = path
+    mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
+    mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")
 
-      override fun downloadFileEntry(
-        entry: DeviceFileEntry,
-        localPath: Path,
-        progress: DownloadProgress
-      ): ListenableFuture<VirtualFile> {
-        return Futures.immediateFuture(mockVirtualFile)
-      }
-    }
+    deviceFileDownloaderService = DeviceFileDownloaderServiceImpl(project, mockDeviceFileSystemService, myDeviceExplorerFileManager)
 
-    val mockEntry = mock(DeviceFileEntry::class.java)
+    rootEntry = mockDeviceFileSystem.root
 
-    val mockDevice = mock(AdbDeviceFileSystem::class.java)
-    `when`(mockDevice.name).thenReturn("deviceId")
-    `when`(mockDevice.getEntry("fileId")).thenReturn(Futures.immediateFuture(mockEntry))
-    `when`(mockAdbDeviceFileSystemService.devices).thenReturn(Futures.immediateFuture(listOf(mockDevice)))
+    emptyDirEntry = rootEntry.addDirectory("empty")
 
-    `when`(mockAdbDeviceFileSystemService.start(ArgumentMatchers.any())).thenReturn(Futures.immediateFuture(null))
+    fooDirEntry = rootEntry.addDirectory("foo")
+    fooBar1Entry = fooDirEntry.addFile("bar1")
+    fooBar2Entry = fooDirEntry.addFile("bar2")
 
-    deviceFileDownloaderService = DeviceFileDownloaderServiceImpl(project, mockAdbDeviceFileSystemService, mockDeviceExplorerFileManager)
+    foo2DirEntry = rootEntry.addDirectory("foo2")
+    foo2Bar1Entry = foo2DirEntry.addFile("bar1")
+    foo2Bar2Entry = foo2DirEntry.addFile("bar2")
+
+    fooBar1LocalPath = Paths.get(
+      FileUtil.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
+    )
   }
 
-  fun testDownloadFile() {
-    // Prepare
-    val deviceFileId = DeviceFileId("deviceId", "fileId")
-    val downloadProgress = mock(DownloadProgress::class.java)
-
+  fun testDownloadFilesFromSameDir() {
     // Act
-    val downloadedFile = pumpEventsAndWaitForFuture(deviceFileDownloaderService.downloadFile(deviceFileId, downloadProgress))
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/bar2"))
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
-    verify(mockAdbDeviceFileSystemService).start(ArgumentMatchers.any())
-    assertEquals(downloadedFile, mockVirtualFile)
+    assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
+    assertTrue(virtualFiles.getValue("/foo/bar2").path.endsWith("/foo/bar2"))
+  }
+
+  fun testDownloadFilesFromDifferentDir() {
+    // Act
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo2/bar1"))
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
+
+    // Assert
+    assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
+    assertTrue(virtualFiles.getValue("/foo2/bar1").path.endsWith("/foo2/bar1"))
+  }
+
+  fun testDownloadFilesMissingFile() {
+    // Act
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/barMissing"))
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
+
+    // Assert
+    assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
+    assertEquals(1, virtualFiles.size)
+  }
+
+  fun testDownloadFilesMissingDir() {
+    // Act
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/missingDir/bar"))
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
+
+    // Assert
+    assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
+    assertEquals(1, virtualFiles.size)
+  }
+
+  fun testDownloadEmptyList() {
+    // Act
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", emptyList())
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
+
+    // Assert
+    assertEquals(0, virtualFiles.size)
   }
 }
