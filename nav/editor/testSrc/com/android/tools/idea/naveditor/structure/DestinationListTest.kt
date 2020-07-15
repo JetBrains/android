@@ -224,7 +224,7 @@ class DestinationListTest : NavTestCase() {
     })
 
     val ui = FakeUi(list)
-    list.myList.setUI(HeadlessListUI())
+    list.myList.ui = HeadlessListUI()
     ui.keyboard.setFocus(list.myList)
     ui.keyboard.type(FakeKeyboard.Key.A)
     assertTrue(called)

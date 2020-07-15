@@ -108,9 +108,11 @@ public class IssueView extends JPanel {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
     myErrorTitle.setText(issue.getSummary());
-    String displayText = issue.getSource().getDisplayText();
-    if (displayText != "") {
-      mySourceLabel.setText(displayText);
+    NlComponent source = issue.getSource();
+    if (source != null) {
+      String id = source.getId();
+      String tag = source.getTagName();
+      mySourceLabel.setText((id != null ? id + " " : "") + "<" + tag + ">");
     }
   }
 

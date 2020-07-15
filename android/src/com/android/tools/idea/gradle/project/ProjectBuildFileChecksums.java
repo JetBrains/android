@@ -179,7 +179,7 @@ public class ProjectBuildFileChecksums implements Serializable {
 
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
       if (ndkModel != null) {
-        for (File externalBuildFile : ndkModel.getBuildFiles()) {
+        for (File externalBuildFile : ndkModel.getAndroidProject().getBuildFiles()) {
           buildFileChecksums.addFileChecksum(rootFolderPath, externalBuildFile);
         }
       }

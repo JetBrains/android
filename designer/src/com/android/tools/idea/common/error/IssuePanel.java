@@ -55,6 +55,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -454,7 +455,10 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         if (issue == null) {
           return;
         }
-        issue.getSource().getOnIssueSelected().invoke(mySurface);
+        NlComponent source = issue.getSource();
+        if (source != null) {
+          mySurface.getSelectionModel().setSelection(Collections.singletonList(source));
+        }
       }
     }
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_ID
@@ -40,7 +39,6 @@ import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
@@ -72,6 +70,7 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import java.awt.Color
 import javax.swing.Icon
@@ -268,8 +267,7 @@ open class NelePropertyItem(
       ResourceType.INTEGER,
       ResourceType.STRING -> if (resValue.value != null) return resValue.value
       ResourceType.COLOR -> if (resValue.value?.startsWith("#") == true) return resValue.value
-      else -> {
-      }
+      else -> {}
     }
     // The value of the remaining resource types are file names or ids.
     // We don't want to show the file names and the ids don't have a value.
@@ -335,7 +333,7 @@ open class NelePropertyItem(
   protected open fun getCompletionValues(): List<String> {
     if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
       val tags = ReadAction.compute<Collection<String>, RuntimeException> {
-        AndroidDomUtil.removeUnambiguousNames(TagToClassMapper.getInstance(model.facet.module).getClassMap(SdkConstants.CLASS_VIEWGROUP))
+        AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getViewGroupClassMap(model.facet))
       }.toMutableList()
       tags.sort()
       return tags

@@ -65,7 +65,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     getter = { asString() },
     setter = { setValue(it) },
     parser = ::parseString,
-    defaultValueGetter = { it.resolvedNativeModel?.getDefaultNdkVersion() },
+    defaultValueGetter = { it.resolvedNativeModel?.androidProject?.defaultNdkVersion },
     knownValuesGetter = ::ndkVersionValues,
     variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
   )

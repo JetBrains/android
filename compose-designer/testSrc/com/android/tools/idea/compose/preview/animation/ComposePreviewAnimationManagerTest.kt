@@ -195,9 +195,7 @@ class ComposePreviewAnimationManagerTest {
   }
 
   private fun createInspector(): AnimationInspectorPanel {
-    assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
     ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable)
-    assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
     return ComposePreviewAnimationManager.currentInspector!!
   }
 

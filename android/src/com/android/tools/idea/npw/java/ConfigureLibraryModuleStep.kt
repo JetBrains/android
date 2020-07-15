@@ -16,15 +16,17 @@
 package com.android.tools.idea.npw.java
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.adtui.device.FormFactor
+import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.validator.ClassNameValidator
 import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.TextProperty
-import com.intellij.openapi.ui.DialogPanel
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.Label
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JTextField
@@ -36,7 +38,7 @@ class ConfigureLibraryModuleStep(
 ) {
   private val className: JTextField = JBTextField()
 
-  override fun createMainPanel(): DialogPanel = panel {
+  private val panel = panel {
     row {
       cell {
         labelFor("Library name:", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
@@ -63,6 +65,8 @@ class ConfigureLibraryModuleStep(
       }
     }
   }
+
+  override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
     bindings.bindTwoWay(TextProperty(className), model.className)

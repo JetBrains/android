@@ -15,41 +15,34 @@
  */
 package com.android.tools.idea.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.util.Disposer
-import javax.swing.Action
 import javax.swing.JComponent
 
 /**
  * Implementation of [AbstractDialogWrapper] that uses the [DialogWrapper] class from the platform.
  */
 class DefaultDialogWrapper(private val project: Project, private val canBeParent: Boolean, private val ideModalityType: DialogWrapper.IdeModalityType) : AbstractDialogWrapper() {
-  private val innerDialogWrapper: DialogWrapperInner by lazy {
-    DialogWrapperInner(project, canBeParent, ideModalityType)
-  }
+  private var innerDialogWrapper: DialogWrapperInner? = null
   override var isModal = false
-  override val disposable = Disposer.newDisposable()
+  override val disposable: Disposable
+    get() = innerDialogWrapper!!.disposable
   override var title = ""
-  override var cancelButtonText: String? = null
-  override var hideOkButton = false
+  override var okButtonText: String? = null
 
   override fun init() {
-    // Ensure we are disposed if our inner dialog is disposed (e.g. "Close" or "Cancel" button)
-    Disposer.register(innerDialogWrapper.disposable, disposable)
-    innerDialogWrapper.init()
+    innerDialogWrapper = DialogWrapperInner(project, canBeParent, ideModalityType)
+    innerDialogWrapper?.init()
   }
 
   override fun show() {
-    innerDialogWrapper.show()
+    innerDialogWrapper?.show()
   }
 
   private inner class DialogWrapperInner(project: Project, canBeParent: Boolean, ideModalityType: IdeModalityType) : DialogWrapper(project, canBeParent, ideModalityType) {
     public override fun init() {
-      this@DefaultDialogWrapper.cancelButtonText?.let { setCancelButtonText(it) }
-      if (hideOkButton) {
-        cancelAction.putValue(DEFAULT_ACTION, true)
-      }
+      this@DefaultDialogWrapper.okButtonText?.let { setOKButtonText(it) }
       isModal = this@DefaultDialogWrapper.isModal
       title = this@DefaultDialogWrapper.title
       super.init()
@@ -57,18 +50,6 @@ class DefaultDialogWrapper(private val project: Project, private val canBeParent
 
     override fun createCenterPanel(): JComponent? {
       return centerPanelProvider()
-    }
-
-    override fun createActions(): Array<Action> {
-      val helpAction = helpAction
-      if (hideOkButton) {
-        return if (helpAction === myHelpAction && helpId == null) arrayOf(cancelAction)
-        else arrayOf(cancelAction, helpAction)
-      }
-      else {
-        return if (helpAction === myHelpAction && helpId == null) arrayOf(okAction, cancelAction)
-        else arrayOf(okAction, cancelAction, helpAction)
-      }
     }
   }
 }

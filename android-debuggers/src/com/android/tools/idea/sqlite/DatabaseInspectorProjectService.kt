@@ -46,6 +46,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
@@ -199,7 +200,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
-  private val projectScope = AndroidCoroutineScope(project, uiThread)
+  private val projectScope = AndroidCoroutineScope(project, workerThread)
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
@@ -221,7 +222,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       databaseId
     }
 
-    controller.addSqliteDatabase(databaseId)
+    withContext(uiThread) {
+      controller.addSqliteDatabase(databaseId)
+    }
+
     databaseId.await()
   }
 
@@ -229,7 +233,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   override fun openSqliteDatabase(
     databaseId: SqliteDatabaseId,
     databaseConnection: LiveDatabaseConnection
-  ): ListenableFuture<Unit> = projectScope.future {
+  ): ListenableFuture<Unit> = projectScope.future(uiThread) {
     databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
     controller.addSqliteDatabase(databaseId)
   }
@@ -253,7 +257,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     controller.setAppInspectionServices(null)
     val savedState = controller.saveState()
 
-    projectScope.launch {
+    projectScope.launch(uiThread) {
       model.getOpenDatabaseIds().forEach {
         controller.closeDatabase(it)
       }
@@ -288,7 +292,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   @AnyThread
   override fun databasePossiblyChanged() {
-    projectScope.launch { controller.databasePossiblyChanged() }
+    projectScope.launch(uiThread) { controller.databasePossiblyChanged() }
   }
 
   override fun getIdeServices(): AppInspectionIdeServices? {

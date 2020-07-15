@@ -201,7 +201,6 @@
       <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.actions.ShowRoomSchemaAction"/>
       <action internal="true" id="Android.SwingProfiler" class="com.android.tools.adtui.actions.EnableSwingProfilerAction"/>
       <action internal="true" id="IdeaNewProject" class="com.intellij.ide.actions.NewProjectAction" text="IDEA New Project..."/>
-      <action internal="true" id="IdeaNewModule" class="com.intellij.openapi.roots.ui.configuration.actions.NewModuleAction" text="IDEA New Module..."/>
       <action internal="true" id="Android.IdeaProjectStructure" class="com.android.tools.idea.structure.IdeaProjectStructureAction"/>
       <action internal="true" id="Android.ShowSatisfactionDialog" class="com.android.tools.idea.stats.ShowSatisfactionDialogAction"/>
       <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.transport.demo.TransportPipelineAction"/>

@@ -68,7 +68,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
@@ -78,6 +77,7 @@ iml_module(
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -136,7 +136,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
@@ -146,6 +145,7 @@ iml_module(
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -304,7 +304,7 @@ iml_module(
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/android-kotlin:unb.dx",
+        "//tools/adt/idea/android-kotlin:lib/unb.dx",
         "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
@@ -380,11 +380,7 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.dx",
+    name = "lib/unb.dx",
     jars = ["lib/dx.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
 )

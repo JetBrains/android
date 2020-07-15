@@ -113,15 +113,13 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     String msg = "";
     if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
       msg += "<p>To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
-             "that you upgrade the Android Gradle Plugin in this project (" + myProject.getName() +
-             ") from the current version " + current + " to version " +
+             "that you upgrade the Android Gradle Plugin from the current version " + current + " to version " +
              recommended + ". " +
              "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a></p>";
     }
     else {
       msg += "To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
-             "that you update the Android Gradle plugin in this project (" + myProject.getName() +
-             ") from the current version " + current
+             "that you update the Android Gradle plugin from the current version " + current
              + " to version " + recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ". " +
              "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a>";
 

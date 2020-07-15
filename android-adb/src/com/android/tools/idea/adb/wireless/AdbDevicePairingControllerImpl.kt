@@ -16,8 +16,6 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.transform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -26,10 +24,9 @@ import java.util.concurrent.Executor
 @UiThread
 class AdbDevicePairingControllerImpl(project: Project,
                                      edtExecutor: Executor,
-                                     private val service: AdbDevicePairingService,
+                                     service: AdbDevicePairingService,
                                      private val view: AdbDevicePairingView
 ) : AdbDevicePairingController {
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val qrCodeScanningController = QrCodeScanningController(service, view, edtExecutor, this)
 
   init {
@@ -41,33 +38,11 @@ class AdbDevicePairingControllerImpl(project: Project,
   }
 
   override fun startPairingProcess() {
-    view.startMdnsCheck()
-
-    // Check ADB is valid and mDNS is supported on this platform
-    service.checkMdnsSupport().transform(edtExecutor) { supportState ->
-      when(supportState) {
-        MdnsSupportState.Supported -> {
-          view.showMdnsCheckSuccess()
-          qrCodeScanningController.startPairingProcess()
-        }
-        MdnsSupportState.NotSupported -> {
-          view.showMdnsNotSupportedError()
-        }
-        MdnsSupportState.AdbVersionTooLow -> {
-          view.showMdnsNotSupportedByAdbError()
-        }
-        MdnsSupportState.AdbInvocationError -> {
-          view.showMdnsCheckError()
-        }
-      }
-    }
-
-    // Note: This call is blocking and returns only when the dialog is closed
+    qrCodeScanningController.startPairingProcess()
     view.showDialog()
   }
 
   override fun dispose() {
-    // Nothing to do (the view or project disposal is what makes us being disposed)
   }
 
   class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {

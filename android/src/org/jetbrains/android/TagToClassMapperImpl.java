@@ -15,10 +15,8 @@
  */
 package org.jetbrains.android;
 
-import static com.android.SdkConstants.CLASS_VIEW;
 import static com.intellij.psi.search.GlobalSearchScope.notScope;
-import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getTagNamesByClass;
-import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getViewTagNamesByClass;
+import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -28,12 +26,13 @@ import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.SmartPointerManager;
@@ -44,7 +43,6 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.Collections;
@@ -101,9 +99,6 @@ class TagToClassMapperImpl implements TagToClassMapper {
   @Override
   @NotNull
   public Map<String, PsiClass> getClassMap(String className) {
-    if (DumbService.isDumb(myModule.getProject())) {
-      return Collections.emptyMap();
-    }
     CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
@@ -225,13 +220,20 @@ class TagToClassMapperImpl implements TagToClassMapper {
                           @NotNull GlobalSearchScope scope,
                           @NotNull Map<String, PsiClass> map) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-    PsiClass baseClass = facade.findClass(className, moduleResolveScope());
-
+    PsiClass baseClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> {
+      PsiClass aClass;
+      // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
+      try {
+        aClass = facade.findClass(className, moduleResolveScope());
+      }
+      catch (IndexNotReadyException e) {
+        aClass = null;
+      }
+      return aClass;
+    });
     if (baseClass == null) {
       return false;
     }
-
-    boolean isView = InheritanceUtil.isInheritor(baseClass, CLASS_VIEW);
 
     int api = getMinApiLevel();
 
@@ -241,7 +243,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     try {
       ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-        String[] tagNames = isView ? getViewTagNamesByClass(c, api) : getTagNamesByClass(c, api);
+        String[] tagNames = getTagNamesByClass(c, api);
         for (String tagName : tagNames) {
           map.put(tagName, c);
         }

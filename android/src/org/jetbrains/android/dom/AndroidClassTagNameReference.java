@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.dom;
 
-import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getTagNamesByClass;
-
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiClass;
@@ -26,6 +24,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidClassTagNameReference extends TagNameReference {
@@ -41,7 +40,7 @@ public class AndroidClassTagNameReference extends TagNameReference {
 
     AndroidFacet facet = AndroidFacet.getInstance(element);
     int minimumApi = facet == null ? -1 : AndroidModuleInfo.getInstance(facet).getModuleMinApi();
-    String tagName = ArrayUtil.getFirstElement(getTagNamesByClass((PsiClass)element, minimumApi));
+    String tagName = ArrayUtil.getFirstElement(LayoutViewClassUtils.getTagNamesByClass((PsiClass)element, minimumApi));
 
     return tagElement.setName(tagName != null ? tagName : "");
   }

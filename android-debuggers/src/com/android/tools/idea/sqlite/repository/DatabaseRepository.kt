@@ -89,12 +89,10 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
         is RepositoryActions.CloseConnection -> {
           val connection = databaseConnections.remove(action.databaseId)
           connection?.close()
-          action.deferredDatabaseClosed.complete(Unit)
         }
         is RepositoryActions.CloseAllConnections -> {
           databaseConnections.values.forEach { it.close() }
           databaseConnections.clear()
-          action.deferredAllClosed.complete(Unit)
         }
       }
     }
@@ -105,9 +103,7 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
   }
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId) = withContext(workerDispatcher) {
-    val completableDeferred = CompletableDeferred<Unit>()
-    repositoryChannel.send(RepositoryActions.CloseConnection(databaseId, completableDeferred))
-    completableDeferred.await()
+    repositoryChannel.send(RepositoryActions.CloseConnection(databaseId))
   }
 
   override suspend fun fetchSchema(databaseId: SqliteDatabaseId): SqliteSchema = withContext(workerDispatcher) {
@@ -171,9 +167,7 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
   }
 
   override suspend fun release() = withContext(workerDispatcher) {
-    val completableDeferred = CompletableDeferred<Unit>()
-    repositoryChannel.send(RepositoryActions.CloseAllConnections(completableDeferred))
-    completableDeferred.await()
+    repositoryChannel.send(RepositoryActions.CloseAllConnections)
   }
 
   private fun getWhereExpression(targetTable: SqliteTable, targetRow: SqliteRow): WhereExpression? {
@@ -214,10 +208,7 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
       val deferredConnection: CompletableDeferred<DatabaseConnection?>
     ) : RepositoryActions()
     data class AddConnection(val databaseId: SqliteDatabaseId, val databaseConnection: DatabaseConnection) : RepositoryActions()
-    data class CloseConnection(
-      val databaseId: SqliteDatabaseId,
-      val deferredDatabaseClosed: CompletableDeferred<Unit>
-    ) : RepositoryActions()
-    data class CloseAllConnections(val deferredAllClosed: CompletableDeferred<Unit>) : RepositoryActions()
+    data class CloseConnection(val databaseId: SqliteDatabaseId) : RepositoryActions()
+    object CloseAllConnections : RepositoryActions()
   }
 }

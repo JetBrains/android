@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.ui.JBPopupMenu
-import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.MouseButton
@@ -228,15 +227,13 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
   }
 
   fun clickButtonByIcon(icon: Icon): SceneViewTopPanelFixture = also {
-    robot.click(findButtonByIcon(icon))
-  }
-
-  fun findButtonByIcon(icon: Icon) =
-    robot.finder().find(toolbar, object: GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
+    val button = robot.finder().find(toolbar, object: GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
-        return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
+        return component.icon == icon
       }
     })
+    robot.click(button)
+  }
 }
 
 class SceneViewFixture(private val robot: Robot,

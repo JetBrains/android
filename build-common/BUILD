@@ -85,7 +85,6 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.buildCommon",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/android/lib:unb.android-sdk-tools-jps"],
     iml_files = ["intellij.android.buildCommon.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -98,7 +97,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
-        "//tools/adt/idea/android/lib:unb.android-sdk-tools-jps",
+        "//tools/adt/idea/android/lib:unb.jarutils",
         "//tools/base/common:unb.studio.android.sdktools.common",
         "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib",
         "//tools/base/device_validator:unb.studio.android.sdktools.dvlib",
@@ -110,7 +109,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/android/lib:unb.android-sdk-tools-jps",
+        "//tools/adt/idea/android/lib:unb.jarutils",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
         "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
         "//tools/base/device_validator:unb.studio.android.sdktools.dvlib[module]",

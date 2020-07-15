@@ -154,21 +154,11 @@ class NdkModuleModel
 
   val variants: Collection<NdkVariant> get() = ndkVariantsByVariantAbi.values
 
-  fun getSymbolFolders(): Map<VariantAbi, Set<File>> = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
-    ndkVariant.artifacts.mapNotNull { artifact ->
-      artifact.outputFile?.takeIf { it.exists() }?.parentFile
-    }.toSet()
-  }
-
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
 
   fun findToolchain(toolchainName: String) = toolchainsByName[toolchainName]
 
   fun findSettings(settingsName: String) = settingsByName[settingsName]
-
-  fun getBuildFiles(): Collection<File> = androidProject.buildFiles
-  fun getBuildSystems(): Collection<String> = androidProject.buildSystems
-  fun getDefaultNdkVersion(): String = androidProject.defaultNdkVersion
 
   companion object {
     @JvmStatic

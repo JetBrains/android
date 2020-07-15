@@ -17,6 +17,7 @@ package com.android.tools.property.ptable2.impl
 
 import com.intellij.ui.table.JBTable
 import com.intellij.util.IJSwingUtilities
+import sun.awt.CausedFocusEvent
 import java.awt.KeyboardFocusManager
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -31,21 +32,12 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
 
     super.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent) {
-        when (getCause(event)) {
-          "TRAVERSAL_FORWARD" -> transferFocusToFirstEditor()
-          "TRAVERSAL_BACKWARD" -> transferFocusToLastEditor()
-          else -> return  // avoid compilation warning
-        }
-      }
-
-      private fun getCause(event: FocusEvent): String? {
-        try {
-          // TODO: replace this with event.cause when JDK8 is no longer supported
-          val getCause = event.javaClass.getDeclaredMethod("getCause")
-          return getCause.invoke(event)?.toString()
-        }
-        catch (ex: ReflectiveOperationException) {
-          return null
+        // If this table gains focus from focus traversal,
+        // and there are editable cells: delegate to the next focus candidate.
+        when {
+          event !is CausedFocusEvent -> return
+          event.cause == CausedFocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocusToFirstEditor()
+          event.cause == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusToLastEditor()
         }
       }
     })

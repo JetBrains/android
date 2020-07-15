@@ -23,7 +23,6 @@ iml_module(
     name = "unb.intellij.android.layoutlib-native",
     srcs = ["src"],
     bundle_data = ["//prebuilts/studio/layoutlib:licenses"],
-    bundled_deps = ["//prebuilts/studio/layoutlib/data:unb.layoutlib_native"],
     iml_files = ["intellij.android.layoutlib-native.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [

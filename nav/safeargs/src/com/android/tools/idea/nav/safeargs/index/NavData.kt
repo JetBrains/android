@@ -47,7 +47,7 @@ interface NavActionData {
 }
 
 /**
- * A useful abstraction across multiple destination types, e.g. <activity> and <fragment>
+ * A useful abstraction across multiple destination types
  */
 interface NavDestinationData {
   val id: String
@@ -56,8 +56,21 @@ interface NavDestinationData {
   val actions: List<NavActionData>
 }
 
-interface MaybeNavDestinationData {
-  fun toDestination(): NavDestinationData?
+/**
+ * An entry representing a fragment destination.
+ */
+interface NavFragmentData {
+  val id: String
+  val name: String
+  val arguments: List<NavArgumentData>
+  val actions: List<NavActionData>
+
+  fun toDestination() = object : NavDestinationData {
+    override val id: String = this@NavFragmentData.id
+    override val name: String = this@NavFragmentData.name
+    override val arguments: List<NavArgumentData> = this@NavFragmentData.arguments
+    override val actions: List<NavActionData> = this@NavFragmentData.actions
+  }
 }
 
 /**
@@ -65,21 +78,14 @@ interface MaybeNavDestinationData {
  *
  * Every navigation XML file has a root navigation tag.
  */
-interface NavNavigationData : MaybeNavDestinationData {
+interface NavNavigationData {
   val id: String?
   val startDestination: String
   val actions: List<NavActionData>
+  val fragments: List<NavFragmentData>
   val navigations: List<NavNavigationData>
 
-  /**
-   * We can't predict all possible tag types, because navigation allows custom tags. Instead, we
-   * catch all remaining tags and assume they are destinations, but even if they aren't, we will
-   * still successfully complete parsing (and callers can strip out invalid destinations later by
-   * checking if [MaybeNavDestinationData.toDestination] returns null.
-   */
-  val potentialDestinations: List<MaybeNavDestinationData>
-
-  override fun toDestination(): NavDestinationData? {
+  fun toDestination(): NavDestinationData? {
     val id = this.id ?: return null
     return object : NavDestinationData {
       override val id = id
@@ -89,17 +95,18 @@ interface NavNavigationData : MaybeNavDestinationData {
     }
   }
 
-  private val allNavigations: List<NavNavigationData>
-    get() = listOf(this) + navigations.flatMap { it.allNavigations }
+  val allFragments: List<NavFragmentData>
+    get() = fragments + navigations.flatMap { nested -> nested.fragments }
+
+  val allNavigations: List<NavNavigationData>
+    get() {
+      val result = mutableListOf(this)
+      result.addAll(navigations.flatMap { nested -> nested.allNavigations })
+      return result
+    }
 
   val allDestinations: List<NavDestinationData>
-    get() {
-      val allNavigations = allNavigations // Avoid recalculating over and over
-      return allNavigations.mapNotNull { it.toDestination() } +
-             allNavigations
-               .flatMap { it.potentialDestinations }
-               .mapNotNull { it.toDestination() }
-    }
+    get() = allFragments.map { it.toDestination() } + allNavigations.mapNotNull { it.toDestination() }
 }
 
 /**

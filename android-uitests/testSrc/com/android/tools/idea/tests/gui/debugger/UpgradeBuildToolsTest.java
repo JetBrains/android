@@ -133,10 +133,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
           .get();
 
         if (parentTitle.contains(BUILD_TOOLS)) {
-          // In JDK 8 TreeNode.children() returns a raw Enumeration but as of JDK 11 the generic type matches and this assignment is no
-          // longer unchecked.
-          @SuppressWarnings("unchecked")
-          Enumeration<? extends TreeNode> children = parentNode.children();
+          Enumeration<TreeNode> children = parentNode.children();
 
           // Find the last child, which is the latest version of Build Tools.
           TreeNode lastChild = null;
@@ -227,10 +224,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
           .get();
 
         if (parentTitle.contains(BUILD_TOOLS)) {
-          // In JDK 8 TreeNode.children() returns a raw Enumeration but as of JDK 11 the generic type matches and this assignment is no
-          // longer unchecked.
-          @SuppressWarnings("unchecked")
-          Enumeration<? extends TreeNode> children = parentNode.children();
+          Enumeration<TreeNode> children = parentNode.children();
 
           while (children.hasMoreElements()) {
             TreeNode child = children.nextElement();

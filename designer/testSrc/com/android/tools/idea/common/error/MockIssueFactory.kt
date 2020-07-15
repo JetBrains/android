@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.common.model.NlComponent
 import com.intellij.lang.annotation.HighlightSeverity
 
-fun createIssue(severity: HighlightSeverity, source: IssueSource = IssueSource.NONE): Issue {
+fun createIssue(severity: HighlightSeverity, source: NlComponent? = null): Issue {
   return object : Issue() {
     override val summary: String = ""
     override val description: String = ""
     override val severity: HighlightSeverity = severity
-    override val source: IssueSource = source
+    override val source: NlComponent? = source
     override val category: String = ""
   }
 }

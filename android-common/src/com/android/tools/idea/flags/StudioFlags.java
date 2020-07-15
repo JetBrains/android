@@ -979,13 +979,6 @@ public final class StudioFlags {
     "If enabled, the picker for @Preview elements will be available",
     false
   );
-
-  public static final Flag<Boolean> COMPOSE_BLUEPRINT_MODE = Flag.create(
-    COMPOSE, "preview.blueprint",
-    "Enable the blueprint mode for Compose previews",
-    "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
-    false
-  );
   //endregion
 
   //region Manifests

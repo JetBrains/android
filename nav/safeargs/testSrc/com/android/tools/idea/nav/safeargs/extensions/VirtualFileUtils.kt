@@ -36,11 +36,3 @@ fun VirtualFile.replaceWithSaving(oldString: String, newString: String, project:
     FileDocumentManager.getInstance().saveDocument(this)
   }
 }
-
-fun VirtualFile.setText(newString: String, project: Project) {
-  with(FileDocumentManager.getInstance().getDocument(this)!!) {
-    setText(newString)
-    PsiDocumentManager.getInstance(project).commitDocument(this)
-    FileDocumentManager.getInstance().saveDocument(this)
-  }
-}

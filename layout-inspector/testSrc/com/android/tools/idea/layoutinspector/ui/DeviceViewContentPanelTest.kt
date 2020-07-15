@@ -35,7 +35,6 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Font
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -43,7 +42,7 @@ import java.io.File
 import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
-private const val DIFF_THRESHOLD = 0.02
+private const val DIFF_THRESHOLD = 0.05
 
 class DeviceViewContentPanelTest {
 
@@ -131,21 +130,16 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = true
     model.selection = model[VIEW1]!!
     graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
-
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD)
 
     model.hoveredNode = windowRoot
     graphics = generatedImage.createGraphics()
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
   }
@@ -181,7 +175,7 @@ class DeviceViewContentPanelTest {
   @Test
   fun testOverlay() {
     val model = model {
-      view(ROOT, 0, 0, 600, 600) {
+      view(ROOT, 0, 0, 500, 1000) {
         view(VIEW1, 125, 150, 250, 250)
       }
     }
@@ -195,7 +189,7 @@ class DeviceViewContentPanelTest {
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(1000, 1500)
 
-    panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/overlay.png"))
+    panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"))
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-60.png"), generatedImage, DIFF_THRESHOLD)
@@ -393,8 +387,6 @@ class DeviceViewContentPanelTest {
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)

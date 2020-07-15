@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -67,6 +66,8 @@ import javax.swing.JComponent
 
 /**
  * Implementation of the application logic related to viewing/editing sqlite databases.
+ *
+ * All methods are assumed to run on the UI (EDT) thread.
  */
 class DatabaseInspectorControllerImpl(
   private val project: Project,
@@ -78,6 +79,8 @@ class DatabaseInspectorControllerImpl(
 ) : DatabaseInspectorController {
 
   private val uiThread = edtExecutor.asCoroutineDispatcher()
+  private val workerThread = taskExecutor.asCoroutineDispatcher()
+
   private val projectScope = AndroidCoroutineScope(project, uiThread)
 
   private val view = viewFactory.createDatabaseInspectorView(project)
@@ -269,20 +272,24 @@ class DatabaseInspectorControllerImpl(
       .forEach { it.removeListeners() }
   }
 
-  private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
+  // TODO(b/156349739) simplify coroutines threading
+  private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? = withContext(workerThread) {
     try {
       val schema = databaseRepository.fetchSchema(databaseId)
       withContext(uiThread) { view.stopLoading() }
-      return schema
+      schema
     }
     catch (e: LiveInspectorException) {
-      return null
+      null
     }
     catch (e: AppInspectionConnectionException) {
-      return null
+      null
     }
     catch (e: Exception) {
-      withContext(uiThread) { view.reportError("Error reading Sqlite database", e) }
+      ensureActive()
+      withContext(uiThread) {
+        view.reportError("Error reading Sqlite database", e)
+      }
       throw e
     }
   }
@@ -502,19 +509,14 @@ interface DatabaseInspectorController : Disposable {
    *
    * A loading UI is displayed while waiting for [deferredDatabaseId] to be ready.
    */
-  @AnyThread
   suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>)
 
   /**
    * Adds a database that is immediately ready
    */
-  @AnyThread
   suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId)
 
-  @AnyThread
   suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
-
-  @AnyThread
   suspend fun closeDatabase(databaseId: SqliteDatabaseId)
 
   /**
@@ -523,7 +525,6 @@ interface DatabaseInspectorController : Disposable {
    * This method is called when a `DatabasePossiblyChanged` event is received from the the on-device inspector
    * which tells us that the data in a database might have changed (schema, tables or both).
    */
-  @AnyThread
   suspend fun databasePossiblyChanged()
 
   /**

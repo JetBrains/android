@@ -34,9 +34,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.PlatformIcons
 import net.jcip.annotations.GuardedBy
@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
+import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
@@ -69,6 +70,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
   private data class QualifiedDescriptor(val fqName: FqName, val descriptor: PackageFragmentDescriptor)
 
   class NavEntryKt(
+    val project: Project,
     val file: VirtualFile,
     val data: NavXmlData
   )
@@ -81,10 +83,10 @@ class KtDescriptorCacheModuleService(val module: Module) {
   @GuardedBy("lock")
   var descriptorsCache = emptyMap<FqName, List<PackageFragmentDescriptor>>()
 
-  fun getDescriptors(moduleDescriptor: ModuleDescriptor): Map<FqName, List<PackageFragmentDescriptor>> {
+  fun getDescriptors(): Map<FqName, List<PackageFragmentDescriptor>> {
     ProgressManager.checkCanceled()
 
-    if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
+    if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN ) return emptyMap()
 
     if (DumbService.isDumb(module.project)) {
       LOG.warn("Safe Args classes may by temporarily stale due to indices not being ready right now.")
@@ -99,6 +101,13 @@ class KtDescriptorCacheModuleService(val module: Module) {
     synchronized(lock) {
       val now = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
 
+      val moduleDescriptor = module.toDescriptor()
+
+      if (moduleDescriptor == null) {
+        LOG.warn("Safe Args classes may by temporarily stale due to null value of module descriptor of $module.")
+        return descriptorsCache
+      }
+
       if (lastModificationCount != now) {
         lastModificationCount = now
         val moduleNavResources = getNavResourceFromIndex()
@@ -108,7 +117,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
         val packageDescriptors = packageResourceData.moduleNavResource
           .asSequence()
           .flatMap { navEntry ->
-            val backingXmlFile = PsiManager.getInstance(module.project).findFile(navEntry.file)
+            val backingXmlFile = PsiManager.getInstance(navEntry.project).findFile(navEntry.file)
             val sourceElement = backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
 
             val packages = createArgsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString()) +
@@ -147,14 +156,12 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
                                       ?.findXmlTagById(destination.id)
-                                      ?.let {
-                                        XmlSourceElement(
-                                          SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
-                                      }
+                                      ?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.CLASS_ICON)) }
                                     ?: sourceElement
 
-        val packageDescriptor = KtDirectionsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), packageName, className,
-                                                              destination, entry.data, resolvedSourceElement, storageManager)
+        val packageDescriptor = KtDirectionsPackageDescriptor(moduleDescriptor, entry.project, packageName, className, destination,
+                                                              entry.data,
+                                                              resolvedSourceElement, storageManager)
 
         QualifiedDescriptor(packageName, packageDescriptor)
       }
@@ -168,7 +175,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
     modulePackage: String,
     storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
   ): Collection<QualifiedDescriptor> {
-    return entry.data.root.allDestinations
+    return entry.data.root.allFragments
       .asSequence()
       .filter { fragment -> fragment.arguments.isNotEmpty() }
       .mapNotNull { fragment ->
@@ -183,10 +190,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
                                       ?.findXmlTagById(fragment.id)
-                                      ?.let {
-                                        XmlSourceElement(
-                                          SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
-                                      }
+                                      ?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.CLASS_ICON)) }
                                     ?: sourceElement
 
         val superTypesProvider = { packageDescriptor: PackageFragmentDescriptorImpl ->
@@ -194,7 +198,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
           listOf(ktType)
         }
 
-        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), packageName, className, fragment,
+        val packageDescriptor = KtArgsPackageDescriptor(moduleDescriptor, entry.project, packageName, className, fragment,
                                                         superTypesProvider, resolvedSourceElement, storageManager)
 
         QualifiedDescriptor(packageName, packageDescriptor)
@@ -212,10 +216,9 @@ class KtDescriptorCacheModuleService(val module: Module) {
         val file = resource.getSourceAsVirtualFile() ?: return@mapNotNull null
         val project = facet.module.project
         val data = NavXmlIndex.getDataForFile(project, file) ?: return@mapNotNull null
-        NavEntryKt(file, data)
+        NavEntryKt(project, file, data)
       }
   }
 }
 
 class SafeArgSyntheticPackageResourceData(val moduleNavResource: Collection<KtDescriptorCacheModuleService.NavEntryKt>)
-class SafeArgsModuleInfo(val moduleDescriptor: ModuleDescriptor, val module: Module)

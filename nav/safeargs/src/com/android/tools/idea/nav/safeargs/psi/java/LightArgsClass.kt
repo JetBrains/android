@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.ide.common.resources.ResourceItem
-import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.index.NavFragmentData
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -51,8 +51,8 @@ import org.jetbrains.android.facet.AndroidFacet
 class LightArgsClass(facet: AndroidFacet,
                      private val modulePackage: String,
                      navigationResource: ResourceItem,
-                     val destination: NavDestinationData)
-  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, destination) {
+                     val fragment: NavFragmentData)
+  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination()) {
 
   init {
     setModuleInfo(facet.module, false)
@@ -61,7 +61,7 @@ class LightArgsClass(facet: AndroidFacet,
   val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
-  private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(destination.id) }
+  private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(fragment.id) }
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
@@ -91,7 +91,7 @@ class LightArgsClass(facet: AndroidFacet,
       returnType = annotateNullability(bundleType)
     )
 
-    val getters: Array<PsiMethod> = destination.arguments.map { arg ->
+    val getters: Array<PsiMethod> = fragment.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       createMethod(name = "get${arg.name.capitalize()}",
                    navigationElement = getFieldNavigationElementByName(arg.name),
@@ -102,7 +102,7 @@ class LightArgsClass(facet: AndroidFacet,
   }
 
   private fun computeFields(): Array<PsiField> {
-    return destination.arguments
+    return fragment.arguments
       .asSequence()
       .map { createField(it, modulePackage, backingXmlTag as XmlTag) }
       .toList()

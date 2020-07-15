@@ -27,7 +27,7 @@ object CheckUtil {
    * Return the line at the [offset] of the specified [file] as a string.
    */
   fun findLineAtOffset(file: VirtualFile, offset: Int): String {
-    val text = String(file.contentsToByteArray(), Charsets.UTF_8).replace("\r\n", "\n")
+    val text = String(file.contentsToByteArray(), Charsets.UTF_8)
     val line = StringUtil.offsetToLineColumn(text, offset)
     val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
     return lineText.trim()

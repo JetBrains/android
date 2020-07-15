@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -47,11 +46,5 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     manager.animationInspectionPreviewElementInstanceId =
       if (isSelected) (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)?.instanceId else null
-  }
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    // Enable the button if the animation inspector is closed, or if it's open for this Compose Preview
-    e.presentation.isEnabled = !ComposePreviewAnimationManager.isInspectorOpen() || isSelected(e)
   }
 }

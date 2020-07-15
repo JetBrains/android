@@ -25,6 +25,7 @@ import com.intellij.util.PlatformIcons
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 import org.jetbrains.kotlin.resolve.source.getPsi
+import javax.swing.Icon
 
 internal fun XmlFile.findXmlTagById(attrId: String): XmlTag? {
   var resultTag: XmlTag? = null
@@ -73,8 +74,12 @@ internal fun XmlTag.hasMatchedIdAttr(id: String): Boolean {
 
 class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
 
-internal fun SourceElement.withMethodIcon(name: String): SourceElement {
-  return (this.getPsi() as? SafeArgsXmlTag)?.let {
-    XmlSourceElement(SafeArgsXmlTag(it.getOriginal(), PlatformIcons.METHOD_ICON, name))
-  } ?: this
+class SafeArgsXmlTag(xmlTag: XmlTag, private val icon: Icon) : XmlTag by xmlTag {
+  override fun getIcon(flags: Int): Icon {
+    return icon
+  }
+}
+
+internal fun SourceElement.withMethodIcon(): SourceElement {
+  return (this.getPsi() as? SafeArgsXmlTag)?.let { XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.METHOD_ICON)) } ?: this
 }

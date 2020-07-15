@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import java.util.Set;
-import javax.swing.tree.TreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -384,12 +383,9 @@ public class UpdaterTreeNodeTest {
     assertEquals(currentState, node.getCurrentState());
     assertEquals(initialState, node.getInitialState());
     Iterator<PackageNodeModel.SelectedState> childStateIter = childStates.iterator();
-    // In JDK 8 DefaultMutableTreeNode.children() returns a raw Enumeration
-    // but as of JDK 11 the generic type matches and this assignment is no longer unchecked.
-    @SuppressWarnings("unchecked")
-    Enumeration<TreeNode> children = node.children();
+    @SuppressWarnings("unchecked") Enumeration<UpdaterTreeNode> children = node.children();
     while (children.hasMoreElements()) {
-      UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
+      UpdaterTreeNode child = children.nextElement();
       assertEquals(childStateIter.next(), child.getCurrentState());
     }
     assertFalse(childStateIter.hasNext());

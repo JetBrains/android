@@ -55,14 +55,9 @@ abstract class AbstractDialogWrapper {
   abstract val disposable: Disposable
 
   /**
-   * The text of the `Cancel` button (default is "Cancel")
+   * The text of the `OK` button (default is "ok")
    */
-  abstract var cancelButtonText: String?
-
-  /**
-   * Should the "Ok" button be shown
-   */
-  abstract var hideOkButton: Boolean
+  abstract var okButtonText: String?
 
   abstract fun show()
   abstract fun init()

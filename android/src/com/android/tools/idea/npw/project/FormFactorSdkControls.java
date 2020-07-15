@@ -21,7 +21,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
-import com.android.tools.adtui.device.FormFactor;
+import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.BindingsManager;

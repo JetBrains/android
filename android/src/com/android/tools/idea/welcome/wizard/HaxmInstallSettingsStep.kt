@@ -20,8 +20,10 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.IntProperty
+import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.observable.ui.SliderValueProperty
 import com.android.tools.idea.observable.ui.SpinnerValueProperty
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.welcome.install.HAXM_DOCUMENTATION_URL
 import com.android.tools.idea.welcome.install.UI_UNITS
 import com.android.tools.idea.welcome.install.getMaxHaxmMemory
@@ -39,6 +41,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JSlider
+import javax.swing.SpinnerNumberModel
 import kotlin.math.abs
 
 /**

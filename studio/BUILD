@@ -5,10 +5,6 @@ iml_module(
     name = "unb.studio",
     srcs = ["src"],
     iml_files = ["studio.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

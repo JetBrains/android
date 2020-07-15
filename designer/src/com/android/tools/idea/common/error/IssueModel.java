@@ -73,9 +73,8 @@ public class IssueModel {
 
   @Nullable
   public Issue getHighestSeverityIssue(NlComponent component) {
-    IssueSource componentSource = IssueSource.fromNlComponent(component);
     Issue[] filtered = myIssues.stream()
-      .filter((it) -> componentSource.equals(it.getSource()))
+      .filter((it) -> component == it.getSource())
       .toArray(size -> new Issue[size]);
 
     if (filtered.length == 0) {

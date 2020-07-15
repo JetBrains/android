@@ -16,52 +16,9 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.lang.annotation.HighlightSeverity
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
-
-private data class NlComponentIssueSource(private val component: NlComponent) : IssueSource {
-  override val displayText: String = listOfNotNull(
-    component.model.modelDisplayName,
-    component.id,
-    "<${component.tagName}>").joinToString(" ")
-  override val onIssueSelected: (DesignSurface) -> Unit = {
-    it.selectionModel.setSelection(listOf(component))
-  }
-}
-
-private data class NlModelIssueSource(private val model: NlModel) : IssueSource {
-  override val displayText: String = model.modelDisplayName.orEmpty()
-  override val onIssueSelected: (DesignSurface) -> Unit = {}
-}
-
-/**
- * Interface that represents the source for a given [Issue].
- */
-interface IssueSource {
-  /** The display text to show in the issue panel. */
-  val displayText: String
-  /** Handler for the action when an Issue with this source is selected. */
-  val onIssueSelected: (DesignSurface) -> Unit
-
-  companion object {
-    @JvmField
-    val NONE = object : IssueSource {
-      override val displayText: String = ""
-      override val onIssueSelected: (DesignSurface) -> Unit = {}
-
-      override fun equals(other: Any?): Boolean = other === this
-    }
-
-    @JvmStatic
-    fun fromNlComponent(component: NlComponent): IssueSource = NlComponentIssueSource(component)
-
-    @JvmStatic
-    fun fromNlModel(model: NlModel): IssueSource = NlModelIssueSource(model)
-  }
-}
 
 /**
  * Represent an Error that can be displayed in the [IssuePanel].
@@ -76,7 +33,7 @@ abstract class Issue {
   abstract val severity: HighlightSeverity
 
   /** An indication of the origin of the error like the Component causing the error. */
-  abstract val source: IssueSource
+  abstract val source: NlComponent?
 
   /** The priority between 1 and 10. */
   abstract val category: String
@@ -91,14 +48,10 @@ abstract class Issue {
   open val fixes: Stream<Fix>
     get() = Stream.empty()
 
-  override fun equals(other: Any?): Boolean {
-    if (other === this) return true
-    if (other !is Issue) return false
-    return other.severity == severity
-           && other.summary == summary
-           && other.description == description
-           && other.category == category
-           && other.source == source
+  override fun equals(o: Any?): Boolean {
+    if (o === this) return true
+    if (o !is Issue) return false
+    return o.severity == severity && o.summary == summary && o.description == description && o.category == category && o.source === source
   }
 
   override fun hashCode(): Int {
@@ -107,7 +60,10 @@ abstract class Issue {
     result += 19 * summary.hashCode()
     result += 23 * description.hashCode()
     result += 29 * category.hashCode()
-    result += 31 * source.hashCode()
+    val source = source
+    if (source != null) {
+      result += 31 * source.hashCode()
+    }
     return result
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.vfs.VirtualFile

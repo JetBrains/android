@@ -15,39 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.tools.idea.common.error.IssueSource;
-import com.android.tools.idea.common.model.NlModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueProvider;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.annotation.HighlightSeverity;
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkListener;
-import org.jetbrains.annotations.TestOnly;
 
 public class RenderIssueProvider extends IssueProvider {
-  @NotNull private final RenderErrorModel myRenderErrorModel;
-  @Nullable private final NlModel mySourceNlModel;
+  private final RenderErrorModel myRenderErrorModel;
 
-  public RenderIssueProvider(@Nullable NlModel sourceNlModel, @NotNull RenderErrorModel renderErrorModel) {
+  public RenderIssueProvider(@NotNull RenderErrorModel renderErrorModel) {
     myRenderErrorModel = renderErrorModel;
-    mySourceNlModel = sourceNlModel;
   }
 
   @Override
   public void collectIssues(@NotNull ImmutableCollection.Builder<Issue> issueListBuilder) {
-    myRenderErrorModel.getIssues().forEach(
-      issue -> issueListBuilder.add(NlRenderIssueWrapper.wrapIssue(issue, mySourceNlModel)));
+    for (RenderErrorModel.Issue error : myRenderErrorModel.getIssues()) {
+      issueListBuilder.add(NlRenderIssueWrapper.wrapIssue(error));
+    }
   }
 
   /**
@@ -57,22 +48,20 @@ public class RenderIssueProvider extends IssueProvider {
   public static class NlRenderIssueWrapper extends Issue {
 
     private final RenderErrorModel.Issue myIssue;
-    private final IssueSource mySource;
 
-    private NlRenderIssueWrapper(@NotNull RenderErrorModel.Issue issue, @Nullable NlModel sourceModel) {
+    NlRenderIssueWrapper(@NotNull RenderErrorModel.Issue issue) {
       myIssue = issue;
-      mySource = sourceModel == null ? IssueSource.NONE : IssueSource.fromNlModel(sourceModel);
     }
 
     /**
      * Create a new {@link Issue} wrapping a {@link RenderErrorModel.Issue}
      *
-     * @param renderIssue The issue to wrap.
-     * @param sourceModel Optional source {@linl NlModel} that generated these issues.
+     * @param renderIssue The issue to wrap
+     * @return the newly created {@link Issue}
      */
     @NotNull
-    public static Issue wrapIssue(@NotNull RenderErrorModel.Issue renderIssue, @Nullable NlModel sourceModel) {
-      return new NlRenderIssueWrapper(renderIssue, sourceModel);
+    public static Issue wrapIssue(@NotNull RenderErrorModel.Issue renderIssue) {
+      return new NlRenderIssueWrapper(renderIssue);
     }
 
     @NotNull
@@ -93,10 +82,10 @@ public class RenderIssueProvider extends IssueProvider {
       return myIssue.getSeverity();
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public IssueSource getSource() {
-      return mySource;
+    public NlComponent getSource() {
+      return null;
     }
 
     @NotNull

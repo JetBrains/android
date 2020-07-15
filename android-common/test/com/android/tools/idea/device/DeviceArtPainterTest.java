@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.device;
+package com.android.tools.idea.device;
 
 import com.android.SdkConstants;
 import com.android.dvlib.DeviceSchemaTest;
@@ -43,8 +43,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.android.tools.adtui.device.DeviceArtPainter.DeviceData;
-import static com.android.tools.adtui.device.DeviceArtPainter.FrameData;
+import static com.android.tools.idea.device.DeviceArtPainter.DeviceData;
+import static com.android.tools.idea.device.DeviceArtPainter.FrameData;
 import static org.junit.Assert.*;
 
 /**

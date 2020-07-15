@@ -313,7 +313,7 @@ public class GradleFiles {
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
         if (ndkModuleModel != null) {
-          for (File externalBuildFile : ndkModuleModel.getBuildFiles()) {
+          for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
             ProgressManager.checkCanceled();
             if (externalBuildFile.isFile()) {
               // TODO find a better way to find a VirtualFile without refreshing the file system. It is expensive.

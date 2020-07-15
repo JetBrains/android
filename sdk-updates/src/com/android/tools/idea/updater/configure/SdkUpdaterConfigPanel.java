@@ -122,6 +122,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.awt.CausedFocusEvent;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
@@ -584,7 +585,23 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return;
         }
 
-        boolean traversalBackward = "TRAVERSAL_BACKWARD".equals(getCause(e));
+        boolean traversalBackward = false;
+
+        if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
+          try {
+            Method getCause = FocusEvent.class.getMethod("getCause");
+            Enum<?> cause = (Enum<?>)getCause.invoke(e);
+            traversalBackward = "TRAVERSAL_BACKWARD".equals(cause.name());
+          }
+          catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
+          }
+        }
+        else {
+          traversalBackward =
+            (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD);
+        }
+
         if (traversalBackward) {
           backwardAction.doAction(table);
         }
@@ -593,23 +610,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
         }
       }
     });
-  }
-
-  @Nullable
-  private static String getCause(@NotNull FocusEvent event) {
-    try {
-      // TODO: replace this with event.getCause() when JDK8 is no longer supported
-      Method getCause = event.getClass().getDeclaredMethod("getCause");
-      Object enumValue = getCause.invoke(event);
-      if (enumValue == null) {
-        return null;
-      }
-      return enumValue.toString();
-    }
-    catch (ReflectiveOperationException ex) {
-      Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
-      return null;
-    }
   }
 
   /**

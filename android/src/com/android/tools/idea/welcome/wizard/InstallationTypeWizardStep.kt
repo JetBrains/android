@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.observable.BindingsManager
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ui.layout.Cell
@@ -65,7 +66,7 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
     }
   }
 
-  private val rootPanel = wrapWithVScroll(panel)
+  private val rootPanel = StudioWizardStepPanel.wrappedWithVScroll(panel)
 
   override fun onProceeding() {
     panel.apply()

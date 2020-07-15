@@ -104,7 +104,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * from a library with undesired version (which studio might depend on) or to make sure the defining ClassLoader
    * of a Class is ModuleClassLoader (needed for e.g. coroutines in MainDispatcherLoader#loadMainDispatcher).
    */
-  private static final String DEFAULT_OVERRIDE_MODULE_PACKAGES = "android.support.constraint.solver,kotlinx.,kotlin.";
+  private static final String DEFAULT_OVERRIDE_MODULE_PACKAGES = "android.support.constraint.solver,kotlinx.coroutines,kotlin.coroutines";
   private static final String[] OVERRIDE_MODULE_PACKAGES =
     Arrays.stream(System.getProperty("android.module.override.packages", DEFAULT_OVERRIDE_MODULE_PACKAGES).split(","))
       .map(String::trim).toArray(String[]::new);

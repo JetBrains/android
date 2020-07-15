@@ -211,7 +211,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/sync-perf-tests:unb.JUnit4[test]",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
         "//tools/adt/idea/android:unb.intellij.android.core.tests[module, test]",
         "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
@@ -220,19 +221,4 @@ iml_module(
         "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
     ],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.JUnit4",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:unb.JUnit4_files",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:unb.JUnit4_files",
-    ],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
 )

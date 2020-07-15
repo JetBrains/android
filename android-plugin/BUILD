@@ -81,10 +81,6 @@ iml_module(
     name = "unb.intellij.android.plugin",
     srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

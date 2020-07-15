@@ -8,6 +8,10 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
+    test_data = [
+        "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/artwork:device-art-resources",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -34,7 +38,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
@@ -47,6 +50,8 @@ iml_module(
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:javax.annotation-api",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -62,6 +67,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
@@ -95,6 +101,10 @@ iml_module(
         "unb",
     ],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
+    test_data = [
+        "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/artwork:device-art-resources",
+    ],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

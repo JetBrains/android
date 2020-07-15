@@ -318,7 +318,7 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/160776556
+  @RunIn(TestGroup.UNRELIABLE)
   @Throws(Exception::class)
   fun testAnimationInspector() {
     fun SplitEditorFixture.findAnimationInspector() =
@@ -370,59 +370,6 @@ class ComposePreviewTest {
       .size)
 
     assertNull(composePreview.findAnimationInspector())
-
-    fixture.editor.close()
-  }
-
-  @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/160776556
-  @Throws(Exception::class)
-  fun testOnlyOneAnimationInspectorCanBeOpen() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
-    var animButton =
-      composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-
-    guiTest.robot().click(animButton)
-    composePreview.waitForRenderToFinish()
-
-    // The button should be enabled, so we can close the animation inspector
-    assertTrue(animButton.isEnabled)
-
-    val otherComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
-
-    animButton =
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-
-    // The button should be disabled, as the animation inspector is open in Animations.kt
-    assertFalse(animButton.isEnabled)
-
-    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations.kt")
-    guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
-
-    Wait.seconds(3).expecting("Animation Inspection toolbar button to be enabled.").until {
-      // The button should now be enabled again, since the animation inspector was closed after closing Animations.kt
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-        .isEnabled
-    }
 
     fixture.editor.close()
   }

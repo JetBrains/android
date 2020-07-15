@@ -22,7 +22,6 @@ import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
-import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.PlatformIcons
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
@@ -134,14 +133,13 @@ class LightDirectionsKtClass(
                   }
                   .toList()
               }
-              val methodName = action.id.toCamelCase()
               val xmlTag = directionsClassDescriptor.source.getPsi() as? XmlTag
               val resolvedSourceElement = xmlTag?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)?.let {
-                XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
+                XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.METHOD_ICON))
               } ?: directionsClassDescriptor.source
 
               directionsClassDescriptor.createMethod(
-                name = methodName,
+                name = action.id.toCamelCase(),
                 returnType = navDirectionType,
                 dispatchReceiver = companionObject,
                 valueParametersProvider = valueParametersProvider,

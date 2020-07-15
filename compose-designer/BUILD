@@ -159,7 +159,6 @@ java_import(
 iml_module(
     name = "unb.intellij.android.compose-designer",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal"],
     iml_files = ["intellij.android.compose-designer.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
@@ -181,7 +180,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal",
+        "//tools/adt/idea/compose-designer:lib/unb.ui-animation-tooling-internal",
     ],
 )
 
@@ -240,17 +239,12 @@ iml_module(
         "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/designer:unb.intellij.android.designer[module, test]",
         "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module, test]",
-        "//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal[test]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.ui-animation-tooling-internal",
+    name = "lib/unb.ui-animation-tooling-internal",
     jars = ["lib/ui-animation-tooling-internal.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
 )

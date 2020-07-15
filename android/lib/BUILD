@@ -77,14 +77,9 @@ java_import(
 )
 
 # managed by go/iml_to_build [unb]
-filegroup(
-    name = "unb.asm-tools_files",
-    # do not sort: must match IML order
-    srcs = [
-        "asm-5.0.3.jar",
-        "asm-analysis-5.0.3.jar",
-        "asm-tree-5.0.3.jar",
-    ],
+java_import(
+    name = "unb.asm-5.0.3",
+    jars = ["asm-5.0.3.jar"],
     tags = [
         "manual",
         "unb",
@@ -94,7 +89,29 @@ filegroup(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.android-sdk-tools-jps",
+    name = "unb.asm-analysis-5.0.3",
+    jars = ["asm-analysis-5.0.3.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.asm-tree-5.0.3",
+    jars = ["asm-tree-5.0.3.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.jarutils",
     jars = ["jarutils.jar"],
     tags = [
         "manual",
@@ -116,7 +133,7 @@ java_import(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.instantapps-api",
+    name = "unb.instantapps-api-1.8",
     jars = ["instantapps-api-1.8.jar"],
     tags = [
         "manual",

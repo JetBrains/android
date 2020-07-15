@@ -25,15 +25,6 @@ interface AdbDevicePairingView {
   val model: AdbDevicePairingModel
 
   fun showDialog()
-
-  //region mDNS support functions
-  fun startMdnsCheck()
-  fun showMdnsCheckSuccess()
-  fun showMdnsNotSupportedError()
-  fun showMdnsNotSupportedByAdbError()
-  fun showMdnsCheckError()
-  //endregion
-
   fun showQrCodePairingStarted()
   fun showQrCodePairingInProgress(mdnsService: MdnsService)
   fun showQrCodeMdnsPairingSuccess(pairingResult: PairingResult)

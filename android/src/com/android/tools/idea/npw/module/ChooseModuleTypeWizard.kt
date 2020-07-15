@@ -100,7 +100,6 @@ class ChooseModuleTypeWizard(
         if (selectedEntry != null) {
           modelWizardListeners.releaseAll()
           modelWizardDialog.setModelWizard(currentModelWizard)
-          modelWizardDialog.contentPane.revalidate()
         }
         selectedEntry = galleryEntry.get()
 

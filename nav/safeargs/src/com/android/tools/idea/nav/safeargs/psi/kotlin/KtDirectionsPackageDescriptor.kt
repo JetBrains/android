@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.android.tools.idea.nav.safeargs.module.SafeArgsModuleInfo
+import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -38,20 +38,25 @@ import org.jetbrains.kotlin.utils.alwaysTrue
  * Directions Kt package descriptor, which wraps and indirectly exposes a [LightDirectionsKtClass] class descriptor
  */
 class KtDirectionsPackageDescriptor(
-  private val containingModuleInfo: SafeArgsModuleInfo,
+  moduleDescriptor: ModuleDescriptor,
+  private val project: Project,
   fqName: FqName,
   val className: Name,
   private val destination: NavDestinationData,
   private val navResourceData: NavXmlData,
   private val sourceElement: SourceElement,
   private val storageManager: StorageManager
-) : PackageFragmentDescriptorImpl(containingModuleInfo.moduleDescriptor, fqName) {
+) : PackageFragmentDescriptorImpl(moduleDescriptor, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgsModuleScope() }
+  private val containingModule = storageManager.createNullableLazyValue {
+    val moduleContext = moduleDescriptor.toModule() ?: return@createNullableLazyValue null
+    findAndroidModuleByPackageName(fqName, project, moduleContext)
+  }
 
   override fun getMemberScope(): MemberScope = scope()
 
   override fun getContainingDeclaration(): ModuleDescriptor {
-    return containingModuleInfo.module.toDescriptor() ?: super.getContainingDeclaration()
+    return containingModule()?.toDescriptor() ?: super.getContainingDeclaration()
   }
 
   private val safeArgsPackageDescriptor = this@KtDirectionsPackageDescriptor

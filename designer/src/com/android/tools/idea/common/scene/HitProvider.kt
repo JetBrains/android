@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.common.scene
 
-import java.awt.Rectangle
-
 interface HitProvider {
   fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker)
-  fun intersects(component: SceneComponent, rectangle: Rectangle): Boolean
 }

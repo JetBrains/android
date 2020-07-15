@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.npw.benchmark
 
-import com.android.tools.adtui.device.FormFactor.MOBILE
+import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.device.FormFactor.MOBILE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.verticalGap
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle.message
@@ -30,7 +32,7 @@ class ConfigureBenchmarkModuleStep(
 ) : ConfigureModuleStep<NewBenchmarkModuleModel>(
   model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title
 ) {
-  override fun createMainPanel(): DialogPanel = panel {
+  private val panel: DialogPanel = panel {
     row {
       cell {
         labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
@@ -61,6 +63,8 @@ class ConfigureBenchmarkModuleStep(
       }
     }
   }
+
+  override val validatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   override fun getPreferredFocusComponent() = moduleName
 }
