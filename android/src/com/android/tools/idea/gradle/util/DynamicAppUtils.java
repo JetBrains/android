@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
-import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -172,7 +171,7 @@ public class DynamicAppUtils {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null && model.getAndroidProject().isBaseSplit()) {
-        if (model.getSelectedVariant().isInstantAppCompatible()) {
+        if (model.getSelectedVariant().getInstantAppCompatible()) {
           return true;
         }
       }
@@ -403,7 +402,7 @@ public class DynamicAppUtils {
     return androidProject.getDynamicFeatures().stream()
       .map(featurePath -> featureMap.get(featurePath))
       .filter(Objects::nonNull)
-      .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().isInstantAppCompatible())
+      .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().getInstantAppCompatible())
       .collect(Collectors.toList());
   }
 

@@ -380,7 +380,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public Integer getVersionCode() {
     IdeVariant variant = getSelectedVariant();
-    ProductFlavor flavor = variant.getMergedFlavor();
+    IdeProductFlavor flavor = variant.getMergedFlavor();
     return flavor.getVersionCode();
   }
 
