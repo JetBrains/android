@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -76,12 +77,12 @@ class LightActionBuilderClass(
     return action.arguments.flatMap { arg ->
       // Create a getter and setter per argument
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      val setter = createMethod(name = "set${arg.name.capitalize()}",
+      val setter = createMethod(name = "set${arg.name.usLocaleCapitalize()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(thisType))
         .addParameter(arg.name, argType)
 
-      val getter = createMethod(name = "get${arg.name.capitalize()}",
+      val getter = createMethod(name = "get${arg.name.usLocaleCapitalize()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(argType, arg.nullable))
 

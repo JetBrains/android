@@ -18,6 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.java
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -103,7 +104,7 @@ class LightArgsClass(facet: AndroidFacet,
 
     val getters: Array<PsiMethod> = destination.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      createMethod(name = "get${arg.name.capitalize()}",
+      createMethod(name = "get${arg.name.usLocaleCapitalize()}",
                    navigationElement = getFieldNavigationElementByName(arg.name),
                    returnType = annotateNullability(psiType, arg.nullable))
     }.toTypedArray()

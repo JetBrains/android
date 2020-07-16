@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
@@ -101,12 +102,12 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
     // Create a getter and setter per argument
     val argMethods: Array<PsiMethod> = containingClass.destination.arguments.flatMap { arg ->
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      val setter = createMethod(name = "set${arg.name.capitalize()}",
+      val setter = createMethod(name = "set${arg.name.usLocaleCapitalize()}",
                                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(thisType))
         .addParameter(arg.name, argType)
 
-      val getter = createMethod(name = "get${arg.name.capitalize()}",
+      val getter = createMethod(name = "get${arg.name.usLocaleCapitalize()}",
                                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(argType, arg.nullable))
 
