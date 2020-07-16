@@ -16,12 +16,16 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
+import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
+import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.PlatformIcons
@@ -39,6 +43,7 @@ import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -83,6 +88,7 @@ class LightDirectionsKtClass(
   private val storageManager: StorageManager
 ) : ClassDescriptorImpl(containingDescriptor, name, Modality.FINAL, ClassKind.CLASS, emptyList(), sourceElement, false, storageManager) {
 
+  private val LOG get() = Logger.getInstance(LightDirectionsKtClass::class.java)
   private val _primaryConstructor = storageManager.createLazyValue { computePrimaryConstructor() }
   private val _companionObject = storageManager.createLazyValue { computeCompanionObject() }
 
@@ -119,7 +125,15 @@ class LightDirectionsKtClass(
 
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
                 var index = 0
-                targetDestination.arguments
+
+                // To support a destination argument being overridden in an action
+                (action.arguments + targetDestination.arguments)
+                  .groupBy { it.name }
+                  .map { entry ->
+                    // Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
+                    if (entry.value.size > 1) checkArguments(entry)
+                    entry.value.first()
+                  }
                   .asSequence()
                   .map { arg ->
                     val pName = Name.identifier(arg.name)
@@ -149,6 +163,17 @@ class LightDirectionsKtClass(
               )
             }
             .toList()
+        }
+
+        private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>) {
+          val types = entry.value
+            .asSequence()
+            .map { arg ->
+              val modulePackageName = directionsClassDescriptor.module.fqNameSafe.toString()
+              getPsiTypeStr(modulePackageName, arg.type, arg.defaultValue) }
+            .toSet()
+
+          if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}.")
         }
 
         override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
