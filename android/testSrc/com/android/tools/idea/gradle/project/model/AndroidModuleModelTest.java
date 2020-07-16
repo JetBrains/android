@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.FileStructure;
@@ -70,7 +71,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void /*test*/GetSelectedVariant() throws Exception {
-    Variant selectedVariant = myAndroidModel.getSelectedVariant();
+    IdeVariant selectedVariant = myAndroidModel.getSelectedVariant();
     assertNotNull(selectedVariant);
     assertSame(myAndroidProject.getFirstVariant(), selectedVariant);
   }

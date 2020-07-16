@@ -292,7 +292,7 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
     assertThat(androidModelNodes).hasSize(1);
     AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
-    Variant variant = androidModuleModel.findVariantByName("debug");
+    IdeVariant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
   }
 

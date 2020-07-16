@@ -31,8 +31,8 @@ import com.android.SdkConstants;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -328,7 +328,7 @@ public class AndroidJavaDocRenderer {
           String facetModuleName = reachableFacet.getModule().getName();
           assert AndroidModel.isRequired(reachableFacet);
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
-          Variant selectedVariant = androidModel.getSelectedVariant();
+          IdeVariant selectedVariant = androidModel.getSelectedVariant();
           Set<SourceProvider> selectedProviders = new HashSet<>();
 
           BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());

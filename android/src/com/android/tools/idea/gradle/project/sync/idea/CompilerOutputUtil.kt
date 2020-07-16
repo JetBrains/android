@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.builder.model.AndroidProject
-import com.android.builder.model.Variant
+import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -27,7 +27,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
  * Sets the compiler output paths on the module [DataNode].
  */
 @JvmOverloads
-fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: Variant? = null) {
+fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
   val selectedVariant = variant ?: androidModel.selectedVariant
 

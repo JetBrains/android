@@ -28,7 +28,6 @@ import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.TestedTargetVariant;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -290,7 +289,7 @@ public class GradleTaskFinder {
 
         if (targetAndroidModel != null) {
           String targetVariantName = testedTargetVariant.getTargetVariant();
-          Variant targetVariant = targetAndroidModel.findVariantByName(targetVariantName);
+          IdeVariant targetVariant = targetAndroidModel.findVariantByName(targetVariantName);
 
           if (targetVariant != null) {
             addTaskIfSpecified(tasks, targetProjectGradlePath, targetVariant.getMainArtifact().getAssembleTaskName());
