@@ -62,8 +62,6 @@ class LightActionBuilderClass(
 
   override fun getImplementsListTypes() = arrayOf(navDirectionsType)
   override fun getSuperTypes() = arrayOf(navDirectionsType)
-  override fun getSuperClassType() = navDirectionsType
-  override fun getSuperClass() = navDirectionsClass
   override fun getSupers() = navDirectionsClass?.let { arrayOf(it) } ?: emptyArray()
 
   override fun getMethods() = _methods

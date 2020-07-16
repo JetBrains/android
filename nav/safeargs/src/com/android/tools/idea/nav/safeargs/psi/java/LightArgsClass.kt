@@ -18,10 +18,8 @@ package com.android.tools.idea.nav.safeargs.psi.java
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
-import com.intellij.lang.jvm.types.JvmReferenceType
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
@@ -73,8 +71,6 @@ class LightArgsClass(facet: AndroidFacet,
 
   override fun getImplementsListTypes() = arrayOf(navArgsType)
   override fun getSuperTypes() = arrayOf(navArgsType)
-  override fun getSuperClassType() = navArgsType
-  override fun getSuperClass() = navArgsClass
   override fun getSupers() = navArgsClass?.let { arrayOf(it) } ?: emptyArray()
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
