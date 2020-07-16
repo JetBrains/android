@@ -125,7 +125,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    */
   private void setCropActionsEnabled(boolean enabled) {
     myMatchComponentRatioAction.getTemplatePresentation().setEnabled(enabled);
-    myMatchComponentRatioAction.setSelected(null, false);
+    myMatchComponentRatioAction.setSelected(false);
   }
 
   /**
@@ -179,6 +179,10 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
 
     @Override
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
+      setSelected(state);
+    }
+
+    private void setSelected(boolean state) {
       if (myMockup == null) {
         return;
       }
