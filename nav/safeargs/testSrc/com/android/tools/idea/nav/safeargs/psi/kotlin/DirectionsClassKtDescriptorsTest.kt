@@ -106,4 +106,105 @@ class DirectionsClassKtDescriptorsTest {
     )
     assertThat(directionsClassMetadata.functions).isEmpty()
   }
+
+  @Test
+  fun testOverriddenArguments() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+            <action
+              android:id="@+id/action_fragment1_to_fragment2"
+              app:destination="@id/fragment2" >
+              <argument
+                android:name="overriddenArg"
+                app:argType="string" />
+                
+              <argument
+                  android:name="overriddenArgWithDefaultValue"
+                  app:argType="integer"
+                  android:defaultValue="1" />
+            </action>
+          </fragment>
+          
+          <fragment
+              android:id="@+id/fragment2"
+              android:name="test.safeargs.Fragment2"
+              android:label="Fragment2">
+            <argument
+                android:name="arg"
+                app:argType="string" />
+                
+            <argument
+                android:name="overriddenArgWithDefaultValue"
+                app:argType="integer" />
+                
+            <action
+              android:id="@+id/action_fragment2_to_main"
+              app:destination="@id/main" >
+                <argument
+                  android:name="overriddenArgWithDefaultValue"
+                  app:argType="integer"
+                  android:defaultValue="1" />
+            </action>
+          </fragment>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
+      it is SafeArgsKtPackageProviderExtension
+    }
+
+    val traceMock: BindingTrace = MockitoKt.mock()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleDescriptor = safeArgsRule.module.toDescriptor()
+
+    val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
+      project = safeArgsRule.project,
+      module = moduleDescriptor!!,
+      storageManager = LockBasedStorageManager.NO_LOCKS,
+      trace = traceMock,
+      moduleInfo = moduleSourceInfo,
+      lookupTracker = LookupTracker.DO_NOTHING
+    ) as SafeArgsSyntheticPackageProvider
+
+    val directionsClassMetadata = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+      .flatMap { it.getMemberScope().classesInScope { name -> name.endsWith("Directions") } }
+      .sortedBy { it.fqcn }
+
+    assertThat(directionsClassMetadata.size).isEqualTo(2)
+
+    directionsClassMetadata[0].let { directionsClass ->
+      assertThat(directionsClass.constructors.map { it.toString() }).containsExactly(
+        "Fragment1Directions()"
+      )
+      assertThat(directionsClass.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "actionFragment1ToFragment2(overriddenArg: kotlin.String, overriddenArgWithDefaultValue: kotlin.Int, arg: kotlin.String)" +
+        ": androidx.navigation.NavDirections"
+      )
+      assertThat(directionsClass.functions).isEmpty()
+    }
+
+    directionsClassMetadata[1].let { directionsClass ->
+      assertThat(directionsClass.constructors.map { it.toString() }).containsExactly(
+        "Fragment2Directions()"
+      )
+      assertThat(directionsClass.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "actionFragment2ToMain(overriddenArgWithDefaultValue: kotlin.Int): androidx.navigation.NavDirections"
+      )
+      assertThat(directionsClass.functions).isEmpty()
+    }
+  }
 }
