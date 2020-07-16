@@ -98,7 +98,7 @@ open class ViewNode(
  * can do their own painting interleaved with painting their children, and we need to keep track of the order in which the operations
  * happen.
  */
-sealed class DrawViewNode(val owner: ViewNode) {
+sealed class DrawViewNode(var owner: ViewNode) {
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
 }
 
