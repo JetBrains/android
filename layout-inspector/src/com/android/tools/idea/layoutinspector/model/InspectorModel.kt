@@ -178,6 +178,7 @@ class InspectorModel(val project: Project) {
               modified = update(oldChild, oldNode, newChildView) || modified
               oldNode.children.add(oldChild)
               oldNode.drawChildren.add(newChild)
+              newChild.owner = oldChild
             }
             else {
               modified = true
@@ -188,6 +189,7 @@ class InspectorModel(val project: Project) {
           }
           is DrawViewImage -> {
             oldNode.drawChildren.add(newChild)
+            newChild.owner = oldNode
           }
         }
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.view
 import com.intellij.openapi.project.Project
@@ -29,6 +30,10 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
+import java.io.File
+import javax.imageio.ImageIO
+
+private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
   @Test
@@ -71,13 +76,17 @@ class InspectorModelTest {
     assertEquals(2, model[ROOT]?.x)
     assertEquals(6, model[VIEW3]?.height)
     assertSame(origRoot, newRootReported)
+    assertSingleRoot(model)
   }
 
   @Test
   fun testChildCreated() {
+    val image1 = ImageIO.read(File(TestUtils.getWorkspaceRoot(), "${TEST_DATA_PATH}/image1.png"))
     val model = model {
       view(ROOT, 1, 2, 3, 4, "rootType") {
-        view(VIEW1, 4, 3, 2, 1, "v1Type")
+        view(VIEW1, 4, 3, 2, 1, "v1Type") {
+          image(image1)
+        }
       }
     }
     var isModified = false
@@ -86,6 +95,7 @@ class InspectorModelTest {
     val newRoot =
       view(ROOT, 1, 2, 3, 4, "rootType") {
         view(VIEW1, 4, 3, 2, 1, "v1Type") {
+          image(image1)
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
       }
@@ -98,6 +108,7 @@ class InspectorModelTest {
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
     assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3])
+    assertSingleRoot(model)
   }
 
   @Test
@@ -125,6 +136,7 @@ class InspectorModelTest {
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
     assertEquals(true, origNodes[VIEW1]?.children?.isEmpty())
+    assertSingleRoot(model)
   }
 
   @Test
@@ -161,6 +173,7 @@ class InspectorModelTest {
     assertEquals("v4Type", model[VIEW4]?.qualifiedName)
     assertEquals("v3Type", model[VIEW3]?.qualifiedName)
     assertEquals(8, model[VIEW3]?.y)
+    assertSingleRoot(model)
   }
 
   @Test
@@ -205,5 +218,16 @@ class InspectorModelTest {
     model.update(null, 0, listOf<Any>())
     assertEmpty(model.root.children)
     assertTrue(model.isEmpty)
+    assertSingleRoot(model)
+  }
+
+  private fun assertSingleRoot(model: InspectorModel) {
+    assertEquals(
+      model.root.flatten()
+        .flatMap { it.drawChildren.map { drawChild -> drawChild.owner }.plus(it) }
+        .map { it.parentSequence.last() }
+        .distinct()
+        .single(),
+      model.root)
   }
 }
