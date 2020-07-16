@@ -26,6 +26,7 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -44,12 +45,12 @@ public class EnableSwingProfilerAction extends DumbAwareToggleAction {
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
+  public boolean isSelected(@NotNull AnActionEvent e) {
     return SERVICE_KEY.isIn(ApplicationManager.getApplication());
   }
 
   @Override
-  public void setSelected(AnActionEvent event, boolean state) {
+  public void setSelected(@NotNull AnActionEvent event, boolean state) {
     Object serializer = SERVICE_KEY.get(ApplicationManager.getApplication());
     if (serializer == null && state) {
       if (!instrumentVm()) {
