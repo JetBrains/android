@@ -223,7 +223,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * caches for projects that have been bumped out of the queue. This helps limit the storage
    * used to be up to only N projects at a time.
    */
-  static class ManageLruProjectFilesTask extends DumbModeTask {
+  static final class ManageLruProjectFilesTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     private final static Object PROJECT_LRU_LOCK = new Object();
@@ -329,7 +329,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * Task that prunes unused resource directory caches within a given Project (which may come about
    * e.g., if one has moved a resource directory from one module to another).
    */
-  static class PruneTask extends DumbModeTask {
+  static final class PruneTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     PruneTask(@NotNull Project project) {
@@ -385,7 +385,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * - prunes unused module caches from the current project
    * - trims and limit caches to only cover a certain number of projects
    */
-  public static class MaintenanceActivity implements StartupActivity {
+  static final class MaintenanceActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
