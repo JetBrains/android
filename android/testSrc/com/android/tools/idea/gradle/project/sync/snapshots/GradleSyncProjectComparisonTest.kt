@@ -20,6 +20,7 @@ import com.android.builder.model.SyncIssue
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
@@ -330,9 +331,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariantWithForceCreateDirs(project, project.findAppModule().name, "release")
       val release = project.saveAndDump()
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "debug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariantWithForceCreateDirs(project, project.findAppModule().name, "debug")
       val debugAfter = project.saveAndDump()
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
@@ -362,7 +363,7 @@ abstract class GradleSyncProjectComparisonTest(
         project.saveAndDump()
       }
       val release = openPreparedProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariantWithForceCreateDirs(project, project.findAppModule().name, "release")
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.saveAndDump()
       }
@@ -382,7 +383,7 @@ abstract class GradleSyncProjectComparisonTest(
         project.saveAndDump()
       }
       val release = openPreparedProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariantWithForceCreateDirs(project, project.findAppModule().name, "release")
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runWriteAction {
           // Modify the project build file to ensure the project is synced when opened.
@@ -405,10 +406,10 @@ abstract class GradleSyncProjectComparisonTest(
     fun testSwitchingVariants_variantSpecificDependencies() {
       val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "paidDebug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariantWithForceCreateDirs(project, project.findAppModule().name, "paidDebug")
       val paidDebug = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "freeDebug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariantWithForceCreateDirs(project, project.findAppModule().name, "freeDebug")
       val freeDebugAfter = project.saveAndDump()
 
       assertAreEqualToSnapshots(
@@ -492,6 +493,20 @@ abstract class GradleSyncProjectComparisonTest(
 
   override fun getBaseTestPath(): @SystemDependent String {
     return File(super.getBaseTestPath(), tempSuffix).absolutePath
+  }
+}
+
+private fun BuildVariantUpdater.updateSelectedBuildVariantWithForceCreateDirs(
+  project: Project,
+  moduleName: String,
+  selectedBuildVariant: String
+): Boolean {
+  project.putUserData(ModuleSetupContext.FORCE_CREATE_DIRS_KEY, true)
+  return try {
+    updateSelectedBuildVariant(project, moduleName, selectedBuildVariant)
+  }
+  finally {
+    project.putUserData(ModuleSetupContext.FORCE_CREATE_DIRS_KEY, null)
   }
 }
 

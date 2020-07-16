@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_FULL_SYNC;
@@ -83,23 +82,6 @@ public class BuildVariantUpdater {
    */
   void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
     mySelectionChangeListeners.add(listener);
-  }
-
-  public boolean updateSelectedBuildVariant(@NotNull Project project,
-                                            @NotNull String moduleName,
-                                            @NotNull String selectedBuildVariant,
-                                            boolean forceCreateDirs) {
-    if (forceCreateDirs) {
-      project.putUserData(FORCE_CREATE_DIRS_KEY, true);
-    }
-    try {
-      return updateSelectedBuildVariant(project, moduleName, selectedBuildVariant);
-    }
-    finally {
-      if (forceCreateDirs) {
-        project.putUserData(FORCE_CREATE_DIRS_KEY, null);
-      }
-    }
   }
 
   /**
