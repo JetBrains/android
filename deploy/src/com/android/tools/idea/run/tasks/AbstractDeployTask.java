@@ -24,6 +24,7 @@ import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.idea.flags.StudioFlags;
@@ -109,12 +110,16 @@ public abstract class AbstractDeployTask implements LaunchTask {
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger);
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
+
+    DeployerOption option = new DeployerOption.Builder()
+      .setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
+      .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
+      .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
+      .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
+      .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
+      .build();
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
-                                     installer, ideService, metrics, logger, StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get(),
-                                     StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get(),
-                                     StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get(),
-                                     StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get(),
-                                     getFastRerunOnSwapFailure());
+                                     installer, ideService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
