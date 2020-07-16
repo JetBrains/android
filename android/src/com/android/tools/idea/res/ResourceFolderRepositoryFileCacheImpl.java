@@ -384,7 +384,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
    * - prunes unused module caches from the current project
    * - trims and limit caches to only cover a certain number of projects
    */
-  public static class MaintenanceActivity implements StartupActivity {
+  public static class MaintenanceActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
