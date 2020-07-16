@@ -80,7 +80,7 @@ iml_module(
     name = "intellij.android.nav.safeargs",
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.iml"],
-    lint_baseline = "lint_baseline.xml",
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",

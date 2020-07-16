@@ -20,6 +20,8 @@ import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.psi.annotateType
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
+import com.android.utils.usLocaleCapitalize
+import com.android.utils.usLocaleDecapitalize
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -192,5 +194,5 @@ internal fun PsiClass.createMethod(
     }
 }
 
-internal fun String.toCamelCase() = this.toUpperCamelCase().decapitalize()
-internal fun String.toUpperCamelCase() = this.split("_").joinToString("") { it.capitalize() }
+internal fun String.toCamelCase() = this.toUpperCamelCase().usLocaleDecapitalize()
+internal fun String.toUpperCamelCase() = this.split("_").joinToString("") { it.usLocaleCapitalize() }

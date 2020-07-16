@@ -23,6 +23,7 @@ import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.android.utils.usLocaleDecapitalize
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -109,7 +110,7 @@ class LightDirectionsClass(private val facet: AndroidFacet,
       .map { action ->
         val methodName = action.id.toCamelCase()
         val resolvedNavigationElement = _navigationElement?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)
-        val resolvedNavDirectionsType = actionClasses.find { it.name!!.decapitalize() == methodName }
+        val resolvedNavDirectionsType = actionClasses.find { it.name!!.usLocaleDecapitalize() == methodName }
                                           ?.let { PsiTypesUtil.getClassType(it) }
                                         ?: navDirectionsType
         createMethod(name = methodName,
