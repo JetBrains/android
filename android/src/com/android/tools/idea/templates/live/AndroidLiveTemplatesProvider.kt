@@ -31,7 +31,6 @@ class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
       "liveTemplates/AndroidLog",
       "liveTemplates/AndroidLogKotlin",
       "liveTemplates/AndroidParcelable",
-      "liveTemplates/AndroidTesting",
       "liveTemplates/AndroidXML"
     )
     if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
