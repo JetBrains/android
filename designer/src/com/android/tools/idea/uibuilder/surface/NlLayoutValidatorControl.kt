@@ -44,6 +44,10 @@ class NlLayoutValidatorControl(
     }
   }
 
+  private val issueExpandListener = IssuePanel.ExpandListener {issue, expanded ->
+    validator.metricTracker.trackExpand(issue, expanded)
+  }
+
   private val validatorListener = object : NlLayoutValidator.Listener {
     override fun lintUpdated(result: ValidatorResult?) {
       if (result != null) {
@@ -56,6 +60,7 @@ class NlLayoutValidatorControl(
 
   init {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
+    surface.issuePanel.expandListener = issueExpandListener
   }
 
   override fun runLayoutValidation() {

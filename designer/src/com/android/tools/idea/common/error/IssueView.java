@@ -188,6 +188,7 @@ public class IssueView extends JPanel {
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
     myContainerIssuePanel.revalidate();
     myContainerIssuePanel.repaint();
+    myContainerIssuePanel.getExpandListener().onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
   }
 
   /**
