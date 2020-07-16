@@ -30,6 +30,9 @@ import java.util.stream.Stream
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
+/**
+ * Lint integrator for issues created by ATF (Accessibility Testing Framework)
+ */
 class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
   private val ACCESSIBILITY_CATEGORY = "Accessibility"
@@ -45,11 +48,13 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
     }
   }
 
-  @VisibleForTesting
-  val issues = ArrayList<Issue>()
+  /**
+   * Returns the list of accessibility issues created by ATF.
+   */
+  val issues = HashSet<Issue>()
 
   /**
-   * Clear all lints and disable accessibility lint.
+   * Clear all lints and disable atf lint.
    */
   fun disableAccessibilityLint() {
     issueModel.removeIssueProvider(issueProvider)
