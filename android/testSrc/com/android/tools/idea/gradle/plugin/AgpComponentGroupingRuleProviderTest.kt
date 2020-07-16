@@ -20,19 +20,24 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspathDependencyRefactoringProcessor
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpGradleVersionRefactoringProcessor
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.CompileRuntimeConfigurationRefactoringProcessor
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ComponentGroupingRule
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.WrappedPsiElement
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiElement
+import com.intellij.openapi.project.Project
+import com.intellij.usageView.UsageInfo
+import com.intellij.usages.UsageGroup
+import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
-import com.intellij.usages.impl.rules.UsageType
-import com.intellij.usages.impl.rules.UsageTypeProvider
-import com.intellij.usages.impl.rules.UsageTypeProviderEx
+import com.intellij.usages.UsageViewSettings
+import com.intellij.usages.impl.rules.UsageTypeGroupingRule
+import com.intellij.usages.rules.UsageGroupingRule
+import com.intellij.usages.rules.UsageGroupingRuleProvider
 import org.jetbrains.android.AndroidTestCase
+import java.util.ArrayList
 
-class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
+class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     StudioFlags.AGP_UPGRADE_ASSISTANT.override(true)
@@ -47,7 +52,19 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     }
   }
 
-  // TODO(b/161888480): think of a way to make a parameterization across Groovy/KotlinScript and FlagOn/FlagOff not horrible
+  fun testRuleIsActive() {
+    val groupingRules = getActiveGroupingRules(myFixture.project)
+    assertThat(groupingRules.filterIsInstance(ComponentGroupingRule::class.java)).isNotEmpty()
+    assertThat(groupingRules.indexOfFirst { it is ComponentGroupingRule })
+      .isLessThan(groupingRules.indexOfFirst { it is UsageTypeGroupingRule })
+  }
+
+  fun testRuleIsInactiveFlagOff() {
+    StudioFlags.AGP_UPGRADE_ASSISTANT.override(false)
+    assertThat(getActiveGroupingRules(myFixture.project).filterIsInstance(ComponentGroupingRule::class.java)).isEmpty()
+  }
+
+  // TODO(b/161888480): parameterize by Groovy/KotlinScript
   fun testAgpClasspathDependencyRefactoringProcessor() {
     myFixture.addFileToProject("build.gradle", """
       buildscript {
@@ -56,26 +73,26 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
         }
       }
       """.trimIndent())
-    val processor = AgpClasspathDependencyRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.0.0"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"),
+                                                               GradleVersion.parse("4.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
-    assertThat(usages[0].element).isNotNull()
-    val usageType = getUsageType(usages[0].element!!)
-    assertThat(usageType.toString()).isEqualTo("Update version string")
+    val group = getParentComponentGroupFor(usages[0])
+    assertThat(group.getText(null)).isEqualTo("Upgrade AGP dependency from 3.6.0 to 4.0.0")
   }
 
   fun testAgpGradleVersionRefactoringProcessor() {
     myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
     """.trimIndent())
-    val processor = AgpGradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"), GradleVersion.parse("6.5"))
+    val processor = AgpGradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"),
+                                                         GradleVersion.parse("6.5"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
-    assertThat(usages[0].element).isNotNull()
-    val usageType = getUsageType(usages[0].element!!)
-    assertThat(usageType.toString()).isEqualTo("Update Gradle distribution URL")
+    val group = getParentComponentGroupFor(usages[0])
+    assertThat(group.getText(null)).isEqualTo("Upgrade Gradle version to 6.5")
   }
 
   fun testGMavenRepositoryRefactoringProcessor() {
@@ -88,13 +105,13 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
           jcenter()
         }
     """.trimIndent())
-    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, GradleVersion.parse("2.3.0"), GradleVersion.parse("4.1.0"), GradleVersion.parse("6.5"))
+    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, GradleVersion.parse("2.3.0"), GradleVersion.parse("4.1.0"),
+                                                         GradleVersion.parse("6.5"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
-    assertThat(usages[0].element).isNotNull()
-    val usageType = getUsageType(usages[0].element!!)
-    assertThat(usageType.toString()).isEqualTo("Add GMaven declaration")
+    val group = getParentComponentGroupFor(usages[0])
+    assertThat(group.getText(null)).isEqualTo("Add google() GMaven to buildscript repositories")
   }
 
   fun testJava8DefaultRefactoringProcessorInsertOldDefault() {
@@ -110,11 +127,11 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     """.trimIndent())
     val processor = Java8DefaultRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
-    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
+    processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsExactly("Existing language level directive (leave unchanged)", "Continue using Java 7 (insert language level directives)")
+    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+      .containsExactly("Update default Java language level", "Update default Java language level")
   }
 
   fun testJava8DefaultRefactoringProcessorAcceptNewDefault() {
@@ -130,11 +147,11 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     """.trimIndent())
     val processor = Java8DefaultRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
-    processor.noLanguageLevelAction = ACCEPT_NEW_DEFAULT
+    processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsExactly("Existing language level directive (leave unchanged)", "Accept new default (leave unchanged)")
+    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+      .containsExactly("Update default Java language level", "Update default Java language level")
   }
 
   fun testCompileRuntimeConfigurationRefactoringProcessor() {
@@ -149,45 +166,34 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
         androidTestCompile 'org.junit:junit:4.11'
       }
     """.trimIndent())
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("5.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project,
+                                                                    GradleVersion.parse("4.0.0"), GradleVersion.parse("5.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsExactly("Change dependency configuration", "Rename configuration")
+    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+      .containsExactly("Replace deprecated configurations", "Replace deprecated configurations")
   }
 
-  fun testAgpUpgradeAssistantFlagOff() {
-    StudioFlags.AGP_UPGRADE_ASSISTANT.override(false)
-    myFixture.addFileToProject("build.gradle", """
-      plugins {
-        id 'com.android.application'
-      }
-      configurations {
-        paidReleaseCompile { }
-      }
-      dependencies {
-        androidTestCompile 'org.junit:junit:4.11'
-      }
-    """.trimIndent())
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("5.0.0"))
-    assertTrue(processor.isEnabled)
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsNoneOf("Change dependency configuration", "Rename configuration")
-  }
-
-  private fun getUsageType(element: PsiElement) : UsageType? {
-    for (provider in UsageTypeProvider.EP_NAME.extensionList) {
-      if (provider is UsageTypeProviderEx) {
-        val targets = UsageTarget.EMPTY_ARRAY
-        return provider.getUsageType(element, targets) ?: continue
-      }
-      else {
-        return provider.getUsageType(element) ?: continue
-      }
+  /**
+   * this mirrors [com.intellij.usages.impl.UsageViewImpl.getActiveGroupingRules]
+   */
+  private fun getActiveGroupingRules(project: Project): Array<UsageGroupingRule> {
+    val providers = UsageGroupingRuleProvider.EP_NAME.extensionList
+    val usageViewSettings = UsageViewSettings.instance
+    val list = ArrayList<UsageGroupingRule>(providers.size)
+    for (provider in providers) {
+      list.addAll(provider.getActiveRules(project, usageViewSettings))
     }
-    return null
+
+    list.sortBy { it.rank }
+    return list.toArray(UsageGroupingRule.EMPTY_ARRAY)
+  }
+
+  private fun getParentComponentGroupFor(usageInfo: UsageInfo): UsageGroup {
+    val groupingRule = ComponentGroupingRule()
+    val groups = groupingRule.getParentGroupsFor(UsageInfo2UsageAdapter(usageInfo), UsageTarget.EMPTY_ARRAY)
+    assertThat(groups).hasSize(1)
+    return groups[0]
   }
 }

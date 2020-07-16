@@ -831,8 +831,10 @@
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
+
     <usageTypeProvider implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpComponentUsageTypeProvider"
                        order="first, before org.jetbrains.android.refactoring.GradleUsageTypeProvider"/>
+    <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ComponentGroupingRuleProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
