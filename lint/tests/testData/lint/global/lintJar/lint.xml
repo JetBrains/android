@@ -1,0 +1,2 @@
+<lint lintJars="lint-strings.jar;lint-fix-verifier.jar" />
+
