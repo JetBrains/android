@@ -142,7 +142,8 @@ class LightDirectionsClass(private val facet: AndroidFacet,
   private fun computeActionsWithResolvedArguments(): List<NavActionData> {
     return destination.actions
       .mapNotNull { action ->
-        val targetDestination = data.root.allDestinations.firstOrNull { it.id == action.destination } ?: return@mapNotNull null
+        val targetDestination = data.root.allDestinations.firstOrNull { it.id == action.resolveDestination() }
+                                ?: return@mapNotNull null
         // To support a destination argument being overridden in an action
         val resolvedArguments = (action.arguments + targetDestination.arguments)
           .groupBy { it.name }
