@@ -34,7 +34,7 @@ class LintIdeConfiguration(
   client: LintClient,
   configFile: File,
   private val issues: Set<Issue>)
-  : LintXmlConfiguration(client, configFile) {
+  : LintXmlConfiguration(client, configFile, projectLevel = true) {
   override fun isEnabled(issue: Issue): Boolean {
     val known = issues.contains(issue)
     if (!known) {

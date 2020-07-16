@@ -18,6 +18,11 @@ package com.android.tools.idea.lint.common
 import com.android.testutils.TestUtils
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
+import com.android.tools.lint.detector.api.Category
+import com.android.tools.lint.detector.api.Implementation
+import com.android.tools.lint.detector.api.Issue
+import com.android.tools.lint.detector.api.Scope
+import com.android.tools.lint.detector.api.Severity
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
@@ -60,6 +65,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.EnumSet
 
 class LintIdeTest : UsefulTestCase() {
   init {
@@ -227,6 +233,44 @@ class LintIdeTest : UsefulTestCase() {
     val issue = issues.getIssue("LintImplDollarEscapes")!!
     val support = object : LintIdeSupport() { }
     assertEquals(support.getPlatforms(), issue.platforms)
+  }
+
+  fun testLintJar() {
+    // This lint test checks two things:
+    // (1) loading custom lint jars from a lint.xml works in the IDE in a non-Android project 1
+    // (2) the specific lint check has a quickfix which tests some advanced scenarios of
+    //     the replace string quickfix. This is done via a custom loaded lint check because 1
+    //     it tests a scenario (quickfixes modifying different files than the one where the
+    //     issue is flagged) that none of the built-in checks uses, but is required by some
+    //     third party checks
+    // (See tools/base's LintFixVerifierTest for the implementation of this custom lint check
+    //  jar and a comment on the bottom of the file for how to update it)
+    try {
+      AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(true)
+      myFixture.copyFileToProject("$globalTestDir/build.gradle", "build.gradle")
+      myFixture.copyFileToProject("$globalTestDir/lint.xml", "lint.xml")
+      myFixture.copyFileToProject("$globalTestDir/lint-fix-verifier.jar", "lint-fix-verifier.jar")
+      myFixture.copyFileToProject("$globalTestDir/lint-strings.jar", "lint-strings.jar")
+      val file = myFixture.copyFileToProject("$globalTestDir/Test.java", "src/test/pkg/Test.java")
+      myFixture.configureFromExistingVirtualFile(file)
+      myFixture.doHighlighting()
+      myFixture.checkHighlighting(true, false, false)
+
+      val action = getIntentionAction("Update build.gradle")
+      assertNotNull(action)
+      action!!
+
+      TestCase.assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+      WriteCommandAction.writeCommandAction(myFixture.project).run(
+        ThrowableRunnable<Throwable?> {
+          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+        })
+      myFixture.checkResultByFile("build.gradle",
+                                  "$globalTestDir/build.gradle_after", true)
+
+    } finally {
+      AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
+    }
   }
 
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase) {

@@ -68,6 +68,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiBinaryFile;
@@ -677,15 +679,23 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         fix.setSelectPattern(data.selectPattern);
       }
       if (data.range != null && file != null) {
+        PsiFile rangeFile = file;
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(data.range.getFile(), false);
+        if (virtualFile != null) {
+          PsiFile psiFile = file.getManager().findFile(virtualFile);
+          if (psiFile != null) {
+            rangeFile = psiFile;
+          }
+        }
         Position start = data.range.getStart();
         Position end = data.range.getEnd();
         if (start != null && end != null) {
-          SmartPointerManager manager = SmartPointerManager.getInstance(file.getProject());
+          SmartPointerManager manager = SmartPointerManager.getInstance(rangeFile.getProject());
           int startOffset = start.getOffset();
           int endOffset = end.getOffset();
           if (endOffset > startOffset) {
-            TextRange textRange = TextRange.create(startOffset, Math.max(startOffset, endOffset));
-            SmartPsiFileRange smartRange = manager.createSmartPsiFileRangePointer(file, textRange);
+            TextRange textRange = TextRange.create(startOffset, endOffset);
+            SmartPsiFileRange smartRange = manager.createSmartPsiFileRangePointer(rangeFile, textRange);
             fix.setRange(smartRange);
           }
         }

@@ -1096,8 +1096,6 @@ class AndroidLintTest : AndroidTestCase() {
         if (fixes != null) {
           for (fix in fixes) {
             val name = fix.name
-            println("Next fix = $name")
-            println("Next fix.family = " + fix.familyName)
             assertTrue(familyNames.add(fix.familyName))
             if ("Remove Declarations for R.string.unused" == name) {
               targetDescriptor = descriptor

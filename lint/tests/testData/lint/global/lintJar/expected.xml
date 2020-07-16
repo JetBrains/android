@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+	<!--
+  <problem>
+    <file>MyActivity.java</file>
+    <line>55</line>
+    <problem_class severity="ERROR" attribute_key="ERRORS_ATTRIBUTES">Method conflicts with new inherited method</problem_class>
+    <description><html>This method is not overriding anything with the current build target, but will in API level 17 (current target is 16): p1.p2.MyActivity#isDestroyed</html></description>
+  </problem>
+	-->
+</problems>
