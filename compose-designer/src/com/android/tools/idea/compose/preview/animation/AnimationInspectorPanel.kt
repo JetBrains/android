@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.ui.animation.tooling.ComposeAnimation
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.surface.DesignSurface
@@ -27,6 +28,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.AnActionButton
@@ -105,6 +107,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private val timeline = TransitionDurationTimeline()
 
   private val playPauseAction = PlayPauseAction()
+
+  private val timelineSpeedAction = TimelineSpeedAction()
 
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
@@ -267,7 +271,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         GoToStartAction(),
         playPauseAction,
         GoToEndAction(),
-        SwapStartEndStatesAction()
+        SwapStartEndStatesAction(),
+        timelineSpeedAction
       )),
       true).component
 
@@ -377,7 +382,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     private val ticker =
       ControllableTicker({
                            if (isPlaying) {
-                             UIUtil.invokeLaterIfNeeded { timeline.incrementBy(tickPeriod.toMillis().toInt()) }
+                             UIUtil.invokeLaterIfNeeded { timeline.incrementClockBy(tickPeriod.toMillis().toInt()) }
                              if (timeline.isAtEnd()) {
                                pause()
                              }
@@ -418,6 +423,36 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
   }
 
+  private enum class TimelineSpeed(val speedMultiplier: Float, val displayText: String) {
+    X_0_25(0.25f, "0.25x"),
+    X_0_5(0.5f, "0.5x"),
+    X_1(1f, "1x"),
+    X_1_5(1.5f, "1.5x"),
+    X_2(2f, "2x")
+  }
+
+  /**
+   * Action to speed up or slow down the timeline. The clock runs faster/slower depending on the value selected.
+   *
+   * TODO(b/157895086): Add a proper icon for the action.
+   */
+  private inner class TimelineSpeedAction : DropDownAction(message("animation.inspector.action.speed"),
+                                                           message("animation.inspector.action.speed"),
+                                                           StudioIcons.LayoutEditor.Motion.SLOW_MOTION) {
+
+    init {
+      enumValues<TimelineSpeed>().forEach { addAction(SpeedAction(it)) }
+    }
+
+    private inner class SpeedAction(private val speed: TimelineSpeed) : ToggleAction("${speed.displayText}", "${speed.displayText}", null) {
+      override fun isSelected(e: AnActionEvent) = timeline.speed == speed
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        timeline.speed = speed
+      }
+    }
+  }
+
   /**
    *  Timeline panel ranging from 0 to the max duration (in ms) of the animations being inspected, listing all the animations and their
    *  corresponding range as well. The timeline should respond to mouse commands, allowing users to jump to specific points, scrub it, etc.
@@ -431,6 +466,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         setClockTime(slider.value)
       }
     var cachedVal = -1
+
+    /**
+     * Speed multiplier of the timeline clock. [TimelineSpeed.X_1] by default (normal speed).
+     */
+    var speed: TimelineSpeed = TimelineSpeed.X_1
 
     private val slider = object: JSlider(0, 10000, 0) {
       override fun updateUI() {
@@ -489,8 +529,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       selectedTab!!.updateProperties()
     }
 
-    fun incrementBy(increment: Int) {
-      slider.value += increment
+    /**
+     * Increments the clock by the given value, taking the current [speed] into account.
+     */
+    fun incrementClockBy(increment: Int) {
+      slider.value += (increment * speed.speedMultiplier).toInt()
     }
 
     fun jumpToStart() {
