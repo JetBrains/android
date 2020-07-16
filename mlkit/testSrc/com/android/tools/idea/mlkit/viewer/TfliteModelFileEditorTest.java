@@ -16,15 +16,25 @@
 package com.android.tools.idea.mlkit.viewer;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
+import com.android.AndroidProjectTypes;
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.stubs.AndroidProjectStub;
+import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
@@ -37,6 +47,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.WaitFor;
+import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,6 +72,16 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     NamedIdeaSourceProvider ideSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFile.getUrl())
       .withMlModelsDirectoryUrls(ImmutableList.of(manifestFile.getParent().getUrl() + "/ml")).build();
     SourceProviders.replaceForTest(androidFacet, myModule, ideSourceProvider);
+
+    // Mock test to have gradle version 4.2.0
+    File rootFile = new File(myFixture.getProject().getBasePath());
+    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub("4.2.0"));
+    doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
+    AndroidModuleModel androidModuleModel =
+      spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile, IdeAndroidProjectImpl
+        .create(androidProjectStub, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList()), "debug"));
+    doReturn(new AndroidVersion(28, null)).when(androidModuleModel).getMinSdkVersion();
+    AndroidModel.set(androidFacet, androidModuleModel);
   }
 
   @Override

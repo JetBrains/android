@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
+import com.android.tools.idea.mlkit.APIVersion;
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.TensorInfo;
@@ -44,14 +45,20 @@ import org.jetbrains.annotations.NotNull;
  * @see LightModelClass
  */
 public class LightModelOutputsClass extends AndroidLightClassBase {
+  @NotNull
   private final PsiClass containingClass;
+  @NotNull
   private final String qualifiedName;
+  @NotNull
   private final CachedValue<PsiMethod[]> myMethodCache;
+  @NotNull
+  private final APIVersion myAPIVersion;
 
   public LightModelOutputsClass(@NotNull Module module, @NotNull List<TensorInfo> tensorInfos, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;
+    myAPIVersion = APIVersion.fromProject(module.getProject());
 
     setModuleInfo(module, false);
 
@@ -59,12 +66,21 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         List<PsiMethod> methods = new ArrayList<>();
-        for (TensorInfo tensorInfo : tensorInfos) {
-          methods.add(buildGetterMethod(tensorInfo, false));
-          if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer")) {
-            // Adds fallback getter method.
-            methods.add(buildGetterMethod(tensorInfo, true));
+
+        if (myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_1)) {
+          // Generated API added in version 1.
+          for (TensorInfo tensorInfo : tensorInfos) {
+            methods.add(buildGetterMethod(tensorInfo, false));
+            if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer")) {
+              // Adds fallback getter method.
+              methods.add(buildGetterMethod(tensorInfo, true));
+            }
           }
+        }
+
+        if (myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_2)) {
+          // Generated API added in version 2.
+          // TODO(b/155690627): Add object detection related API here.
         }
 
         return CachedValueProvider.Result.create(methods.toArray(PsiMethod.EMPTY_ARRAY), ModificationTracker.NEVER_CHANGED);
