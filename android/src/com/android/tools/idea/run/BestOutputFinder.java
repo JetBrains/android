@@ -16,11 +16,11 @@
 package com.android.tools.idea.run;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
 import com.android.ide.common.build.SplitOutputMatcher;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.google.common.base.Joiner;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class BestOutputFinder {
   @NotNull
-  File findBestOutput(@NotNull Variant variant, @NotNull IDevice device, @NotNull List<? extends OutputFile> outputs)
+  File findBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull List<? extends OutputFile> outputs)
     throws ApkProvisionException {
     if (outputs.isEmpty()) {
       throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
@@ -45,13 +45,13 @@ class BestOutputFinder {
   }
 
   @NotNull
-  File findBestOutput(@NotNull Variant variant, @NotNull IDevice device, @NotNull GenericBuiltArtifacts builtArtifact)
+  File findBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull GenericBuiltArtifacts builtArtifact)
     throws ApkProvisionException {
     return doFindBestOutput(variant, device, null, builtArtifact);
   }
 
   @NotNull
-  private static File doFindBestOutput(@NotNull Variant variant,
+  private static File doFindBestOutput(@NotNull IdeVariant variant,
                                        @NotNull IDevice device,
                                        @Nullable List<? extends OutputFile> outputs,
                                        @Nullable GenericBuiltArtifacts builtArtifact)

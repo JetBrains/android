@@ -43,6 +43,7 @@ import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -302,7 +303,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public Set<String> getAllApplicationIds() {
     Set<String> ids = new HashSet<>();
-    for (Variant variant : myAndroidProject.getVariants()) {
+    for (IdeVariant variant : myAndroidProject.getVariants()) {
       String applicationId = getApplicationIdUsingCache(variant.getName());
       if (applicationId != UNINITIALIZED_APPLICATION_ID) {
         ids.add(applicationId);
@@ -378,7 +379,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @Nullable
   public Integer getVersionCode() {
-    Variant variant = getSelectedVariant();
+    IdeVariant variant = getSelectedVariant();
     ProductFlavor flavor = variant.getMergedFlavor();
     return flavor.getVersionCode();
   }
@@ -533,7 +534,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     if (myOverridesManifestPackage == null) {
       myOverridesManifestPackage = getAndroidProject().getDefaultConfig().getProductFlavor().getApplicationId() != null;
 
-      Variant variant = getSelectedVariant();
+      IdeVariant variant = getSelectedVariant();
 
       List<String> flavors = variant.getProductFlavors();
       for (String flavor : flavors) {
@@ -599,7 +600,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Deprecated
   @NotNull
   public List<SourceProvider> getFlavorSourceProviders() {
-    Variant selectedVariant = getSelectedVariant();
+    IdeVariant selectedVariant = getSelectedVariant();
     List<String> productFlavors = selectedVariant.getProductFlavors();
     List<SourceProvider> providers = new ArrayList<>();
     for (String flavor : productFlavors) {

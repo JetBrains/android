@@ -22,6 +22,7 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
@@ -284,7 +285,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       taskNames = getTaskNamesFromBuildInformation(androidModuleModel, buildVariants, targetType);
     }
     else {
-      Variant selectedVariant = androidModuleModel.getSelectedVariant();
+      IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
       String selectedTaskName = getTaskName(selectedVariant, targetType);
       if (selectedTaskName == null) {
         getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariant.getName());
@@ -354,7 +355,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return null;
   }
 
-  private static String getTaskName(Variant v, String targetType) {
+  private static String getTaskName(IdeVariant v, String targetType) {
     if (targetType.equals(BUNDLE)) {
       return v.getMainArtifact().getBundleTaskName();
     }
