@@ -130,14 +130,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        // Get distinct views where only the last duplicate is retained (rather than the first as we'd get by distinct() alone).
-        val views = findComponentsAt(x, y)
-          .asReversed()
-          .asSequence()
-          .distinct()
-          .toList()
-          .asReversed()
-        showViewContextMenu(views, inspectorModel, this@DeviceViewContentPanel, x, y)
+        showViewContextMenu(findComponentsAt(x, y).toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
 

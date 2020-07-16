@@ -39,7 +39,7 @@ import kotlin.math.sqrt
 
 val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
-data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: DrawViewNode, val clip: Rectangle)
+data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: DrawViewNode, val clip: Rectangle, val hitLevel: Int)
 
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
@@ -120,13 +120,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val isActive
     get() = !model.isEmpty
 
-  fun findViewsAt(x: Double, y: Double): List<ViewNode> =
-    hitRects.asSequence()
+  /**
+   * Find all the views drawn under the given point, in order from closest to farthest from the front, except
+   * if the view is an image drawn by a parent at a different depth, the depth of the parent is used rather than
+   * the depth of the child.
+   */
+  fun findViewsAt(x: Double, y: Double): Sequence<ViewNode> =
+    hitRects.asReversed()
+      .asSequence()
       .filter { it.bounds.contains(x, y) }
+      .sortedByDescending { it.hitLevel }
       .map { it.node.owner }
-      .toList()
+      .distinct()
 
-  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).lastOrNull()
+  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()
 
   fun rotate(xRotation: Double, yRotation: Double) {
     xOff = (xOff + xRotation).coerceIn(-1.0, 1.0)
@@ -228,8 +235,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
                                    angle: Double,
                                    allLevels: List<List<Pair<DrawViewNode, Rectangle>>>,
                                    newHitRects: MutableList<ViewDrawInfo>) {
+    val ownerToLevel = mutableMapOf<ViewNode, Int>()
+
     allLevels.forEachIndexed { level, levelList ->
       levelList.forEach { (view, clip) ->
+        val hitLevel = ownerToLevel.getOrPut(view.owner) { level }
+
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
@@ -239,7 +250,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
         val rect = viewTransform.createTransformedShape(view.owner.bounds)
-        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
+        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip, hitLevel))
       }
     }
   }

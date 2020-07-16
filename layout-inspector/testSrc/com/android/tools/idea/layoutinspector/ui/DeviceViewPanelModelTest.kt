@@ -201,6 +201,35 @@ class DeviceViewPanelModelTest {
     assertThat(panelModel.isRotated).isFalse()
   }
 
+  @Test
+  fun testFindViewsAt() {
+    var model = model {
+      view(ROOT, 0, 0, 100, 100) {
+        view(VIEW1, 0, 0, 30, 30) {
+          view(VIEW2, 0, 0, 10, 10)
+        }
+        image()
+        view(VIEW3, 50, 50, 20, 20)
+      }
+    }
+    var panelModel = DeviceViewPanelModel(model)
+    // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
+    assertEquals(listOf(VIEW2, VIEW1, ROOT), panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList())
+    assertEquals(listOf(ROOT), panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList())
+    assertEquals(listOf(VIEW3, ROOT), panelModel.findViewsAt(10.0, 10.0).map { it.drawId }.toList())
+
+    model = model {
+      view(ROOT, 0, 0, 100, 100) {
+        view(VIEW1, 0, 0, 100, 100) {
+          view(VIEW2, 0, 0, 100, 100)
+        }
+        view(VIEW3, 0, 0, 100, 100)
+      }
+    }
+    panelModel = DeviceViewPanelModel(model)
+    assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
+  }
+
   private fun checkRects(expectedTransforms: MutableList<ComparingTransform>, xOff: Double, yOff: Double) {
     val rects = listOf(
       Rectangle(0, 0, 100, 200),
