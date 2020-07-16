@@ -104,7 +104,7 @@ class LightActionBuilderClass(
   }
 
   private fun computeFields(): Array<PsiField> {
-    val destinationId = action.destination
+    val destinationId = action.resolveDestination() ?: return emptyArray()
     val targetDestinationTag = backingResourceFile?.findXmlTagById(destinationId) ?: return emptyArray()
     // TODO(b/161369564): It can be overridden arguments, so corresponding parent tag is the targetDestinationTag. This can be
     //  implemented after we support 'getParent'.

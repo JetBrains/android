@@ -177,7 +177,7 @@ class NavXmlIndexTest {
     assertThat(data.root.actions).hasSize(1)
     data.root.actions[0].let { action ->
       assertThat(action.id).isEqualTo("action_to_fragment2")
-      assertThat(action.destination).isEqualTo("fragment2")
+      assertThat(action.resolveDestination()).isEqualTo("fragment2")
     }
 
     assertThat(data.root.potentialDestinations).hasSize(3)
@@ -188,7 +188,7 @@ class NavXmlIndexTest {
       assertThat(destination.actions).hasSize(1)
       destination.actions[0].let { action ->
         assertThat(action.id).isEqualTo("action_activity1_to_activity2")
-        assertThat(action.destination).isEqualTo("activity2")
+        assertThat(action.resolveDestination()).isEqualTo("activity2")
       }
     }
     data.root.potentialDestinations[1].toDestination()!!.let { destination ->
@@ -198,11 +198,11 @@ class NavXmlIndexTest {
       assertThat(destination.actions).hasSize(2)
       destination.actions[0].let { action ->
         assertThat(action.id).isEqualTo("action_fragment1_to_fragment2")
-        assertThat(action.destination).isEqualTo("fragment2")
+        assertThat(action.resolveDestination()).isEqualTo("fragment2")
       }
       destination.actions[1].let { action ->
         assertThat(action.id).isEqualTo("action_fragment1_to_fragment3")
-        assertThat(action.destination).isEqualTo("fragment3")
+        assertThat(action.resolveDestination()).isEqualTo("fragment3")
       }
     }
     data.root.potentialDestinations[2].toDestination()!!.let { destination ->
@@ -217,7 +217,7 @@ class NavXmlIndexTest {
       }
       destination.actions[0].let { action ->
         assertThat(action.id).isEqualTo("action_fragment2_to_fragment3")
-        assertThat(action.destination).isEqualTo("fragment3")
+        assertThat(action.resolveDestination()).isEqualTo("fragment3")
       }
     }
 
@@ -238,7 +238,7 @@ class NavXmlIndexTest {
           }
           destination.actions[0].let { action ->
             assertThat(action.id).isEqualTo("action_dialog1_to_fragment2")
-            assertThat(action.destination).isEqualTo("fragment2")
+            assertThat(action.resolveDestination()).isEqualTo("fragment2")
           }
         }
       }
@@ -266,7 +266,7 @@ class NavXmlIndexTest {
         }
         destination.actions[0].let { action ->
           assertThat(action.id).isEqualTo("action_activity2_to_activity1")
-          assertThat(action.destination).isEqualTo("activity1")
+          assertThat(action.resolveDestination()).isEqualTo("activity1")
         }
       }
       nested.potentialDestinations[1].toDestination()!!.let { destination ->
@@ -286,7 +286,7 @@ class NavXmlIndexTest {
         }
         destination.actions[0].let { action ->
           assertThat(action.id).isEqualTo("action_fragment3_to_fragment1")
-          assertThat(action.destination).isEqualTo("fragment1")
+          assertThat(action.resolveDestination()).isEqualTo("fragment1")
         }
       }
     }

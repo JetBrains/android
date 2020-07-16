@@ -114,7 +114,7 @@ class LightDirectionsKtClass(
           destination.actions
             .asSequence()
             .mapNotNull { action ->
-              val targetDestination = navResourceData.root.allDestinations.firstOrNull { it.id == action.destination }
+              val targetDestination = navResourceData.root.allDestinations.firstOrNull { it.id == action.resolveDestination() }
                                       ?: return@mapNotNull null
 
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->

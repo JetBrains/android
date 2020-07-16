@@ -39,11 +39,18 @@ interface NavArgumentData {
  * another.
  *
  * A destination may have zero or more actions.
+ *
+ * An action itself should point to a single target destination, which is usually set by `destination`,
+ * but could also just be set by `popUpTo` (which essentially means the user wants to navigate backwards
+ * to a destination that's in the back stack)
  */
 interface NavActionData {
   val id: String
-  val destination: String
+  val destination: String?
+  val popUpTo: String?
   val arguments: List<NavArgumentData>
+
+  fun resolveDestination(): String? { return destination ?: popUpTo }
 }
 
 /**

@@ -18,8 +18,8 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -59,6 +59,12 @@ class DirectionsClassKtDescriptorsTest {
             <action
                 android:id="@+id/action_Fragment1_to_Fragment2"
                 app:destination="@id/fragment2" />
+            <action
+                android:id="@+id/action_Fragment1_to_Main"
+                app:popUpTo="@id/main" />
+                
+            <!-- Dummy action -->
+            <action android:id="@+id/action_without_destination" />
           </fragment>
           <fragment
               android:id="@+id/fragment2"
@@ -91,11 +97,12 @@ class DirectionsClassKtDescriptorsTest {
       .flatMap { it.getMemberScope().classesInScope { name -> name.endsWith("Directions") } }
       .first()
 
-    assertThat(directionsClassMetadata.constructors.map { it.toString()} ).containsExactly(
+    assertThat(directionsClassMetadata.constructors.map { it.toString() }).containsExactly(
       "Fragment1Directions()"
     )
     assertThat(directionsClassMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
-      "actionFragment1ToFragment2(): androidx.navigation.NavDirections"
+      "actionFragment1ToFragment2(): androidx.navigation.NavDirections",
+      "actionFragment1ToMain(): androidx.navigation.NavDirections"
     )
     assertThat(directionsClassMetadata.functions).isEmpty()
   }

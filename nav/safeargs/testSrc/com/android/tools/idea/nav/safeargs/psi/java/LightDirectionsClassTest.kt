@@ -52,7 +52,7 @@ class LightDirectionsClassTest {
               
               <action
                   android:id="@+id/action_Fragment1_to_main"
-                  app:destination="@id/main" />
+                  app:popUpTo="@id/main" />
           </fragment>
           <fragment
               android:id="@+id/fragment2"
@@ -67,6 +67,9 @@ class LightDirectionsClassTest {
           <action
               android:id="@+id/action_main_to_fragment1"
               app:destination="@id/fragment1" />
+
+          <!-- Dummy action -->
+          <action android:id="@+id/action_without_destination" />
         </navigation>
       """.trimIndent())
 
