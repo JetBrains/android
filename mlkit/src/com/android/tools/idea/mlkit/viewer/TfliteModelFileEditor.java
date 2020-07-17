@@ -512,6 +512,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         if (psiMethod.isDeprecated()) {
           continue;
         }
+        // TODO(b/161140683): Temporary fix for version 2 API with object detection. We should update here to show tensor group API as well.
+        if (!outputTensorNameIterator.hasNext()) {
+          break;
+        }
         String tensorName = outputTensorNameIterator.next();
         codeBuilder
           .append(INDENT)
@@ -570,6 +574,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         if (psiMethod.isDeprecated()) {
           continue;
+        }
+        // TODO(b/161140683): Temporary fix for version 2 API with object detection. We should update here to show tensor group API as well.
+        if (!outputTensorNameIterator.hasNext()) {
+          break;
         }
         String tensorName = outputTensorNameIterator.next();
         codeBuilder.append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));

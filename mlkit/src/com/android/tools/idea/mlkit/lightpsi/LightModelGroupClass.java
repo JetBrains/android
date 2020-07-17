@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import static com.intellij.psi.CommonClassNames.JAVA_UTIL_LIST;
-
 import com.android.tools.idea.mlkit.APIVersion;
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.mlkit.MlNames;
-import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorGroupInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.utils.StringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.java.JavaLanguage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -48,11 +45,17 @@ import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a light class auto-generated for getting results from model output tensors.
+ * Represents a light class auto-generated for getting results from model tensor group. It will generate class with following format:
+ * <pre>
+ * public class TensorGroupName {
+ *   public Type getTensor1AsType();
+ *   // More getters for other tensors if exist.
+ * }
+ * </>
  *
  * @see LightModelClass
  */
-public class LightModelOutputsClass extends AndroidLightClassBase {
+public class LightModelGroupClass extends AndroidLightClassBase {
   @NotNull
   private final PsiClass containingClass;
   @NotNull
@@ -60,13 +63,16 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   @NotNull
   private final CachedValue<PsiMethod[]> myMethodCache;
   @NotNull
-  private final APIVersion myAPIVersion;
+  private final String myClassName;
 
-  public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull PsiClass containingClass) {
+  public LightModelGroupClass(@NotNull Module module,
+                              @NotNull List<TensorInfo> tensorInfos,
+                              @NotNull TensorGroupInfo tensorGroupInfo,
+                              @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
+    this.myClassName = StringHelper.usLocaleCapitalize(tensorGroupInfo.getIdentifierName());
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), myClassName);
     this.containingClass = containingClass;
-    myAPIVersion = APIVersion.fromProject(module.getProject());
 
     setModuleInfo(module, false);
 
@@ -74,22 +80,9 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         List<PsiMethod> methods = new ArrayList<>();
-
-        if (myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_1)) {
-          // Generated API added in version 1.
-          for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
-            methods.add(buildGetterMethod(tensorInfo, false));
-            if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer")) {
-              // Adds fallback getter method.
-              methods.add(buildGetterMethod(tensorInfo, true));
-            }
-          }
-        }
-
-        if (myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_2)) {
-          // Generated API added in version 2.
-          for(TensorGroupInfo tensorGroupInfo : modelInfo.getOutputTensorGroups()) {
-            methods.add(buildGroupGetterMethod(tensorGroupInfo));
+        for (TensorInfo tensorInfo : tensorInfos) {
+          if (tensorGroupInfo.getTensorNames().contains(tensorInfo.getName())) {
+            methods.add(buildGetterMethod(tensorInfo));
           }
         }
 
@@ -106,7 +99,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public String getName() {
-    return MlNames.OUTPUTS;
+    return myClassName;
   }
 
   @NotNull
@@ -116,11 +109,9 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo, boolean usedForFallback) {
+  private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo) {
     GlobalSearchScope scope = getResolveScope();
-    PsiClassType returnType = usedForFallback
-                              ? PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, getProject(), scope)
-                              : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
+    PsiClassType returnType = getPsiClassType(tensorInfo, getProject(), scope);
     String methodName = MlNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType));
     DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(myManager, JavaLanguage.INSTANCE, methodName);
     method
@@ -128,29 +119,8 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this)
       .setNavigationElement(this);
-    method.setDeprecated(usedForFallback);
     return method;
   }
-
-  @NotNull
-  private PsiMethod buildGroupGetterMethod(@NotNull TensorGroupInfo tensorGroupInfo) {
-    Project project = getProject();
-    GlobalSearchScope scope = getResolveScope();
-    String groupClassName = StringHelper.usLocaleCapitalize(tensorGroupInfo.getIdentifierName());
-    String groupQualifiedName = String.join(".", containingClass.getQualifiedName(), groupClassName);
-    PsiClass listClass = JavaPsiFacade.getInstance(project).findClass(JAVA_UTIL_LIST, scope);
-    PsiClassType returnType =
-      PsiElementFactory.getInstance(project).createType(listClass, PsiType.getTypeByName(groupQualifiedName, project, scope));
-    DeprecatableLightMethodBuilder method =
-      new DeprecatableLightMethodBuilder(myManager, JavaLanguage.INSTANCE, MlNames.formatGroupGetterName(groupClassName));
-    method
-      .setMethodReturnType(returnType, true)
-      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
-      .setContainingClass(this)
-      .setNavigationElement(this);
-    return method;
-  }
-
 
   @NotNull
   @Override
@@ -162,5 +132,25 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   @Override
   public PsiElement getNavigationElement() {
     return containingClass.getNavigationElement();
+  }
+
+  @NotNull
+  private static PsiClassType getPsiClassType(@NotNull TensorInfo tensorInfo, @NotNull Project project, @NotNull GlobalSearchScope scope) {
+    if (tensorInfo.getContentType() == TensorInfo.ContentType.BOUNDING_BOX) {
+      return PsiType.getTypeByName(ClassNames.RECT_F, project, scope);
+    }
+    else if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_VALUE_LABELS) {
+      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_STRING, project, scope);
+    }
+    else if (tensorInfo.getDataType() == TensorInfo.DataType.FLOAT32) {
+      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_FLOAT, project, scope);
+    }
+    else if (tensorInfo.getDataType() == TensorInfo.DataType.UINT8) {
+      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_INTEGER, project, scope);
+    }
+    else {
+      Logger.getInstance(LightModelGroupClass.class).warn("Can't find desired data type, fallback to int.");
+      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_INTEGER, project, scope);
+    }
   }
 }
