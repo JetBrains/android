@@ -192,11 +192,11 @@ public class AndroidFileChangeListener implements Disposable {
       return false;
     }
 
-    if (JavaFileType.INSTANCE.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
+    if (JavaFileType.DEFAULT_EXTENSION.equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
       return false;
     }
 
-    if (XmlFileType.INSTANCE.getDefaultExtension().equals(extension)) {
+    if (XmlFileType.DEFAULT_EXTENSION.equals(extension)) {
       return true;
     }
 
