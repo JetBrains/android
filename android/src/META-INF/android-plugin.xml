@@ -594,7 +594,8 @@
     <lang.findUsagesProvider language="" implementationClass="org.jetbrains.android.refactoring.AndroidFallbackFindUsagesProvider" />
 
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidBinaryResourceFileUsageTypeProvider" order="first" />
-    <usageTypeProvider implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
+    <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"
+                       implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidOldXmlUsageProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidNewXmlUsageProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceReferenceInCodeUsageTypeProvider" order="first" />
@@ -830,6 +831,8 @@
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
+    <usageTypeProvider implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpComponentUsageTypeProvider"
+                       order="first, before org.jetbrains.android.refactoring.GradleUsageTypeProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
