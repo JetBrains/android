@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -22,13 +23,16 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
-import java.awt.BasicStroke.*
+import java.awt.BasicStroke.CAP_BUTT
+import java.awt.BasicStroke.JOIN_MITER
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Image
-import java.awt.geom.GeneralPath
-import java.awt.geom.Path2D
+import java.awt.Shape
 import java.awt.geom.Rectangle2D
+import java.lang.Float.min
+import kotlin.math.abs
+import kotlin.math.max
 
 private const val NORMAL_BORDER_THICKNESS = 1f
 private const val EMPHASIZED_BORDER_THICKNESS = 5f
@@ -59,7 +63,7 @@ sealed class DrawViewNode(var owner: ViewNode) {
   abstract val canCollapse: Boolean
 
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
-  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, drawLabel: Boolean)
+  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings)
 }
 
 /**
@@ -69,12 +73,52 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
   override val canCollapse = false
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {}
-  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, drawLabel: Boolean) {
+  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
+    // Draw the outline of the border (the white border around the main view border) if necessary.
     if (isSelected || isHovered) {
       g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
       g2.stroke = EMPHASIZED_LINE_OUTLINE_STROKE
-      g2.draw(owner.bounds)
+      if (viewSettings.drawBorders) {
+        g2.draw(owner.transformedBounds)
+      }
+      if (viewSettings.drawUntransformedBounds) {
+        g2.draw(owner.layoutBounds)
+      }
     }
+
+    var labelX = 0f
+    var labelY = 0f
+    var borderWidth = 0f
+
+    // Draw the label background if necessary (the white border of the label and the label background).
+    if (isSelected && viewSettings.drawLabel) {
+      g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
+      val fontMetrics = g2.fontMetrics
+      val textWidth = fontMetrics.stringWidth(owner.unqualifiedName).toFloat()
+
+      val border = if (viewSettings.drawBorders || (isSelected && !viewSettings.drawUntransformedBounds)) {
+        owner.transformedBounds
+      }
+      else {
+        owner.layoutBounds
+      }
+
+      val position = computeLabelPosition(border, textWidth)
+      labelX = position.first
+      labelY = position.second
+
+      val textHeight = (fontMetrics.maxAscent).toFloat()
+      borderWidth = textHeight * 0.3f
+      g2.draw(Rectangle2D.Float(labelX, labelY - textHeight - 2f * borderWidth, textWidth + 2f * borderWidth, textHeight + 2f * borderWidth))
+
+      g2.color = SELECTED_LINE_COLOR
+      g2.fill(Rectangle2D.Float(labelX - EMPHASIZED_BORDER_THICKNESS / 2f,
+                                labelY - textHeight - 2f * borderWidth - EMPHASIZED_BORDER_THICKNESS / 2f,
+                                textWidth + 2f * borderWidth + EMPHASIZED_BORDER_THICKNESS,
+                                textHeight + 2f * borderWidth + EMPHASIZED_BORDER_THICKNESS))
+    }
+
+    // Draw the border
     when {
       isSelected -> {
         g2.color = SELECTED_LINE_COLOR
@@ -89,36 +133,62 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         g2.stroke = NORMAL_LINE_STROKE
       }
     }
-    g2.draw(owner.bounds)
-
-    if (isSelected && drawLabel) {
-      g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
-      val fontMetrics = g2.fontMetrics
-      val textWidth = fontMetrics.stringWidth(owner.unqualifiedName)
-      val height = (fontMetrics.maxAscent + fontMetrics.maxDescent).toFloat()
-      val border = height * 0.3f
-      g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
-      g2.stroke = EMPHASIZED_LINE_OUTLINE_STROKE
-      val outlinePath = GeneralPath(Path2D.WIND_NON_ZERO)
-      val x = owner.x.toFloat()
-      val y = owner.y.toFloat()
-      val ownerWidth = owner.width.toFloat()
-      outlinePath.moveTo(x, y - EMPHASIZED_BORDER_OUTLINE_THICKNESS)
-      outlinePath.lineTo(x, owner.y - height - border + EMPHASIZED_BORDER_THICKNESS)
-      outlinePath.lineTo(x + textWidth + 2f * border - EMPHASIZED_BORDER_THICKNESS, y - height - border + EMPHASIZED_BORDER_THICKNESS)
-      outlinePath.lineTo(x + textWidth + 2f * border - EMPHASIZED_BORDER_THICKNESS, y - EMPHASIZED_BORDER_OUTLINE_THICKNESS)
-      if (textWidth + 2f * border - EMPHASIZED_BORDER_THICKNESS > owner.width) {
-        outlinePath.lineTo(x + textWidth + 2f * border - EMPHASIZED_BORDER_THICKNESS, y)
-        outlinePath.lineTo(x + ownerWidth + EMPHASIZED_BORDER_OUTLINE_THICKNESS, y)
-      }
-      g2.draw(outlinePath)
-      g2.color = SELECTED_LINE_COLOR
-      g2.fill(Rectangle2D.Float(x - EMPHASIZED_BORDER_THICKNESS / 2f,
-                                y - height - border + EMPHASIZED_BORDER_THICKNESS / 2f,
-                                textWidth + 2f * border, height + border))
-      g2.color = Color.WHITE
-      g2.drawString(owner.unqualifiedName, x + border, y - border)
+    if (viewSettings.drawBorders || isHovered || (isSelected && !viewSettings.drawUntransformedBounds)) {
+      g2.draw(owner.transformedBounds)
     }
+    if (viewSettings.drawUntransformedBounds) {
+      g2.draw(owner.layoutBounds)
+    }
+
+    // Draw the text of the label if necessary.
+    if (isSelected && viewSettings.drawLabel) {
+      g2.color = Color.WHITE
+      g2.drawString(owner.unqualifiedName, labelX + borderWidth, labelY - borderWidth - EMPHASIZED_BORDER_THICKNESS / 2f)
+    }
+  }
+
+  /**
+   * Compute the position of the label:
+   * - find the edge with the least slope where one of the ends is at the minimum y. This is the "top".
+   * - find the left side of that segment. The x coordinate of that is the x coordinate of the label.
+   * - find where the bottom edge of the label should meet the edge of the border: This is the minimum of half way across the edge
+   *   and half way across the label.
+   * - find the y coordinate of that using the slope of the line.
+   */
+  private fun computeLabelPosition(border: Shape, textWidth: Float): Pair<Float, Float> {
+    val minY = border.bounds.minY.toFloat()
+    var minSlope = Float.MAX_VALUE
+    val nextPoint = FloatArray(6)
+    val pathIter = border.getPathIterator(null)
+    pathIter.currentSegment(nextPoint)
+    var prevX: Float
+    var prevY: Float
+    var leastSlopedSideWidth = 0f
+    var topLeftY = 0f
+    var x = 0f
+    while (true) {
+      prevX = nextPoint[0]
+      prevY = nextPoint[1]
+      pathIter.next()
+      if (pathIter.isDone) {
+        break
+      }
+      pathIter.currentSegment(nextPoint)
+      if (prevY == minY || nextPoint[1] == minY) {
+        if (abs(prevX - nextPoint[0]) < 0.001) {
+          continue
+        }
+        val slope = (nextPoint[1] - prevY) / (nextPoint[0] - prevX)
+        if (abs(slope) < abs(minSlope)) {
+          x = min(nextPoint[0], prevX)
+          minSlope = slope
+          leastSlopedSideWidth = abs(nextPoint[0] - prevX)
+          topLeftY = if (nextPoint[0] < prevX) nextPoint[1] else prevY
+        }
+      }
+    }
+    val connectionWidth = min(leastSlopedSideWidth, textWidth) / 2f
+    return Pair(x, minSlope * connectionWidth + topLeftY)
   }
 }
 
@@ -137,15 +207,15 @@ class DrawViewImage(@VisibleForTesting val image: Image,
     if (model.selection != null && owner != model.selection && model.hasSubImages) {
       g2.composite = AlphaComposite.SrcOver.derive(0.6f)
     }
-    UIUtil.drawImage(g2, image, x, y, null)
+    UIUtil.drawImage(g2, image, max(x, 0), max(y, 0), null)
     g2.composite = composite
   }
 
-  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, drawLabel: Boolean) {
+  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
     if (isSelected || isHovered) {
       g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
       g2.stroke = EMPHASIZED_IMAGE_LINE_OUTLINE_STROKE
-      g2.draw(owner.bounds)
+      g2.draw(owner.transformedBounds)
     }
     when {
       isSelected -> {
@@ -161,7 +231,7 @@ class DrawViewImage(@VisibleForTesting val image: Image,
         g2.stroke = NORMAL_IMAGE_LINE_STROKE
       }
     }
-    g2.draw(owner.bounds)
+    g2.draw(owner.transformedBounds)
   }
 }
 
@@ -181,7 +251,7 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     }
   }
 
-  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, drawLabel: Boolean) {
+  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
     if (root.width > 0 && root.height > 0) {
       g2.color = NORMAL_LINE_COLOR
       g2.stroke = NORMAL_IMAGE_LINE_STROKE

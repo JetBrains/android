@@ -35,4 +35,4 @@ class ComposeViewNode(
   var composePackageHash: Int,
   var composeOffset: Int,
   var composeLineNumber: Int
-): ViewNode(drawId, qualifiedName, layout, x, y, width, height, viewId, textValue, layoutFlags)
+): ViewNode(drawId, qualifiedName, layout, x, y, width, height, null, viewId, textValue, layoutFlags)

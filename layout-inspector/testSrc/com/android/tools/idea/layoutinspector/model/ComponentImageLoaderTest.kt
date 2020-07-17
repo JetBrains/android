@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.android.tools.idea.layoutinspector.view
 import org.junit.Test
-import java.awt.Image
+import java.awt.image.BufferedImage
 
 class ComponentImageLoaderTest {
 
@@ -27,17 +27,17 @@ class ComponentImageLoaderTest {
   // are not present in the skia tree.
   @Test
   fun testTeeWithExtraViewNodes() {
-    val image1: Image = MockitoKt.mock()
-    val image2: Image = MockitoKt.mock()
-    val image4: Image = MockitoKt.mock()
+    val image1: BufferedImage = MockitoKt.mock()
+    val image2: BufferedImage = MockitoKt.mock()
+    val image4: BufferedImage = MockitoKt.mock()
 
-    val skiaRoot = SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, listOf(
-      SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, image1),
-      SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, listOf(
-        SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, image2)
+    val skiaRoot = SkiaViewNode(1, listOf(
+      SkiaViewNode(1, image1),
+      SkiaViewNode(2, listOf(
+        SkiaViewNode(2, image2)
       )),
-      SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, listOf(
-        SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, image4)
+      SkiaViewNode(4, listOf(
+        SkiaViewNode(4, image4)
       ))
     ))
 

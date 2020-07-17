@@ -157,10 +157,11 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     val view = drawView.owner
     val selection = inspectorModel.selection
 
-    if (!drawInfo.isCollapsed && (viewSettings.drawBorders || view == selection || view == hoveredNode)) {
+    if (!drawInfo.isCollapsed &&
+        (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
       val g2 = g.create() as Graphics2D
       g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings.drawLabel)
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings)
     }
   }
 
@@ -168,11 +169,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     val g2 = g.create() as Graphics2D
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
-
-    val origClip = g2.clip
-    g2.clip(drawInfo.clip)
     drawInfo.node.paint(g2, inspectorModel)
-    g2.clip = origClip
   }
 
   @Suppress("UNUSED_PARAMETER")

@@ -22,6 +22,7 @@ import kotlin.properties.Delegates
 val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<DeviceViewSettings>(DeviceViewSettings::class.qualifiedName!!)
 
 private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
+private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
 private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 
 class DeviceViewSettings(scalePercent: Int = 100) {
@@ -40,6 +41,13 @@ class DeviceViewSettings(scalePercent: Int = 100) {
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_BORDERS_KEY, value, true)
+      modificationListeners.forEach { it() }
+    }
+
+  var drawUntransformedBounds: Boolean
+    get() = PropertiesComponent.getInstance().getBoolean(SHOW_LAYOUT_BOUNDS_KEY, false)
+    set(value) {
+      PropertiesComponent.getInstance().setValue(SHOW_LAYOUT_BOUNDS_KEY, value, false)
       modificationListeners.forEach { it() }
     }
 

@@ -51,14 +51,14 @@ class InspectorModel(val project: Project) {
 
   private val roots = mutableMapOf<Any, ViewNode>()
   // placeholder node to hold the roots of the current windows.
-  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, "", 0)
+  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, null, "", 0)
 
   var hasSubImages = false
     private set
 
   /** Whether there are currently any views in this model */
   val isEmpty
-    get() = root.children.isEmpty()
+    get() = roots.isEmpty()
 
   /**
    * Get a ViewNode by drawId
@@ -158,6 +158,7 @@ class InspectorModel(val project: Project) {
       oldNode.layout = newNode.layout
       oldNode.x = newNode.x
       oldNode.y = newNode.y
+      oldNode.setTransformedBounds(newNode.transformedBounds)
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.imageType = newNode.imageType
       oldNode.parent = parent
