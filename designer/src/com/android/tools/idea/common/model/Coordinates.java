@@ -231,6 +231,18 @@ public class Coordinates {
 
   /**
    * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static Rectangle2D.Float getSwingRectDip(@NotNull SceneContext context, @NotNull @AndroidDpCoordinate Rectangle rect) {
+    return new Rectangle2D.Float(context.getSwingXDip(rect.x),
+                                 context.getSwingYDip(rect.y),
+                                 context.getSwingDimensionDip(rect.width),
+                                 context.getSwingDimensionDip(rect.height));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
    * system) of the given dimension in the Android screen coordinate system
    */
   @SwingCoordinate
