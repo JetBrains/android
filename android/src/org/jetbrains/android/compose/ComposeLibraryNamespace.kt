@@ -24,7 +24,10 @@ private const val COMPOSE_PACKAGE = "androidx.compose"
 /** Preview element name */
 const val COMPOSE_PREVIEW_ANNOTATION_NAME = "Preview"
 
-const val COMPOSABLE_FQ_NAME = "androidx.compose.Composable"
+val COMPOSABLE_FQ_NAMES = setOf(
+  "androidx.compose.Composable",
+  "androidx.compose.runtime.Composable"
+)
 
 /**
  * Represents the Jetpack Compose library package name. The compose libraries will move from

@@ -33,7 +33,7 @@ class ComposableFunctionExtractableAnalyserTest : JavaCodeInsightFixtureTestCase
   public override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_FUNCTION_EXTRACTION.override(true)
-    myFixture.stubComposableAnnotation()
+    myFixture.stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
   }
 
   override fun tearDown() {

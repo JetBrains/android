@@ -30,7 +30,7 @@ fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 
   return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation = annotationEntries.any { it.fqNameMatches(COMPOSABLE_FQ_NAME) }
+    val hasComposableAnnotation = annotationEntries.any { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
     val containingKtFile = this.containingKtFile
 
     CachedValueProvider.Result.create(

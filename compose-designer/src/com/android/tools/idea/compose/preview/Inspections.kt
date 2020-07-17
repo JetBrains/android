@@ -30,7 +30,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAME
+import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
 import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
@@ -153,7 +153,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
-    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_FQ_NAME) }
+    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
     if (nonComposable) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.composable.description"),
