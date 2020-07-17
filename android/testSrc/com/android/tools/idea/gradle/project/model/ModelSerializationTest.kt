@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.project.model
 import com.android.builder.model.Dependencies
 import com.android.ide.common.gradle.model.IdeAaptOptions
 import com.android.ide.common.gradle.model.IdeAndroidArtifactImpl
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutputImpl
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.IdeApiVersion
-import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
+import com.android.ide.common.gradle.model.IdeBuildTypeImpl
 import com.android.ide.common.gradle.model.IdeClassField
 import com.android.ide.common.gradle.model.IdeDependencyGraphs
 import com.android.ide.common.gradle.model.IdeFilterData
@@ -41,8 +41,8 @@ import com.android.ide.common.gradle.model.IdeNativeSettings
 import com.android.ide.common.gradle.model.IdeNativeToolchain
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi
 import com.android.ide.common.gradle.model.IdeOutputFile
-import com.android.ide.common.gradle.model.IdeProductFlavor
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer
+import com.android.ide.common.gradle.model.IdeProductFlavorImpl
 import com.android.ide.common.gradle.model.IdeProjectIdentifierImpl
 import com.android.ide.common.gradle.model.IdeProjectSyncIssues
 import com.android.ide.common.gradle.model.IdeSigningConfig
@@ -55,7 +55,6 @@ import com.android.ide.common.gradle.model.IdeVariantImpl
 import com.android.ide.common.gradle.model.IdeVectorDrawablesOptions
 import com.android.ide.common.gradle.model.IdeViewBindingOptions
 import com.android.ide.common.gradle.model.ModelCache
-import com.android.ide.common.gradle.model.level2.IdeDependencies
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
@@ -68,7 +67,6 @@ import com.android.ide.common.gradle.model.stubs.ApiVersionStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeStub
 import com.android.ide.common.gradle.model.stubs.ClassFieldStub
-import com.android.ide.common.gradle.model.stubs.DependenciesStub
 import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.FilterDataStub
 import com.android.ide.common.gradle.model.stubs.GraphItemStub
@@ -243,7 +241,9 @@ class ModelSerializationTest {
 
   @Test
   fun androidArtifactOutput() =
-    assertSerializable { IdeAndroidArtifactOutput(AndroidArtifactOutputStub(), modelCache) }
+    assertSerializable {
+      IdeAndroidArtifactOutputImpl(AndroidArtifactOutputStub(), modelCache)
+    }
 
   @Test
   fun androidLibrary() =
@@ -266,7 +266,7 @@ class ModelSerializationTest {
 
   @Test
   fun buildType() =
-    assertSerializable { IdeBuildType(BuildTypeStub(), modelCache) }
+    assertSerializable { IdeBuildTypeImpl(BuildTypeStub(), modelCache) }
 
   @Test
   fun buildTypeContainer() =
@@ -342,7 +342,7 @@ class ModelSerializationTest {
 
   @Test
   fun productFlavor() =
-    assertSerializable { IdeProductFlavor(ProductFlavorStub(), modelCache) }
+    assertSerializable { IdeProductFlavorImpl(ProductFlavorStub(), modelCache) }
 
   @Test
   fun productFlavorContainer() =
