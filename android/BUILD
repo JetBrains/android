@@ -967,6 +967,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-android-aar/1.2.3:aar",
         "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-core/1.2.2:jar",
         "//prebuilts/tools/common/m2/repository/org/jdeferred/jdeferred-core/1.2.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/trove4j/1.0.20181211:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.3.70:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.3.72:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.4.10:jar",

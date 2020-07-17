@@ -29,6 +29,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Assert
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -93,6 +94,25 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     fixture.configureFromExistingVirtualFile(layoutFile)
 
     val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getLiveDataString",
+                                                                                                             false)[0].sourceElement!!
+    val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
+    assertThat(xmlStrValue.resolve()).isEqualTo(javaStrValue)
+  }
+
+  @Test
+  fun dbReferencesStateFlow() {
+    assumeTrue("StateFlow is only available in AndroidX projects", mode == DataBindingMode.ANDROIDX)
+
+    val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    fixture.configureFromExistingVirtualFile(layoutFile)
+
+    moveCaretToString("getStateFlowString")
+    // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
+    fixture.configureFromExistingVirtualFile(layoutFile)
+
+    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getStateFlowString",
                                                                                                              false)[0].sourceElement!!
     val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
     // If both of these are true, it means XML can reach Java and Java can reach XML

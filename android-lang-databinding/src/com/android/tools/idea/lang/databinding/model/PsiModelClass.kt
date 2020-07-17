@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.databinding.model
 
 import android.databinding.tool.util.StringUtils
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.utils.usLocaleCapitalize
@@ -189,30 +190,38 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       liveDataClass.isAssignableFrom(erasure())
     } ?: false
 
+  /**
+   * Returns true if this is a StateFlow
+   */
+  val isStateFlow
+    get() = psiClass.takeIf { mode == DataBindingMode.ANDROIDX }?.let { resolvedClass ->
+      val stateFlowClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(SdkConstants.CLASS_STATE_FLOW, resolvedClass)!!, mode)
+      stateFlowClass.isAssignableFrom(erasure())
+    } ?: false
 
   /**
-   * Returns the name of the simple getter method when this is an ObservableField or LiveData or
+   * Returns the name of the simple getter method when this is an observable type or
    * `null` for any other type
    */
   private val observableGetterName: String?
     get() = when {
       isObservableField -> "get"
-      isLiveData -> "getValue"
+      isLiveData || isStateFlow -> "getValue"
       else -> null
     }
 
   /**
    * Returns a type that this current type is wrapping. For example, if this type is a `LiveData&lt;String>`, then
-   * return `String`. If this type is not ObservableField or LiveData, then its own type is returned.
+   * return `String`. If this is not a type that wraps another type, then its own type is returned.
    *
    * This method can be useful, for example, to allow code completion to provide methods / fields for the
    * underlying type instead of the parent type itself.
    *
-   * see [isLiveData], [isObservableField]
+   * see [isLiveData], [isStateFlow], [isObservableField]
    */
   val unwrapped: PsiModelClass
     get() = observableGetterName?.let { name ->
-      // Find the return type of getter function from LiveData/ObservableField
+      // Find the return type of getter function from LiveData/StateFlow/ObservableField
       val getterTypeModelClass = getMethod(name, listOf(), MemberAccess.NON_STATICS_ONLY, allowProtected = false)?.returnType
                                  ?: return this
       // Recursively unwrap the getter type
