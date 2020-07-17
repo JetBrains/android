@@ -549,7 +549,8 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_sanity_unreliable",  # bug: b/159635974
+        "qa_sanity_unreliable",  # b/159635974
+        "qa_unreliable",  # b/159635974
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -613,6 +614,7 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_sanity",
         "qa_sanity_unreliable",  # b/160247726
+        "qa_unreliable",  # b/160247726
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
