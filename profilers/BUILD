@@ -5,12 +5,12 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
-    exclude = ["testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt"],
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
         "no_test_windows",
     ],
+    test_class = "com.android.tools.profilers.ProfilersTestSuite",
     test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -55,6 +55,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
