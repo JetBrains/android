@@ -27,32 +27,5 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(NativeSymbolizerTestSuite.class)  // a suite mustn't contain itself
 public class NativeSymbolizerTestSuite extends IdeaTestSuiteBase {
-  static {
-    try {
-      String lldbPrebuiltDir;
-      if (SystemInfo.isLinux) {
-        lldbPrebuiltDir = "prebuilts/tools/linux-x86_64/lldb";
-      }
-      else if (SystemInfo.isMac) {
-        lldbPrebuiltDir = "prebuilts/tools/darwin-x86_64/lldb";
-      }
-      else if (SystemInfo.isWindows) {
-        lldbPrebuiltDir = "prebuilts/tools/windows-x86_64/lldb";
-      }
-      else {
-        throw new RuntimeException("Platform not recognized: " + SystemInfo.OS_NAME);
-      }
 
-      // Point to lldb with a symlink.
-      Path targetPath = TestUtils.getWorkspaceFile(lldbPrebuiltDir).toPath();
-      Path linkName = Paths.get("tools/idea/bin/lldb");
-      Files.createDirectories(linkName.getParent());
-      Files.createSymbolicLink(linkName, targetPath);
-    }
-    catch (Throwable e) {
-      // See b/143359533 for why we are handling errors here
-      System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
-      e.printStackTrace();
-    }
-  }
 }
