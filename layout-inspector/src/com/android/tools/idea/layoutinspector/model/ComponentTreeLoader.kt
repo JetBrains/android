@@ -129,7 +129,7 @@ private class ComponentTreeLoaderImpl(
     }
     else {
       client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ComponentImageLoader(nodeMap, rootView, rootViewFromSkiaImage).loadImages()
+      ComponentImageLoader(nodeMap, rootViewFromSkiaImage).loadImages()
     }
   }
 
@@ -204,14 +204,8 @@ private class ComponentTreeLoaderImpl(
 }
 
 @VisibleForTesting
-class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, root: ViewNode, skiaRoot: SkiaViewNode) {
-  private val offset = root.bounds.location
+class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode) {
   private val nonImageSkiaNodes = skiaRoot.flatten().filter { it.image == null }.associateBy { it.id.toLong() }
-
-  init {
-    val skiaRootView = nonImageSkiaNodes[root.drawId]
-    offset.translate(-1 * (skiaRootView?.x ?: 0), -1 * (skiaRootView?.y ?: 0))
-  }
 
   fun loadImages() {
     for ((drawId, node) in nodeMap) {
