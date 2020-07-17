@@ -78,6 +78,7 @@ public interface GradlePropertyModel extends PsiElementHolder {
   TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
   TypeReference<Object> OBJECT_TYPE = new TypeReference<Object>() {};
   TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<ReferenceTo>() {};
+  TypeReference<InterpolatedText> INTERPOLATED_TEXT_TYPE = new TypeReference<InterpolatedText>() {};
 
   /**
    * Represents the type of the value stored by this property, or when a type can't be found
@@ -95,6 +96,8 @@ public interface GradlePropertyModel extends PsiElementHolder {
    *   <li>{@code NONE} - This property currently has no value, any call to {@link #getValue(TypeReference)} will return null.</>
    *   <li>{@code UNKNOWN} - No guarantees about the type of this element can be made}</li>
    *   <li>{@code CUSTOM} - Returned by subclasses, they should provide an alternate method to get the value.</li>
+   *   <li>{@code INTERPOLATED} - This property is a quoted text with interpolations. Pass {@link #INTERPOLATED} to
+   *                              {@link #getValue(TypeReference)}</li>
    * </ul>
    */
   enum ValueType {
@@ -108,6 +111,7 @@ public interface GradlePropertyModel extends PsiElementHolder {
     NONE,
     UNKNOWN,
     CUSTOM,
+    INTERPOLATED
   }
 
   /**
