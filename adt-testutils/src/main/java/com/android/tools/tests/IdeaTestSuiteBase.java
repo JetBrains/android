@@ -49,7 +49,9 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setProperties() {
-    System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
+    if (!isUnbundledBazelTestTarget()) {
+      System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
+    }
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().getPath());
@@ -185,5 +187,12 @@ public class IdeaTestSuiteBase {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /** @return true if the current Bazel test uses unbundled SDK. */
+  private static boolean isUnbundledBazelTestTarget() {
+    String classPath = System.getProperty("java.class.path", "");
+    return classPath.contains("/prebuilts/studio/intellij-sdk/") ||
+           classPath.contains("\\prebuilts\\studio\\intellij-sdk\\");
   }
 }
