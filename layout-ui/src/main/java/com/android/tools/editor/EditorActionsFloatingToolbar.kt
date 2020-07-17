@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionListener
@@ -155,13 +156,13 @@ abstract class EditorActionsFloatingToolbar(
     hiddenZoomLabelTimer = null
   }
 
-  override fun zoomChanged() {
+  override fun zoomChanged() = UIUtil.invokeLaterIfNeeded {
     zoomToolbars.forEach { it.updateActionsImmediately() }
     hiddenZoomLabelComponent?.isVisible = true
     hiddenZoomLabelTimer?.restart()
   }
 
-  override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
+  override fun panningChanged(adjustmentEvent: AdjustmentEvent?) = UIUtil.invokeLaterIfNeeded {
     otherToolbars.forEach { it.updateActionsImmediately() }
   }
 
