@@ -18,6 +18,7 @@ package com.android.tools.idea.lint;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.AndroidTvDetector;
+import com.android.tools.lint.checks.ChromeOsDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.util.AndroidBundle;
@@ -36,7 +37,7 @@ public class AndroidLintPermissionImpliesUnsupportedHardwareInspection extends A
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    String hardwareFeatureName = LintFix.getData(fixData, String.class);
+    String hardwareFeatureName = LintFix.getString(fixData, AndroidTvDetector.KEY_FEATURE_NAME, null);
     if (hardwareFeatureName != null) {
       return new LintIdeQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
     }

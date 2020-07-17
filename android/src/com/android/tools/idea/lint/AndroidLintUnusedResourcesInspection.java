@@ -42,7 +42,7 @@ public class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionB
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    String resource = LintFix.getData(fixData, String.class);
+    String resource = LintFix.getString(fixData, UnusedResourceDetector.KEY_RESOURCE_FIELD, null);
     if (resource != null) {
       String resourceUrl = "@" + resource.substring(2).replace('.', '/');
       return new LintIdeQuickFix[]{

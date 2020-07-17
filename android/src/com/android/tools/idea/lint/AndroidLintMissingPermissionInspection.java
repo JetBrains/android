@@ -28,6 +28,7 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.lint.checks.PermissionDetector;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.Lists;
@@ -57,6 +58,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,8 +87,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
                                          LintFix quickfixData) {
     if (quickfixData instanceof LintFix.DataMap) {
       LintFix.DataMap map = (LintFix.DataMap)quickfixData;
-      @SuppressWarnings("unchecked")
-      Set<String> names = (Set<String>)map.get(Set.class);
+
+      List<String> names = map.getStringList(PermissionDetector.KEY_MISSING_PERMISSIONS);
       if (names == null) {
         return super.getQuickFixes(startElement, endElement, message, quickfixData);
       }
@@ -96,9 +98,11 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         return super.getQuickFixes(startElement, endElement, message, quickfixData);
       }
 
-      Integer lastApplicableApi = map.get(Integer.class);
-      PermissionRequirement requirement = map.get(PermissionRequirement.class);
-      if (lastApplicableApi != null) {
+      int lastApplicableApi = map.getInt(PermissionDetector.KEY_LAST_API, -1);
+
+      String requirementString = map.getString(PermissionDetector.KEY_REQUIREMENT, null);
+      PermissionRequirement requirement = requirementString != null ? PermissionRequirement.deserialize(requirementString) : null;
+      if (lastApplicableApi != -1) {
         // [missing permissions: Set<String>, maxSdkVersion: Integer] :
         // Add quickfixes for the missing permissions
         List<LintIdeQuickFix> fixes = Lists.newArrayListWithExpectedSize(4);
@@ -225,11 +229,11 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
   private static class AddCheckPermissionFix extends DefaultLintQuickFix {
     private final AndroidFacet myFacet;
     private final PermissionRequirement myRequirement;
-    private final Set<String> myRevocablePermissions;
+    private final Collection<String> myRevocablePermissions;
     private final SmartPsiElementPointer<PsiElement> myCall;
 
     private AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiElement call,
-                                  @NotNull Set<String> revocablePermissions) {
+                                  @NotNull Collection<String> revocablePermissions) {
       super("Add permission check");
       myFacet = facet;
       myRequirement = requirement;

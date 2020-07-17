@@ -64,7 +64,7 @@ public class AndroidLintMissingSuperCallInspection extends AndroidLintInspection
           if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
             return;
           }
-          PsiMethod superMethod = LintFix.getData(fixData, PsiMethod.class);
+          PsiMethod superMethod = LintFix.getMethod(fixData, CallSuperDetector.KEY_METHOD);
           if (startElement.getLanguage() == JavaLanguage.INSTANCE) {
             PsiMethod method = PsiTreeUtil.getParentOfType(startElement, PsiMethod.class);
             if (method == null || method.isConstructor()) {

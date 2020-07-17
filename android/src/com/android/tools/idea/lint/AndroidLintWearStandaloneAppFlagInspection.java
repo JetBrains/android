@@ -20,7 +20,7 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.TAG_APPLICATION;
 import static com.android.SdkConstants.VALUE_TRUE;
-import static com.android.tools.lint.checks.WearStandaloneAppDetector.QFX_EXTRA_MISSING_META_DATA;
+import static com.android.tools.lint.checks.WearStandaloneAppDetector.KEY_QFX_EXTRA_MISSING_META_DATA;
 import static com.android.tools.lint.checks.WearStandaloneAppDetector.WEARABLE_STANDALONE_ATTR;
 import static com.android.tools.lint.checks.WearStandaloneAppDetector.WEAR_STANDALONE_APP_ISSUE;
 import static com.android.xml.AndroidManifest.NODE_APPLICATION;
@@ -50,8 +50,8 @@ public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspe
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    Integer id = LintFix.getData(fixData, Integer.class);
-    if (id != null && id == QFX_EXTRA_MISSING_META_DATA) {
+    boolean addMetadata = LintFix.getBoolean(fixData, KEY_QFX_EXTRA_MISSING_META_DATA, false);
+    if (addMetadata) {
       return new LintIdeQuickFix[]{
         new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'", true) {
           @Override
