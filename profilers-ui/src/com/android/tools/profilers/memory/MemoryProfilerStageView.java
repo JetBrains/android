@@ -169,7 +169,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
                                                  getStage().getTimeline(),
                                                  false);
 
-    myLayout = new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, this::makeLoadingPanel);
+    myLayout = new MemoryProfilerStageLayout(monitorUi, capturePanel, this::makeLoadingPanel);
     getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
 
     myHeapDumpLoadingPanel = getIdeComponents().createLoadingPanel(-1);
