@@ -24,7 +24,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -40,18 +39,20 @@ private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<Strin
 }
 
 @RunWith(Parameterized::class)
-class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
+class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}")
-    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
+    val namespaces = namespaceVariations
   }
 
-  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
+  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
-  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
+                                       composableAnnotationPackage = composableAnnotationPackage)
   private val fixture get() = projectRule.fixture
 
   @After
@@ -67,7 +68,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
     @Language("kotlin")
     val fileContent = """
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview
@@ -96,7 +97,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Preview
       @Composable
@@ -159,7 +160,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       class IntProvider: PreviewParameterProvider<Int> {
           override val values: Sequence<String> = sequenceOf(1, 2)
@@ -192,7 +193,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
     @Language("kotlin")
     val fileContent = """
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "top level preview")
@@ -266,7 +267,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
     @Language("kotlin")
     val fileContent = """
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "Preview 1", widthDp = 2001)
@@ -296,7 +297,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
     @Language("kotlin")
     val fileContent = """
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "Preview 1", heightDp = 2001)
@@ -326,7 +327,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
     @Language("kotlin")
     val fileContent = """
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001)
@@ -357,7 +358,7 @@ class InspectionsTest(libraryNamespace: ComposeLibraryNamespace) {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @$PREVIEW_TOOLING_PACKAGE.Preview

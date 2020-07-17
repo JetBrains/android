@@ -28,7 +28,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.After
@@ -62,18 +61,20 @@ private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
 @RunWith(Parameterized::class)
-class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNamespace) {
+class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}")
-    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
+    val namespaces = namespaceVariations
   }
 
-  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
+  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
-  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
+                                       composableAnnotationPackage = composableAnnotationPackage)
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
 
@@ -95,7 +96,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       """
         import $PREVIEW_TOOLING_PACKAGE.Devices
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
         @Preview
@@ -224,7 +225,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
         @$PREVIEW_TOOLING_PACKAGE.Preview
@@ -247,7 +248,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       // language=kotlin
       """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
         
         @Composable
         @Preview(name = "preview", apiLevel = 12)
@@ -281,7 +282,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       // language=kotlin
       """
         import com.android.notpreview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
         @Preview
@@ -312,7 +313,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Composable
@@ -349,7 +350,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
         import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
         @Preview
@@ -418,7 +419,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       // language=kotlin
       """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
         @Preview
@@ -470,7 +471,7 @@ class AnnotationFilePreviewElementFinderTest(libraryNamespace: ComposeLibraryNam
       // language=kotlin
       """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
         @Preview(name = "preview1", widthDp = 2)

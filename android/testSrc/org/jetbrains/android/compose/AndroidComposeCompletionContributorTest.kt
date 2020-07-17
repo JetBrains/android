@@ -35,7 +35,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
     StudioFlags.COMPOSE_COMPLETION_WEIGHER.override(true)
     (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    myFixture.stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
   }
 
   override fun tearDown() {

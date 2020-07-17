@@ -29,7 +29,6 @@ import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -43,7 +42,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
     StudioFlags.COMPOSE_PREVIEW.override(true)
     myFixture.stubComposableAnnotation()
-    myFixture.stubPreviewAnnotation(ComposeLibraryNamespace.ANDROIDX_UI)
+    myFixture.stubPreviewAnnotation()
 
     val file = myFixture.addFileToProject(
       "src/Test.kt",

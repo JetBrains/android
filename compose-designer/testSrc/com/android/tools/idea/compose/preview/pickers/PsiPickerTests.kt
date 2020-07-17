@@ -17,12 +17,12 @@ package com.android.tools.idea.compose.preview.pickers
 
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.application.ReadAction
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -37,18 +37,20 @@ private fun PreviewElement.annotationText(): String = ReadAction.compute<String,
 }
 
 @RunWith(Parameterized::class)
-class PsiPickerTests(libraryNamespace: ComposeLibraryNamespace) {
+class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}")
-    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
+    val namespaces = namespaceVariations
   }
 
-  private val PREVIEW_TOOLING_PACKAGE = libraryNamespace.previewPackage
+  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
+  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
-  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
+                                       composableAnnotationPackage = composableAnnotationPackage)
   private val fixture get() = projectRule.fixture
   private val project get() = projectRule.project
 
@@ -56,7 +58,7 @@ class PsiPickerTests(libraryNamespace: ComposeLibraryNamespace) {
   fun `the psi model reads the preview annotation correctly`() {
     @Language("kotlin")
     val fileContent = """
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
       import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
@@ -107,7 +109,7 @@ class PsiPickerTests(libraryNamespace: ComposeLibraryNamespace) {
   fun `updating model updates the psi correctly`() {
     @Language("kotlin")
     val fileContent = """
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
       import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable

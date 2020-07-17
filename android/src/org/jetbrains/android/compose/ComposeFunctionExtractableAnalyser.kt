@@ -32,7 +32,7 @@ class ComposableFunctionExtractableAnalyser : AdditionalExtractableAnalyser {
     val sourceFunction = descriptor.extractionData.targetSibling
     if (sourceFunction is KtAnnotated) {
       val annotationDescriptors = sourceFunction.annotationEntries.mapNotNull { bindingContext.get(BindingContext.ANNOTATION, it) }
-      val composableAnnotation = annotationDescriptors.find { it.fqName?.asString() == COMPOSABLE_FQ_NAME } ?: return descriptor
+      val composableAnnotation = annotationDescriptors.find { COMPOSABLE_FQ_NAMES.contains(it.fqName?.asString())  } ?: return descriptor
       return descriptor.copy(annotations = descriptor.annotations + composableAnnotation)
     }
 

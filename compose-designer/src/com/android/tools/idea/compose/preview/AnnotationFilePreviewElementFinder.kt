@@ -35,7 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAME
+import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
 import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.android.compose.findComposeLibraryNamespace
@@ -173,7 +173,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
             }
 
             // The method must also be annotated with @Composable
-            if (it.uAnnotations.any { annotation -> COMPOSABLE_FQ_NAME == annotation.qualifiedName }) {
+            if (it.uAnnotations.any { annotation -> COMPOSABLE_FQ_NAMES.contains(annotation.qualifiedName) }) {
               visitPreviewAnnotation(node, it)
             }
           }

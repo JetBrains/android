@@ -17,24 +17,24 @@ package org.jetbrains.android.compose
 
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-fun CodeInsightTestFixture.stubComposableAnnotation() {
+fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose") {
   addFileToProject(
     "src/androidx/compose/Composable.kt",
     // language=kotlin
     """
-    package androidx.compose
+    package $composableAnnotationPackage
 
     annotation class Composable
     """.trimIndent()
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation(namespace: ComposeLibraryNamespace) {
+fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.ui.tooling.preview") {
   addFileToProject(
     "src/com/android/tools/preview/Preview.kt",
     // language=kotlin
     """
-    package ${namespace.packageName}.tooling.preview
+    package $previewAnnotationPackage
 
     import kotlin.reflect.KClass
 

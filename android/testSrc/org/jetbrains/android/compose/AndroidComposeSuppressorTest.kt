@@ -33,7 +33,7 @@ class AndroidComposeSuppressorTest : AndroidTestCase() {
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
     enableInspections(FunctionNameInspection::class.java)
-    stubComposableAnnotation()
+    stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
 
     val file = addFileToProject(
       "src/com/example/views.kt",
