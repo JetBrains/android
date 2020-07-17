@@ -194,6 +194,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @SurfaceScale private double myMaxFitIntoScale = Double.MAX_VALUE;
 
+  /**
+   * When surface is opened at first time, it zoom-to-fit the content to make the previews fit the initial window size.
+   * After that it leave user to control the zoom. This flag indicates if the initial zoom-to-fit is done or not.
+   */
+  private boolean myIsInitialZoomLevelDetermined = false;
+
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
     repaint();
   });
@@ -304,16 +310,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     add(myLayeredPane);
 
     // TODO: Do this as part of the layout/validate operation instead
-    // Add a one shot listener which scales the size of content when DesignSurface becomes visibile.
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED && isShowing() && getWidth() > 0 && getHeight() > 0) {
-          // Zoom to fit to decide the initial content size.
-          zoomToFit();
+        if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED) {
+          if (!myIsInitialZoomLevelDetermined && isShowing() && getWidth() > 0 && getHeight() > 0) {
+            // Zoom-to-fit as default size of content when DesignSurface becomes visible at first time.
+            zoomToFit();
 
-          // The one shot scaling is done, remove this listener.
-          removeComponentListener(this);
+            // The default size is defined, enable the flag.
+            myIsInitialZoomLevelDetermined = true;
+          }
+          // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
+          getSceneManagers().forEach(manager -> {
+            Scene scene = manager.getScene();
+            scene.needsRebuildList();
+          });
+          repaint();
         }
       }
     });
