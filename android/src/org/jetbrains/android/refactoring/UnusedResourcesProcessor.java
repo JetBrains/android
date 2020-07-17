@@ -189,7 +189,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                     List<LintProblemData> lintProblems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
                     if (problems != null) {
                       for (LintProblemData problem : lintProblems) {
-                        String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
+                        String unusedResource = LintFix.getString(problem.getQuickfixData(), UnusedResourceDetector.KEY_RESOURCE_FIELD, null);
                         if (unusedResource != null && unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
                           if (resValue.getModel().getPsiElement() != null) {
                             elements.add(resValue.getModel().getPsiElement());
@@ -304,7 +304,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     if (myFilter != null) {
       List<LintProblemData> problems = fileListMap.get(file);
       for (LintProblemData problem : problems) {
-        String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
+        String unusedResource = LintFix.getString(problem.getQuickfixData(), UnusedResourceDetector.KEY_RESOURCE_FIELD, null);
         if (myFilter.equals(unusedResource)) {
           return true;
         }
@@ -315,7 +315,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   private boolean matchesFilter(@NotNull LintProblemData problem) {
-    return myFilter == null || myFilter.equals(LintFix.getData(problem.getQuickfixData(), String.class));
+    return myFilter == null || myFilter.equals(LintFix.getString(problem.getQuickfixData(), UnusedResourceDetector.KEY_RESOURCE_FIELD, null));
   }
 
   @SuppressWarnings("SpellCheckingInspection")

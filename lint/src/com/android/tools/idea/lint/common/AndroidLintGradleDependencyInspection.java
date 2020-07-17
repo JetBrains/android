@@ -45,8 +45,8 @@ public class AndroidLintGradleDependencyInspection extends AndroidLintInspection
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    Class<?> detector = LintFix.getData(fixData, Class.class);
-    if (Objects.equals(detector, ConstraintLayoutDetector.class)) {
+    boolean updateConstraintLayout = LintFix.getBoolean(fixData, ConstraintLayoutDetector.KEY_UPGRADE_CONSTRAINT_LAYOUT, false);
+    if (updateConstraintLayout) {
       // Is this an upgrade message from the ConstraintLayoutDetector instead?
       return new LintIdeQuickFix[]{new UpgradeConstraintLayoutFix()};
     }

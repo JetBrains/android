@@ -40,7 +40,7 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    PsiMethod method = LintFix.getData(fixData, PsiMethod.class);
+    PsiMethod method = LintFix.getMethod(fixData, ObjectAnimatorDetector.KEY_METHOD);
     if (method instanceof KtLightMethod) {
       KtNamedFunction fun = PsiTreeUtil.getParentOfType(startElement, KtNamedFunction.class, false);
       if (fun == null || !Objects.equals(fun.getName(), method.getName())) {

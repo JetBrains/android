@@ -71,8 +71,11 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
                                          @Nullable LintFix fixData) {
     if (fixData instanceof LintFix.DataMap) {
       LintFix.DataMap map = (LintFix.DataMap)fixData;
+      Boolean constant = null;
+      if (map.hasKey(ApiDetector.KEY_CONDITIONAL)) {
+        constant = LintFix.getBoolean(fixData, ApiDetector.KEY_CONDITIONAL, false);
+      }
 
-      Boolean constant = map.get(Boolean.class);
       if (constant != null) {
         PsiBinaryExpression subExpression = PsiTreeUtil.getParentOfType(startElement, PsiBinaryExpression.class, false);
         if (subExpression != null) {
@@ -86,11 +89,11 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       }
       else {
         // Merge resource folder
-        File file = map.get(File.class);
-        AndroidVersion minSdkVersion = map.get(AndroidVersion.class);
-        String destFolder = map.get(String.class);
-
-        if (file != null && destFolder != null && minSdkVersion != null) {
+        File file = map.getFile(ApiDetector.KEY_FILE, null);
+        String destFolder = map.getString(ApiDetector.KEY_FOLDER_NAME, null);
+        int api = map.getInt(ApiDetector.KEY_REQUIRES_API, -1);
+        if (file != null && destFolder != null && api != -1) {
+          AndroidVersion minSdkVersion = new AndroidVersion(api);
           AndroidFacet facet = AndroidFacet.getInstance(startElement);
           VirtualFile dir = StandardFileSystems.local().findFileByPath(file.getPath());
           if (facet != null && dir != null) {

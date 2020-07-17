@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
 
+import com.android.tools.lint.checks.CheckResultDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    String suggested = LintFix.getData(fixData, String.class);
+    String suggested = LintFix.getString(fixData, CheckResultDetector.KEY_SUGGESTION, null);
     if (suggested != null) {
       return new LintIdeQuickFix[]{new ReplaceCallFix(suggested)};
     }
