@@ -77,7 +77,7 @@ public class APIVersion implements Comparable<APIVersion> {
       Logger.getInstance(APIVersion.class).warn("GradleVersion is null in project: " + project);
       return API_VERSION_1;
     }
-    if (gradleVersion.compareTo(API_VERSION_2.myGradleVersion) >= 0) {
+    if (gradleVersion.compareIgnoringQualifiers(API_VERSION_2.myGradleVersion) >= 0) {
       return API_VERSION_2;
     }
     else {
@@ -96,6 +96,6 @@ public class APIVersion implements Comparable<APIVersion> {
 
   @Override
   public int compareTo(@NotNull APIVersion o) {
-    return myGradleVersion.compareTo(o.myGradleVersion);
+    return myGradleVersion.compareIgnoringQualifiers(o.myGradleVersion);
   }
 }

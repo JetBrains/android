@@ -23,6 +23,7 @@ import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
+import com.android.tools.mlkit.TensorGroupInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
@@ -117,13 +118,16 @@ public class LightModelClass extends AndroidLightClassBase {
           methods.addAll(buildNewInstanceStaticMethods());
 
           // Builds inner Outputs class.
-          LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
+          LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo, this);
           innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
         }
 
         if(myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_2)) {
           // Generated API added in version 2.
-          // TODO(b/155690627): Add object detection related API here.
+          for (TensorGroupInfo tensorGroupInfo : modelInfo.getOutputTensorGroups()) {
+            LightModelGroupClass mlkitGroupClass = new LightModelGroupClass(module, modelInfo.getOutputs(), tensorGroupInfo, this);
+            innerClassMap.putIfAbsent(mlkitGroupClass.getName(), mlkitGroupClass);
+          }
         }
 
         MyClassMembers data =

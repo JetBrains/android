@@ -125,6 +125,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
     myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/sub/mobilenet_model.tflite");
     myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
+    myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/ssd_model_v2.tflite");
     VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
     FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
@@ -136,6 +137,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
+      "import android.graphics.RectF;\n" +
       "import java.lang.String;\n" +
       "import java.lang.Float;\n" +
       "import java.util.Map;\n" +
@@ -148,6 +150,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "import p1.p2.ml.MobilenetModel;\n" +
       "import p1.p2.ml.MobilenetModel219;\n" +
       "import p1.p2.ml.SsdModel;\n" +
+      "import p1.p2.ml.SsdModelV2;\n" +
       "import p1.p2.ml.StyleTransferModel;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
@@ -179,6 +182,20 @@ public class MlLightClassTest extends AndroidTestCase {
       "            TensorBuffer classes = ssdOutputs.getClassesAsTensorBuffer();\n" +
       "            TensorBuffer scores = ssdOutputs.getScoresAsTensorBuffer();\n" +
       "            TensorBuffer numberofdetections = ssdOutputs.getNumberOfDetectionsAsTensorBuffer();\n" +
+      "            ssdModel.close();\n" +
+      "\n" +
+      "            SsdModelV2 ssdModelV2 = SsdModelV2.newInstance(this);\n" +
+      "            SsdModelV2.Outputs ssdOutputsV2 = ssdModelV2.process(image);\n" +
+      "            ssdOutputsV2 = ssdModelV2.process(buffer);\n" +
+      "            TensorBuffer locationsV2 = ssdOutputsV2.getLocationsAsTensorBuffer();\n" +
+      "            TensorBuffer classesV2 = ssdOutputsV2.getClassesAsTensorBuffer();\n" +
+      "            TensorBuffer scoresV2 = ssdOutputsV2.getScoresAsTensorBuffer();\n" +
+      "            TensorBuffer numberofdetectionsV2 = ssdOutputsV2.getNumberOfDetectionsAsTensorBuffer();\n" +
+      "            List<SsdModelV2.DetectionResult> results = ssdOutputsV2.getDetectionResultList();\n" +
+      "            SsdModelV2.DetectionResult result = results.get(0);\n" +
+      "            String label = result.getClassesAsString();\n" +
+      "            RectF boundingBox = result.getLocationsAsRectF();\n" +
+      "            float score = result.getScoresAsFloat();\n" +
       "            ssdModel.close();\n" +
       "\n" +
       "            TensorBuffer stylearray = null;\n" +
@@ -339,6 +356,7 @@ public class MlLightClassTest extends AndroidTestCase {
   public void testHighlighting_kotlin() {
     myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
     myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
+    myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/ssd_model_v2.tflite");
     VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
     FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
@@ -350,6 +368,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity\n" +
       "import android.os.Bundle\n" +
+      "import android.graphics.RectF\n" +
       "import android.util.Log\n" +
       "import kotlin.collections.List\n" +
       "import org.tensorflow.lite.support.image.TensorImage\n" +
@@ -358,10 +377,11 @@ public class MlLightClassTest extends AndroidTestCase {
       "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer\n" +
       "import p1.p2.ml.MobilenetModel\n" +
       "import p1.p2.ml.SsdModel\n" +
+      "import p1.p2.ml.SsdModelV2\n" +
       "import p1.p2.ml.StyleTransferModel\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
-      "    @Suppress(\"DEPRECATION\")" +
+      "    @Suppress(\"DEPRECATION\", \"UNUSED_VARIABLE\")" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
       "        val options = Model.Options()\n" +
@@ -374,7 +394,6 @@ public class MlLightClassTest extends AndroidTestCase {
       "        val probability : List<Category> = mobilenetOutputs.probabilityAsCategoryList\n" +
       "        val probabilityBuffer : TensorBuffer = mobilenetOutputs.probabilityAsTensorBuffer\n" +
       "        mobilenetModel.close()\n" +
-      "        Log.d(\"TAG\", \"Result\" + probability + probabilityBuffer + mobilenetOutputs2)\n" +
       "\n" +
       "        val ssdModel : SsdModel = SsdModel.newInstance(this, options)\n" +
       "        val ssdOutputs : SsdModel.Outputs = ssdModel.process(tensorImage)\n" +
@@ -384,7 +403,20 @@ public class MlLightClassTest extends AndroidTestCase {
       "        val scores : TensorBuffer = ssdOutputs.scoresAsTensorBuffer\n" +
       "        val numberofdetections : TensorBuffer = ssdOutputs.numberOfDetectionsAsTensorBuffer\n" +
       "        ssdModel.close()\n" +
-      "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections + ssdOutputs2)\n" +
+      "\n" +
+      "        val ssdModelV2: SsdModelV2 = SsdModelV2.newInstance(this);\n" +
+      "        val ssdOutputsV2: SsdModelV2.Outputs = ssdModelV2.process(tensorImage);\n" +
+      "        val ssdOutputsFromBuffer: SsdModelV2.Outputs = ssdModelV2.process(tensorBuffer);\n" +
+      "        val locationsV2: TensorBuffer  = ssdOutputsV2.getLocationsAsTensorBuffer();\n" +
+      "        val classesV2: TensorBuffer = ssdOutputsV2.getClassesAsTensorBuffer();\n" +
+      "        val scoresV2: TensorBuffer = ssdOutputsV2.getScoresAsTensorBuffer();\n" +
+      "        val numberofdetectionsV2: TensorBuffer  = ssdOutputsV2.getNumberOfDetectionsAsTensorBuffer();\n" +
+      "        val results:List<SsdModelV2.DetectionResult> = ssdOutputsV2.getDetectionResultList();\n" +
+      "        val result: SsdModelV2.DetectionResult = results.get(0);\n" +
+      "        val label: String = result.getClassesAsString();\n" +
+      "        val boundingBox: RectF = result.getLocationsAsRectF();\n" +
+      "        val score = result.getScoresAsFloat();\n" +
+      "        ssdModel.close();\n" +
       "\n" +
       "        val styleTransferModel : StyleTransferModel = StyleTransferModel.newInstance(this, options)\n" +
       "        val styleTransferOutputs : StyleTransferModel.Outputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
@@ -392,7 +424,6 @@ public class MlLightClassTest extends AndroidTestCase {
       "        val styledImage : TensorImage = styleTransferOutputs.styledImageAsTensorImage\n" +
       "        val styledImageBuffer : TensorBuffer = styleTransferOutputs.styledImageAsTensorBuffer\n" +
       "        styleTransferModel.close()\n" +
-      "        Log.d(\"TAG\", \"Result\" + styledImage + styledImageBuffer + styleTransferOutputs2)\n" +
       "    }\n" +
       "}"
     );
