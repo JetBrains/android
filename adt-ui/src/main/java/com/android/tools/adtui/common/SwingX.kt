@@ -15,6 +15,9 @@
  */
 package com.android.tools.adtui.common
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Represents an x position in swing space
  * Corresponds to the [SwingCoordinate] attribute
@@ -29,3 +32,5 @@ inline class SwingX(val value: Float) {
 }
 
 fun interpolate(start: SwingX, end: SwingX, fraction: Float) = start + (end - start) * fraction
+fun max(a: SwingX, b: SwingX) = SwingX(max(a.value, b.value))
+fun min(a: SwingX, b: SwingX) = SwingX(min(a.value, b.value))

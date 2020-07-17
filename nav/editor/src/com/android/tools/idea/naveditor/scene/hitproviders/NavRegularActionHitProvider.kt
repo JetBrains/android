@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.hitproviders
 
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
@@ -26,6 +27,8 @@ import com.android.tools.idea.naveditor.model.effectiveDestinationId
 import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import java.awt.Rectangle
+
+private const val STEPS = 30
 
 object NavRegularActionHitProvider : NavActionHitProviderBase() {
   override fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
@@ -51,6 +54,27 @@ object NavRegularActionHitProvider : NavActionHitProviderBase() {
     return destination.inlineDrawRect(sceneTransform)
   }
 
-  // TODO (b/148756121): Implement this
-  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean = false
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean {
+    val source = sourceRectangle(component, sceneTransform) ?: return false
+    val destination = destinationRectangle(component, sceneTransform) ?: return false
+
+    // Check whether the bounding box of the curve intersects the lasso rectangle
+    val bounds = SwingRectangle(Coordinates.getSwingRectDip(sceneTransform, rectangle))
+    val points = getCurvePoints(source, destination, sceneTransform.inlineScale)
+    if (!points.bounds().intersects(bounds)) {
+      return false
+    }
+
+    // Walk along the curve and check whether the current point is inside the lasso rectangle
+    var t = 0f
+    while (t <= 1f) {
+      if (bounds.contains(points.curvePoint(t))) {
+        return true
+      }
+
+      t += 1f / STEPS
+    }
+
+    return false
+  }
 }
