@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,8 +54,6 @@ public class EmbeddedDistributionPaths {
   @NotNull
   static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
     List<File> repoPaths = new ArrayList<>();
-    // Repo path candidates, the path should be relative to tools/idea.
-    List<String> repoCandidates = new ArrayList<>();
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
@@ -64,19 +63,26 @@ public class EmbeddedDistributionPaths {
       }
       repoPaths.add(customRepoPath);
     }
-    else {
-      repoCandidates.add("/../../out/repo");
-    }
 
-    // Add locally published offline studio repo
-    repoCandidates.add("/../../out/studio/repo");
-    // Add prebuilts repo.
-    repoCandidates.add("/../../prebuilts/tools/common/m2/repository");
+    if (StudioPathManager.isRunningFromSources()) {
+      // Repo path candidates, the path should be relative to tools/idea.
+      List<String> repoCandidates = new ArrayList<>();
 
-    for (String candidate : repoCandidates) {
-      File offlineRepo = new File(toCanonicalPath(PathManager.getHomePath() + toSystemDependentName(candidate)));
-      if (offlineRepo.isDirectory()) {
-        repoPaths.add(offlineRepo);
+      if (studioCustomRepo == null) {
+        repoCandidates.add("out/repo");
+      }
+
+      // Add locally published offline studio repo
+      repoCandidates.add("out/studio/repo");
+      // Add prebuilts repo.
+      repoCandidates.add("prebuilts/tools/common/m2/repository");
+
+      String sourcesRoot = StudioPathManager.getSourcesRoot();
+      for (String candidate : repoCandidates) {
+        File offlineRepo = new File(toCanonicalPath(Paths.get(sourcesRoot, candidate).toString()));
+        if (offlineRepo.isDirectory()) {
+          repoPaths.add(offlineRepo);
+        }
       }
     }
 
