@@ -32,6 +32,7 @@ fun ResolvedPropertyModel.asAny(): Any? = when (valueType) {
   ValueType.LIST -> getValue(GradlePropertyModel.LIST_TYPE)?.map { it.resolve().getParsedValue { asAny() }.value }
   ValueType.MAP -> getValue(GradlePropertyModel.MAP_TYPE)?.mapValues { it.value.resolve().getParsedValue { asAny() }.value }
 
+  ValueType.INTERPOLATED,
   ValueType.REFERENCE,
   ValueType.CUSTOM,
   ValueType.NONE,
