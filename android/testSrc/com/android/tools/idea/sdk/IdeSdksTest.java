@@ -226,11 +226,11 @@ public class IdeSdksTest extends PlatformTestCase {
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
   }
 
-  public void testJdkEnvVariableNoDefined() {
+  public void testJdkEnvVariableNotDefined() {
     myIdeSdks.initializeJdkEnvVariable(null);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isFalse();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
-    assertThat(myIdeSdks.getEnvVariableJdk()).isNull();
+    assertThat(myIdeSdks.getEnvVariableJdkFile()).isNull();
     assertThat(myIdeSdks.getEnvVariableJdkValue()).isNull();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isFalse();
@@ -242,7 +242,7 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeSdks.initializeJdkEnvVariable(invalidPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isFalse();
-    assertThat(myIdeSdks.getEnvVariableJdk()).isNull();
+    assertThat(myIdeSdks.getEnvVariableJdkFile()).isNull();
     assertThat(myIdeSdks.getEnvVariableJdkValue()).isEqualTo(invalidPath);
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isFalse();
@@ -254,13 +254,14 @@ public class IdeSdksTest extends PlatformTestCase {
     myIdeSdks.initializeJdkEnvVariable(validPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isTrue();
-    assertThat(myIdeSdks.getEnvVariableJdk()).isEqualTo(new File(validPath));
+    assertThat(myIdeSdks.getEnvVariableJdkFile()).isEqualTo(new File(validPath));
     assertThat(myIdeSdks.getEnvVariableJdkValue()).isEqualTo(validPath);
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
     assertThat(myIdeSdks.setUseEnvVariableJdk(false)).isTrue();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isTrue();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
+    assertThat(toSystemDependentName(myIdeSdks.getJdk().getHomePath())).isEqualTo(toSystemDependentName(validPath));
   }
 
   private void setupSdkData(ImmutableList<LocalPackage> localPackages) {
