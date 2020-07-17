@@ -27,6 +27,7 @@ import com.intellij.ide.projectView.impl.GroupByTypeComparator
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
+import com.intellij.idea.Bombed
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
@@ -87,6 +88,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  @Bombed(year = 2021, month = 4, day = 6, user = "andrei.kuznetsov", description = "Bomb slow muted tests in IDEA to speed up")
   fun testWithBuildSrc() {
     val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
     assertIsEqualToSnapshot(text)

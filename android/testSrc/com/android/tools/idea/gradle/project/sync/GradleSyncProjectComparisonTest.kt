@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.*
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.TestProjectPaths.*
 import com.google.common.truth.Truth.assertAbout
+import com.intellij.idea.Bombed
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
@@ -132,6 +133,7 @@ abstract class GradleSyncProjectComparisonTest(
       assertIsEqualToSnapshot(text)
     }
 
+    @Bombed(year = 2021, month = 4, day = 6, user = "andrei.kuznetsov", description = "Bomb slow muted tests in IDEA to speed up")
     fun testSyncWithKotlinDsl() {
       val text = importSyncAndDumpProject(KOTLIN_GRADLE_DSL)
       assertIsEqualToSnapshot(text)
@@ -286,6 +288,7 @@ abstract class GradleSyncProjectComparisonTest(
       assertIsEqualToSnapshot(text)
     }
 
+    @Bombed(year = 2021, month = 4, day = 6, user = "andrei.kuznetsov", description = "Bomb slow muted tests in IDEA to speed up")
     fun testWithBuildSrc() {
       val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
       assertIsEqualToSnapshot(text)
