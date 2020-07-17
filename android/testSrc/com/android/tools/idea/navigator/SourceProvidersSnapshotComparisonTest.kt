@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.utils.FileUtils
 import com.intellij.ide.impl.ProjectUtil
+import com.intellij.idea.Bombed
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
@@ -77,6 +78,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  @Bombed(year = 2021, month = 4, day = 6, user = "andrei.kuznetsov", description = "Bomb slow muted tests in IDEA to speed up")
   fun testWithBuildSrc() {
     val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
     assertIsEqualToSnapshot(text)
