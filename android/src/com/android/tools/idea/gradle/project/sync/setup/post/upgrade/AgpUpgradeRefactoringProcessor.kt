@@ -263,7 +263,7 @@ enum class AgpUpgradeComponentNecessity {
 // of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
 // a need for chained upgrades in the future, where each individual refactoring processor would run independently.
-abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
+sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
   val current: GradleVersion
   val new: GradleVersion
   private var _isEnabled: Boolean? = null
