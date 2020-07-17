@@ -179,4 +179,44 @@ class LightDirectionsClassTest {
       )
     }
   }
+
+  @Test
+  fun testIncludedNavigationCase() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+          <include app:graph="@navigation/included_graph" />
+          <fragment
+              android:id="@+id/fragment2"
+              android:name="test.safeargs.Fragment2"
+              android:label="Fragment2" >
+
+              <action
+                  android:id="@+id/action_Fragment2_to_IncludedGraph"
+                  app:destination="@id/included_graph" />                  
+          </fragment>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
+
+    // Class can be found with context
+    val fragment2Directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
+
+    // Check method
+    fragment2Directions.findMethodsByName("actionFragment2ToIncludedGraph").first().let { action ->
+      (action as PsiMethod).checkSignaturesAndReturnType(
+        name = "actionFragment2ToIncludedGraph",
+        returnType = "NavDirections"
+      )
+    }
+  }
 }

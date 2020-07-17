@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
 import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
@@ -62,10 +61,17 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  *  <navigation>
  *    <fragment id="@+id/mainMenu">
- *      <action id="@+id/actionToOptions" />
- *      <destination="@id/options" />
+ *      <action id="@+id/actionToOptions"
+ *        destination="@id/options" />
+ *      <argument
+ *        android:name="message"
+ *        app:argType="string" />
  *    </fragment>
+ *
  *    <fragment id="@+id/options">
+ *      <action id="@+id/actionToMainMenu"
+ *        destination="@id/mainMenu"/>
+ *     </fragment>
  *  </navigation>
  * ```
  *
@@ -77,6 +83,13 @@ import org.jetbrains.kotlin.utils.Printer
  *        fun actionMainMenuToOptions(): NavDirections
  *    }
  *  }
+ *
+ *   class OptionsDirections {
+ *    companion object {
+ *        fun actionToMainMenu(message: String): NavDirections
+ *    }
+ *  }
+ *
  * ```
  */
 class LightDirectionsKtClass(
@@ -120,14 +133,14 @@ class LightDirectionsKtClass(
           destination.actions
             .asSequence()
             .mapNotNull { action ->
-              val targetDestination = navResourceData.root.allDestinations.firstOrNull { it.id == action.resolveDestination() }
-                                      ?: return@mapNotNull null
-
+              val destinationId = action.resolveDestination() ?: return@mapNotNull null
+              val argsFromTargetDestination = navResourceData.root.allDestinations.firstOrNull { it.id == destinationId }?.arguments
+                                              ?: emptyList()
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
                 var index = 0
 
                 // To support a destination argument being overridden in an action
-                (action.arguments + targetDestination.arguments)
+                (action.arguments + argsFromTargetDestination)
                   .groupBy { it.name }
                   .map { entry ->
                     // Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
@@ -170,7 +183,8 @@ class LightDirectionsKtClass(
             .asSequence()
             .map { arg ->
               val modulePackageName = directionsClassDescriptor.module.fqNameSafe.toString()
-              getPsiTypeStr(modulePackageName, arg.type, arg.defaultValue) }
+              getPsiTypeStr(modulePackageName, arg.type, arg.defaultValue)
+            }
             .toSet()
 
           if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}.")

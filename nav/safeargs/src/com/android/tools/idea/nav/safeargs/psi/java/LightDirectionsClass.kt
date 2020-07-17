@@ -41,15 +41,16 @@ import org.jetbrains.android.facet.AndroidFacet
  * ```
  *  <navigation>
  *    <fragment id="@+id/mainMenu">
- *      <action id="@+id/actionToOptions" />
- *    <argument
+ *      <action id="@+id/actionToOptions"
+ *        destination="@id/options" />
+ *      <argument
  *        android:name="message"
  *        app:argType="string" />
- *
- *      <destination="@id/options" />
  *    </fragment>
+ *
  *    <fragment id="@+id/options">
- *      <action id="@+id/actionToMainMenu" />
+ *      <action id="@+id/actionToMainMenu"
+ *        destination="@id/mainMenu"/>
  *     </fragment>
  *  </navigation>
  * ```
@@ -62,7 +63,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *  }
  *
  *  class OptionsDirections {
- *    static ActionToMainMenu actionToOptions(String message);
+ *    static OptionsDirections.ActionToMainMenu actionToMainMenu(String message);
  *
  *    static class ActionToMainMenu implements NavDirections {
  *      String getMessage();
@@ -143,10 +144,11 @@ class LightDirectionsClass(private val facet: AndroidFacet,
   private fun computeActionsWithResolvedArguments(): List<NavActionData> {
     return destination.actions
       .mapNotNull { action ->
-        val targetDestination = data.root.allDestinations.firstOrNull { it.id == action.resolveDestination() }
-                                ?: return@mapNotNull null
+        val destinationId = action.resolveDestination() ?: return@mapNotNull null
+        val argsFromTargetDestination = data.root.allDestinations.firstOrNull { it.id == destinationId }?.arguments
+                                        ?: emptyList()
         // To support a destination argument being overridden in an action
-        val resolvedArguments = (action.arguments + targetDestination.arguments)
+        val resolvedArguments = (action.arguments + argsFromTargetDestination)
           .groupBy { it.name }
           .map { entry ->
             // Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
