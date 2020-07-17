@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.naveditor.scene.hitproviders
 
+import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.Coordinates.getSwingRectDip
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
@@ -43,6 +45,54 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
     return getSelfActionIconRect(points[0], scale)
   }
 
-  // TODO (b/148756121): Implement this
-  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean = false
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean {
+    val source = sourceRectangle(component, sceneTransform) ?: return false
+    val points = selfActionPoints(source, sceneTransform.inlineScale)
+    val bounds = SwingRectangle(getSwingRectDip(sceneTransform, rectangle))
+
+    // Check whether any of the corners of the select action lie within the selection rectangle
+    if (points.any { bounds.contains(it) }) {
+      return true
+    }
+
+    val corners = arrayOf(SwingPoint(bounds.x, bounds.y),
+                          SwingPoint(bounds.x + bounds.width, bounds.y),
+                          SwingPoint(bounds.x + bounds.width, bounds.y + bounds.height),
+                          SwingPoint(bounds.x, bounds.y + bounds.height),
+                          SwingPoint(bounds.x, bounds.y))
+
+    // Check whether any of the line segments making up the self action cross
+    // any line segments making up the selection rectangle
+    for (i in 0 until points.size - 1) {
+      for (j in 0 until corners.size - 1) {
+        if (intersects(points[i], points[i + 1], corners[j], corners[j + 1]))
+          return true
+      }
+    }
+
+    return false
+  }
+
+  /*
+    Calculates whether the segment from p1 to p2 intersects the segment from p3 to p4
+    Segment 1: p1 + (p2 - p1) * t1, 0 < t1 < 1
+    Segment 2: p3 + (p4 - p3) * t2, 0 < t2 < 1
+    Solve for t1 and and t2 and verify that each is between zero and one.
+   */
+  private fun intersects(p1: SwingPoint, p2: SwingPoint, p3: SwingPoint, p4: SwingPoint): Boolean {
+    val a = (p2.x - p1.x).value
+    val b = (p3.x - p4.x).value
+    val c = (p3.x - p1.x).value
+    val d = (p2.y - p1.y).value
+    val e = (p3.y - p4.y).value
+    val f = (p3.y - p1.y).value
+
+    val det = a * e - b * d
+    if (det < 0.001) {
+      return false
+    }
+
+    return (c * e - b * f) / det in 0.0..1.0 &&
+           (a * f - c * d) / det in 0.0..1.0
+  }
 }

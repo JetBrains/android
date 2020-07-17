@@ -23,6 +23,7 @@ inline class SwingX(val value: Float) {
   operator fun plus(rhs: SwingLength) = SwingX(value + rhs.value)
   operator fun minus(rhs: SwingLength) = SwingX(value - rhs.value)
   operator fun minus(rhs: SwingX) = SwingLength(value - rhs.value)
+  operator fun compareTo(rhs: SwingX) = value.compareTo(rhs.value)
   fun toInt() = value.toInt()
   fun toDouble() = value.toDouble()
 }
