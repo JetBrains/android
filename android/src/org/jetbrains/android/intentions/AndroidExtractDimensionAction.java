@@ -16,10 +16,11 @@
 package org.jetbrains.android.intentions;
 
 import com.android.resources.ResourceType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,7 @@ public class AndroidExtractDimensionAction extends AndroidAddStringResourceActio
     // (which is used in most APIs) to a dimension, since we shouldn't put px resources
     // into resource files; they should be dips, but of course the pixel to dp depends
     // on the screen dpi.
-    if (file.getFileType() == StdFileTypes.XML) {
+    if (file.getFileType() == XmlFileType.INSTANCE) {
       AndroidFacet facet = AndroidFacet.getInstance(file);
       if (facet != null) {
         PsiElement element = getPsiElement(file, editor);
