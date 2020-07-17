@@ -39,7 +39,7 @@ class ResourceLookupTest {
   @Test
   fun testSingleColorIcon() {
     val lookup = ResourceLookup(projectRule.project)
-    val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, "Hello Folks", 0)
+    val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, null, "Hello Folks", 0)
     val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
                                          PropertySection.DECLARED, null, title, lookup)
     val icon = lookup.resolveAsIcon(property)

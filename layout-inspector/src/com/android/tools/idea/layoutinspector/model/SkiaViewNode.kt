@@ -23,50 +23,13 @@ import java.awt.Image
  *
  * TODO: maybe just use the proto coming from the parser directly instead of this class.
  */
-class SkiaViewNode private constructor(
-  val id: String,
-  val type: String,
-  var x: Int,
-  var y: Int,
-  var width: Int,
-  var height: Int,
-  var image: Image?,
-  children: List<SkiaViewNode>
-) {
+class SkiaViewNode private constructor(val id: Long, var image: Image?, val children: List<SkiaViewNode>) {
 
-  constructor(id: String,
-              type: String,
-              x: Int,
-              y: Int,
-              width: Int,
-              height: Int,
-              children: List<SkiaViewNode> = listOf()
-  ) : this(id, type, x, y, width, height, null, children)
+  constructor(id: Long, children: List<SkiaViewNode> = listOf()) : this(id, null, children)
 
-  constructor(id: String,
-              type: String,
-              x: Int,
-              y: Int,
-              width: Int,
-              height: Int,
-              image: Image
-  ) : this(id, type, x, y, width, height, image, listOf())
+  constructor(id: Long, image: Image) : this(id, image, listOf())
 
   var imageGenerationTime: Long? = null
-
-  /**
-   * Map of View IDs to views.
-   */
-  val children: MutableList<SkiaViewNode> = mutableListOf()
-
-  init {
-    children.forEach { addChild(it) }
-  }
-
-  @Suppress("unused") // invoked via reflection
-  fun addChild(child: SkiaViewNode) {
-    children.add(child)
-  }
 
   fun flatten(): Sequence<SkiaViewNode> {
     return children.asSequence().flatMap { it.flatten() }.plus(this)

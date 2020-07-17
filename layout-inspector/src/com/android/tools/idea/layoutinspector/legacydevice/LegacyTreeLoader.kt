@@ -162,7 +162,7 @@ object LegacyTreeLoader : TreeLoader {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
-    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, "", 0)
+    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, null, "", 0)
     view.parent = parent
     parent?.children?.add(view)
     propertyLoader.parseProperties(view, properties)

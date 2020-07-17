@@ -33,6 +33,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Rectangle
 
 class LegacyPropertiesProviderTest {
   @get:Rule
@@ -84,7 +85,7 @@ class LegacyPropertiesProviderTest {
   @Test
   fun testExample() {
     val resourceLookup = Mockito.mock(ResourceLookup::class.java)
-    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, "", 0)
+    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, null, "", 0)
     val provider = LegacyPropertiesProvider()
     val propertyLoader = LegacyPropertiesProvider.Updater(resourceLookup)
     propertyLoader.parseProperties(root, example)

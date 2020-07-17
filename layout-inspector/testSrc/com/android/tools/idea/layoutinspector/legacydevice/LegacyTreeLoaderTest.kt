@@ -186,7 +186,7 @@ DONE.
       mock(ResourceLookup::class.java), legacyClient, mock(Project::class.java))!!
     assertThat(windowId).isEqualTo("window1")
 
-    val expected = view(0x41673e3) {
+    val expected = view(0x41673e3, width = 585, height = 804) {
       image(ImageIO.read(imageFile))
       view(0x8dc1681) {
         view(0xd0e237b)
