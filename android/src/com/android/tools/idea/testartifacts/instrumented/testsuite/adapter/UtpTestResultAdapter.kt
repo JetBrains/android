@@ -53,21 +53,32 @@ private typealias DeviceMap = Map<Pair<String, AndroidDeviceType>, DeviceTestSui
  *
  * @param listener the listener to receive the test results
  */
-class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
+class UtpTestResultAdapter(private val protoFile: File) {
+  private val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(protoFile.inputStream())
+  private val dir = protoFile.parentFile
+  private val deviceMap = getDeviceMap(dir, resultProto)
 
+  /**
+   * Return the first package name in the test suite. Null if there is no package name.
+   *
+   * @return package name.
+   */
+  fun getPackageName(): String? {
+    return resultProto.testResultList.asSequence().map {
+      it?.testCase?.testPackage
+    }.filterNotNull().firstOrNull()
+  }
   /**
    * Parse UTP test results and forward to the listener
    *
    * @param inputStream contains the binary protobuf of the UTP test suite results
    */
   @WorkerThread
-  fun importResult(file: File) {
-    val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream())
-    val dir = file.parentFile
-    val deviceMap = getDeviceMap(dir, resultProto)
-    startAll(deviceMap, resultProto)
-    runAll(deviceMap, dir, resultProto)
-    finishAll(deviceMap)
+  fun forwardResults(listener: AndroidTestResultListener) {
+    val dir = protoFile.parentFile
+    startAll(listener, deviceMap, resultProto)
+    runAll(listener, deviceMap, dir, resultProto)
+    finishAll(listener, deviceMap)
   }
 
   private fun getDeviceMap(dir: File, resultProto: TestSuiteResultProto.TestSuiteResult): DeviceMap {
@@ -97,7 +108,7 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
     }
   }
 
-  private fun startAll(deviceMap: DeviceMap, resultProto: TestSuiteResultProto.TestSuiteResult) {
+  private fun startAll(listener: AndroidTestResultListener, deviceMap: DeviceMap, resultProto: TestSuiteResultProto.TestSuiteResult) {
     for (deviceTestSuite in deviceMap.values) {
       listener.onTestSuiteScheduled(deviceTestSuite.device)
       deviceTestSuite.testSuite = AndroidTestSuite(resultProto.testSuiteMetaData.testSuiteName,
@@ -108,7 +119,7 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
     }
   }
 
-  private fun runAll(deviceMap: DeviceMap, dir: File, resultProto: TestSuiteResultProto.TestSuiteResult) {
+  private fun runAll(listener: AndroidTestResultListener, deviceMap: DeviceMap, dir: File, resultProto: TestSuiteResultProto.TestSuiteResult) {
     val defaultDeviceKey = Pair(DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_TYPE)
     for (testResultProto in resultProto.testResultList) {
       val deviceInfo = testResultProto.getDeviceInfo(dir)
@@ -145,7 +156,7 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
     }
   }
 
-  private fun finishAll(deviceMap: DeviceMap) {
+  private fun finishAll(listener: AndroidTestResultListener, deviceMap: DeviceMap) {
     for (deviceTestSuite in deviceMap.values) {
       listener.onTestSuiteFinished(deviceTestSuite.device, deviceTestSuite.testSuite)
     }

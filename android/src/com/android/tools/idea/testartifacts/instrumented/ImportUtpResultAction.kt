@@ -27,14 +27,15 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.launch
+import org.jetbrains.android.dom.manifest.getPackageName
 import java.io.File
-import java.io.InputStream
 
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
@@ -69,15 +70,21 @@ class ImportUtpResultAction : AnAction() {
   @VisibleForTesting
   fun parseResultsAndDisplay(file: File, disposable: Disposable, project: Project) {
     RunContentManager.getInstance(project)
+    // TODO: error handling when importing bad protobuf
+    val testAdapter = UtpTestResultAdapter(file)
+    val packageName = testAdapter.getPackageName()
+    val module = ModuleManager.getInstance(project).modules.find {
+      getPackageName(it) == packageName
+    }
+    val testSuiteView = AndroidTestSuiteView(disposable, project, module)
     val toolWindow = getToolWindow(project)
-    val testSuiteView = AndroidTestSuiteView(disposable, project, null)
     val contentManager = toolWindow.contentManager
     val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
     contentManager.addContent(content)
-    val testAdapter = UtpTestResultAdapter(testSuiteView)
+
     // TODO: error handling
     project.coroutineScope.launch {
-      testAdapter.importResult(file)
+      testAdapter.forwardResults(testSuiteView)
     }
     toolWindow.activate(null)
   }

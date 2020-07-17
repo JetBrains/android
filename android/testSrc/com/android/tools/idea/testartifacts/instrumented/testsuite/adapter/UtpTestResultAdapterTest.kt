@@ -23,6 +23,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.testing.platform.plugin.android.info.host.proto.AndroidTestDeviceInfoProto
 import com.google.testing.platform.proto.api.core.PathProto
@@ -69,20 +70,36 @@ class UtpTestResultAdapterTest {
   lateinit var mockAndroidTestCase: AndroidTestCase
   @Mock
   lateinit var mockAndroidTestSuite: AndroidTestSuite
-  lateinit var utpTestResultAdapter: UtpTestResultAdapter
   private lateinit var utpProtoFile: File
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    utpTestResultAdapter = UtpTestResultAdapter(mockListener)
     utpProtoFile = temporaryFolder.newFile()
   }
 
   @Test
   fun invalidProtobuf() {
     utpProtoFile.outputStream().write("Invalid".toByteArray(Charset.defaultCharset()))
-    assertFailsWith<InvalidProtocolBufferException>() { utpTestResultAdapter.importResult(utpProtoFile) }
+    assertFailsWith<InvalidProtocolBufferException>() {
+      UtpTestResultAdapter(utpProtoFile)
+    }
+  }
+
+  @Test
+  fun getPackageName() {
+    val protobuf = TestSuiteResultProto.TestSuiteResult.newBuilder()
+      .addTestResult(
+        TestResultProto.TestResult.newBuilder()
+          .setTestCase(TestCaseProto.TestCase.newBuilder()
+                         .setTestClass("ExampleInstrumentedTest")
+                         .setTestPackage(TEST_PACKAGE_NAME)
+                         .setTestMethod("useAppContext"))
+          .setTestStatus(TestStatusProto.TestStatus.PASSED)
+      ).build()
+    protobuf.writeTo(utpProtoFile.outputStream())
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    assertThat(utpTestResultAdapter.getPackageName()).isEqualTo(TEST_PACKAGE_NAME)
   }
 
   @Test
@@ -104,7 +121,8 @@ class UtpTestResultAdapterTest {
           .setTestStatus(TestStatusProto.TestStatus.PASSED)
       ).build()
     protobuf.writeTo(utpProtoFile.outputStream())
-    utpTestResultAdapter.importResult(utpProtoFile)
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -140,7 +158,8 @@ class UtpTestResultAdapterTest {
           .setTestStatus(TestStatusProto.TestStatus.FAILED)
       ).build()
     protobuf.writeTo(utpProtoFile.outputStream())
-    utpTestResultAdapter.importResult(utpProtoFile)
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -174,7 +193,8 @@ class UtpTestResultAdapterTest {
                                                 .setPath(unrelatedArtifact)))
       ).build()
     protobuf.writeTo(utpProtoFile.outputStream())
-    utpTestResultAdapter.importResult(utpProtoFile)
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -199,7 +219,8 @@ class UtpTestResultAdapterTest {
           .setTestStatus(TestStatusProto.TestStatus.ERROR)
       ).build()
     protobuf.writeTo(utpProtoFile.outputStream())
-    utpTestResultAdapter.importResult(utpProtoFile)
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
     val verifyInOrder = inOrder(mockListener)
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
@@ -267,7 +288,8 @@ class UtpTestResultAdapterTest {
               .build()
           })
       ).build().writeTo(utpProtoFile.outputStream())
-    utpTestResultAdapter.importResult(utpProtoFile)
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
     val deviceMatcher1 = ArgumentMatcher<AndroidDevice> { device ->
       device?.deviceName == deviceName1 && device?.deviceType == AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
     }
