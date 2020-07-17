@@ -22,6 +22,7 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.google.common.base.Strings;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -29,7 +30,6 @@ import com.intellij.openapi.editor.VisualPosition;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
@@ -429,7 +429,7 @@ public class TutorialStep extends JPanel {
     private CodePane(@NotNull StepElementData element) {
       // Default to JAVA rather than PLAIN_TEXT display for better support for quoted strings and properties.
       super(element.getCode() != null ? element.getCode() : "", myProject,
-            element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
+            element.getCodeType() != null ? element.getCodeType() : JavaFileType.INSTANCE);
       // Tell the editor that it's a multiline editor, defaults to false and can't be overridden in ctor unless passing in a document
       // instead of text as first argument.
       setOneLineMode(false);

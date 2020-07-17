@@ -26,6 +26,7 @@ import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -645,7 +646,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
       // If the list grows much, consider using a static map.
       if (type.equals("JAVA")) {
-        return StdFileTypes.JAVA;
+        return JavaFileType.INSTANCE;
       }
       if (type.equals("XML")) {
         return StdFileTypes.XML;
