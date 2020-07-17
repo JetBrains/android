@@ -36,13 +36,18 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
   }
 
   override fun tearDown() {
-    super.tearDown()
     val settings = VisualizationToolSettings.getInstance()
-    settings.globalState.isVisible = defaultVisible
-    settings.globalState.scale = defaultScale
-    settings.globalState.showDecoration = defaultShowDecoration
-    settings.globalState.configurationSet = defaultConfigurationSet
-    settings.globalState.customConfigurationAttributes = customConfigurationAttributes
+    try {
+      settings.globalState.isVisible = defaultVisible
+      settings.globalState.scale = defaultScale
+      settings.globalState.showDecoration = defaultShowDecoration
+      settings.globalState.configurationSet = defaultConfigurationSet
+      settings.globalState.customConfigurationAttributes = customConfigurationAttributes
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testShareGlobalState() {

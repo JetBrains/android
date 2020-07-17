@@ -50,8 +50,13 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   private lateinit var liveDatabaseConnection: LiveDatabaseConnection
 
   override fun tearDown() {
-    super.tearDown()
-    Disposer.dispose(liveDatabaseConnection)
+    try {
+      Disposer.dispose(liveDatabaseConnection)
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testReadSchema() {
