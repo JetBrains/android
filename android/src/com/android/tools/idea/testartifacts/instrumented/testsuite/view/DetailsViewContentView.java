@@ -139,6 +139,7 @@ public class DetailsViewContentView {
     myAndroidDevice = androidDevice;
     refreshTestResultLabel();
     myDeviceInfoTableView.setAndroidDevice(androidDevice);
+    myRetentionView.setAndroidDevice(androidDevice);
   }
 
   public void setAndroidTestCaseResult(@Nullable AndroidTestCaseResult result) {

@@ -25,6 +25,7 @@ import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
@@ -73,11 +74,23 @@ class FindEmulatorAndSetupRetention : AnAction() {
         override fun run(indicator: ProgressIndicator) {
           indicator.isIndeterminate = false
           indicator.fraction = 0.0
-          // TODO(b/154140562): we currently don't have the emulator ID, so just use the first running emulator.
+          val deviceName = dataContext.getData(DEVICE_NAME_KEY)
           val catalog = RunningEmulatorCatalog.getInstance()
           val emulators = catalog.updateNow().get()
           if (emulators != null) {
-            val emulatorController = emulators.iterator().next()
+            val emulatorController = if (deviceName != null) {
+              emulators.find { it.emulatorId.avdId == deviceName }
+            } else {
+              emulators.iterator().next()
+            }
+            if (emulatorController == null) {
+              if (deviceName == null) {
+                LOG.error("Cannot find running emulators.")
+              } else {
+                LOG.error("Cannot find running emulators with matching device name. Expected device: ${deviceName}")
+              }
+              return
+            }
             if (emulatorController.connectionState != EmulatorController.ConnectionState.CONNECTED) {
               emulatorController.connectGrpc()
             }
