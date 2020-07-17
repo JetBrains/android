@@ -628,7 +628,7 @@ public class AvdManagerConnection {
            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
   }
 
-  private static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
+  public static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
     return EmulatorSettings.getInstance().getLaunchInToolWindow() && project != null && AndroidUtils.hasAndroidFacets(project);
   }
 
