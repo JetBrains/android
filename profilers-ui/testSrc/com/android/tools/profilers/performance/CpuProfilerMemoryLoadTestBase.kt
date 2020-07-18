@@ -36,7 +36,6 @@ import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Rule
 import java.io.File
-import java.lang.management.ManagementFactory
 import kotlin.system.measureTimeMillis
 
 /**
@@ -59,23 +58,10 @@ open class CpuProfilerMemoryLoadTestBase {
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
-
   @After
   fun cleanup() {
     Disposer.dispose(myProfilersView!!)
     ensureGc()
-  }
-
-  private fun getMemoryUsed(): Long {
-    val memoryUsage = ManagementFactory.getMemoryMXBean()
-    ensureGc()
-    return memoryUsage.heapMemoryUsage.used
-  }
-
-  private fun ensureGc() {
-    for (x in 0..10) System.gc()
-    System.runFinalization()
-    for (x in 0..10) ManagementFactory.getMemoryMXBean().gc()
   }
 
   /**
