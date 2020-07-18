@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.gradle.structure.model.repositories.search.*
 import com.google.common.util.concurrent.ListenableFuture
-import javax.annotation.concurrent.GuardedBy
 
 class CachingRepositorySearchFactory : RepositorySearchFactory {
   private val lock = Any()

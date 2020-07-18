@@ -79,7 +79,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.RegEx;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -372,7 +371,7 @@ public class AndroidGradleTests {
    * {@code regex} match was found).
    */
   @NotNull
-  public static String replaceRegexGroup(String contents, @RegEx String regex, String value) {
+  public static String replaceRegexGroup(String contents, String regex, String value) {
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
     if (matcher.find()) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -32,7 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
 public class StudioReportDatabase {

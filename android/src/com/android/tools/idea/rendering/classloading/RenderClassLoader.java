@@ -19,6 +19,7 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.base.Suppliers;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,7 +32,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;

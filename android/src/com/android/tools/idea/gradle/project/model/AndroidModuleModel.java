@@ -27,6 +27,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
@@ -74,7 +75,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;

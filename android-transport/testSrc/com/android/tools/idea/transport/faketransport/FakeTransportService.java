@@ -45,8 +45,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import javax.annotation.concurrent.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.utils.ThreadSafe;
 
 /**
  *  This class is thread-safe, allowing {@link CommandHandler} to publish new events on one thread (usually test) and

@@ -358,7 +358,6 @@ android_studio(
         "lib": [
             # For now listing all the project library needed until we get them from deps
             "//tools/adt/idea/.idea/libraries:unb.javax-inject",
-            "//tools/adt/idea/.idea/libraries:unb.jsr305",
             "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
             "//tools/adt/idea/.idea/libraries:unb.studio-proto",
             "//tools/adt/idea/.idea/libraries:unb.dexlib2",

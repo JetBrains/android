@@ -40,11 +40,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.concurrent.ThreadSafe;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.kotlin.utils.ThreadSafe;
 
 /**
  * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {link {@link DownloadableFontCacheService}.

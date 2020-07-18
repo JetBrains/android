@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
@@ -31,7 +32,6 @@ import java.lang.Long.max
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * A class that manages processes discovered from transport pipeline.
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe
  *
  * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for populating the AppInspection combobox.
  */
-@ThreadSafe
+@AnyThread
 internal class AppInspectionProcessDiscovery(
   private val executor: ExecutorService,
   private val manager: TransportStreamManager

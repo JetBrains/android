@@ -20,6 +20,7 @@ import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
@@ -106,7 +107,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
