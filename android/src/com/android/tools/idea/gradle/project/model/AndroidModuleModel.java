@@ -159,7 +159,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @Nullable Collection<Variant> variantsToAdd,
                                           @NotNull Collection<IdeVariant> cachedVariants,
                                           @NotNull Collection<SyncIssue> syncIssues) {
-    IdeAndroidProject ideAndroidProject =
+    IdeAndroidProjectImpl ideAndroidProject =
       IdeAndroidProjectImpl.create(androidProject, strings, dependenciesFactory, variantsToAdd, syncIssues
       );
     ideAndroidProject.addVariants(cachedVariants);
