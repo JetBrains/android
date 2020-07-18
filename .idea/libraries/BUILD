@@ -86,17 +86,6 @@ java_import(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.jsr305",
-    jars = ["//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:unb.jsr305_files"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
     name = "unb.compile-testing",
     jars = ["//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.16:unb.compile-testing_files"],
     tags = [

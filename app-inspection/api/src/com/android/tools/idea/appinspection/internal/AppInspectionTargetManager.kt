@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -28,12 +29,11 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * A class that exclusively attaches, tracks, and disposes of [AppInspectionTarget].
  */
-@ThreadSafe
+@AnyThread
 internal class AppInspectionTargetManager internal constructor(
   private val executor: ExecutorService,
   private val transportClient: TransportClient

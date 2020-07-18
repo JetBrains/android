@@ -40,7 +40,6 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
@@ -63,6 +62,5 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/.idea/libraries:unb.jsr305",
     ],
 )

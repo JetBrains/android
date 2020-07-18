@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.JTextComponentWithHtml
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.intellij.lang.annotation.HighlightSeverity;
-import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
@@ -39,7 +38,7 @@ public class IssuePanelFixture extends JPanelFixture {
 
   private final IssuePanel myIssuePanel;
 
-  public IssuePanelFixture(@Nonnull Robot robot, @NotNull IssuePanel panel) {
+  public IssuePanelFixture(@NotNull Robot robot, @NotNull IssuePanel panel) {
     super(robot, panel);
     myIssuePanel = panel;
   }

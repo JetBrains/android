@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

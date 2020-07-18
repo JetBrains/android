@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.WorkerThread
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Base class for implementing a client of known app-inspector.
@@ -94,7 +94,7 @@ abstract class AppInspectorClient(
    *
    * It is exposed publicly but should only be used by internal AppInspection API.
    */
-  @ThreadSafe
+  @AnyThread
   class ServiceEventNotifier {
     private val lock = Any()
 

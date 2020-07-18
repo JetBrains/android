@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
@@ -42,7 +43,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
@@ -82,7 +82,7 @@ internal fun attachAppInspectionTarget(
   )
 }
 
-@ThreadSafe
+@AnyThread
 internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,

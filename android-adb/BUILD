@@ -54,7 +54,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
-        "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
@@ -149,7 +148,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
-        "//tools/adt/idea/.idea/libraries:unb.jsr305",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
         "//tools/adt/idea/.idea/libraries:unb.zxing-core",

@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.matcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 
 /**
@@ -32,7 +31,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   public static <T extends Component> FluentMatcher<T> wrap(GenericTypeMatcher<T> matcher) {
     return new FluentMatcher<T>(matcher.supportedType()) {
       @Override
-      protected boolean isMatching(@Nonnull T component) {
+      protected boolean isMatching(@NotNull T component) {
         return matcher.matches(component);
       }
     };
@@ -78,7 +77,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   public FluentMatcher<T> andIsShowing() {
     return and(new GenericTypeMatcher<T>(supportedType(), true) {
       @Override
-      protected boolean isMatching(@Nonnull T component) {
+      protected boolean isMatching(@NotNull T component) {
         return true;
       }
     });
@@ -87,7 +86,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   public FluentMatcher<T> andIsEnabled() {
     return and(new FluentMatcher<T>(supportedType()) {
       @Override
-      protected boolean isMatching(@Nonnull T component) {
+      protected boolean isMatching(@NotNull T component) {
         return component.isEnabled();
       }
     });

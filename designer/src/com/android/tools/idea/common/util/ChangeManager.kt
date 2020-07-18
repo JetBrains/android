@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.util
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -41,7 +42,6 @@ import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
-import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
 
 /**

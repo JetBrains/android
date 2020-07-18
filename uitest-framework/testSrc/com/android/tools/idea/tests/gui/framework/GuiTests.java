@@ -80,7 +80,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -408,7 +407,7 @@ public final class GuiTests {
     if (menu != null) {
       new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
-        protected boolean isMatching(@Nonnull JMenuItem component) {
+        protected boolean isMatching(@NotNull JMenuItem component) {
           return predicate.test(component.getText());
         }
       }).click();
