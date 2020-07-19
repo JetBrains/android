@@ -179,17 +179,16 @@ private class ComponentTreeLoaderImpl(
       throw InterruptedException()
     }
     val qualifiedName = packagePrefix(stringTable[view.packageName]) + stringTable[view.className]
-    val methodName = packagePrefix(stringTable[view.composePackage]) + stringTable[view.composeInvocation]
-    val composeFileName = stringTable[view.composeFilename]
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]
     val layout = stringTable[view.layout]
-    val node = if (composeFileName.isEmpty()) {
+    val node = if (view.packageName != 0) {
       ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags)
     }
     else {
+      val composeFileName = stringTable[view.composeFilename]
       ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags,
-                      composeFileName, methodName, view.composeLineNumber)
+                      composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
     }
     view.subViewList.map { loadView(it) }.forEach {
       node.children.add(it)

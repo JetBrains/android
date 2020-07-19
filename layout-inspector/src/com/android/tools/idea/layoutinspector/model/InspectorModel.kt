@@ -163,7 +163,8 @@ class InspectorModel(val project: Project) {
       oldNode.parent = parent
       if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {
         oldNode.composeFilename = newNode.composeFilename
-        oldNode.composeMethod = newNode.composeMethod
+        oldNode.composePackageHash = newNode.composePackageHash
+        oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
       }
 
