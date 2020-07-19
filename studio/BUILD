@@ -199,7 +199,7 @@ studio_plugin(
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
             "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite-inspection-bundle",
             "//tools/base/deploy/installer:android-installer-bundle",
-            "//tools/adt/idea/android:images-bundle",  # duplicated in android.jar
+            "//tools/adt/idea/android:asset-studio-bundle",
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },

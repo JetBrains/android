@@ -980,8 +980,8 @@ maven_repo(
 )
 
 studio_data(
-    name = "images-bundle",
-    files = glob(["resources/images/**"]),
+    name = "asset-studio-bundle",
+    files = glob(["resources/images/asset_studio/**"]),
     mappings = {
         "tools/adt/idea/android/resources/": "",
     },
