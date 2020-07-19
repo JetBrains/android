@@ -156,9 +156,10 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
       }
     });
 
-    Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, device, latch, receiver, hostRecordingFileName);
-    screenRecorderShellTask.setCancelText("Stop Recording");
-    screenRecorderShellTask.queue();
+    new ScreenRecorderTask(myProject, device, latch, receiver, hostRecordingFileName)
+      .setCancelText("Stop recording")
+      .setCancelTooltipText("Stop recording")
+      .queue();
   }
 
   @Nullable
