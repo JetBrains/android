@@ -51,7 +51,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String BUILD_CONFIG_FIELD = "mBuildConfigField";
   @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
   @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
-  @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS = new ModelPropertyDescription("mMatchingFallbacks", MUTABLE_LIST);
+  @NonNls public static final String MATCHING_FALLBACKS = "mMatchingFallbacks";
   @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
   @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
   @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";

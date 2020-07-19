@@ -47,6 +47,7 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
+import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.event.KeyAdapter
@@ -151,7 +152,9 @@ class DeviceViewPanel(
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
-  private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport) { contentPanel.model.layerSpacing }
+  private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
+                                                              { contentPanel.rootLocation })
+
   private val actionToolbar: ActionToolbar
 
   init {
@@ -166,7 +169,7 @@ class DeviceViewPanel(
     keyboardListeners.forEach { contentPanel.removeKeyListener(it) }
     contentPanel.addMouseListener(panMouseListener)
     contentPanel.addMouseMotionListener(panMouseListener)
-    contentPanel.addKeyListener(object: KeyAdapter() {
+    contentPanel.addKeyListener(object : KeyAdapter() {
       override fun keyPressed(e: KeyEvent) {
         if (e.keyCode == VK_SPACE) {
           isSpacePressed = true
@@ -201,7 +204,7 @@ class DeviceViewPanel(
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
     layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
 
-    layeredPane.layout = object: BorderLayout() {
+    layeredPane.layout = object : BorderLayout() {
       override fun layoutContainer(parent: Container?) {
         super.layoutContainer(parent)
         // Position the floating toolbar
@@ -352,10 +355,13 @@ class DeviceViewPanel(
 @VisibleForTesting
 class MyViewportLayoutManager(
   private val viewport: JViewport,
-  private val layerSpacing: () -> Int
+  private val layerSpacing: () -> Int,
+  private val rootLocation: () -> Point
 ) : LayoutManager by viewport.layout {
   private var lastLayerSpacing = INITIAL_LAYER_SPACING
+  private var lastRootLocation: Point? = null
   private val origLayout = viewport.layout
+  private var lastViewSize: Dimension? = null
 
   var currentZoomOperation: ZoomType? = null
 
@@ -389,8 +395,19 @@ class MyViewportLayoutManager(
         }
         currentZoomOperation = null
       }
-      else -> origLayout.layoutContainer(parent)
+      else -> {
+        origLayout.layoutContainer(parent)
+        val lastRoot = lastRootLocation
+        if (viewport.view.size != lastViewSize && lastRoot != null) {
+          val newRootLocation = SwingUtilities.convertPoint(viewport.view, rootLocation(), viewport)
+          viewport.viewPosition = Point(viewport.viewPosition).apply {
+            translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
+          }
+        }
+      }
     }
+    lastRootLocation = SwingUtilities.convertPoint(viewport.view, rootLocation(), viewport)
+    lastViewSize = viewport.view.size
   }
 }
 
