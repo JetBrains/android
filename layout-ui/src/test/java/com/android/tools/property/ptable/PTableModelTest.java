@@ -100,7 +100,7 @@ public class PTableModelTest extends TestCase {
       fail();
     }
     catch (Exception ex) {
-      assertThat(ex).isInstanceOf(ArrayIndexOutOfBoundsException.class);
+      assertThat(ex).isInstanceOf(IndexOutOfBoundsException.class);
     }
     assertThat(myModel.getParent(999)).isEqualTo(999);
   }
