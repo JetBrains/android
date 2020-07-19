@@ -709,7 +709,17 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         @NotNull
         @Override
         public FileSaverDialog createSaveFileDialog(@NotNull FileSaverDescriptor descriptor, @Nullable Project project) {
-          return (baseDir, filename) -> new VirtualFileWrapper(tempFile);
+          return new FileSaverDialog() {
+            @Override
+            public @Nullable VirtualFileWrapper save(@Nullable VirtualFile baseDir, @Nullable String filename) {
+              return new VirtualFileWrapper(tempFile);
+            }
+
+            @Override
+            public @Nullable VirtualFileWrapper save(@Nullable Path baseDir, @Nullable String filename) {
+              return new VirtualFileWrapper(tempFile);
+            }
+          };
         }
       };
       ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());

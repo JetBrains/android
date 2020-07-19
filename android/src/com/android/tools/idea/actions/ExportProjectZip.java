@@ -69,7 +69,7 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     FileSaverDialog saver = FileChooserFactory.getInstance()
         .createSaveFileDialog(new FileSaverDescriptor("Save Project As Zip", "Save to", SdkConstants.EXT_ZIP), project);
 
-    VirtualFileWrapper target = saver.save(null, project.getName() + "." + SdkConstants.EXT_ZIP);
+    VirtualFileWrapper target = saver.save(project.getName() + "." + SdkConstants.EXT_ZIP);
     if (target != null) {
       Task.Backgroundable task = new Task.Backgroundable(project, "Saving Project Zip") {
         @Override
