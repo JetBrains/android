@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -32,9 +31,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import java.awt.Component;
+import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,8 +58,7 @@ public class OpenApkAnalyzerTest extends PlatformTestCase {
 
   public void testOpenAnalyzerOpenDir() {
     VirtualFile target = findFileByIoFile(myApk, true);
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(),
-            FileChooserFactory.class, new FileChooserFactoryImpl() {
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,

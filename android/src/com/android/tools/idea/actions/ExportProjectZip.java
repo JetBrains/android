@@ -16,12 +16,12 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,19 +45,17 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.io.Compressor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Exports an entire project into a zip file containing everything that is needed to run the project.
  */
-public class ExportProjectZip extends AnAction implements DumbAware {
-
+public final class ExportProjectZip extends AnAction implements DumbAware {
   @Override
   public void update(@NotNull final AnActionEvent e) {
     Project project = e.getProject();
@@ -72,7 +70,7 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     FileSaverDialog saver = FileChooserFactory.getInstance()
         .createSaveFileDialog(new FileSaverDescriptor("Save Project As Zip", "Save to", SdkConstants.EXT_ZIP), project);
 
-    VirtualFileWrapper target = saver.save(null, project.getName() + "." + SdkConstants.EXT_ZIP);
+    VirtualFileWrapper target = saver.save(project.getName() + "." + SdkConstants.EXT_ZIP);
     if (target != null) {
       Task.Backgroundable task = new Task.Backgroundable(project, "Saving Project Zip") {
         @Override
@@ -91,7 +89,7 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     excludes.add(zipFile);
 
     assert project.getBasePath() != null;
-    File basePath = new File(FileUtil.toSystemDependentName(project.getBasePath()));
+    File basePath = new File(project.getBasePath());
     allRoots.add(basePath);
 
     excludes.add(new File(basePath, SdkConstants.FN_LOCAL_PROPERTIES));
