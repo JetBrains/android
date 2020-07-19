@@ -70,6 +70,7 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -101,9 +102,9 @@ import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
-import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -238,7 +239,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     RepaintManager.setCurrentManager(myMockRepaintManager);
   }
 
-  public void testControllerIsSetAsProjectKey() throws Exception {
+  public void testControllerIsSetAsProjectKey() {
     // Prepare
     DeviceExplorerController controller = createController();
 
@@ -258,7 +259,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     checkMockViewInitialState(controller, myDevice1);
   }
 
-  public void testStartControllerFailure() throws InterruptedException, ExecutionException, TimeoutException {
+  public void testStartControllerFailure() {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
@@ -275,7 +276,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertTrue(errorMessage.contains(setupErrorMessage));
   }
 
-  public void testStartControllerUnexpectedFailure() throws InterruptedException, ExecutionException, TimeoutException {
+  public void testStartControllerUnexpectedFailure() {
     // Prepare
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     when(service.start(any()))
@@ -307,7 +308,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     checkMockViewInitialState(controller, myDevice1);
   }
 
-  public void testRestartControllerFailure() throws InterruptedException, ExecutionException, TimeoutException {
+  public void testRestartControllerFailure() {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
@@ -326,7 +327,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertTrue(errorMessage.contains(setupErrorMessage));
   }
 
-  public void testGetDevicesFailure() throws InterruptedException, ExecutionException, TimeoutException {
+  public void testGetDevicesFailure() {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
@@ -344,7 +345,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertTrue(errorMessage.contains(errorMessage));
   }
 
-  public void testGetRootDirectoryFailure() throws InterruptedException, ExecutionException, TimeoutException {
+  public void testGetRootDirectoryFailure() {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     myDevice1.setRootDirectoryError(new RuntimeException(setupErrorMessage));
@@ -362,7 +363,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertTrue(errorMessage.contains(setupErrorMessage));
   }
 
-  public void testExpandChildren() throws InterruptedException, ExecutionException, TimeoutException, ExpandVetoException {
+  public void testExpandChildren() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     DeviceExplorerController controller = createController();
 
@@ -701,7 +702,17 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         @NotNull
         @Override
         public FileSaverDialog createSaveFileDialog(@NotNull FileSaverDescriptor descriptor, @Nullable Project project) {
-          return (baseDir, filename) -> new VirtualFileWrapper(tempFile);
+          return new FileSaverDialog() {
+            @Override
+            public @NotNull VirtualFileWrapper save(@Nullable VirtualFile baseDir, @Nullable String filename) {
+              return new VirtualFileWrapper(tempFile);
+            }
+
+            @Override
+            public @NotNull VirtualFileWrapper save(@Nullable Path baseDir, @Nullable String filename) {
+              return new VirtualFileWrapper(tempFile);
+            }
+          };
         }
       };
       ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
@@ -1393,9 +1404,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                                                  @Nullable Project project,
                                                  @Nullable Component parent) {
         return (toSelect, callback) -> {
-          List<VirtualFile> files = tempFiles.stream()
-            .map(x -> new VirtualFileWrapper(x).getVirtualFile())
-            .collect(Collectors.toList());
+          List<VirtualFile> files = ContainerUtil.map(tempFiles, x -> new VirtualFileWrapper(x).getVirtualFile());
           callback.consume(files);
         };
       }
@@ -1523,7 +1532,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         return Objects.equals(text, e.getPresentation().getText());
       })
       .findFirst()
-      .orElseGet(() -> null);
+      .orElse(null);
   }
 
   @SuppressWarnings("SameParameterValue")
@@ -1567,7 +1576,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     TreePath entryPath = getFileEntryPath(entry);
     SettableFuture<TreePath> isNodeExpandedFuture = SettableFuture.create();
-    TreeModelAdapter treeModelAdapter = new TreeModelAdapter() {
+    TreeModelListener treeModelAdapter = new TreeModelAdapter() {
       @Override
       protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
         if (isNodeFullyUpdated(event)) {
@@ -1610,8 +1619,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     checkMockViewActiveDevice(activeDevice);
   }
 
-  private void checkMockViewComboBox(DeviceExplorerController controller)
-    throws InterruptedException, ExecutionException, TimeoutException {
+  private void checkMockViewComboBox(DeviceExplorerController controller) {
     // Check we have 2 devices available
     List<DeviceFileSystem> devices = pumpEventsAndWaitForFutures(myMockView.getDeviceAddedTracker().consumeMany(2));
     assertEquals(2, devices.size());
@@ -1627,8 +1635,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertTrue(controller.hasActiveDevice());
   }
 
-  private void checkMockViewActiveDevice(MockDeviceFileSystem activeDevice)
-    throws InterruptedException, ExecutionException, TimeoutException {
+  private void checkMockViewActiveDevice(MockDeviceFileSystem activeDevice) {
 
     pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
     pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
