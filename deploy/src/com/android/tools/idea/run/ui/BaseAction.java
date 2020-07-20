@@ -166,54 +166,52 @@ public abstract class BaseAction extends AnAction {
                                 "there is no deployment provider specified");
     }
 
-    if (!deployableProvider.isDependentOnUserInput()) {
-      Deployable deployable;
-      try {
-        deployable = deployableProvider.getDeployable();
-        if (deployable == null) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
-        }
+    Deployable deployable;
+    try {
+      deployable = deployableProvider.getDeployable();
+      if (deployable == null) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
+      }
 
-        if (!deployable.isOnline()) {
-          if (deployable.isUnauthorized()) {
-            return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
-                                      "the selected device is not authorized");
-          }
-          else {
-            return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
-          }
+      if (!deployable.isOnline()) {
+        if (deployable.isUnauthorized()) {
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
+                                    "the selected device is not authorized");
         }
-
-        Future<AndroidVersion> versionFuture = deployable.getVersion();
-        if (!versionFuture.isDone()) {
-          // Don't stall the EDT - if the Future isn't ready, just return false.
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
-        }
-
-        if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
-                                    "its API level is lower than 26");
-        }
-
-        if (deployable.searchClientsForPackage().isEmpty()) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
-                                    "the app is not yet running or not debuggable");
+        else {
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
         }
       }
-      catch (InterruptedException ex) {
-        LOG.warn(ex);
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
+
+      Future<AndroidVersion> versionFuture = deployable.getVersion();
+      if (!versionFuture.isDone()) {
+        // Don't stall the EDT - if the Future isn't ready, just return false.
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
       }
-      catch (ExecutionException ex) {
-        LOG.warn(ex);
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
-                                  "its API level could not be determined");
+
+      if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
+                                  "its API level is lower than 26");
       }
-      catch (Exception ex) {
-        LOG.warn(ex);
-        return new DisableMessage(
-          DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
+
+      if (deployable.searchClientsForPackage().isEmpty()) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
+                                  "the app is not yet running or not debuggable");
       }
+    }
+    catch (InterruptedException ex) {
+      LOG.warn(ex);
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
+    }
+    catch (ExecutionException ex) {
+      LOG.warn(ex);
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
+                                "its API level could not be determined");
+    }
+    catch (Exception ex) {
+      LOG.warn(ex);
+      return new DisableMessage(
+        DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
     }
 
     return null;
@@ -294,7 +292,7 @@ public abstract class BaseAction extends AnAction {
 
     // We may have a remote debugging session, check those as well.
     DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
-    if (deployableProvider == null || deployableProvider.isDependentOnUserInput()) {
+    if (deployableProvider == null) {
       return null;
     }
 

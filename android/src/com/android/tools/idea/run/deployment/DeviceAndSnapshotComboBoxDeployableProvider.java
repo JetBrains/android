@@ -39,11 +39,6 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     myApplicationIdProvider = applicationIdProvider;
   }
 
-  @Override
-  public boolean isDependentOnUserInput() {
-    return false;
-  }
-
   @Nullable
   @Override
   public Deployable getDeployable() throws ApkProvisionException {
