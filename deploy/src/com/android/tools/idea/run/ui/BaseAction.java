@@ -167,7 +167,7 @@ public abstract class BaseAction extends AnAction {
 
     Deployable deployable;
     try {
-      deployable = deployableProvider.getDeployable();
+      deployable = deployableProvider.getDeployable(selectedRunConfig);
       if (deployable == null) {
         return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
       }
@@ -297,7 +297,7 @@ public abstract class BaseAction extends AnAction {
 
     Deployable deployable;
     try {
-      deployable = deployableProvider.getDeployable();
+      deployable = deployableProvider.getDeployable(runConfiguration);
       if (deployable == null) {
         return null;
       }

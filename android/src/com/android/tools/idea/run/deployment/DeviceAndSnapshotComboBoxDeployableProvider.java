@@ -23,6 +23,7 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
+import com.intellij.execution.configurations.RunConfiguration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -30,26 +31,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployableProvider {
-  private @Nullable AndroidRunConfigurationBase myRunConfig;
-
-  public void update(@Nullable AndroidRunConfigurationBase runConfig) {
-    myRunConfig = runConfig;
-  }
-
   @Nullable
   @Override
-  public Deployable getDeployable() throws ApkProvisionException {
-    if (myRunConfig == null) {
+  public Deployable getDeployable(@NotNull RunConfiguration runConfiguration) throws ApkProvisionException {
+    if (!(runConfiguration instanceof AndroidRunConfigurationBase)) {
       return null;
     }
+    AndroidRunConfigurationBase androidRunConfiguration = (AndroidRunConfigurationBase)runConfiguration;
 
-    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(myRunConfig.getProject());
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(androidRunConfiguration.getProject());
 
     if (devices.size() != 1) {
       return null;
     }
 
-    ApplicationIdProvider applicationIdProvider = myRunConfig.getApplicationIdProvider();
+    ApplicationIdProvider applicationIdProvider = androidRunConfiguration.getApplicationIdProvider();
     if (applicationIdProvider == null) {
       return null;
     }

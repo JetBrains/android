@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployable;
 
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -30,5 +31,5 @@ public interface DeployableProvider {
   }
 
   @Nullable
-  Deployable getDeployable() throws Exception;
+  Deployable getDeployable(@NotNull RunConfiguration runConfiguration) throws Exception;
 }
