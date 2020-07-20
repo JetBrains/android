@@ -21,10 +21,6 @@ import org.jetbrains.annotations.Nullable;
  * A provider interface that can procure {@link Deployable}s for locally connected devices.
  */
 public interface DeployableProvider {
-  /**
-   * @return whether or not {@link Deployable}s can be given up front or if further user actions are required.
-   */
-  boolean isDependentOnUserInput();
 
   @Nullable
   Deployable getDeployable() throws Exception;
