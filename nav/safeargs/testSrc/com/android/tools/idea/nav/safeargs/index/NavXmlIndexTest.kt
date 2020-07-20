@@ -292,9 +292,9 @@ class NavXmlIndexTest {
     }
 
     // Verify all three destinations can be found from the root
-    assertThat(data.root.allDestinations.map { it.id })
-      .containsExactly("activity1", "activity2", "dialog1", "fragment1", "fragment2", "fragment3", "top_level_nav", "nested_nav",
-                       "double_nested_nav")
+    assertThat(data.resolvedDestinations.map { it.id })
+      .containsExactly("top_level_nav", "activity1", "fragment1", "fragment2", "nested_nav", "activity2", "fragment3", "double_nested_nav",
+                       "dialog1")
 
     verifySerializationLogic(navXmlIndex.valueExternalizer, data)
   }

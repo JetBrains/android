@@ -21,7 +21,7 @@ import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
+import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.utils.usLocaleDecapitalize
 import com.intellij.openapi.diagnostic.Logger
@@ -110,7 +110,7 @@ class LightDirectionsClass(private val facet: AndroidFacet,
     return _actions
       .map { action ->
         val methodName = action.id.toCamelCase()
-        val resolvedNavigationElement = _navigationElement?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)
+        val resolvedNavigationElement = _navigationElement?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
         val resolvedNavDirectionsType = actionClasses.find { it.name!!.usLocaleDecapitalize() == methodName }
                                           ?.let { PsiTypesUtil.getClassType(it) }
                                         ?: navDirectionsType
@@ -145,7 +145,7 @@ class LightDirectionsClass(private val facet: AndroidFacet,
     return destination.actions
       .mapNotNull { action ->
         val destinationId = action.resolveDestination() ?: return@mapNotNull null
-        val argsFromTargetDestination = data.root.allDestinations.firstOrNull { it.id == destinationId }?.arguments
+        val argsFromTargetDestination = data.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
                                         ?: emptyList()
         // To support a destination argument being overridden in an action
         val resolvedArguments = (action.arguments + argsFromTargetDestination)

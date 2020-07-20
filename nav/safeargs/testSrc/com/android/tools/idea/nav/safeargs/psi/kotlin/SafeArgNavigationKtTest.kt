@@ -18,8 +18,8 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.xml.XmlTag
@@ -256,7 +256,7 @@ class SafeArgNavigationKtTest {
       .sortedWith(MemberComparator.INSTANCE)
       .mapNotNull { it as? LightDirectionsKtClass }
 
-    assertThat(directionsClassDescriptors.size).isEqualTo(2)
+    assertThat(directionsClassDescriptors.size).isEqualTo(5)
 
     // check fragment1directions class navigation
     directionsClassDescriptors[0].let {
@@ -293,11 +293,77 @@ class SafeArgNavigationKtTest {
         }
     }
 
-    // check mainDirections class navigation
+    // check fragment2Directions class navigation
     directionsClassDescriptors[1].let {
       val navigationElement = it.source.getPsi()!!
       assertThat(navigationElement).isInstanceOf(XmlTag::class.java)
+      assertThat((navigationElement as XmlTag).text).contains("id=\"@+id/fragment2\"")
+
+      it.companionObjectDescriptor
+        .unsubstitutedMemberScope
+        .getContributedDescriptors()
+        .sortedWith(MemberComparator.INSTANCE)
+        .forEach { descriptor ->
+          val resolvedNavigationElement = (descriptor as SimpleFunctionDescriptorImpl).source.getPsi()!!
+          assertThat(resolvedNavigationElement is XmlTag).isTrue()
+          assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
+            """
+                <action
+                    android:id="@+id/action_to_nested"
+                    app:destination="@id/nested" />
+            """.trimIndent())
+        }
+    }
+
+    // check fragment3Directions class navigation
+    directionsClassDescriptors[2].let {
+      val navigationElement = it.source.getPsi()!!
+      assertThat(navigationElement).isInstanceOf(XmlTag::class.java)
+      assertThat((navigationElement as XmlTag).text).contains("id=\"@+id/fragment3\"")
+
+      it.companionObjectDescriptor
+        .unsubstitutedMemberScope
+        .getContributedDescriptors()
+        .sortedWith(MemberComparator.INSTANCE)
+        .forEach { descriptor ->
+          val resolvedNavigationElement = (descriptor as SimpleFunctionDescriptorImpl).source.getPsi()!!
+          assertThat(resolvedNavigationElement is XmlTag).isTrue()
+          assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
+            """
+                <action
+                    android:id="@+id/action_to_nested"
+                    app:destination="@id/nested" />
+            """.trimIndent())
+        }
+    }
+
+    // check mainDirections class navigation
+    directionsClassDescriptors[3].let {
+      val navigationElement = it.source.getPsi()!!
+      assertThat(navigationElement).isInstanceOf(XmlTag::class.java)
       assertThat((navigationElement as XmlTag).text).contains("id=\"@+id/main\"")
+
+      it.companionObjectDescriptor
+        .unsubstitutedMemberScope
+        .getContributedDescriptors()
+        .sortedWith(MemberComparator.INSTANCE)
+        .forEach { descriptor ->
+          val resolvedNavigationElement = (descriptor as SimpleFunctionDescriptorImpl).source.getPsi()!!
+          assertThat(resolvedNavigationElement is XmlTag).isTrue()
+          assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
+            """
+                <action
+                    android:id="@+id/action_to_nested"
+                    app:destination="@id/nested" />
+            """.trimIndent())
+        }
+    }
+
+    // check nestedDirections class navigation
+    directionsClassDescriptors[4].let {
+      val navigationElement = it.source.getPsi()!!
+      assertThat(navigationElement).isInstanceOf(XmlTag::class.java)
+      assertThat((navigationElement as XmlTag).text).contains("id=\"@+id/nested\"")
 
       it.companionObjectDescriptor
         .unsubstitutedMemberScope

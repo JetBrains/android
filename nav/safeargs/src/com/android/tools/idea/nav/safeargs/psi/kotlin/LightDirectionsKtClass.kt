@@ -23,7 +23,7 @@ import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
-import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
+import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
@@ -134,7 +134,7 @@ class LightDirectionsKtClass(
             .asSequence()
             .mapNotNull { action ->
               val destinationId = action.resolveDestination() ?: return@mapNotNull null
-              val argsFromTargetDestination = navResourceData.root.allDestinations.firstOrNull { it.id == destinationId }?.arguments
+              val argsFromTargetDestination = navResourceData.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
                                               ?: emptyList()
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
                 var index = 0
@@ -163,9 +163,11 @@ class LightDirectionsKtClass(
               }
               val methodName = action.id.toCamelCase()
               val xmlTag = directionsClassDescriptor.source.getPsi() as? XmlTag
-              val resolvedSourceElement = xmlTag?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)?.let {
-                XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
-              } ?: directionsClassDescriptor.source
+              val resolvedSourceElement = xmlTag?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
+                                            ?.let {
+                                              XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
+                                            }
+                                          ?: directionsClassDescriptor.source
 
               directionsClassDescriptor.createMethod(
                 name = methodName,

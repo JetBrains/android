@@ -58,8 +58,7 @@ class KtDirectionsPackageDescriptor(
 
   private inner class SafeArgsModuleScope : MemberScopeImpl() {
     private val lightClass = storageManager.createLazyValue {
-      LightDirectionsKtClass(className, destination, navResourceData,
-                             sourceElement, safeArgsPackageDescriptor, storageManager)
+      LightDirectionsKtClass(className, destination, navResourceData, sourceElement, safeArgsPackageDescriptor, storageManager)
     }
 
     override fun getContributedDescriptors(
