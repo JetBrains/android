@@ -71,6 +71,10 @@ class AdbDevicePairingControllerImpl(private val project: Project,
   }
 
   inner class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {
+    override fun onScanAnotherQrCodeDeviceAction() {
+      // Ignore
+    }
+
     override fun onPinCodePairAction(mdnsService: MdnsService) {
       PinCodePairingController(project, edtExecutor, pairingService, mdnsService).show()
     }

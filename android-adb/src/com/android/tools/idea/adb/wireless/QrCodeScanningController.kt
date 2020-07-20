@@ -22,10 +22,10 @@ import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.debugOrInfoIfTestMode
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Executor
 
 /**
@@ -44,6 +44,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
 
   init {
     Disposer.register(parentDisposable, this)
+    view.addListener(MyViewListener())
     view.model.addListener(listener)
   }
 
@@ -55,10 +56,6 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
 
   fun startPairingProcess() {
     view.showQrCodePairingStarted()
-    startAnotherPairingProcess()
-  }
-
-  private fun startAnotherPairingProcess() {
     generateQrCode(view.model)
     state = State.Polling
     pollMdnsServices()
@@ -71,27 +68,36 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
     }
   }
 
-  private fun startParingDevice(mdnsService: MdnsService, password: String) {
+  private fun startPairingDevice(mdnsService: MdnsService, password: String) {
     state = State.Pairing
     view.showQrCodePairingInProgress(mdnsService)
     val futurePairing = service.pairMdnsService(mdnsService, password)
     futurePairing.transform(edtExecutor) { pairingResult ->
-      //TODO: Ensure not disposed and state still the same
-      view.showQrCodeMdnsPairingSuccess(pairingResult)
+      cancelIfDisposed()
+      view.showQrCodePairingWaitForDevice(pairingResult)
       pairingResult
     }.transformAsync(edtExecutor) { pairingResult ->
-      //TODO: Ensure not disposed and state still the same
+      cancelIfDisposed()
       service.waitForDevice(pairingResult)
     }.transform(edtExecutor) { device ->
-      //TODO: Ensure not disposed and state still the same
+      cancelIfDisposed()
       state = State.PairingSuccess
       view.showQrCodePairingSuccess(mdnsService, device)
-      startAnotherPairingProcess()
     }.catching(edtExecutor, Throwable::class.java) { error ->
-      //TODO: Ensure not disposed and state still the same
-      state = State.PairingError
-      view.showQrCodePairingError(mdnsService, error)
-      startAnotherPairingProcess()
+      if (!isCancelled(error)) {
+        state = State.PairingError
+        view.showQrCodePairingError(mdnsService, error)
+      }
+    }
+  }
+
+  private fun isCancelled(error: Throwable): Boolean {
+    return error is CancellationException
+  }
+
+  private fun cancelIfDisposed() {
+    if (state == State.Disposed) {
+      throw CancellationException("Object has been disposed")
     }
   }
 
@@ -125,6 +131,28 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
   }
 
   @UiThread
+  inner class MyViewListener : AdbDevicePairingView.Listener {
+    override fun onScanAnotherQrCodeDeviceAction() {
+      when(state) {
+        State.PairingError, State.PairingSuccess -> {
+          startPairingProcess()
+        }
+        else -> {
+          // Ignore
+        }
+      }
+    }
+
+    override fun onPinCodePairAction(mdnsService: MdnsService) {
+      // Ignore
+    }
+
+    override fun onClose() {
+      // Ignore
+    }
+  }
+
+  @UiThread
   inner class MyModelListener : AdbDevicePairingModelListener {
     override fun qrCodeGenerated(newImage: QrCodeImage) {
     }
@@ -139,8 +167,8 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
       view.model.qrCodeImage?.let { qrCodeImage ->
         services.firstOrNull { it.serviceName == qrCodeImage.serviceName }
           ?.let {
-            // We found the service we created, meaning the phone is in "paring" mode
-            startParingDevice(it, qrCodeImage.password)
+            // We found the service we created, meaning the phone is in "pairing" mode
+            startPairingDevice(it, qrCodeImage.password)
           }
       }
     }

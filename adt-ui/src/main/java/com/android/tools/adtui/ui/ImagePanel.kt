@@ -15,8 +15,12 @@
  */
 package com.android.tools.adtui.ui
 
+import com.google.common.graph.Graph
 import com.intellij.ui.components.JBPanel
+import java.awt.AlphaComposite
+import java.awt.Composite
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.Rectangle
 import kotlin.math.roundToInt
@@ -31,6 +35,12 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
       repaint()
     }
 
+  var active: Boolean = true
+    set(value) {
+      field = value
+      repaint()
+    }
+
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
     val insets = this.insets
@@ -39,6 +49,15 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
     // Paint background.
     g.color = background
     g.fillRect(rect.x, rect.y, rect.width, rect.height)
+
+    // Set Alpha to "light" if component is not active
+    var prevComposite: Composite? = null
+    if (!active) {
+      (g as Graphics2D?)?.apply {
+        prevComposite = composite
+        composite = AlphaComposite.SrcOver.derive(0.3f)
+      }
+    }
 
     // Draw image, centered, preserving the aspect ratio.
     image?.let { img ->
@@ -52,6 +71,11 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
         val yOffset = rect.y + (rect.height - h) / 2
         g.drawImage(img, xOffset, yOffset, w, h, null)
       }
+    }
+
+    // Restore composite
+    (g as Graphics2D?)?.apply {
+      prevComposite?.let { composite = it }
     }
   }
 }

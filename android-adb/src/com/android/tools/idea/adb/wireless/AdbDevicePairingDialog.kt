@@ -46,6 +46,8 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
 
   var pinCodePairInvoked: (MdnsService) -> Unit = {}
 
+  var qrCodeScanAgainInvoked: () -> Unit = {}
+
   val disposable: Disposable
     get() = dialogWrapper.disposable
 
@@ -53,23 +55,12 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
     // Set a preferred size so that the containing dialog shows big enough
     pairingPanel.rootComponent.preferredSize = panelPreferredSize
     pairingPanel.pinCodePairInvoked = { service -> this.pinCodePairInvoked(service) }
+    pairingPanel.qrCodeScanAgainInvoked = { this.qrCodeScanAgainInvoked() }
     return pairingPanel.rootComponent
   }
 
   fun show() {
     dialogWrapper.show()
-  }
-
-  fun showPinCodeServices(services: List<MdnsService>) {
-    pairingPanel.pinCodePanel.showAvailableServices(services)
-  }
-
-  fun setQrCodeImage(qrCodeImage: QrCodeImage) {
-    pairingPanel.setQrCodeImage(qrCodeImage)
-  }
-
-  fun showQrCodeStatus(label: String) {
-    pairingPanel.setQrCodePairingStatus(label)
   }
 
   fun startLoading(text: String) {
@@ -84,6 +75,34 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
 
   fun stopLoading() {
     pairingPanel.isLoading = false
+  }
+
+  fun showPinCodeServices(services: List<MdnsService>) {
+    pairingPanel.pinCodePanel.showAvailableServices(services)
+  }
+
+  fun setQrCodeImage(qrCodeImage: QrCodeImage) {
+    pairingPanel.qrCodePanel.setQrCode(qrCodeImage)
+  }
+
+  fun showQrCodePairingStarted() {
+    pairingPanel.qrCodePanel.showQrCodePairingStarted()
+  }
+
+  fun showQrCodePairingInProgress() {
+    pairingPanel.qrCodePanel.showQrCodePairingInProgress()
+  }
+
+  fun showQrCodePairingWaitForDevice() {
+    pairingPanel.qrCodePanel.showQrCodePairingWaitForDevice()
+  }
+
+  fun showQrCodePairingSuccess(device: AdbOnlineDevice) {
+    pairingPanel.qrCodePanel.showQrCodePairingSuccess(device)
+  }
+
+  fun showQrCodePairingError(error: Throwable) {
+    pairingPanel.qrCodePanel.showQrCodePairingError()
   }
 
   private val panelPreferredSize: JBDimension
