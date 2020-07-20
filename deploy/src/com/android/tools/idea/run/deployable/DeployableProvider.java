@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.run.deployable;
 
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A provider interface that can procure {@link Deployable}s for locally connected devices.
  */
 public interface DeployableProvider {
+
+  static DeployableProvider getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, DeployableProvider.class);
+  }
 
   @Nullable
   Deployable getDeployable() throws Exception;

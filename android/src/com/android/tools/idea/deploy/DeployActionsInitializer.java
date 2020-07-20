@@ -16,10 +16,9 @@
 package com.android.tools.idea.deploy;
 
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.DeploymentService;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxDeployableProvider;
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerListener;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -28,6 +27,7 @@ import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointUtil;
 import com.intellij.openapi.module.Module;
@@ -113,39 +113,19 @@ public class DeployActionsInitializer implements StartupActivity {
     return androidRunConfigurationBase == null ? null : androidRunConfigurationBase.getConfigurationModule().getModule();
   }
 
-  @Contract("null -> null")
-  @Nullable
-  private static DeployableProvider getDeployTargetProvider(@Nullable RunnerAndConfigurationSettings configSettings) {
+  private static void updateDeployableProvider(@NotNull Project project, @Nullable RunnerAndConfigurationSettings configSettings) {
+    DeviceAndSnapshotComboBoxDeployableProvider service =
+      (DeviceAndSnapshotComboBoxDeployableProvider)ServiceManager.getService(project, DeployableProvider.class);
+
     AndroidRunConfigurationBase androidRunConfig = getAndroidRunConfigurationbase(configSettings);
     Module module = getModule(androidRunConfig);
-    if (module == null) {
-      return null; // We only support projects with Android facets, which needs to be in a module.
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null; // Only support projects with Android facets.
-    }
-    else if (facet.isDisposed()) {
+    AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+    if (facet != null && facet.isDisposed()) {
       Logger.getInstance(DeployActionsInitializer.class).warn("Facet is disposed for the selected configuration.");
-      return null;
+      facet = null;
     }
 
-    if (androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider() instanceof DeviceAndSnapshotComboBoxTargetProvider) {
-      return new DeviceAndSnapshotComboBoxDeployableProvider(facet, androidRunConfig.getApplicationIdProvider(facet));
-    }
-    else {
-      return null;
-    }
-  }
-
-  private static boolean canOverrideDeployableProvider(@Nullable DeployableProvider provider) {
-    return provider == null || provider instanceof DeviceAndSnapshotComboBoxDeployableProvider;
-  }
-
-  private static void updateDeployableProvider(@NotNull Project project, @Nullable RunnerAndConfigurationSettings configSettings) {
-    DeploymentService deploymentService = DeploymentService.getInstance(project);
-    if (canOverrideDeployableProvider(deploymentService.getDeployableProvider())) {
-      deploymentService.setDeployableProvider(getDeployTargetProvider(configSettings));
-    }
+    ApplicationIdProvider applicationIdProvider = facet != null ? androidRunConfig.getApplicationIdProvider(facet) : null;
+    service.update(facet, applicationIdProvider);
   }
 }
