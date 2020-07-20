@@ -30,14 +30,6 @@ import javax.swing.JPanel
 
 @UiThread
 internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
-  /**
-   * URL to the "Learn mode" page
-   *
-   * TODO: Update to final URL
-   */
-  private val learnMoreUrl = "http://developer.android.com/docs"
-
-  private val qrCodePanel by lazy { QrCodePanel() }
   private val centerPanel by lazy { PairingCenterPanel() }
 
   private val loadingPanel: JBLoadingPanel by lazy {
@@ -56,6 +48,12 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
     }
   }
 
+  val qrCodePanel by lazy {
+    QrCodePanel(Runnable {
+      qrCodeScanAgainInvoked()
+    })
+  }
+
   val pinCodePanel by lazy {
     PinCodePanel(parentDisposable, Consumer<MdnsService> { service -> pinCodePairInvoked(service) })
   }
@@ -72,14 +70,11 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
 
   var pinCodePairInvoked: (MdnsService) -> Unit = {}
 
-  fun setQrCodeImage(image: QrCodeImage) {
-    qrCodePanel.setQrCode(image)
-  }
+  var qrCodeScanAgainInvoked: () -> Unit = {}
 
   private fun createHelpLink(): JComponent {
     val link = HyperlinkLabel("Can't connect your device?")
-    //TODO: Update with actual link
-    link.setHyperlinkTarget("https://developer.android.com/docs")
+    link.setHyperlinkTarget(Urls.cantConnectDevice)
     return link
   }
 
@@ -95,7 +90,7 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       add(" ")
       add("Wireless debugging allows for cable free workflows but can be slower than USB connection.")
       add("  ")
-      addLink("Learn more", learnMoreUrl)
+      addLink("Learn more", Urls.learnMore)
     }
     editorPane.setHtml(htmlBuilder, UIColors.HEADER_LABEL)
 
@@ -120,10 +115,6 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
     return centerPanel.apply {
       setContentComponent(contentPanel)
     }.component
-  }
-
-  fun setQrCodePairingStatus(label: String) {
-    qrCodePanel.setStatusLabel(label)
   }
 
   fun setLoadingText(text: String) {

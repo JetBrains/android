@@ -14,7 +14,7 @@
         </constraints>
         <properties>
           <font style="1"/>
-          <text value="To being pairing, set your device to pairing mode"/>
+          <text value="To begin pairing, set your device to pairing mode"/>
         </properties>
       </component>
       <component id="a09e3" class="com.intellij.ui.components.JBLabel" binding="mySecondLineLabel">
