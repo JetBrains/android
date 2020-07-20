@@ -9,6 +9,6 @@ public class TestActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    <error descr="You should not lock orientation of your activities, so that you can support a good user experience for any device or orientation"><caret>setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)</error>;
+    <warning descr="You should not lock orientation of your activities, so that you can support a good user experience for any device or orientation"><caret>setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)</warning>;
   }
 }
