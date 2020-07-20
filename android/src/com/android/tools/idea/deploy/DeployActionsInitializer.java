@@ -118,14 +118,7 @@ public class DeployActionsInitializer implements StartupActivity {
       (DeviceAndSnapshotComboBoxDeployableProvider)ServiceManager.getService(project, DeployableProvider.class);
 
     AndroidRunConfigurationBase androidRunConfig = getAndroidRunConfigurationbase(configSettings);
-    Module module = getModule(androidRunConfig);
-    AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-    if (facet != null && facet.isDisposed()) {
-      Logger.getInstance(DeployActionsInitializer.class).warn("Facet is disposed for the selected configuration.");
-      facet = null;
-    }
 
-    ApplicationIdProvider applicationIdProvider = facet != null ? androidRunConfig.getApplicationIdProvider(facet) : null;
-    service.update(facet, applicationIdProvider);
+    service.update(androidRunConfig);
   }
 }
