@@ -112,7 +112,7 @@ class LightArgsKtClass(
 
   private fun computeCompanionObject(): ClassDescriptor {
     val argsClassDescriptor = this@LightArgsKtClass
-    return object : ClassDescriptorImpl(argsClassDescriptor, argsClassDescriptor.name, Modality.FINAL,
+    return object : ClassDescriptorImpl(argsClassDescriptor, Name.identifier("Companion"), Modality.FINAL,
                                         ClassKind.OBJECT, emptyList(), argsClassDescriptor.source, false, storageManager) {
 
       private val companionObjectScope = storageManager.createLazyValue { CompanionScope() }
