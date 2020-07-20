@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,7 +40,7 @@ import java.util.Map;
  *   <li>{@link #toMap()}<li/>
  * <ul/>
  */
-public interface GradlePropertyModel {
+public interface GradlePropertyModel extends PsiElementHolder {
   @NotNull
   String DOUBLE_QUOTES = "\"";
 
@@ -238,12 +239,6 @@ public interface GradlePropertyModel {
    */
   @NotNull
   GradlePropertyModel getUnresolvedModel();
-
-  /**
-   * @return the {@link PsiElement} that this property originated from. E.g "propertyName = 'some value $here'"
-   */
-  @Nullable
-  PsiElement getPsiElement();
 
   /**
    * @return the {@link PsiElement} that contains the expression of this property, if applicable. E.g "'some value $here'".
