@@ -21,7 +21,11 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
+import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -43,6 +47,7 @@ import java.io.File
 class ImportUtpResultAction : AnAction() {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
+    private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
   }
 
   /**
@@ -70,23 +75,34 @@ class ImportUtpResultAction : AnAction() {
   @VisibleForTesting
   fun parseResultsAndDisplay(file: File, disposable: Disposable, project: Project) {
     RunContentManager.getInstance(project)
-    // TODO: error handling when importing bad protobuf
-    val testAdapter = UtpTestResultAdapter(file)
-    val packageName = testAdapter.getPackageName()
-    val module = ModuleManager.getInstance(project).modules.find {
-      getPackageName(it) == packageName
-    }
-    val testSuiteView = AndroidTestSuiteView(disposable, project, module)
-    val toolWindow = getToolWindow(project)
-    val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
-    contentManager.addContent(content)
+    try {
+      val testAdapter = UtpTestResultAdapter(file)
+      val packageName = testAdapter.getPackageName()
+      val module = ModuleManager.getInstance(project).modules.find {
+        getPackageName(it) == packageName
+      }
+      if (module == null) {
+        NOTIFICATION_GROUP.createNotification("Cannot find corresponding module. Some features might not be available. Did you "
+                                              + "import the test results from a different project?", NotificationType.WARNING)
+          .notify(project)
+      }
+      val testSuiteView = AndroidTestSuiteView(disposable, project, module)
+      val toolWindow = getToolWindow(project)
+      val contentManager = toolWindow.contentManager
+      val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
+      contentManager.addContent(content)
 
-    // TODO: error handling
-    project.coroutineScope.launch {
-      testAdapter.forwardResults(testSuiteView)
+      project.coroutineScope.launch {
+        testAdapter.forwardResults(testSuiteView)
+      }
+      toolWindow.activate(null)
     }
-    toolWindow.activate(null)
+    catch (exception: InvalidProtocolBufferException) {
+      NOTIFICATION_GROUP.createNotification("Failed to import protobuf with exception: " + exception.toString(),
+                                            NotificationType.ERROR)
+        .notify(project)
+      throw exception
+    }
   }
 
   /**
