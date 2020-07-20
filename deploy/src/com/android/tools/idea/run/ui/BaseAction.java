@@ -20,7 +20,6 @@ import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
@@ -160,7 +159,7 @@ public abstract class BaseAction extends AnAction {
                                 "the selected configuration is currently building and/or launching");
     }
 
-    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
+    DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
     if (deployableProvider == null) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no deployment provider",
                                 "there is no deployment provider specified");
@@ -291,7 +290,7 @@ public abstract class BaseAction extends AnAction {
     }
 
     // We may have a remote debugging session, check those as well.
-    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
+    DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
     if (deployableProvider == null) {
       return null;
     }

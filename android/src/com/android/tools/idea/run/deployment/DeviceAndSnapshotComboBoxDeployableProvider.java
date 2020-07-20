@@ -31,10 +31,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployableProvider {
-  private final @NotNull AndroidFacet myFacet;
-  private final @NotNull ApplicationIdProvider myApplicationIdProvider;
+  private @Nullable AndroidFacet myFacet;
+  private @Nullable ApplicationIdProvider myApplicationIdProvider;
 
-  public DeviceAndSnapshotComboBoxDeployableProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
+  public void update(@Nullable AndroidFacet facet, @Nullable ApplicationIdProvider applicationIdProvider) {
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
   }
@@ -42,7 +42,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
   @Nullable
   @Override
   public Deployable getDeployable() throws ApkProvisionException {
-    if (Disposer.isDisposed(myFacet)) {
+    if (myFacet != null && myApplicationIdProvider != null && Disposer.isDisposed(myFacet)) {
       return null;
     }
 
