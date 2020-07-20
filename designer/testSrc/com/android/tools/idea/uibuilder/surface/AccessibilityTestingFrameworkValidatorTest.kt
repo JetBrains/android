@@ -77,7 +77,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     val validatorResult = result.validatorResult as ValidatorResult
 
     val textContrast = filter(validatorResult.issues, "TextContrastCheck")
-    assertEquals(3, textContrast.size)
+    assertEquals(4, textContrast.size)
   }
 
   private fun renderAndResult(layout: String): RenderResult {

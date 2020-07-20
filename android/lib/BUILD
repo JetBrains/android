@@ -1,3 +1,5 @@
+load("//tools/adt/idea/studio:studio.bzl", "studio_data")
+
 # managed by go/iml_to_build
 java_import(
     name = "asm-5.0.3",
@@ -62,6 +64,16 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# Data that gets bundled in studio
+studio_data(
+    name = "sample-data-bundle",
+    files = glob(["sampleData/**"]),
+    mappings = {
+        "tools/adt/idea/android/lib/": "",
+    },
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 java_import(
     name = "instantapps-api-1.8",
@@ -77,9 +89,14 @@ java_import(
 )
 
 # managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.asm-5.0.3",
-    jars = ["asm-5.0.3.jar"],
+filegroup(
+    name = "unb.asm-tools_files",
+    # do not sort: must match IML order
+    srcs = [
+        "asm-5.0.3.jar",
+        "asm-analysis-5.0.3.jar",
+        "asm-tree-5.0.3.jar",
+    ],
     tags = [
         "manual",
         "unb",
@@ -89,29 +106,7 @@ java_import(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.asm-analysis-5.0.3",
-    jars = ["asm-analysis-5.0.3.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.asm-tree-5.0.3",
-    jars = ["asm-tree-5.0.3.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.jarutils",
+    name = "unb.android-sdk-tools-jps",
     jars = ["jarutils.jar"],
     tags = [
         "manual",
@@ -133,7 +128,7 @@ java_import(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.instantapps-api-1.8",
+    name = "unb.instantapps-api",
     jars = ["instantapps-api-1.8.jar"],
     tags = [
         "manual",

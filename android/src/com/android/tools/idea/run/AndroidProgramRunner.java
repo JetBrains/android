@@ -32,22 +32,22 @@ import org.jetbrains.annotations.NotNull;
  * at the moment, and may be changed as needed.
  */
 public abstract class AndroidProgramRunner extends GenericProgramRunner<RunnerSettings> {
-  private final Function<Project, ExecutionTarget> myExecutionTargetGetter;
+  final @NotNull Function<@NotNull Project, @NotNull ExecutionTarget> myGetActiveTarget;
 
   public AndroidProgramRunner() {
-    myExecutionTargetGetter = project -> ExecutionTargetManager.getInstance(project).getActiveTarget();
+    this(ExecutionTargetManager::getActiveTarget);
   }
 
   // @VisibleForTesting
-  AndroidProgramRunner(@NotNull Function<Project, ExecutionTarget> executionTargetGetter) {
-    myExecutionTargetGetter = executionTargetGetter;
+  AndroidProgramRunner(@NotNull Function<@NotNull Project, @NotNull ExecutionTarget> getActiveTarget) {
+    myGetActiveTarget = getActiveTarget;
   }
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
     if (profile instanceof RunConfiguration) {
       Project project = ((RunConfiguration)profile).getProject();
-      ExecutionTarget target = myExecutionTargetGetter.apply(project);
+      ExecutionTarget target = myGetActiveTarget.apply(project);
       if (!(target instanceof AndroidExecutionTarget)) {
         return false;
       }

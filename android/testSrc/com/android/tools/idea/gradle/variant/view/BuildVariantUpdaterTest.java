@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -66,7 +65,6 @@ import org.mockito.stubbing.Answer;
  */
 public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
-  @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private NdkModuleModel myNdkModel;
   @Mock private IdeAndroidProject myAndroidProject;
@@ -90,7 +88,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     AndroidModel.set(androidFacet, myAndroidModel);
 
     Project project = getProject();
-    when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
 
     when(myDebugVariant.getName()).thenReturn("debug");
 
@@ -104,7 +101,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
     ideComponents.replaceProjectService(GradleFiles.class, myGradleFiles);
 
-    myVariantUpdater = new BuildVariantUpdater(myModifiableModelsProviderFactory);
+    myVariantUpdater = new BuildVariantUpdater();
     myVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
 
     when(myNdkModel.getAllVariantAbis()).thenReturn(ImmutableList.of(

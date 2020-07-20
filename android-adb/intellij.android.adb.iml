@@ -10,11 +10,13 @@
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="zxing-core" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
   </component>
 </module>

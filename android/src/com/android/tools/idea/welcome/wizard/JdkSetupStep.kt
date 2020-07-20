@@ -26,7 +26,7 @@ import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.ui.validation.validators.PathValidator
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.application.ApplicationManager
@@ -58,7 +58,7 @@ class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model,
     }
   }
 
-  private val validatorPanel = ValidatorPanel(this, wrappedWithVScroll(jdkPanel))
+  private val validatorPanel = ValidatorPanel(this, wrapWithVScroll(jdkPanel))
   private val invalidPathMessage = StringValueProperty()
   private val isValidJdkPath = BoolValueProperty(false)
   private val jdkLocation: File get() = getLocationFromComboBoxWithBrowseButton(jdkLocationComboBox)

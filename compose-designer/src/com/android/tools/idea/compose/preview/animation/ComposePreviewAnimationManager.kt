@@ -90,6 +90,11 @@ object ComposePreviewAnimationManager {
   }
 
   /**
+   * Whether the animation inspector is open.
+   */
+  fun isInspectorOpen() = currentInspector != null
+
+  /**
    * Invalidates the current animation inspector, so it doesn't display animations out-of-date.
    */
   fun invalidate() {

@@ -31,6 +31,7 @@ import com.intellij.ide.util.projectWizard.SettingsStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.AbstractWizard
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
@@ -55,7 +56,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   /**
    * This adapter class hosts the Android Studio [ModelWizard] instance
    */
-  private var wizardAdapter: IdeaWizardAdapter? = null // null if no adapter has been instantiated
+  private var wizardAdapter: IdeaWizardDelegate? = null // null if no adapter has been instantiated
 
   override fun getBuilderId(): String? = javaClass.name
   override fun getPresentableName(): String = "Android"
@@ -87,7 +88,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
       createWizardAdaptor(ctx.wizard, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
     }
 
-    return wizardAdapter!!.proxyStep
+    return wizardAdapter!!.getCustomOptionsStep()
   }
 
   override fun doNextAction() = wizardAdapter!!.doNextAction()
@@ -96,7 +97,13 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
 
   override fun doFinishAction() = wizardAdapter!!.doFinishAction()
 
-  override fun canProceed(): Boolean = wizardAdapter!!.canProceed()
+  override fun canProceed(): Boolean {
+    ApplicationManager.getApplication().invokeLater {
+      // Unfortunately the [WizardDelegate] does not provide a call for "canGoBack", so we trigger an async full refresh of the buttons.
+      wizardAdapter?.updateButtons()
+    }
+    return wizardAdapter!!.canProceed()
+  }
 
   private fun createWizardAdaptor(hostWizard: AbstractWizard<*>, type: WizardType, project: Project?) {
     Preconditions.checkState(wizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.")

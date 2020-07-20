@@ -27,22 +27,20 @@ The Jetpack Compose IDE plugin
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeTryCatchComposableChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeComposableAnnotationChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeUnionAnnotationCheckerProvider" />
-        <diagnosticSuppressor implementation="androidx.compose.plugins.idea.IdeComposeDiagnosticSuppressor"/>
+        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.TryCatchComposableChecker" />
+        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableCallChecker" />
+        <diagnosticSuppressor implementation="androidx.compose.plugins.idea.ComposeDiagnosticSuppressor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <annotator
             language="kotlin"
-            implementationClass="androidx.compose.plugins.idea.IdeComposableAnnotator"/>
+            implementationClass="androidx.compose.plugins.idea.ComposableAnnotator"/>
         <additionalTextAttributes scheme="Default"
             file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
         <colorSettingsPage
-            implementation="androidx.compose.plugins.idea.IdeComposeColorSettingsPage"/>
+            implementation="androidx.compose.plugins.idea.ComposeColorSettingsPage"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-        <callResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.IdeComposeCallResolutionInterceptorExtension"/>
-        <typeResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.IdeComposeTypeResolutionInterceptorExtension"/>
+        <typeResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.ComposeTypeResolutionInterceptorExtension"/>
     </extensions>
 </idea-plugin>

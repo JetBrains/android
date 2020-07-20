@@ -31,14 +31,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private fun checkComplexLayoutInflateResult(result: RenderResult) {
+fun checkComplexLayoutInflateResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
 }
 
 /**
  * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
  */
-private fun checkComplexLayoutRenderResult(result: RenderResult) {
+fun checkComplexLayoutRenderResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
 
   AndroidGradleTestCase.assertNotNull(result.renderedImage)

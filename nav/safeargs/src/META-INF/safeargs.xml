@@ -30,12 +30,15 @@
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsClassFinder"/>
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ArgsBuilderShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsBuilderClassFinder"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ActionBuilderShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ActionBuilderClassFinder"/>
     <completion.contributor language="kotlin" implementationClass="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKtCompletionContributor" order="after KotlinCompletionContributor"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
     <packageFragmentProviderExtension implementation="com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension"/>
+    <quickFixContributor implementation="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsImportKtResolver"/>
   </extensions>
 
   <project-components>

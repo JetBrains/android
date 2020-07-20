@@ -27,13 +27,14 @@ import com.intellij.util.concurrency.EdtExecutorService
 /**
  * The action to show the [AdbDevicePairingDialog] window.
  */
-@UiThread
 class PairDevicesUsingWiFiAction : AnAction() {
+  @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabledAndVisible = isFeatureEnabled
   }
 
+  @UiThread
   override fun actionPerformed(event: AnActionEvent) {
     if (!isFeatureEnabled) {
       return

@@ -159,7 +159,7 @@ class LightDirectionsClassTest {
     fragment1directions.findMethodsByName("actionFragment1ToFragment2").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment1ToFragment2",
-        returnType = "NavDirections",
+        returnType = "ActionFragment1ToFragment2",
         parameters = listOf(
           Parameter("arg1", "String"),
           Parameter("arg2", PsiType.FLOAT.name)
@@ -169,7 +169,7 @@ class LightDirectionsClassTest {
     fragment1directions.findMethodsByName("actionFragment1ToFragment3").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment1ToFragment3",
-        returnType = "NavDirections",
+        returnType = "ActionFragment1ToFragment3",
         parameters = listOf(
           Parameter("arg", PsiType.INT.name)
         )

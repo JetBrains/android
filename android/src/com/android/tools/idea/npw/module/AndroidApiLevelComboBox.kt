@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.repository.targets.AddonTarget
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager

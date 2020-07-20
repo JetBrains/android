@@ -70,6 +70,7 @@ iml_module(
     name = "intellij.android.room.tests",
     iml_files = ["intellij.android.room.tests.iml"],
     tags = [
+        "no_test_mac",  # b/160881096
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.tools.idea.room.AndroidRoomTestSuite",
@@ -155,6 +156,7 @@ iml_module(
     iml_files = ["intellij.android.room.tests.iml"],
     tags = [
         "manual",
+        "no_test_mac",  # b/160881096
         "no_test_windows",  # b/135665870
         "unb",
     ],

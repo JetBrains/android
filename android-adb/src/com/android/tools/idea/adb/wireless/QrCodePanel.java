@@ -17,23 +17,28 @@ package com.android.tools.idea.adb.wireless;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class QrCodePanel {
-  @NotNull private static Logger LOG = Logger.getInstance(QrCodePanel.class);
-  private JBLabel myFirstLineLabel;
-  private JBLabel mySecondLineLabel;
-  private ImagePanel myQrCodePanel;
-  private JPanel myRootComponent;
-  private JBLabel myPairingStateLabel;
+  @NotNull private final Logger LOG = Logger.getInstance(QrCodePanel.class);
+  @NotNull private JBLabel myFirstLineLabel;
+  @NotNull private JBLabel mySecondLineLabel;
+  @NotNull private ImagePanel myQrCodePanel;
+  @NotNull private JPanel myRootComponent;
+  @NotNull private JBLabel myPairingStateLabel;
 
   public QrCodePanel() {
-    myQrCodePanel.setBorder(JBUI.Borders.customLine(QrCodeColors.BORDER));
-    myQrCodePanel.setBackground(QrCodeColors.BACKGROUND);
-    myFirstLineLabel.setForeground(QrCodeColors.LABEL_FOREGROUND);
-    mySecondLineLabel.setForeground(QrCodeColors.LABEL_FOREGROUND);
+    myQrCodePanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
+    myRootComponent.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
+    myPairingStateLabel.setForeground(UIColors.PAIRING_STATUS_LABEL);
+    myFirstLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
+    mySecondLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
+  }
+
+  @NotNull
+  public JPanel getComponent() {
+    return myRootComponent;
   }
 
   public void setStatusLabel(@NotNull String line) {
@@ -43,10 +48,5 @@ public class QrCodePanel {
   public void setQrCode(@NotNull QrCodeImage image) {
     LOG.info("New QR Code generated: " + image.getPairingString());
     myQrCodePanel.setImage(image.getImage());
-  }
-
-  @NotNull
-  public JPanel getComponent() {
-    return myRootComponent;
   }
 }

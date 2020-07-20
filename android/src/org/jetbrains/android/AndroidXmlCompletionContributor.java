@@ -15,12 +15,15 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.CLASS_VIEW;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.databinding.DataBindingAnnotationsService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResult;
@@ -32,7 +35,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementDecorator;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
@@ -183,8 +185,9 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       resultSet.addElement(LookupElementBuilder.create("manifest"));
       return false;
     }
-    else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      final Map<String,PsiClass> classMap = AttributeProcessingUtil.getViewClassMap(facet);
+    else if (StudioFlags.LAYOUT_XML_MODE.get() != StudioFlags.LayoutXmlMode.CUSTOM_CHILDREN &&
+             LayoutDomFileDescription.isLayoutFile(xmlFile)) {
+      final Map<String, PsiClass> classMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_VIEW);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);

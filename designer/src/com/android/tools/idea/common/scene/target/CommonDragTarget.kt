@@ -367,9 +367,17 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         draggedComponents.forEachIndexed { index, sceneComponent ->
           sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
         }
+        if (myComponent.scene.isLiveRenderingEnabled) {
+          draggedComponents.forEach {
+            if (it.authoritativeNlComponent.startAttributeTransaction().rollback()) {
+              it.authoritativeNlComponent.fireLiveChangeEvent()
+            }
+          }
+        }
       }
       newSelectedComponents = draggedComponents
     }
+    draggedComponents.forEach { it.authoritativeNlComponent.clearTransaction() }
     draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
@@ -425,6 +433,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
     }
     newSelectedComponents = draggedComponents
+    draggedComponents.forEach { it.authoritativeNlComponent.clearTransaction() }
     draggedComponents = emptyList()
     myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
   }

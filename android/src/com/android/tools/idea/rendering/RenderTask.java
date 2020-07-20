@@ -181,7 +181,6 @@ public class RenderTask {
   @Nullable private XmlFile myXmlFile;
   @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
-  @NotNull private final AtomicLong mSessionTimeNanos = new AtomicLong(System.nanoTime());
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -618,6 +617,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_VALIDATOR, myEnableLayoutValidator);
+    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_VALIDATOR_IMAGE_CHECK, myEnableLayoutValidator);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -705,9 +705,8 @@ public class RenderTask {
         RenderSession session = myLayoutLib.createSession(params);
 
         if (session.getResult().isSuccess()) {
-          long now = mSessionTimeNanos.get();
-          session.setSystemBootTimeNanos(now);
-          session.setSystemTimeNanos(now);
+          session.setSystemBootTimeNanos(0);
+          session.setSystemTimeNanos(0);
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
@@ -907,7 +906,7 @@ public class RenderTask {
    * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks() {
+  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(false);
     }
@@ -916,9 +915,8 @@ public class RenderTask {
     // we can safely ignore this render request and wait for the next.
     // With the current implementation, the callbacks will eventually run anyway, the timeout will allow us to detect the timeout sooner.
     return runAsyncRenderAction(() -> {
-      long now = mSessionTimeNanos.get();
-      myRenderSession.setSystemTimeNanos(now);
-      return myRenderSession.executeCallbacks(now);
+      myRenderSession.setSystemTimeNanos(timeNanos);
+      return myRenderSession.executeCallbacks(timeNanos);
     }, 500, TimeUnit.MILLISECONDS);
   }
 
@@ -932,13 +930,13 @@ public class RenderTask {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y) {
+  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(null);
     }
 
     return runAsyncRenderAction(() -> {
-      myRenderSession.setSystemTimeNanos(mSessionTimeNanos.get());
+      myRenderSession.setSystemTimeNanos(timeNanos);
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
       return null;
     });
@@ -1373,13 +1371,5 @@ public class RenderTask {
     catch (IllegalAccessException | InvocationTargetException ex) {
       LOG.warn("Unexpected error while disposing compose view", ex);
     }
-  }
-
-  /**
-   * Sets desired time for the {@link RenderSession}.
-   * @param timeNanos the desired time in nano seconds
-   */
-  public void setSessionTimeNanos(long timeNanos) {
-    mSessionTimeNanos.set(timeNanos);
   }
 }

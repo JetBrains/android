@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
@@ -131,6 +132,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private MockDeviceFileSystem myDevice2;
   private RepaintManager myMockRepaintManager;
   private MockDeviceFileEntry myFooDir;
+  private MockDeviceFileEntry myFooDirLink;
   private TestDialog myInitialTestDialog;
   private TestInputDialog myInitialTestInputDialog;
   private FutureCallbackExecutor myEdtExecutor;
@@ -169,6 +171,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
+    myFooDirLink = myDevice1.getRoot().addDirLink("fooDirLink", "fooDir");
     myFooFile1 = myFoo.addFile("fooFile1.txt");
     myFooFile2 = myFoo.addFile("fooFile2.txt");
     myFooLink1 = myFoo.addFileLink("fooLink1.txt", "fooFile1.txt");
@@ -210,6 +213,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       myFooFile1 = null;
       myFooFile2 = null;
       myFooDir = null;
+      myFooDirLink = null;
       myFoo = null;
       myFile1 = null;
       myFile2 = null;
@@ -266,7 +270,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     when(service.start(any()))
       .thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
-    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener, myMockFileManager);
 
     // Act
     controller.setup();
@@ -282,7 +286,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     when(service.start(any()))
       .thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
-    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener, myMockFileManager);
 
     // Act
     controller.setup();
@@ -316,7 +320,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     when(service.start(any())).thenReturn(Futures.immediateFuture(null));
     when(service.restart(any())).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     when(service.getDevices()).thenReturn(Futures.immediateFuture(new ArrayList<>()));
-    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener, myMockFileManager);
 
     // Act
     controller.setup();
@@ -335,7 +339,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     when(service.start(any()))
       .thenReturn(Futures.immediateFuture(null));
     when(service.getDevices()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
-    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener, myMockFileManager);
 
     // Act
     controller.setup();
@@ -435,8 +439,30 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertEquals(errorMessage, ((ErrorNode)errorNode).getText());
   }
 
+  public void testOpenNodeInEditorDoesNothingForSymlinkToDirectory() throws Exception {
+    DeviceExplorerFileManager mockFileManager = spy(myMockFileManager);
+    DeviceExplorerController controller = createController(myMockView, myMockService, myMockFileOpener, mockFileManager);
+
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    DeviceExplorerViewListener listener = myMockView.getListeners().get(0);
+
+    TreePath fooDirPath = getFileEntryPath(myFooDirLink);
+    myMockView.getTree().setSelectionPath(fooDirPath);
+    DeviceFileEntryNode node = (DeviceFileEntryNode)fooDirPath.getLastPathComponent();
+
+    List<DeviceFileEntryNode> nodes = new ArrayList<>();
+    nodes.add(node);
+
+    listener.openNodesInEditorInvoked(nodes);
+
+    verifyNoMoreInteractions(mockFileManager);
+  }
+
   public void testDownloadFileWithEnterKey() throws Exception {
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       // Send a VK_ENTER key event
       fireEnterKey(myMockView.getTree());
 
@@ -449,7 +475,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     FileHandler mockFileHandler = mock(FileHandler.class);
     ServiceContainerUtil.registerExtension(ApplicationManager.getApplication(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
 
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       // Send a VK_ENTER key event
       fireEnterKey(myMockView.getTree());
 
@@ -464,7 +490,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   }
 
   public void testDownloadFileWithMouseClick() throws Exception {
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       TreePath path = getFileEntryPath(myFile1);
       Rectangle pathBounds = myMockView.getTree().getPathBounds(path);
       assert pathBounds != null;
@@ -479,7 +505,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   public void testDownloadFileLocationWithMouseClick() throws Exception {
     // This saves in the default location for test
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       TreePath path = getFileEntryPath(myFile1);
       Rectangle pathBounds = myMockView.getTree().getPathBounds(path);
       assert pathBounds != null;
@@ -498,7 +524,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     when(myDownloadLocationSupplier.get()).thenReturn(changedPath);
 
     // Now try the alternate location
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       TreePath path = getFileEntryPath(myFile1);
       Rectangle pathBounds = myMockView.getTree().getPathBounds(path);
       assert pathBounds != null;
@@ -673,7 +699,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   }
 
   public void testFileSystemTree_ContextMenu_Open_Works() throws Exception {
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
       AnAction action = getActionByText(actionGroup, "Open");
       assertNotNull(action);
@@ -695,7 +721,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testFileSystemTree_ContextMenu_SaveFileAs_Works() throws Exception {
     File tempFile = FileUtil.createTempFile("foo", "bar");
 
-    downloadFile(() -> {
+    downloadFile(myFile1, () -> {
       // Prepare
       // The "Save As" dialog does not work in headless mode, so we register a custom
       // component that simply returns the tempFile we created above.
@@ -1650,7 +1676,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                  activeDevice.getRoot().getMockEntries().size(), rootEntry.getChildCount());
   }
 
-  public DownloadedFileData downloadFile(Runnable trigger) throws Exception {
+  public DownloadedFileData downloadFile(MockDeviceFileEntry file, Runnable trigger) throws Exception {
     // Prepare
     DeviceExplorerController controller = createController();
 
@@ -1664,10 +1690,10 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Setting the size to 200_000 bytes should force the download to take ~2 seconds,
     // i.e. 200 chunks of 1000 bytes at 100 chunks per second.
     // This allows use to cover the code that animates nodes UI during download.
-    myFile1.setSize(200_000);
+    file.setSize(200_000);
 
     // Select node
-    TreePath file1Path = getFileEntryPath(myFile1);
+    TreePath file1Path = getFileEntryPath(file);
     myMockView.getTree().setSelectionPath(file1Path);
 
     trigger.run();
@@ -1689,13 +1715,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   }
 
   private DeviceExplorerController createController() {
-    return createController(myMockView, myMockService, myMockFileOpener);
+    return createController(myMockView, myMockService, myMockFileOpener, myMockFileManager);
   }
 
   private DeviceExplorerController createController(DeviceExplorerView view,
                                                     DeviceFileSystemService service,
-                                                    DeviceExplorerController.FileOpener fileOpener) {
-    return new DeviceExplorerController(getProject(), myModel, view, service, myMockFileManager, fileOpener, myEdtExecutor, myTaskExecutor);
+                                                    DeviceExplorerController.FileOpener fileOpener,
+                                                    DeviceExplorerFileManager deviceExplorerFileManager) {
+    return new DeviceExplorerController(getProject(), myModel, view, service, deviceExplorerFileManager, fileOpener, myEdtExecutor, myTaskExecutor);
   }
 
   /**

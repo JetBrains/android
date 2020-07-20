@@ -17,7 +17,12 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.layoutlib",
     srcs = ["src"],
+    bundled_deps = ["//prebuilts/studio/layoutlib/data:unb.layoutlib"],
     iml_files = ["intellij.android.layoutlib.iml"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

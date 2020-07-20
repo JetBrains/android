@@ -21,8 +21,10 @@ import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -37,9 +39,15 @@ import org.jetbrains.android.facet.AndroidFacet
  *  <navigation>
  *    <fragment id="@+id/mainMenu">
  *      <action id="@+id/actionToOptions" />
+ *    <argument
+ *        android:name="message"
+ *        app:argType="string" />
+ *
  *      <destination="@id/options" />
  *    </fragment>
  *    <fragment id="@+id/options">
+ *      <action id="@+id/actionToMainMenu" />
+ *     </fragment>
  *  </navigation>
  * ```
  *
@@ -47,12 +55,21 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  * ```
  *  class MainMenuDirections {
- *    class ActionToOptions {}
- *    ActionToOptions actionToOptions();
+ *    static NavDirections actionToOptions();
  *  }
+ *
+ *  class OptionsDirections {
+ *    static ActionToMainMenu actionToOptions(String message);
+ *
+ *    static class ActionToMainMenu implements NavDirections {
+ *      String getMessage();
+ *      String setMessage();
+ *    }
+ *  }
+ *
  * ```
  */
-class LightDirectionsClass(facet: AndroidFacet,
+class LightDirectionsClass(private val facet: AndroidFacet,
                            private val modulePackage: String,
                            navigationResource: ResourceItem,
                            private val data: NavXmlData,
@@ -62,6 +79,7 @@ class LightDirectionsClass(facet: AndroidFacet,
     setModuleInfo(facet.module, false)
   }
 
+  private val actionClasses by lazy { computeInnerClasses() }
   private val _methods by lazy { computeMethods() }
   private val _navigationElement by lazy { backingResourceFile?.findXmlTagById(destination.id) }
 
@@ -69,6 +87,12 @@ class LightDirectionsClass(facet: AndroidFacet,
   override fun getAllMethods() = methods
   override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
     return allMethods.filter { method -> method.name == name }.toTypedArray()
+  }
+
+  override fun getInnerClasses() = actionClasses
+
+  override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
+    return actionClasses.find { it.name == name }
   }
 
   override fun getNavigationElement(): PsiElement {
@@ -86,10 +110,13 @@ class LightDirectionsClass(facet: AndroidFacet,
 
         val methodName = action.id.toCamelCase()
         val resolvedNavigationElement = (_navigationElement as? XmlTag)?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)
+        val resolvedNavDirectionsType = actionClasses.find { it.name!!.decapitalize() == methodName }
+                                          ?.let { PsiTypesUtil.getClassType(it) }
+                                        ?: navDirectionsType
         createMethod(name = methodName,
                      navigationElement = resolvedNavigationElement,
                      modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-                     returnType = annotateNullability(navDirectionsType))
+                     returnType = annotateNullability(resolvedNavDirectionsType))
           .apply {
             types.forEach {
               val arg = it.first
@@ -98,6 +125,17 @@ class LightDirectionsClass(facet: AndroidFacet,
             }
           }
       }.toTypedArray()
+  }
+
+  private fun computeInnerClasses(): Array<PsiClass> {
+    return destination.actions
+      .mapNotNull { action ->
+        val targetDestination = data.root.allDestinations.firstOrNull { it.id == action.destination } ?: return@mapNotNull null
+        targetDestination.arguments.takeUnless { it.isEmpty() } ?: return@mapNotNull null
+
+        val innerClassName = action.id.toUpperCamelCase()
+        LightActionBuilderClass(innerClassName, targetDestination, backingResourceFile, facet, modulePackage, this) }
+      .toTypedArray()
   }
 }
 

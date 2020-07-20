@@ -61,6 +61,28 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
     """.trimIndent())
 
     androidFacet.safeArgsMode = mode
+
+    // Add fake "NavArgs" interface to this project so the args class can resolve its interface
+    with(fixture.addFileToProject("src/androidx/navigation/NavArgs.java",
+      // language=java
+      """
+        package androidx.navigation;
+
+        public interface NavArgs {}
+      """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    // Add fake "NavDirections" interface to this project so the args class can resolve its interface
+    with(fixture.addFileToProject("src/androidx/navigation/NavDirections.java",
+      // language=java
+      """
+        package androidx.navigation;
+
+        public interface NavDirections {}
+      """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
   }
 
   override fun after() {

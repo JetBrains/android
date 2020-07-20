@@ -257,6 +257,11 @@ public final class StudioFlags {
     "Enable the per SceneView top toolbar that displays the SceneView contextual actions.",
     true);
 
+  public static final Flag<Boolean> NELE_SCENEVIEW_BOTTOM_BAR = Flag.create(
+    NELE, "sceneview.bottom.bar", "Enable the per SceneView bottom bar.",
+    "Enable the per SceneView bottom bar that displays the SceneView contextual actions.",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
@@ -977,6 +982,13 @@ public final class StudioFlags {
     COMPOSE, "preview.element.picker.enable",
     "Enable @Preview picker",
     "If enabled, the picker for @Preview elements will be available",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_BLUEPRINT_MODE = Flag.create(
+    COMPOSE, "preview.blueprint",
+    "Enable the blueprint mode for Compose previews",
+    "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
     false
   );
   //endregion

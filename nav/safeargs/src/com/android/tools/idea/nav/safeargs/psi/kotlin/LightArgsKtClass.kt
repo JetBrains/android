@@ -16,10 +16,11 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.tools.idea.nav.safeargs.index.NavFragmentData
+import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
+import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.PlatformIcons
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
@@ -74,7 +75,7 @@ import org.jetbrains.kotlin.utils.Printer
  */
 class LightArgsKtClass(
   name: Name,
-  private val fragment: NavFragmentData,
+  private val destination: NavDestinationData,
   superTypes: Collection<KotlinType>,
   sourceElement: SourceElement,
   containingDescriptor: DeclarationDescriptor,
@@ -93,7 +94,7 @@ class LightArgsKtClass(
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
     val valueParametersProvider = { constructor: ClassConstructorDescriptor ->
       var index = 0
-      fragment.arguments
+      destination.arguments
         .asSequence()
         .map { arg ->
           val pName = Name.identifier(arg.name)
@@ -180,13 +181,14 @@ class LightArgsKtClass(
       val componentFunctions = argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters
         .asSequence()
         .map { parameter ->
+          val methodName = "component" + index++
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, parameter.name.asString())?.let {
-            XmlSourceElement(SafeArgsXmlTag(it, PlatformIcons.METHOD_ICON))
+            XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
           } ?: argsClassDescriptor.source
 
           argsClassDescriptor.createMethod(
-            name = "component" + index++,
+            name = methodName,
             returnType = parameter.type,
             dispatchReceiver = argsClassDescriptor,
             sourceElement = resolvedSourceElement
@@ -198,7 +200,7 @@ class LightArgsKtClass(
     }
 
     private val properties = storageManager.createLazyValue {
-      fragment.arguments
+      destination.arguments
         .asSequence()
         .map { arg ->
           val pName = arg.name
@@ -208,7 +210,7 @@ class LightArgsKtClass(
             .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, isNonNull, fallbackType)
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(SafeArgsXmlTag(it, KotlinIcons.FIELD_VAL))
+            XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, KotlinIcons.FIELD_VAL, pName))
           } ?: argsClassDescriptor.source
           argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
         }

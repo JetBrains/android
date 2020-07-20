@@ -123,3 +123,20 @@ internal fun composeProvider(surface: NlDesignSurface,
     }
     .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
     .build()
+
+internal fun composeBlueprintProvider(surface: NlDesignSurface,
+                                      manager: LayoutlibSceneManager,
+                                      @Suppress("UNUSED_PARAMETER") isSecondary: Boolean): ScreenView =
+  ScreenView.newBuilder(surface, manager)
+    .withColorSet(BlueprintColorSet())
+    .withLayersProvider {
+      ImmutableList.builder<Layer>().apply {
+        if (it.hasBorderLayer()) {
+          add(BorderLayer(it))
+        }
+        add(MockupLayer(it))
+        add(SceneLayer(it.surface, it, true))
+      }.build()
+    }
+    .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+    .build()

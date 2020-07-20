@@ -22,7 +22,7 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.SkiaViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.proto.SkiaParserServiceGrpc
 import com.android.tools.idea.protobuf.ByteString
@@ -46,7 +46,6 @@ import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
-import java.awt.Image
 import java.awt.Point
 import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage
@@ -75,7 +74,7 @@ class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
-  fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean = { false }): InspectorView?
+  fun getViewTree(data: ByteArray, knownIds: Iterable<Long>, isInterrupted: () -> Boolean = { false }): SkiaViewNode?
 
   fun shutdownAll()
 }
@@ -97,9 +96,10 @@ object SkiaParser : SkiaParserService {
 
   @Slow
   @Throws(InvalidPictureException::class)
-  override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): InspectorView? {
+  override fun getViewTree(data: ByteArray, knownIds: Iterable<Long>, isInterrupted: () -> Boolean): SkiaViewNode? {
+    val sortedIds = knownIds.sorted()
     val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
-    val response = server.getViewTree(data)
+    val response = server.getViewTree(data, sortedIds)
     return response?.root?.let {
       try {
         buildTree(it, isInterrupted)
@@ -117,14 +117,14 @@ object SkiaParser : SkiaParserService {
   }
 
   @VisibleForTesting
-  fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): InspectorView? {
+  fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): SkiaViewNode? {
     if (isInterrupted()) {
       throw InterruptedException()
     }
     val width = node.width
     val height = node.height
-    var image: Image? = null
-    if (!node.image.isEmpty) {
+
+    return if (!node.image.isEmpty) {
       val intArray = IntArray(width * height)
       node.image.asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(intArray)
       val buffer = DataBufferInt(intArray, width * height)
@@ -133,11 +133,11 @@ object SkiaParser : SkiaParserService {
       val colorModel = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                         32, 0xff0000, 0xff00, 0xff, 0xff000000.toInt(), false, DataBuffer.TYPE_INT)
       @Suppress("UndesirableClassUsage")
-      image = BufferedImage(colorModel, raster, false, null)
+      SkiaViewNode(node.id, node.type, node.x, node.y, width, height, BufferedImage(colorModel, raster, false, null))
     }
-    val res = InspectorView(node.id, node.type, node.x, node.y, width, height, image)
-    node.childrenList.mapNotNull { buildTree(it, isInterrupted) }.forEach { res.addChild(it) }
-    return res
+    else {
+      SkiaViewNode(node.id, node.type, node.x, node.y, width, height, node.childrenList.mapNotNull { buildTree(it, isInterrupted) })
+    }
   }
 
   /**
@@ -405,19 +405,23 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   @Slow
-  fun getViewTree(data: ByteArray): SkiaParser.GetViewTreeResponse? {
+  fun getViewTree(data: ByteArray, knownIds: Iterable<Long>): SkiaParser.GetViewTreeResponse? {
     ping()
-    return getViewTreeImpl(data)
+    return getViewTreeImpl(data, knownIds)
   }
 
   // TODO: add ping functionality to the server?
   @Slow
   fun ping() {
-    getViewTreeImpl(ByteArray(1))
+    getViewTreeImpl(ByteArray(1), emptyList())
   }
 
-  private fun getViewTreeImpl(data: ByteArray): SkiaParser.GetViewTreeResponse? {
-    val request = SkiaParser.GetViewTreeRequest.newBuilder().setSkp(ByteString.copyFrom(data)).build()
+  private fun getViewTreeImpl(data: ByteArray, knownIds: Iterable<Long>): SkiaParser.GetViewTreeResponse? {
+    val request = SkiaParser.GetViewTreeRequest.newBuilder()
+      .setVersion(1)
+      .setSkp(ByteString.copyFrom(data))
+      .addAllKnownIds(knownIds)
+      .build()
     return getViewTreeWithRetry(request)
   }
 

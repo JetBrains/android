@@ -26,6 +26,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
@@ -83,6 +84,7 @@ import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -356,7 +358,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private final boolean myIsInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
-  private RenderIssueProvider myRenderIssueProvider;
+  @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final NlAnalyticsManager myAnalyticsManager;
   /**
@@ -526,6 +528,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
+    // TODO(b/160021437): Make SceneMode a property of SceneManager instead, the way is currently implemented, changes made to DesignSurface
+    //  properties affect previews from all NlModels, that's not always the desired behavior like in this case
     if (setAsDefault) {
       SceneMode.Companion.savePreferredMode(sceneMode);
     }
@@ -533,15 +537,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (sceneMode != mySceneMode) {
       mySceneMode = sceneMode;
 
-      LayoutlibSceneManager manager = getSceneManager();
-      if (manager != null) {
+      for (SceneManager manager : getSceneManagers()) {
         manager.updateSceneView();
         manager.requestLayoutAndRender(false);
       }
-      if (!contentResizeSkipped()) {
-        zoomToFit();
-        revalidateScrollArea();
-      }
+      revalidateScrollArea();
     }
   }
 
@@ -758,13 +758,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       @Override
       public void run() {
         // Look up *current* result; a newer one could be available
-        LayoutlibSceneManager sceneManager = getSceneManager();
-        RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
-        if (result == null) {
+        Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
+          .filter(LayoutlibSceneManager.class::isInstance)
+          .map(LayoutlibSceneManager.class::cast)
+          .filter(sceneManager -> sceneManager.getRenderResult() != null)
+          .collect(Collectors.toMap(Function.identity(), LayoutlibSceneManager::getRenderResult));
+        if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && !getModels().isEmpty()) {
-          myValidator.validateAndUpdateLint(result, getModels().get(0));
+        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && myValidator != null) {
+          for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
+            myValidator.validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+          }
         }
 
         Project project = getProject();
@@ -775,16 +780,31 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         // createErrorModel needs to run in Smart mode to resolve the classes correctly
         DumbService.getInstance(project).runReadActionInSmartMode(() -> {
           BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
-          RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
-                                   ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
-                                   : RenderErrorModelFactory
-                                     .createErrorModel(NlDesignSurface.this, result,
-                                                       DataManager.getInstance().getDataContext(getIssuePanel()));
-          if (myRenderIssueProvider != null) {
-            getIssueModel().removeIssueProvider(myRenderIssueProvider);
+          ImmutableList<RenderIssueProvider> renderIssueProviders = null;
+          if (gradleBuildMode != null) {
+            for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
+              if (entry.getValue().getLogger().hasErrors()) {
+                // We are still building, display the message to the user.
+                renderIssueProviders = ImmutableList.of(new RenderIssueProvider(
+                  entry.getKey().getModel(), RenderErrorModel.STILL_BUILDING_ERROR_MODEL));
+                break;
+              }
+            }
           }
-          myRenderIssueProvider = new RenderIssueProvider(model);
-          getIssueModel().addIssueProvider(myRenderIssueProvider);
+
+          if (renderIssueProviders == null) {
+            renderIssueProviders = results.entrySet().stream()
+              .map(entry -> {
+                RenderErrorModel errorModel = RenderErrorModelFactory
+                  .createErrorModel(NlDesignSurface.this, entry.getValue(),
+                                    DataManager.getInstance().getDataContext(getIssuePanel()));
+                return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
+              })
+              .collect(ImmutableList.toImmutableList());
+          }
+          myRenderIssueProviders.forEach(renderIssueProvider -> getIssueModel().removeIssueProvider(renderIssueProvider));
+          myRenderIssueProviders = renderIssueProviders;
+          renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
       }
 

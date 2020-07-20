@@ -94,6 +94,10 @@ public interface InstanceObject extends ValueObject {
     }
   }
 
+  default boolean isCallStackEmpty() {
+    return getCallStackDepth() == 0;
+  }
+
   /**
    * @return The IJ-friendly allocation callstack which can be used to navigate to the user code using the StackTraceView.
    */

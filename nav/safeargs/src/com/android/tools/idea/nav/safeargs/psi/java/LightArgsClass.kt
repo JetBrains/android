@@ -16,12 +16,16 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.ide.common.resources.ResourceItem
-import com.android.tools.idea.nav.safeargs.index.NavFragmentData
+import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.intellij.lang.jvm.types.JvmReferenceType
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
@@ -42,8 +46,9 @@ import org.jetbrains.android.facet.AndroidFacet
  * This would generate a class like the following:
  *
  * ```
- *  class EditorFragmentArgs {
+ *  class EditorFragmentArgs implements NavArgs {
  *    static EditorFragmentArgs fromBundle(Bundle bundle);
+ *    Bundle toBundle();
  *    String getMessage();
  *  }
  * ```
@@ -51,17 +56,26 @@ import org.jetbrains.android.facet.AndroidFacet
 class LightArgsClass(facet: AndroidFacet,
                      private val modulePackage: String,
                      navigationResource: ResourceItem,
-                     val fragment: NavFragmentData)
-  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination()) {
+                     val destination: NavDestinationData)
+  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, destination) {
 
   init {
     setModuleInfo(facet.module, false)
   }
 
+  private val NAV_ARGS_FQCN = "androidx.navigation.NavArgs"
   val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
-  private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(fragment.id) }
+  private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(destination.id) }
+  private val navArgsType by lazy { PsiType.getTypeByName(NAV_ARGS_FQCN, project, this.resolveScope) }
+  private val navArgsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_ARGS_FQCN, this.resolveScope) }
+
+  override fun getImplementsListTypes() = arrayOf(navArgsType)
+  override fun getSuperTypes() = arrayOf(navArgsType)
+  override fun getSuperClassType() = navArgsType
+  override fun getSuperClass() = navArgsClass
+  override fun getSupers() = navArgsClass?.let { arrayOf(it) } ?: emptyArray()
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
@@ -91,7 +105,7 @@ class LightArgsClass(facet: AndroidFacet,
       returnType = annotateNullability(bundleType)
     )
 
-    val getters: Array<PsiMethod> = fragment.arguments.map { arg ->
+    val getters: Array<PsiMethod> = destination.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       createMethod(name = "get${arg.name.capitalize()}",
                    navigationElement = getFieldNavigationElementByName(arg.name),
@@ -102,7 +116,7 @@ class LightArgsClass(facet: AndroidFacet,
   }
 
   private fun computeFields(): Array<PsiField> {
-    return fragment.arguments
+    return destination.arguments
       .asSequence()
       .map { createField(it, modulePackage, backingXmlTag as XmlTag) }
       .toList()

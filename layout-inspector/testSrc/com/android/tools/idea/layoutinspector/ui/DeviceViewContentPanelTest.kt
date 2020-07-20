@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.PropertySetterRule
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
@@ -32,17 +33,16 @@ import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Image
+import java.awt.Font
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
-private const val DIFF_THRESHOLD = 0.05
+private const val DIFF_THRESHOLD = 0.02
 
 class DeviceViewContentPanelTest {
 
@@ -51,7 +51,7 @@ class DeviceViewContentPanelTest {
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock(InspectorClient::class.java)) },
+    { _, _ -> listOf(mock()) },
     InspectorClient.Companion::clientFactory)
 
   @Test
@@ -67,23 +67,25 @@ class DeviceViewContentPanelTest {
     val settings = DeviceViewSettings(scalePercent = 30)
     settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    assertEquals(Dimension(188, 197), panel.preferredSize)
+    assertEquals(Dimension(376, 394), panel.preferredSize)
 
     settings.scalePercent = 100
-    assertEquals(Dimension(510, 542), panel.preferredSize)
+    assertEquals(Dimension(1020, 1084), panel.preferredSize)
 
     model.update(
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
       }, ROOT, listOf(ROOT))
-    assertEquals(Dimension(366, 410), panel.preferredSize)
+    assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
   @Test
   fun testPaint() {
     val model = model {
       view(ROOT, 0, 0, 500, 1000) {
-        view(VIEW1, 125, 150, 250, 250, imageBottom = mock(Image::class.java))
+        view(VIEW1, 125, 150, 250, 250) {
+          image()
+        }
       }
     }
 
@@ -130,16 +132,21 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = true
     model.selection = model[VIEW1]!!
     graphics = generatedImage.createGraphics()
+    // Set the font so it will be the same across platforms
+    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
+    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD)
 
     model.hoveredNode = windowRoot
     graphics = generatedImage.createGraphics()
+    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
   }
@@ -150,7 +157,9 @@ class DeviceViewContentPanelTest {
     val model = model {
       view(ROOT, 0, 0, 500, 1000) {
         // Use a RTL name to force TextLayout to be used
-        view(VIEW1, 125, 150, 250, 250, qualifiedName = "שמי העברי", imageBottom = mock(Image::class.java))
+        view(VIEW1, 125, 150, 250, 250, qualifiedName = "שמי העברי") {
+          image()
+        }
       }
     }
 
@@ -175,7 +184,7 @@ class DeviceViewContentPanelTest {
   @Test
   fun testOverlay() {
     val model = model {
-      view(ROOT, 0, 0, 500, 1000) {
+      view(ROOT, 0, 0, 600, 600) {
         view(VIEW1, 125, 150, 250, 250)
       }
     }
@@ -189,7 +198,7 @@ class DeviceViewContentPanelTest {
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(1000, 1500)
 
-    panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"))
+    panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/overlay.png"))
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-60.png"), generatedImage, DIFF_THRESHOLD)
@@ -207,19 +216,19 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testClipping() {
-    val model = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 25, 50, 50, 100)
-      }
-    }
-
     @Suppress("UndesirableClassUsage")
     val childImage = BufferedImage(50, 100, TYPE_INT_ARGB)
     val childImageGraphics = childImage.createGraphics()
     childImageGraphics.color = Color.RED
     childImageGraphics.fillOval(0, 0, 50, 100)
 
-    model[VIEW1]!!.imageBottom = childImage
+    val model = model {
+      view(ROOT, 0, 0, 100, 100) {
+        view(VIEW1, 25, 50, 50, 100) {
+          image(childImage)
+        }
+      }
+    }
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -238,7 +247,9 @@ class DeviceViewContentPanelTest {
   fun testDrag() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+        view(VIEW1, 25, 30, 50, 50) {
+          image()
+        }
       }
     }
 
@@ -261,7 +272,9 @@ class DeviceViewContentPanelTest {
   fun testPaintMultiWindow() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 0, 0, 50, 50, imageBottom = mock(Image::class.java))
+        view(VIEW1, 0, 0, 50, 50) {
+          image()
+        }
       }
     }
 
@@ -301,7 +314,9 @@ class DeviceViewContentPanelTest {
   fun testPaintMultiWindowDimBehind() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 0, 0, 50, 50, imageBottom = mock(Image::class.java))
+        view(VIEW1, 0, 0, 50, 50) {
+          image()
+        }
       }
     }
 
@@ -339,9 +354,14 @@ class DeviceViewContentPanelTest {
     val image3 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image3.png"))
 
     val model = model {
-      view(ROOT, 0, 0, 585, 804, imageBottom = image1) {
-        view(VIEW1, 0, 100, 585, 585, imageBottom = image2)
-        view(VIEW2, 100, 400, 293, 402, imageBottom = image3)
+      view(ROOT, 0, 0, 585, 804) {
+        image(image1)
+        view(VIEW1, 0, 100, 585, 585) {
+          image(image2)
+        }
+        view(VIEW2, 100, 400, 293, 402) {
+          image(image3)
+        }
       }
     }
 
@@ -387,9 +407,55 @@ class DeviceViewContentPanelTest {
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
+    // Set the font so it will be the same across platforms
+    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  fun testPaintWithImagesBetweenChildren() {
+    val image1 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
+    val image2 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image2.png"))
+    val image3 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image3.png"))
+
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 0, 0, 100, 100) {
+          image(image2)
+        }
+        image(image1, 0, 50)
+        view(VIEW2, 0, 100, 100, 100) {
+          image(image3)
+        }
+      }
+    }
+
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(1400, 1800, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+
+    val panel = DeviceViewContentPanel(model, DeviceViewSettings(scalePercent = 400))
+    panel.setSize(1400, 1800)
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren.png"), generatedImage,
+                                     DIFF_THRESHOLD)
+
+    panel.model.rotate(0.3, 0.2)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_rotated.png"),
+                                     generatedImage, DIFF_THRESHOLD)
+
+    model.selection = model[ROOT]
+    graphics = generatedImage.createGraphics()
+    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_root.png"), generatedImage, DIFF_THRESHOLD)
+
   }
 
   @Test
@@ -398,7 +464,8 @@ class DeviceViewContentPanelTest {
     val image1 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
 
     val model = model {
-      view(ROOT, 0, 0, 585, 804, imageBottom = image1) {
+      view(ROOT, 0, 0, 585, 804) {
+        image(image1)
         view(VIEW1, 0, 100, 585, 585)
         view(VIEW2, 100, 400, 293, 402)
       }

@@ -365,7 +365,7 @@ public class BuildVariantView {
     }
   }
 
-  public interface BuildVariantSelectionChangeListener {
+  interface BuildVariantSelectionChangeListener {
     /**
      * Indicates that a user selected a build variant from the "Build Variants" tool window.
      * <p/>

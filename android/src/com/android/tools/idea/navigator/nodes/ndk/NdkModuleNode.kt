@@ -19,6 +19,7 @@ import com.android.builder.model.NativeArtifact
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
@@ -99,10 +100,14 @@ fun getNativeSourceNodes(project: Project,
  * CMakeLists.txt).
  */
 private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
-                                       ndkModel: NdkModuleModel,
+                                       ndkModuleModel: NdkModuleModel,
                                        project: Project,
                                        settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val variant = ndkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
+  val v1NdkModel = when (val model = ndkModuleModel.ndkModel) {
+    is V1NdkModel -> model
+  }
+
+  val variant = v1NdkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, NativeArtifact>()
   for (artifact in variant.artifacts) {
     val file = artifact.outputFile
@@ -137,7 +142,7 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
     val nativeLibraryType = key.type.displayText
     val nativeLibraryName = key.name
     val node = NdkLibraryEnhancedHeadersNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(key),
-                                             NativeIncludes({ ndkModel.findSettings(it) },
+                                             NativeIncludes({ v1NdkModel.findSettings(it) },
                                                             nativeLibraries.get(key)), settings
     )
     children.add(node)

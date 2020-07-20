@@ -17,13 +17,9 @@ package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
-import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
-import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_FULL_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.ide.common.gradle.model.level2.IdeLibrary;
@@ -37,18 +33,13 @@ import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -59,7 +50,6 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +65,6 @@ public class BuildVariantUpdater {
     new Key<>("module.with.build.variant.switched.from.ui");
   @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
     new Key<>("use.variants.from.previous.gradle.syncs");
-  @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
     ContainerUtil.createLockFreeCopyOnWriteList();
 
@@ -86,29 +75,14 @@ public class BuildVariantUpdater {
 
   // called by IDEA.
   @SuppressWarnings("unused")
-  BuildVariantUpdater() {
-    this(new IdeModifiableModelsProviderFactory());
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  BuildVariantUpdater(@NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory) {
-    myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
-  }
+  BuildVariantUpdater() { }
 
   /**
    * Add an {@link BuildVariantView.BuildVariantSelectionChangeListener} to the updater. Listeners are
    * invoked when the project's selected build variant changes.
    */
-  public void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
+  void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
     mySelectionChangeListeners.add(listener);
-  }
-
-  /**
-   * Remove the {@link BuildVariantView.BuildVariantSelectionChangeListener} from the updater.
-   */
-  public void removeSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
-    mySelectionChangeListeners.remove(listener);
   }
 
   public boolean updateSelectedBuildVariant(@NotNull Project project,
@@ -241,24 +215,19 @@ public class BuildVariantUpdater {
       // Build file is not changed, the cached variants should be cached and reused.
       project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
-      requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
+      requestVariantOnlyGradleSync(project, moduleName, invokeVariantSelectionChangeListeners);
     }
     else {
       // For now we need to update every facet to ensure content entries are accurate.
       // TODO: Remove this once content entries use DataNodes.
       List<AndroidFacet> allAndroidFacets = new ArrayList<>();
-      List<NdkFacet> allNdkFacets = new ArrayList<>();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
         if (androidFacet != null) {
           allAndroidFacets.add(androidFacet);
         }
-        NdkFacet ndkFacet = NdkFacet.getInstance(module);
-        if (ndkFacet != null) {
-          allNdkFacets.add(ndkFacet);
-        }
       }
-      setupCachedVariant(project, allAndroidFacets, allNdkFacets, invokeVariantSelectionChangeListeners);
+      setupCachedVariant(project, allAndroidFacets, invokeVariantSelectionChangeListeners);
     }
     return true;
   }
@@ -533,7 +502,6 @@ public class BuildVariantUpdater {
 
   private static void requestVariantOnlyGradleSync(@NotNull Project project,
                                                    @NotNull String moduleName,
-                                                   @NotNull String buildVariantName,
                                                    @NotNull Runnable variantSelectionChangeListeners) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
@@ -545,37 +513,19 @@ public class BuildVariantUpdater {
       return;
     }
     AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
-    NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(moduleToUpdate);
     GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
     if (androidModel != null && gradleModel != null) {
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      String variantName = buildVariantName;
-      String abiName = null;
-      VariantAbi variantAbi = VariantAbi.fromString(buildVariantName);
-      if (ndkModuleModel != null && ndkModuleModel.getAllVariantAbis().contains(variantAbi)) {
-        variantName = variantAbi.getVariant();
-        abiName = variantAbi.getAbi();
-      }
-      request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }
 
-  private void setupCachedVariant(@NotNull Project project,
-                                  @NotNull List<AndroidFacet> affectedAndroidFacets,
-                                  @NotNull List<NdkFacet> affectedNdkFacets,
-                                  @NotNull Runnable variantSelectionChangeListeners) {
+  private static void setupCachedVariant(@NotNull Project project,
+                                         @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                         @NotNull Runnable variantSelectionChangeListeners) {
     Application application = ApplicationManager.getApplication();
 
     Task.Backgroundable task = new Task.Backgroundable(project, "Setting up Project", false/* cannot be canceled*/) {
-      // Values to use in indicator
-      private double PROGRESS_SETUP_MODULES_START = 0.0;
-      private double PROGRESS_SETUP_MODULES_SIZE = 0.2;
-      private double PROGRESS_SETUP_PROJECT_START = PROGRESS_SETUP_MODULES_START + PROGRESS_SETUP_MODULES_SIZE;
-      private double PROGRESS_SETUP_PROJECT_SIZE = 0.2;
-      private double PROGRESS_COMMIT_START = PROGRESS_SETUP_PROJECT_START + PROGRESS_SETUP_PROJECT_SIZE;
-      private double PROGRESS_COMMIT_SIZE = 0.4;
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
@@ -585,15 +535,9 @@ public class BuildVariantUpdater {
         // using the remainder of out setup steps.
         VariantSwitcher.switchVariant(project, affectedAndroidFacets);
 
-        // Setup modules
-        List<IdeModifiableModelsProvider> modelsProviders = setUpModules(affectedAndroidFacets, affectedNdkFacets, indicator);
-
-        // Setup Project
-        setUpProject(project, indicator);
+        GradleSyncState.getInstance(project).syncSkipped(null);
 
         // Commit changes and dispose models providers
-        commitChanges(project, modelsProviders, indicator);
-
         if (application.isUnitTestMode()) {
           variantSelectionChangeListeners.run();
         }
@@ -602,70 +546,6 @@ public class BuildVariantUpdater {
         }
 
         getLog().info("Finished setup of cached variant");
-      }
-
-      private List<IdeModifiableModelsProvider> setUpModules(@NotNull List<AndroidFacet> affectedAndroidFacets,
-                                                             @NotNull List<NdkFacet> affectedNdkFacets,
-                                                             @NotNull ProgressIndicator indicator) {
-        indicator.setIndeterminate(false);
-        indicator.setText("Setting up modules");
-        indicator.setFraction(PROGRESS_SETUP_MODULES_START);
-        List<IdeModifiableModelsProvider> modelsProviders = new ArrayList<>();
-        for (NdkFacet ndkFacet : affectedNdkFacets) {
-          NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(ndkFacet);
-          if (ndkModuleModel != null) {
-            modelsProviders.add(setUpModule(ndkFacet.getModule(), ndkModuleModel));
-          }
-        }
-
-        for (AndroidFacet androidFacet : affectedAndroidFacets) {
-          AndroidModuleModel androidModel = getAndroidModel(androidFacet);
-          if (androidModel != null) {
-            modelsProviders.add(setUpModule(androidFacet.getModule(), androidModel));
-          }
-        }
-        return modelsProviders;
-      }
-
-      private void setUpProject(@NotNull Project project, @NotNull ProgressIndicator indicator) {
-        indicator.setText("Setting up project");
-        indicator.setFraction(PROGRESS_SETUP_PROJECT_START);
-        PostSyncProjectSetup.getInstance(project).notifySyncFinished();
-      }
-
-      private void commitChanges(@NotNull Project project,
-                                 @NotNull List<IdeModifiableModelsProvider> providers,
-                                 @NotNull ProgressIndicator indicator) {
-        startBatchUpdate(project);
-        try {
-          doCommitChanges(project, providers, indicator);
-        }
-        finally {
-          finishBatchUpdate(project);
-        }
-      }
-
-      private void doCommitChanges(@NotNull Project project,
-                                   @NotNull List<IdeModifiableModelsProvider> providers,
-                                   @NotNull ProgressIndicator indicator) {
-        indicator.setText("Committing changes");
-        indicator.setFraction(PROGRESS_COMMIT_START);
-        double step = PROGRESS_COMMIT_SIZE / (providers.size() + 1);
-        double progress = PROGRESS_COMMIT_START;
-        for (IdeModifiableModelsProvider provider : providers) {
-          executeProjectChanges(project, () -> {
-            try {
-              provider.commit();
-            }
-            catch (Throwable t) {
-              provider.dispose();
-              //noinspection ConstantConditions
-              rethrowAllAsUnchecked(t);
-            }
-          });
-          progress += step;
-          indicator.setFraction(progress);
-        }
       }
     };
 
@@ -681,14 +561,6 @@ public class BuildVariantUpdater {
   private static Module findModule(@NotNull Project project, @NotNull String moduleName) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     return moduleManager.findModuleByName(moduleName);
-  }
-
-  private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    return myModifiableModelsProviderFactory.create(module.getProject());
-  }
-
-  private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
-    return myModifiableModelsProviderFactory.create(module.getProject());
   }
 
   @Nullable
@@ -748,21 +620,5 @@ public class BuildVariantUpdater {
   @NotNull
   private static Logger getLog() {
     return Logger.getInstance(BuildVariantUpdater.class);
-  }
-
-  @VisibleForTesting
-  static class IdeModifiableModelsProviderFactory {
-    @NotNull
-    IdeModifiableModelsProvider create(@NotNull Project project) {
-      return new IdeModifiableModelsProviderImpl(project);
-    }
-  }
-
-  /**
-   * @return An NDK build variant name from the provided build variant name and ABI.
-   */
-  @NotNull
-  private static String getNdkBuildVariantName(@NotNull String buildVariantNameWithoutAbi, @NotNull String abiName) {
-    return buildVariantNameWithoutAbi + "-" + abiName;
   }
 }

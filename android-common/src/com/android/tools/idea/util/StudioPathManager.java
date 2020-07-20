@@ -27,7 +27,7 @@ public class StudioPathManager {
    * @return returns the root of the Android repo when Android Studio is running from sources (works for both
    * bundled or unbundled builds).
    */
-  public static String getRepoRoot() {
+  public static String getSourcesRoot() {
     assert isRunningFromSources();
     if (isUnBundledDevBuild()) {
       String studioSourceRoot = System.getProperty(STUDIO_SOURCE_ROOT);

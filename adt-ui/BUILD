@@ -9,6 +9,8 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
+        "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/artwork:device-art-resources",
     ],
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order
@@ -63,8 +65,6 @@ iml_module(
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
         "//tools/idea/.idea/libraries:javax.activation",
-        "//tools/idea/.idea/libraries:jaxb-api",
-        "//tools/idea/.idea/libraries:jaxb-runtime",
         "//tools/idea/.idea/libraries:javax.annotation-api",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
@@ -93,6 +93,9 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/idea/.idea/libraries:gson",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
     ],
 )
 
@@ -107,6 +110,7 @@ java_binary(
 iml_module(
     name = "unb.intellij.android.adt.ui",
     srcs = ["src/main/java"],
+    bundled_deps = ["//tools/adt/idea/adt-ui/lib:unb.libwebp"],
     iml_files = ["intellij.android.adt.ui.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -116,6 +120,8 @@ iml_module(
     ],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
+        "//tools/adt/idea/adt-ui/lib/libwebp",
+        "//tools/adt/idea/artwork:device-art-resources",
     ],
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
@@ -133,5 +139,8 @@ iml_module(
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/sdklib:unb.studio.android.sdktools.sdklib[module]",
+        "//tools/base/ninepatch:unb.studio.android.sdktools.ninepatch[module]",
     ],
 )

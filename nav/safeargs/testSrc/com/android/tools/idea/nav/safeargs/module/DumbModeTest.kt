@@ -85,11 +85,7 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
 
-  private fun getNumberOfArgs(args: List<LightArgsClass>): Int {
-    return args.sumBy {
-      it.fragment.arguments.size
-    }
-  }
+  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumBy { it.destination.arguments.size }
 
   @Test
   fun scopeDoesNotCacheStaleValuesInDumbMode() {

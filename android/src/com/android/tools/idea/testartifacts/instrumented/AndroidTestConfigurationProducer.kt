@@ -54,13 +54,27 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
       return false
     }
 
-    // Set context.module to the configuration using the utility method from the base class. It may
-    // set non-context module such as pre-defined module in configuration template.
+    // Set context.module to the configuration. It may set non-context module such as
+    // pre-defined module in configuration template.
     if (!setupConfigurationModule(context, configuration)) {
       return false
     }
 
     return true
+  }
+
+  override fun findModule(configuration: AndroidTestRunConfiguration, contextModule: Module?): Module? {
+    // In the base class implementation, it assumes that configuration module is null, and if not so,
+    // it returns false, which is not always the case with AndroidTestRunConfiguration when the producer
+    // is invoked from test result panel.
+    // So here we just use either the contextModule or the configuration module.
+    return if (contextModule != null) {
+      contextModule
+    }
+    else if (configuration.getConfigurationModule().getModule() != null) {
+      configuration.getConfigurationModule().getModule()
+    }
+    else null
   }
 
   override fun isConfigurationFromContext(configuration: AndroidTestRunConfiguration, context: ConfigurationContext): Boolean {
