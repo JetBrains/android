@@ -114,7 +114,7 @@ class LightDirectionsKtClass(
 
   private fun computeCompanionObject(): ClassDescriptor {
     val directionsClassDescriptor = this@LightDirectionsKtClass
-    return object : ClassDescriptorImpl(directionsClassDescriptor, directionsClassDescriptor.name, Modality.FINAL,
+    return object : ClassDescriptorImpl(directionsClassDescriptor, Name.identifier("Companion"), Modality.FINAL,
                                         ClassKind.OBJECT, emptyList(), directionsClassDescriptor.source, false, storageManager) {
 
       private val companionScope = storageManager.createLazyValue { CompanionObjectScope() }
