@@ -44,7 +44,6 @@ import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -90,7 +89,7 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaint() {
-    setLookAndFeel(IntelliJLaf(), UIUtil.getFontWithFallback("Ariel", 0, 13))
+    setLookAndFeel(IntelliJLaf(), ImageDiffUtil.getDefaultFont())
     val editors = createEditors()
     checkImage(editors, "Closed")
 
@@ -177,19 +176,22 @@ class ResolutionElementEditorTest {
     val generatedImage = BufferedImage(200, 300, BufferedImage.TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     graphics.fillRect(0, 0, 200, 300)
+    editors[0].setSize(200, editors[0].height)
+    editors[0].doLayout()
     editors[0].paint(graphics)
     var y = editors[0].height
     if (editors[0].editorModel.isExpandedTableItem) {
       for (index in 1 until editors.size) {
         graphics.transform = AffineTransform.getTranslateInstance(0.0, y.toDouble())
+        editors[index].setSize(200, editors[index].height)
+        editors[index].doLayout()
         editors[index].paint(graphics)
         y += editors[index].height
       }
     }
     val platform = SystemInfo.OS_NAME.replace(' ', '_')
     val filename = "$TEST_DATA_PATH/testResolutionEditorPaint$expected$platform.png"
-    ImageDiffUtil.assertImageSimilar(File(TestUtils.getWorkspaceRoot(), filename),
-                                     generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TestUtils.getWorkspaceRoot(), filename), generatedImage, DIFF_THRESHOLD)
   }
 
   private fun updateSize(component: Component) {
