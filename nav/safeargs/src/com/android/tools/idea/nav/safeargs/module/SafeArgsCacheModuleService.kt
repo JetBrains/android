@@ -43,6 +43,7 @@ import org.jetbrains.android.facet.AndroidFacet
 @ThreadSafe
 class SafeArgsCacheModuleService private constructor(private val module: Module) {
   private class NavEntry(val resource: ResourceItem, val data: NavXmlData)
+
   private val LOG = Logger.getInstance(SafeArgsCacheModuleService::class.java)
 
   companion object {
@@ -118,16 +119,16 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   }
 
   private fun createLightDirectionsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightDirectionsClass> {
-    return entry.data.root.allDestinations
+    return entry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
       .map { destination -> LightDirectionsClass(facet, modulePackage, entry.resource, entry.data, destination) }
       .toSet()
   }
 
   private fun createLightArgsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightArgsClass> {
-    return entry.data.root.allDestinations
-      .filter { fragment -> fragment.arguments.isNotEmpty() }
-      .map { fragment -> LightArgsClass(facet, modulePackage, entry.resource, fragment) }
+    return entry.data.resolvedDestinations
+      .filter { destination -> destination.arguments.isNotEmpty() }
+      .map { destination -> LightArgsClass(facet, modulePackage, entry.resource, destination) }
       .toSet()
   }
 }

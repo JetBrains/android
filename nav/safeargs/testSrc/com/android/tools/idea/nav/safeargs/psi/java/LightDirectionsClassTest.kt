@@ -219,4 +219,99 @@ class LightDirectionsClassTest {
       )
     }
   }
+
+  @Test
+  fun testGlobalActionCase() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+            
+          <action
+                android:id="@+id/action_to_IncludedGraph"
+                app:destination="@id/included_graph" />  
+            
+          <navigation
+                android:id="@+id/inner_navigation"
+                app:startDestination="@id/inner_fragment">
+                
+            <action
+                android:id="@+id/action_InnerNavigation_to_IncludedGraph"
+                app:destination="@id/included_graph" />  
+                 
+            <fragment
+                android:id="@+id/fragment2"
+                android:name="test.safeargs.Fragment2"
+                android:label="Fragment2" >
+
+                <action
+                    android:id="@+id/action_Fragment2_to_IncludedGraph"
+                    app:destination="@id/included_graph" />  
+                    
+                <!-- Same action with one of global actions -->
+                <action
+                    android:id="@+id/action_to_IncludedGraph"
+                    app:destination="@id/included_graph" />  
+            </fragment>
+                
+          </navigation>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
+
+    // Class can be found with context
+    val fragment2Directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
+    // Check methods of Fragment2Directions
+    fragment2Directions.methods.let { methods ->
+      assertThat(methods.size).isEqualTo(3)
+      methods[0].checkSignaturesAndReturnType(
+        name = "actionFragment2ToIncludedGraph",
+        returnType = "NavDirections"
+      )
+
+      methods[1].checkSignaturesAndReturnType(
+        name = "actionToIncludedGraph",
+        returnType = "NavDirections"
+      )
+
+      methods[2].checkSignaturesAndReturnType(
+        name = "actionInnerNavigationToIncludedGraph",
+        returnType = "NavDirections"
+      )
+    }
+
+    val innerNavigationDirections = safeArgsRule.fixture.findClass("test.safeargs.InnerNavigationDirections",
+                                                                   context) as LightDirectionsClass
+    // Check methods of InnerNavigationDirections
+    innerNavigationDirections.methods.let { methods ->
+      assertThat(methods.size).isEqualTo(2)
+      methods[0].checkSignaturesAndReturnType(
+        name = "actionInnerNavigationToIncludedGraph",
+        returnType = "NavDirections"
+      )
+
+      methods[1].checkSignaturesAndReturnType(
+        name = "actionToIncludedGraph",
+        returnType = "NavDirections"
+      )
+    }
+
+    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
+    // Check methods of InnerNavigationDirections
+    mainDirections.methods.let { methods ->
+      assertThat(methods.size).isEqualTo(1)
+      methods[0].checkSignaturesAndReturnType(
+        name = "actionToIncludedGraph",
+        returnType = "NavDirections"
+      )
+    }
+  }
 }

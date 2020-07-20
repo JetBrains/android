@@ -267,4 +267,106 @@ class DirectionsClassKtDescriptorsTest {
       assertThat(directionsClass.functions).isEmpty()
     }
   }
+
+  @Test
+  fun testGlobalActionCase() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+            
+          <action
+                android:id="@+id/action_to_IncludedGraph"
+                app:destination="@id/included_graph" />  
+            
+          <navigation
+                android:id="@+id/inner_navigation"
+                app:startDestination="@id/inner_fragment">
+                
+            <action
+                android:id="@+id/action_InnerNavigation_to_IncludedGraph"
+                app:destination="@id/included_graph" />  
+                 
+            <fragment
+                android:id="@+id/fragment2"
+                android:name="test.safeargs.Fragment2"
+                android:label="Fragment2" >
+
+                <action
+                    android:id="@+id/action_Fragment2_to_IncludedGraph"
+                    app:destination="@id/included_graph" />  
+                    
+                <!-- Same action with one of global actions -->
+                <action
+                    android:id="@+id/action_to_IncludedGraph"
+                    app:destination="@id/included_graph" />  
+            </fragment>
+                
+          </navigation>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
+      it is SafeArgsKtPackageProviderExtension
+    }
+
+    val traceMock: BindingTrace = MockitoKt.mock()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleDescriptor = safeArgsRule.module.toDescriptor()
+
+    val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
+      project = safeArgsRule.project,
+      module = moduleDescriptor!!,
+      storageManager = LockBasedStorageManager.NO_LOCKS,
+      trace = traceMock,
+      moduleInfo = moduleSourceInfo,
+      lookupTracker = LookupTracker.DO_NOTHING
+    ) as SafeArgsSyntheticPackageProvider
+
+    val directionsClassMetadata = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+      .flatMap { it.getMemberScope().classesInScope { name -> name.endsWith("Directions") } }
+      .sortedBy { it.fqcn }
+
+    assertThat(directionsClassMetadata.size).isEqualTo(3)
+
+    directionsClassMetadata[0].let { directionsClass ->
+      assertThat(directionsClass.constructors.map { it.toString() }).containsExactly(
+        "Fragment2Directions()"
+      )
+      assertThat(directionsClass.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "actionFragment2ToIncludedGraph(): androidx.navigation.NavDirections",
+        "actionToIncludedGraph(): androidx.navigation.NavDirections",
+        "actionInnerNavigationToIncludedGraph(): androidx.navigation.NavDirections"
+      )
+      assertThat(directionsClass.functions).isEmpty()
+    }
+
+    directionsClassMetadata[1].let { directionsClass ->
+      assertThat(directionsClass.constructors.map { it.toString() }).containsExactly(
+        "InnerNavigationDirections()"
+      )
+      assertThat(directionsClass.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "actionToIncludedGraph(): androidx.navigation.NavDirections",
+        "actionInnerNavigationToIncludedGraph(): androidx.navigation.NavDirections"
+      )
+      assertThat(directionsClass.functions).isEmpty()
+    }
+
+    directionsClassMetadata[2].let { directionsClass ->
+      assertThat(directionsClass.constructors.map { it.toString() }).containsExactly(
+        "MainDirections()"
+      )
+      assertThat(directionsClass.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "actionToIncludedGraph(): androidx.navigation.NavDirections"
+      )
+      assertThat(directionsClass.functions).isEmpty()
+    }
+  }
 }
