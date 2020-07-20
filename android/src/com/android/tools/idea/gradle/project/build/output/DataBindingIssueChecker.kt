@@ -20,6 +20,8 @@ import com.google.gson.Gson
 import com.intellij.build.FilePosition
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -29,9 +31,12 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.util.concurrent.CompletableFuture
 
 
 class DataBindingIssueChecker : GradleIssueChecker {
+  private val SEPARATOR = "=".repeat(50)
+
   /**
    * JSON parser, shared across parsing calls to take advantage of the caching it does.
    */
@@ -61,8 +66,8 @@ class DataBindingIssueChecker : GradleIssueChecker {
       line.startsWith(ERROR_LOG_PREFIX)
     }?.toList() ?: return null
 
-    val buildIssues = errors.mapNotNull { errorJson ->
-      convertToBuildIssue(errorJson.removePrefix(ERROR_LOG_PREFIX))
+    val buildIssues = errors.mapIndexedNotNull{ index, errorJson ->
+      convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX))
     }
 
     if (buildIssues.isEmpty()) return null
@@ -71,16 +76,19 @@ class DataBindingIssueChecker : GradleIssueChecker {
       return buildIssues.first()
     }
     else {
+      val title = "Found ${buildIssues.size} data binding error(s)"
       return object : BuildIssue {
-        override val title: String = DATABINDING_GROUP
-        override val description: String = buildIssues.joinToString("\n\n\n") { issue -> issue.description }
+        override val title: String = title
+        override val description: String = "$title\n$SEPARATOR\n" + buildIssues.joinToString ("\n$SEPARATOR\n") {
+          issue -> issue.description
+        }
         override val quickFixes: List<BuildIssueQuickFix> = buildIssues.flatMap { issue -> issue.quickFixes }
         override fun getNavigatable(project: Project): Navigatable? = null
       }
     }
   }
 
-  private fun convertToBuildIssue(errorJson: String): BuildIssue? {
+  private fun convertToBuildIssue(index: Int, errorJson: String): BuildIssue? {
     try {
       val msg = gson.fromJson(errorJson, EncodedMessage::class.java)
       val summary = msg.message.substringBefore('\n')
@@ -98,7 +106,7 @@ class DataBindingIssueChecker : GradleIssueChecker {
         val sourceFile = File(msg.filePath).absoluteFile
         val location = msg.locations.first()
         val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
-        val goToFile = OpenFileAtLocationQuickFix(filePosition)
+        val goToFile = OpenFileWithLocationQuickFix("open.file.$index", filePosition)
         return object : BuildIssue {
           override val title: String = summary
           override val description: String = msg.message + "\n<a href=\"${goToFile.id}\">Open File</a>"
@@ -113,5 +121,29 @@ class DataBindingIssueChecker : GradleIssueChecker {
     catch (ignored: Exception) {
       return null
     }
+  }
+}
+
+/**
+ * This is an adaptation of [OpenFileAtLocationQuickFix] which allows a customisable ID to allow multiple links
+ * in a single message.
+ */
+class OpenFileWithLocationQuickFix(private val uniqueId: String, private val myFilePosition: FilePosition) : BuildIssueQuickFix {
+  override val id = uniqueId
+
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
+    val future = CompletableFuture<Any>()
+    invokeLater {
+      val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file.path)
+      if (file != null) {
+        val openFile = OpenFileDescriptor(project, file, myFilePosition.startLine, myFilePosition.startColumn, false)
+        if (openFile.canNavigate()) {
+          openFile.navigate(true)
+        }
+      }
+      future.complete(null)
+    }
+    return future
   }
 }

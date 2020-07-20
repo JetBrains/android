@@ -58,7 +58,7 @@ class DataBindingIssueCheckerTest {
     Truth.assertThat(resultIssue.description).contains("Check that the identifier is spelled correctly")
     Truth.assertThat(resultIssue.quickFixes).hasSize(1)
     val link = resultIssue.quickFixes[0]
-    Truth.assertThat(link).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
+    Truth.assertThat(link).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
   }
 
   @Test
@@ -77,15 +77,22 @@ class DataBindingIssueCheckerTest {
 
     val resultIssue = handler.check(gradleIssueData)!!
 
-    Truth.assertThat(resultIssue.title).isEqualTo("Data Binding compiler")
-    Truth.assertThat(resultIssue.description).contains("Could not find identifier 'var1'\n\n" +
-                                                       "Check that the identifier is spelled correctly, and that no <import> or <variable> tags are missing.\n" +
-                                                       "<a href=\"open.file\">Open File</a>\n\n\n" +
-                                                       "Could not find identifier 'var2'\n\n" +
-                                                       "Check that the identifier is spelled correctly, and that no <import> or <variable> tags are missing.\n" +
-                                                       "<a href=\"open.file\">Open File</a>")
+    Truth.assertThat(resultIssue.title).isEqualTo("Found 2 data binding error(s)")
+    Truth.assertThat(resultIssue.description).contains("""
+     Found 2 data binding error(s)
+     ==================================================
+     Could not find identifier 'var1'
+     
+     Check that the identifier is spelled correctly, and that no <import> or <variable> tags are missing.
+     <a href="open.file.0">Open File</a>
+     ==================================================
+     Could not find identifier 'var2'
+     
+     Check that the identifier is spelled correctly, and that no <import> or <variable> tags are missing.
+     <a href="open.file.1">Open File</a>
+     """.trimIndent())
     Truth.assertThat(resultIssue.quickFixes).hasSize(2)
-    Truth.assertThat(resultIssue.quickFixes[0]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
-    Truth.assertThat(resultIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
+    Truth.assertThat(resultIssue.quickFixes[0]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
+    Truth.assertThat(resultIssue.quickFixes[1]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
   }
 }
