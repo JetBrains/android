@@ -601,7 +601,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         pluginNames.firstOrNull { it.startsWith("org.jetbrains.kotlin") || it.startsWith("kotlin") }?.let { _ ->
           model.android().kotlinOptions().jvmTarget().let {
             val psiElement = it.psiElement ?: model.android().kotlinOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "jvmOptions"))
+            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "jvmTarget"))
           }
         }
       }
