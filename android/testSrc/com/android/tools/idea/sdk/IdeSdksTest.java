@@ -261,7 +261,9 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isTrue();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
-    assertThat(toSystemDependentName(myIdeSdks.getJdk().getHomePath())).isEqualTo(toSystemDependentName(validPath));
+    File expectedFile = new File(toSystemDependentName(validPath));
+    File jdkFile = new File(toSystemDependentName(myIdeSdks.getJdk().getHomePath()));
+    assertThat(jdkFile).isEqualTo(expectedFile);
   }
 
   private void setupSdkData(ImmutableList<LocalPackage> localPackages) {
