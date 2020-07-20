@@ -65,6 +65,6 @@ class BuildCppKotlinTest {
   fun buildCppKotlinProj() {
     val ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
-    ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project")
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project")
   }
 }
