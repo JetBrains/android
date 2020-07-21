@@ -91,14 +91,12 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform() {
-    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
-    if (file.exists()) {
-      return file;
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development build
+      return new File(StudioPathManager.getSourcesRoot(),"bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
+    } else {
+      return new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
     }
-
-    // Development build
-    String relativePath = toSystemDependentName("/../../bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
-    return new File(PathManager.getHomePath() + relativePath);
   }
 
   @Nullable
