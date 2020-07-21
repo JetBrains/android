@@ -162,7 +162,7 @@ internal fun PsiClass.createConstructor(
 
 internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag? = null): LightFieldBuilder {
   val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-  val nonNull = psiType is PsiPrimitiveType || arg.nullable != "true"
+  val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
   val navigationElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
   val fallback = this.navigationElement
   return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
@@ -174,8 +174,8 @@ internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, x
  * Annotate the target type with the proper nullability based on the <argument> nullable
  * attribute.
  */
-internal fun PsiClass.annotateNullability(psiType: PsiType, nullable: String? = null): PsiType {
-  val nonNull = psiType is PsiPrimitiveType || nullable != "true"
+internal fun PsiClass.annotateNullability(psiType: PsiType, isNonNull: Boolean = true): PsiType {
+  val nonNull = psiType is PsiPrimitiveType || isNonNull
 
   return project.annotateType(psiType, nonNull, context)
 }

@@ -33,6 +33,10 @@ interface NavArgumentData {
   val type: String?
   val defaultValue: String?
   val nullable: String?
+
+  fun isNonNull(): Boolean {
+    return nullable != "true" && defaultValue != "@null"
+  }
 }
 
 /**

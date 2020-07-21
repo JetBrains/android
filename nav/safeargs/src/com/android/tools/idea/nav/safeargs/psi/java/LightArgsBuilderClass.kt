@@ -109,7 +109,7 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
 
       val getter = createMethod(name = "get${arg.name.usLocaleCapitalize()}",
                                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(argType, arg.nullable))
+                                returnType = annotateNullability(argType, arg.isNonNull()))
 
       listOf(setter, getter)
     }.toTypedArray()
