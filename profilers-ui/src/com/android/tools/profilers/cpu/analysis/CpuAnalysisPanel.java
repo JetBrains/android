@@ -73,6 +73,8 @@ public class CpuAnalysisPanel extends AspectObserver {
     myTabViewsBinder.bind(FullTraceAnalysisSummaryTabModel.class, CpuAnalysisSummaryTab::new);
     myTabViewsBinder.bind(CpuThreadAnalysisSummaryTabModel.class, CpuAnalysisSummaryTab::new);
     myTabViewsBinder.bind(CaptureNodeAnalysisSummaryTabModel.class, CpuAnalysisSummaryTab::new);
+    myTabViewsBinder.bind(CpuThreadAnalysisEventsTabModel.class, CpuAnalysisEventsTab::new);
+    myTabViewsBinder.bind(CaptureNodeAnalysisEventsTabModel.class, CpuAnalysisEventsTab::new);
   }
 
   @NotNull

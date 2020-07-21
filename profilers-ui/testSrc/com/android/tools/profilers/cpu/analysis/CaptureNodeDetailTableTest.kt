@@ -15,13 +15,13 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import javax.swing.JPanel
-import javax.swing.JScrollPane
+import javax.swing.JButton
 
 class CaptureNodeDetailTableTest {
   @Test
@@ -67,10 +67,9 @@ class CaptureNodeDetailTableTest {
   }
 
   @Test
-  fun tableCanBeScrollable() {
-    val captureRange = Range(0.0, 100.0)
-    assertThat(CaptureNodeDetailTable(listOf(NODE), captureRange, isScrollable = false).component).isInstanceOf(JPanel::class.java)
-    assertThat(CaptureNodeDetailTable(listOf(NODE), captureRange, isScrollable = true).component).isInstanceOf(JScrollPane::class.java)
+  fun tableCanBePaginated() {
+    val treeWalker = TreeWalker(CaptureNodeDetailTable(listOf(NODE), Range(0.0, 100.0), pageSize = 1).component)
+    assertThat(treeWalker.descendants().filterIsInstance<JButton>().filter { it.toolTipText == "Go to first page" }).isNotEmpty()
   }
 
   companion object {

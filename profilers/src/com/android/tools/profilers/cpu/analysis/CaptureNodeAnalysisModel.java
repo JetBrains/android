@@ -98,6 +98,11 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
     bottomUp.getDataSeries().add(this);
     model.addTabModel(bottomUp);
 
+    // Events
+    CpuAnalysisEventsTabModel<CaptureNodeAnalysisModel> events = new CaptureNodeAnalysisEventsTabModel(myCapture.getRange());
+    events.getDataSeries().add(this);
+    model.addTabModel(events);
+
     return model;
   }
 
