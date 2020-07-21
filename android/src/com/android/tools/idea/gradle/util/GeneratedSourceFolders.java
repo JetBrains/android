@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.FD_GENERATED;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 public class GeneratedSourceFolders {

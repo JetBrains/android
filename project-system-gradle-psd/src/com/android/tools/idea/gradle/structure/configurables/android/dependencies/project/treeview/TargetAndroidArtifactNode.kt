@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview
 
-import com.android.builder.model.AndroidProject.*
+import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
@@ -23,7 +25,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.roots.ui.CellAppearanceEx
 import com.intellij.openapi.util.text.StringUtil.isEmpty
-import com.intellij.ui.HtmlListCellRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode

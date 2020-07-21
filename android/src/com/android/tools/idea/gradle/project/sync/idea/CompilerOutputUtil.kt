@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.builder.model.AndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -35,7 +35,7 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
 
   val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.absolutePath
   val testCompilerOutput = selectedVariant.extraJavaArtifacts.firstOrNull { artifact ->
-    artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
+    artifact.name == IdeAndroidProject.ARTIFACT_UNIT_TEST
   }?.classesFolder?.absolutePath
 
   // Do we actually need to set these? Since useExternalCompilerOutput is true.
