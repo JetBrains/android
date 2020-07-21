@@ -37,9 +37,9 @@ import java.util.concurrent.ExecutorService
  */
 @AnyThread
 internal class AppInspectionTargetManager internal constructor(
-  private val executor: ExecutorService,
   private val transportClient: TransportClient,
-  private val scope: CoroutineScope
+  private val scope: CoroutineScope,
+  private val executorService: ExecutorService
 ) : ProcessListener {
   @VisibleForTesting
   internal class TargetInfo(val targetFuture: ListenableFuture<AppInspectionTarget>, val projectName: String)
@@ -59,7 +59,8 @@ internal class AppInspectionTargetManager internal constructor(
   ): ListenableFuture<AppInspectionTarget> {
     return targets.computeIfAbsent(processDescriptor) {
       val processDescriptor = processDescriptor.toTransportImpl()
-      val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
+      val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executorService,
+                                             streamChannel)
       val targetFuture = attachAppInspectionTarget(transport, jarCopier, scope)
       TargetInfo(targetFuture, projectName)
     }.targetFuture.also {

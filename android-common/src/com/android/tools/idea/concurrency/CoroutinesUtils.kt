@@ -183,3 +183,9 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
     return newJob
   }
 }
+
+/**
+ * Utility function for quickly creating a scope that is a child of the current scope. It can be optionally a supervisor scope.
+ */
+fun CoroutineScope.createChildScope(isSupervisor: Boolean = false): CoroutineScope = CoroutineScope(
+  this.coroutineContext + if (isSupervisor) SupervisorJob(this.coroutineContext[Job]) else Job(this.coroutineContext[Job]))
