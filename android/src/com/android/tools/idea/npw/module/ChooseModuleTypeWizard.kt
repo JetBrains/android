@@ -45,6 +45,11 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep as DeprecatedChooseModuleTypeStep
 
+
+private const val TABLE_CELL_WIDTH = 240
+private const val TABLE_CELL_HEIGHT = 32
+private const val TABLE_CELL_LEFT_PADDING = 16
+
 /**
  * This step allows the user to select which type of module they want to create.
  */
@@ -85,10 +90,14 @@ class ChooseModuleTypeWizard(
         JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, cellHasFocus)
+          border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
 
-          val size = JBUI.size(240, 32)
+          val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
           preferredSize = size
-          icon = IconUtil.scale(icon, this, size.height().toFloat() / icon.iconHeight)
+          if (icon != null && icon.iconHeight > size.height()) {
+            // Only scale if needed, to keep icon bounded
+            icon = IconUtil.scale(icon, this, size.height().toFloat() * 0.7f / icon.iconHeight)
+          }
         }
       }
       selectedIndex = 0
@@ -118,7 +127,14 @@ class ChooseModuleTypeWizard(
 
     Disposer.register(modelWizardDialog.disposable, this)
 
-    leftPanel.add(JBLabel("Templates"), BorderLayout.NORTH)
+    val titleLabel = JBLabel("Templates").apply {
+      isOpaque = true
+      background = UIUtil.getListBackground()
+      preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
+      border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
+    }
+
+    leftPanel.add(titleLabel, BorderLayout.NORTH)
     leftPanel.add(leftList, BorderLayout.CENTER)
 
     mainPanel.add(leftPanel, BorderLayout.WEST)
