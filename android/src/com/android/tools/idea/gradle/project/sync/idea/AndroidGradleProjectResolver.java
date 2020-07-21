@@ -58,7 +58,6 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
-import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
@@ -140,7 +139,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,7 +167,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
-public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
   static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
@@ -773,26 +771,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   /**
-   * Note that this method not always used, its functionality is only present when not using a
-   * {@link ProjectImportModelProvider}. Any classes added here also need to be requested in the
-   * provider.
+   * This method is not used. Its functionality is only present when not using a
+   * {@link ProjectImportModelProvider}. See: {@link #getModelProvider}
    */
   @Override
   @NotNull
   public Set<Class<?>> getExtraProjectModelClasses() {
-    // Use LinkedHashSet to maintain insertion order.
-    // GlobalLibraryMap should be requested after AndroidProject.
-    Set<Class<?>> modelClasses = new LinkedHashSet<>();
-    modelClasses.add(AndroidProject.class);
-    modelClasses.add(NativeAndroidProject.class);
-    modelClasses.add(GlobalLibraryMap.class);
-    modelClasses.add(GradlePluginModel.class);
-    modelClasses.add(ProjectSyncIssues.class);
-
-    // We disable the Kapt resolver extension in studio to solve some issues with duplicate/extra paths.
-    // As a result we need to request the model class here so we can still use it.
-    modelClasses.add(KaptGradleModel.class);
-    return modelClasses;
+    throw new UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overriden.");
   }
 
   @NotNull
