@@ -25,7 +25,6 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.get
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,7 +32,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -42,7 +40,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
-import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
@@ -82,7 +79,6 @@ import org.mockito.Mock;
 public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectFinder myProjectFinder;
-  @Mock private VariantSelector myVariantSelector;
   @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @Mock private NativeAndroidProject myNativeAndroidProject;
   @Mock private IdeNativeAndroidProject myIdeNativeAndroidProject;
@@ -251,8 +247,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
       }
     };
 
-    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
-
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
     allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
     allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
@@ -298,8 +292,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
         return ImmutableList.of(androidTestSetModel, unitTestSetModel);
       }
     };
-
-    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
     allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
