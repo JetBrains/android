@@ -58,6 +58,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
@@ -324,17 +325,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         moduleNode.createChild(SYNC_ISSUE, issueData);
       });
 
-      AndroidModuleModel androidModel = AndroidModuleModel.create(
-        moduleName,
-        rootModulePath,
-        androidProject,
-        selectedVariant.getName(),
-        myStrings,
-        myDependenciesFactory,
-        (variantGroup == null) ? null : variantGroup.getVariants(),
-        (cachedVariants == null) ? emptyList() : cachedVariants.getVariants(),
-        syncIssues
-      );
+      IdeAndroidProjectImpl ideAndroidProject =
+        IdeAndroidProjectImpl.create(androidProject,
+                                     myStrings,
+                                     myDependenciesFactory,
+                                     (variantGroup == null) ? null : variantGroup.getVariants(),
+                                     syncIssues);
+      ideAndroidProject.addVariants(cachedVariants == null ? emptyList() : cachedVariants.getVariants());
+      AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName, rootModulePath, ideAndroidProject, selectedVariant.getName());
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.

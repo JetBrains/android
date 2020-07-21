@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.Variant;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
-import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -32,11 +29,13 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import java.io.*;
+import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.android.utils.FileUtils.writeToFile;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,63 +43,6 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AndroidModuleModel}.
  */
 public class AndroidModuleModelTest extends AndroidGradleTestCase {
-  private AndroidProjectStub myAndroidProject;
-  private AndroidModuleModel myAndroidModel;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    File rootDirPath = getBaseDirPath(getProject());
-    myAndroidProject = TestProjects.createFlavorsProject();
-    myAndroidModel =
-      AndroidModuleModel.create(myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug", new IdeDependenciesFactory());
-  }
-
-  public void /*test*/FindBuildType() throws Exception {
-    String buildTypeName = "debug";
-    BuildTypeContainer buildType = myAndroidModel.findBuildType(buildTypeName);
-    assertNotNull(buildType);
-    assertSame(myAndroidProject.findBuildType(buildTypeName), buildType);
-  }
-
-  public void /*test*/FindProductFlavor() throws Exception {
-    String flavorName = "fa";
-    ProductFlavorContainer flavor = myAndroidModel.findProductFlavor(flavorName);
-    assertNotNull(flavor);
-    assertSame(myAndroidProject.findProductFlavor(flavorName), flavor);
-  }
-
-  public void /*test*/GetSelectedVariant() throws Exception {
-    IdeVariant selectedVariant = myAndroidModel.getSelectedVariant();
-    assertNotNull(selectedVariant);
-    assertSame(myAndroidProject.getFirstVariant(), selectedVariant);
-  }
-
-  public void /*test*/ReadWriteObject() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
-
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
-
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ObjectOutputStream oos;
-    //noinspection IOResourceOpenedButNotSafelyClosed
-    oos = new ObjectOutputStream(outputStream);
-    oos.writeObject(androidModel);
-    oos.close();
-
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-    //noinspection IOResourceOpenedButNotSafelyClosed
-    ObjectInputStream ois = new ObjectInputStream(inputStream);
-    AndroidModuleModel newAndroidModel = (AndroidModuleModel)ois.readObject();
-    ois.close();
-
-    assert androidModel != null;
-    assertEquals(androidModel.getProjectSystemId(), newAndroidModel.getProjectSystemId());
-    assertEquals(androidModel.getModuleName(), newAndroidModel.getModuleName());
-    assertEquals(androidModel.getRootDirPath(), newAndroidModel.getRootDirPath());
-    assertEquals(androidModel.getAndroidProject().getName(), newAndroidModel.getAndroidProject().getName());
-    assertEquals(androidModel.getSelectedVariant().getName(), newAndroidModel.getSelectedVariant().getName());
-  }
 
   public void testSelectedVariantExistsButNotRequested() {
     AndroidProjectStub androidProject = new AndroidProjectStub("MyApp");
@@ -110,8 +52,9 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "debug" as selected variant.
-    AndroidModuleModel androidModel = AndroidModuleModel
-      .create(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "debug", new IdeDependenciesFactory());
+    IdeAndroidProject ideAndroidProject = toIdeAndroidProject(androidProject);
+    AndroidModuleModel androidModel =
+      AndroidModuleModel.create(androidProject.getName(), getBaseDirPath(getProject()), ideAndroidProject, "debug");
 
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
@@ -129,8 +72,9 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "release" as selected variant.
-    AndroidModuleModel androidModel = AndroidModuleModel
-      .create(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "release", new IdeDependenciesFactory());
+    IdeAndroidProject ideAndroidProject = toIdeAndroidProject(androidProject);
+    AndroidModuleModel androidModel =
+      AndroidModuleModel.create(androidProject.getName(), getBaseDirPath(getProject()), ideAndroidProject, "release");
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
   }
@@ -150,8 +94,8 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.addVariant(variant);
 
     // Create AndroidModuleModel with "release" as selected variant.
-    AndroidModuleModel androidModel = AndroidModuleModel
-      .create(androidProject.getName(), rootFile, androidProject, "test", new IdeDependenciesFactory());
+    IdeAndroidProject ideAndroidProject = toIdeAndroidProject(androidProject);
+    AndroidModuleModel androidModel = AndroidModuleModel.create(androidProject.getName(), rootFile, ideAndroidProject, "test");
     Module mockModule = mock(Module.class);
     when(mockModule.getProject()).thenReturn(getProject());
     androidModel.setModule(mockModule);
@@ -167,5 +111,10 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
 
     // Fake the cache clearing and check new value is re-parsed
     assertThat(androidModel.getApplicationId()).isEqualTo("com.cool.app");
+  }
+
+  @NotNull
+  private static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
+    return IdeAndroidProjectImpl.create(androidProject, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList());
   }
 }
