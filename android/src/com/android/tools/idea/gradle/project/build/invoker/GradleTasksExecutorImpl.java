@@ -78,7 +78,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerListener;
-import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -306,9 +305,9 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
                                        ApplicationManager.getApplication().isUnitTestMode());
         }
 
-        File javaHome = IdeSdks.getInstance().getJdkPath();
-        if (javaHome != null) {
-          operation.setJavaHome(javaHome);
+        final String javaHome = executionSettings.getJavaHome();
+        if (javaHome != null && new File(javaHome).isDirectory()) {
+          operation.setJavaHome(new File(javaHome));
         }
 
         if (isRunBuildAction) {
