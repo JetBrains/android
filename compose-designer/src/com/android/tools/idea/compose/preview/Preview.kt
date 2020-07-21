@@ -153,27 +153,6 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
   }
 
 /**
- * Sets up the given [existingModel] with the right values to be used in the preview.
- */
-private fun configureExistingModel(existingModel: NlModel,
-                                   displayName: String,
-                                   newDataContext: ModelDataContext,
-                                   showDecorations: Boolean,
-                                   isInteractive: Boolean,
-                                   usePrivateClassLoader: Boolean,
-                                   fileContents: String,
-                                   surface: NlDesignSurface): NlModel {
-  existingModel.updateFileContentBlocking(fileContents)
-  // Reconfigure the model by setting the new display name and applying the configuration values
-  existingModel.modelDisplayName = displayName
-  existingModel.dataContext = newDataContext
-  configureLayoutlibSceneManager(
-    surface.getSceneManager(existingModel) as LayoutlibSceneManager, showDecorations, isInteractive, usePrivateClassLoader)
-
-  return existingModel
-}
-
-/**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
@@ -656,21 +635,24 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           existingModels.remove(reusedModel)
 
           LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
-          configureExistingModel(reusedModel,
-                                 previewElement.displaySettings.name,
-                                 ModelDataContext(this, previewElement),
-                                 previewElement.displaySettings.showDecoration,
-                                 interactiveMode.isStartingOrReady(),
-                                 usePrivateClassLoader(),
-                                 fileContents,
-                                 surface)
+          reusedModel.updateFileContentBlocking(fileContents)
+          // Reconfigure the model by setting the new display name and applying the configuration values
+          reusedModel.modelDisplayName = previewElement.displaySettings.name
+          reusedModel.dataContext = ModelDataContext(this, previewElement)
+          // We call addModel even though the model might not be new. If we try to add an existing model,
+          // this will trigger a new render which is exactly what we want.
+          configureLayoutlibSceneManager(surface.addModelWithoutRender(reusedModel) as LayoutlibSceneManager,
+                                         showDecorations = previewElement.displaySettings.showDecoration,
+                                         isInteractive = interactiveMode.isStartingOrReady(),
+                                         usePrivateClassLoader = usePrivateClassLoader())
+          reusedModel
         }
         else {
           val now = System.currentTimeMillis()
           LOG.debug("No models to reuse were found. New model $now.")
           val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents) { psiFilePointer.virtualFile }
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-          NlModel.builder(facet, file, configuration)
+          val newModel = NlModel.builder(facet, file, configuration)
             .withParentDisposable(this@ComposePreviewRepresentation)
             .withModelDisplayName(previewElement.displaySettings.name)
             .withModelUpdater(modelUpdater)
@@ -682,6 +664,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               }
             })
             .build()
+          configureLayoutlibSceneManager(surface.addModelWithoutRender(newModel) as LayoutlibSceneManager,
+                                         showDecorations = previewElement.displaySettings.showDecoration,
+                                         isInteractive = interactiveMode.isStartingOrReady(),
+                                         usePrivateClassLoader = usePrivateClassLoader())
+          newModel
         }
 
         val offset = ReadAction.compute<Int, Throwable> {
@@ -706,12 +693,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val newSceneManagers = models
       .map {
         val (model, previewElement) = it
-        // We call addModel even though the model might not be new. If we try to add an existing model,
-        // this will trigger a new render which is exactly what we want.
-        configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
-                                       showDecorations = previewElement.displaySettings.showDecoration,
-                                       isInteractive = interactiveMode.isStartingOrReady(),
-                                       usePrivateClassLoader = usePrivateClassLoader())
+        surface.getSceneManager(model) as LayoutlibSceneManager
       }
 
     surface.repaint()
