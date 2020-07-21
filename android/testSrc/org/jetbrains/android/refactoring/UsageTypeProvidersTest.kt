@@ -222,7 +222,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   private fun getUsageType(element: PsiElement) : UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
       if (provider is UsageTypeProviderEx) {
-        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.getEditor() as EditorEx).dataContext.getData(dataId) }
+        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) }
         return provider.getUsageType(element, targets) ?: continue
       }
       else {
