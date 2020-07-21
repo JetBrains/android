@@ -47,6 +47,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   private final Function<ClassVisitor, ClassVisitor> myProjectClassesTransformationProvider;
   private final Function<ClassVisitor, ClassVisitor> myNonProjectClassesTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
+  private final Function<String, String> myNonProjectClassNameLookup;
   @GuardedBy("myJarClassLoaderLock")
   private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
@@ -60,13 +61,19 @@ public abstract class RenderClassLoader extends ClassLoader {
    * @param nonProjectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any
    *                                                desired transformation. This transformation is applied to all classes except user
    *                                                project classes.
+   * @param nonProjectClassNameLookup a {@link Function} that allows mapping "modified" class names to its original form so they can be
+   *                                  correctly loaded from the file system. For example, if the class loader is renaming classes to names
+   *                                  that do not exist on disk, this allows the {@link RenderClassLoader} to lookup the correct name and
+   *                                  load it from disk.
    */
   public RenderClassLoader(@Nullable ClassLoader parent,
                            @NotNull Function<ClassVisitor, ClassVisitor> projectClassesTransformationProvider,
-                           @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider) {
+                           @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider,
+                           @NotNull Function<String, String> nonProjectClassNameLookup) {
     super(parent);
     myProjectClassesTransformationProvider = projectClassesTransformationProvider;
     myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
+    myNonProjectClassNameLookup = nonProjectClassNameLookup;
   }
 
 
@@ -79,7 +86,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    */
   @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
-    this(parent, transformationProvider, transformationProvider);
+    this(parent, transformationProvider, transformationProvider, Function.identity());
   }
 
   /**
@@ -88,7 +95,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    * @param parent the parent {@link ClassLoader}.
    */
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, Function.identity(), Function.identity());
+    this(parent, Function.identity(), Function.identity(), Function.identity());
   }
 
   protected abstract List<URL> getExternalJars();
@@ -121,8 +128,9 @@ public abstract class RenderClassLoader extends ClassLoader {
       jarClassLoaders = myJarClassLoader.get();
     }
 
+    String diskLookupName = myNonProjectClassNameLookup.apply(name);
     myInsideJarClassLoader = true;
-    try (InputStream is = jarClassLoaders.getResourceAsStream(name.replace('.', '/') + SdkConstants.DOT_CLASS)) {
+    try (InputStream is = jarClassLoaders.getResourceAsStream(diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS)) {
       if (is == null) {
         throw new ClassNotFoundException(name);
       }
