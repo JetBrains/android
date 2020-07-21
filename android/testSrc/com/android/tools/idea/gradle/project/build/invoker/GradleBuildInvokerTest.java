@@ -100,7 +100,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     // Verify task list includes clean.
     assertThat(request.getGradleTasks()).containsExactly("clean");
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.enableStableIds=true");
+    assertThat(request.getCommandLineArguments()).isEmpty();
     verifyInteractionWithMocks(CLEAN);
   }
 
@@ -171,7 +171,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.enableStableIds=true");
+    assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(COMPILE_JAVA);
   }
@@ -184,7 +184,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.enableStableIds=true");
+    assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
