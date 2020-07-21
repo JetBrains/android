@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
-import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;

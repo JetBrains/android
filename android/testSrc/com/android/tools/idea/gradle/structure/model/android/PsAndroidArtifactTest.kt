@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject.*
+import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
