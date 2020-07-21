@@ -455,7 +455,9 @@ public class AndroidGradleTests {
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(project, () -> {
       if (IdeInfo.getInstance().isAndroidStudio()) {
-        ideSdks.setUseEmbeddedJdk();
+        if (!ideSdks.isUsingEnvVariableJdk()) {
+          ideSdks.setUseEmbeddedJdk();
+        }
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
 
