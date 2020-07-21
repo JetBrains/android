@@ -991,6 +991,13 @@ public final class StudioFlags {
     "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
     false
   );
+
+  public static final Flag<Boolean> COMPOSE_QUICK_ANIMATED_PREVIEW = Flag.create(
+    COMPOSE, "preview.animated.quick",
+    "Speed up transition between static and animated compose previews",
+    "If enabled, a transition between static and animated compose preview is almost instant",
+    true
+  );
   //endregion
 
   //region Manifests
