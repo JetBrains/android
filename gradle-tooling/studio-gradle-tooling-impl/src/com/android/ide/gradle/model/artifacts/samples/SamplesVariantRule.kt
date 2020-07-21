@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.VariantMetadata
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.model.ObjectFactory
@@ -85,6 +86,10 @@ abstract class SamplesVariantRule : ComponentMetadataRule {
    *     TODO(b/148289718): replace with original code when studio compiles against Gradle tooling-api 5.3+
    */
   override fun execute(ctx: ComponentMetadataContext) {
+    if(ctx.getDescriptor(IvyModuleDescriptor::class.java) != null) {
+      // ignore for Ivy dependencies - b/161405989
+      return
+    }
     val id = ctx.details.id
     val addVariant = ctx.details.javaClass.getMethod("addVariant", String::class.java, Action::class.java)
 
