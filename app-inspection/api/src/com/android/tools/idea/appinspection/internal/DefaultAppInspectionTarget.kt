@@ -23,8 +23,9 @@ import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -43,7 +44,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -91,10 +91,10 @@ internal fun attachAppInspectionTarget(
 internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,
-  scope: CoroutineScope
+  parentScope: CoroutineScope
 ) : AppInspectionTarget {
   private val isDisposed = AtomicBoolean(false)
-  private val targetScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
+  private val targetScope = parentScope.createChildScope(true)
 
   @VisibleForTesting
   internal val clients = ConcurrentHashMap<AppInspectorLauncher.LaunchParameters, ListenableFuture<AppInspectorClient>>()
@@ -118,11 +118,13 @@ internal class DefaultAppInspectionTarget(
             .setLaunchMetadata(
               AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
             .build()
+          val commandId = AppInspectionTransport.generateNextCommandId()
           val appInspectionCommand = AppInspectionCommand.newBuilder()
             .setInspectorId(params.inspectorId)
             .setCreateInspectorCommand(createInspectorCommand)
+            .setCommandId(commandId)
             .build()
-          val commandId = transport.executeCommand(appInspectionCommand)
+          transport.executeCommand(appInspectionCommand)
           transport.registerEventListener(
             transport.createStreamEventListener(
               eventKind = APP_INSPECTION_RESPONSE,
@@ -130,7 +132,7 @@ internal class DefaultAppInspectionTarget(
               isTransient = true
             ) { event ->
               if (event.appInspectionResponse.status == SUCCESS) {
-                connectionFuture.set(AppInspectorConnection(transport, params.inspectorId, event.timestamp))
+                connectionFuture.set(AppInspectorConnection(transport, params.inspectorId, event.timestamp, targetScope))
               }
               else {
                 connectionFuture.setException(
@@ -179,7 +181,7 @@ internal class DefaultAppInspectionTarget(
 
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T, connection: AppInspectorConnection): T {
   val client = creator(connection)
-  connection.setEventListeners(client.rawEventListener, client.serviceEventNotifier)
+  connection.setupConnection(client.rawEventListener, client.serviceEventNotifier)
   return client
 }
 
@@ -188,8 +190,9 @@ fun <T : AppInspectorClient> launchInspectorForTest(
   inspectorId: String,
   transport: AppInspectionTransport,
   connectionStartTimeNs: Long,
+  scope: CoroutineScope,
   creator: (AppInspectorClient.CommandMessenger) -> T
 ): T {
-  val connection = AppInspectorConnection(transport, inspectorId, connectionStartTimeNs)
+  val connection = AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
   return setupEventListener(creator, connection)
 }

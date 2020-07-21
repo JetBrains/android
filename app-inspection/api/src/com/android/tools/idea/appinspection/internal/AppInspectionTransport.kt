@@ -34,6 +34,7 @@ class AppInspectionTransport(
   val client: TransportClient,
   val stream: Common.Stream,
   val process: Common.Process,
+  // TODO(b/144771043): remove executor service when fully migrated to kotlin coroutines.
   val executorService: ExecutorService,
   private val streamChannel: TransportStreamChannel
 ) {
@@ -89,17 +90,13 @@ class AppInspectionTransport(
     streamChannel.unregisterStreamEventListener(streamEventListener)
   }
 
-  fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand): Int {
+  fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) {
     val command = Commands.Command.newBuilder()
       .setType(Commands.Command.CommandType.APP_INSPECTION)
       .setStreamId(stream.streamId)
       .setPid(process.pid)
-      .setAppInspectionCommand(
-        appInspectionCommand.toBuilder().setCommandId(
-          generateNextCommandId()
-        ).build()
-      )
+      .setAppInspectionCommand(appInspectionCommand).build()
+
     executorService.submit { client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
-    return command.appInspectionCommand.commandId
   }
 }

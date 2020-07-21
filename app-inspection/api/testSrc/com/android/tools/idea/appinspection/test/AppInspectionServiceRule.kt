@@ -44,8 +44,8 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
@@ -100,10 +100,10 @@ class AppInspectionServiceRule(
     streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     streamChannel = TransportStreamChannel(stream, streamManager.poller)
     executorService = Executors.newSingleThreadExecutor()
-    scope = CoroutineScope(executorService.asCoroutineDispatcher())
+    scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
     transport = AppInspectionTransport(client, stream, process, executorService, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
-    targetManager = AppInspectionTargetManager(executorService, client, scope)
+    targetManager = AppInspectionTargetManager(client, scope, executorService)
     processNotifier = AppInspectionProcessDiscovery(executorService, streamManager)
     launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery) { jarCopier }
     apiServices = DefaultAppInspectionApiServices(targetManager, processNotifier, launcher, scope)
@@ -115,6 +115,7 @@ class AppInspectionServiceRule(
     executorService.shutdownNow()
     client.shutdown()
     timer.currentTimeNs += 1
+    client.shutdown()
   }
 
   /**
@@ -143,7 +144,7 @@ class AppInspectionServiceRule(
     eventListener: AppInspectorClient.RawEventListener = TestInspectorRawEventListener()
   ): AppInspectorClient {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, scope) {
       TestInspectorClient(it, eventListener)
     }.also { timer.currentTimeNs += 1 }
   }
