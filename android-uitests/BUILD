@@ -795,6 +795,8 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_sanity",
         "no_crostini",
+        "qa_sanity_unreliable",  # b/161711253
+        "qa_unreliable",  # b/161711253
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
