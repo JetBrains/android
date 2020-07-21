@@ -50,6 +50,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
       DefaultValueTypeMapping("1l", "String"), // "1L" can't be recognized by toLongOrNull
       DefaultValueTypeMapping("true", PsiType.BOOLEAN.name),
       DefaultValueTypeMapping("someString", "String"),
+      DefaultValueTypeMapping("@null", "String"),
       DefaultValueTypeMapping("@resourceType/resourceName", PsiType.INT.name),
       DefaultValueTypeMapping("someCustomType", "String"), // custom type can't be recognized
       DefaultValueTypeMapping("someEnumType", "String") // custom type can't be recognized
@@ -118,7 +119,8 @@ class LightArgsAndBuilderClassInferredTypeTest(
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArg1",
-        returnType = defaultValueTypeMapping.inferredTypeStr
+        returnType = defaultValueTypeMapping.inferredTypeStr,
+        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null"
       )
 
       methods[2].checkSignaturesAndReturnType(
@@ -162,7 +164,8 @@ class LightArgsAndBuilderClassInferredTypeTest(
       assertThat(methods.size).isEqualTo(3)
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
-        returnType = defaultValueTypeMapping.inferredTypeStr
+        returnType = defaultValueTypeMapping.inferredTypeStr,
+        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null"
       )
 
       methods[1].checkSignaturesAndReturnType(
