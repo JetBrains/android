@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.formatting.Block;
+import com.intellij.formatting.FormattingContext;
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.LanguageFormatting;
@@ -134,7 +135,8 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
     // Make sure that resource file is actually detected as an android resource and uses the android builder.
     assertThat(builder).isInstanceOf(AndroidXmlFormattingModelBuilder.class);
 
-    FormattingModel model = builder.createModel(file, CodeStyleSettingsManager.getSettings(getProject()));
+    FormattingModel model =
+      builder.createModel(FormattingContext.create(file, CodeStyleSettingsManager.getSettings(getProject())));
     Block block = model.getRootBlock();
     return new FormatterBasedLineIndentInfoBuilder(document, block, null).build();
   }
