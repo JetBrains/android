@@ -94,11 +94,6 @@ class LambdaTestClass : Receiver {
 
 }
 
-private fun loadClassBytes(c: Class<*>): ByteArray {
-  val className = "${Type.getInternalName(c)}.class"
-  c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
-}
-
 class LiveLiteralsTransformTest {
   /** [StringWriter] that stores the decompiled classes after they've been transformed. */
   private val afterTransformTrace = StringWriter()

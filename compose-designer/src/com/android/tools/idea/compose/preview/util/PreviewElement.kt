@@ -57,7 +57,9 @@ import org.jetbrains.uast.toUElement
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.KCallable
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
 
 const val UNDEFINED_API_LEVEL = -1
@@ -457,7 +459,7 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
       return parameterProviders.map {
         try {
           val parameterProviderClass = classLoader.loadClass(it.providerClassFqn).kotlin
-          val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
+          val parameterProviderSizeMethod = parameterProviderClass.functions.single { "getCount" == it.name }
           val parameterProvider = parameterProviderClass.createInstance()
           val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
 
