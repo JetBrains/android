@@ -61,7 +61,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
-import com.intellij.ui.popup.WizardPopup;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.containers.ConcurrentLongObjectMap;
@@ -192,7 +191,9 @@ public final class GuiTests {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               ideSdks.setAndroidSdkPath(androidSdkPath, null);
 
-              ideSdks.setUseEmbeddedJdk();
+              if (!ideSdks.isUsingEnvVariableJdk()) {
+                ideSdks.setUseEmbeddedJdk();
+              }
               System.out.println(String.format("Setting JDK: '%1$s'", ideSdks.getJdkPath()));
 
               System.out.println();
