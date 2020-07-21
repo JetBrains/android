@@ -101,38 +101,41 @@ public class EmbeddedDistributionPaths {
 
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
-    File distributionPath = getDefaultRootDirPath();
-    if (distributionPath != null) {
+    //noinspection IfStatementWithIdenticalBranches
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development build.
+      String sourcesRoot = StudioPathManager.getSourcesRoot();
+      String relativePath = toSystemDependentName("tools/external/gradle");
+      File distributionPath = new File(toCanonicalPath(Paths.get(sourcesRoot, relativePath).toString()));
+      if (distributionPath.isDirectory()) {
+        return distributionPath;
+      }
+
+      // Development build.
+      String localDistributionPath = System.getProperty("local.gradle.distribution.path");
+      if (localDistributionPath != null) {
+        distributionPath = new File(toCanonicalPath(localDistributionPath));
+        if (distributionPath.isDirectory()) {
+          return distributionPath;
+        }
+      }
+
+      return null;
+    } else {
       // Release build
       Logger log = getLog();
-      File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
-      log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-      if (embeddedPath.isDirectory()) {
-        log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
-        return embeddedPath;
+      File distributionPath = getDefaultRootDirPath();
+      if (distributionPath == null) {
+        File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
+        log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
+        if (embeddedPath.isDirectory()) {
+          log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
+          return embeddedPath;
+        }
       }
       log.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
       return null;
     }
-
-    // Development build.
-    String ideHomePath = getIdeHomePath();
-    String relativePath = toSystemDependentName("/../../tools/external/gradle");
-    distributionPath = new File(toCanonicalPath(ideHomePath + relativePath));
-    if (distributionPath.isDirectory()) {
-      return distributionPath;
-    }
-
-    // Development build.
-    String localDistributionPath = System.getProperty("local.gradle.distribution.path");
-    if (localDistributionPath != null) {
-      distributionPath = new File(toCanonicalPath(localDistributionPath));
-      if (distributionPath.isDirectory()) {
-        return distributionPath;
-      }
-    }
-
-    return null;
   }
 
   @Nullable
