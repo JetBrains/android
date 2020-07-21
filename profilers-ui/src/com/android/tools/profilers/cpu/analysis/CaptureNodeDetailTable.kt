@@ -18,8 +18,11 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
@@ -32,15 +35,21 @@ import com.android.tools.adtui.common.border as BorderColor
  * @param viewRange if not null, selection will update this range to the selected node; otherwise, row selection is disabled.
  */
 class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
-                             private val captureRange: Range,
-                             private val viewRange: Range? = null) {
+                             captureRange: Range,
+                             viewRange: Range? = null,
+                             isScrollable: Boolean = false) {
+  @VisibleForTesting
   val table: JTable
-  val component = JPanel(TabularLayout("*", "Fit,Fit"))
+
+  /**
+   * Container of the underlying [JTable], [javax.swing.JScrollPane] if scrollable, [JPanel] otherwise.
+   */
+  val component: JComponent
 
   private val extendedCaptureNodes = captureNodes.map { ExtendedCaptureNode(it) }
 
   init {
-    table = JBTable(CaptureNodeDetailTableModel()).apply {
+    table = JBTable(CaptureNodeDetailTableModel(captureRange)).apply {
       autoCreateRowSorter = true
       showVerticalLines = true
       showHorizontalLines = false
@@ -67,13 +76,18 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
         cellSelectionEnabled = false
       }
     }
-    component.apply {
-      border = JBUI.Borders.customLine(BorderColor, 1)
-      isOpaque = false
+    if (isScrollable) {
+      component = JBScrollPane(table)
+    }
+    else {
+      component = JPanel(TabularLayout("*", "Fit,Fit")).apply {
+        border = JBUI.Borders.customLine(BorderColor, 1)
+        isOpaque = false
 
-      // When JTable is put in a container other than JScrollPane, both itself and its header need to be added.
-      add(table.tableHeader, TabularLayout.Constraint(0, 0))
-      add(table, TabularLayout.Constraint(1, 0))
+        // When JTable is put in a container other than JScrollPane, both itself and its header need to be added.
+        add(table.tableHeader, TabularLayout.Constraint(0, 0))
+        add(table, TabularLayout.Constraint(1, 0))
+      }
     }
   }
 
@@ -89,7 +103,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
   /**
    * Table model for the capture node detail table.
    */
-  private inner class CaptureNodeDetailTableModel : AbstractTableModel() {
+  private inner class CaptureNodeDetailTableModel(private val captureRange: Range) : AbstractTableModel() {
     override fun getRowCount(): Int {
       return extendedCaptureNodes.size
     }
