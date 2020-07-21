@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
 import com.android.resources.ResourceFolderType;
@@ -41,15 +42,16 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @NotNull
   @Override
-  public FormattingModel createModel(PsiElement element, CodeStyleSettings codeStyleSettings) {
-    final FormattingModel baseModel = myXmlFormattingModelBuilder.createModel(element, codeStyleSettings);
+  public FormattingModel createModel(@NotNull FormattingContext formattingContext) {
+    final FormattingModel baseModel = myXmlFormattingModelBuilder.createModel(formattingContext);
+    CodeStyleSettings codeStyleSettings = formattingContext.getCodeStyleSettings();
     final AndroidXmlCodeStyleSettings baseSettings = AndroidXmlCodeStyleSettings.getInstance(codeStyleSettings);
 
     if (!baseSettings.USE_CUSTOM_SETTINGS) {
       return baseModel;
     }
 
-    MySettings settings = getContextSpecificSettings(element, baseSettings);
+    MySettings settings = getContextSpecificSettings(formattingContext.getPsiElement(), baseSettings);
     return settings != null
            ? new DelegatingFormattingModel(baseModel, createDelegatingBlock(baseModel, settings, codeStyleSettings))
            : baseModel;
