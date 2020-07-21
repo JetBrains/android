@@ -81,7 +81,7 @@ class TraceProcessorDaemonManager(private val executorService: ExecutorService =
 
     private val TPD_BINARY = DeployableFile.Builder(TPD_EXECUTABLE)
       .setReleaseDir(TPD_RELEASE_PATH)
-      .setDevDir(DeployableFile.getDevDir(TPD_DEV_PATH))
+      .setDevDir(TPD_DEV_PATH)
       .setExecutable(true)
       .build()
 

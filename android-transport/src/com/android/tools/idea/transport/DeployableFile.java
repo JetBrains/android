@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
@@ -53,16 +54,28 @@ public final class DeployableFile {
   private final boolean myExecutable;
 
   /**
-   * The home path of Android Studio.
+   * Whether Android Studio is running from sources or is a release build.
    */
-  @NotNull private final Supplier<String> myHomePathSupplier;
+  @NotNull private final boolean myIsRunningFromSources;
+
+  /**
+   * The home path of Android Studio for release builds.
+   */
+  @NotNull private final String myHomePath;
+
+  /**
+   * The sources root directory for dev builds.
+   */
+  @NotNull private final String mySourcesRoot;
 
   private DeployableFile(@NotNull Builder builder) {
     myFileName = builder.myFileName;
     myReleaseDir = builder.myReleaseDir;
     myDevDir = builder.myDevDir;
     myOnDeviceAbiFileNameFormat = builder.myOnDeviceAbiFileNameFormat;
-    myHomePathSupplier = builder.myHomePathSupplier;
+    myIsRunningFromSources = builder.myIsRunningFromSources;
+    myHomePath = builder.myHomePath;
+    mySourcesRoot = builder.mySourcesRoot;
     myExecutable = builder.myExecutable;
   }
 
@@ -86,21 +99,24 @@ public final class DeployableFile {
 
   @NotNull
   public File getDir() {
-    File dir = new File(myHomePathSupplier.get(), myReleaseDir);
-    if (!dir.exists()) {
+    if (myIsRunningFromSources) {
       // Development mode
-      dir = new File(myHomePathSupplier.get(), myDevDir);
+      return new File(mySourcesRoot, myDevDir);
+    } else {
+      return new File(myHomePath, myReleaseDir);
     }
-    return dir;
   }
 
   public static class Builder {
     @NotNull private final String myFileName;
     @NotNull private String myReleaseDir = Constants.PERFA_RELEASE_DIR;
     // TODO b/122597221 refactor general agent code to be outside of profiler-specific directory.
-    @NotNull private String myDevDir = getDevDir(Constants.PERFA_DEV_DIR);
+    @NotNull private String myDevDir = Constants.PERFA_DEV_DIR;
     @Nullable private String myOnDeviceAbiFileNameFormat;
-    @NotNull private Supplier<String> myHomePathSupplier = () -> PathManager.getHomePath();
+
+    @NotNull private boolean myIsRunningFromSources = StudioPathManager.isRunningFromSources();
+    @NotNull private String myHomePath = PathManager.getHomePath();
+    @NotNull private String mySourcesRoot = StudioPathManager.getSourcesRoot();
 
     private boolean myExecutable = false;
 
@@ -134,8 +150,22 @@ public final class DeployableFile {
 
     @VisibleForTesting
     @NotNull
-    public Builder setHomePathSupplier(Supplier<String> pathSupplier) {
-      myHomePathSupplier = pathSupplier;
+    public Builder setIsRunningFromSources(boolean isRunningFromSources) {
+      myIsRunningFromSources = isRunningFromSources;
+      return this;
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public Builder setHomePath(String homePath) {
+      myHomePath = homePath;
+      return this;
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public Builder setSourcesRoot(String sourcesRoot) {
+      mySourcesRoot = sourcesRoot;
       return this;
     }
 
@@ -143,9 +173,5 @@ public final class DeployableFile {
     public DeployableFile build() {
       return new DeployableFile(this);
     }
-  }
-
-  public static String getDevDir(String relativePathFromWorkspaceRoot) {
-    return "../../" + relativePathFromWorkspaceRoot;
   }
 }
