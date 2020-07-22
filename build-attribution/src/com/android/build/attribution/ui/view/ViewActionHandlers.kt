@@ -62,4 +62,7 @@ interface ViewActionHandlers {
 
   /** Called on 'generate report' link click. */
   fun generateReportClicked(taskData: TaskUiData)
+
+  /** Called on 'Open memory settings' button click from gradle daemon high gc warning. */
+  fun openMemorySettings()
 }

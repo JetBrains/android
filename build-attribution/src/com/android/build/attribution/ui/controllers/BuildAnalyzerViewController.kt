@@ -35,11 +35,15 @@ import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
+import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.project.Project
 
 class BuildAnalyzerViewController(
   val model: BuildAnalyzerViewModel,
+  private val project: Project,
   private val analytics: BuildAttributionUiAnalytics,
   private val issueReporter: TaskIssueReporter
 ) : ViewActionHandlers {
@@ -113,5 +117,10 @@ class BuildAnalyzerViewController(
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     analytics.bugReportLinkClicked(currentAnalyticsPage)
     issueReporter.reportIssue(taskData)
+  }
+
+  override fun openMemorySettings() {
+    analytics.memorySettingsOpened()
+    ShowSettingsUtil.getInstance().showSettingsDialog(project, MemorySettingsConfigurable::class.java)
   }
 }

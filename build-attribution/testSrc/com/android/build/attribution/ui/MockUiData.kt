@@ -50,6 +50,7 @@ class MockUiData(
   val totalBuildDurationMs: Long = defaultTotalBuildDurationMs,
   val criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
   val configurationDurationMs: Long = defaultConfigurationDurationMs,
+  val gcTimeMs: Long = 0,
   val tasksList: List<TestTaskUiData> = emptyList()
 ) : BuildAttributionReportUiData {
   override val successfulBuild = true
@@ -68,6 +69,7 @@ class MockUiData(
     override val totalBuildDuration = TimeWithPercentage(totalBuildDurationMs, totalBuildDurationMs)
     override val criticalPathDuration = TimeWithPercentage(criticalPathDurationMs, totalBuildDurationMs)
     override val configurationDuration = TimeWithPercentage(configurationDurationMs, totalBuildDurationMs)
+    override val garbageCollectionTime = TimeWithPercentage(gcTimeMs, totalBuildDurationMs)
   }
 
   fun mockCriticalPathTasksUiData() = object : CriticalPathTasksUiData {
