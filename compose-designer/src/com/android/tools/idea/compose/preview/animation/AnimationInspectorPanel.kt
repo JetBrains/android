@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
@@ -169,7 +170,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
     val animationTab = AnimationTab(animation)
     animationTabs[animation] = animationTab
-    val tabName = animation.getLabel() ?: message("animation.inspector.tab.default.title")
+    val tabName = animation.label ?: message("animation.inspector.tab.default.title")
     tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
     tabbedPane.addTab("${tabName} #${tabNamesCount[tabName]}", animationTab)
   }
@@ -317,8 +318,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     fun updateProperties() {
       val animClock = animationClock ?: return
       try {
-        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.call(animClock.clock, animation) as List<Pair<String, Any>>
-        propsTextArea.text = animatedPropKeys.joinToString(separator = SystemProperties.getLineSeparator()) { "${it.first}: ${it.second}" }
+        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.call(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        propsTextArea.text = animatedPropKeys.joinToString(separator = SystemProperties.getLineSeparator()) { "${it.label}: ${it.value}" }
       }
       catch (e: Exception) {
         LOG.warn("Failed to get the Compose Animation properties", e)
