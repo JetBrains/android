@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.MockUiData
+import com.android.build.attribution.ui.defaultTotalBuildDurationMs
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.tools.adtui.TreeWalker
@@ -26,6 +27,7 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
+import javax.swing.JButton
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 
@@ -38,7 +40,15 @@ class BuildOverviewPageViewTest {
   fun testPage() {
     val view = BuildOverviewPageView(model, mockHandlers)
     Truth.assertThat(view.component.name).isEqualTo("build-overview")
-    val text = TreeWalker(view.component).descendants()
+    val descendantNames = TreeWalker(view.component).descendants().mapNotNull { it.name }
+    Truth.assertThat(descendantNames).containsAllOf("info", "links", "memory")
+  }
+
+  @Test
+  fun testInfoContent() {
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
+    val text = TreeWalker(infoPanel).descendants()
       .mapNotNull { visibleText(it) }
       .joinToString(separator = "\n")
 
@@ -51,17 +61,25 @@ class BuildOverviewPageViewTest {
       Build configuration: 4.0s
       Critical path tasks execution: 15.0s
       
-      <b>Common views into this build</b>
-      [Tasks impacting build duration]
-      [Plugins with tasks impacting build duration]
-      [All warnings]
-    """.trimIndent())
+      """.trimIndent())
   }
 
   @Test
   fun testLinks() {
     val view = BuildOverviewPageView(model, mockHandlers)
     val linksPanel = TreeWalker(view.component).descendants().single { it.name == "links" }
+
+    val linksPanelContent = TreeWalker(linksPanel).descendants()
+      .mapNotNull { visibleText(it) }
+      .joinToString(separator = "\n")
+
+    Truth.assertThat(linksPanelContent).isEqualTo("""
+      <b>Common views into this build</b>
+      [Tasks impacting build duration]
+      [Plugins with tasks impacting build duration]
+      [All warnings]
+    """.trimIndent())
+
     val links = TreeWalker(linksPanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
     Truth.assertThat(links).hasSize(3)
 
@@ -81,6 +99,21 @@ class BuildOverviewPageViewTest {
     val view = BuildOverviewPageView(model, mockHandlers)
     Truth.assertThat(view.additionalControls.name).isEqualTo("build-overview-additional-controls")
     Truth.assertThat(view.additionalControls.components).isEmpty()
+  }
+
+  @Test
+  fun testMemoryUtilizationInfo() {
+    val model = BuildAnalyzerViewModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()))
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
+
+    Truth.assertThat(model.shouldWarnAboutGC).isTrue()
+    Truth.assertThat(memoryPanel.isVisible).isTrue()
+
+    val button = TreeWalker(memoryPanel).descendants().filterIsInstance(JButton::class.java).single()
+    Truth.assertThat(button.text).isEqualTo("Edit memory settings")
+    button.doClick()
+    Mockito.verify(mockHandlers).openMemorySettings()
   }
 
   private fun visibleText(component: Component): String? = when (component) {

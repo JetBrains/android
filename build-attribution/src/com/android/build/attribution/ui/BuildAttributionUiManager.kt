@@ -176,7 +176,7 @@ class BuildAttributionUiManagerImpl(
     buildAttributionView?.let { existingView -> Disposer.dispose(existingView) }
     if (reportUiData.successfulBuild) {
       val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-      buildAttributionView = NewViewComponentContainer(reportUiData, issueReporter, uiAnalytics)
+      buildAttributionView = NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
     }
     else {
       buildAttributionView = BuildFailureViewComponentContainer()
@@ -255,6 +255,7 @@ class BuildAttributionUiManagerImpl(
 
 private class NewViewComponentContainer(
   uiData: BuildAttributionReportUiData,
+  project: Project,
   issueReporter: TaskIssueReporter,
   uiAnalytics: BuildAttributionUiAnalytics
 ) : ComponentContainer {
@@ -262,7 +263,7 @@ private class NewViewComponentContainer(
 
   init {
     val model = BuildAnalyzerViewModel(uiData)
-    val controller = BuildAnalyzerViewController(model, uiAnalytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
     view = BuildAnalyzerComboBoxView(model, controller)
   }
 

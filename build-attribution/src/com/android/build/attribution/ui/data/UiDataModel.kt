@@ -51,6 +51,7 @@ interface BuildSummary {
       totalBuildDuration.timeMs - configurationDuration.timeMs - criticalPathDuration.timeMs,
       totalBuildDuration.totalMs
     )
+  val garbageCollectionTime: TimeWithPercentage
 }
 
 interface CriticalPathTasksUiData {

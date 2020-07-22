@@ -16,16 +16,24 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
-import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.percentageString
+import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
+import com.intellij.icons.AllIcons
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.event.ActionEvent
+import javax.swing.AbstractAction
+import javax.swing.JButton
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
@@ -35,6 +43,7 @@ class BuildOverviewPageView(
 ) : BuildAnalyzerDataPageView {
 
   private val buildInformationPanel = JPanel().apply {
+    name = "info"
     layout = VerticalLayout(0, SwingConstants.LEFT)
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
@@ -67,15 +76,41 @@ class BuildOverviewPageView(
     })
   }
 
+  private val garbageCollectionIssuePanel = JPanel().apply {
+    name = "memory"
+    layout = BorderLayout(5, 5)
+    val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
+    val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
+    val descriptionText = """
+      ${gcTime.percentageString()} of your build’s time was dedicated to garbage collection during this build (${gcTime.durationString()}).<br/>
+      To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>
+      You can do this on the memory settings page.
+    """.trimIndent()
+    val action = object : AbstractAction("Edit memory settings") {
+      override fun actionPerformed(e: ActionEvent?) = actionHandlers.openMemorySettings()
+    }
+    val controlsPanel = JPanel().apply {
+      layout = HorizontalLayout(10)
+      add(JButton(action), HorizontalLayout.LEFT)
+    }
+    val icon = if (model.shouldWarnAboutGC) warningIcon() else AllIcons.General.Information
+
+    add(htmlTextLabelWithFixedLines(panelHeader), BorderLayout.NORTH)
+    add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
+    add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
+    add(controlsPanel, BorderLayout.SOUTH)
+  }
+
   override val component: JPanel = JPanel().apply {
     name = "build-overview"
     layout = BorderLayout()
     val content = JPanel().apply {
       border = JBUI.Borders.empty(20)
-      layout = TabularLayout("Fit,50px,Fit")
+      layout = TabularLayout("Fit,50px,Fit,50px,Fit")
 
       add(buildInformationPanel, TabularLayout.Constraint(0, 0))
       add(linksPanel, TabularLayout.Constraint(0, 2))
+      add(garbageCollectionIssuePanel, TabularLayout.Constraint(0, 4))
     }
     val scrollPane = JBScrollPane().apply {
       border = JBUI.Borders.empty()
