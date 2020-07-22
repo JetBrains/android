@@ -377,7 +377,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsAnimationScrubbing = false;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
-  @Nullable private NlLayoutValidator myValidator;
   @Nullable private LayoutValidatorControl myValidatorControl;
 
   private NlDesignSurface(@NotNull Project project,
@@ -416,8 +415,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMaxScale = maxScale;
 
     if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
-      myValidator = new NlLayoutValidator(myIssueModel, this);
-      myValidatorControl = new NlLayoutValidatorControl(this, myValidator);
+      myValidatorControl = new NlLayoutValidatorControl(this);
     }
 
     myDelegateDataProvider = delegateDataProvider;
@@ -766,9 +764,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && myValidator != null) {
+        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && myValidatorControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            myValidator.validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+            myValidatorControl.getValidator().validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
           }
         }
 

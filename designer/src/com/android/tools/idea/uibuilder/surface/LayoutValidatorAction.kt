@@ -51,39 +51,43 @@ class LayoutValidatorAction: DumbAwareAction(
 }
 
 /**
- * Controller for Layout Validator. It can run layout validation.
+ * Controller for validator that checks the layout and produces lint checks.
+ * It runs Accessibility Testing Framework.
  */
 interface LayoutValidatorControl {
+  /** Return the validator capable of checking the layout. */
+  val validator: NlLayoutValidator
+
+  /** Trigger the validation, and show lint results */
   fun runLayoutValidation()
 }
 
-/**
- * Configuration for layout validator
- */
+/** Configuration for layout validator */
 interface LayoutValidationConfiguration {
 
-  /**
-   * Returns true if it layout validation should be enabled. False otherwise.
-   */
+  /** Returns true if it layout validation should be enabled. False otherwise. */
   var isLayoutValidationEnabled: Boolean
+
+  /** Returns true if metric is for render result, which contains atf result, must be logged. */
+  var forceLoggingRenderResult: Boolean
 
   companion object {
 
-    /**
-     * Configuration for when layout validation is not applicable.
-     */
+    /** Configuration for when layout validation is not applicable. */
     @JvmStatic
     val DISABLED = object: LayoutValidationConfiguration {
       override var isLayoutValidationEnabled: Boolean
+        get() = false
+        set(value) { }
+
+      override var forceLoggingRenderResult: Boolean
         get() = false
         set(value) { }
     }
   }
 }
 
-/**
- * Configuration for when layout validation is available.
- */
+/** Configuration for when layout validation is available. */
 class LayoutValidationEnabled : LayoutValidationConfiguration {
 
   private var isEnabled = false
@@ -93,4 +97,5 @@ class LayoutValidationEnabled : LayoutValidationConfiguration {
     set(value) {
       isEnabled = value
     }
+  override var forceLoggingRenderResult: Boolean = false
 }
