@@ -176,9 +176,9 @@ public class RenderTestUtil {
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger,
                                        @NotNull Consumer<RenderTask> f,
-                                       boolean layoutValidatorEnabled) {
+                                       boolean layoutScannerEnabled) {
     final RenderTask task = createRenderTask(facet, file, configuration, logger);
-    task.setEnableLayoutValidator(layoutValidatorEnabled);
+    task.setEnableLayoutScanner(layoutScannerEnabled);
     try {
       f.accept(task);
     } finally {
@@ -223,10 +223,10 @@ public class RenderTestUtil {
   public static void withRenderTask(@NotNull AndroidFacet facet,
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration,
-                                    boolean enableLayoutValidator,
+                                    boolean enableLayoutScanner,
                                     @NotNull Consumer<RenderTask> f) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f, enableLayoutValidator);
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f, enableLayoutScanner);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,

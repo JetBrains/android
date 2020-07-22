@@ -101,7 +101,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     boolean showLayoutInspectorSettings = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
-    myAtfCheckBox.setVisible(StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR.get());
+    myAtfCheckBox.setVisible(StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get());
     initTraceComponents();
     reset();
   }
@@ -147,7 +147,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
            (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) ||
-           myAtfCheckBox.isSelected() != LayoutEditorSettingsKt.getAlwaysEnableLayoutValidation();
+           myAtfCheckBox.isSelected() != LayoutEditorSettingsKt.getAlwaysEnableLayoutScanner();
   }
 
   private int getQualitySetting() {
@@ -163,7 +163,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
-    LayoutEditorSettingsKt.setAlwaysEnableLayoutValidation(myAtfCheckBox.isSelected());
+    LayoutEditorSettingsKt.setAlwaysEnableLayoutScanner(myAtfCheckBox.isSelected());
     if (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) {
       myRestartCallback = () -> ApplicationManager.getApplication().invokeLater(() -> PluginManagerConfigurable.shutdownOrRestartApp());
       LayoutEditorEvent.Builder eventBuilder = LayoutEditorEvent.newBuilder();
@@ -346,7 +346,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
-    myAtfCheckBox.setSelected(LayoutEditorSettingsKt.getAlwaysEnableLayoutValidation());
+    myAtfCheckBox.setSelected(LayoutEditorSettingsKt.getAlwaysEnableLayoutScanner());
     updateTraceComponents();
   }
 

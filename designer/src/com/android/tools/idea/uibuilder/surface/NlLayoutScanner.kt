@@ -32,7 +32,7 @@ import com.intellij.openapi.util.Disposer
  * Validator for [NlDesignSurface].
  * It retrieves validation results from the [RenderResult] and update the lint accordingly.
  */
-class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable {
+class NlLayoutScanner(issueModel: IssueModel, parent: Disposable): Disposable {
 
   interface Listener {
     fun lintUpdated(result: ValidatorResult?)
