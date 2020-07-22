@@ -133,7 +133,8 @@ class LightDirectionsClass(private val facet: AndroidFacet,
   private fun computeInnerClasses(): Array<PsiClass> {
     return _actions
       .mapNotNull { action ->
-        action.arguments.filter { it.defaultValue == null }.takeUnless { it.isEmpty() } ?: return@mapNotNull null
+        action.destination ?: return@mapNotNull null // This implies only 'popUpTo' attribute is defined
+        action.arguments.takeUnless { it.isEmpty() } ?: return@mapNotNull null
 
         val innerClassName = action.id.toUpperCamelCase()
         LightActionBuilderClass(innerClassName, backingResourceFile, facet, modulePackage, this, action)

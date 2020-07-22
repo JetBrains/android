@@ -21,6 +21,7 @@ import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnTy
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiType
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -146,12 +147,7 @@ class LightActionBuilderClassTest {
                 
             <action
               android:id="@+id/action_fragment2_to_main"
-              app:destination="@id/main" >
-                <argument
-                  android:name="overriddenArgWithDefaultValue"
-                  app:argType="integer"
-                  android:defaultValue="1" />
-            </action>
+              app:destination="@id/main" />
           </fragment>
         </navigation>
       """.trimIndent())
@@ -230,5 +226,56 @@ class LightActionBuilderClassTest {
         )
       )
     }
+  }
+
+  @Test
+  fun testNoDestinationDefined() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1" >
+              <argument
+                  android:name="arg"
+                  app:argType="string" />
+
+              <action
+                  android:id="@+id/action_to_Main"
+                  app:popUpTo="@id/main" />
+          </fragment>
+          <fragment
+              android:id="@+id/fragment2"
+              android:name="test.safeargs.Fragment2"
+              android:label="Fragment2" >
+              
+              <action
+                  android:id="@+id/action_Fragment2_to_Fragment1"
+                  app:popUpTo="@id/fragment1" />
+          </fragment>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
+
+    // Classes can be found with context
+    val fragment1DirectionsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
+    val fragment2DirectionsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
+
+    // Because we don't have destination defined, no arguments are supposed to be passed. This means no inner builder
+    // action classes are created. NavDirections class(`ActionOnlyNavDirections` as the implementation under the hood)
+    // is being used here.
+    assertThat(fragment1DirectionsClass.innerClasses).isEmpty()
+    assertThat(fragment2DirectionsClass.innerClasses).isEmpty()
   }
 }
