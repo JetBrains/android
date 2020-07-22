@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-
 class Configuration {
   static final Configuration MAIN = new Configuration("Main", ARTIFACT_MAIN);
   static final Configuration ANDROID_TEST = new Configuration(AndroidBundle.message("android.test.run.configuration.type.name"),

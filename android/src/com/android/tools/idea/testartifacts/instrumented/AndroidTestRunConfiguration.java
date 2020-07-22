@@ -155,7 +155,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    AndroidArtifact testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
+    IdeAndroidArtifact testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
     String testTask = testArtifact != null ? testArtifact.getAssembleTaskName() : null;
     return new Pair<>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }

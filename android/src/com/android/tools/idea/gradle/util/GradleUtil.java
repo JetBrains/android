@@ -66,6 +66,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.BaseArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -173,7 +174,7 @@ public final class GradleUtil {
       return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
     }
     else {
-      Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+      List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
       if (outputs.isEmpty()) return null;
       AndroidArtifactOutput output = getFirstItem(outputs);
       assert output != null;

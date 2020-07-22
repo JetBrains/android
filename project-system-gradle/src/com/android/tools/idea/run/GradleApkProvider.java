@@ -266,7 +266,7 @@ public class GradleApkProvider implements ApkProvider {
    * @return a list of ApkInfo objects for each additional runtime Apk
    */
   @NotNull
-  private static List<ApkInfo> getAdditionalApks(@NotNull AndroidArtifact testArtifactInfo) {
+  private static List<ApkInfo> getAdditionalApks(@NotNull IdeAndroidArtifact testArtifactInfo) {
     List<ApkInfo> result = new ArrayList<>();
     for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
       try {
