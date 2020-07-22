@@ -305,11 +305,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
                                        ApplicationManager.getApplication().isUnitTestMode());
         }
 
-        final String javaHome = executionSettings.getJavaHome();
-        if (javaHome != null && new File(javaHome).isDirectory()) {
-          operation.setJavaHome(new File(javaHome));
-        }
-
         if (isRunBuildAction) {
           ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
         }
