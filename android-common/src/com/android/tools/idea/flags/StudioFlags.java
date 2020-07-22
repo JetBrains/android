@@ -336,6 +336,11 @@ public final class StudioFlags {
     "Enable the new transition panel in the motion editor",
     true);
 
+  public static final Flag<Boolean> NELE_OVERLAY_PROVIDER = Flag.create(
+    NELE, "toggle.overlay.provider.extension.point", "Toggle overlay provider extension point.",
+    "Enable the overlay provider extension point",
+    true);
+
   //endregion
 
   //region Navigation Editor

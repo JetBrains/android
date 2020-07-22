@@ -27,6 +27,8 @@ import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
+import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
+import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.LayoutScannerAction;
@@ -37,6 +39,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.keymap.KeymapUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +79,12 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration, mySurface);
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
+
+    if(OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
+      group.addSeparator();
+      OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface);
+      group.add(overlayAction);
+    }
 
     group.addSeparator();
     DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
