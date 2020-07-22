@@ -74,6 +74,11 @@ interface AndroidTestResults {
   fun getDuration(device: AndroidDevice): Duration?
 
   /**
+   * A total elapsed time of a test case execution of all devices.
+   */
+  fun getTotalDuration(): Duration
+
+  /**
    * Returns an error stack trace or empty if a test passes.
    */
   fun getErrorStackTrace(device: AndroidDevice): String
