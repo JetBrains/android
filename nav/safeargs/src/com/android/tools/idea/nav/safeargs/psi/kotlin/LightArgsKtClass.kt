@@ -98,8 +98,7 @@ class LightArgsKtClass(
         .asSequence()
         .map { arg ->
           val pName = Name.identifier(arg.name)
-          val fallbackType = this.builtIns.stringType
-          val pType = this.builtIns.getKotlinType(arg.type, arg.defaultValue, containingDeclaration.module, arg.isNonNull(), fallbackType)
+          val pType = this.builtIns.getKotlinType(arg.type, arg.defaultValue, containingDeclaration.module, arg.isNonNull())
           val hasDefaultValue = arg.defaultValue != null
           ValueParameterDescriptorImpl(constructor, null, index++, Annotations.EMPTY, pName, pType, hasDefaultValue,
                                        false, false, null, SourceElement.NO_SOURCE)
@@ -203,9 +202,8 @@ class LightArgsKtClass(
         .asSequence()
         .map { arg ->
           val pName = arg.name
-          val fallbackType = argsClassDescriptor.builtIns.stringType
           val pType = argsClassDescriptor.builtIns
-            .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull(), fallbackType)
+            .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
             XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, KotlinIcons.FIELD_VAL, pName))

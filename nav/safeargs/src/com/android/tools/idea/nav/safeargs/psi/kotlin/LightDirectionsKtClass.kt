@@ -150,9 +150,8 @@ class LightDirectionsKtClass(
                   .asSequence()
                   .map { arg ->
                     val pName = Name.identifier(arg.name)
-                    val fallbackType = directionsClassDescriptor.builtIns.stringType
                     val pType = directionsClassDescriptor.builtIns
-                      .getKotlinType(arg.type, arg.defaultValue, directionsClassDescriptor.module, arg.isNonNull(), fallbackType)
+                      .getKotlinType(arg.type, arg.defaultValue, directionsClassDescriptor.module, arg.isNonNull())
                     val hasDefaultValue = arg.defaultValue != null
                     ValueParameterDescriptorImpl(method, null, index++, Annotations.EMPTY, pName, pType,
                                                  hasDefaultValue, false, false, null,
