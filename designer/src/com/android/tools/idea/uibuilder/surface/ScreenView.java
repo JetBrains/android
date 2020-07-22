@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
@@ -131,6 +132,11 @@ public class ScreenView extends ScreenViewBase {
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
+
+    if(StudioFlags.NELE_OVERLAY_PROVIDER.get()) {
+      builder.add(new OverlayLayer(screenView));
+    }
+
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
       builder.add(new CanvasResizeLayer(surface, screenView));
     }
