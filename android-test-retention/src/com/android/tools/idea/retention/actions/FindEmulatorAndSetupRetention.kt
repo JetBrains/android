@@ -19,12 +19,16 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
+import com.android.sdklib.internal.avd.AvdManager
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.emulator.DummyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -81,133 +85,134 @@ class FindEmulatorAndSetupRetention : AnAction() {
           indicator.fraction = 0.0
           val deviceName = dataContext.getData(DEVICE_NAME_KEY)
           val catalog = RunningEmulatorCatalog.getInstance()
-          val emulators = catalog.updateNow().get()
-          if (emulators != null) {
-            val emulatorController = if (deviceName != null) {
-              emulators.find { it.emulatorId.avdId == deviceName }
-            } else {
-              emulators.iterator().next()
+          val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
+          val avdInfo = AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(LOG))
+            ?.getAvd(deviceName, true)
+          if (avdInfo == null) {
+            showErrorMessage(project, "Cannot find valid AVD with name: ${deviceName}")
+            return
+          }
+          if (!avdManagerConnection.isAvdRunning(avdInfo)) {
+            val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
+            val device = ProgressIndicatorUtils.awaitWithCheckCanceled(deviceFuture)
+            ProgressIndicatorUtils.awaitWithCheckCanceled { device.isOnline }
+          }
+          val emulatorControllers = ProgressIndicatorUtils.awaitWithCheckCanceled(catalog.updateNow())
+          val emulatorController = emulatorControllers.find { it.emulatorId.avdId == deviceName }
+          if (emulatorController == null) {
+            showErrorMessage(project, "Failed to find or launch to AVD with device name: ${deviceName}")
+            return
+          }
+          if (emulatorController.connectionState != EmulatorController.ConnectionState.CONNECTED) {
+            emulatorController.connectGrpc()
+          }
+          val emulatorSerialString = "emulator-${emulatorController.emulatorId.serialPort}"
+          val snapshotId = dataContext.getData(EMULATOR_SNAPSHOT_ID_KEY) ?: return
+          val snapshotFile = dataContext.getData(EMULATOR_SNAPSHOT_FILE_KEY) ?: return
+          val shouldAttachDebugger = dataContext.getData(RETENTION_AUTO_CONNECT_DEBUGGER_KEY) ?: false
+          val packageName = dataContext.getData(PACKAGE_NAME_KEY) ?: return
+          if (!shouldAttachDebugger) {
+            if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+              showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
+                                        + "command line parameters as you run the test.")
             }
-            if (emulatorController == null) {
-              if (deviceName == null) {
-                showErrorMessage(project, "Cannot find running emulators with matching AVD name. Expected device: ${deviceName}")
+            return
+          }
+
+          AndroidDebugBridge.getBridge()?.devices?.asSequence()?.filter {
+            it.serialNumber == emulatorSerialString
+          }?.forEach {
+            it.getClient(packageName)?.kill()
+          }
+          var adbDevice: IDevice? = null
+          val deviceReadySignal = CountDownLatch(1)
+          // After loading a snapshot, the following events will happen:
+          // Device disconnects -> device reconnects-> device client list changes
+          // But the device client list changes callback does not really catch all client changes.
+          val deviceChangeListener: AndroidDebugBridge.IDeviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
+            override fun deviceDisconnected(device: IDevice) {}
+
+            override fun deviceConnected(device: IDevice) {
+              if (emulatorSerialString == device.serialNumber) {
+                adbDevice = device
+                deviceReadySignal.countDown()
+                AndroidDebugBridge.removeDeviceChangeListener(this)
               }
+            }
+
+            override fun deviceChanged(device: IDevice, changeMask: Int) {}
+          }
+          AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
+          try {
+            if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+              showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
+                                        + "command line parameters as you run the test.")
               return
             }
-            if (emulatorController.connectionState != EmulatorController.ConnectionState.CONNECTED) {
-              emulatorController.connectGrpc()
-            }
-            val emulatorSerialString = "emulator-${emulatorController.emulatorId.serialPort}"
-            val snapshotId = dataContext.getData(EMULATOR_SNAPSHOT_ID_KEY) ?: return
-            val snapshotFile = dataContext.getData(EMULATOR_SNAPSHOT_FILE_KEY) ?: return
-            val shouldAttachDebugger = dataContext.getData(RETENTION_AUTO_CONNECT_DEBUGGER_KEY) ?: false
-            val packageName = dataContext.getData(PACKAGE_NAME_KEY) ?: return
-            if (!shouldAttachDebugger) {
-              if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
-                showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
-                                          + "command line parameters as you run the test.")
-              }
-              return
-            }
+            indicator.fraction = LOAD_SNAPSHOT_FRACTION
+            LOG.info("Snapshot loaded.")
+            ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
+          } finally {
+            AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
+          }
+          if (adbDevice == null) {
+            showErrorMessage(project, "Failed to connect to device.")
+            return
+          }
+          val targetDevice = adbDevice!!
 
-            val devices = AndroidDebugBridge.getBridge()?.devices
-            if (devices != null) {
-              for (device in devices) {
-                if (device.serialNumber == emulatorSerialString) {
-                  device.getClient(packageName)?.kill()
+          // Check if the ddm client is ready.
+          // Alternatively we can register a callback to check clients. But the IDeviceChangeListener does not really deliver all new
+          // client events. Also, because of the implementation of ProgressIndicatorUtils.awaitWithCheckCanceled, it is going to poll
+          // and wait even if we use callbacks.
+          ProgressIndicatorUtils.awaitWithCheckCanceled {
+            if (targetDevice.getClient(packageName) == null) {
+              Thread.sleep(10)
+              false
+            }
+            else {
+              true
+            }
+          }
+          indicator.fraction = CLIENTS_READY_FRACTION
+
+          val debugSessionReadySignal = CountDownLatch(1)
+          val messageBusConnection = project.messageBus.connect()
+          try {
+            messageBusConnection.subscribe(XDebuggerManager.TOPIC, object : XDebuggerManagerListener {
+              override fun currentSessionChanged(previousSession: XDebugSession?, currentSession: XDebugSession?) {
+                if (currentSession != null) {
+                  messageBusConnection.disconnect()
+                  debugSessionReadySignal.countDown()
                 }
-              }
-            }
-            var adbDevice: IDevice? = null
-            val deviceReadySignal = CountDownLatch(1)
-            // After loading a snapshot, the following events will happen:
-            // Device disconnects -> device reconnects-> device client list changes
-            // But the device client list changes callback does not really catch all client changes.
-            val deviceChangeListener: AndroidDebugBridge.IDeviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
-              override fun deviceDisconnected(device: IDevice) {}
-
-              override fun deviceConnected(device: IDevice) {
-                if (emulatorSerialString == device.serialNumber) {
-                  adbDevice = device
-                  deviceReadySignal.countDown()
-                  AndroidDebugBridge.removeDeviceChangeListener(this)
-                }
-              }
-
-              override fun deviceChanged(device: IDevice, changeMask: Int) { }
-            }
-            AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
-            try {
-              if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
-                showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
-                  + "command line parameters as you run the test.")
-                return
-              }
-              indicator.fraction = LOAD_SNAPSHOT_FRACTION
-              LOG.info("Snapshot loaded.")
-              ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
-            }
-            catch (exception: Throwable) {
-              AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
-              throw exception
-            }
-            if (adbDevice == null) {
-              showErrorMessage(project, "Failed to connect to device.")
-              return
-            }
-
-            // Check if the ddm client is ready.
-            // Alternatively we can register a callback to check clients. But the IDeviceChangeListener does not really deliver all new
-            // client events. Also, because of the implementation of ProgressIndicatorUtils.awaitWithCheckCanceled, it is going to poll
-            // and wait even if we use callbacks.
-            ProgressIndicatorUtils.awaitWithCheckCanceled {
-              if (adbDevice!!.getClient(packageName) == null) {
-                Thread.sleep(10)
-                false
-              } else {
-                true
-              }
-            }
-            indicator.fraction = CLIENTS_READY_FRACTION
-
-            val debugSessionReadySignal = CountDownLatch(1)
-            val messageBusConnection = project.messageBus.connect()
-            try {
-              messageBusConnection.subscribe(XDebuggerManager.TOPIC, object : XDebuggerManagerListener {
-                override fun currentSessionChanged(previousSession: XDebugSession?, currentSession: XDebugSession?) {
-                  if (currentSession != null) {
-                    messageBusConnection.disconnect()
-                    debugSessionReadySignal.countDown()
-                  }
-                }
-              })
-              connectDebugger(adbDevice!!, dataContext)
-              // Wait for debug session ready.
-              ProgressIndicatorUtils.awaitWithCheckCanceled(debugSessionReadySignal)
-              indicator.fraction = DEBUGGER_CONNECTED_FRACTION
-            }
-            catch (exception: Exception) {
-              messageBusConnection.disconnect()
-              throw exception
-            }
-            val currentSession = XDebuggerManager.getInstance(getProject()).currentSession!!
-            val pauseSignal = CountDownLatch(1)
-            // Pause the current session. It turns out that the session can only be paused after some setting updates. So we need to send
-            // pause commands in settingsChanged() as well as in the current thread, in case it is updated before we set up the callbacks.
-            currentSession.addSessionListener(object : XDebugSessionListener {
-              override fun sessionPaused() {
-                currentSession.removeSessionListener(this)
-                pauseSignal.countDown()
-              }
-
-              override fun settingsChanged() {
-                currentSession.pause()
               }
             })
-            currentSession.pause()
-            ProgressIndicatorUtils.awaitWithCheckCanceled(pauseSignal)
-            LOG.info("Ready for debugging.")
+            connectDebugger(targetDevice, dataContext)
+            // Wait for debug session ready.
+            ProgressIndicatorUtils.awaitWithCheckCanceled(debugSessionReadySignal)
+            indicator.fraction = DEBUGGER_CONNECTED_FRACTION
           }
+          catch (exception: Exception) {
+            messageBusConnection.disconnect()
+            throw exception
+          }
+          val currentSession = XDebuggerManager.getInstance(getProject()).currentSession!!
+          val pauseSignal = CountDownLatch(1)
+          // Pause the current session. It turns out that the session can only be paused after some setting updates. So we need to send
+          // pause commands in settingsChanged() as well as in the current thread, in case it is updated before we set up the callbacks.
+          currentSession.addSessionListener(object : XDebugSessionListener {
+            override fun sessionPaused() {
+              currentSession.removeSessionListener(this)
+              pauseSignal.countDown()
+            }
+
+            override fun settingsChanged() {
+              currentSession.pause()
+            }
+          })
+          currentSession.pause()
+          ProgressIndicatorUtils.awaitWithCheckCanceled(pauseSignal)
+          LOG.info("Ready for debugging.")
         }
       })
   }
