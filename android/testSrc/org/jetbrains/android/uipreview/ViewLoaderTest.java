@@ -70,8 +70,10 @@ public class ViewLoaderTest extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     } finally {
+      // Copy the classloader field before super.tearDown() nulls it out via UsefulTestCase.clearDeclaredFields().
+      ModuleClassLoader classLoader = myClassLoader;
       super.tearDown();
-      ModuleClassLoaderManager.get().release(myClassLoader, this);
+      ModuleClassLoaderManager.get().release(classLoader, this);
     }
   }
 
