@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.ui.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
@@ -72,11 +72,6 @@ private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
 
   /**
-   * Used in the tab title when adding new tabs to [tabbedPane]. It should get incremented on each use.
-   */
-  private var currentTab = 1
-
-  /**
    * [CommonTabbedPane] where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline],
    * but have their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
@@ -96,6 +91,12 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    * Maps animation objects to the [AnimationTab] that represents them.
    */
   private val animationTabs = HashMap<ComposeAnimation, AnimationTab>()
+
+  /**
+   * [tabbedPane]'s tab titles mapped to the amount of tabs using that title. The count is used to differentiate tabs, which are named
+   * "tabTitle #1", "tabTitle #2", etc., instead of multiple "tabTitle" tabs.
+   */
+  private val tabNames = HashMap<String, Int>()
 
   /**
    * Panel displayed when the preview has no animations subscribed.
@@ -152,8 +153,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private fun showNoAnimationsPanel() {
     remove(tabbedPane)
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
-    // Reset tabs counter, so when new tabs are added they start as #1
-    currentTab = 1
+    // Reset tab names, so when new tabs are added they start as #1
+    tabNames.clear()
   }
 
   /**
@@ -168,7 +169,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
     val animationTab = AnimationTab(animation)
     animationTabs[animation] = animationTab
-    tabbedPane.addTab("TransitionAnimation #${currentTab++}", animationTab)
+    val tabName = animation.getLabel() ?: message("animation.inspector.tab.default.title")
+    tabNames[tabName] = tabNames.getOrDefault(tabName, 0) + 1
+    tabbedPane.addTab("${tabName} #${tabNames[tabName]}", animationTab)
   }
 
   /**
@@ -187,6 +190,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   override fun dispose() {
     playPauseAction.dispose()
     animationTabs.clear()
+    tabNames.clear()
   }
 
   /**

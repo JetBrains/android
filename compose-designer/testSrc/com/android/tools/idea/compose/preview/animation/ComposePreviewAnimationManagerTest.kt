@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.ui.animation.tooling.ComposeAnimation
-import androidx.ui.animation.tooling.ComposeAnimationType
+import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
@@ -149,6 +149,7 @@ class ComposePreviewAnimationManagerTest {
 
     val transitionAnimation = object : ComposeAnimation {
       override fun getAnimation() = Any()
+      override fun getLabel(): String? = null
       override fun getType() = ComposeAnimationType.TRANSITION_ANIMATION
       override fun getStates() = animationStates
     }
@@ -165,6 +166,30 @@ class ComposePreviewAnimationManagerTest {
     assertTrue(animationStates.contains(st2))
     // Sanity-check the states are different to guarantee we're checking "State1" and "State2"
     assertNotEquals(st1, st2)
+  }
+
+  @Test
+  fun tabsAreNamedFromAnimationLabel() {
+    val inspector = createInspector()
+
+    val animation1 = createComposeAnimation("repeatedLabel")
+    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation1)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val animationWithSameLabel = createComposeAnimation("repeatedLabel")
+    ComposePreviewAnimationManager.onAnimationSubscribed(null, animationWithSameLabel)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val animationWithNullLabel = createComposeAnimation()
+    ComposePreviewAnimationManager.onAnimationSubscribed(null, animationWithNullLabel)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val tabbedPane = inspector.animationsTabbedPane()!!
+    assertEquals(3, tabbedPane.tabCount)
+
+    assertEquals("repeatedLabel #1", tabbedPane.getTitleAt(0))
+    assertEquals("repeatedLabel #2", tabbedPane.getTitleAt(1)) // repeated titles get their index incremented
+    assertEquals("TransitionAnimation #1", tabbedPane.getTitleAt(2)) // null labels use default title
   }
 
   @Test
@@ -201,8 +226,9 @@ class ComposePreviewAnimationManagerTest {
     return ComposePreviewAnimationManager.currentInspector!!
   }
 
-  private fun createComposeAnimation() = object : ComposeAnimation {
+  private fun createComposeAnimation(label: String? = null) = object : ComposeAnimation {
     override fun getAnimation() = Any()
+    override fun getLabel(): String? = label
     override fun getType() = ComposeAnimationType.ANIMATED_VALUE
   }
 
