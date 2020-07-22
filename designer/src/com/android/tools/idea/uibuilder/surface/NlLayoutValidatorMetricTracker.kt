@@ -21,14 +21,10 @@ import com.android.tools.idea.validator.ValidatorResult
 /**
  * Metric tracker for results from accessibility testing framework
  */
-class NlLayoutValidatorMetricTracker(
-  private val lintIntegrator: AccessibilityLintIntegrator) {
-  private val issues: Set<Issue> get() = lintIntegrator.issues
+class NlLayoutValidatorMetricTracker {
 
-  fun trackExpand(issue: Issue?, expanded: Boolean) {
-    if (expanded && issues.contains(issue)) {
-      // TODO: Actually track.
-    }
+  fun trackIssueExpanded(issue: Issue?, expanded: Boolean) {
+    // TODO: Once .proto file is updated, add the metrics here..
   }
 
   fun trackResult(result: ValidatorResult) {

@@ -20,12 +20,12 @@ import com.android.tools.idea.ui.alwaysEnableLayoutValidation
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 
-/**
- * Controls the NlLayoutValidator in context of NlDesignSurface.
- */
-class NlLayoutValidatorControl(
-  private val surface: NlDesignSurface,
-  private val validator: NlLayoutValidator): LayoutValidatorControl {
+/** Impl of [LayoutValidatorControl] configured with [LayoutValidatorAction] */
+class NlLayoutValidatorControl(private val surface: NlDesignSurface): LayoutValidatorControl {
+
+  override val validator = NlLayoutValidator(surface.issueModel, surface)
+
+  private val metricTracker = NlLayoutValidatorMetricTracker()
 
   /** Listener for issue panel open/close */
   private val issuePanelListener = IssuePanel.MinimizeListener {
@@ -45,7 +45,9 @@ class NlLayoutValidatorControl(
   }
 
   private val issueExpandListener = IssuePanel.ExpandListener {issue, expanded ->
-    validator.metricTracker.trackExpand(issue, expanded)
+    if (validator.issues.contains(issue)) {
+      metricTracker.trackIssueExpanded(issue, expanded)
+    }
   }
 
   private val validatorListener = object : NlLayoutValidator.Listener {
