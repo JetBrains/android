@@ -56,26 +56,26 @@ public final class DeployableFile {
   /**
    * Whether Android Studio is running from sources or is a release build.
    */
-  @NotNull private final boolean myIsRunningFromSources;
+  @NotNull private final Supplier<Boolean> myIsRunningFromSourcesSupplier;
 
   /**
    * The home path of Android Studio for release builds.
    */
-  @NotNull private final String myHomePath;
+  @NotNull private final Supplier<String> myHomePathSupplier;
 
   /**
    * The sources root directory for dev builds.
    */
-  @NotNull private final String mySourcesRoot;
+  @NotNull private final Supplier<String> mySourcesRootSupplier;
 
   private DeployableFile(@NotNull Builder builder) {
     myFileName = builder.myFileName;
     myReleaseDir = builder.myReleaseDir;
     myDevDir = builder.myDevDir;
     myOnDeviceAbiFileNameFormat = builder.myOnDeviceAbiFileNameFormat;
-    myIsRunningFromSources = builder.myIsRunningFromSources;
-    myHomePath = builder.myHomePath;
-    mySourcesRoot = builder.mySourcesRoot;
+    myIsRunningFromSourcesSupplier = builder.myIsRunningFromSourcesSupplier;
+    myHomePathSupplier = builder.myHomePathSupplier;
+    mySourcesRootSupplier = builder.mySourcesRootSupplier;
     myExecutable = builder.myExecutable;
   }
 
@@ -99,11 +99,11 @@ public final class DeployableFile {
 
   @NotNull
   public File getDir() {
-    if (myIsRunningFromSources) {
+    if (myIsRunningFromSourcesSupplier.get()) {
       // Development mode
-      return new File(mySourcesRoot, myDevDir);
+      return new File(mySourcesRootSupplier.get(), myDevDir);
     } else {
-      return new File(myHomePath, myReleaseDir);
+      return new File(myHomePathSupplier.get(), myReleaseDir);
     }
   }
 
@@ -114,9 +114,9 @@ public final class DeployableFile {
     @NotNull private String myDevDir = Constants.PERFA_DEV_DIR;
     @Nullable private String myOnDeviceAbiFileNameFormat;
 
-    @NotNull private boolean myIsRunningFromSources = StudioPathManager.isRunningFromSources();
-    @NotNull private String myHomePath = PathManager.getHomePath();
-    @NotNull private String mySourcesRoot = StudioPathManager.getSourcesRoot();
+    @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = StudioPathManager::isRunningFromSources;
+    @NotNull private Supplier<String> myHomePathSupplier = PathManager::getHomePath;
+    @NotNull private Supplier<String> mySourcesRootSupplier = StudioPathManager::getSourcesRoot;
 
     private boolean myExecutable = false;
 
@@ -151,21 +151,21 @@ public final class DeployableFile {
     @VisibleForTesting
     @NotNull
     public Builder setIsRunningFromSources(boolean isRunningFromSources) {
-      myIsRunningFromSources = isRunningFromSources;
+      myIsRunningFromSourcesSupplier = () -> isRunningFromSources;
       return this;
     }
 
     @VisibleForTesting
     @NotNull
     public Builder setHomePath(String homePath) {
-      myHomePath = homePath;
+      myHomePathSupplier = () -> homePath;
       return this;
     }
 
     @VisibleForTesting
     @NotNull
     public Builder setSourcesRoot(String sourcesRoot) {
-      mySourcesRoot = sourcesRoot;
+      mySourcesRootSupplier = () -> sourcesRoot;
       return this;
     }
 
