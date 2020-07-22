@@ -67,8 +67,8 @@ object ComposePreviewAnimationManager {
     if (subscribedAnimations.add(animation)) {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.addTab(animation)
-        if (animation.getType() == ComposeAnimationType.TRANSITION_ANIMATION) {
-          currentInspector?.updateTransitionStates(animation, animation.getStates())
+        if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
+          currentInspector?.updateTransitionStates(animation, animation.states)
         }
       }
     }

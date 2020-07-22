@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.jvm.isAccessible
 
 /**
  * Wraps a `PreviewAnimationClock` and adds APIs to make it easier to call the clock's functions via reflection.
@@ -28,25 +29,28 @@ internal class AnimationClock(val clock: Any) {
   /**
    * Function `getAnimatedProperties` of [clock].
    */
-  val getAnimatedPropertiesFunction: KFunction<*> = clock::class.memberFunctions.single { it.name == "getAnimatedProperties" }
+  val getAnimatedPropertiesFunction = findClockFunction("getAnimatedProperties")
 
   /**
    * Function `getMaxDuration` of [clock].
    */
-  val getMaxDurationFunction: KFunction<*> = clock::class.memberFunctions.single { it.name == "getMaxDuration" }
+  val getMaxDurationFunction = findClockFunction("getMaxDuration")
 
   /**
    * Function `setClockTime` of [clock].
    */
-  val setClockTimeFunction: KFunction<*> = clock::class.memberFunctions.single { it.name == "setClockTime" }
+  val setClockTimeFunction = findClockFunction("setClockTime")
 
   /**
    * Function `updateAnimationStates` of [clock].
    */
-  val updateAnimationStatesFunction: KFunction<*> = clock::class.memberFunctions.single { it.name == "updateAnimationStates" }
+  val updateAnimationStatesFunction = findClockFunction("updateAnimationStates")
 
   /**
    * Function `updateSeekableAnimation` of [clock].
    */
-  val updateSeekableAnimationFunction: KFunction<*> = clock::class.memberFunctions.single { it.name == "updateSeekableAnimation" }
+  val updateSeekableAnimationFunction = findClockFunction("updateSeekableAnimation")
+
+  private fun findClockFunction(functionName: String) =
+    clock::class.memberFunctions.single { it.name == functionName }.apply { isAccessible = true }
 }

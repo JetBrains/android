@@ -148,10 +148,9 @@ class ComposePreviewAnimationManagerTest {
     val animationStates = setOf("State1", "State2")
 
     val transitionAnimation = object : ComposeAnimation {
-      override fun getAnimation() = Any()
-      override fun getLabel(): String? = null
-      override fun getType() = ComposeAnimationType.TRANSITION_ANIMATION
-      override fun getStates() = animationStates
+      override val animationObject = Any()
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = animationStates
     }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(null, transitionAnimation)
@@ -227,9 +226,9 @@ class ComposePreviewAnimationManagerTest {
   }
 
   private fun createComposeAnimation(label: String? = null) = object : ComposeAnimation {
-    override fun getAnimation() = Any()
-    override fun getLabel(): String? = label
-    override fun getType() = ComposeAnimationType.ANIMATED_VALUE
+    override val animationObject = Any()
+    override val type = ComposeAnimationType.ANIMATED_VALUE
+    override val label = label
   }
 
   private fun AnimationInspectorPanel.animationsTabbedPane() =
