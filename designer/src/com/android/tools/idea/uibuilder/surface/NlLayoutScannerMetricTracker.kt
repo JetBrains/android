@@ -21,7 +21,7 @@ import com.android.tools.idea.validator.ValidatorResult
 /**
  * Metric tracker for results from accessibility testing framework
  */
-class NlLayoutValidatorMetricTracker {
+class NlLayoutScannerMetricTracker {
 
   fun trackIssueExpanded(issue: Issue?, expanded: Boolean) {
     // TODO: Once .proto file is updated, add the metrics here..

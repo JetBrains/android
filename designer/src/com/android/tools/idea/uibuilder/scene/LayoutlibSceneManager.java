@@ -67,7 +67,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDr
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.surface.LayoutValidationConfiguration;
+import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -256,7 +256,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * Based on the configuration layout validation will be turned on or off while rendering.
    */
   @NotNull
-  public final LayoutValidationConfiguration layoutValidationConfig;
+  public final LayoutScannerConfiguration layoutScannerConfig;
 
   /**
    * Creates a new LayoutlibSceneManager.
@@ -274,7 +274,7 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                                  @NotNull LayoutValidationConfiguration layoutValidationConfig) {
+                                  @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, false, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
@@ -304,7 +304,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     model.addListener(myModelChangeListener);
     myAreListenersRegistered = true;
-    this.layoutValidationConfig = layoutValidationConfig;
+    this.layoutScannerConfig = layoutScannerConfig;
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
@@ -328,7 +328,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       sceneComponentProvider,
-      LayoutValidationConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED());
   }
 
   /**
@@ -345,7 +345,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       new LayoutlibSceneManagerHierarchyProvider(),
-      LayoutValidationConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED());
   }
 
   /**
@@ -354,7 +354,7 @@ public class LayoutlibSceneManager extends SceneManager {
    *
    * @param config configuration for layout validation when rendering.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutValidationConfiguration config) {
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutScannerConfiguration config) {
     this(
       model,
       designSurface,
@@ -954,7 +954,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
-      .withLayoutValidation(layoutValidationConfig.isLayoutValidationEnabled())
+      .withLayoutScanner(layoutScannerConfig.isLayoutScannerEnabled())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {

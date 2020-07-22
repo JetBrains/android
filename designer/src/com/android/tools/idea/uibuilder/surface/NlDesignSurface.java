@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
-import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
+import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_SCANNER_KEY;
+import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
@@ -377,7 +377,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsAnimationScrubbing = false;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
-  @Nullable private LayoutValidatorControl myValidatorControl;
+  @Nullable private LayoutScannerControl myValidatorControl;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -414,8 +414,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-    if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
-      myValidatorControl = new NlLayoutValidatorControl(this);
+    if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
+      myValidatorControl = new NlLayoutScannerControl(this);
     }
 
     myDelegateDataProvider = delegateDataProvider;
@@ -426,7 +426,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutValidationEnabled());
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutScannerEnabled());
     RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
     sceneManager.setShowDecorations(settings.getShowDecorations());
     sceneManager.setUseImagePool(settings.getUseLiveRendering());
@@ -764,9 +764,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && myValidatorControl != null) {
+        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myValidatorControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            myValidatorControl.getValidator().validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+            myValidatorControl.getScanner().validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
           }
         }
 
@@ -968,7 +968,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
       return this;
     }
-    else if(LAYOUT_VALIDATOR_KEY.is(dataId)) {
+    else if(LAYOUT_SCANNER_KEY.is(dataId)) {
       return myValidatorControl;
     }
 

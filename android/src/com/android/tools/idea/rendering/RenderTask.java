@@ -96,7 +96,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
@@ -164,7 +163,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
-  private boolean myEnableLayoutValidator = false;
+  private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
@@ -527,8 +526,8 @@ public class RenderTask {
    * which enables layout validation during the render process. The validation includes accessibility checks (whether the layout properly
    * support accessibilty cases), and various other layout sanity checks.
    */
-  public RenderTask setEnableLayoutValidator(boolean enableLayoutValidator) {
-    myEnableLayoutValidator = enableLayoutValidator;
+  public RenderTask setEnableLayoutScanner(boolean enableLayoutScanner) {
+    myEnableLayoutScanner = enableLayoutScanner;
     return this;
   }
 
@@ -616,8 +615,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_VALIDATOR, myEnableLayoutValidator);
-    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_VALIDATOR_IMAGE_CHECK, myEnableLayoutValidator);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_SCANNER, myEnableLayoutScanner);
+    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request

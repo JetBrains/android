@@ -142,10 +142,10 @@
     <!-- TODO: add shortcuts and group for nav editor, multi-preview, custom view, compose, and split editor -->
 
 
-    <action id="Android.Designer.LayoutValidatorAction"
+    <action id="Android.Designer.LayoutScannerAction"
             text="Run accessibility scanner"
             icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
-            class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
+            class="com.android.tools.idea.uibuilder.surface.LayoutScannerAction">
     </action>
   </actions>
 
