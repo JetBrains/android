@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
+import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
@@ -183,8 +184,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     val token = emulatorId.grpcToken
     if (token == null) {
-      emulatorController = EmulatorControllerGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
-      snapshotService = SnapshotServiceGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
+      emulatorController = EmulatorControllerGrpc.newStub(channel)
+      snapshotService = SnapshotServiceGrpc.newStub(channel)
     }
     else {
       val credentials = TokenCallCredentials(token)
@@ -308,6 +309,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         call.cancel("Canceled by consumer", null)
       }
     }
+  }
+
+  /**
+   * Retrieves the status of the emulator.
+   */
+  fun getStatus(streamObserver: StreamObserver<EmulatorStatus>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getStatus()")
+    }
+    emulatorController.getStatus(Empty.getDefaultInstance(),
+                                 DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetStatusMethod()))
   }
 
   /**

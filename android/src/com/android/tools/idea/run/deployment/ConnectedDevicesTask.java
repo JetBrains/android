@@ -109,7 +109,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
     AndroidDevice androidDevice = myAndroidDeviceFactory.apply(ddmlibDevice);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
-      .setName(ddmlibDevice.isEmulator() ? "Virtual Device" : "Physical Device")
+      .setName(composeDeviceName(ddmlibDevice))
       .setKey(newKey(ddmlibDevice, id))
       .setAndroidDevice(androidDevice);
 
@@ -126,17 +126,29 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   }
 
   @NotNull
-  private Key newKey(@NotNull IDevice connectedDevice, @NotNull String id) {
-    if (!connectedDevice.isEmulator()) {
-      return new Key(connectedDevice.getSerialNumber());
+  private static String composeDeviceName(@NotNull IDevice ddmlibDevice) {
+    if (ddmlibDevice.isEmulator()) {
+      String avdName = ddmlibDevice.getAvdName();
+      // The AVD name "<build>" is produced in case of a custom system image.
+      if (avdName != null && !avdName.equals("<build>")) {
+        return avdName;
+      }
+    }
+    return ddmlibDevice.getSerialNumber();
+  }
+
+  @NotNull
+  private Key newKey(@NotNull IDevice ddmlibDevice, @NotNull String id) {
+    if (!ddmlibDevice.isEmulator()) {
+      return new Key(ddmlibDevice.getSerialNumber());
     }
 
-    String virtualDeviceName = connectedDevice.getAvdName();
+    String virtualDeviceName = ddmlibDevice.getAvdName();
 
     if (virtualDeviceName == null || virtualDeviceName.equals("<build>")) {
       // Either the virtual device name is null or the developer built their own system image. Neither names will work as virtual device
       // keys. Fall back to the serial number.
-      return new Key(connectedDevice.getSerialNumber());
+      return new Key(ddmlibDevice.getSerialNumber());
     }
 
     return new Key(mySelectDeviceSnapshotComboBoxSnapshotsEnabled ? id : virtualDeviceName);

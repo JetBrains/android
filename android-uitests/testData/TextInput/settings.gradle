@@ -13,22 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
-
-import java.nio.file.Path
-
-/**
- * Identifying information for a running Emulator.
- */
-data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcToken: String?,
-                      val avdId: String, val avdName: String, val avdFolder: Path,
-                      val serialPort: Int, val adbPort: Int, val commandLine: List<String>,
-                      val registrationFileName: String) {
-
-  override fun toString(): String {
-    return "$avdId @ $grpcPort"
-  }
-
-  val isEmbedded: Boolean
-    get() = commandLine.contains("-idle-grpc-timeout")
-}
+include ':app'
