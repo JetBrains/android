@@ -39,6 +39,7 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.CLASS_PREFERENCE
 import com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.SdkConstants.FD_RES_VALUES
@@ -388,7 +389,6 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     true
   }
 }
-
 /**
  * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
  * in case of common packages, which is handled by various inflaters in Android framework. This method checks
@@ -397,10 +397,21 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
  *
  * Accesses JavaPsiFacade, and thus should be run inside read action.
  *
+ * @param parentClassQualifiedName Optional. Optimisation that can be used if you already know what the baseclass inherits from. If matching
+ *                                 qualified name is found, then inheritance check is avoided.
+ *
  * @see .isViewPackageNeeded
  */
-fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int): Boolean {
+fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int, parentClassQualifiedName: String?): Boolean {
   return when {
+    parentClassQualifiedName == CLASS_VIEW -> isViewPackageNeeded(qualifiedName, apiLevel)
+    parentClassQualifiedName == CLASS_VIEWGROUP -> isViewPackageNeeded(qualifiedName, apiLevel)
+    parentClassQualifiedName == CLASS_PREFERENCE -> !isDirectlyInPackage(qualifiedName, "android.preference")
+    parentClassQualifiedName == CLASS_PREFERENCE_ANDROIDX.newName() ->
+      !isDirectlyInPackage(qualifiedName, "androidx.preference")
+    parentClassQualifiedName == CLASS_PREFERENCE_ANDROIDX.oldName() ->
+      !isDirectlyInPackage(qualifiedName, "android.support.v7.preference") &&
+      !isDirectlyInPackage(qualifiedName, "android.support.v14.preference")
     InheritanceUtil.isInheritor(baseClass, CLASS_VIEW) -> isViewPackageNeeded(qualifiedName, apiLevel)
     InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE) -> !isDirectlyInPackage(qualifiedName, "android.preference")
     InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.newName()) ->
