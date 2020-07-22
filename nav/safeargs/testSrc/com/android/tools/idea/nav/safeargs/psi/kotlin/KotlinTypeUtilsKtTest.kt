@@ -185,18 +185,6 @@ class KotlinTypeUtilsKtTest {
     assertThat(elementType.presentableName).isEqualTo("test.safeargs.MyCustomType")
   }
 
-  @Test
-  fun checkCustomTypeWithFallback() {
-    val type = builtIn.getKotlinType(
-      typeStr = "test.safeargs.MyCustomType",
-      defaultValue = null,
-      moduleDescriptor = moduleDescriptor,
-      fallbackType = builtIn.stringType
-    )
-
-    assertThat(type).isEqualTo(builtIn.stringType)
-  }
-
   /**
    *  Inferred types check
    */
@@ -252,6 +240,17 @@ class KotlinTypeUtilsKtTest {
   }
 
   @Test
+  fun checkInferredNullString() {
+    val type = builtIn.getKotlinType(
+      typeStr = null,
+      defaultValue = "@null",
+      moduleDescriptor = moduleDescriptor
+    )
+
+    assertThat(type).isEqualTo(builtIn.stringType)
+  }
+
+  @Test
   fun checkInferredResourceReference() {
     val type = builtIn.getKotlinType(
       typeStr = null,
@@ -259,18 +258,6 @@ class KotlinTypeUtilsKtTest {
       moduleDescriptor = moduleDescriptor
     )
     assertThat(type).isEqualTo(builtIn.intType)
-  }
-
-  @Test
-  fun checkInferredCustomType() {
-    val type = builtIn.getKotlinType(
-      typeStr = null,
-      defaultValue = "someCustomType",
-      moduleDescriptor = moduleDescriptor,
-      fallbackType = builtIn.stringType
-    )
-
-    assertThat(type).isEqualTo(builtIn.stringType)
   }
 
   /**
