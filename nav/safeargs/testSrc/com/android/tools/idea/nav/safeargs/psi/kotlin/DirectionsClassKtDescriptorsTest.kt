@@ -369,4 +369,67 @@ class DirectionsClassKtDescriptorsTest {
       assertThat(directionsClass.functions).isEmpty()
     }
   }
+
+  @Test
+  fun checkNoDestinationDefinedCase() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+            <argument
+                android:name="arg1"
+                app:argType="string" />
+          </fragment>
+          <fragment
+              android:id="@+id/fragment2"
+              android:name="test.safeargs.Fragment2"
+              android:label="Fragment2" >
+            <action
+                android:id="@+id/action_Fragment2_to_Fragment1"
+                app:popUpTo="@id/fragment1" />
+          </fragment>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
+      it is SafeArgsKtPackageProviderExtension
+    }
+
+    val traceMock: BindingTrace = MockitoKt.mock()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleDescriptor = safeArgsRule.module.toDescriptor()
+
+    val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
+      project = safeArgsRule.project,
+      module = moduleDescriptor!!,
+      storageManager = LockBasedStorageManager.NO_LOCKS,
+      trace = traceMock,
+      moduleInfo = moduleSourceInfo,
+      lookupTracker = LookupTracker.DO_NOTHING
+    ) as SafeArgsSyntheticPackageProvider
+
+    val directionsClassMetadata = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+      .flatMap { it.getMemberScope().classesInScope { name -> name.endsWith("Directions") } }
+      .first()
+
+    assertThat(directionsClassMetadata.constructors.map { it.toString() }).containsExactly(
+      "Fragment2Directions()"
+    )
+    assertThat(directionsClassMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
+      "actionFragment2ToFragment1(): androidx.navigation.NavDirections"
+    )
+    assertThat(directionsClassMetadata.functions).isEmpty()
+  }
 }

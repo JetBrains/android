@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
@@ -114,9 +115,14 @@ class LightDirectionsKtClass(
 
   private fun computeCompanionObject(): ClassDescriptor {
     val directionsClassDescriptor = this@LightDirectionsKtClass
-    return object : ClassDescriptorImpl(directionsClassDescriptor, Name.identifier("Companion"), Modality.FINAL,
-                                        ClassKind.OBJECT, emptyList(), directionsClassDescriptor.source, false, storageManager) {
-
+    return object : ClassDescriptorImpl(
+      directionsClassDescriptor,
+      Name.identifier("Companion"),
+      Modality.FINAL,
+      ClassKind.OBJECT,
+      emptyList(),
+      directionsClassDescriptor.source, false, storageManager
+    ) {
       private val companionScope = storageManager.createLazyValue { CompanionObjectScope() }
       private val companionObject = this
       override fun isCompanionObject() = true
@@ -129,24 +135,12 @@ class LightDirectionsKtClass(
           // action methods
           val navDirectionType = directionsClassDescriptor.builtIns.getKotlinType("androidx.navigation.NavDirections", null,
                                                                                   directionsClassDescriptor.module)
-
-          destination.actions
+          destination.resolveActions()
             .asSequence()
             .mapNotNull { action ->
-              val destinationId = action.resolveDestination() ?: return@mapNotNull null
-              val argsFromTargetDestination = navResourceData.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
-                                              ?: emptyList()
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
                 var index = 0
-
-                // To support a destination argument being overridden in an action
-                (action.arguments + argsFromTargetDestination)
-                  .groupBy { it.name }
-                  .map { entry ->
-                    // Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
-                    if (entry.value.size > 1) checkArguments(entry)
-                    entry.value.first()
-                  }
+                action.arguments
                   .asSequence()
                   .map { arg ->
                     val pName = Name.identifier(arg.name)
@@ -159,9 +153,10 @@ class LightDirectionsKtClass(
                   }
                   .toList()
               }
+
               val methodName = action.id.toCamelCase()
-              val xmlTag = directionsClassDescriptor.source.getPsi() as? XmlTag
-              val resolvedSourceElement = xmlTag?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
+              val resolvedSourceElement = (directionsClassDescriptor.source.getPsi() as? XmlTag)
+                                            ?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
                                             ?.let {
                                               XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
                                             }
@@ -178,11 +173,46 @@ class LightDirectionsKtClass(
             .toList()
         }
 
+        /**
+         * For each of action, besides args from target destination, args from its surrounding action are collected to
+         * support args overrides.
+         * (https://developer.android.com/guide/navigation/navigation-pass-data#override_a_destination_argument_in_an_action)
+         */
+        private fun NavDestinationData.resolveActions(): List<NavActionData> {
+          return this.actions
+            .asSequence()
+            .mapNotNull { action ->
+              val destinationId = action.resolveDestination() ?: return@mapNotNull null
+
+              // Null implies only 'popUpTo' attribute is defined, so no args are supposed to be passed.
+              action.destination ?: return@mapNotNull object : NavActionData by action {
+                override val arguments: List<NavArgumentData> = emptyList()
+              }
+
+              val argsFromTargetDestination = navResourceData.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
+                                              ?: emptyList()
+
+              val resolvedArguments = (action.arguments + argsFromTargetDestination)
+                .groupBy { it.name }
+                .map { entry ->
+                  if (entry.value.size > 1) checkArguments(entry)
+                  entry.value.first()
+                }
+              object : NavActionData by action {
+                override val arguments: List<NavArgumentData> = resolvedArguments
+              }
+            }
+            .toList()
+        }
+
+        /**
+         * Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
+         */
         private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>) {
+          val modulePackageName = directionsClassDescriptor.module.fqNameSafe.toString()
           val types = entry.value
             .asSequence()
             .map { arg ->
-              val modulePackageName = directionsClassDescriptor.module.fqNameSafe.toString()
               getPsiTypeStr(modulePackageName, arg.type, arg.defaultValue)
             }
             .toSet()
@@ -190,8 +220,10 @@ class LightDirectionsKtClass(
           if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}.")
         }
 
-        override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
-                                               nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
+        override fun getContributedDescriptors(
+          kindFilter: DescriptorKindFilter,
+          nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> {
           return companionMethods().filter { kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name) }
         }
 
