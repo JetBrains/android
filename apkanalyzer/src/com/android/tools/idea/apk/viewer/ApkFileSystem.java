@@ -22,7 +22,6 @@ import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileAttributes;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.DiskQueryRelay;
@@ -63,21 +62,6 @@ public class ApkFileSystem extends ArchiveFileSystem {
 
   public static ApkFileSystem getInstance() {
     return (ApkFileSystem)VirtualFileManager.getInstance().getFileSystem(PROTOCOL);
-  }
-
-  private final DiskQueryRelay<VirtualFile, FileAttributes> myAttrGetter = new DiskQueryRelay<>(super::getAttributes);
-
-  @Nullable
-  @Override
-  public FileAttributes getAttributes(@NotNull VirtualFile file) {
-    return myAttrGetter.accessDiskWithCheckCanceled(file);
-  }
-
-  private final DiskQueryRelay<VirtualFile, String[]> myChildrenGetter = new DiskQueryRelay<>(super::list);
-
-  @Override
-  public @NotNull String[] list(@NotNull VirtualFile file) {
-    return myChildrenGetter.accessDiskWithCheckCanceled(file);
   }
 
   @NotNull
