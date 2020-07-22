@@ -20,17 +20,16 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toTransportImpl
-import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.concurrency.getDoneOrNull
+import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ExecutorService
 
 /**
  * A class that exclusively attaches, tracks, and disposes of [AppInspectionTarget].
@@ -38,11 +37,13 @@ import java.util.concurrent.ExecutorService
 @AnyThread
 internal class AppInspectionTargetManager internal constructor(
   private val transportClient: TransportClient,
-  private val scope: CoroutineScope,
-  private val executorService: ExecutorService
+  parentScope: CoroutineScope,
+  private val workerDispatcher: CoroutineDispatcher
 ) : ProcessListener {
+  private val scope = parentScope.createChildScope(true)
+
   @VisibleForTesting
-  internal class TargetInfo(val targetFuture: ListenableFuture<AppInspectionTarget>, val projectName: String)
+  internal class TargetInfo(val targetDeferred: Deferred<AppInspectionTarget>, val projectName: String)
 
   @VisibleForTesting
   internal val targets = ConcurrentHashMap<ProcessDescriptor, TargetInfo>()
@@ -51,25 +52,28 @@ internal class AppInspectionTargetManager internal constructor(
    * Attempts to connect to a process on device specified by [processDescriptor]. Returns a future of [AppInspectionTarget] which can be
    * used to launch inspector connections.
    */
-  internal fun attachToProcess(
+  internal suspend fun attachToProcess(
     processDescriptor: ProcessDescriptor,
     jarCopier: AppInspectionJarCopier,
     streamChannel: TransportStreamChannel,
     projectName: String
-  ): ListenableFuture<AppInspectionTarget> {
-    return targets.computeIfAbsent(processDescriptor) {
+  ): AppInspectionTarget {
+    val targetInfo = targets.computeIfAbsent(processDescriptor) {
       val processDescriptor = processDescriptor.toTransportImpl()
-      val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executorService,
-                                             streamChannel)
-      val targetFuture = attachAppInspectionTarget(transport, jarCopier, scope)
-      TargetInfo(targetFuture, projectName)
-    }.targetFuture.also {
-      it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectionTarget> {
-        override fun onSuccess(result: AppInspectionTarget?) {}
-        override fun onFailure(t: Throwable) {
-          targets.remove(processDescriptor)
-        }
-      })
+      val targetDeferred = scope.async {
+        val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, workerDispatcher,
+                                               streamChannel)
+        attachAppInspectionTarget(transport, jarCopier, scope)
+      }
+      TargetInfo(targetDeferred, projectName)
+    }
+    try {
+      return targetInfo.targetDeferred.await()
+    }
+    catch (e: Throwable) {
+      // On any exception, including cancellation, remove the target from the hashmap |targets|.
+      targets.remove(processDescriptor)
+      throw e
     }
   }
 
@@ -78,17 +82,18 @@ internal class AppInspectionTargetManager internal constructor(
 
   override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
     // There is no need to explicitly dispose clients here because they are handled by AppInspectorConnection.
-    targets.remove(descriptor)
+    targets.remove(descriptor)?.targetDeferred?.cancel()
   }
 
   // Remove all current clients that belong to the provided project.
   // We dispose targets that were done and attempt to cancel those that are not.
-  internal fun disposeClients(project: String) {
+  internal suspend fun disposeClients(project: String) {
     targets.filterValues { targetInfo ->
       targetInfo.projectName == project
     }.keys.forEach { process ->
-      val future = targets.remove(process)?.targetFuture ?: return@forEach
-      future.getDoneOrNull()?.dispose() ?: future.cancel(false)
+      val deferred = targets.remove(process)?.targetDeferred ?: return@forEach
+      deferred.cancel()
+      deferred.getCompletedOrNull()?.dispose()
     }
   }
 }

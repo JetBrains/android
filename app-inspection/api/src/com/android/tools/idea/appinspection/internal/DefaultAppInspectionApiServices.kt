@@ -32,7 +32,7 @@ internal class DefaultAppInspectionApiServices internal constructor(
   override val scope: CoroutineScope
 ) : AppInspectionApiServices {
 
-  override fun disposeClients(project: String) {
+  override suspend fun disposeClients(project: String) {
     targetManager.disposeClients(project)
   }
 }

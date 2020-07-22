@@ -32,10 +32,13 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
@@ -125,6 +128,14 @@ class AppInspectorConnectionTest {
 
     connection.messenger.disposeInspector()
 
+    suspendCoroutine<Unit> { cont ->
+      connection.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+        override fun onDispose() {
+          cont.resume(Unit)
+        }
+      }, MoreExecutors.directExecutor())
+    }
+
     // connection should be closed
     try {
       connection.messenger.sendRawCommand("Test".toByteArray())
@@ -152,41 +163,11 @@ class AppInspectorConnectionTest {
 
     // connection should be closed
     try {
-      client.messenger.disposeInspector()
+      client.messenger.sendRawCommand(ByteArray(0))
       fail()
     }
     catch (e: AppInspectionConnectionException) {
       assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
-    }
-  }
-
-  @Test
-  fun disposeUsingClosedConnectionThrowsException() = runBlocking<Unit> {
-    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
-
-    appInspectionRule.addEvent(
-      Event.newBuilder()
-        .setKind(PROCESS)
-        .setIsEnded(true)
-        .setTimestamp(timer.currentTimeNs)
-        .build()
-    )
-
-    suspendCoroutine<Unit> { cont ->
-      client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          cont.resume(Unit)
-        }
-      }, appInspectionRule.executorService)
-    }
-
-    // connection should be closed
-    try {
-      client.messenger.disposeInspector()
-      fail()
-    }
-    catch (e: AppInspectionConnectionException) {
-      assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
     }
   }
 
@@ -221,28 +202,20 @@ class AppInspectorConnectionTest {
 
   @Test
   fun crashSetsAllOutstandingFutures() = runBlocking<Unit> {
+    val readyDeferred = CompletableDeferred<Unit>()
     val client = appInspectionRule.launchInspectorConnection(
       inspectorId = INSPECTOR_ID,
       commandHandler = object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
-          // do nothing
+          readyDeferred.complete(Unit)
         }
       }
     )
 
     supervisorScope {
-      val disposeDeferred = async { client.messenger.disposeInspector() }
       val commandDeferred = async { client.messenger.sendRawCommand("Blah".toByteArray()) }
 
       val checkResults = async {
-        try {
-          disposeDeferred.await()
-          fail()
-        }
-        catch (e: AppInspectionConnectionException) {
-          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
-        }
-
         try {
           commandDeferred.await()
           fail()
@@ -254,6 +227,8 @@ class AppInspectorConnectionTest {
           println(e)
         }
       }
+
+      readyDeferred.await()
 
       appInspectionRule.addAppInspectionEvent(
         AppInspectionEvent.newBuilder()
@@ -361,5 +336,40 @@ class AppInspectorConnectionTest {
     cancelReadyDeferred.await()
     sendJob.cancel()
     cancelCompletedDeferred.await()
+  }
+
+  @Test
+  fun scopeCancellation() = runBlocking<Unit> {
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    lateinit var job: Job
+    suspendCoroutine<Unit> { cont ->
+      // create some pending commands
+      transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+        override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+          cont.resume(Unit)
+        }
+      })
+      job = launch {
+        try {
+          client.messenger.sendRawCommand(byteArrayOf(0x12, 0x15))
+          fail()
+        }
+        catch (e: AppInspectionConnectionException) {
+          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
+        }
+      }
+    }
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+    appInspectionRule.scope.cancel()
+
+    suspendCoroutine<Unit> { cont ->
+      client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+        override fun onDispose() {
+          cont.resume(Unit)
+        }
+      }, MoreExecutors.directExecutor())
+    }
   }
 }

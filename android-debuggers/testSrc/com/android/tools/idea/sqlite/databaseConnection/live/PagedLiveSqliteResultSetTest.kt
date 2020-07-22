@@ -41,7 +41,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
   class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorClient.CommandMessenger {
-    override suspend fun disposeInspector() = Unit
+    override fun disposeInspector() = Unit
 
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       val parsed = SqliteInspectorProtocol.Command.parseFrom(rawData)

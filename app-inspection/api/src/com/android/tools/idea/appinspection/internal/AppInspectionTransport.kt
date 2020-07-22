@@ -24,8 +24,14 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
-import java.util.concurrent.ExecutorService
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicInteger
+
+fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest = Transport.ExecuteRequest.newBuilder().setCommand(this).build()
+
 
 /**
  * Small helper class to work with the one exact process and app-inspection events & commands.
@@ -34,8 +40,7 @@ class AppInspectionTransport(
   val client: TransportClient,
   val stream: Common.Stream,
   val process: Common.Process,
-  // TODO(b/144771043): remove executor service when fully migrated to kotlin coroutines.
-  val executorService: ExecutorService,
+  val dispatcher: CoroutineDispatcher,
   private val streamChannel: TransportStreamChannel
 ) {
 
@@ -71,7 +76,7 @@ class AppInspectionTransport(
     callback: (Common.Event) -> Unit
   ) = TransportStreamEventListener(
     eventKind = eventKind,
-    executor = executorService,
+    executor = dispatcher.asExecutor(),
     startTime = startTimeNs,
     filter = filter,
     processId = process::getPid,
@@ -90,13 +95,55 @@ class AppInspectionTransport(
     streamChannel.unregisterStreamEventListener(streamEventListener)
   }
 
-  fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) {
+  private fun AppInspection.AppInspectionCommand.toCommand() = Commands.Command.newBuilder()
+    .setType(Commands.Command.CommandType.APP_INSPECTION)
+    .setStreamId(stream.streamId)
+    .setPid(process.pid)
+    .setAppInspectionCommand(this).build()
+
+  /**
+   * Identical in functionality to [executeCommand] below except it takes an AppInspection [command].
+   */
+  suspend fun executeCommand(command: AppInspection.AppInspectionCommand,
+                             streamEventListener: TransportStreamEventListener): Common.Event {
+    return executeCommand(command.toCommand().toExecuteRequest(), streamEventListener)
+  }
+
+  /**
+   * Executes the provided AppInspection [command] and await for a response that satisfies the [streamEventListener].
+   * */
+  suspend fun executeCommand(request: Transport.ExecuteRequest,
+    // TODO(b/162433786): pass in only the filter.
+                             streamEventListener: TransportStreamEventListener): Common.Event = withContext(dispatcher) {
+    val deferred = CompletableDeferred<Common.Event>()
+    // TODO(b/162433786): as a temporary measure, copy the event listener but override the callback with our own.
+    val eventListener = streamEventListener.copy { event ->
+      try {
+        deferred.complete(event)
+      }
+      catch (t: Throwable) {
+        deferred.completeExceptionally(t)
+      }
+    }
+    registerEventListener(eventListener)
+    client.transportStub.execute(request)
+    try {
+      deferred.await()
+    }
+    finally {
+      unregisterEventListener(streamEventListener)
+    }
+  }
+
+  /**
+   * Sends a command via the transport pipeline to device. Suspends for a little bit while command executes.
+   */
+  suspend fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) = withContext(dispatcher) {
     val command = Commands.Command.newBuilder()
       .setType(Commands.Command.CommandType.APP_INSPECTION)
       .setStreamId(stream.streamId)
       .setPid(process.pid)
       .setAppInspectionCommand(appInspectionCommand).build()
-
-    executorService.submit { client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
+    client.transportStub.execute(command.toExecuteRequest())
   }
 }
