@@ -18,8 +18,6 @@ package com.android.tools.idea.templates
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.SdkConstants.FD_TEST
 import com.android.SdkConstants.FD_UNIT_TEST
-import com.android.sdklib.AndroidTargetHash
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
@@ -27,6 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
@@ -51,8 +50,6 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.sdk.AndroidPlatform
 import java.io.File
 
 /**
@@ -239,20 +236,11 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   )
 }
 
-/**
- * Computes a suitable build api string, e.g. for API level 18 the build API string is "18".
- */
-fun AndroidVersion.toApiString(): String =
-  if (isPreview) AndroidTargetHash.getPlatformHashString(this) else apiString
-
-// Note: New projects are always created with androidx dependencies
-fun Project?.hasAndroidxSupport(isNewProject: Boolean) = this == null || isNewProject || this.isAndroidx()
-
-fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuilder {
-  val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
-    androidXSupport = true
+fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuilder {
+  val project = module.project
+  val projectStateBuilder = ProjectTemplateDataBuilder(false).apply {
     setProjectDefaults(project)
-    language = Language.Java
+    language = if (module.hasKotlinFacet()) Language.Kotlin else Language.Java
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = KeystoreUtils.getSha1DebugKeystoreSilently(null)
     applicationPackage = ""
