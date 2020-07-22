@@ -77,7 +77,7 @@ public final class ConnectedDevicesTaskTest {
 
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()
-      .setName("Virtual Device")
+      .setName("emulator-5554")
       .setKey(new Key("emulator-5554"))
       .setAndroidDevice(androidDevice)
       .build();

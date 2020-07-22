@@ -131,6 +131,10 @@ class EmulatorView(
   @VisibleForTesting
   var frameNumber = 0
     private set
+  /** Time of the last frame update in milliseconds since epoch. */
+  @VisibleForTesting
+  var frameTimestampMillis = 0L
+    private set
 
   init {
     Disposer.register(parentDisposable, this)
@@ -763,6 +767,7 @@ class EmulatorView(
       }
 
       frameNumber++
+      frameTimestampMillis = System.currentTimeMillis()
       repaint()
     }
   }

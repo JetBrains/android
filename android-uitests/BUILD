@@ -99,7 +99,9 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/.idea/libraries:jna[test]",
+        "//tools/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea:intellij.idea.community.main[module, test]",
@@ -376,6 +378,19 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "EmbeddedEmulatorTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/android-emulator:emulator",
+        "@system_image_latest_default_x86_64//:images",
+    ] + glob(["testData/TextInput/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.end2end.EmbeddedEmulatorTest"],
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # sanity test
 java_test(
     name = "CompileWithJava8Test",
@@ -393,7 +408,6 @@ java_test(
 # sanity test
 java_test(
     name = "CreateDefaultActivityTest",
-    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([

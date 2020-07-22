@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+apply plugin: 'com.android.application'
 
-import java.nio.file.Path
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.example"
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+    }
+}
 
-/**
- * Identifying information for a running Emulator.
- */
-data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcToken: String?,
-                      val avdId: String, val avdName: String, val avdFolder: Path,
-                      val serialPort: Int, val adbPort: Int, val commandLine: List<String>,
-                      val registrationFileName: String) {
-
-  override fun toString(): String {
-    return "$avdId @ $grpcPort"
-  }
-
-  val isEmbedded: Boolean
-    get() = commandLine.contains("-idle-grpc-timeout")
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:+'
+    implementation 'androidx.constraintlayout:constraintlayout:+'
 }
