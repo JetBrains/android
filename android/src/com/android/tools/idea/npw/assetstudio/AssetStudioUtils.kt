@@ -32,7 +32,6 @@ import com.google.common.base.CaseFormat
 import com.google.common.collect.Iterables
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.exists
 import org.jetbrains.android.facet.AndroidFacet
@@ -48,7 +47,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 private val LOG: Logger
-  get() = logger("#com.android.tools.idea.npw.assetstudio.AssetStudioUtils")
+  get() = Logger.getInstance("#com.android.tools.idea.npw.assetstudio.AssetStudioUtils")
 
 /**
  * Scales the given rectangle by the given scale factor.
