@@ -87,7 +87,7 @@ class LightDirectionsClass(private val facet: AndroidFacet,
   private val actionClasses by lazy { computeInnerClasses() }
   private val _methods by lazy { computeMethods() }
   private val _navigationElement by lazy { backingResourceFile?.findXmlTagById(destination.id) }
-  private val _actions by lazy { computeActionsWithResolvedArguments() }
+  private val _actions by lazy { destination.resolveActions() }
 
   override fun getMethods() = _methods
   override fun getAllMethods() = methods
@@ -133,7 +133,6 @@ class LightDirectionsClass(private val facet: AndroidFacet,
   private fun computeInnerClasses(): Array<PsiClass> {
     return _actions
       .mapNotNull { action ->
-        action.destination ?: return@mapNotNull null // This implies only 'popUpTo' attribute is defined
         action.arguments.takeUnless { it.isEmpty() } ?: return@mapNotNull null
 
         val innerClassName = action.id.toUpperCamelCase()
@@ -142,17 +141,27 @@ class LightDirectionsClass(private val facet: AndroidFacet,
       .toTypedArray()
   }
 
-  private fun computeActionsWithResolvedArguments(): List<NavActionData> {
-    return destination.actions
+  /**
+   * For each of action, besides args from target destination, args from its surrounding action are collected to
+   * support args overrides.
+   * (https://developer.android.com/guide/navigation/navigation-pass-data#override_a_destination_argument_in_an_action)
+   */
+  private fun NavDestinationData.resolveActions(): List<NavActionData> {
+    return this.actions
       .mapNotNull { action ->
         val destinationId = action.resolveDestination() ?: return@mapNotNull null
+
+        // Null implies only 'popUpTo' attribute is defined, so no args are supposed to be passed.
+        action.destination ?: return@mapNotNull object : NavActionData by action {
+          override val arguments: List<NavArgumentData> = emptyList()
+        }
+
         val argsFromTargetDestination = data.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
                                         ?: emptyList()
-        // To support a destination argument being overridden in an action
+
         val resolvedArguments = (action.arguments + argsFromTargetDestination)
           .groupBy { it.name }
           .map { entry ->
-            // Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
             if (entry.value.size > 1) checkArguments(entry)
             entry.value.first()
           }
@@ -163,6 +172,9 @@ class LightDirectionsClass(private val facet: AndroidFacet,
       .toList()
   }
 
+  /**
+   * Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
+   */
   private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>) {
     val types = entry.value
       .asSequence()
