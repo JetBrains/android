@@ -41,7 +41,7 @@ public class AndroidClassTagNameReference extends TagNameReference {
 
     AndroidFacet facet = AndroidFacet.getInstance(element);
     int minimumApi = facet == null ? -1 : AndroidModuleInfo.getInstance(facet).getModuleMinApi();
-    String tagName = ArrayUtil.getFirstElement(getTagNamesByClass((PsiClass)element, minimumApi));
+    String tagName = ArrayUtil.getFirstElement(getTagNamesByClass((PsiClass)element, minimumApi, null));
 
     return tagElement.setName(tagName != null ? tagName : "");
   }
