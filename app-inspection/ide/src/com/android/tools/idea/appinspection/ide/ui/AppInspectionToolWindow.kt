@@ -18,6 +18,8 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
@@ -30,15 +32,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 
-class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {companion object {
-  fun show(project: Project, callback: Runnable? = null) =
-    ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
-}
+class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
+  companion object {
+    fun show(project: Project, callback: Runnable? = null) =
+      ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
+  }
+
   /**
    * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
    */
@@ -55,7 +59,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
                                   content: String,
                                   severity: AppInspectionIdeServices.Severity,
                                   hyperlinkClicked: () -> Unit) {
-      val type = when(severity) {
+      val type = when (severity) {
         AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
         AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
       }
@@ -69,10 +73,15 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     }
   }
 
+  // Coroutine scope tied to the lifecycle of this tool window. It will be cancelled when the tool window is disposed.
+  private val scope = AndroidCoroutineScope(this)
+
   private val appInspectionView = AppInspectionView(
     project,
     AppInspectionDiscoveryService.instance.apiServices,
     ideServices,
+    scope,
+    AndroidDispatchers.uiThread,
     ::getPreferredProcesses
   )
   val component: JComponent = appInspectionView.component
@@ -88,7 +97,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         if (visibilityChanged) {
           if (inspectionToolWindow.isVisible) {
             AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowOpened()
-          } else {
+          }
+          else {
             AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowHidden()
           }
         }

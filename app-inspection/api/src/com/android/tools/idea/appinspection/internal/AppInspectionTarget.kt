@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.google.common.util.concurrent.ListenableFuture
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
@@ -35,14 +34,14 @@ internal interface AppInspectionTarget {
    * @param [creator] a factory lambda to instantiate a [AppInspectorClient] once inspector is successfully created on the device side.
    */
   @WorkerThread
-  fun launchInspector(
+  suspend fun launchInspector(
     params: AppInspectorLauncher.LaunchParameters,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
-  ): ListenableFuture<AppInspectorClient>
+  ): AppInspectorClient
 
   /**
    * Disposes all of the clients that were launched on this target.
    */
   @WorkerThread
-  fun dispose()
+  suspend fun dispose()
 }

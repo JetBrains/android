@@ -23,12 +23,8 @@ import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.concurrency.getDoneOrNull
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
@@ -36,56 +32,43 @@ import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGEN
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
-import com.android.tools.profiler.proto.Transport.ExecuteRequest
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.AsyncCallable
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
  * to receive app-inspection-specific commands.
  */
-internal fun attachAppInspectionTarget(
+internal suspend fun attachAppInspectionTarget(
   transport: AppInspectionTransport,
   jarCopier: AppInspectionJarCopier,
-  scope: CoroutineScope
-): ListenableFuture<AppInspectionTarget> {
-  return Futures.submitAsync(
-    AsyncCallable {
-      val connectionFuture = SettableFuture.create<AppInspectionTarget>()
-      // The device daemon takes care of the case if and when the agent is previously attached already.
-      val attachCommand = Command.newBuilder()
-        .setStreamId(transport.stream.streamId)
-        .setPid(transport.process.pid)
-        .setType(ATTACH_AGENT)
-        .setAttachAgent(
-          Commands.AttachAgent.newBuilder()
-            .setAgentLibFileName("libjvmtiagent_${transport.process.abiCpuArch}.so")
-            .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
-        )
-        .build()
+  parentScope: CoroutineScope
+): AppInspectionTarget {
+  // The device daemon takes care of the case if and when the agent is previously attached already.
+  val attachCommand = Command.newBuilder()
+    .setStreamId(transport.stream.streamId)
+    .setPid(transport.process.pid)
+    .setType(ATTACH_AGENT)
+    .setAttachAgent(
+      Commands.AttachAgent.newBuilder()
+        .setAgentLibFileName("libjvmtiagent_${transport.process.abiCpuArch}.so")
+        .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+    )
+    .build()
 
-      transport.registerEventListener(
-        transport.createStreamEventListener(
-          eventKind = AGENT,
-          filter = { it.agentData.status == ATTACHED },
-          isTransient = true
-        ) {
-          connectionFuture.set(DefaultAppInspectionTarget(transport, jarCopier, scope))
-        })
-      transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
-      connectionFuture
-    }, transport.executorService
-  )
+  val eventListener = transport.createStreamEventListener(
+    eventKind = AGENT,
+    filter = { it.agentData.status == ATTACHED }
+  ) {}
+  transport.executeCommand(attachCommand.toExecuteRequest(), eventListener)
+  return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
 }
-
 
 @AnyThread
 internal class DefaultAppInspectionTarget(
@@ -93,93 +76,72 @@ internal class DefaultAppInspectionTarget(
   private val jarCopier: AppInspectionJarCopier,
   parentScope: CoroutineScope
 ) : AppInspectionTarget {
-  private val isDisposed = AtomicBoolean(false)
-  private val targetScope = parentScope.createChildScope(true)
+  private val scope = parentScope.createChildScope(true)
 
   @VisibleForTesting
-  internal val clients = ConcurrentHashMap<AppInspectorLauncher.LaunchParameters, ListenableFuture<AppInspectorClient>>()
+  internal val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
 
-  override fun launchInspector(
+  override suspend fun launchInspector(
     params: AppInspectorLauncher.LaunchParameters,
     creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
-  ): ListenableFuture<AppInspectorClient> {
-    if (isDisposed.get()) {
-      return Futures.immediateFailedFuture(
-        AppInspectionProcessNoLongerExistsException(
-          "Target process does not exist because it has ended."))
-    }
-    val clientFuture = clients.computeIfAbsent(params) {
-      MoreExecutors.listeningDecorator(transport.executorService)
-        .submit<String> { jarCopier.copyFileToDevice(params.inspectorJar).first() }
-        .transformAsync(transport.executorService) { fileDevicePath ->
-          val connectionFuture = SettableFuture.create<AppInspectorConnection>()
-          val createInspectorCommand = CreateInspectorCommand.newBuilder()
-            .setDexPath(fileDevicePath)
-            .setLaunchMetadata(
-              AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
-            .build()
-          val commandId = AppInspectionTransport.generateNextCommandId()
-          val appInspectionCommand = AppInspectionCommand.newBuilder()
-            .setInspectorId(params.inspectorId)
-            .setCreateInspectorCommand(createInspectorCommand)
-            .setCommandId(commandId)
-            .build()
-          transport.executeCommand(appInspectionCommand)
-          transport.registerEventListener(
-            transport.createStreamEventListener(
-              eventKind = APP_INSPECTION_RESPONSE,
-              filter = { it.appInspectionResponse.commandId == commandId },
-              isTransient = true
-            ) { event ->
-              if (event.appInspectionResponse.status == SUCCESS) {
-                connectionFuture.set(AppInspectorConnection(transport, params.inspectorId, event.timestamp, targetScope))
-              }
-              else {
-                connectionFuture.setException(
-                  AppInspectionLaunchException(
-                    "Could not launch inspector ${params.inspectorId}: ${event.appInspectionResponse.errorMessage}")
-                )
-              }
-            }
-          )
-          connectionFuture
-        }.transform(transport.executorService) { inspectorConnection ->
-          setupEventListener(creator, inspectorConnection).also { inspectorClient ->
+  ): AppInspectorClient {
+    val clientDeferred = clients.computeIfAbsent(params.inspectorId) {
+      scope.async {
+        val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
+        val createInspectorCommand = CreateInspectorCommand.newBuilder()
+          .setDexPath(fileDevicePath)
+          .setLaunchMetadata(AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
+          .build()
+        val commandId = AppInspectionTransport.generateNextCommandId()
+        val appInspectionCommand = AppInspectionCommand.newBuilder()
+          .setInspectorId(params.inspectorId)
+          .setCreateInspectorCommand(createInspectorCommand)
+          .setCommandId(commandId)
+          .build()
+        val eventListener = transport.createStreamEventListener(
+          eventKind = APP_INSPECTION_RESPONSE,
+          filter = { it.appInspectionResponse.commandId == commandId }
+        ) {}
+        val event = transport.executeCommand(appInspectionCommand, eventListener)
+        if (event.appInspectionResponse.status == SUCCESS) {
+          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope)
+          setupEventListener(creator, connection).also { inspectorClient ->
             inspectorClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
               override fun onDispose() {
-                clients.remove(params)
+                clients.remove(params.inspectorId)
               }
             }, MoreExecutors.directExecutor())
           }
         }
+        else {
+          throw AppInspectionLaunchException(
+            "Could not launch inspector ${params.inspectorId}: ${event.appInspectionResponse.errorMessage}")
+        }
+      }
     }
-    if (isDisposed.get()) {
-      clients.remove(params)?.cancel(false)
-      return Futures.immediateFailedFuture(
-        AppInspectionProcessNoLongerExistsException(
-          "Target process does not exist because it has ended."))
+    try {
+      return clientDeferred.await()
     }
-    else {
-      return clientFuture
+    catch (e: CancellationException) {
+      throw e
+    }
+    catch (t: Throwable) {
+      clients.remove(params.inspectorId)
+      throw t
     }
   }
 
   /**
    * Disposes all clients that were launched on this target.
    */
-  override fun dispose() {
-    if (isDisposed.compareAndSet(false, true)) {
-      targetScope.launch {
-        clients.values.forEach {
-          it.getDoneOrNull()?.messenger?.disposeInspector() ?: it.cancel(false)
-        }
-        clients.clear()
-      }
-    }
+  override suspend fun dispose() {
+    scope.cancel()
+    clients.clear()
   }
 }
 
-private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T, connection: AppInspectorConnection): T {
+private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T,
+                                                        connection: AppInspectorConnection): T {
   val client = creator(connection)
   connection.setupConnection(client.rawEventListener, client.serviceEventNotifier)
   return client

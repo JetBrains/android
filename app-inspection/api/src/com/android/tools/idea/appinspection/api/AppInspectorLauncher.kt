@@ -54,7 +54,7 @@ interface AppInspectorLauncher {
    * [params] contains information such as the inspector's id and dex location, as well as the targeted process's descriptor.
    * [creator] is a callback used to set up a client's [AppInspectorClient.rawEventListener].
    */
-  fun launchInspector(
+  suspend fun launchInspector(
     params: LaunchParameters, creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
-  ): ListenableFuture<AppInspectorClient>
+  ): AppInspectorClient
 }
