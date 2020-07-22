@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.ui.animation.tooling.ComposeAnimation
-import androidx.ui.animation.tooling.ComposeAnimationType
+import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
