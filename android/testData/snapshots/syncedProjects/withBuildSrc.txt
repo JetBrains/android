@@ -579,20 +579,20 @@ PROJECT             : testWithBuildSrc
             IsExported          : false
             Name                : Gradle: gradle-api-<GRADLE_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY             : Gradle: gradle-installation-beacon-<GRADLE_VERSION>
+        LIBRARY             : Gradle: gradle-installation-beacon-6.6
             LibraryLevel        : module
             IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: gradle-installation-beacon-<GRADLE_VERSION> [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
-        LIBRARY             : Gradle: groovy-all-1.3-2.5.11
+            Name                : Gradle: gradle-installation-beacon-6.6 [=]
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-6.6.jar!/
+        LIBRARY             : Gradle: groovy-all-1.3-2.5.12
             LibraryLevel        : module
             IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: groovy-all-1.3-2.5.11 [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-all-1.3-2.5.11.jar!/
+            Name                : Gradle: groovy-all-1.3-2.5.12 [=]
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-all-1.3-2.5.12.jar!/
         LIBRARY             : Gradle: kotlin-reflect-<KOTLIN_VERSION>
             LibraryLevel        : module
             IsModuleLevel       : true
