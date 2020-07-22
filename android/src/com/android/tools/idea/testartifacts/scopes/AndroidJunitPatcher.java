@@ -20,8 +20,6 @@ import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.JavaArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -104,7 +102,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    */
   private static void replaceAndroidJarWithMockableJar(@NotNull PathsList classPath,
                                                        @NotNull AndroidPlatform platform,
-                                                       @NotNull JavaArtifact artifact) {
+                                                       @NotNull IdeJavaArtifact artifact) {
     String androidJarPath = platform.getTarget().getPath(ANDROID_JAR);
     for (String entry : classPath.getPathList()) {
       if (pathsEqual(androidJarPath, entry)) {
@@ -158,7 +156,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
   private static void addFoldersToClasspath(@NotNull Module module,
-                                            @Nullable JavaArtifact testArtifact,
+                                            @Nullable IdeJavaArtifact testArtifact,
                                             @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);

@@ -26,7 +26,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
@@ -203,7 +202,7 @@ public class GradleTaskFinder {
           // Add assemble tasks for tests.
           if (testCompileType != TestCompileType.ALL) {
             if (androidModel != null) {
-              for (BaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+              for (IdeBaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
                 addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
               }
             }
@@ -230,7 +229,7 @@ public class GradleTaskFinder {
                    androidModel.getAndroidProject().getProjectType() == IdeAndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
             // Instrumented test support for Dynamic Features: Add assembleDebugAndroidTest tasks
             if (testCompileType == TestCompileType.ANDROID_TESTS) {
-              for (BaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+              for (IdeBaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
                 addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
               }
             }
@@ -240,7 +239,7 @@ public class GradleTaskFinder {
           addAfterSyncTasks(tasks, gradlePath, properties);
           if (androidModel != null) {
             addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidModel);
-            for (BaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+            for (IdeBaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
               addTaskIfSpecified(tasks, gradlePath, artifact.getCompileTaskName());
             }
           }

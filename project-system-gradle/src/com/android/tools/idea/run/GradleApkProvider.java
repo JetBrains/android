@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;

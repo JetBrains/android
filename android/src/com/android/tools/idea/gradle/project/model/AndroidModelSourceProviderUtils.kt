@@ -18,11 +18,11 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.ApiVersion
-import com.android.builder.model.BaseArtifact
 import com.android.builder.model.BuildTypeContainer
 import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
+import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
@@ -42,12 +42,12 @@ import com.intellij.util.containers.addIfNotNull
  *   productFlavorContainer.selectProvider()
  * }
  */
-private enum class ArtifactSelector(val selector: IdeVariant.() -> BaseArtifact?, val artifactName: String) {
+private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifact?, val artifactName: String) {
   MAIN({ mainArtifact }, ARTIFACT_NAME_MAIN),
   UNIT_TEST({ unitTestArtifact }, ARTIFACT_NAME_UNIT_TEST),
   ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST);
 
-  fun IdeVariant.selectArtifact(): BaseArtifact? = selector()
+  fun IdeVariant.selectArtifact(): IdeBaseArtifact? = selector()
   fun BuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
   fun ProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
@@ -71,7 +71,7 @@ private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, a
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())
       val artifact = variant.selectArtifact()
-      // TODO(solodkyy): Reverse order as the correct application order is from the last dimenssion to the first.
+      // TODO(solodkyy): Reverse order as the correct application order is from the last dimension to the first.
       addAll(variant.productFlavors.mapNotNull { findProductFlavor(it)?.selectProvider() })
       addIfNotNull(artifact?.multiFlavorSourceProvider)
       addIfNotNull(findBuildType(variant.buildType)?.selectProvider())
