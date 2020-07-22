@@ -61,6 +61,7 @@ import javax.swing.JSlider
 import javax.swing.SwingConstants
 import javax.swing.border.LineBorder
 import javax.swing.plaf.basic.BasicSliderUI
+import kotlin.math.ceil
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 
@@ -111,6 +112,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private val playPauseAction = PlayPauseAction()
 
   private val timelineSpeedAction = TimelineSpeedAction()
+
+  private val timelineLoopAction = TimelineLoopAction()
 
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
@@ -261,7 +264,28 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       timeline.jumpToStart()
       timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
 
-      timeline.updateMaxDuration(clock.getMaxDurationFunction.call(clock.clock) as Long)
+      updateTimelineWindowSize()
+    }
+
+    /**
+     * Update the timeline window size, which is usually the duration of the longest animation being tracked. However, repeatable animations
+     * are handled differently because they can have a large number of iterations resulting in a unrealistic duration. In that case, we take
+     * the longest iteration instead to represent the window size and set the timeline max loop count to be large enough to display all the
+     * iterations.
+     */
+    fun updateTimelineWindowSize() {
+      val clock = animationClock ?: return
+      val maxDurationPerIteration = clock.getMaxDurationPerIteration.call(clock.clock) as Long
+      timeline.updateMaxDuration(maxDurationPerIteration)
+
+      val maxDuration = clock.getMaxDurationFunction.call(clock.clock) as Long
+      timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
+        // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
+        // so we need to add as many loops to the timeline as necessary to display all the iterations.
+        ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
+      }
+      // Othewise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
+      else 1
     }
 
     /**
@@ -277,7 +301,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         playPauseAction,
         GoToEndAction(),
         SwapStartEndStatesAction(),
-        timelineSpeedAction
+        timelineSpeedAction,
+        timelineLoopAction
       )),
       true).component
 
@@ -389,7 +414,12 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
                            if (isPlaying) {
                              UIUtil.invokeLaterIfNeeded { timeline.incrementClockBy(tickPeriod.toMillis().toInt()) }
                              if (timeline.isAtEnd()) {
-                               pause()
+                               if (timeline.playInLoop) {
+                                 handleLoopEnd()
+                               }
+                               else {
+                                 pause()
+                               }
                              }
                            }
                          }, tickPeriod)
@@ -421,6 +451,14 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     private fun pause() {
       isPlaying = false
       ticker.stop()
+    }
+
+    private fun handleLoopEnd() {
+      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
+      timeline.loopCount++
+      if (timeline.loopCount == timeline.maxLoopCount) {
+        timeline.loopCount = 0
+      }
     }
 
     fun dispose() {
@@ -459,6 +497,28 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   }
 
   /**
+   * Action to keep the timeline playing in loop. When active, the timeline will keep playing indefinitely instead of stopping at the end.
+   * When reaching the end of the window, the timeline will increment the loop count until it reaches its limit. When that happens, the
+   * timelines jumps back to start.
+   *
+   * TODO(b/157895086): Add a proper icon for the action.
+   */
+  private inner class TimelineLoopAction : ToggleAction(message("animation.inspector.action.loop"),
+                                                        message("animation.inspector.action.loop"),
+                                                        StudioIcons.LayoutEditor.Motion.LOOP) {
+
+    override fun isSelected(e: AnActionEvent) = timeline.playInLoop
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      timeline.playInLoop = state
+      if (!state) {
+        // Reset the loop when leaving playInLoop mode.
+        timeline.loopCount = 0
+      }
+    }
+  }
+
+  /**
    *  Timeline panel ranging from 0 to the max duration (in ms) of the animations being inspected, listing all the animations and their
    *  corresponding range as well. The timeline should respond to mouse commands, allowing users to jump to specific points, scrub it, etc.
    */
@@ -476,6 +536,22 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      * Speed multiplier of the timeline clock. [TimelineSpeed.X_1] by default (normal speed).
      */
     var speed: TimelineSpeed = TimelineSpeed.X_1
+
+    /**
+     * Whether the timeline should play in loop or stop when reaching the end.
+     */
+    var playInLoop = false
+
+    /**
+     * 0-based count representing the current loop the timeline is in. This should be used as a multiplier of the |windowSize| (slider
+     * maximum) offset applied when setting the clock time.
+     */
+    var loopCount = 0L
+
+    /**
+     * The maximum amount of loops the timeline has. When [loopCount] reaches this value, it needs to be reset.
+     */
+    var maxLoopCount = 1L
 
     private val slider = object: JSlider(0, 10000, 0) {
       override fun updateUI() {
@@ -528,8 +604,14 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     fun setClockTime(newValue: Int) {
       if (animationClock == null || selectedTab == null) return
 
+      var clockTimeMs = newValue.toLong()
+      if (playInLoop) {
+        // When playing in loop, we need to add an offset to slide the window and take repeatable animations into account when necessary
+        clockTimeMs += slider.maximum * loopCount
+      }
+
       surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
-        animationClock!!.setClockTimeFunction.call(animationClock!!.clock, newValue.toLong())
+        animationClock!!.setClockTimeFunction.call(animationClock!!.clock, clockTimeMs)
       }
       selectedTab!!.updateProperties()
     }
