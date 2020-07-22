@@ -35,7 +35,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.module.Module
@@ -47,7 +46,7 @@ import java.io.File
  * Utility methods to find APK/Bundle output file or folder.
  */
 
-private val LOG: Logger get() = logger("GradleBuildOutputUtil.kt")
+private val LOG: Logger get() = Logger.getInstance("GradleBuildOutputUtil.kt")
 
 enum class OutputType {
   Apk,

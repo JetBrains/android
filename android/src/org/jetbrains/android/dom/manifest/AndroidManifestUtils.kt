@@ -34,7 +34,6 @@ import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -52,7 +51,7 @@ import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
 
-private val LOG: Logger get() = logger("AndroidManifestUtils.kt")
+private val LOG: Logger get() = Logger.getInstance("AndroidManifestUtils.kt")
 /**
  * Returns the module's resource package name, or null if it could not be determined.
  *

@@ -49,7 +49,6 @@ import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
@@ -71,7 +70,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
-private val LOG: Logger get() = logger("DefaultModuleSystem.kt")
+private val LOG: Logger get() = Logger.getInstance("DefaultModuleSystem.kt")
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {

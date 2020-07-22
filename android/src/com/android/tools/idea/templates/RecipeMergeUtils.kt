@@ -32,7 +32,6 @@ import com.google.common.base.Charsets
 import com.google.common.collect.Lists.newArrayList
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
@@ -52,7 +51,7 @@ import java.io.InputStream
  * Utility methods to support the recipe.xml merge instruction.
  */
 
-private val LOG: Logger get() = logger("RecipeMergeUtils.kt")
+private val LOG: Logger get() = Logger.getInstance("RecipeMergeUtils.kt")
 
 private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
