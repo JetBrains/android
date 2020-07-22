@@ -37,6 +37,11 @@ internal class AnimationClock(val clock: Any) {
   val getMaxDurationFunction = findClockFunction("getMaxDuration")
 
   /**
+   * Function `getMaxDurationPerIteration` of [clock].
+   */
+  val getMaxDurationPerIteration: KFunction<*> = clock::class.memberFunctions.single { it.name == "getMaxDurationPerIteration" }
+
+  /**
    * Function `setClockTime` of [clock].
    */
   val setClockTimeFunction = findClockFunction("setClockTime")
