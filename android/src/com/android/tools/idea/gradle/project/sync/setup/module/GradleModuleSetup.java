@@ -29,7 +29,6 @@ import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleModuleSetup {
-
   public void setUpModule(@NotNull Module module,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull GradleModuleModel model) {

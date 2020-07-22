@@ -16,17 +16,19 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.*;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.JavaArtifact;
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.TestedTargetVariant;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class VariantStub implements Variant {
   @NotNull private final List<String> myProductFlavors = Lists.newArrayList();
@@ -127,7 +129,6 @@ public class VariantStub implements Variant {
   public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
     return myExtraAndroidArtifacts;
   }
-
   @Override
   public boolean isInstantAppCompatible() {
     return false;

@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -29,13 +27,10 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import java.io.*;
-import java.util.HashMap;
-import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.utils.FileUtils.writeToFile;
 import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +47,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "debug" as selected variant.
-    IdeAndroidProject ideAndroidProject = toIdeAndroidProject(androidProject);
+    IdeAndroidProject ideAndroidProject = AndroidProjectStub.toIdeAndroidProject(androidProject);
     AndroidModuleModel androidModel =
       AndroidModuleModel.create(androidProject.getName(), getBaseDirPath(getProject()), ideAndroidProject, "debug");
 
@@ -72,7 +67,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "release" as selected variant.
-    IdeAndroidProject ideAndroidProject = toIdeAndroidProject(androidProject);
+    IdeAndroidProject ideAndroidProject = AndroidProjectStub.toIdeAndroidProject(androidProject);
     AndroidModuleModel androidModel =
       AndroidModuleModel.create(androidProject.getName(), getBaseDirPath(getProject()), ideAndroidProject, "release");
     // Verify that "release" is set as selected variant.
@@ -94,7 +89,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.addVariant(variant);
 
     // Create AndroidModuleModel with "release" as selected variant.
-    IdeAndroidProject ideAndroidProject = toIdeAndroidProject(androidProject);
+    IdeAndroidProject ideAndroidProject = AndroidProjectStub.toIdeAndroidProject(androidProject);
     AndroidModuleModel androidModel = AndroidModuleModel.create(androidProject.getName(), rootFile, ideAndroidProject, "test");
     Module mockModule = mock(Module.class);
     when(mockModule.getProject()).thenReturn(getProject());
@@ -111,10 +106,5 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
 
     // Fake the cache clearing and check new value is re-parsed
     assertThat(androidModel.getApplicationId()).isEqualTo("com.cool.app");
-  }
-
-  @NotNull
-  private static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return IdeAndroidProjectImpl.create(androidProject, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList());
   }
 }

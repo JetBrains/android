@@ -22,6 +22,7 @@ import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -171,7 +172,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(affectedModule);
       if (affectedAndroidModel != null) {
-        AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
+        IdeAndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
         for (File folder : ExcludedRoots.getAdditionalClasspathFolders(mainArtifact)) {
           addToClasspath(folder, classPath, testScopes);
         }

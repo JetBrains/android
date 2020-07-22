@@ -19,6 +19,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -70,7 +71,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   private static Collection<VirtualFile> getCompilerOutputRoots(@NotNull AndroidModuleModel model) {
     IdeVariant variant = model.getSelectedVariant();
     String variantName = variant.getName();
-    AndroidArtifact mainArtifactInfo = model.getMainArtifact();
+    IdeAndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
     ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
 
