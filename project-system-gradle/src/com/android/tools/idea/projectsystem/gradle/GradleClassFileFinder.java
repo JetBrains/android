@@ -17,8 +17,6 @@ package com.android.tools.idea.projectsystem.gradle;
 
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

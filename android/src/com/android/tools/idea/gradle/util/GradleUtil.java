@@ -64,7 +64,6 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.BaseArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -890,7 +889,7 @@ public final class GradleUtil {
   }
 
   /**
-   * Wrapper around {@link BaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
+   * Wrapper around {@link IdeBaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
   public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
