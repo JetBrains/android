@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.plugin
+package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.CompileRuntimeConfigurationRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before

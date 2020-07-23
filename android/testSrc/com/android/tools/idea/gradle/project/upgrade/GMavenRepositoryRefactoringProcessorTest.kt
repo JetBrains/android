@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.plugin
+package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
-import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
