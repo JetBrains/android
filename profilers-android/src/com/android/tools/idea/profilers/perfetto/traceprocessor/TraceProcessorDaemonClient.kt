@@ -83,22 +83,22 @@ class TraceProcessorDaemonClient(): Disposable {
     return cachedStub!!
   }
 
-  fun loadTrace(requestProto: TraceProcessor.LoadTraceRequest): TraceProcessor.LoadTraceResponse {
+  fun loadTrace(requestProto: TraceProcessor.LoadTraceRequest): TraceProcessorDaemonQueryResult<TraceProcessor.LoadTraceResponse> {
     return retry(requestProto) { getStub().loadTrace(it) }
   }
 
-  fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest): TraceProcessor.QueryBatchResponse {
-    return retry(request) { getStub().queryBatch(it)}
+  fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest): TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse> {
+    return retry(request) { getStub().queryBatch(it) }
   }
 
   // Retry the same call up to 3 times, if all of them fail rethrow the last exception.
   // In between retries, sleep for 200ms, to allow the underlying issue to fix itself.
-  private fun <A, B> retry(request: A, rpc: (A) -> B): B {
+  private fun <A, B> retry(request: A, rpc: (A) -> B): TraceProcessorDaemonQueryResult<B> {
     var lastException: Exception? = null
     for(i in 1..3){
       try {
         if (!disposed) {
-          return rpc(request)
+          return TraceProcessorDaemonQueryResult(rpc(request))
         }
       } catch (e: Exception) {
         LOGGER.debug("TPD Client: Attempt $i of RPC failed (`${e.message}`).")
@@ -108,11 +108,25 @@ class TraceProcessorDaemonClient(): Disposable {
     }
 
     // If we arrived here, is because we never managed to return the rpc request above.
-    throw RuntimeException("Unable to reach TPDaemon.", lastException)
+    return TraceProcessorDaemonQueryResult(RuntimeException("Unable to reach TPDaemon.", lastException))
   }
 
   override fun dispose() {
     disposed = true
     cachedChannel?.shutdownNow()
   }
+}
+
+/**
+ * Wrapper for the result of a query sent to TPD, that can contain the response received (if {@code completed} is true) or the reason
+ * why it failed to contact TPD in {@code failure}.
+ */
+data class TraceProcessorDaemonQueryResult<A> private constructor(
+  val response: A? = null,
+  val failure: Exception? = null) {
+
+  val completed = response != null
+
+  constructor(response: A): this(response, null) { }
+  constructor(failure: Exception): this(null, failure) { }
 }
