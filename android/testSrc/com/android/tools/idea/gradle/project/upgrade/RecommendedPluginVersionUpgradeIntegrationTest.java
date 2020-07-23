@@ -30,8 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
