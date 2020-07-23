@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.configuration
 
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.ServiceManager
@@ -26,7 +28,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
        storages = [Storage(value = "android-test-configuration.xml",
                            roamingType = RoamingType.DISABLED)])
 data class AndroidTestConfiguration(
-  var ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX: Boolean = true
+  var ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX: Boolean = !isStableBuild()  // b/162020400.
 ) : PersistentStateComponent<AndroidTestConfiguration> {
   companion object {
     @JvmStatic
@@ -36,4 +38,9 @@ data class AndroidTestConfiguration(
   override fun loadState(state: AndroidTestConfiguration) {
     XmlSerializerUtil.copyBean(state, this)
   }
+}
+
+private fun isStableBuild(): Boolean {
+  val app = ApplicationManager.getApplication() ?: return false
+  return !(app.isInternal || app.isEAP || ApplicationInfo.getInstance().build.isSnapshot)
 }
