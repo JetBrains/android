@@ -48,9 +48,7 @@ open class ProjectSystemService(val project: Project) {
         // it would be a deadlock risk.
         cache = detectProjectSystem(project)
         if (cachedProjectSystem.compareAndSet(null, cache)) {
-          // TODO(b/160192216): Remove logging when fixed.
-          Logger.getInstance(ProjectSystemService::class.java)
-            .warn("${cache.javaClass.simpleName} project system has been detected", Throwable())
+          Logger.getInstance(ProjectSystemService::class.java).info("${cache.javaClass.simpleName} project system has been detected")
         }
         // Can't return null since we've set it to a non-null value earlier in the method and there
         // is no code that ever sets it back to null once set to a non-null value. However, it's
