@@ -137,32 +137,6 @@ public class AndroidSdks {
   }
 
   /**
-   * Determines if the specified {@link Sdk} has valid docs for the Android Platform specified by the given {@link IAndroidTarget}. If
-   * docs are installed for that platform locally then we check that there is at least one reference to the local documentation in the
-   * sdk roots. If not then we check that there is at least one link to the web docs in the sdk roots.
-   */
-  public boolean hasValidDocs(@NotNull Sdk sdk, @NotNull IAndroidTarget target) {
-    File javaDocPath = findJavadocFolder(new File(getPlatformPath(target)));
-
-    if (javaDocPath == null) {
-      File sdkDir = toSystemDependentPath(sdk.getHomePath());
-      if (sdkDir != null) {
-        javaDocPath = findJavadocFolder(sdkDir);
-      }
-    }
-
-    String javaDocUrl = javaDocPath == null ? DEFAULT_EXTERNAL_DOCUMENTATION_URL : pathToIdeaUrl(javaDocPath);
-    for (String rootUrl : sdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance())) {
-      // We can't tell if Urls that don't match are valid or not, all we can check is whether there is at least one valid link to
-      // the documentation we know about.
-      if (javaDocUrl.equals(rootUrl)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Returns the {@link AndroidSdkData} for the current SDK.
    *
    * @return the {@link AndroidSdkData} for the current SDK, or {@code null} during the first run or if an error occurred when setting up
