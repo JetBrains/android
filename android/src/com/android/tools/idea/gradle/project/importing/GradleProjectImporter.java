@@ -105,7 +105,6 @@ public class GradleProjectImporter {
       setUpLocalProperties(projectFolderPath);
       String projectName = projectFolder.getName();
       newProject = createProject(projectName, projectFolderPath);
-      configureNewProject(newProject);
       importProjectNoSync(new Request(newProject));
       PlatformProjectOpenProcessor.openExistingProject(
         projectFolderPath.toPath(),
@@ -199,8 +198,7 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Creates a new not configured project in a given location. The project needs to be configured to be usable with Android Studio.
-   * See: {@link GradleProjectImporter#configureNewProject(Project)}
+   * Creates a new not configured project in a given location.
    */
   @NotNull
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
@@ -209,9 +207,11 @@ public class GradleProjectImporter {
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new project");
     }
+    configureNewProject(newProject);
     return newProject;
   }
 
+  @VisibleForTesting
   public static void configureNewProject(Project newProject) {
     GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
     String externalProjectPath = toCanonicalPath(newProject.getBasePath());
