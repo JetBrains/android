@@ -96,7 +96,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    * [tabbedPane]'s tab titles mapped to the amount of tabs using that title. The count is used to differentiate tabs, which are named
    * "tabTitle #1", "tabTitle #2", etc., instead of multiple "tabTitle" tabs.
    */
-  private val tabNames = HashMap<String, Int>()
+  private val tabNamesCount = HashMap<String, Int>()
 
   /**
    * Panel displayed when the preview has no animations subscribed.
@@ -154,7 +154,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     remove(tabbedPane)
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
-    tabNames.clear()
+    tabNamesCount.clear()
   }
 
   /**
@@ -170,8 +170,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     val animationTab = AnimationTab(animation)
     animationTabs[animation] = animationTab
     val tabName = animation.getLabel() ?: message("animation.inspector.tab.default.title")
-    tabNames[tabName] = tabNames.getOrDefault(tabName, 0) + 1
-    tabbedPane.addTab("${tabName} #${tabNames[tabName]}", animationTab)
+    tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
+    tabbedPane.addTab("${tabName} #${tabNamesCount[tabName]}", animationTab)
   }
 
   /**
@@ -190,7 +190,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   override fun dispose() {
     playPauseAction.dispose()
     animationTabs.clear()
-    tabNames.clear()
+    tabNamesCount.clear()
   }
 
   /**
