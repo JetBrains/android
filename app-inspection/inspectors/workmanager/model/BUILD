@@ -45,6 +45,9 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
+        "//tools/idea/.idea/libraries:jcip",
+        "//tools/idea/platform/util:intellij.platform.util[module]",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
     ],
 )

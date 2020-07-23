@@ -15,33 +15,94 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
-import androidx.work.inspector.WorkManagerInspectorProtocol.Command
-import androidx.work.inspector.WorkManagerInspectorProtocol.FetchAllWorkerInfoResponse
-import androidx.work.inspector.WorkManagerInspectorProtocol.TrackWorkManagerCommand
-import androidx.work.inspector.WorkManagerInspectorProtocol.WorkInfo
+import androidx.work.inspection.WorkManagerInspectorProtocol.Command
+import androidx.work.inspection.WorkManagerInspectorProtocol.Event
+import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCommand
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.intellij.openapi.diagnostic.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import net.jcip.annotations.GuardedBy
+import net.jcip.annotations.ThreadSafe
 
 /**
  * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
-class WorkManagerInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
-  private val _works = mutableListOf<WorkInfo>()
-  val works: List<WorkInfo> get() = _works
+@ThreadSafe
+class WorkManagerInspectorClient(messenger: CommandMessenger, scope: CoroutineScope) : AppInspectorClient(messenger) {
+  companion object {
+    private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
+  }
+
+  private val lock = Any()
+  private val clientScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
+  @GuardedBy("lock")
+  private val works = mutableListOf<WorkInfo>()
 
   private val _worksChangedListeners = mutableListOf<() -> Unit>()
   fun addWorksChangedListener(listener: () -> Unit) = _worksChangedListeners.add(listener)
 
-  override val rawEventListener = object : RawEventListener {
-    override fun onRawEvent(eventData: ByteArray) {
-      super.onRawEvent(eventData)
-      handleFetchAllResponse(eventData)
+  init {
+    val command = Command.newBuilder().setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance()).build()
+    clientScope.launch {
+      messenger.sendRawCommand(command.toByteArray())
     }
   }
 
-  fun handleFetchAllResponse(responseBytes: ByteArray) {
-    val response = FetchAllWorkerInfoResponse.parseFrom(responseBytes)
-    _works.clear()
-    _works.addAll(response.workersList)
+  override val rawEventListener = object : RawEventListener {
+    override fun onRawEvent(eventData: ByteArray) {
+      super.onRawEvent(eventData)
+      handleEvent(eventData)
+    }
+  }
+
+  fun getWorkInfoCount() = synchronized(lock) {
+    works.size
+  }
+
+  fun getWorkInfo(index: Int) = synchronized(lock) {
+    works.getOrNull(index)
+  }
+
+  private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {
+    val event = Event.parseFrom(eventBytes)
+    when (event.oneOfCase!!) {
+      Event.OneOfCase.WORK_ADDED -> {
+        works.add(event.workAdded.work)
+      }
+      Event.OneOfCase.WORK_REMOVED -> {
+        works.removeAll {
+          it.id == event.workRemoved.id
+        }
+      }
+      Event.OneOfCase.WORK_UPDATED -> {
+        val updateWorkEvent = event.workUpdated
+        val index = works.indexOfFirst { it.id == updateWorkEvent.id }
+        if (index != -1) {
+          val newWork = works[index].toBuilder()
+          when (updateWorkEvent.oneOfCase!!) {
+            WorkUpdatedEvent.OneOfCase.STATE -> newWork.state = updateWorkEvent.state
+            WorkUpdatedEvent.OneOfCase.DATA -> newWork.data = updateWorkEvent.data
+            WorkUpdatedEvent.OneOfCase.RUN_ATTEMPT_COUNT -> {
+              newWork.runAttemptCount = updateWorkEvent.runAttemptCount
+            }
+            WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT -> {
+              newWork.scheduleRequestedAt = updateWorkEvent.scheduleRequestedAt
+            }
+            WorkUpdatedEvent.OneOfCase.ONEOF_NOT_SET -> {
+              logger.warn("Empty WorKUpdatedEvent")
+            }
+          }
+          works[index] = newWork.build()
+        }
+      }
+      Event.OneOfCase.ONEOF_NOT_SET -> {
+        logger.warn("Empty Event")
+      }
+    }
     _worksChangedListeners.forEach { listener -> listener() }
   }
 }
