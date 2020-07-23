@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
-import androidx.work.inspector.WorkManagerInspectorProtocol
+import androidx.work.inspection.WorkManagerInspectorProtocol
 import javax.swing.table.AbstractTableModel
 
 class WorksTableModel(private val client: WorkManagerInspectorClient) : AbstractTableModel() {
@@ -23,28 +23,29 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
    * Columns of work info data.
    */
   enum class Column(val widthPercentage: Double, val type: Class<*>, private val myDisplayName: String) {
-    ID(0.2, String::class.java, "ID") {
-      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any? {
-        return data.id
-      }
-    },
-    TAGS(0.3, Long::class.java, "Tags") {
-      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any? {
+    TAGS(0.2, Long::class.java, "Tags") {
+      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.tagsList
       }
     },
-    RUN_ATTEMPT_COUNT(0.1, Int::class.java, "Run Attempt Count") {
-      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any? {
-        return data.runAttemptCount
-      }
-    },
     STATE(0.1, String::class.java, "State") {
-      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any? {
+      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.state.name
       }
     },
-    DATA(0.3, String::class.java, "Output Data") {
-      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any? {
+    TIME_STARTED(0.2, Int::class.java, "Time Started") {
+      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
+        return data.scheduleRequestedAt
+      }
+    },
+    RUN_ATTEMPT_COUNT(0.1, Int::class.java, "Retry Count") {
+      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
+        return data.runAttemptCount
+      }
+    },
+
+    DATA(0.4, String::class.java, "Output Data") {
+      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.data
       }
     };
@@ -59,7 +60,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
       return myDisplayName
     }
 
-    abstract fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any?
+    abstract fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any
 
   }
 
@@ -67,7 +68,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
     client.addWorksChangedListener { fireTableDataChanged() }
   }
 
-  override fun getRowCount() = client.works.count()
+  override fun getRowCount() = client.getWorkInfoCount()
 
   override fun getColumnCount() = Column.values().size
 
@@ -76,7 +77,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
   override fun getColumnClass(columnIndex: Int) = Column.values()[columnIndex].type
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-    val work = client.works[rowIndex]
-    return Column.values()[columnIndex].getValueFrom(work) ?: "Not Available"
+    val work = client.getWorkInfo(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
+    return Column.values()[columnIndex].getValueFrom(work)
   }
 }
