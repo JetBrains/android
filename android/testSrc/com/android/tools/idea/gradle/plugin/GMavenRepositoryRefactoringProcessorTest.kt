@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
+import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

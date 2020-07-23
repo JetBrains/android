@@ -29,8 +29,8 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.recommendPluginUpgrade
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.shouldRecommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.recommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts

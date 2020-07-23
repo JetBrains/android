@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -36,7 +36,7 @@ import javax.swing.event.HyperlinkEvent;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT;
-import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
+import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
 import static com.intellij.ide.BrowserUtil.browse;

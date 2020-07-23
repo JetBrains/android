@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
+import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.DO_NOT_ASK_AGAIN;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
