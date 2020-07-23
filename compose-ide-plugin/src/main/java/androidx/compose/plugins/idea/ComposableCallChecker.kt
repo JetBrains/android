@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.descriptors.PropertyGetterDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.diagnostics.reportFromPlugin
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -105,13 +104,12 @@ open class ComposableCallChecker : CallChecker, AdditionalTypeChecker,
               descriptor,
               false
             )
-            context.trace.reportFromPlugin(
+            context.trace.report(
               ComposeErrors.CAPTURED_COMPOSABLE_INVOCATION.on(
                 reportOn,
                 arg,
                 arg.containingDeclaration
-              ),
-              ComposeErrorMessages
+              )
             )
             return
           }
@@ -186,15 +184,9 @@ open class ComposableCallChecker : CallChecker, AdditionalTypeChecker,
     callEl: PsiElement,
     functionEl: PsiElement? = null
   ) {
-    context.trace.reportFromPlugin(
-      ComposeErrors.COMPOSABLE_INVOCATION.on(callEl),
-      ComposeErrorMessages
-    )
+    context.trace.report(ComposeErrors.COMPOSABLE_INVOCATION.on(callEl))
     if (functionEl != null) {
-      context.trace.reportFromPlugin(
-        ComposeErrors.COMPOSABLE_EXPECTED.on(functionEl),
-        ComposeErrorMessages
-      )
+      context.trace.report(ComposeErrors.COMPOSABLE_EXPECTED.on(functionEl))
     }
   }
 

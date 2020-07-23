@@ -19,6 +19,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2
+import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.Severity
 
 object ComposeErrors {
@@ -33,6 +34,24 @@ object ComposeErrors {
     DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
 
   @JvmField
+  val COMPOSABLE_PROPERTY_BACKING_FIELD =
+    DiagnosticFactory0.create<PsiElement>(
+      Severity.ERROR
+    )
+
+  @JvmField
+  val COMPOSABLE_VAR =
+    DiagnosticFactory0.create<PsiElement>(
+      Severity.ERROR
+    )
+
+  @JvmField
+  val COMPOSABLE_SUSPEND_FUN =
+    DiagnosticFactory0.create<PsiElement>(
+      Severity.ERROR
+    )
+
+  @JvmField
   val CAPTURED_COMPOSABLE_INVOCATION =
     DiagnosticFactory2.create<PsiElement, DeclarationDescriptor, DeclarationDescriptor>(
       Severity.ERROR
@@ -40,4 +59,10 @@ object ComposeErrors {
   @JvmField
   var ILLEGAL_TRY_CATCH_AROUND_COMPOSABLE =
     DiagnosticFactory0.create<PsiElement>(Severity.ERROR)
+
+  init {
+    Errors.Initializer.initializeFactoryNames(
+      ComposeErrors::class.java
+    )
+  }
 }
