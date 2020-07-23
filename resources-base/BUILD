@@ -9,6 +9,7 @@ iml_module(
     iml_files = ["intellij.android.resources-base.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/idea/.idea/libraries:javax.activation"],
     # do not sort: must match IML order
     deps = [
         "//tools/base/common:studio.android.sdktools.common[module]",
