@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
@@ -23,8 +24,8 @@ import com.android.tools.profilers.systemtrace.CpuCoreModel
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.systemtrace.ThreadModel
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import java.io.File
-import java.lang.UnsupportedOperationException
 
 class FakeTraceProcessorService: TraceProcessorService {
   val PROCESSES = mapOf(
@@ -43,15 +44,28 @@ class FakeTraceProcessorService: TraceProcessorService {
   val CORES = listOf(
     CpuCoreModel(0, listOf()), CpuCoreModel(1, listOf()), CpuCoreModel(2, listOf()), CpuCoreModel(3, listOf()))
 
-  override fun loadTrace(traceId: Long, traceFile: File) { }
-  override fun getProcessMetadata(traceId: Long) = PROCESSES.values.toList()
+  override fun loadTrace(traceId: Long, traceFile: File, tracker: FeatureTracker): Boolean {
+    tracker.trackTraceProcessorLoadTrace(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 10, 10, 20400)
+    return true
+  }
+  override fun getProcessMetadata(traceId: Long, tracker: FeatureTracker): List<ProcessModel> {
+    tracker.trackTraceProcessorProcessMetadata(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 20, 5)
+    return PROCESSES.values.toList()
+  }
 
-  override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {
+  override fun loadCpuData(traceId: Long, processIds: List<Int>, tracker: FeatureTracker): SystemTraceModelAdapter {
+    tracker.trackTraceProcessorCpuData(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 40, 10)
+
     // Will populate as needed. Currently no test rely on this.
     return FakeModelAdapter()
   }
 
-  override fun loadMemoryData(traceId: Long, abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
+  override fun loadMemoryData(traceId: Long,
+                              abi: String,
+                              symbolizer: NativeFrameSymbolizer,
+                              memorySet: NativeMemoryHeapSet,
+                              tracker: FeatureTracker) {
+    tracker.trackTraceProcessorMemoryData(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 40, 10)
     // Will populate as needed. Currently no test rely on this.
   }
 

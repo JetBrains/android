@@ -18,17 +18,26 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
+import com.android.tools.profilers.FakeFeatureTracker
+import com.android.utils.Pair
+import com.google.common.base.Ticker
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import io.grpc.stub.StreamObserver
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.lang.RuntimeException
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class TraceProcessorServiceImplTest {
 
   private val fakeGrpcService = TPServiceInMemoryForTesting()
+  private val fakeTicker = FakeTicker(10, TimeUnit.MILLISECONDS)
+  private val fakeFeatureTracker = FakeFeatureTracker()
 
   @get:Rule
   val tempFolder = TemporaryFolder()
@@ -39,26 +48,33 @@ class TraceProcessorServiceImplTest {
   @Test
   fun `loadTrace - ok`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
       .setOk(true)
       .build()
 
     val traceFile = tempFolder.newFile("perfetto.trace")
-    ideService.loadTrace(10, traceFile)
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+
+    assertThat(traceLoaded).isTrue()
 
     val expectedRequest = TraceProcessor.LoadTraceRequest.newBuilder()
       .setTraceId(10)
       .setTracePath(traceFile.absolutePath)
       .build()
     assertThat(fakeGrpcService.lastLoadTraceRequest).isEqualTo(expectedRequest)
+
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)))
   }
 
   @Test
   fun `loadTrace - fail`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
       .setOk(false)
@@ -66,18 +82,17 @@ class TraceProcessorServiceImplTest {
       .build()
 
     val traceFile = tempFolder.newFile("perfetto.trace")
-    try {
-      ideService.loadTrace(10, traceFile)
-      fail()
-    } catch (e: RuntimeException) {
-      assertThat(e.message).isEqualTo("Error loading trace with TPD: Testing Failure")
-    }
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+    assertThat(traceLoaded).isFalse()
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getErrorMetricStatsFor(10, 10, 256)))
   }
 
   @Test
   fun `loadTrace - grpc retry`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.failsPerQuery = 2
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -85,13 +100,17 @@ class TraceProcessorServiceImplTest {
       .build()
 
     val traceFile = tempFolder.newFile("perfetto.trace")
-    ideService.loadTrace(10, traceFile)
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+    assertThat(traceLoaded).isTrue()
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)))
   }
 
   @Test
   fun `loadTrace - grpc retry exhausted`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.failsPerQuery = 5
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -99,25 +118,30 @@ class TraceProcessorServiceImplTest {
       .build()
 
     val traceFile = tempFolder.newFile("perfetto.trace")
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+
     try {
-      ideService.loadTrace(10, traceFile)
+      ideService.loadTrace(10, traceFile, fakeFeatureTracker)
       fail()
     } catch (e: RuntimeException) {
-      assertThat(e.message).isEqualTo("Unable to reach TPDaemon.")
+      assertThat(e.message).isEqualTo("TPD Service: Fail to load trace 10: Unable to reach TPDaemon.")
     }
+
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getFailMetricStatsFor(10, 10, 256)))
   }
 
   @Test
-  fun loadCpuData() {
+  fun `loadCpuData - ok`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
     fakeGrpcService.queryBatchResponse = TraceProcessor.QueryBatchResponse.newBuilder()
       .addResult(TraceProcessor.QueryResult.newBuilder().setOk(true))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42))
+    ideService.loadCpuData(10, listOf(33, 42), fakeFeatureTracker)
 
     val expectedRequest = TraceProcessor.QueryBatchRequest.newBuilder()
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
@@ -140,19 +164,24 @@ class TraceProcessorServiceImplTest {
                   .setCountersRequest(TraceProcessor.QueryParameters.CountersParameters.newBuilder().setProcessId(42)))
       .build()
     assertThat(fakeGrpcService.lastQueryBatchRequest).isEqualTo(expectedRequest)
+
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA, getOkMetricStatsFor(30, 10)))
   }
 
   @Test
-  fun `reload trace on data fetch`() {
+  fun `loadCpuData - reload trace if necessary`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
       .setOk(true)
       .build()
 
     val traceFile = tempFolder.newFile("perfetto.trace")
-    ideService.loadTrace(10, traceFile)
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+
+    ideService.loadTrace(10, traceFile, fakeFeatureTracker)
     fakeGrpcService.lastLoadTraceRequest = null // Mark as a null, so we can verify below it was called
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
@@ -162,15 +191,21 @@ class TraceProcessorServiceImplTest {
                    .setFailureReason(TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42))
+    ideService.loadCpuData(10, listOf(33, 42), fakeFeatureTracker)
     // Can't do assertThat(...).isNotNull() because of a problem that assertThat(Any?).isNotNull()
     fakeGrpcService.lastLoadTraceRequest ?: fail("Expected lastLoadTraceRequest to not be null")
+
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsAllOf(
+      // First loadTrace
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)),
+      // Implicit loadTrace called by loadCpuData to try to recover the missing trace.
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)))
   }
 
   @Test
-  fun `trace never loaded`() {
+  fun `loadCpuData - trace not loaded`() {
     val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
-    val ideService = TraceProcessorServiceImpl(client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
     fakeGrpcService.queryBatchResponse = TraceProcessor.QueryBatchResponse.newBuilder()
@@ -180,14 +215,17 @@ class TraceProcessorServiceImplTest {
       .build()
 
     try {
-      ideService.loadCpuData(10, listOf(33, 42))
+      ideService.loadCpuData(10, listOf(33, 42), fakeFeatureTracker)
       fail()
     } catch (e: RuntimeException) {
-      assertThat(e.message).isEqualTo("Trace 10 needs to be loaded before querying.")
+      assertThat(e.message).isEqualTo("TPD Service: Fail to get cpu data for trace 10: Trace 10 needs to be loaded before querying.")
     }
 
     // We never issue a load trace since we don't know about the trace.
     assertThat(fakeGrpcService.lastLoadTraceRequest).isNull()
+
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA, getFailMetricStatsFor(30, 10)))
   }
 
   private class TPServiceInMemoryForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceImplBase() {
@@ -227,5 +265,47 @@ class TraceProcessorServiceImplTest {
         observer.onError(RuntimeException("RPC refused for testing"))
       }
     }
+  }
+
+  private class FakeTicker(val step: Long, val unit: TimeUnit): Ticker() {
+    private var internalTimerNanos = 0L
+
+    override fun read(): Long {
+      internalTimerNanos += unit.toNanos(step)
+      return internalTimerNanos
+    }
+  }
+
+  private fun getOkMetricStatsFor(methodTimeMs: Long , queryTimeMs: Long, traceSizeBytes: Long? = null): TraceProcessorDaemonQueryStats {
+    val builder =  TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+
+    traceSizeBytes?.let { builder.setTraceSizeBytes(it) }
+
+    return builder.build()
+  }
+
+  private fun getErrorMetricStatsFor(methodTimeMs: Long , queryTimeMs: Long, traceSizeBytes: Long? = null): TraceProcessorDaemonQueryStats {
+    val builder =  TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_ERROR)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+
+    traceSizeBytes?.let { builder.setTraceSizeBytes(it) }
+
+    return builder.build()
+  }
+
+  private fun getFailMetricStatsFor(methodTimeMs: Long , queryTimeMs: Long, traceSizeBytes: Long? = null): TraceProcessorDaemonQueryStats {
+    val builder =  TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_FAILED)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+
+    traceSizeBytes?.let { builder.setTraceSizeBytes(it) }
+
+    return builder.build()
   }
 }
