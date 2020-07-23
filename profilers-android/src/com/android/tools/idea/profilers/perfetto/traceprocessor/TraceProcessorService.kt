@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit
 @Service
 class TraceProcessorServiceImpl(
     private val ticker: Ticker = Ticker.systemTicker(),
-    private val client: TraceProcessorDaemonClient = TraceProcessorDaemonClient()) : TraceProcessorService, Disposable {
+    private val client: TraceProcessorDaemonClient = TraceProcessorDaemonClient(ticker)) : TraceProcessorService, Disposable {
   private val loadedTraces = mutableMapOf<Long, File>()
 
   init {
@@ -71,7 +71,7 @@ class TraceProcessorServiceImpl(
       .setTracePath(traceFile.absolutePath)
       .build()
 
-    val queryResult = client.loadTrace(requestProto)
+    val queryResult = client.loadTrace(requestProto, tracker)
     stopwatch.stop()
 
     val queryTimeMs = stopwatch.elapsed(TimeUnit.MILLISECONDS)
@@ -270,8 +270,10 @@ class TraceProcessorServiceImpl(
   /**
    * Execute {@code query} on TPD, reloading the trace if has been unloaded (e.g. TPD crashed between loading and the query request).
    */
-  private fun executeBatchQuery(traceId: Long, query: QueryBatchRequest, tracker: FeatureTracker): TraceProcessorDaemonQueryResult<QueryBatchResponse> {
-    var queryResult = client.queryBatchRequest(query)
+  private fun executeBatchQuery(traceId: Long,
+                                query: QueryBatchRequest,
+                                tracker: FeatureTracker): TraceProcessorDaemonQueryResult<QueryBatchResponse> {
+    var queryResult = client.queryBatchRequest(query, tracker)
 
     // If we got a response from TPD, we check if TPD could execute the query correctly or if there was any error we can try to
     // recover from, like for example when the trace was not loaded.
@@ -280,7 +282,7 @@ class TraceProcessorServiceImpl(
       if (loadedTrace != null) {
         // We loaded this trace before, but something happened and the trace is not there anymore. Let's try to reload it:
         loadTrace(traceId, loadedTrace, tracker)
-        queryResult = client.queryBatchRequest(query)
+        queryResult = client.queryBatchRequest(query, tracker)
       } else {
         // If we don't know about the target trace we're trying to query against, we replace the result with a failed one.
         return TraceProcessorDaemonQueryResult(
