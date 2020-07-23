@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.stats
 
-import com.intellij.util.containers.Queue
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class EventsLimiter(private val eventCount : Int,
@@ -25,7 +25,7 @@ class EventsLimiter(private val eventCount : Int,
 {
   private val LOCK = Object()
 
-  private var queue = Queue<Long>(eventCount)
+  private var queue = ArrayDeque<Long>(eventCount)
   private var disabled = false
 
   fun tryAcquire() : Boolean {
@@ -35,10 +35,10 @@ class EventsLimiter(private val eventCount : Int,
       }
       val currentTimeMs = timeProvider()
       queue.addLast(currentTimeMs)
-      if (queue.size() < eventCount) {
+      if (queue.size < eventCount) {
         return false
       }
-      val timeMs = queue.pullFirst()
+      val timeMs = queue.removeFirst()
       val durationMs = currentTimeMs - timeMs
       if (durationMs < 0) {
         // Likely, system clock has been manually changed. Ignore.
