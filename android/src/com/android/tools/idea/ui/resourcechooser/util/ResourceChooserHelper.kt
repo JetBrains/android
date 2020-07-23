@@ -38,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * @param file The context file with a Configuration, used for theme attributes
  */
 fun createResourcePickerDialog(
-  dialogTitle: @NlsContexts.DialogTitle String,
+  @NlsContexts.DialogTitle dialogTitle: String,
   currentValue: String?,
   facet: AndroidFacet,
   resourceTypes: Set<ResourceType>,
