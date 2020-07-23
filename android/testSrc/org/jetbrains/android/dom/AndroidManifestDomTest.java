@@ -336,6 +336,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
+  /* b/115735357: We don't currently have a valid docs package, nor do we plan to have one again soon.
   public void testUsesPermissionDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -348,6 +349,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
   }
+  */
 
   public void testUsesPermissionDoc2() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
@@ -355,7 +357,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestDoc("Removed in <a href=\"" + API_LEVELS_URL + "\">API level 24</a>");
   }
 
-  /* b/144507473
+  /* b/115735357: We don't currently have a valid docs package, nor do we plan to have one again soon.
   public void testIntentActionDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -363,7 +365,6 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.type("_BUT");
     doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
   }
-  */
 
   public void testIntentActionDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
@@ -375,6 +376,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
   }
+  */
 
   /* b/144507473
   public void testIntentActionCompletion1() throws Throwable {
@@ -450,6 +452,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
   */
 
+  /* b/115735357: We don't currently have a valid docs package, nor do we plan to have one again soon.
   public void testIntentCategoryDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("The activity should be able to browse the Internet.");
@@ -460,6 +463,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("To be used as a test");
   }
+  */
 
   public void testApplicationNameCompletion() throws Throwable {
     copyFileToProject("MyApplication.java", "src/p1/p2/MyApplication.java");
