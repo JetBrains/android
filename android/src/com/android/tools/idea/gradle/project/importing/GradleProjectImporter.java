@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.GradleProjectInfo.beginInitializingGradleProjectAt;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
@@ -36,6 +37,7 @@ import com.android.tools.idea.util.ToolWindows;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -202,13 +204,15 @@ public class GradleProjectImporter {
    */
   @NotNull
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectFolderPath.getPath());
-    if (newProject == null) {
-      throw new NullPointerException("Failed to create a new project");
+    try (AccessToken ignored = beginInitializingGradleProjectAt(projectFolderPath)) {
+      ProjectManager projectManager = ProjectManager.getInstance();
+      Project newProject = projectManager.createProject(projectName, projectFolderPath.getPath());
+      if (newProject == null) {
+        throw new NullPointerException("Failed to create a new project");
+      }
+      configureNewProject(newProject);
+      return newProject;
     }
-    configureNewProject(newProject);
-    return newProject;
   }
 
   @VisibleForTesting
