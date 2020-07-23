@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -103,7 +104,9 @@ internal class DefaultAppInspectionTarget(
     creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
   ): ListenableFuture<AppInspectorClient> {
     if (isDisposed.get()) {
-      return Futures.immediateFailedFuture(ProcessNoLongerExistsException("Target process does not exist because it has ended."))
+      return Futures.immediateFailedFuture(
+        AppInspectionProcessNoLongerExistsException(
+          "Target process does not exist because it has ended."))
     }
     val clientFuture = clients.computeIfAbsent(params) {
       MoreExecutors.listeningDecorator(transport.executorService)
@@ -150,7 +153,9 @@ internal class DefaultAppInspectionTarget(
     }
     if (isDisposed.get()) {
       clients.remove(params)?.cancel(false)
-      return Futures.immediateFailedFuture(ProcessNoLongerExistsException("Target process does not exist because it has ended."))
+      return Futures.immediateFailedFuture(
+        AppInspectionProcessNoLongerExistsException(
+          "Target process does not exist because it has ended."))
     }
     else {
       return clientFuture

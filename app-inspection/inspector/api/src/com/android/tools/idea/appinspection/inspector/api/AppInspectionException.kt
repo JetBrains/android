@@ -25,3 +25,11 @@ abstract class AppInspectionException(message: String): Exception(message)
 class AppInspectionConnectionException(message: String): AppInspectionException(message)
 
 class AppInspectionLaunchException(message: String): AppInspectionException(message)
+
+/**
+ * Thrown when trying to launch an inspector on a process that no longer exists.
+ *
+ * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
+ * selects a process for inspection on device X right when X is shutting down.
+ */
+class AppInspectionProcessNoLongerExistsException(message: String) : AppInspectionException(message)
