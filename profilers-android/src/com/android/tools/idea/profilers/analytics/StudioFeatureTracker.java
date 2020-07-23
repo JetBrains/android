@@ -65,6 +65,8 @@ import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonManagerStats;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import com.google.wireless.android.sdk.stats.TransportFailureMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -563,6 +565,65 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.MEMORY_INSTANCE_FILTER).setMemoryInstanceFilterMetadata(builder.build()).track();
   }
 
+  @Override
+  public void trackTraceProcessorDaemonSpawnAttempt(boolean successful, long timeToSpawnMs) {
+    TraceProcessorDaemonManagerStats stats = TraceProcessorDaemonManagerStats.newBuilder()
+      .setTimeToSpawnMs(timeToSpawnMs)
+      .build();
+    AndroidProfilerEvent.Type type = successful ? AndroidProfilerEvent.Type.TPD_MANAGER_SPAWN_OK
+                                                : AndroidProfilerEvent.Type.TPD_MANAGER_SPAWN_FAILED;
+    newTracker(type).setTraceProcessorDaemonManagerStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorLoadTrace(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .setTraceSizeBytes(traceSizeBytes)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorProcessMetadata(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_PROCESS_METADATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorCpuData(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorMemoryData(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
   /**
    * Convenience method for creating a new tracker with all the minimum data supplied.
    */
@@ -596,6 +657,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
     @Nullable private TransportFailureMetadata myTransportFailureMetadata;
     @Nullable private MemoryInstanceFilterMetadata myMemoryInstanceFilterMetadata;
+    @Nullable private TraceProcessorDaemonManagerStats myTraceProcessorDaemonManagerStats;
+    @Nullable private TraceProcessorDaemonQueryStats myTraceProcessorDaemonQueryStats;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -685,6 +748,18 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    public Tracker setTraceProcessorDaemonManagerStats(TraceProcessorDaemonManagerStats traceProcessorDaemonManagerStats) {
+      myTraceProcessorDaemonManagerStats = traceProcessorDaemonManagerStats;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setTraceProcessorDaemonQueryStats(TraceProcessorDaemonQueryStats traceProcessorDaemonQueryStats) {
+      myTraceProcessorDaemonQueryStats = traceProcessorDaemonQueryStats;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -721,6 +796,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
         case CPU_IMPORT_TRACE:
           assert myCpuImportTraceMetadata != null;
           profilerEvent.setCpuImportTraceMetadata(myCpuImportTraceMetadata);
+          break;
+        case TPD_MANAGER_SPAWN_OK: // Fallthrough
+        case TPD_MANAGER_SPAWN_FAILED:
+          profilerEvent.setTpdManagerStats(myTraceProcessorDaemonManagerStats);
+          break;
+        case TPD_QUERY_LOAD_TRACE: // Fallthrough
+        case TPD_QUERY_PROCESS_METADATA: // Fallthrough
+        case TPD_QUERY_LOAD_CPU_DATA: // Fallthrough
+        case TPD_QUERY_LOAD_MEMORY_DATA:
+          profilerEvent.setTpdQueryStats(myTraceProcessorDaemonQueryStats);
           break;
         default:
           break;

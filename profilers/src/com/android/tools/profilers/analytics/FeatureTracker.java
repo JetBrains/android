@@ -25,6 +25,7 @@ import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -364,4 +365,64 @@ public interface FeatureTracker {
    * Track when the user selects instance filter for a Memory Profiler's CaptureObject.
    */
   void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter);
+
+  /**
+   * Track an attempt of spawning a new instance of the Trace Processor Daemon and how long it took
+   * to either the instance is ready to serve requests (if the spawn was successful) or how long we
+   * took to detect that we failed to spawn the new instance.
+   */
+  void trackTraceProcessorDaemonSpawnAttempt(boolean successful, long timeToSpawnMs);
+
+  /**
+   * Track a load trace query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   * @param traceSizeBytes the size in bytes of the trace being loaded in this query.
+   */
+  void trackTraceProcessorLoadTrace(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes);
+
+  /**
+   * Track a process metadata query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   */
+  void trackTraceProcessorProcessMetadata(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
+
+  /**
+   * Track a cpu data query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   */
+  void trackTraceProcessorCpuData(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
+
+  /**
+   * Track a memory data query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   */
+  void trackTraceProcessorMemoryData(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
 }

@@ -68,6 +68,8 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
