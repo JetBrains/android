@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.plugin;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -24,9 +24,7 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.upgrade.AgpClasspathDependencyRefactoringProcessor;
-import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor;
-import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
