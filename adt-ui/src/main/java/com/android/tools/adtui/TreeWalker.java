@@ -16,16 +16,16 @@
 package com.android.tools.adtui;
 
 import com.intellij.util.Function;
-import com.intellij.util.containers.Queue;
 import com.intellij.util.containers.Stack;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility class that returns streams for walking up and/or down a component tree from some given
@@ -161,7 +161,7 @@ public final class TreeWalker {
   }
 
   private static final class BfsDescendantIterator implements Iterator<Component> {
-    private final Queue<Component> myDescendants = new Queue<>(10);
+    private final Deque<Component> myDescendants = new ArrayDeque<>(10);
 
     public BfsDescendantIterator(Component root) {
       myDescendants.addLast(root);
@@ -174,7 +174,7 @@ public final class TreeWalker {
 
     @Override
     public Component next() {
-      Component c = myDescendants.pullFirst();
+      Component c = myDescendants.removeFirst();
       // When we visit a component, enqueue any children it may have, so that if the iterator
       // continues to run, we'll visit its children later, in a breadth-first manner.
       if (c instanceof Container) {
