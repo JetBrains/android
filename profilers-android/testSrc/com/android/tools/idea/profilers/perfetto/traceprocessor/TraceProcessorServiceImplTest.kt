@@ -20,7 +20,6 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.utils.Pair
-import com.google.common.base.Ticker
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
@@ -47,7 +46,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadTrace - ok`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -73,7 +72,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadTrace - fail`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -91,7 +90,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadTrace - grpc retry`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.failsPerQuery = 2
@@ -109,7 +108,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadTrace - grpc retry exhausted`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.failsPerQuery = 5
@@ -133,7 +132,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadCpuData - ok`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
@@ -171,7 +170,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadCpuData - reload trace if necessary`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -204,7 +203,7 @@ class TraceProcessorServiceImplTest {
 
   @Test
   fun `loadCpuData - trace not loaded`() {
-    val client = TraceProcessorDaemonClient(TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
@@ -264,15 +263,6 @@ class TraceProcessorServiceImplTest {
         failCountPerQuery[request] = currentFailures + 1
         observer.onError(RuntimeException("RPC refused for testing"))
       }
-    }
-  }
-
-  private class FakeTicker(val step: Long, val unit: TimeUnit): Ticker() {
-    private var internalTimerNanos = 0L
-
-    override fun read(): Long {
-      internalTimerNanos += unit.toNanos(step)
-      return internalTimerNanos
     }
   }
 

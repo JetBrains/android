@@ -17,26 +17,29 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
+import com.android.tools.profilers.analytics.FeatureTracker
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import java.lang.RuntimeException
+import java.util.concurrent.TimeUnit
 
 /**
  * gRPC client used to communicate with the daemon (which runs a gRPC server).
  * For the API details, see {@code tools/base/profiler/native/trace_processor_daemon/trace_processor_service.proto}.
  */
-class TraceProcessorDaemonClient(): Disposable {
+class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
 
   @VisibleForTesting
-  constructor(stubForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null): this() {
+  constructor(ticker: Ticker, stubForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null): this(ticker) {
     this.stubForTesting = stubForTesting
   }
 
-  private val daemonManager = TraceProcessorDaemonManager()
+  private val daemonManager = TraceProcessorDaemonManager(ticker)
   private var cachedChannelPort = 0
   private var cachedChannel: ManagedChannel? = null
   private var cachedStub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null
@@ -53,11 +56,11 @@ class TraceProcessorDaemonClient(): Disposable {
   }
 
   @Synchronized
-  private fun getStub(): TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub {
+  private fun getStub(tracker: FeatureTracker): TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub {
     // If we have a stub for testing, just return it.
     stubForTesting?.let { return it }
 
-    daemonManager.makeSureDaemonIsRunning()
+    daemonManager.makeSureDaemonIsRunning(tracker)
     val previousChannel = cachedChannel
     // If we either don't have a channel created already of if it has been broken, we must create a new one.
     if (previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated
@@ -83,12 +86,14 @@ class TraceProcessorDaemonClient(): Disposable {
     return cachedStub!!
   }
 
-  fun loadTrace(requestProto: TraceProcessor.LoadTraceRequest): TraceProcessorDaemonQueryResult<TraceProcessor.LoadTraceResponse> {
-    return retry(requestProto) { getStub().loadTrace(it) }
+  fun loadTrace(requestProto: TraceProcessor.LoadTraceRequest,
+                tracker: FeatureTracker): TraceProcessorDaemonQueryResult<TraceProcessor.LoadTraceResponse> {
+    return retry(requestProto) { getStub(tracker).loadTrace(it) }
   }
 
-  fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest): TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse> {
-    return retry(request) { getStub().queryBatch(it) }
+  fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest,
+                        tracker: FeatureTracker): TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse> {
+    return retry(request) { getStub(tracker).queryBatch(it) }
   }
 
   // Retry the same call up to 3 times, if all of them fail rethrow the last exception.

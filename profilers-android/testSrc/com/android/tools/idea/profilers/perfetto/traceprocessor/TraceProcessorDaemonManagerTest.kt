@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.testutils.TestUtils
+import com.android.tools.profilers.FakeFeatureTracker
+import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assume
 import org.junit.Test
@@ -23,22 +25,28 @@ import java.io.BufferedReader
 import java.io.StringReader
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class TraceProcessorDaemonManagerTest {
+
+  private val fakeTicker = FakeTicker(10, TimeUnit.MILLISECONDS)
+  private val fakeFeatureTracker = FakeFeatureTracker()
 
   @Test
   fun `spawn and shutdown daemon`() {
     // TODO: Find proper tpd binary path when running sandboxes in Bazel.
     Assume.assumeFalse(TestUtils.runningFromBazel())
 
-    val manager = TraceProcessorDaemonManager()
+    val manager = TraceProcessorDaemonManager(fakeTicker)
     assertThat(manager.processIsRunning()).isFalse()
 
-    manager.makeSureDaemonIsRunning()
+    manager.makeSureDaemonIsRunning(fakeFeatureTracker)
     assertThat(manager.processIsRunning()).isTrue()
 
     manager.dispose()
     assertThat(manager.processIsRunning()).isFalse()
+
+    assertThat(fakeFeatureTracker.traceProcessorManagerMetrics).containsExactly(Pair.of(true, 10L))
   }
 
   @Test
