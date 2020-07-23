@@ -31,7 +31,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchExc
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.appinspection.internal.ProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
@@ -192,7 +192,7 @@ class AppInspectionView(
               is CancellationException -> {}
               // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
               // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
-              is ProcessNoLongerExistsException -> {}
+              is AppInspectionProcessNoLongerExistsException -> {}
               // This happens if a user is already interacting with an inspector in another window, or if Studio got killed suddenly and
               // the old inspector is still running.
               is AppInspectionLaunchException -> {
