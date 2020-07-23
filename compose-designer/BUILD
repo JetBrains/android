@@ -72,6 +72,14 @@ iml_module(
     name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 10,
+            "test_filter": "com.android.tools.idea.compose.gradle",
+        },
+        "non-gradle": {},
+    },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     # keep sorted
@@ -123,7 +131,6 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
         "no_test_mac",  # b/72973198
     ],
@@ -193,6 +200,14 @@ iml_module(
     name = "unb.intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 10,
+            "test_filter": "com.android.tools.idea.compose.gradle",
+        },
+        "non-gradle": {},
+    },
     tags = [
         "manual",
         "no_test_windows",
@@ -220,7 +235,6 @@ iml_module(
     test_runtime_deps = ["//tools/adt/idea/databinding:unb.intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
         "no_test_mac",  # b/72973198
     ],
