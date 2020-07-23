@@ -24,9 +24,9 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspathDependencyRefactoringProcessor;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpGradleVersionRefactoringProcessor;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor;
+import com.android.tools.idea.gradle.project.upgrade.AgpClasspathDependencyRefactoringProcessor;
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor;
+import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;

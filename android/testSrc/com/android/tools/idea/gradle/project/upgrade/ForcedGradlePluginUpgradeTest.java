@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.common.truth.Truth.assertThat;
@@ -32,8 +32,6 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;

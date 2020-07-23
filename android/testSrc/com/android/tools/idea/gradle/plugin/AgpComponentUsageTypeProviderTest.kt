@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspathDependencyRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpGradleVersionRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.CompileRuntimeConfigurationRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+import com.android.tools.idea.gradle.project.upgrade.AgpClasspathDependencyRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.CompileRuntimeConfigurationRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.usages.UsageTarget

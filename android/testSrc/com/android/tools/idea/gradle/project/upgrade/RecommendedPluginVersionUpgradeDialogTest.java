@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
+import com.android.tools.idea.gradle.project.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 

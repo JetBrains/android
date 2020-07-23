@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("GradlePluginUpgrade")
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade
+package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpClasspathDependencyRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpClasspathDependencyRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

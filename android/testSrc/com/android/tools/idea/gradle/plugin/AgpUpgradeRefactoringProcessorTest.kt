@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.plugin
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpGradleVersionRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.CompileRuntimeConfigurationRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GMavenRepositoryRefactoringProcessor
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.CompileRuntimeConfigurationRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.GMavenRepositoryRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT;

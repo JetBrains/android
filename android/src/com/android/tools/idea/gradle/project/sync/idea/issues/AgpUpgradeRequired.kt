@@ -19,8 +19,8 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginPreviewVersionUpgradeDialog
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.performForcedPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.ForcedPluginPreviewVersionUpgradeDialog
+import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
