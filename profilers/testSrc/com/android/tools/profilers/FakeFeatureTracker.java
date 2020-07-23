@@ -27,6 +27,11 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.utils.Pair;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,6 +91,16 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * The last {@link CaptureDetails} passed to the tracker.
    */
   @Nullable private CaptureDetails.Type myLastCaptureDetailsType = null;
+
+  /**
+   * Daemon manager metrics in the order they were passed to the tracker.
+   */
+  private final List<Pair<Boolean, Long>> myTpdManagerMetrics = new ArrayList<>();
+
+  /**
+   * Query metrics in the order they were passed to the tracker.
+   */
+  private final List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> myTpdQueryMetrics = new ArrayList<>();
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
@@ -426,6 +441,70 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter) {
+  }
+
+  @Override
+  public void trackTraceProcessorDaemonSpawnAttempt(boolean successful, long timeToSpawnMs) {
+    myTpdManagerMetrics.add(Pair.of(successful, timeToSpawnMs));
+  }
+
+  @NotNull
+  public List<Pair<Boolean, Long>> getTraceProcessorManagerMetrics() {
+    return myTpdManagerMetrics;
+  }
+
+  @Override
+  public void trackTraceProcessorLoadTrace(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
+    myTpdQueryMetrics.add(Pair.of(
+      AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE,
+      TraceProcessorDaemonQueryStats.newBuilder()
+        .setQueryStatus(queryStatus)
+        .setMethodDurationMs(methodTimeMs)
+        .setGrpcQueryDurationMs(queryTimeMs)
+        .setTraceSizeBytes(traceSizeBytes)
+        .build()));
+  }
+
+  @Override
+  public void trackTraceProcessorProcessMetadata(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    myTpdQueryMetrics.add(Pair.of(
+      AndroidProfilerEvent.Type.TPD_QUERY_PROCESS_METADATA,
+      TraceProcessorDaemonQueryStats.newBuilder()
+        .setQueryStatus(queryStatus)
+        .setMethodDurationMs(methodTimeMs)
+        .setGrpcQueryDurationMs(queryTimeMs)
+        .build()));
+  }
+
+  @Override
+  public void trackTraceProcessorCpuData(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    myTpdQueryMetrics.add(Pair.of(
+      AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA,
+      TraceProcessorDaemonQueryStats.newBuilder()
+        .setQueryStatus(queryStatus)
+        .setMethodDurationMs(methodTimeMs)
+        .setGrpcQueryDurationMs(queryTimeMs)
+        .build()));
+  }
+
+  @Override
+  public void trackTraceProcessorMemoryData(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    myTpdQueryMetrics.add(Pair.of(
+      AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA,
+      TraceProcessorDaemonQueryStats.newBuilder()
+        .setQueryStatus(queryStatus)
+        .setMethodDurationMs(methodTimeMs)
+        .setGrpcQueryDurationMs(queryTimeMs)
+        .build()));
+  }
+
+  @NotNull
+  public List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> getTraceProcessorQueryMetrics() {
+    return myTpdQueryMetrics;
   }
 
   public EnergyRangeMetadata getLastEnergyRangeMetadata() {
