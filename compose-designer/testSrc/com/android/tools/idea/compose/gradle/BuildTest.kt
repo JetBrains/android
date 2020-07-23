@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.compose.gradle
 
+import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
@@ -27,6 +29,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiUtil
+import com.intellij.testFramework.EdtRule
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -36,10 +39,12 @@ class BuildTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
 
+  @get:Rule
+  val edtRule = EdtRule()
+
   @Test
   fun testHasBeenBuiltSuccessfully() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
     val project = projectRule.project
     val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!

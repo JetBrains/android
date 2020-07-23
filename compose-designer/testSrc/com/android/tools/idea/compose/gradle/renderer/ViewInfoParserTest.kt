@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.renderer
+package com.android.tools.idea.compose.gradle.renderer
 
-import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.navigation.remapInline
+import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import org.junit.Assert.assertNotNull
@@ -41,7 +42,8 @@ class ViewInfoParserTest {
     val module = facet.module
 
     renderPreviewElementForResult(facet,
-                                  SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
+                                                                                                     SinglePreviewElementInstance.forTesting(
+                                                                                                       "google.simpleapplication.MainActivityKt.TwoElementsPreview"))
       .thenAccept { renderResult ->
         ImageIO.write(renderResult?.renderedImage?.copy ?: return@thenAccept, "png", File("/tmp/out.png"))
 

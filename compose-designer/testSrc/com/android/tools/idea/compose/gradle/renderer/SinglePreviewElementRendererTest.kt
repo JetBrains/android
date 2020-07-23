@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.renderer
+package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -35,7 +36,8 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testInvalidPreview() {
     assertNull(renderPreviewElement(projectRule.androidFacet(":app"),
-                                    SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
+                                    SinglePreviewElementInstance.forTesting(
+                                                                                                         "google.simpleapplication.MainActivityKt.InvalidPreview")).get())
   }
 
   /**
@@ -43,8 +45,9 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testDefaultPreviewRendering() {
-    val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
-                                             SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+    val defaultRender = renderPreviewElement(
+      projectRule.androidFacet(":app"),
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
                                      0.0)
@@ -55,11 +58,12 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testDefaultPreviewRenderingWithBackground() {
-    val defaultRenderWithBackground = renderPreviewElement(projectRule.androidFacet(":app"),
-                                                           SinglePreviewElementInstance.forTesting(
-                                                             "google.simpleapplication.MainActivityKt.DefaultPreview",
-                                                             showBackground = true,
-                                                             backgroundColor = "#F00")).get()
+    val defaultRenderWithBackground = renderPreviewElement(
+      projectRule.androidFacet(":app"),
+      SinglePreviewElementInstance.forTesting(
+        "google.simpleapplication.MainActivityKt.DefaultPreview",
+        showBackground = true,
+        backgroundColor = "#F00")).get()
     ImageDiffUtil.assertImageSimilar(
       File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
       defaultRenderWithBackground!!,
@@ -72,8 +76,9 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testEmptyRender() {
-    val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
-                                             SinglePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
+    val defaultRender = renderPreviewElement(
+      projectRule.androidFacet(":app"),
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
 
     assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)
   }

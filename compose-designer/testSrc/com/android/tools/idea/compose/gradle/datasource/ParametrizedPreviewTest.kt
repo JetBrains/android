@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.datasource
+package com.android.tools.idea.compose.gradle.datasource
 
 import com.android.ide.common.blame.Message
 import com.android.testutils.TestUtils
@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.EdtRule
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -39,6 +40,9 @@ class ParametrizedPreviewTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
+  @get:Rule
+  val edtRule = EdtRule()
+
   @Before
   fun setUp() {
     RenderService.shutdownRenderExecutor(5)
@@ -46,7 +50,6 @@ class ParametrizedPreviewTest {
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
     val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
     if (!gradleInvocationResult.isBuildSuccessful) {
       Assert.fail("""
