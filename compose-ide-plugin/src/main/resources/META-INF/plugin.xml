@@ -24,6 +24,7 @@ The Jetpack Compose IDE plugin
     <vendor url="http://www.android.com">Android</vendor>
 
     <idea-version since-build="191.5109.14" until-build="201.*"/>
+    <depends>org.jetbrains.android</depends>
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
