@@ -90,9 +90,7 @@ class EmulatorToolWindowPanelTest {
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 363 height: 520")
     ui.updateToolbars()
-/* b/162036195
     assertAppearance(ui, "image1")
-b/162036195 */
 
     // Check EmulatorPowerButtonAction.
     var button = ui.findComponent { it is ActionButton && it.action.templateText == "Power" } ?: throw AssertionError()
@@ -220,7 +218,7 @@ b/162036195 */
 
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.04)
   }
 
   private fun getGoldenFile(name: String): File {
