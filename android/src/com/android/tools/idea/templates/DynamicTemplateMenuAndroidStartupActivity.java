@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidStartupActivity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -32,6 +33,7 @@ class DynamicTemplateMenuAndroidStartupActivity implements AndroidStartupActivit
   private static boolean ourDynamicTemplateMenuCreated;
 
   @Override
+  @UiThread
   public void runActivity(@NotNull Project project, @NotNull Disposable disposable) {
     createDynamicTemplateMenu();
   }
