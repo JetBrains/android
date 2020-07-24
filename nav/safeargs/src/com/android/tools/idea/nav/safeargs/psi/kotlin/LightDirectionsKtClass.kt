@@ -103,15 +103,12 @@ class LightDirectionsKtClass(
 ) : ClassDescriptorImpl(containingDescriptor, name, Modality.FINAL, ClassKind.CLASS, emptyList(), sourceElement, false, storageManager) {
 
   private val LOG get() = Logger.getInstance(LightDirectionsKtClass::class.java)
-  private val _primaryConstructor = storageManager.createLazyValue { computePrimaryConstructor() }
   private val _companionObject = storageManager.createLazyValue { computeCompanionObject() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = MemberScope.Empty
-  override fun getConstructors() = listOf(_primaryConstructor())
-  override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
+  override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
+  override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
   override fun getCompanionObjectDescriptor() = _companionObject()
-
-  private fun computePrimaryConstructor() = this.createConstructor()
 
   private fun computeCompanionObject(): ClassDescriptor {
     val directionsClassDescriptor = this@LightDirectionsKtClass
