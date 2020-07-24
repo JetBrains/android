@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.profiler.proto.Cpu
 
 /**
@@ -25,6 +26,7 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
   /**
    * Sampling interval (for sample-based profiling) in microseconds.
    */
+  @OptionsProperty(name = "Sample interval: ", group = TRACE_CONFIG_GROUP, order = 100, unit = "Us (Microseconds)")
   var profilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US
 
   override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {

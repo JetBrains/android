@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu.config;
 
+import com.android.tools.adtui.model.options.OptionsProvider;
+import com.android.tools.adtui.model.options.OptionsProperty;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import org.jetbrains.annotations.NotNull;
@@ -22,10 +24,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Preferences set when start a profiling session.
  */
-public abstract class ProfilingConfiguration {
+public abstract class ProfilingConfiguration implements OptionsProvider {
   public static final String DEFAULT_CONFIGURATION_NAME = "Unnamed";
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
+  public static final String TRACE_CONFIG_GROUP = "Trace config";
 
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
@@ -46,18 +49,24 @@ public abstract class ProfilingConfiguration {
   public abstract CpuTraceType getTraceType();
 
   @NotNull
+  @OptionsProperty(name = "Configuration name: ", group = TRACE_CONFIG_GROUP, order = 99)
   public String getName() {
     return myName;
   }
 
+  @OptionsProperty
   public void setName(@NotNull String name) {
     myName = name;
   }
 
+  @OptionsProperty(group = "Performance", name = "Live allocation tracking:",
+    description = "Live allocation tracking tracks allocated java objects. This can have an impact on overall app performance. " +
+                  "It is recommended to disable this when recording a trace.")
   public boolean isDisableLiveAllocation() {
     return myDisableLiveAllocation;
   }
 
+  @OptionsProperty
   public void setDisableLiveAllocation(boolean disableLiveAllocation) {
     myDisableLiveAllocation = disableLiveAllocation;
   }
@@ -81,7 +90,8 @@ public abstract class ProfilingConfiguration {
           artSampled.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
           artSampled.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
           configuration = artSampled;
-        } else {
+        }
+        else {
           ArtInstrumentedConfiguration art = new ArtInstrumentedConfiguration(proto.getName());
           art.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
           configuration = art;

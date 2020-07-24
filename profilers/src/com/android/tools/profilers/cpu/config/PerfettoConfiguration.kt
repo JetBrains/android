@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Cpu
 
 /**
  * Perfetto configuration. This is used internally to differentiate the perfetto config from the atrace config.
+ * Exposed properties only from {@link AtraceConfiguration}
  */
 class PerfettoConfiguration(name: String) : AtraceConfiguration(name) {
   override fun getTraceType(): Cpu.CpuTraceType {
